@@ -18,7 +18,6 @@ package org.onosproject.net.newresource;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -74,8 +73,15 @@ public final class ContinuousResource implements Resource {
     }
 
     @Override
-    public List<Object> components() {
-        return id.components();
+    public boolean isTypeOf(Class<?> ancestorType) {
+        String typeName = (String) id.components().get(id.components().size() - 1);
+        boolean foundInLeaf = typeName.equals(ancestorType.getCanonicalName());
+        boolean foundInAncestor = id.components().subList(0, id.components().size()).stream()
+                .map(Object::getClass)
+                .filter(x -> x.equals(ancestorType))
+                .findAny()
+                .isPresent();
+        return foundInAncestor || foundInLeaf;
     }
 
     @Override

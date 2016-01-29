@@ -24,7 +24,6 @@ import org.onosproject.net.PortNumber;
 
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -50,13 +49,6 @@ public class ResourceTest {
                 .addEqualityGroup(resource2)
                 .addEqualityGroup(resource3, sameAsResource3)
                 .testEquals();
-    }
-
-    @Test
-    public void testComponents() {
-        Resource port = Resources.discrete(D1, P1).resource();
-
-        assertThat(port.components(), contains(D1, P1));
     }
 
     @Test
@@ -95,6 +87,21 @@ public class ResourceTest {
         Resource resource = Resources.discrete(D1).resource();
 
         assertThat(resource.parent(), is(Optional.of(Resource.ROOT)));
+    }
+
+    @Test
+    public void testTypeOf() {
+        DiscreteResource discrete = Resources.discrete(D1, P1, VLAN1).resource();
+        assertThat(discrete.isTypeOf(DeviceId.class), is(true));
+        assertThat(discrete.isTypeOf(PortNumber.class), is(true));
+        assertThat(discrete.isTypeOf(VlanId.class), is(true));
+        assertThat(discrete.isTypeOf(Bandwidth.class), is(false));
+
+        ContinuousResource continuous = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
+        assertThat(continuous.isTypeOf(DeviceId.class), is(true));
+        assertThat(continuous.isTypeOf(PortNumber.class), is(true));
+        assertThat(continuous.isTypeOf(Bandwidth.class), is(true));
+        assertThat(continuous.isTypeOf(VlanId.class), is(false));
     }
 
     @Test

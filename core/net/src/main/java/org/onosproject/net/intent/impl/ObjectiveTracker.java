@@ -61,7 +61,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -303,11 +302,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     private class InternalResourceListener implements ResourceListener {
         @Override
         public void event(ResourceEvent event) {
-            Optional<Class<?>> deviceEvent = event.subject().components().stream()
-                    .map(Object::getClass)
-                    .filter(x -> x == PortNumber.class)
-                    .findFirst();
-            if (deviceEvent.isPresent()) {
+            if (event.subject().isTypeOf(PortNumber.class)) {
                 executorService.execute(() -> {
                     if (delegate == null) {
                         return;

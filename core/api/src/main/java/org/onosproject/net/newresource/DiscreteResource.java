@@ -18,7 +18,6 @@ package org.onosproject.net.newresource;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -64,8 +63,12 @@ public final class DiscreteResource implements Resource {
     }
 
     @Override
-    public List<Object> components() {
-        return id.components();
+    public boolean isTypeOf(Class<?> ancestorType) {
+        return id.components().stream()
+                .map(Object::getClass)
+                .filter(x -> x.equals(ancestorType))
+                .findAny()
+                .isPresent();
     }
 
     @Override

@@ -17,7 +17,6 @@ package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -42,11 +41,13 @@ public interface Resource {
     DiscreteResource ROOT = new DiscreteResource();
 
     /**
-     * Returns the components of this resource.
+     * Checks if the type of this instance is the specified type.
      *
-     * @return the components of this resource
+     * @param ancestorType type of resource to be checked.
+     * @return true if this resource is under the resource whose type is the given type.
      */
-    List<Object> components();
+    // TODO: find more proper name
+    boolean isTypeOf(Class<?> ancestorType);
 
     /**
      * Returns the volume of this resource.
