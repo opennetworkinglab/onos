@@ -17,6 +17,7 @@ package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -56,6 +57,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -158,27 +161,25 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
             return ImmutableList.of(createIntent(intent, firstPath, lambda));
         }
 
-        // Use first path that can be successfully reserved
-        for (Path path : paths) {
-            // find common lambda on path
-            // a list of OchSignal indicates consecutive OchSignals
-            List<OchSignal> lambda = findFirstAvailableOch(path);
-            if (lambda.isEmpty()) {
-                continue;
-            }
-            List<Resource> lambdaResources = convertToResources(path.links(), lambda);
-            if (!lambdaResources.stream().allMatch(resourceService::isAvailable)) {
-                continue;
-            }
-            resources.addAll(lambdaResources);
+        // remaining cases
+        // Use first path that the required resources are available
+        Optional<Map.Entry<Path, List<OchSignal>>> found = paths.stream()
+                .map(path -> Maps.immutableEntry(path, findFirstAvailableOch(path)))
+                .filter(entry -> !entry.getValue().isEmpty())
+                .filter(entry -> convertToResources(entry.getKey().links(),
+                        entry.getValue()).stream().allMatch(resourceService::isAvailable))
+                .findFirst();
+
+        if (found.isPresent()) {
+            resources.addAll(convertToResources(found.get().getKey().links(), found.get().getValue()));
 
             allocateResources(intent, resources);
 
-            OchSignal ochSignal = OchSignal.toFixedGrid(lambda, ChannelSpacing.CHL_50GHZ);
-            return ImmutableList.of(createIntent(intent, path, ochSignal));
+            OchSignal ochSignal = OchSignal.toFixedGrid(found.get().getValue(), ChannelSpacing.CHL_50GHZ);
+            return ImmutableList.of(createIntent(intent, found.get().getKey(), ochSignal));
+        } else {
+            throw new IntentCompilationException("Unable to find suitable lightpath for intent " + intent);
         }
-
-        throw new IntentCompilationException("Unable to find suitable lightpath for intent " + intent);
     }
 
     private Intent createIntent(OpticalConnectivityIntent parentIntent, Path path, OchSignal lambda) {
