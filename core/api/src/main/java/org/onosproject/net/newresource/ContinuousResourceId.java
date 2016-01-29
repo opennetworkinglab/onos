@@ -45,6 +45,7 @@ public final class ContinuousResourceId extends ResourceId {
         this.name = "";
     }
 
+    @Override
     ImmutableList<Object> components() {
         return components;
     }

@@ -42,6 +42,7 @@ public final class DiscreteResourceId extends ResourceId {
         this.components = ImmutableList.of();
     }
 
+    @Override
     ImmutableList<Object> components() {
         return components;
     }
