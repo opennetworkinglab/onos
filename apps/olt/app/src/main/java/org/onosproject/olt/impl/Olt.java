@@ -406,7 +406,8 @@ public class Olt
                 //TODO: Port handling and bookkeeping should be inproved once
                 // olt firmware handles correct behaviour.
                 case PORT_ADDED:
-                    if (event.port().isEnabled()) {
+                    if (oltData.get(devId).uplink() != event.port().number() &&
+                                            event.port().isEnabled()) {
                         installFilteringObjectives(devId, event.port());
                     }
                     break;
@@ -415,7 +416,6 @@ public class Olt
                     unprovisionSubscriber(devId, olt.uplink(),
                                           event.port().number(),
                                           olt.vlan());
-                    installFilteringObjectives(devId, event.port());
                     break;
                 case PORT_UPDATED:
                     break;
