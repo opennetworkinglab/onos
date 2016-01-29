@@ -52,10 +52,11 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
         Preconditions.checkNotNull(controller, "Netconf controller is null");
         List<ControllerInfo> controllers = new ArrayList<>();
         try {
+            String reply = controller.getDevicesMap().get(ofDeviceId).getSession().
+                    getConfig("running");
+            log.debug("Reply XML {}", reply);
             controllers.addAll(XmlConfigParser.parseStreamControllers(XmlConfigParser.
-                    loadXml(new ByteArrayInputStream(controller.
-                            getDevicesMap().get(ofDeviceId).getSession().
-                            getConfig("running").getBytes(StandardCharsets.UTF_8)))));
+                    loadXml(new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8)))));
         } catch (IOException e) {
             log.error("Cannot comunicate to device {} ", ofDeviceId);
         }
@@ -70,16 +71,15 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
         Preconditions.checkNotNull(controller, "Netconf controller is null");
         try {
             NetconfDevice device = controller.getNetconfDevice(deviceId);
-            log.warn("provider map {}", controller.getDevicesMap());
             String config = null;
+
             try {
+                String reply = device.getSession().getConfig("running");
+                log.info("reply XML {}", reply);
                 config = XmlConfigParser.createControllersConfig(
                         XmlConfigParser.loadXml(getClass().getResourceAsStream("controllers.xml")),
                         XmlConfigParser.loadXml(
-                                new ByteArrayInputStream(device.getSession()
-                                                                 .getConfig("running")
-                                                                 .getBytes(
-                                                                         StandardCharsets.UTF_8))),
+                                new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8))),
                         "running", "merge", "create", controllers
                 );
             } catch (IOException e) {

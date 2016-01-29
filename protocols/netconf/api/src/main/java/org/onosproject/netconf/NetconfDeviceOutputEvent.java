@@ -91,14 +91,26 @@ public final class NetconfDeviceOutputEvent extends
         this.messageID = msgID;
     }
 
+    /**
+     * return the message payload of the reply form the device.
+     * @return reply
+     */
     public String getMessagePayload() {
         return messagePayload;
     }
 
+    /**
+     * Event-related device information.
+     * @return information about the device
+     */
     public NetconfDeviceInfo getDeviceInfo() {
         return deviceInfo;
     }
 
+    /**
+     * Reply messageId.
+     * @return messageId
+     */
     public Integer getMessageID() {
         return messageID;
     }
