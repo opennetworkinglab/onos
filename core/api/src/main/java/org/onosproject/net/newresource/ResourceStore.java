@@ -20,6 +20,7 @@ import org.onosproject.store.Store;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Service for storing resource and consumer information.
@@ -104,13 +105,13 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
     Collection<Resource> getResources(ResourceConsumer consumer);
 
     /**
-     * Returns a collection of the child resources of the specified parent.
+     * Returns a set of the child resources of the specified parent.
      *
      * @param parent parent of the resource to be returned
-     * @return a collection of the child resources of the specified resource
+     * @return a set of the child resources of the specified resource
      */
     // TODO: need to change the argument type to ResourceId or ResourceId.Discrete
-    Collection<Resource> getChildResources(Resource parent);
+    Set<Resource> getChildResources(Resource parent);
 
     /**
      * Returns a collection of the resources which are children of the specified parent and

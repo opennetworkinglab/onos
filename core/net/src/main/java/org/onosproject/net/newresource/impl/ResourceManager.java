@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -147,18 +148,18 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     }
 
     @Override
-    public Collection<Resource> getAvailableResources(Resource parent) {
+    public Set<Resource> getAvailableResources(Resource parent) {
         checkNotNull(parent);
 
-        Collection<Resource> children = store.getChildResources(parent);
+        Set<Resource> children = store.getChildResources(parent);
         return children.stream()
                 // We access store twice in this method, then the store may be updated by others
                 .filter(store::isAvailable)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     @Override
-    public Collection<Resource> getRegisteredResources(Resource parent) {
+    public Set<Resource> getRegisteredResources(Resource parent) {
         checkNotNull(parent);
 
         return store.getChildResources(parent);

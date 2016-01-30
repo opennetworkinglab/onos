@@ -16,6 +16,7 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.newresource.ResourceAllocation;
@@ -30,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 class MockResourceService implements ResourceService {
@@ -92,16 +94,16 @@ class MockResourceService implements ResourceService {
     }
 
     @Override
-    public Collection<Resource> getAvailableResources(Resource parent) {
+    public Set<Resource> getAvailableResources(Resource parent) {
 
         Collection<Resource> resources = new HashSet<Resource>();
         resources.add(parent.child(VlanId.vlanId((short) 10)));
         resources.add(parent.child(MplsLabel.mplsLabel(10)));
-        return ImmutableList.copyOf(resources);
+        return ImmutableSet.copyOf(resources);
     }
 
     @Override
-    public Collection<Resource> getRegisteredResources(Resource parent) {
+    public Set<Resource> getRegisteredResources(Resource parent) {
         return getAvailableResources(parent);
     }
 

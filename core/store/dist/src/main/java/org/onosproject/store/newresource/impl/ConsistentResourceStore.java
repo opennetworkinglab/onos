@@ -17,6 +17,7 @@ package org.onosproject.store.newresource.impl;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -389,16 +390,16 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     }
 
     @Override
-    public Collection<Resource> getChildResources(Resource parent) {
+    public Set<Resource> getChildResources(Resource parent) {
         checkNotNull(parent);
         if (!(parent instanceof DiscreteResource)) {
             // only Discrete resource can have child resource
-            return ImmutableList.of();
+            return ImmutableSet.of();
         }
 
         Versioned<Set<Resource>> children = childMap.get((DiscreteResource) parent);
         if (children == null) {
-            return ImmutableList.of();
+            return ImmutableSet.of();
         }
 
         return children.value();

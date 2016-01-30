@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 
 import org.apache.karaf.shell.commands.Argument;
@@ -102,7 +101,7 @@ public class ResourcesCommand extends AbstractShellCommand {
 
     private void printResource(Resource resource, int level) {
         // TODO add an option to show only available resource
-        Collection<Resource> children = resourceService.getRegisteredResources(resource);
+        Set<Resource> children = resourceService.getRegisteredResources(resource);
 
         if (resource.equals(Resource.ROOT)) {
             print("ROOT");

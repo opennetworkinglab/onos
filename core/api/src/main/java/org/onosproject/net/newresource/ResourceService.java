@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -162,7 +163,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @return available resources under the specified resource
      */
     // TODO: need to change the argument type to ResourceId or ResourceId.Discrete
-    Collection<Resource> getAvailableResources(Resource parent);
+    Set<Resource> getAvailableResources(Resource parent);
 
     /**
      * Returns resources registered under the specified resource.
@@ -171,7 +172,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @return registered resources under the specified resource
      */
     // TODO: need to change the argument type to ResourceId or ResourceId.Discrete
-    Collection<Resource> getRegisteredResources(Resource parent);
+    Set<Resource> getRegisteredResources(Resource parent);
 
 
     /**
