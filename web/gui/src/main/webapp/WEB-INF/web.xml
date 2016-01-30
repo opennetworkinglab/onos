@@ -145,6 +145,28 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>Foo Module</servlet-name>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
+        </servlet-class>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.resourceConfigClass
+            </param-name>
+            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig
+            </param-value>
+        </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-value>org.onosproject.ui.impl.FooResource</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Foo Module</servlet-name>
+        <url-pattern>/raw/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>JAX-RS Service</servlet-name>
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
         </servlet-class>

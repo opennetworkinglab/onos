@@ -44,7 +44,7 @@
         if (eeggMax.indexOf(eegg) === 0) {
             if (eegg === eeggMax) {
                 d3.select('body').append('div').attr('id', 'eegg')
-                    .append('img').attr('src', 'data/img/eegg.png');
+                    .append('img').attr('src', 'raw/ewo.foo');
                 $timeout(function () { d3.select('#eegg').remove(); }, 3000);
                 eegg = '';
             }

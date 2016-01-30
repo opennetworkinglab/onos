@@ -79,6 +79,7 @@
                             WEB-INF/classes/onos.js=src/main/webapp/onos.js,
                             WEB-INF/classes/nav.html=src/main/webapp/nav.html,
                             WEB-INF/classes/app/view=src/main/webapp/app/view,
+                            WEB-INF/classes/raw=src/main/webapp/raw,
                             {maven-resources}
                         </Include-Resource>
                         <Bundle-SymbolicName>
@@ -87,6 +88,7 @@
                         <Import-Package>
                             org.slf4j,
                             org.osgi.framework,
+                            javax.imageio.*,
                             javax.ws.rs,javax.ws.rs.core,javax.ws.rs.ext,
                             javax.servlet.*,
                             com.sun.jersey.api,
