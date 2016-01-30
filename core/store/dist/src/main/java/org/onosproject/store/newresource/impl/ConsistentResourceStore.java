@@ -472,12 +472,11 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
      * @param map map holding multiple values for a key
      * @param key key specifying values
      * @param values values to be appended
-     * @param <K> type of the key
-     * @param <V> type of the element of the list
      * @return true if the operation succeeds, false otherwise.
      */
-    private <K, V> boolean appendValues(TransactionalMap<K, Set<V>> map, K key, List<V> values) {
-        Set<V> oldValues = map.putIfAbsent(key, new LinkedHashSet<>(values));
+    private boolean appendValues(TransactionalMap<DiscreteResource, Set<Resource>> map,
+                                 DiscreteResource key, List<Resource> values) {
+        Set<Resource> oldValues = map.putIfAbsent(key, new LinkedHashSet<>(values));
         if (oldValues == null) {
             return true;
         }
@@ -487,7 +486,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             return true;
         }
 
-        LinkedHashSet<V> newValues = new LinkedHashSet<>(oldValues);
+        LinkedHashSet<Resource> newValues = new LinkedHashSet<>(oldValues);
         newValues.addAll(values);
         return map.replace(key, oldValues, newValues);
     }
@@ -499,12 +498,11 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
      * @param map map holding multiple values for a key
      * @param key key specifying values
      * @param values values to be removed
-     * @param <K> type of the key
-     * @param <V> type of the element of the list
      * @return true if the operation succeeds, false otherwise
      */
-    private <K, V> boolean removeValues(TransactionalMap<K, Set<V>> map, K key, List<? extends V> values) {
-        Set<V> oldValues = map.putIfAbsent(key, new LinkedHashSet<>());
+    private boolean removeValues(TransactionalMap<DiscreteResource, Set<Resource>> map,
+                                 DiscreteResource key, List<Resource> values) {
+        Set<Resource> oldValues = map.putIfAbsent(key, new LinkedHashSet<>());
         if (oldValues == null) {
             log.trace("No-Op removing values. key {} did not exist", key);
             return true;
@@ -516,7 +514,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             return true;
         }
 
-        LinkedHashSet<V> newValues = new LinkedHashSet<>(oldValues);
+        LinkedHashSet<Resource> newValues = new LinkedHashSet<>(oldValues);
         newValues.removeAll(values);
         return map.replace(key, oldValues, newValues);
     }
