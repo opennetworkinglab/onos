@@ -103,10 +103,11 @@ public class CordVtnRuleInstaller {
     private static final int TABLE_DST_IP = 4;
     private static final int TABLE_TUNNEL_IN = 5;
 
+    private static final int MANAGEMENT_PRIORITY = 55000;
+    private static final int HIGH_PRIORITY = 50000;
     private static final int DEFAULT_PRIORITY = 5000;
-    private static final int LOWER_PRIORITY = 4000;
+    private static final int LOW_PRIORITY = 4000;
     private static final int LOWEST_PRIORITY = 0;
-    private static final int HIGHER_PRIORITY = 50000;
 
     private static final int VXLAN_UDP_PORT = 4789;
 
@@ -387,6 +388,126 @@ public class CordVtnRuleInstaller {
     }
 
     /**
+     * Populates flow rules for management network access.
+     *
+     * @param host host which has management network interface
+     * @param mService management network service
+     */
+    public void populateManagementNetworkRules(Host host, CordService mService) {
+        checkNotNull(mService);
+
+        DeviceId deviceId = host.location().deviceId();
+        IpAddress hostIp = host.ipAddresses().stream().findFirst().get();
+
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchArpTpa(mService.serviceIp().getIp4Address())
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.LOCAL)
+                .build();
+
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(MANAGEMENT_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_FIRST)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+
+        selector = DefaultTrafficSelector.builder()
+                .matchInPort(PortNumber.LOCAL)
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchArpTpa(hostIp.getIp4Address())
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .setOutput(host.location().port())
+                .build();
+
+        flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(MANAGEMENT_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_FIRST)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+
+        selector = DefaultTrafficSelector.builder()
+                .matchInPort(PortNumber.LOCAL)
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(mService.serviceIpRange())
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .transition(TABLE_DST_IP)
+                .build();
+
+        flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(MANAGEMENT_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_FIRST)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+
+        selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(mService.serviceIp().toIpPrefix())
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.LOCAL)
+                .build();
+
+        flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(MANAGEMENT_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_ACCESS_TYPE)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+    }
+
+    /**
+     * Removes management network access rules.
+     *
+     * @param host host to be removed
+     * @param mService service for management network
+     */
+    public void removeManagementNetworkRules(Host host, CordService mService) {
+        checkNotNull(mService);
+
+        for (FlowRule flowRule : flowRuleService.getFlowRulesById(appId)) {
+            if (flowRule.deviceId().equals(host.location().deviceId())) {
+                PortNumber port = getOutputFromTreatment(flowRule);
+                if (port != null && port.equals(host.location().port())) {
+                    processFlowRule(false, flowRule);
+                }
+            }
+
+            // TODO remove the other rules if mgmt network is not in use
+        }
+    }
+
+    /**
      * Populates default rules on the first table.
      * The rules are for shuttling vxlan-encapped packets and supporting physical
      * network connectivity.
@@ -409,7 +530,7 @@ public class CordVtnRuleInstaller {
                 .fromApp(appId)
                 .withSelector(selector)
                 .withTreatment(treatment)
-                .withPriority(HIGHER_PRIORITY)
+                .withPriority(HIGH_PRIORITY)
                 .forDevice(deviceId)
                 .forTable(TABLE_FIRST)
                 .makePermanent()
@@ -433,7 +554,7 @@ public class CordVtnRuleInstaller {
                 .fromApp(appId)
                 .withSelector(selector)
                 .withTreatment(treatment)
-                .withPriority(HIGHER_PRIORITY)
+                .withPriority(HIGH_PRIORITY)
                 .forDevice(deviceId)
                 .forTable(TABLE_FIRST)
                 .makePermanent()
@@ -456,7 +577,7 @@ public class CordVtnRuleInstaller {
                 .fromApp(appId)
                 .withSelector(selector)
                 .withTreatment(treatment)
-                .withPriority(HIGHER_PRIORITY)
+                .withPriority(HIGH_PRIORITY)
                 .forDevice(deviceId)
                 .forTable(TABLE_FIRST)
                 .makePermanent()
@@ -479,7 +600,7 @@ public class CordVtnRuleInstaller {
                 .fromApp(appId)
                 .withSelector(selector)
                 .withTreatment(treatment)
-                .withPriority(HIGHER_PRIORITY)
+                .withPriority(HIGH_PRIORITY)
                 .forDevice(deviceId)
                 .forTable(TABLE_FIRST)
                 .makePermanent()
@@ -633,7 +754,7 @@ public class CordVtnRuleInstaller {
                 .fromApp(appId)
                 .withSelector(selector)
                 .withTreatment(treatment)
-                .withPriority(LOWER_PRIORITY)
+                .withPriority(LOW_PRIORITY)
                 .forDevice(deviceId)
                 .forTable(TABLE_IN_PORT)
                 .makePermanent()
@@ -665,7 +786,7 @@ public class CordVtnRuleInstaller {
                     .fromApp(appId)
                     .withSelector(selector)
                     .withTreatment(treatment)
-                    .withPriority(LOWER_PRIORITY)
+                    .withPriority(LOW_PRIORITY)
                     .forDevice(device.id())
                     .forTable(TABLE_ACCESS_TYPE)
                     .makePermanent()
@@ -1003,6 +1124,25 @@ public class CordVtnRuleInstaller {
         }
 
         return ((Instructions.GroupInstruction) instruction).groupId();
+    }
+
+    /**
+     * Returns the output port number from a given flow rule.
+     *
+     * @param flowRule flow rule
+     * @return port number, or null if the rule does not have output instruction
+     */
+    private PortNumber getOutputFromTreatment(FlowRule flowRule) {
+        Instruction instruction = flowRule.treatment().allInstructions().stream()
+                .filter(inst -> inst instanceof  Instructions.OutputInstruction)
+                .findFirst()
+                .orElse(null);
+
+        if (instruction == null) {
+            return null;
+        }
+
+        return ((Instructions.OutputInstruction) instruction).port();
     }
 
     /**

@@ -403,7 +403,13 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                  host.ipAddresses().stream().findFirst().get());
 
         CordService service = getCordService(vNet);
-        if (service != null) {
+        if (service == null) {
+            return;
+        }
+
+        if (service.serviceType().equals(CordService.ServiceType.MANAGEMENT)) {
+            ruleInstaller.populateManagementNetworkRules(host, service);
+        } else {
             // TODO check if the service needs an update on its group buckets after done CORD-433
             ruleInstaller.updateServiceGroup(service);
             arpProxy.addServiceIp(service.serviceIp());
@@ -440,7 +446,13 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         ruleInstaller.removeBasicConnectionRules(host);
 
         CordService service = getCordService(vNet);
-        if (service != null) {
+        if (service == null) {
+            return;
+        }
+
+        if (service.serviceType().equals(CordService.ServiceType.MANAGEMENT)) {
+            ruleInstaller.removeManagementNetworkRules(host, service);
+        } else {
             // TODO check if the service needs an update on its group buckets after done CORD-433
             ruleInstaller.updateServiceGroup(service);
 

@@ -38,7 +38,8 @@ public final class CordService {
         PRIVATE_DIRECT,
         PRIVATE_INDIRECT,
         PUBLIC_DIRECT,
-        PUBLIC_INDIRECT
+        PUBLIC_INDIRECT,
+        MANAGEMENT
     }
 
     private final CordServiceId id;
@@ -165,7 +166,7 @@ public final class CordService {
      * It assumes that network name contains network type.
      *
      * @param netName network name
-     * @return network type, or null if it doesn't match any type
+     * @return network type, or PRIVATE if it doesn't match any type
      */
     private ServiceType getServiceType(String netName) {
         checkNotNull(netName);
@@ -179,10 +180,10 @@ public final class CordService {
             return PUBLIC_DIRECT;
         } else if (name.contains(PUBLIC_INDIRECT.toString())) {
             return PUBLIC_INDIRECT;
-        } else if (name.contains(PRIVATE.toString())) {
-            return PRIVATE;
+        } else if (name.contains(MANAGEMENT.toString())) {
+            return MANAGEMENT;
         } else {
-            return null;
+            return PRIVATE;
         }
     }
 }
