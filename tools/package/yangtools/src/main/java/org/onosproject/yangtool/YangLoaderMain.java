@@ -1,4 +1,4 @@
-package org.onoproject.yangtool;
+package org.onosproject.yangtool;
 
 import org.apache.commons.configuration.ConfigurationException;
 

@@ -65,7 +65,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.onoproject.yangtool.YangLoaderMain</mainClass>
+                                    <mainClass>org.onosproject.yangtool.YangLoaderMain</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
