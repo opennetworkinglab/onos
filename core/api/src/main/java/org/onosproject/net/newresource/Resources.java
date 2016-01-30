@@ -118,7 +118,7 @@ public final class Resources {
      * @param id resource ID
      * @return {@link ContinuousFactory}
      */
-    public static ContinuousFactory continuous(ContinuousResourceId id) {
+    static ContinuousFactory continuous(ContinuousResourceId id) {
         checkNotNull(id);
 
         return new ContinuousFactory(id);
@@ -131,7 +131,7 @@ public final class Resources {
      * @param child child
      * @return {@link ContinuousFactory}
      */
-    public static ContinuousFactory continuous(DiscreteResourceId parent, Class<?> child) {
+    static ContinuousFactory continuous(DiscreteResourceId parent, Class<?> child) {
         checkNotNull(parent);
         checkNotNull(child);
 
