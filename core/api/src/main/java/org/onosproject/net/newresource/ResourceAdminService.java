@@ -52,6 +52,7 @@ public interface ResourceAdminService {
      * @return true if unregistration is successfully done, false otherwise. Unregistration
      * succeeds when each resource is not registered or unallocated.
      */
+    // TODO: might need to change the first argument type to ResourceId
     default boolean unregisterResources(Resource... resources) {
         return unregisterResources(ImmutableList.copyOf(resources));
     }
@@ -63,5 +64,6 @@ public interface ResourceAdminService {
      * @return true if unregistration is successfully done, false otherwise. Unregistration
      * succeeds when each resource is not registered or unallocated.
      */
+    // TODO: might need to change the first argument type to ResourceId
     boolean unregisterResources(List<Resource> resources);
 }
