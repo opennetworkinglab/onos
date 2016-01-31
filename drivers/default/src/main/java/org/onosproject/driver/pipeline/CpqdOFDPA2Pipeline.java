@@ -440,6 +440,81 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         return Collections.singletonList(ruleBuilder.build());
     }
 
+    @Override
+    protected Collection<FlowRule> processEthDstSpecific(ForwardingObjective fwd) {
+        List<FlowRule> rules = new ArrayList<>();
+
+        // Build filtered selector
+        TrafficSelector selector = fwd.selector();
+        EthCriterion ethCriterion = (EthCriterion) selector
+                .getCriterion(Criterion.Type.ETH_DST);
+        VlanIdCriterion vlanIdCriterion = (VlanIdCriterion) selector
+                .getCriterion(Criterion.Type.VLAN_VID);
+
+        if (vlanIdCriterion == null) {
+            log.warn("Forwarding objective for bridging requires vlan. Not "
+                    + "installing fwd:{} in dev:{}", fwd.id(), deviceId);
+            fail(fwd, ObjectiveError.BADPARAMS);
+            return Collections.emptySet();
+        }
+
+        TrafficSelector.Builder filteredSelectorBuilder =
+                DefaultTrafficSelector.builder();
+        // Do not match MacAddress for subnet broadcast entry
+        if (!ethCriterion.mac().equals(MacAddress.NONE)) {
+            filteredSelectorBuilder.matchEthDst(ethCriterion.mac());
+            log.debug("processing L2 forwarding objective:{} -> next:{} in dev:{}",
+                    fwd.id(), fwd.nextId(), deviceId);
+        } else {
+            log.debug("processing L2 Broadcast forwarding objective:{} -> next:{} "
+                            + "in dev:{} for vlan:{}",
+                    fwd.id(), fwd.nextId(), deviceId, vlanIdCriterion.vlanId());
+        }
+        filteredSelectorBuilder.matchVlanId(vlanIdCriterion.vlanId());
+        TrafficSelector filteredSelector = filteredSelectorBuilder.build();
+
+        if (fwd.treatment() != null) {
+            log.warn("Ignoring traffic treatment in fwd rule {} meant for L2 table"
+                    + "for dev:{}. Expecting only nextId", fwd.id(), deviceId);
+        }
+
+        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+        if (fwd.nextId() != null) {
+            NextGroup next = getGroupForNextObjective(fwd.nextId());
+            if (next != null) {
+                List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
+                // we only need the top level group's key to point the flow to it
+                Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
+                if (group != null) {
+                    treatmentBuilder.deferred().group(group.id());
+                } else {
+                    log.warn("Group with key:{} for next-id:{} not found in dev:{}",
+                            gkeys.get(0).peekFirst(), fwd.nextId(), deviceId);
+                    fail(fwd, ObjectiveError.GROUPMISSING);
+                    return Collections.emptySet();
+                }
+            }
+        }
+        treatmentBuilder.immediate().transition(ACL_TABLE);
+        TrafficTreatment filteredTreatment = treatmentBuilder.build();
+
+        // Build bridging table entries
+        FlowRule.Builder flowRuleBuilder = DefaultFlowRule.builder();
+        flowRuleBuilder.fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .forDevice(deviceId)
+                .withSelector(filteredSelector)
+                .withTreatment(filteredTreatment)
+                .forTable(BRIDGING_TABLE);
+        if (fwd.permanent()) {
+            flowRuleBuilder.makePermanent();
+        } else {
+            flowRuleBuilder.makeTemporary(fwd.timeout());
+        }
+        rules.add(flowRuleBuilder.build());
+        return rules;
+    }
+
     /*
      * In the OF-DPA 2.0 pipeline, versatile forwarding objectives go to the
      * ACL table. Because we pop off vlan tags in TMAC table,
