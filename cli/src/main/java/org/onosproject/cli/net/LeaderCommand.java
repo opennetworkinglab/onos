@@ -40,7 +40,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
         description = "Finds the leader for particular topic.")
 public class LeaderCommand extends AbstractShellCommand {
 
-    private static final String FMT = "%-30s | %-15s | %-6s | %-10s |";
+    private static final String FMT = "%-30s | %-15s | %-5s | %-10s |";
     private static final String FMT_C = "%-30s | %-15s | %-19s |";
     private boolean allTopics;
     private Pattern pattern;
@@ -57,19 +57,8 @@ public class LeaderCommand extends AbstractShellCommand {
     /**
      * Compares leaders, sorting by toString() output.
      */
-    private Comparator<Leadership> leadershipComparator =
-            (e1, e2) -> {
-                if (e1.leader() == null && e2.leader() == null) {
-                    return 0;
-                }
-                if (e1.leader() == null) {
-                    return 1;
-                }
-                if (e2.leader() == null) {
-                    return -1;
-                }
-                return e1.leader().toString().compareTo(e2.leader().toString());
-            };
+    private Comparator<Leadership> leadershipComparator = (l1, l2) ->
+        String.valueOf(l1.leaderNodeId()).compareTo(String.valueOf(l2.leaderNodeId()));
 
     /**
      * Displays text representing the leaders.
@@ -78,18 +67,19 @@ public class LeaderCommand extends AbstractShellCommand {
      */
     private void displayLeaders(Map<String, Leadership> leaderBoard) {
         print("------------------------------------------------------------------------");
-        print(FMT, "Topic", "Leader", "Epoch", "Elected");
+        print(FMT, "Topic", "Leader", "Term", "Elected");
         print("------------------------------------------------------------------------");
 
         leaderBoard.values()
                 .stream()
                 .filter(l -> allTopics || pattern.matcher(l.topic()).matches())
+                .filter(l -> l.leader() != null)
                 .sorted(leadershipComparator)
                 .forEach(l -> print(FMT,
                         l.topic(),
-                        l.leader(),
-                        l.epoch(),
-                        Tools.timeAgo(l.electedTime())));
+                        l.leaderNodeId(),
+                        l.leader().term(),
+                        Tools.timeAgo(l.leader().termStartTime())));
         print("------------------------------------------------------------------------");
     }
 
@@ -110,7 +100,7 @@ public class LeaderCommand extends AbstractShellCommand {
                         Leadership l = leaderBoard.get(es.getKey());
                         print(FMT_C,
                             es.getKey(),
-                            l == null ? "null" : l.leader(),
+                            String.valueOf(l.leaderNodeId()),
                             // formatting hacks to get it into a table
                             list.get(0).toString());
                             list.subList(1, list.size()).forEach(n -> print(FMT_C, " ", " ", n));
@@ -134,10 +124,10 @@ public class LeaderCommand extends AbstractShellCommand {
                         result.add(
                             mapper.createObjectNode()
                                 .put("topic", l.topic())
-                                .put("leader", l.leader().toString())
+                                .put("leader", String.valueOf(l.leaderNodeId()))
                                 .put("candidates", l.candidates().toString())
-                                .put("epoch", l.epoch())
-                                .put("electedTime", Tools.timeAgo(l.electedTime()))));
+                                .put("epoch", l.leader().term())
+                                .put("epochStartTime", Tools.timeAgo(l.leader().termStartTime()))));
 
         return result;
     }

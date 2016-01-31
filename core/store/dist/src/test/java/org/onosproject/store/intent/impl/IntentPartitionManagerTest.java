@@ -22,6 +22,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.Leader;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
@@ -31,13 +32,12 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.net.intent.Key;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-
 import static junit.framework.TestCase.assertFalse;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -55,9 +55,10 @@ import static org.junit.Assert.assertTrue;
 public class IntentPartitionManagerTest {
 
     private final LeadershipEvent event
-            = new LeadershipEvent(LeadershipEvent.Type.LEADER_ELECTED,
+            = new LeadershipEvent(LeadershipEvent.Type.CANDIDATES_CHANGED,
                                   new Leadership(ELECTION_PREFIX + "0",
-                                                 MY_NODE_ID, 0, 0));
+                                                 new Leader(MY_NODE_ID, 0, 0),
+                                                 Arrays.asList(MY_NODE_ID, OTHER_NODE_ID)));
 
     private static final NodeId MY_NODE_ID = new NodeId("local");
     private static final NodeId OTHER_NODE_ID = new NodeId("other");
@@ -78,7 +79,7 @@ public class IntentPartitionManagerTest {
         expectLastCall().andDelegateTo(new TestLeadershipService());
         for (int i = 0; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
             expect(leadershipService.runForLeadership(ELECTION_PREFIX + i))
-                .andReturn(CompletableFuture.completedFuture(null))
+                .andReturn(null)
                 .times(1);
         }
 
@@ -105,7 +106,9 @@ public class IntentPartitionManagerTest {
             expect(leadershipService.getLeader(ELECTION_PREFIX + i))
                     .andReturn(MY_NODE_ID).anyTimes();
             leaderBoard.put(ELECTION_PREFIX + i,
-                            new Leadership(ELECTION_PREFIX + i, MY_NODE_ID, 0, 0));
+                            new Leadership(ELECTION_PREFIX + i,
+                                    new Leader(MY_NODE_ID, 0, 0),
+                                    Arrays.asList(MY_NODE_ID)));
         }
 
         for (int i = numMine; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
@@ -113,7 +116,9 @@ public class IntentPartitionManagerTest {
                     .andReturn(OTHER_NODE_ID).anyTimes();
 
             leaderBoard.put(ELECTION_PREFIX + i,
-                            new Leadership(ELECTION_PREFIX + i, OTHER_NODE_ID, 0, 0));
+                            new Leadership(ELECTION_PREFIX + i,
+                                    new Leader(OTHER_NODE_ID, 0, 0),
+                                    Arrays.asList(OTHER_NODE_ID)));
         }
 
         expect(leadershipService.getLeaderBoard()).andReturn(leaderBoard).anyTimes();
@@ -131,7 +136,7 @@ public class IntentPartitionManagerTest {
 
         for (int i = 0; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
             expect(leadershipService.runForLeadership(ELECTION_PREFIX + i))
-                .andReturn(CompletableFuture.completedFuture(null))
+                .andReturn(null)
                 .times(1);
         }
 
@@ -200,9 +205,8 @@ public class IntentPartitionManagerTest {
         // We have all the partitions so we'll need to relinquish some
         setUpLeadershipService(IntentPartitionManager.NUM_PARTITIONS);
 
-        expect(leadershipService.withdraw(anyString()))
-                                 .andReturn(CompletableFuture.completedFuture(null))
-                                 .times(7);
+        leadershipService.withdraw(anyString());
+        expectLastCall().times(7);
 
         replay(leadershipService);
 

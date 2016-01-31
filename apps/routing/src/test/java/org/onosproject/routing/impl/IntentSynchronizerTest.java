@@ -17,6 +17,7 @@ package org.onosproject.routing.impl;
 
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MoreExecutors;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
@@ -29,7 +30,11 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.TestApplicationId;
+import org.onosproject.cluster.ClusterServiceAdapter;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.LeadershipServiceAdapter;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.incubator.net.intf.Interface;
@@ -94,6 +99,9 @@ public class IntentSynchronizerTest extends AbstractIntentTest {
     private static final ApplicationId APPID =
             TestApplicationId.create("intent-sync-test");
 
+    private static final ControllerNode LOCAL_NODE =
+            new DefaultControllerNode(new NodeId("foo"), IpAddress.valueOf("127.0.0.1"));
+
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -105,6 +113,7 @@ public class IntentSynchronizerTest extends AbstractIntentTest {
         intentSynchronizer = new TestIntentSynchronizer();
 
         intentSynchronizer.coreService = new TestCoreService();
+        intentSynchronizer.clusterService = new TestClusterService();
         intentSynchronizer.leadershipService = new TestLeadershipService();
         intentSynchronizer.intentService = intentService;
 
@@ -438,6 +447,13 @@ public class IntentSynchronizerTest extends AbstractIntentTest {
         @Override
         public ApplicationId registerApplication(String name) {
             return APPID;
+        }
+    }
+
+    private class TestClusterService extends ClusterServiceAdapter {
+        @Override
+        public ControllerNode getLocalNode() {
+            return LOCAL_NODE;
         }
     }
 

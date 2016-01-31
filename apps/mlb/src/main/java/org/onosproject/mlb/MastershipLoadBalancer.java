@@ -19,6 +19,7 @@ package org.onosproject.mlb;
 import com.google.common.util.concurrent.ListenableScheduledFuture;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -105,10 +106,7 @@ public class MastershipLoadBalancer {
         log.info("Stopped");
     }
 
-    private synchronized void processLeadershipChange(NodeId newLeader) {
-        if (newLeader == null) {
-            return;
-        }
+    private synchronized void processLeaderChange(NodeId newLeader) {
         boolean currLeader = newLeader.equals(localId);
         if (isLeader.getAndSet(currLeader) != currLeader) {
             if (currLeader) {
@@ -159,7 +157,7 @@ public class MastershipLoadBalancer {
 
         @Override
         public void event(LeadershipEvent event) {
-            processLeadershipChange(event.subject().leader());
+            processLeaderChange(event.subject().leaderNodeId());
         }
     }
 }

@@ -26,6 +26,7 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.intent.Intent;
@@ -43,7 +44,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
@@ -74,6 +74,7 @@ public class IntentSynchronizer implements IntentSynchronizationService,
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
 
+    private NodeId localNodeId;
     private ApplicationId appId;
 
     private final InternalLeadershipListener leadershipEventListener =
@@ -89,7 +90,7 @@ public class IntentSynchronizer implements IntentSynchronizationService,
     @Activate
     public void activate() {
         intentsSynchronizerExecutor = createExecutor();
-
+        this.localNodeId = clusterService.getLocalNode().id();
         this.appId = coreService.registerApplication(APP_NAME);
 
         leadershipService.addListener(leadershipEventListener);
@@ -268,27 +269,22 @@ public class IntentSynchronizer implements IntentSynchronizationService,
     private class InternalLeadershipListener implements LeadershipEventListener {
 
         @Override
-        public void event(LeadershipEvent event) {
-            if (!event.subject().topic().equals(appId.name())) {
-                // Not our topic: ignore
-                return;
-            }
-            if (!Objects.equals(event.subject().leader(),
-                    clusterService.getLocalNode().id())) {
-                // The event is not about this instance: ignore
-                return;
-            }
+        public boolean isRelevant(LeadershipEvent event) {
+            return event.subject().topic().equals(appId.name());
+        }
 
+        @Override
+        public void event(LeadershipEvent event) {
             switch (event.type()) {
-            case LEADER_ELECTED:
-                log.info("IntentSynchronizer gained leadership");
-                leaderChanged(true);
-                break;
-            case LEADER_BOOTED:
-                log.info("IntentSynchronizer lost leadership");
-                leaderChanged(false);
-                break;
-            case LEADER_REELECTED:
+            case LEADER_CHANGED:
+            case LEADER_AND_CANDIDATES_CHANGED:
+                if (localNodeId.equals(event.subject().leaderNodeId())) {
+                    log.info("IntentSynchronizer gained leadership");
+                    leaderChanged(true);
+                } else {
+                    log.info("IntentSynchronizer leader changed. New leader is {}", event.subject().leaderNodeId());
+                    leaderChanged(false);
+                }
             default:
                 break;
             }
