@@ -56,7 +56,12 @@ public interface DistributedPrimitive {
         /**
          * Distributed queue.
          */
-        QUEUE
+        QUEUE,
+
+        /**
+         * Leader elector.
+         */
+        LEADER_ELECTOR
     }
 
     /**
@@ -85,6 +90,7 @@ public interface DistributedPrimitive {
      * Implementations can override and provide appropriate clean up logic for purging
      * any state state associated with the primitive. Whether modifications made within the
      * destroy method have local or global visibility is left unspecified.
+     * @return {@code CompletableFuture} that is completed when the operation completes
      */
     default CompletableFuture<Void> destroy() {
         return CompletableFuture.completedFuture(null);
