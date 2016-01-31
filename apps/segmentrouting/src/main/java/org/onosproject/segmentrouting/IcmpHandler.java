@@ -168,7 +168,7 @@ public class IcmpHandler {
                     treatment, ByteBuffer.wrap(payload.serialize()));
             srManager.packetService.emit(packet);
         } else {
-            log.warn("Send a MPLS packet as a ICMP response");
+            log.info("Send a MPLS packet as a ICMP response");
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .setOutput(outport.port())
                     .build();

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.google.common.collect.ImmutableList;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.IpPrefix;
@@ -288,6 +289,11 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
                                                  ApplicationId applicationId) {
+        // Consider PortNumber.ANY as wildcard. Match ETH_DST only
+        if (portCriterion != null && portCriterion.port() == PortNumber.ANY) {
+            return processEthDstOnlyFilter(ethCriterion, applicationId);
+        }
+
         //handling untagged packets via assigned VLAN
         if (vidCriterion.vlanId() == VlanId.NONE) {
             vidCriterion = (VlanIdCriterion) Criteria.matchVlanId(assignedVlan);
@@ -352,6 +358,32 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
             rules.add(rule);
         }
         return rules;
+    }
+
+    @Override
+    protected List<FlowRule> processEthDstOnlyFilter(EthCriterion ethCriterion,
+            ApplicationId applicationId) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        selector.matchEthType(Ethernet.TYPE_IPV4);
+        selector.matchEthDst(ethCriterion.mac());
+        /*
+         * Note: CpqD switches do not handle MPLS-related operation properly
+         * for a packet with VLAN tag. We pop VLAN here as a workaround.
+         * Side effect: HostService learns redundant hosts with same MAC but
+         * different VLAN. No known side effect on the network reachability.
+         */
+        treatment.popVlan();
+        treatment.transition(UNICAST_ROUTING_TABLE);
+        FlowRule rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DEFAULT_PRIORITY)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(TMAC_TABLE).build();
+        return ImmutableList.<FlowRule>builder().add(rule).build();
     }
 
     /*
@@ -600,6 +632,7 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
                     log.warn("Cannot process instruction in versatile fwd {}", ins);
                 }
             }
+            ttBuilder.wipeDeferred();
         }
         if (fwd.nextId() != null) {
             // overide case

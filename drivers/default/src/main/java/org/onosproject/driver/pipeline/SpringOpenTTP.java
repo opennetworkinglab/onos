@@ -23,6 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
 
+import com.google.common.collect.ImmutableList;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
@@ -504,6 +505,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     fwd.treatment().allInstructions().get(0).type() == Instruction.Type.OUTPUT) {
                 OutputInstruction o = (OutputInstruction) fwd.treatment().allInstructions().get(0);
                 if (o.port() == PortNumber.CONTROLLER) {
+                    treatmentBuilder.popVlan();
                     treatmentBuilder.punt();
                 } else {
                     treatmentBuilder.add(o);
@@ -780,6 +782,10 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                                        FilteringObjective filt,
                                        VlanId assignedVlan,
                                        ApplicationId applicationId) {
+        if (vlanIdCriterion == null) {
+            return processEthDstOnlyFilter(ethCriterion, applicationId, filt.priority());
+        }
+
         //handling untagged packets via assigned VLAN
         if (vlanIdCriterion.vlanId() == VlanId.NONE) {
             vlanIdCriterion = (VlanIdCriterion) Criteria.matchVlanId(assignedVlan);
@@ -821,6 +827,24 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         rules.add(ruleMpls);
 
         return rules;
+    }
+
+    protected List<FlowRule> processEthDstOnlyFilter(EthCriterion ethCriterion,
+            ApplicationId applicationId, int priority) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        selector.matchEthType(Ethernet.TYPE_IPV4);
+        selector.matchEthDst(ethCriterion.mac());
+        treatment.transition(TABLE_IPV4_UNICAST);
+        FlowRule rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(priority)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(TABLE_TMAC).build();
+        return ImmutableList.<FlowRule>builder().add(rule).build();
     }
 
     protected List<FlowRule> processVlanIdFilter(VlanIdCriterion vlanIdCriterion,

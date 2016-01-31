@@ -15,9 +15,12 @@
  */
 package org.onosproject.segmentrouting.config;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.SetMultimap;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.config.basics.ConfigException;
@@ -37,6 +40,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -59,13 +63,13 @@ public class DeviceConfiguration implements DeviceProperties {
         Ip4Address ip;
         MacAddress mac;
         boolean isEdge;
-        HashMap<PortNumber, Ip4Address> gatewayIps;
-        HashMap<PortNumber, Ip4Prefix> subnets;
+        Map<PortNumber, Ip4Address> gatewayIps;
+        SetMultimap<PortNumber, Ip4Prefix> subnets;
         Map<Integer, Set<Integer>> adjacencySids;
 
         public SegmentRouterInfo() {
             gatewayIps = new HashMap<>();
-            subnets = new HashMap<>();
+            subnets = HashMultimap.create();
         }
     }
 
@@ -78,10 +82,10 @@ public class DeviceConfiguration implements DeviceProperties {
     public DeviceConfiguration(NetworkConfigRegistry cfgService) {
         // Read config from device subject, excluding gatewayIps and subnets.
         Set<DeviceId> deviceSubjects =
-                cfgService.getSubjects(DeviceId.class, SegmentRoutingConfig.class);
+                cfgService.getSubjects(DeviceId.class, SegmentRoutingDeviceConfig.class);
         deviceSubjects.forEach(subject -> {
-            SegmentRoutingConfig config =
-                cfgService.getConfig(subject, SegmentRoutingConfig.class);
+            SegmentRoutingDeviceConfig config =
+                cfgService.getConfig(subject, SegmentRoutingDeviceConfig.class);
             SegmentRouterInfo info = new SegmentRouterInfo();
             info.deviceId = subject;
             info.nodeSid = config.nodeSid();
@@ -119,7 +123,11 @@ public class DeviceConfiguration implements DeviceProperties {
                     // Extract subnet information
                     Set<InterfaceIpAddress> interfaceAddresses = networkInterface.ipAddresses();
                     interfaceAddresses.forEach(interfaceAddress -> {
-                        info.gatewayIps.put(port, interfaceAddress.ipAddress().getIp4Address());
+                        // Do not add /0 and /32 to gateway IP list
+                        int prefixLength = interfaceAddress.subnetAddress().prefixLength();
+                        if (prefixLength != 0 && prefixLength != IpPrefix.MAX_INET_MASK_LENGTH) {
+                            info.gatewayIps.put(port, interfaceAddress.ipAddress().getIp4Address());
+                        }
                         info.subnets.put(port, interfaceAddress.subnetAddress().getIp4Prefix());
                     });
 
@@ -247,9 +255,13 @@ public class DeviceConfiguration implements DeviceProperties {
         Map<Ip4Prefix, List<PortNumber>> subnetPortMap = new HashMap<>();
 
         // Construct subnet-port mapping from port-subnet mapping
-        Map<PortNumber, Ip4Prefix> portSubnetMap =
+        SetMultimap<PortNumber, Ip4Prefix> portSubnetMap =
                 this.deviceConfigMap.get(deviceId).subnets;
-        portSubnetMap.forEach((port, subnet) -> {
+
+        portSubnetMap.entries().forEach(entry -> {
+            PortNumber port = entry.getKey();
+            Ip4Prefix subnet = entry.getValue();
+
             if (subnetPortMap.containsKey(subnet)) {
                 subnetPortMap.get(subnet).add(port);
             } else {
@@ -258,7 +270,6 @@ public class DeviceConfiguration implements DeviceProperties {
                 subnetPortMap.put(subnet, ports);
             }
         });
-
         return subnetPortMap;
     }
 
@@ -322,21 +333,6 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     * Returns the configured IP addresses per port
-     * for a segment router.
-     *
-     * @param deviceId device identifier
-     * @return map of port to gateway IP addresses or null if not found
-     */
-    public Map<PortNumber, Ip4Address> getPortIPMap(DeviceId deviceId) {
-        SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
-        if (srinfo != null) {
-            return srinfo.gatewayIps;
-        }
-        return null;
-    }
-
-    /**
      * Returns the configured subnet prefixes for a segment router.
      *
      * @param deviceId device identifier
@@ -353,8 +349,8 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     *  Returns the configured subnet on the given port, or null if no
-     *  subnet has been configured on the port.
+     *  Returns the configured non-/32 and non-/0 subnet on the given port,
+     *  or null if no subnet has been configured on the port.
      *
      *  @param deviceId device identifier
      *  @param pnum  port identifier
@@ -363,7 +359,12 @@ public class DeviceConfiguration implements DeviceProperties {
     public Ip4Prefix getPortSubnet(DeviceId deviceId, PortNumber pnum) {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
-            return srinfo.subnets.get(pnum);
+            Optional<Ip4Prefix> result = srinfo.subnets.get(pnum).stream()
+                    .filter(subnet ->
+                            subnet.getIp4Prefix().prefixLength() != IpPrefix.MAX_INET_MASK_LENGTH &&
+                            subnet.getIp4Prefix().prefixLength() != 0)
+                    .findFirst();
+            return (result.isPresent()) ? result.get() : null;
         }
         return null;
     }
@@ -378,7 +379,7 @@ public class DeviceConfiguration implements DeviceProperties {
     public Ip4Address getRouterIpAddressForASubnetHost(Ip4Address destIpAddress) {
         for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
                     deviceConfigMap.entrySet()) {
-            for (Ip4Prefix prefix:entry.getValue().subnets.values()) {
+            for (Ip4Prefix prefix : entry.getValue().subnets.values()) {
                 if (prefix.contains(destIpAddress)) {
                     return entry.getValue().ip;
                 }
@@ -428,7 +429,8 @@ public class DeviceConfiguration implements DeviceProperties {
         }
 
         for (Ip4Prefix subnet: subnets) {
-            if (subnet.contains(hostIp)) {
+            // Exclude /0 since it is a special case used for default route
+            if (subnet.prefixLength() != 0 && subnet.contains(hostIp)) {
                 return true;
             }
         }

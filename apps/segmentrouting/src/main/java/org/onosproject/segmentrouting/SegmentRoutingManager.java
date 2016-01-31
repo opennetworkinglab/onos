@@ -54,7 +54,8 @@ import org.onosproject.net.host.HostListener;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
-import org.onosproject.segmentrouting.config.SegmentRoutingConfig;
+import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
+import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.segmentrouting.grouphandler.NeighborSetNextObjectiveStoreKey;
@@ -130,6 +131,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry cfgService;
+
     protected ArpHandler arpHandler = null;
     protected IcmpHandler icmpHandler = null;
     protected IpHandler ipHandler = null;
@@ -143,7 +150,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private InternalPacketProcessor processor = null;
     private InternalLinkListener linkListener = null;
     private InternalDeviceListener deviceListener = null;
+    private NetworkConfigEventHandler netcfgHandler = null;
     private InternalEventHandler eventHandler = new InternalEventHandler();
+    private final InternalHostListener hostListener = new InternalHostListener();
 
     private ScheduledExecutorService executorService = Executors
             .newScheduledThreadPool(1);
@@ -181,27 +190,28 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
     private EventuallyConsistentMap<String, Policy> policyStore = null;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected StorageService storageService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigRegistry cfgService;
-
     private final InternalConfigListener cfgListener =
             new InternalConfigListener(this);
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private final ConfigFactory cfgFactory =
-            new ConfigFactory(SubjectFactories.DEVICE_SUBJECT_FACTORY,
-                              SegmentRoutingConfig.class,
+    private final ConfigFactory<DeviceId, SegmentRoutingDeviceConfig> cfgDeviceFactory =
+            new ConfigFactory<DeviceId, SegmentRoutingDeviceConfig>(SubjectFactories.DEVICE_SUBJECT_FACTORY,
+                              SegmentRoutingDeviceConfig.class,
                               "segmentrouting") {
                 @Override
-                public SegmentRoutingConfig createConfig() {
-                    return new SegmentRoutingConfig();
+                public SegmentRoutingDeviceConfig createConfig() {
+                    return new SegmentRoutingDeviceConfig();
                 }
             };
 
-    private final InternalHostListener hostListener = new InternalHostListener();
+    private final ConfigFactory<ApplicationId, SegmentRoutingAppConfig> cfgAppFactory =
+            new ConfigFactory<ApplicationId, SegmentRoutingAppConfig>(SubjectFactories.APP_SUBJECT_FACTORY,
+                    SegmentRoutingAppConfig.class,
+                    "segmentrouting") {
+                @Override
+                public SegmentRoutingAppConfig createConfig() {
+                    return new SegmentRoutingAppConfig();
+                }
+            };
 
     private Object threadSchedulerLock = new Object();
     private static int numOfEventsQueued = 0;
@@ -223,7 +233,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Activate
     protected void activate() {
         appId = coreService
-                .registerApplication("org.onosproject.segmentrouting");
+                .registerApplication(SR_APP_ID);
 
         kryoBuilder = new KryoNamespace.Builder()
             .register(NeighborSetNextObjectiveStoreKey.class,
@@ -309,14 +319,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .build();
 
         cfgService.addListener(cfgListener);
-        cfgService.registerConfigFactory(cfgFactory);
-
-        hostService.addListener(hostListener);
+        cfgService.registerConfigFactory(cfgDeviceFactory);
+        cfgService.registerConfigFactory(cfgAppFactory);
 
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();
         deviceListener = new InternalDeviceListener();
+        netcfgHandler = new NetworkConfigEventHandler(this);
 
+        hostService.addListener(hostListener);
         packetService.addProcessor(processor, PacketProcessor.director(2));
         linkService.addListener(linkListener);
         deviceService.addListener(deviceListener);
@@ -334,7 +345,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Deactivate
     protected void deactivate() {
         cfgService.removeListener(cfgListener);
-        cfgService.unregisterConfigFactory(cfgFactory);
+        cfgService.unregisterConfigFactory(cfgDeviceFactory);
+        cfgService.unregisterConfigFactory(cfgAppFactory);
 
         // Withdraw ARP packet-in
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -456,10 +468,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             nextAssignedVlan = (short) (Collections.min(assignedVlans) - 1);
         }
         for (Ip4Prefix unsub : unassignedSubnets) {
-            subnetVidStore.put(new SubnetAssignedVidStoreKey(deviceId, unsub),
-                               VlanId.vlanId(nextAssignedVlan--));
-            log.info("Assigned vlan: {} to subnet: {} on device: {}",
-                      nextAssignedVlan + 1, unsub, deviceId);
+            // Special case for default route. Assign default VLAN ID to /32 and /0 subnets
+            if (unsub.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH ||
+                    unsub.prefixLength() == 0) {
+                subnetVidStore.put(new SubnetAssignedVidStoreKey(deviceId, unsub),
+                        VlanId.vlanId(ASSIGNED_VLAN_NO_SUBNET));
+            } else {
+                subnetVidStore.put(new SubnetAssignedVidStoreKey(deviceId, unsub),
+                        VlanId.vlanId(nextAssignedVlan--));
+                log.info("Assigned vlan: {} to subnet: {} on device: {}",
+                        nextAssignedVlan + 1, unsub, deviceId);
+            }
         }
 
         return subnetVidStore.get(new SubnetAssignedVidStoreKey(deviceId, subnet));
@@ -766,6 +785,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             groupHandler.createGroupsForXConnect(device.id());
             routingRulePopulator.populateXConnectBroadcastRule(device.id());
         }
+
+        netcfgHandler.initVRouters(device.id());
     }
 
     private void processPortRemoved(Device device, Port port) {
@@ -851,14 +872,33 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         @Override
         public void event(NetworkConfigEvent event) {
-            if (event.configClass().equals(SegmentRoutingConfig.class)) {
-                if (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED) {
-                    log.info("Network configuration added.");
-                    configureNetwork();
+            // TODO move this part to NetworkConfigEventHandler
+            if (event.configClass().equals(SegmentRoutingDeviceConfig.class)) {
+                switch (event.type()) {
+                    case CONFIG_ADDED:
+                        log.info("Segment Routing Config added.");
+                        configureNetwork();
+                        break;
+                    case CONFIG_UPDATED:
+                        log.info("Segment Routing Config updated.");
+                        // TODO support dynamic configuration
+                        break;
+                    default:
+                        break;
                 }
-                if (event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) {
-                    log.info("Network configuration updated.");
-                    // TODO support dynamic configuration
+            } else if (event.configClass().equals(SegmentRoutingAppConfig.class)) {
+                switch (event.type()) {
+                    case CONFIG_ADDED:
+                        netcfgHandler.processVRouterConfigAdded(event);
+                        break;
+                    case CONFIG_UPDATED:
+                        netcfgHandler.processVRouterConfigUpdated(event);
+                        break;
+                    case CONFIG_REMOVED:
+                        netcfgHandler.processVRouterConfigRemoved(event);
+                        break;
+                    default:
+                        break;
                 }
             }
         }

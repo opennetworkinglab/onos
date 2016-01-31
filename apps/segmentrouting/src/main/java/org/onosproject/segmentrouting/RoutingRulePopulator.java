@@ -39,11 +39,8 @@ import org.onosproject.net.flowobjective.DefaultFilteringObjective;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
-import org.onosproject.net.flowobjective.Objective;
-import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.flowobjective.ForwardingObjective.Builder;
 import org.onosproject.net.flowobjective.ForwardingObjective.Flag;
-import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,14 +63,6 @@ public class RoutingRulePopulator {
     private AtomicLong rulePopulationCounter;
     private SegmentRoutingManager srManager;
     private DeviceConfiguration config;
-
-    private static final int HIGHEST_PRIORITY = 0xffff;
-    //
-    private static final int XCONNECT_PRIORITY = 1000;
-    private static final int DEFAULT_PRIORITY = 100;
-    private static final int FLOOD_PRIORITY = 5;
-    private static final long OFPP_MAX = 0xffffff00L;
-
 
     /**
      * Creates a RoutingRulePopulator object.
@@ -160,12 +149,21 @@ public class RoutingRulePopulator {
             throws DeviceConfigNotFoundException {
         MacAddress deviceMac;
         deviceMac = config.getDeviceMac(deviceId);
+        int priority;
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
 
         sbuilder.matchEthType(Ethernet.TYPE_IPV4);
-        sbuilder.matchIPDst(IpPrefix.valueOf(hostIp, IpPrefix.MAX_INET_MASK_LENGTH));
+        // Special case for default route
+        if (hostIp.isZero()) {
+            sbuilder.matchIPDst(IpPrefix.valueOf(hostIp, 0));
+            priority = SegmentRoutingService.MIN_IP_PRIORITY;
+        } else {
+            Ip4Prefix hostIpPrefix = Ip4Prefix.valueOf(hostIp, IpPrefix.MAX_INET_MASK_LENGTH);
+            sbuilder.matchIPDst(hostIpPrefix);
+            priority = getPriorityFromPrefix(hostIpPrefix);
+        }
         TrafficSelector selector = sbuilder.build();
 
         tbuilder.deferred()
@@ -192,7 +190,8 @@ public class RoutingRulePopulator {
                 .withSelector(selector)
                 .nextStep(portNextObjId)
                 .fromApp(srManager.appId).makePermanent()
-                .withPriority(DEFAULT_PRIORITY).withFlag(ForwardingObjective.Flag.SPECIFIC);
+                .withPriority(priority)
+                .withFlag(ForwardingObjective.Flag.SPECIFIC);
     }
 
     /**
@@ -277,7 +276,7 @@ public class RoutingRulePopulator {
                 .makePermanent()
                 .nextStep(nextId)
                 .withSelector(selector)
-                .withPriority(2000 * ipPrefix.prefixLength())
+                .withPriority(getPriorityFromPrefix(ipPrefix))
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
         if (treatment != null) {
             fwdBuilder.withTreatment(treatment);
@@ -386,7 +385,7 @@ public class RoutingRulePopulator {
         for (ForwardingObjective.Builder fwdObjBuilder : fwdObjBuilders) {
             ((Builder) ((Builder) fwdObjBuilder.fromApp(srManager.appId)
                     .makePermanent()).withSelector(selector)
-                    .withPriority(DEFAULT_PRIORITY))
+                    .withPriority(SegmentRoutingService.DEFAULT_PRIORITY))
                     .withFlag(ForwardingObjective.Flag.SPECIFIC);
             srManager.flowObjectiveService.
                 forward(deviceId,
@@ -472,7 +471,9 @@ public class RoutingRulePopulator {
         }
 
         for (Port port : srManager.deviceService.getPorts(deviceId)) {
-            if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
+            if (port.number().toLong() > 0 &&
+                    port.number().toLong() < SegmentRoutingService.OFPP_MAX &&
+                    port.isEnabled()) {
                 Ip4Prefix portSubnet = config.getPortSubnet(deviceId, port.number());
                 VlanId assignedVlan = (portSubnet == null)
                         ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
@@ -482,7 +483,7 @@ public class RoutingRulePopulator {
                 fob.withKey(Criteria.matchInPort(port.number()))
                 .addCondition(Criteria.matchEthDst(deviceMac))
                 .addCondition(Criteria.matchVlanId(VlanId.NONE))
-                .withPriority(DEFAULT_PRIORITY);
+                .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
                 // vlan assignment is valid only if this instance is master
                 if (srManager.mastershipService.isLocalMaster(deviceId)) {
                     TrafficTreatment tt = DefaultTrafficTreatment.builder()
@@ -520,7 +521,7 @@ public class RoutingRulePopulator {
             return;
         }
         ForwardingObjective.Builder puntIp = DefaultForwardingObjective.builder();
-        Set<Ip4Address> allIps = new HashSet<Ip4Address>(config.getPortIPs(deviceId));
+        Set<Ip4Address> allIps = new HashSet<>(config.getPortIPs(deviceId));
         allIps.add(routerIp);
         for (Ip4Address ipaddr : allIps) {
             TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
@@ -532,7 +533,7 @@ public class RoutingRulePopulator {
             puntIp.withSelector(sbuilder.build());
             puntIp.withTreatment(tbuilder.build());
             puntIp.withFlag(Flag.VERSATILE)
-                .withPriority(HIGHEST_PRIORITY)
+                .withPriority(SegmentRoutingService.HIGHEST_PRIORITY)
                 .makePermanent()
                 .fromApp(srManager.appId);
             log.debug("Installing forwarding objective to punt port IP addresses");
@@ -576,7 +577,7 @@ public class RoutingRulePopulator {
             fob.withFlag(Flag.SPECIFIC)
                     .withSelector(sbuilder.build())
                     .nextStep(nextId)
-                    .withPriority(FLOOD_PRIORITY)
+                    .withPriority(SegmentRoutingService.FLOOD_PRIORITY)
                     .fromApp(srManager.appId)
                     .makePermanent();
 
@@ -611,7 +612,7 @@ public class RoutingRulePopulator {
                 fob.withKey(Criteria.matchInPort(connectPoint.port()))
                         .addCondition(Criteria.matchVlanId(vlanId))
                         .addCondition(Criteria.matchEthDst(MacAddress.NONE))
-                        .withPriority(XCONNECT_PRIORITY);
+                        .withPriority(SegmentRoutingService.XCONNECT_PRIORITY);
 
                 fob.permit().fromApp(srManager.appId);
                 srManager.flowObjectiveService
@@ -657,7 +658,7 @@ public class RoutingRulePopulator {
             fob.withFlag(Flag.SPECIFIC)
                     .withSelector(sbuilder.build())
                     .nextStep(nextId)
-                    .withPriority(DEFAULT_PRIORITY)
+                    .withPriority(SegmentRoutingService.DEFAULT_PRIORITY)
                     .fromApp(srManager.appId)
                     .makePermanent();
 
@@ -671,29 +672,9 @@ public class RoutingRulePopulator {
         });
     }
 
-    private static class SRObjectiveContext implements ObjectiveContext {
-        enum ObjectiveType {
-            FILTER,
-            FORWARDING
-        }
-        final DeviceId deviceId;
-        final ObjectiveType type;
-
-        SRObjectiveContext(DeviceId deviceId, ObjectiveType type) {
-            this.deviceId = deviceId;
-            this.type = type;
-        }
-        @Override
-        public void onSuccess(Objective objective) {
-            log.debug("{} objective operation successful in device {}",
-                      type.name(), deviceId);
-        }
-
-        @Override
-        public void onError(Objective objective, ObjectiveError error) {
-            log.warn("{} objective {} operation failed with error: {} in device {}",
-                     type.name(), objective, error, deviceId);
-        }
+    private int getPriorityFromPrefix(IpPrefix prefix) {
+        return (prefix.isIp4()) ?
+                2000 * prefix.prefixLength() + SegmentRoutingService.MIN_IP_PRIORITY :
+                500 * prefix.prefixLength() + SegmentRoutingService.MIN_IP_PRIORITY;
     }
-
 }

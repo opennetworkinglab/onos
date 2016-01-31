@@ -78,6 +78,11 @@ public class CpqdOFDPA2VlanPipeline extends CpqdOFDPA2Pipeline {
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
                                                  ApplicationId applicationId) {
+        // Consider PortNumber.ANY as wildcard. Match ETH_DST only
+        if (portCriterion != null && portCriterion.port() == PortNumber.ANY) {
+            return processEthDstOnlyFilter(ethCriterion, applicationId);
+        }
+
         //handling untagged packets via assigned VLAN
         if (vidCriterion.vlanId() == VlanId.NONE) {
             vidCriterion = (VlanIdCriterion) Criteria.matchVlanId(assignedVlan);

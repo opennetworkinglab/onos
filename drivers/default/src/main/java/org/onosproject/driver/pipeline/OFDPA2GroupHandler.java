@@ -6,6 +6,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
@@ -95,7 +96,7 @@ public class OFDPA2GroupHandler {
             Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner", "ofdpa2-%d"));
 
     // index number for group creation
-    private AtomicInteger l3vpnindex = new AtomicInteger(0);
+    private AtomicInteger l3VpnIndex = new AtomicInteger(0);
 
     // local stores for port-vlan mapping
     protected Map<PortNumber, VlanId> port2Vlan = new ConcurrentHashMap<>();
@@ -332,12 +333,14 @@ public class OFDPA2GroupHandler {
         VlanId vlanid = null;
         long portNum = 0;
         boolean setVlan = false, popVlan = false;
+        MacAddress dstMac = MacAddress.ZERO;
         for (Instruction ins : treatment.allInstructions()) {
             if (ins.type() == Instruction.Type.L2MODIFICATION) {
                 L2ModificationInstruction l2ins = (L2ModificationInstruction) ins;
                 switch (l2ins.subtype()) {
                     case ETH_DST:
-                        outerTtb.setEthDst(((L2ModificationInstruction.ModEtherInstruction) l2ins).mac());
+                        dstMac = ((L2ModificationInstruction.ModEtherInstruction) l2ins).mac();
+                        outerTtb.setEthDst(dstMac);
                         break;
                     case ETH_SRC:
                         outerTtb.setEthSrc(((L2ModificationInstruction.ModEtherInstruction) l2ins).mac());
@@ -430,8 +433,11 @@ public class OFDPA2GroupHandler {
                     mplsgroupkey, nextId);
         } else {
             // outer group is L3Unicast
-            int l3groupId = L3_UNICAST_TYPE | (int) portNum;
-            int l3gk = L3_UNICAST_TYPE | (TYPE_MASK & (deviceId.hashCode() << 8 | (int) portNum));
+            int l3groupId = L3_UNICAST_TYPE |
+                    (TYPE_MASK & (int) (dstMac.toLong() & 0xffff) << 6 | (int) portNum);
+            int l3gk = L3_UNICAST_TYPE |
+                    (TYPE_MASK & (deviceId.hashCode() << 22 |
+                            (int) (dstMac.toLong() & 0xffff) << 6 | (int) portNum));
             final GroupKey l3groupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l3gk));
             outerTtb.group(new DefaultGroupId(l2groupId));
             // create the l3unicast group description to wait for the
@@ -734,8 +740,8 @@ public class OFDPA2GroupHandler {
                                 onelabelGroupInfo.outerGrpDesc.givenGroupId()));
                 GroupBucket l3vpnGrpBkt  =
                         DefaultGroupBucket.createIndirectGroupBucket(l3vpnTtb.build());
-                int l3vpngroupId = MPLS_L3VPN_SUBTYPE | l3vpnindex.incrementAndGet();
-                int l3vpngk = MPLS_L3VPN_SUBTYPE | nextObj.id() << 12 | l3vpnindex.get();
+                int l3vpngroupId = MPLS_L3VPN_SUBTYPE | l3VpnIndex.incrementAndGet();
+                int l3vpngk = MPLS_L3VPN_SUBTYPE | nextObj.id() << 12 | l3VpnIndex.get();
                 GroupKey l3vpngroupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l3vpngk));
                 GroupDescription l3vpnGroupDesc =
                         new DefaultGroupDescription(

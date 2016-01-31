@@ -21,6 +21,40 @@ import java.util.List;
  * Segment Routing Service for REST API.
  */
 public interface SegmentRoutingService {
+    /**
+     * Segment Routing App ID.
+     */
+    String SR_APP_ID = "org.onosproject.segmentrouting";
+
+    /**
+     * Highest flow priority.
+     */
+    int HIGHEST_PRIORITY = 0xffff;
+
+    /**
+     * VLAN cross-connect priority.
+     */
+    int XCONNECT_PRIORITY = 1000;
+
+    /**
+     * Default flow priority.
+     */
+    int DEFAULT_PRIORITY = 100;
+
+    /**
+     * Minimum IP priority.
+     *
+     * Should > 0 such that priority of /0 will not conflict with lowest
+     * priority default entries.
+     */
+    int MIN_IP_PRIORITY = 10;
+
+    /**
+     * Subnet flooding flow priority.
+     */
+    int FLOOD_PRIORITY = 5;
+
+    long OFPP_MAX = 0xffffff00L;
 
     /**
      * Returns all tunnels.

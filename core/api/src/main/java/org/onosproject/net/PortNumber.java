@@ -44,8 +44,9 @@ public final class PortNumber {
     static final long NORMAL_NUMBER = -6L;
     static final long FLOOD_NUMBER = -5L;
     static final long ALL_NUMBER = -4L;
-    static final long LOCAL_NUMBER = -2L;
     static final long CONTROLLER_NUMBER = -3L;
+    static final long LOCAL_NUMBER = -2L;
+    static final long ANY_NUMBER = -1L;
 
     /**
      * Logical PortNumbers.
@@ -57,7 +58,8 @@ public final class PortNumber {
         FLOOD(FLOOD_NUMBER),
         ALL(ALL_NUMBER),
         LOCAL(LOCAL_NUMBER),
-        CONTROLLER(CONTROLLER_NUMBER);
+        CONTROLLER(CONTROLLER_NUMBER),
+        ANY(ANY_NUMBER);
 
         private final long number;
         private final PortNumber instance;
@@ -88,6 +90,7 @@ public final class PortNumber {
     public static final PortNumber ALL = new PortNumber(ALL_NUMBER);
     public static final PortNumber LOCAL = new PortNumber(LOCAL_NUMBER);
     public static final PortNumber CONTROLLER = new PortNumber(CONTROLLER_NUMBER);
+    public static final PortNumber ANY = new PortNumber(ANY_NUMBER);
 
     // lazily populated Logical port number to PortNumber
     static final Supplier<Map<Long, Logical>> LOGICAL = Suppliers.memoize(() -> {

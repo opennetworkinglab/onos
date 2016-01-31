@@ -36,10 +36,10 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for class {@link SegmentRoutingConfig}.
+ * Tests for class {@link SegmentRoutingDeviceConfig}.
  */
-public class SegmentRoutingConfigTest {
-    private SegmentRoutingConfig config;
+public class SegmentRoutingDeviceConfigTest {
+    private SegmentRoutingDeviceConfig config;
     private Map<Integer, Set<Integer>> adjacencySids1;
     private Map<Integer, Set<Integer>> adjacencySids2;
 
@@ -72,12 +72,12 @@ public class SegmentRoutingConfigTest {
         adjacencySids2.put(300, ports3);
 
         DeviceId subject = DeviceId.deviceId("of:0000000000000001");
-        String key = "org.onosproject.segmentrouting";
+        String key = "segmentrouting";
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(jsonString);
         ConfigApplyDelegate delegate = new MockDelegate();
 
-        config = new SegmentRoutingConfig();
+        config = new SegmentRoutingDeviceConfig();
         config.init(subject, key, jsonNode, mapper, delegate);
     }
 

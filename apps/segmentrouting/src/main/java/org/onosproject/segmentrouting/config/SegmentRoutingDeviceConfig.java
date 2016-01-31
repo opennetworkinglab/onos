@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * Configuration object for Segment Routing Application.
  */
-public class SegmentRoutingConfig extends Config<DeviceId> {
+public class SegmentRoutingDeviceConfig extends Config<DeviceId> {
     private static final String NAME = "name";
     private static final String IP = "routerIp";
     private static final String MAC = "routerMac";
@@ -71,8 +71,8 @@ public class SegmentRoutingConfig extends Config<DeviceId> {
      * @param name name of the router.
      * @return the config of the router.
      */
-    public SegmentRoutingConfig setName(String name) {
-        return (SegmentRoutingConfig) setOrClear(NAME, name);
+    public SegmentRoutingDeviceConfig setName(String name) {
+        return (SegmentRoutingDeviceConfig) setOrClear(NAME, name);
     }
 
     /**
@@ -91,8 +91,8 @@ public class SegmentRoutingConfig extends Config<DeviceId> {
      * @param ip IP address of the router.
      * @return the config of the router.
      */
-    public SegmentRoutingConfig setRouterIp(String ip) {
-        return (SegmentRoutingConfig) setOrClear(IP, ip);
+    public SegmentRoutingDeviceConfig setRouterIp(String ip) {
+        return (SegmentRoutingDeviceConfig) setOrClear(IP, ip);
     }
 
     /**
@@ -111,8 +111,8 @@ public class SegmentRoutingConfig extends Config<DeviceId> {
      * @param mac MAC address of the router.
      * @return the config of the router.
      */
-    public SegmentRoutingConfig setRouterMac(String mac) {
-        return (SegmentRoutingConfig) setOrClear(MAC, mac);
+    public SegmentRoutingDeviceConfig setRouterMac(String mac) {
+        return (SegmentRoutingDeviceConfig) setOrClear(MAC, mac);
     }
 
     /**
@@ -130,8 +130,8 @@ public class SegmentRoutingConfig extends Config<DeviceId> {
      * @param sid node SID of the router.
      * @return the config of the router.
      */
-    public SegmentRoutingConfig setNodeSid(int sid) {
-        return (SegmentRoutingConfig) setOrClear(SID, sid);
+    public SegmentRoutingDeviceConfig setNodeSid(int sid) {
+        return (SegmentRoutingDeviceConfig) setOrClear(SID, sid);
     }
 
     /**
@@ -154,8 +154,8 @@ public class SegmentRoutingConfig extends Config<DeviceId> {
      * @param isEdgeRouter true if the router is an edge router.
      * @return the config of the router.
      */
-    public SegmentRoutingConfig setIsEdgeRouter(boolean isEdgeRouter) {
-        return (SegmentRoutingConfig) setOrClear(EDGE, isEdgeRouter);
+    public SegmentRoutingDeviceConfig setIsEdgeRouter(boolean isEdgeRouter) {
+        return (SegmentRoutingDeviceConfig) setOrClear(EDGE, isEdgeRouter);
     }
 
     /**
@@ -197,7 +197,7 @@ public class SegmentRoutingConfig extends Config<DeviceId> {
      * @param adjacencySids adjacency SIDs of the router.
      * @return the config of the router.
      */
-    public SegmentRoutingConfig setAdjacencySids(Map<Integer, Set<Integer>> adjacencySids) {
+    public SegmentRoutingDeviceConfig setAdjacencySids(Map<Integer, Set<Integer>> adjacencySids) {
         if (adjacencySids == null) {
             object.remove(ADJSIDS);
         } else {
