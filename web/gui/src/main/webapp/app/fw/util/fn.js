@@ -287,6 +287,44 @@
         }
     }
 
+    // generate a trie structure from the given array of strings
+    // if ignoreCase is true, all words are converted to uppercase first
+    // note: each letter in each string must be valid as an object property key
+    function createTrie(words, ignoreCase) {
+        var trie = {};
+
+        function add(c) {
+            var q = c.s.shift(),
+                np = c.p[q];
+
+            if (!np) {
+                c.p[q] = {};
+                np = c.p[q];
+            }
+
+            return {
+                p: np,
+                s: c.s
+            }
+        }
+
+        words.forEach(function (word) {
+            var p = trie,
+                w = ignoreCase ? word.toUpperCase() : word,
+                s = w.split(''),
+                c = {
+                    p: p,
+                    s: s
+                };
+
+            while (c.s.length) {
+                c = add(c);
+            }
+        });
+
+        return trie;
+    }
+
     angular.module('onosUtil')
         .factory('FnService',
         ['$window', '$location', '$log', function (_$window_, $loc, _$log_) {
@@ -321,7 +359,8 @@
                 noPx: noPx,
                 noPxStyle: noPxStyle,
                 endsWith: endsWith,
-                parseBitRate: parseBitRate
+                parseBitRate: parseBitRate,
+                createTrie: createTrie
             };
     }]);
 
