@@ -21,6 +21,10 @@ import org.onosproject.net.MutableAnnotations;
 /**
  * Container for data about a device. Data is stored using
  * {@link org.onosproject.net.MutableAnnotations}.
+ *
+ * Note that only derivatives of {@link HandlerBehaviour} can expect mutability
+ * from the backing driver data instance; other behaviours must rely on
+ * immutable {@link org.onosproject.net.Annotations} only.
  */
 public interface DriverData extends MutableAnnotations {
 
