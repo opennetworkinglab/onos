@@ -41,7 +41,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 public class LeaderCommand extends AbstractShellCommand {
 
     private static final String FMT = "%-30s | %-15s | %-5s | %-10s |";
-    private static final String FMT_C = "%-30s | %-15s | %-19s |";
+    private static final String FMT_C = "%-30s | %-15s | %-5s | %-10s | %-19s |";
     private boolean allTopics;
     private Pattern pattern;
 
@@ -83,74 +83,54 @@ public class LeaderCommand extends AbstractShellCommand {
         print("------------------------------------------------------------------------");
     }
 
-    private void displayCandidates(Map<String, Leadership> leaderBoard,
-            Map<String, List<NodeId>> candidates) {
-        print("------------------------------------------------------------------------");
-        print(FMT_C, "Topic", "Leader", "Candidates");
-        print("------------------------------------------------------------------------");
-         candidates
-                .entrySet()
+    private void displayCandidates(Map<String, Leadership> leaderBoard) {
+        print("--------------------------------------------------------------------------------------------");
+        print(FMT_C, "Topic", "Leader", "Term", "Elected", "Candidates");
+        print("--------------------------------------------------------------------------------------------");
+         leaderBoard.entrySet()
                 .stream()
                 .filter(es -> allTopics || pattern.matcher(es.getKey()).matches())
+                .sorted((a, b) -> leadershipComparator.compare(a.getValue(), b.getValue()))
                 .forEach(es -> {
-                        List<NodeId> list = es.getValue();
-                        if (list == null || list.isEmpty()) {
+                        Leadership l = es.getValue();
+                        List<NodeId> candidateList = l.candidates();
+                        if (candidateList == null || candidateList.isEmpty()) {
                             return;
                         }
-                        Leadership l = leaderBoard.get(es.getKey());
                         print(FMT_C,
                             es.getKey(),
                             String.valueOf(l.leaderNodeId()),
+                            l.leader().term(),
+                            Tools.timeAgo(l.leader().termStartTime()),
                             // formatting hacks to get it into a table
-                            list.get(0).toString());
-                            list.subList(1, list.size()).forEach(n -> print(FMT_C, " ", " ", n));
-                            print(FMT_C, " ", " ", " ");
+                            candidateList.get(0).toString());
+                            candidateList.subList(1, candidateList.size())
+                                         .forEach(n -> print(FMT_C, " ", " ", " ", " ", n));
+                            print(FMT_C, " ", " ", " ", " ", " ");
                         });
-         print("------------------------------------------------------------------------");
+         print("--------------------------------------------------------------------------------------------");
     }
 
     /**
-     * Returns JSON node representing the leaders.
+     * Returns JSON node representing the leaders and candidates.
      *
      * @param leaderBoard map of leaders
      */
     private JsonNode json(Map<String, Leadership> leaderBoard) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
-        leaderBoard.values()
-                .stream()
-                .sorted(leadershipComparator)
-                .forEach(l ->
-                        result.add(
+        leaderBoard.forEach((topic, leadership) -> {
+                    result.add(
                             mapper.createObjectNode()
-                                .put("topic", l.topic())
-                                .put("leader", String.valueOf(l.leaderNodeId()))
-                                .put("candidates", l.candidates().toString())
-                                .put("epoch", l.leader().term())
-                                .put("epochStartTime", Tools.timeAgo(l.leader().termStartTime()))));
-
-        return result;
-    }
-
-    /**
-     * Returns JSON node representing the leaders.
-     *
-     * @param leaderBoard map of leaders
-     */
-    private JsonNode json(Map<String, Leadership> leaderBoard,
-            Map<String, List<NodeId>> candidateBoard) {
-        ObjectMapper mapper = new ObjectMapper();
-        ArrayNode result = mapper.createArrayNode();
-        candidateBoard.entrySet()
-                .stream()
-                .forEach(es -> {
-                        Leadership l = leaderBoard.get(es.getKey());
-                        result.add(
-                            mapper.createObjectNode()
-                                .put("topic", es.getKey())
-                                .put("leader", l == null ? "none" : l.leader().toString())
-                                .put("candidates", es.getValue().toString()));
-                });
+                                .put("topic", topic)
+                                .put("leader", leadership.leaderNodeId() == null ?
+                                        "none" : leadership.leaderNodeId().toString())
+                                .put("term", leadership.leader() != null ?
+                                    leadership.leader().term() : 0)
+                                .put("termStartTime", leadership.leader() != null ?
+                                    leadership.leader().termStartTime() : 0)
+                                .put("candidates", leadership.candidates().toString()));
+        });
         return result;
     }
 
@@ -165,20 +145,15 @@ public class LeaderCommand extends AbstractShellCommand {
             pattern = Pattern.compile(topicPattern);
         }
 
+        if (outputJson()) {
+            print("%s", json(leaderBoard));
+            return;
+        }
+
         if (showCandidates) {
-            Map<String, List<NodeId>> candidates = leaderService
-                    .getCandidates();
-            if (outputJson()) {
-                print("%s", json(leaderBoard, candidates));
-            } else {
-                displayCandidates(leaderBoard, candidates);
-            }
+            displayCandidates(leaderBoard);
         } else {
-            if (outputJson()) {
-                print("%s", json(leaderBoard));
-            } else {
-                displayLeaders(leaderBoard);
-            }
+            displayLeaders(leaderBoard);
         }
     }
 }
