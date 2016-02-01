@@ -589,7 +589,6 @@ public class CordVtnRuleInstaller {
         selector = DefaultTrafficSelector.builder()
                 .matchInPort(phyPort)
                 .matchEthType(Ethernet.TYPE_ARP)
-                .matchArpTpa(localIp.getIp4Address())
                 .build();
 
         treatment = DefaultTrafficTreatment.builder()
