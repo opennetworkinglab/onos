@@ -81,12 +81,11 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * The return value is a list having only one element when the given resource is discrete type.
      * The return value may have multiple elements when the given resource is continuous type.
      *
-     * @param resource resource whose allocated consumer to be returned
+     * @param id ID of the resource whose allocated consumer to be returned
      * @return resource consumers who are allocated the resource.
      * Returns empty list if there is no such consumer.
      */
-    // TODO: need to change the argument type to ResourceId
-    List<ResourceConsumer> getConsumers(Resource resource);
+    List<ResourceAllocation> getResourceAllocations(ResourceId id);
 
     /**
      * Returns the availability of the specified resource.
@@ -107,22 +106,20 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
     /**
      * Returns a set of the child resources of the specified parent.
      *
-     * @param parent parent of the resource to be returned
+     * @param parent ID of the parent of the resource to be returned
      * @return a set of the child resources of the specified resource
      */
-    // TODO: need to change the argument type to ResourceId or ResourceId.Discrete
-    Set<Resource> getChildResources(Resource parent);
+    Set<Resource> getChildResources(DiscreteResourceId parent);
 
     /**
      * Returns a collection of the resources which are children of the specified parent and
      * whose type is the specified class.
      *
-     * @param parent parent of the resources to be returned
+     * @param parent ID of the parent of the resources to be returned
      * @param cls class instance of the children
      * @param <T> type of the resource
      * @return a collection of the resources which belongs to the specified subject and
      * whose type is the specified class.
      */
-    // TODO: need to change the argument type to ResourceId or ResourceId.Discrete
-    <T> Collection<Resource> getAllocatedResources(Resource parent, Class<T> cls);
+    <T> Collection<Resource> getAllocatedResources(DiscreteResourceId parent, Class<T> cls);
 }

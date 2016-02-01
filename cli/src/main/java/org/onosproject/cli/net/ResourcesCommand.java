@@ -34,6 +34,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TributarySlot;
 import org.onosproject.net.newresource.ContinuousResource;
+import org.onosproject.net.newresource.DiscreteResource;
 import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 
@@ -101,7 +102,13 @@ public class ResourcesCommand extends AbstractShellCommand {
 
     private void printResource(Resource resource, int level) {
         // TODO add an option to show only available resource
-        Set<Resource> children = resourceService.getRegisteredResources(resource);
+        // workaround to preserve the original behavior of ResourceService#getRegisteredResources
+        Set<Resource> children;
+        if (resource instanceof DiscreteResource) {
+            children = resourceService.getRegisteredResources(((DiscreteResource) resource).id());
+        } else {
+            children = Collections.emptySet();
+        }
 
         if (resource.equals(Resource.ROOT)) {
             print("ROOT");

@@ -157,7 +157,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
     }
 
     private Set<MplsLabel> findMplsLabel(ConnectPoint cp) {
-        return resourceService.getAvailableResources(Resources.discrete(cp.deviceId(), cp.port()).resource()).stream()
+        return resourceService.getAvailableResources(Resources.discrete(cp.deviceId(), cp.port()).id()).stream()
                 .filter(x -> x.last() instanceof MplsLabel)
                 .map(x -> (MplsLabel) x.last())
                 .collect(Collectors.toSet());

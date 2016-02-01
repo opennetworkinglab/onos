@@ -129,24 +129,22 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
     /**
      * Returns resource allocations of the specified resource.
      *
-     * @param resource resource to check the allocation
+     * @param id ID of the resource to check the allocation
      * @return list of allocation information.
      * If the resource is not allocated, the return value is an empty list.
      */
-    // TODO: need to change the argument type to ResourceId
-    List<ResourceAllocation> getResourceAllocations(Resource resource);
+    List<ResourceAllocation> getResourceAllocations(ResourceId id);
 
     /**
      * Returns allocated resources being as children of the specified parent and being the specified resource type.
      *
-     * @param parent parent resource
+     * @param parent parent resource ID
      * @param cls class to specify a type of resource
      * @param <T> type of the resource
      * @return non-empty collection of resource allocations if resources are allocated with the subject and type,
      * empty collection if no resource is allocated with the subject and type
      */
-    // TODO: might need to change the first argument type to ResourceId or ResourceId.Discrete
-    <T> Collection<ResourceAllocation> getResourceAllocations(Resource parent, Class<T> cls);
+    <T> Collection<ResourceAllocation> getResourceAllocations(DiscreteResourceId parent, Class<T> cls);
 
     /**
      * Returns resources allocated to the specified consumer.
@@ -159,20 +157,18 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
     /**
      * Returns resources that point available child resources under the specified resource.
      *
-     * @param parent parent resource
+     * @param parent parent resource ID
      * @return available resources under the specified resource
      */
-    // TODO: need to change the argument type to ResourceId or ResourceId.Discrete
-    Set<Resource> getAvailableResources(Resource parent);
+    Set<Resource> getAvailableResources(DiscreteResourceId parent);
 
     /**
      * Returns resources registered under the specified resource.
      *
-     * @param parent parent resource
+     * @param parent parent resource ID
      * @return registered resources under the specified resource
      */
-    // TODO: need to change the argument type to ResourceId or ResourceId.Discrete
-    Set<Resource> getRegisteredResources(Resource parent);
+    Set<Resource> getRegisteredResources(DiscreteResourceId parent);
 
 
     /**

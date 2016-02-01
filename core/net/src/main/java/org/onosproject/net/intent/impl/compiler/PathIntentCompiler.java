@@ -285,7 +285,7 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
     }
 
     private Set<VlanId> findVlanId(ConnectPoint cp) {
-        return resourceService.getAvailableResources(Resources.discrete(cp.deviceId(), cp.port()).resource()).stream()
+        return resourceService.getAvailableResources(Resources.discrete(cp.deviceId(), cp.port()).id()).stream()
                 .filter(x -> x.last() instanceof VlanId)
                 .map(x -> (VlanId) x.last())
                 .collect(Collectors.toSet());

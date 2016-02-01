@@ -19,11 +19,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.newresource.ContinuousResourceId;
+import org.onosproject.net.newresource.DiscreteResource;
+import org.onosproject.net.newresource.DiscreteResourceId;
 import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourceConsumer;
+import org.onosproject.net.newresource.ResourceId;
 import org.onosproject.net.newresource.ResourceListener;
 import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
+import org.onosproject.net.newresource.Resources;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -70,17 +75,21 @@ class MockResourceService implements ResourceService {
     }
 
     @Override
-    public List<ResourceAllocation> getResourceAllocations(Resource resource) {
-        return Optional.ofNullable(assignment.get(resource))
-                .map(x -> ImmutableList.of(new ResourceAllocation(resource, x)))
+    public List<ResourceAllocation> getResourceAllocations(ResourceId id) {
+        if (id instanceof ContinuousResourceId) {
+            return ImmutableList.of();
+        }
+        DiscreteResource discrete = Resources.discrete((DiscreteResourceId) id).resource();
+        return Optional.ofNullable(assignment.get(discrete))
+                .map(x -> ImmutableList.of(new ResourceAllocation(discrete, x)))
                 .orElse(ImmutableList.of());
     }
 
     @Override
-    public <T> Collection<ResourceAllocation> getResourceAllocations(Resource parent, Class<T> cls) {
+    public <T> Collection<ResourceAllocation> getResourceAllocations(DiscreteResourceId parent, Class<T> cls) {
         return assignment.entrySet().stream()
                 .filter(x -> x.getKey().parent().isPresent())
-                .filter(x -> x.getKey().parent().get().equals(parent))
+                .filter(x -> x.getKey().parent().get().id().equals(parent))
                 .map(x -> new ResourceAllocation(x.getKey(), x.getValue()))
                 .collect(Collectors.toList());
     }
@@ -94,16 +103,15 @@ class MockResourceService implements ResourceService {
     }
 
     @Override
-    public Set<Resource> getAvailableResources(Resource parent) {
-
-        Collection<Resource> resources = new HashSet<Resource>();
-        resources.add(parent.child(VlanId.vlanId((short) 10)));
-        resources.add(parent.child(MplsLabel.mplsLabel(10)));
+    public Set<Resource> getAvailableResources(DiscreteResourceId parent) {
+        Collection<Resource> resources = new HashSet<>();
+        resources.add(Resources.discrete(parent).resource().child(VlanId.vlanId((short) 10)));
+        resources.add(Resources.discrete(parent).resource().child(MplsLabel.mplsLabel(10)));
         return ImmutableSet.copyOf(resources);
     }
 
     @Override
-    public Set<Resource> getRegisteredResources(Resource parent) {
+    public Set<Resource> getRegisteredResources(DiscreteResourceId parent) {
         return getAvailableResources(parent);
     }
 

@@ -214,8 +214,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     private Set<OchSignal> findCommonLambdasOverLinks(List<Link> links) {
         return links.stream()
                 .flatMap(x -> Stream.of(
-                        Resources.discrete(x.src().deviceId(), x.src().port()).resource(),
-                        Resources.discrete(x.dst().deviceId(), x.dst().port()).resource()
+                        Resources.discrete(x.src().deviceId(), x.src().port()).id(),
+                        Resources.discrete(x.dst().deviceId(), x.dst().port()).id()
                 ))
                 .map(resourceService::getAvailableResources)
                 .map(x -> Iterables.filter(x, r -> r.last() instanceof OchSignal))
