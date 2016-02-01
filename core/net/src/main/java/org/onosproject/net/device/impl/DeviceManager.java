@@ -352,7 +352,8 @@ public class DeviceManager
             final Device device = getDevice(deviceId);
 
             List<PortDescription> descs = ports.stream().map(
-              port -> (!(Device.Type.ROADM.equals(device.type()))) ?
+              port -> (!(Device.Type.ROADM.equals(device.type()) ||
+                        (Device.Type.OTN.equals(device.type())))) ?
                   new DefaultPortDescription(port.number(), false,
                           port.type(), port.portSpeed()) :
                       OpticalPortOperator.descriptionOf(port, false)
@@ -439,7 +440,8 @@ public class DeviceManager
                 return;
             }
             Device device = nullIsNotFound(getDevice(deviceId), "Device not found");
-            if ((Device.Type.ROADM.equals(device.type()))) {
+            if ((Device.Type.ROADM.equals(device.type())) ||
+                (Device.Type.OTN.equals(device.type()))) {
                 Port port = getPort(deviceId, portDescription.portNumber());
                 portDescription = OpticalPortOperator.descriptionOf(port, portDescription.isEnabled());
             }

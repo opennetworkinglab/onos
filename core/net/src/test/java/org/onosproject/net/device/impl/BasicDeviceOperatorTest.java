@@ -34,11 +34,13 @@ import java.net.URI;
 import static org.junit.Assert.assertEquals;
 import static org.onosproject.net.Device.Type.ROADM;
 import static org.onosproject.net.Device.Type.SWITCH;
+import static org.onosproject.net.Device.Type.OTN;
 
 public class BasicDeviceOperatorTest {
 
     private static final String NAME1 = "of:foo";
     private static final String NAME2 = "of:bar";
+    private static final String NAME3 = "of:otn";
     private static final String OWNER = "somebody";
     private static final URI DURI = URI.create(NAME1);
     private static final String MFR = "whitebox";
@@ -64,6 +66,7 @@ public class BasicDeviceOperatorTest {
 
     private static final BasicDeviceConfig SW_BDC = new BasicDeviceConfig();
     private static final BasicDeviceConfig RD_BDC = new BasicDeviceConfig();
+    private static final BasicDeviceConfig OT_BDC = new BasicDeviceConfig();
 
     @Before
     public void setUp() {
@@ -72,6 +75,8 @@ public class BasicDeviceOperatorTest {
         RD_BDC.init(DeviceId.deviceId(NAME2), NAME2, JsonNodeFactory.instance.objectNode(), mapper, delegate);
         RD_BDC.type(ROADM).manufacturer(MANUFACTURER).hwVersion(HW_VERSION)
                 .swVersion(SW_VERSION).serial(SERIAL).managementAddress(MANAGEMENT_ADDRESS).driver(DRIVER).owner(OWNER);
+        OT_BDC.init(DeviceId.deviceId(NAME3), NAME3, JsonNodeFactory.instance.objectNode(), mapper, delegate);
+        OT_BDC.type(OTN);
     }
 
     @Test
@@ -92,5 +97,9 @@ public class BasicDeviceOperatorTest {
         assertEquals("Wrong serial", SERIAL, desc.serialNumber());
         assertEquals("Wrong management Address", MANAGEMENT_ADDRESS,
                      desc.annotations().value(AnnotationKeys.MANAGEMENT_ADDRESS));
+
+        // override Device type
+        desc = BasicDeviceOperator.combine(OT_BDC, DEV1);
+        assertEquals(OTN, desc.type());
     }
 }

@@ -54,6 +54,7 @@ import org.onosproject.net.GridType;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
+import org.onosproject.net.OtuSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
@@ -67,6 +68,7 @@ import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.OchPortDescription;
 import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.OmsPortDescription;
+import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.AbstractProvider;
@@ -492,13 +494,15 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          */
         private List<PortDescription> buildPortDescriptions(OpenFlowSwitch sw) {
             final List<PortDescription> portDescs = new ArrayList<>(sw.getPorts().size());
-            if (!(Device.Type.ROADM.equals(sw.deviceType()))) {
+            if (!((Device.Type.ROADM.equals(sw.deviceType())) ||
+                    (Device.Type.OTN.equals(sw.deviceType())))) {
                   sw.getPorts().forEach(port -> portDescs.add(buildPortDescription(port)));
             }
 
             OpenFlowOpticalSwitch opsw;
             switch (sw.deviceType()) {
                 case ROADM:
+                case OTN:
                     opsw = (OpenFlowOpticalSwitch) sw;
                     List<OFPortDesc> ports = opsw.getPorts();
                     LOG.debug("SW ID {} , ETH- ODU CLT Ports {}", opsw.getId(), ports);
@@ -578,6 +582,24 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             return buildPortDescription(ptype, (OFExpPort) port);
         }
 
+        private boolean matchingOtuPortSignalTypes(OFPortOpticalTransportSignalType sigType,
+                OduSignalType oduSignalType) {
+            switch (sigType) {
+            case OTU2:
+                if (oduSignalType == OduSignalType.ODU2) {
+                    return true;
+                }
+                break;
+            case OTU4:
+                if (oduSignalType == OduSignalType.ODU4) {
+                    return true;
+                }
+                break;
+            default:
+                break;
+            }
+            return false;
+        }
         /**
          * Build a portDescription from a given a port description describing some
          * Optical port.
@@ -622,8 +644,25 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 break;
             case OTU2:
             case OTU4:
-                  LOG.error("Signal tpye OTU2/4 not supported yet ", port.toString());
-                  break;
+                entry = firstProp.getFeatures().get(0).getValue().get(0);
+                layerClass =  entry.getLayerClass();
+                if (!OFPortOpticalTransportLayerClass.ODU.equals(layerClass)) {
+                    LOG.error("Unsupported layer Class {} ", layerClass);
+                    return null;
+                }
+
+                // convert to ONOS OduSignalType
+                OduSignalType oduSignalTypeOtuPort = OpenFlowDeviceValueMapper.
+                        lookupOduSignalType((byte) entry.getSignalType());
+                if (!matchingOtuPortSignalTypes(sigType, oduSignalTypeOtuPort)) {
+                    LOG.error("Wrong oduSignalType {} for OTU Port sigType {} ", oduSignalTypeOtuPort, sigType);
+                    return null;
+                }
+                OtuSignalType otuSignalType =
+                        ((sigType == OFPortOpticalTransportSignalType.OTU2) ? OtuSignalType.OTU2 :
+                            OtuSignalType.OTU4);
+                portDes = new OtuPortDescription(portNo, enabled, otuSignalType, annotations);
+                break;
             default:
                 break;
             }

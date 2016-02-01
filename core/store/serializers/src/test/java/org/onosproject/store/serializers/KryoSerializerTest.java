@@ -52,6 +52,8 @@ import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OmsPort;
+import org.onosproject.net.OtuPort;
+import org.onosproject.net.OtuSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.SparseAnnotations;
@@ -224,6 +226,11 @@ public class KryoSerializerTest {
         testSerializedEquals(new OduCltPort(DEV1, P1, true, CltSignalType.CLT_10GBE, A1_2));
     }
 
+    @Test
+    public void testOtuPort() {
+        testSerializedEquals(new OtuPort(DEV1, P1, true, OtuSignalType.OTU2));
+        testSerializedEquals(new OtuPort(DEV1, P1, true, OtuSignalType.OTU2, A1_2));
+    }
     @Test
     public void testDeviceId() {
         testSerializedEquals(DID1);

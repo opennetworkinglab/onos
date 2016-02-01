@@ -49,6 +49,7 @@
 
         devIcon_SWITCH: 'switch',
         devIcon_ROADM: 'roadm',
+        devIcon_OTN: 'otn',
         deviceTable: 'switch',
         flowTable: 'flowTable',
         portTable: 'portTable',

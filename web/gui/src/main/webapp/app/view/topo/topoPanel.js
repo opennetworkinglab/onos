@@ -223,7 +223,8 @@
 
     var isDevice = {
         switch: 1,
-        roadm: 1
+        roadm: 1,
+        otn:1
     };
 
     function displaySingle(data) {

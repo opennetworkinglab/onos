@@ -44,7 +44,8 @@
             },
             device: {
                 switch: 'pkt',
-                roadm: 'opt'
+                roadm: 'opt',
+                otn: 'opt'
             },
             link: {
                 hostLink: 'pkt',

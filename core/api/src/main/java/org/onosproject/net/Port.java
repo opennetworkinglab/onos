@@ -58,7 +58,12 @@ public interface Port extends Annotated {
         /**
          * Signifies virtual port.
          */
-        VIRTUAL
+        VIRTUAL,
+
+        /**
+         * Signifies optical fiber-based OTN port.
+         */
+        OTU
     }
 
     /**

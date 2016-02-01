@@ -23,6 +23,7 @@ import org.onosproject.net.config.basics.OpticalPortConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.OchPort;
+import org.onosproject.net.OtuPort;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
@@ -32,6 +33,7 @@ import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.OchPortDescription;
 import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.OmsPortDescription;
+import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.slf4j.Logger;
 
@@ -115,6 +117,9 @@ public final class OpticalPortOperator implements ConfigOperator {
             case COPPER:
                 return new DefaultPortDescription(port, descr.isEnabled(), descr.type(),
                         descr.portSpeed(), sa);
+            case OTU:
+                OtuPortDescription otu = (OtuPortDescription) descr;
+                return new OtuPortDescription(port, otu.isEnabled(), otu.signalType(), sa);
             default:
                 log.warn("Unsupported optical port type {} - can't update", descr.type());
                 return descr;
@@ -183,6 +188,9 @@ public final class OpticalPortOperator implements ConfigOperator {
             case ODUCLT:
                 OduCltPort odu = (OduCltPort) port;
                 return new OduCltPortDescription(ptn, isup, odu.signalType(), an);
+            case OTU:
+                OtuPort otu = (OtuPort) port;
+                return new OtuPortDescription(ptn, isup, otu.signalType(), an);
             default:
                 return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
         }

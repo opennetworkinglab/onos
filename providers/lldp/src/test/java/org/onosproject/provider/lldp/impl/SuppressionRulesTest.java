@@ -51,7 +51,7 @@ public class SuppressionRulesTest {
 
     @Before
     public void setUp() throws Exception {
-        rules = new SuppressionRules(ImmutableSet.of(Device.Type.ROADM),
+        rules = new SuppressionRules(ImmutableSet.of(Device.Type.ROADM, Device.Type.OTN),
                                ImmutableMap.of("no-lldp", SuppressionRules.ANY_VALUE,
                                                "sendLLDP", "false"));
     }

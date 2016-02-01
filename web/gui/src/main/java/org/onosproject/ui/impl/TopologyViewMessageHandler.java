@@ -611,12 +611,14 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private void sendAllDevices() {
         // Send optical first, others later for layered rendering
         for (Device device : deviceService.getDevices()) {
-            if (device.type() == Device.Type.ROADM) {
+            if ((device.type() == Device.Type.ROADM) ||
+                    (device.type() == Device.Type.OTN))  {
                 sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
             }
         }
         for (Device device : deviceService.getDevices()) {
-            if (device.type() != Device.Type.ROADM) {
+            if ((device.type() != Device.Type.ROADM) &&
+                    (device.type() != Device.Type.OTN))  {
                 sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
             }
         }
