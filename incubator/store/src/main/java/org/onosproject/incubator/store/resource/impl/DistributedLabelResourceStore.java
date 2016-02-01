@@ -486,7 +486,7 @@ public class DistributedLabelResourceStore
             set.add(resource);
         }
         LabelResourceRequest request = new LabelResourceRequest(DeviceId.deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID),
-                                                                LabelResourceRequest.Type.APPLY,
+                                                                LabelResourceRequest.Type.RELEASE,
                                                                 0,
                                                                 ImmutableSet.copyOf(set));
         return this.internalRelease(request);
