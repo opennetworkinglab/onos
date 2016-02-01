@@ -19,6 +19,7 @@ import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncDistributedSet;
+import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedQueue;
 import org.onosproject.store.service.Serializer;
 
@@ -75,4 +76,12 @@ public interface DistributedPrimitiveCreator {
      * @return set
      */
     <E> AsyncDistributedSet<E> newAsyncDistributedSet(String name, Serializer serializer);
+
+    /**
+     * Creates a new {@code AsyncLeaderElector}.
+     *
+     * @param name leader elector name
+     * @return leader elector
+     */
+    AsyncLeaderElector newAsyncLeaderElector(String name);
 }
