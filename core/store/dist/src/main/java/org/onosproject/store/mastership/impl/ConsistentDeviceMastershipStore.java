@@ -236,7 +236,8 @@ public class ConsistentDeviceMastershipStore
 
         String leadershipTopic = createDeviceMastershipTopic(deviceId);
         Leadership leadership = leadershipService.getLeadership(leadershipTopic);
-        return leadership != null ? MastershipTerm.of(leadership.leaderNodeId(), leadership.leader().term()) : null;
+        return leadership != null && leadership.leaderNodeId() != null ?
+            MastershipTerm.of(leadership.leaderNodeId(), leadership.leader().term()) : null;
     }
 
     @Override
