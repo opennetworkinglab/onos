@@ -30,11 +30,11 @@ import org.onosproject.store.service.Serializer;
 public class DefaultAtomicValueBuilder<V> implements AtomicValueBuilder<V> {
 
     private String name;
-    private ConsistentMapBuilder<String, V> mapBuilder;
-    private boolean metering = true;
+    private Serializer serializer;
+    private ConsistentMapBuilder<String, byte[]> mapBuilder;
 
     public DefaultAtomicValueBuilder(DatabaseManager manager) {
-        mapBuilder = manager.<String, V>consistentMapBuilder()
+        mapBuilder = manager.<String, byte[]>consistentMapBuilder()
                             .withName("onos-atomic-values")
                             .withMeteringDisabled()
                             .withSerializer(Serializer.using(KryoNamespaces.BASIC));
@@ -59,14 +59,8 @@ public class DefaultAtomicValueBuilder<V> implements AtomicValueBuilder<V> {
     }
 
     @Override
-    public AtomicValueBuilder<V> withMeteringDisabled() {
-        metering = false;
-        return this;
-    }
-
-    @Override
     public AsyncAtomicValue<V> buildAsyncValue() {
-        return new DefaultAsyncAtomicValue<>(mapBuilder.buildAsyncMap(), name, metering);
+        return new DefaultAsyncAtomicValue<>(name, serializer, mapBuilder.buildAsyncMap());
     }
 
     @Override
