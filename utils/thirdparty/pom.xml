@@ -113,16 +113,15 @@
               <artifact>org.onosproject</artifact>
                 <excludes>
                   <exclude>org/apache/commons/io/**</exclude>
-                  <exclude>io/atomix/**</exclude>
                   <exclude>com/googlecode/concurrenttrees/**</exclude>
                 </excludes>
             </filter>
 
             <filter>
-              <artifact>io.atomix:atomix-resource-manager</artifact>
-                <excludes>
-                  <exclude>io/atomix/resource/**</exclude>
-                </excludes>
+              <artifact>io.atomix:atomix-all</artifact>
+                <includes>
+                  <include>**</include>
+                </includes>
             </filter>
 
           </filters>
