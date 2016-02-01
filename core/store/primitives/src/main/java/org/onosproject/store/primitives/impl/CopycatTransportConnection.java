@@ -32,6 +32,7 @@ import java.util.function.Consumer;
 import org.apache.commons.io.IOUtils;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
+import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.cluster.messaging.MessagingService;
 
@@ -77,7 +78,7 @@ public class CopycatTransportConnection implements Connection {
 
     CopycatTransportConnection(long connectionId,
             CopycatTransport.Mode mode,
-            String clusterName,
+            PartitionId partitionId,
             Address address,
             MessagingService messagingService,
             ThreadContext context) {
@@ -86,11 +87,11 @@ public class CopycatTransportConnection implements Connection {
         this.remoteAddress = checkNotNull(address);
         this.messagingService = checkNotNull(messagingService);
         if (mode == CopycatTransport.Mode.CLIENT) {
-            this.outboundMessageSubject = String.format("onos-copycat-%s", clusterName);
-            this.inboundMessageSubject = String.format("onos-copycat-%s-%d", clusterName, connectionId);
+            this.outboundMessageSubject = String.format("onos-copycat-%s", partitionId);
+            this.inboundMessageSubject = String.format("onos-copycat-%s-%d", partitionId, connectionId);
         } else {
-            this.outboundMessageSubject = String.format("onos-copycat-%s-%d", clusterName, connectionId);
-            this.inboundMessageSubject = String.format("onos-copycat-%s", clusterName);
+            this.outboundMessageSubject = String.format("onos-copycat-%s-%d", partitionId, connectionId);
+            this.inboundMessageSubject = String.format("onos-copycat-%s", partitionId);
         }
         this.context = checkNotNull(context);
     }

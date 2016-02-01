@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 
 import org.apache.commons.io.IOUtils;
 import org.onlab.util.Tools;
+import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.cluster.messaging.MessagingService;
 
 import com.google.common.collect.Maps;
@@ -46,15 +47,15 @@ public class CopycatTransportServer implements Server {
 
     private final AtomicBoolean listening = new AtomicBoolean(false);
     private CompletableFuture<Void> listenFuture = new CompletableFuture<>();
-    private final String clusterName;
+    private final PartitionId partitionId;
     private final MessagingService messagingService;
     private final String messageSubject;
     private final Map<Long, CopycatTransportConnection> connections = Maps.newConcurrentMap();
 
-    CopycatTransportServer(String clusterName, MessagingService messagingService) {
-        this.clusterName = checkNotNull(clusterName);
+    CopycatTransportServer(PartitionId partitionId, MessagingService messagingService) {
+        this.partitionId = checkNotNull(partitionId);
         this.messagingService = checkNotNull(messagingService);
-        this.messageSubject = String.format("onos-copycat-%s", clusterName);
+        this.messageSubject = String.format("onos-copycat-%s", partitionId);
     }
 
     @Override
@@ -78,7 +79,7 @@ public class CopycatTransportServer implements Server {
                     newConnection.set(true);
                     return new CopycatTransportConnection(connectionId,
                             CopycatTransport.Mode.SERVER,
-                            clusterName,
+                            partitionId,
                             senderAddress,
                             messagingService,
                             getOrCreateContext(context));
@@ -114,6 +115,6 @@ public class CopycatTransportServer implements Server {
         if (context != null) {
             return context;
         }
-        return new SingleThreadContext("copycat-transport-server-" + clusterName, parentContext.serializer().clone());
+        return new SingleThreadContext("copycat-transport-server-" + partitionId, parentContext.serializer().clone());
     }
 }

@@ -17,6 +17,7 @@ package org.onosproject.store.primitives.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.cluster.messaging.MessagingService;
 
 import io.atomix.catalyst.transport.Client;
@@ -48,25 +49,25 @@ public class CopycatTransport implements Transport {
     }
 
     private final Mode mode;
-    private final String clusterName;
+    private final PartitionId partitionId;
     private final MessagingService messagingService;
 
-    public CopycatTransport(Mode mode, String clusterName, MessagingService messagingService) {
+    public CopycatTransport(Mode mode, PartitionId partitionId, MessagingService messagingService) {
         this.mode = checkNotNull(mode);
-        this.clusterName = checkNotNull(clusterName);
+        this.partitionId = checkNotNull(partitionId);
         this.messagingService = checkNotNull(messagingService);
     }
 
     @Override
     public Client client() {
-        return new CopycatTransportClient(clusterName,
+        return new CopycatTransportClient(partitionId,
                                           messagingService,
                                           mode);
     }
 
     @Override
     public Server server() {
-        return new CopycatTransportServer(clusterName,
+        return new CopycatTransportServer(partitionId,
                                           messagingService);
     }
 }

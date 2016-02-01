@@ -19,7 +19,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+
 import org.apache.commons.lang.math.RandomUtils;
+import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.cluster.messaging.MessagingService;
 
 import com.google.common.collect.Sets;
@@ -34,13 +36,13 @@ import io.atomix.catalyst.util.concurrent.ThreadContext;
  */
 public class CopycatTransportClient implements Client {
 
-    private final String clusterName;
+    private final PartitionId partitionId;
     private final MessagingService messagingService;
     private final CopycatTransport.Mode mode;
     private final Set<CopycatTransportConnection> connections = Sets.newConcurrentHashSet();
 
-    CopycatTransportClient(String clusterName, MessagingService messagingService, CopycatTransport.Mode mode) {
-        this.clusterName = checkNotNull(clusterName);
+    CopycatTransportClient(PartitionId partitionId, MessagingService messagingService, CopycatTransport.Mode mode) {
+        this.partitionId = checkNotNull(partitionId);
         this.messagingService = checkNotNull(messagingService);
         this.mode = checkNotNull(mode);
     }
@@ -51,7 +53,7 @@ public class CopycatTransportClient implements Client {
         CopycatTransportConnection connection = new CopycatTransportConnection(
                 nextConnectionId(),
                 CopycatTransport.Mode.CLIENT,
-                clusterName,
+                partitionId,
                 remoteAddress,
                 messagingService,
                 context);
