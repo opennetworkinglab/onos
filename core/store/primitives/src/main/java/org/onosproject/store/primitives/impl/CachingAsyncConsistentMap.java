@@ -21,6 +21,7 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.cache.CacheBuilder;
@@ -51,9 +52,16 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
                             }
                         });
 
+    private final MapEventListener<K, V> cacheInvalidator = event -> cache.invalidate(event.key());
+
     public CachingAsyncConsistentMap(AsyncConsistentMap<K, V> backingMap) {
         super(backingMap);
-        super.addListener(event -> cache.invalidate(event.key()));
+        super.addListener(cacheInvalidator);
+    }
+
+    @Override
+    public CompletableFuture<Void> destroy() {
+        return super.destroy().thenCompose(v -> removeListener(cacheInvalidator));
     }
 
     @Override
