@@ -57,11 +57,6 @@ public class DefaultDriverData implements DriverData {
     }
 
     @Override
-    public <T extends Behaviour> T behaviour(Class<T> behaviourClass) {
-        return driver.createBehaviour(this, behaviourClass);
-    }
-
-    @Override
     public MutableAnnotations set(String key, String value) {
         properties.put(key, value);
         return this;

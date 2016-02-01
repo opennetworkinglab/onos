@@ -16,8 +16,8 @@
 package org.onosproject.net.driver;
 
 /**
- * Representation of a facet of device behaviour that can be used to talk about
- * a device (in context of {@link DriverData}) or to a device (in context of
+ * Representation of a facet of behaviour that can be used to talk about
+ * an entity (in context of {@link DriverData}) or to an entity (in context of
  * {@link DriverHandler}).
  */
 public interface Behaviour {

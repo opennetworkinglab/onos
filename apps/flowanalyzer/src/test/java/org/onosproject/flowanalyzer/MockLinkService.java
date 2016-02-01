@@ -1,27 +1,25 @@
 package org.onosproject.flowanalyzer;
 
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.link.LinkServiceAdapter;
-import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
-import org.onosproject.net.Annotations;
-import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.link.LinkServiceAdapter;
+import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyVertex;
 
-import java.util.Set;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.onosproject.net.Link.State.ACTIVE;
 
-
 /**
- * Created by nikcheerla on 7/21/15.
+ * Test fixture for the flow analyzer.
  */
 public class MockLinkService extends LinkServiceAdapter {
     DefaultMutableTopologyGraph createdGraph = new DefaultMutableTopologyGraph(new HashSet<>(), new HashSet<>());
@@ -47,7 +45,7 @@ public class MockLinkService extends LinkServiceAdapter {
     @Override
     public Set<Link> getDeviceEgressLinks(DeviceId deviceId) {
         Set<Link> setL = new HashSet<>();
-        for (Link l: links) {
+        for (Link l : links) {
             if (l.src().elementId() instanceof DeviceId && l.src().deviceId().equals(deviceId)) {
                 setL.add(l);
             }
@@ -58,7 +56,7 @@ public class MockLinkService extends LinkServiceAdapter {
     @Override
     public Set<Link> getDeviceIngressLinks(DeviceId deviceId) {
         Set<Link> setL = new HashSet<>();
-        for (Link l: links) {
+        for (Link l : links) {
             if (l.dst().elementId() instanceof DeviceId && l.dst().deviceId().equals(deviceId)) {
                 setL.add(l);
             }
@@ -70,7 +68,7 @@ public class MockLinkService extends LinkServiceAdapter {
     @Override
     public Set<Link> getEgressLinks(ConnectPoint pt) {
         Set<Link> setL = new HashSet<>();
-        for (Link l: links) {
+        for (Link l : links) {
             if (l.src().equals(pt)) {
                 setL.add(l);
             }
@@ -81,7 +79,7 @@ public class MockLinkService extends LinkServiceAdapter {
     @Override
     public Set<Link> getIngressLinks(ConnectPoint pt) {
         Set<Link> setL = new HashSet<>();
-        for (Link l: links) {
+        for (Link l : links) {
             if (l.dst().equals(pt)) {
                 setL.add(l);
             }
@@ -92,7 +90,7 @@ public class MockLinkService extends LinkServiceAdapter {
     @Override
     public Set<Link> getLinks(ConnectPoint pt) {
         Set<Link> setL = new HashSet<>();
-        for (Link l: links) {
+        for (Link l : links) {
             if (l.src().equals(pt) || l.dst().equals(pt)) {
                 setL.add(l);
             }
@@ -119,47 +117,7 @@ public class MockLinkService extends LinkServiceAdapter {
         ConnectPoint src = new ConnectPoint(d1, PortNumber.portNumber(port));
         ConnectPoint dst = new ConnectPoint(d2, PortNumber.portNumber(port2));
         Link curLink;
-        curLink = new Link() {
-            @Override
-            public ConnectPoint src() {
-                return src;
-            }
-
-            @Override
-            public ConnectPoint dst() {
-                return dst;
-            }
-
-            @Override
-            public boolean isDurable() {
-                return true;
-            }
-
-            @Override
-            public boolean isExpected() {
-                return false;
-            }
-
-            @Override
-            public Annotations annotations() {
-                return null;
-            }
-
-            @Override
-            public Type type() {
-                return null;
-            }
-
-            @Override
-            public ProviderId providerId() {
-                return null;
-            }
-
-            @Override
-            public State state() {
-                return ACTIVE;
-            }
-        };
+        curLink = DefaultLink.builder().src(src).dst(dst).state(ACTIVE).build();
         links.add(curLink);
         if (d1 instanceof DeviceId && d2 instanceof DeviceId) {
             TopologyVertex v1 = () -> (DeviceId) d1, v2 = () -> (DeviceId) d2;

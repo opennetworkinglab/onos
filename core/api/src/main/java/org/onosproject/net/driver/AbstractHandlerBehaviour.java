@@ -18,7 +18,7 @@ package org.onosproject.net.driver;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * Base implementation of device driver handler behaviour.
+ * Base implementation of a driver handler behaviour.
  */
 public class AbstractHandlerBehaviour
         extends AbstractBehaviour implements HandlerBehaviour {

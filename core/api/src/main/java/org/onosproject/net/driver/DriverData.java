@@ -19,7 +19,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MutableAnnotations;
 
 /**
- * Container for data about a device. Data is stored using
+ * Container for data about an entity, e.g. device, link. Data is stored using
  * {@link org.onosproject.net.MutableAnnotations}.
  *
  * Note that only derivatives of {@link HandlerBehaviour} can expect mutability
@@ -45,10 +45,15 @@ public interface DriverData extends MutableAnnotations {
     /**
      * Returns the specified facet of behaviour to access the device data.
      *
+     * Implementations are expected to defer to the backing driver for creation
+     * of the requested behaviour.
+     *
      * @param behaviourClass behaviour class
      * @param <T>            type of behaviour
      * @return requested behaviour or null if not supported
      */
-    <T extends Behaviour> T behaviour(Class<T> behaviourClass);
+    default <T extends Behaviour> T behaviour(Class<T> behaviourClass) {
+        return driver().createBehaviour(this, behaviourClass);
+    }
 
 }

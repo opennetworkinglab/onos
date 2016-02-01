@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.ItemNotFoundException;
+import org.onosproject.net.AbstractProjectableModel;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -72,14 +73,15 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
 
     @Activate
     protected void activate() {
+        AbstractProjectableModel.setDriverService(null, this);
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
+        AbstractProjectableModel.setDriverService(this, null);
         log.info("Stopped");
     }
-
 
     @Override
     public Set<DriverProvider> getProviders() {

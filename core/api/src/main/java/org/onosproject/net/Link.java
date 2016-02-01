@@ -15,10 +15,12 @@
  */
 package org.onosproject.net;
 
+import org.onosproject.net.driver.Projectable;
+
 /**
  * Abstraction of a network infrastructure link.
  */
-public interface Link extends Annotated, Provided, NetworkResource {
+public interface Link extends Annotated, Provided, Projectable, NetworkResource {
 
     /**
      * Coarse representation of the link type.

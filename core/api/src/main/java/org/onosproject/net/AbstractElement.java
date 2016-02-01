@@ -20,7 +20,7 @@ import org.onosproject.net.provider.ProviderId;
 /**
  * Base implementation of network elements, i.e. devices or hosts.
  */
-public abstract class AbstractElement extends AbstractModel implements Element {
+public abstract class AbstractElement extends AbstractProjectableModel implements Element {
 
     protected final ElementId id;
 

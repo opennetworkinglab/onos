@@ -22,6 +22,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.provider.ProviderId;
 
 /**
@@ -62,6 +63,16 @@ public abstract class BiLinkTestBase {
         }
         @Override public ProviderId providerId() {
             return null;
+        }
+
+        @Override
+        public <B extends Behaviour> B as(Class<B> projectionClass) {
+            return null;
+        }
+
+        @Override
+        public <B extends Behaviour> boolean is(Class<B> projectionClass) {
+            return false;
         }
     }
 

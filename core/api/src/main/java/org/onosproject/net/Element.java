@@ -15,10 +15,12 @@
  */
 package org.onosproject.net;
 
+import org.onosproject.net.driver.Projectable;
+
 /**
  * Base abstraction of a network element, i.e. an infrastructure device or an end-station host.
  */
-public interface Element extends Annotated, Provided {
+public interface Element extends Annotated, Provided, Projectable {
 
     /**
      * Returns the network element identifier.

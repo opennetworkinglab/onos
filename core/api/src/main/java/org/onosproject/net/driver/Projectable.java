@@ -38,7 +38,7 @@ public interface Projectable {
      * Returns true if this entity is capable of being projected as the
      * specified class.
      *
-     * @param projectionClass projection class
+     * @param projectionClass requested projection class
      * @param <B> type of behaviour
      * @return true if the requested projection is supported
      */

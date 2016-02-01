@@ -15,12 +15,15 @@
  */
 package org.onosproject.net;
 
-import org.onosproject.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverData;
+import org.onosproject.net.provider.ProviderId;
 
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onlab.util.Tools.nullIsNotFound;
 
 /**
  * Default infrastructure device model implementation.
@@ -105,6 +108,33 @@ public class DefaultDevice extends AbstractElement implements Device {
         return chassisId;
     }
 
+    /**
+     * Returns self as an immutable driver data instance.
+     *
+     * @return self as driver data
+     */
+    protected DriverData asData() {
+        return new DeviceDriverData();
+    }
+
+    @Override
+    protected Driver locateDriver() {
+        Driver driver = super.locateDriver();
+        return driver != null ? driver :
+                nullIsNotFound(driverService().getDriver(manufacturer, hwVersion, swVersion),
+                               "Driver not found");
+    }
+
+    /**
+     * Projection of the parent entity as a driver data entity.
+     */
+    protected class DeviceDriverData extends AnnotationDriverData {
+        @Override
+        public DeviceId deviceId() {
+            return id();
+        }
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(id, type, manufacturer, hwVersion, swVersion, serialNumber);
@@ -136,6 +166,7 @@ public class DefaultDevice extends AbstractElement implements Device {
                 .add("hwVersion", hwVersion)
                 .add("swVersion", swVersion)
                 .add("serialNumber", serialNumber)
+                .add("driver", driver() != null ? driver().name() : "")
                 .toString();
     }
 
