@@ -156,7 +156,7 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
      * Returns the globally unique nextId.
      *
      * @return nextId
-     * @onos.rsModel nextid
+     * @onos.rsModel NextId
      */
     @GET
     @Path("next")
