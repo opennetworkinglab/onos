@@ -66,6 +66,7 @@
         <module>events</module>
         <module>vrouter</module>
         <module>openstackrouting</module>
+        <module>cordmcast</module>
   </modules>
 
     <properties>
