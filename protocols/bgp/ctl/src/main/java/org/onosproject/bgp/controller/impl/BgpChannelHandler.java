@@ -44,6 +44,7 @@ import org.onosproject.bgpio.types.BgpErrorType;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.FourOctetAsNumCapabilityTlv;
 import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
+import org.onosproject.bgpio.util.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,6 +109,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
     private SocketAddress address;
     private String peerAddr;
     private BgpCfg bgpconfig;
+    List<BgpValueType> remoteBgpCapability;
 
     /**
      * Create a new unconnected BGPChannelHandler.
@@ -171,6 +173,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                             return;
                         }
                         log.debug("Sending handshake OPEN message");
+                        h.remoteBgpCapability = pOpenmsg.getCapabilityTlv();
 
                         /*
                          * RFC 4271, section 4.2: Upon receipt of an OPEN message, a BGP speaker MUST calculate the
@@ -225,6 +228,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                             return;
                         }
                         log.debug("Sending handshake OPEN message");
+                        h.remoteBgpCapability = pOpenmsg.getCapabilityTlv();
 
                         /*
                          * RFC 4271, section 4.2: Upon receipt of an OPEN message, a BGP speaker MUST calculate the
@@ -277,7 +281,8 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                     h.negotiatedHoldTime = (h.peerHoldTime < h.bgpconfig.getHoldTime()) ? h.peerHoldTime
                                                                                         : h.bgpconfig.getHoldTime();
                     h.sessionInfo = new BgpSessionInfoImpl(h.thisbgpId, h.bgpVersion, h.peerAsNum, h.peerHoldTime,
-                                                           h.peerIdentifier, h.negotiatedHoldTime, h.isIbgpSession);
+                                                           h.peerIdentifier, h.negotiatedHoldTime, h.isIbgpSession,
+                                                           h.remoteBgpCapability);
 
                     h.bgpPeer = h.peerManager.getBgpPeerInstance(h.bgpController, h.sessionInfo, h.bgpPacketStats);
                     // set the status of bgp as connected
@@ -760,7 +765,6 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
     private boolean capabilityValidation(BgpChannelHandler h, BgpOpenMsg openmsg) throws BgpParseException {
         log.debug("capabilityValidation");
 
-        boolean isMultiProtocolcapabilityExists = false;
         boolean isFourOctetCapabilityExits = false;
         int capAsNum = 0;
 
@@ -771,11 +775,27 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         BgpValueType tempTlv;
         boolean isLargeAsCapabilityCfg = h.bgpconfig.getLargeASCapability();
         boolean isLsCapabilityCfg = h.bgpconfig.getLsCapability();
+        boolean isFlowSpecCapabilityCfg = h.bgpconfig.flowSpecCapability();
+        MultiProtocolExtnCapabilityTlv tempCapability;
+        boolean isMultiProtocolLsCapability = false;
+        boolean isMultiProtocolFlowSpecCapability = false;
+        boolean isMultiProtocolVpnFlowSpecCapability = false;
 
         while (listIterator.hasNext()) {
             BgpValueType tlv = listIterator.next();
             if (tlv.getType() == MULTI_PROTOCOL_EXTN_CAPA_TYPE) {
-                isMultiProtocolcapabilityExists = true;
+                tempCapability = (MultiProtocolExtnCapabilityTlv) tlv;
+                if (Constants.SAFI_FLOWSPEC_VALUE == tempCapability.getSafi()) {
+                    isMultiProtocolFlowSpecCapability = true;
+                }
+
+                if (Constants.VPN_SAFI_FLOWSPEC_VALUE == tempCapability.getSafi()) {
+                    isMultiProtocolVpnFlowSpecCapability = true;
+                }
+
+                if (SAFI == tempCapability.getSafi()) {
+                    isMultiProtocolLsCapability = true;
+                }
             }
             if (tlv.getType() == FOUR_OCTET_AS_NUM_CAPA_TYPE) {
                 isFourOctetCapabilityExits = true;
@@ -796,8 +816,22 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         }
 
         if ((isLsCapabilityCfg)) {
-            if (!isMultiProtocolcapabilityExists) {
+            if (!isMultiProtocolLsCapability) {
                 tempTlv = new MultiProtocolExtnCapabilityTlv(AFI, RES, SAFI);
+                unSupportedCapabilityTlv.add(tempTlv);
+            }
+        }
+
+        if ((isFlowSpecCapabilityCfg)) {
+            if (!isMultiProtocolFlowSpecCapability) {
+                tempTlv = new MultiProtocolExtnCapabilityTlv(Constants.AFI_FLOWSPEC_VALUE,
+                                                             RES, Constants.SAFI_FLOWSPEC_VALUE);
+                unSupportedCapabilityTlv.add(tempTlv);
+            }
+
+            if (!isMultiProtocolVpnFlowSpecCapability) {
+                tempTlv = new MultiProtocolExtnCapabilityTlv(Constants.AFI_FLOWSPEC_VALUE,
+                                                             RES, Constants.VPN_SAFI_FLOWSPEC_VALUE);
                 unSupportedCapabilityTlv.add(tempTlv);
             }
         }
@@ -809,7 +843,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             }
         }
 
-        if (unSupportedCaplistIterator.hasNext()) {
+        if (unSupportedCapabilityTlv.size() == 3) {
             ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
             while (unSupportedCaplistIterator.hasNext()) {
                 BgpValueType tlv = unSupportedCaplistIterator.next();

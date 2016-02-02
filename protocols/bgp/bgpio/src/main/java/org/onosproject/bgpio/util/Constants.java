@@ -34,6 +34,11 @@ public final class Constants {
     public static final short AFI_VALUE = 16388;
     public static final byte VPN_SAFI_VALUE = (byte) 0x80;
     public static final byte SAFI_VALUE = 71;
+
+    public static final short AFI_FLOWSPEC_VALUE = 1;
+    public static final byte SAFI_FLOWSPEC_VALUE = (byte) 133;
+    public static final byte VPN_SAFI_FLOWSPEC_VALUE = (byte) 134;
+
     public static final int EXTRA_TRAFFIC = 0x01;
     public static final int UNPROTECTED = 0x02;
     public static final int SHARED = 0x04;
@@ -41,4 +46,23 @@ public final class Constants {
     public static final int DEDICATED_ONE_PLUS_ONE = 0x10;
     public static final int ENHANCED = 0x20;
     public static final int RESERVED = 0x40;
+
+    public static final byte BGP_FLOWSPEC_DST_PREFIX = 0x01;
+    public static final byte BGP_FLOWSPEC_SRC_PREFIX = 0x02;
+    public static final byte BGP_FLOWSPEC_IP_PROTO = 0x03;
+    public static final byte BGP_FLOWSPEC_PORT = 0x04;
+    public static final byte BGP_FLOWSPEC_DST_PORT = 0x05;
+    public static final byte BGP_FLOWSPEC_SRC_PORT = 0x06;
+    public static final byte BGP_FLOWSPEC_ICMP_TP = 0x07;
+    public static final byte BGP_FLOWSPEC_ICMP_CD = 0x08;
+    public static final byte BGP_FLOWSPEC_TCP_FLAGS = 0x09;
+    public static final byte BGP_FLOWSPEC_PCK_LEN = 0x10;
+    public static final byte BGP_FLOWSPEC_DSCP = 0x11;
+    public static final byte BGP_FLOWSPEC_FRAGMENT = 0x12;
+
+    public static final short BGP_FLOWSPEC_ACTION_TRAFFIC_RATE = (short) 0x8006;
+    public static final short BGP_FLOWSPEC_ACTION_TRAFFIC_ACTION = (short) 0x8007;
+    public static final short BGP_FLOWSPEC_ACTION_TRAFFIC_REDIRECT = (short) 0x8008;
+    public static final short BGP_FLOWSPEC_ACTION_TRAFFIC_MARKING = (short) 0x8009;
+
 }

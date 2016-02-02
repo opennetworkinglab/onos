@@ -13,7 +13,10 @@
 
 package org.onosproject.bgp.controller;
 
+import java.util.List;
+
 import org.onosproject.bgpio.protocol.BgpVersion;
+import org.onosproject.bgpio.types.BgpValueType;
 
 /**
  * Abstraction of an BGP session info. Maintian session parameters obtained during session creation.
@@ -67,4 +70,11 @@ public interface BgpSessionInfo {
      * @return bgp identifier.
      */
     int remoteBgpIdentifier();
+
+    /**
+     * Gets the BGP capabilities for this BGP peer.
+     *
+     * @return BGP peer capabilities.
+     */
+    List<BgpValueType> remoteBgpCapability();
 }
