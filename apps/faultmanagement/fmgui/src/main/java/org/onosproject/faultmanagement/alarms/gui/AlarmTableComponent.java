@@ -38,6 +38,8 @@ public class AlarmTableComponent {
 
     private static final String VIEW_ID = "alarmTable";
     private static final String VIEW_TEXT = "Alarms";
+    // note: we register the alarm icon->glyph mapping in alarmTable.js
+    private static final String ICON_ID = "nav_alarms";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -46,7 +48,7 @@ public class AlarmTableComponent {
 
     // List of application views
     private final List<UiView> uiViews = ImmutableList.of(
-            new UiView(UiView.Category.OTHER, VIEW_ID, VIEW_TEXT)
+            new UiView(UiView.Category.OTHER, VIEW_ID, VIEW_TEXT, ICON_ID)
     );
 
     // Factory for UI message handlers

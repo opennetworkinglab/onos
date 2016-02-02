@@ -44,114 +44,121 @@
     }
 
     angular.module('ovAlarmTable', [])
-            .controller('OvAlarmTableCtrl',
-                    ['$log', '$scope', '$location', 'TableBuilderService',
-                        'FnService', 'WebSocketService',
-                        function (_$log_, _$scope_, _$location_, tbs, _fs_, _wss_) {
-                            var params;
+        .run(['IconService', function (is) {
+            // we want to be able to re-use the clock glyph in our nav icon...
+            is.registerIconMapping('nav_alarms', 'alarmsTopo-overlay-clock');
+        }])
 
-                            $log = _$log_;
-                            $scope = _$scope_;
-                            $loc = _$location_;
+        .controller('OvAlarmTableCtrl',
+            ['$log', '$scope', '$location', 'TableBuilderService',
+                'FnService', 'WebSocketService',
 
-                            fs = _fs_;
-                            wss = _wss_;
+            function (_$log_, _$scope_, _$location_, tbs, _fs_, _wss_) {
+                var params;
 
+                $log = _$log_;
+                $scope = _$scope_;
+                $loc = _$location_;
 
-                            params = $loc.search();
-                            if (params.hasOwnProperty('devId')) {
-                                $scope.devId = params['devId'];
-                            }
+                fs = _fs_;
+                wss = _wss_;
 
-                            var handlers = {};
-                            $scope.panelDetails = {};
+                params = $loc.search();
+                if (params.hasOwnProperty('devId')) {
+                    $scope.devId = params['devId'];
+                }
 
-                            // details response handler
-                            handlers[detailsResp] = respDetailsCb;
-                            wss.bindHandlers(handlers);
+                var handlers = {};
+                $scope.panelDetails = {};
 
-                            // custom selection callback
-                            function selCb($event, row) {
-                                $log.debug("selCb row=" + JSON.stringify(row, null, 4) +
-                                        ", $event=" + JSON.stringify($event, null, 4));
-                                $log.debug('$scope.selId=', $scope.selId);
-                                if ($scope.selId) {
-                                    $log.debug('send');
-                                    wss.sendEvent(detailsReq, {id: row.id});
-                                } else {
-                                    $log.debug('hidePanel');
-                                    $scope.hidePanel();
-                                }
-                                $log.debug('Got a click on:', row);
-                            }
+                // details response handler
+                handlers[detailsResp] = respDetailsCb;
+                wss.bindHandlers(handlers);
 
-                            // TableBuilderService creating a table for us
-                            tbs.buildTable({
-                                scope: $scope,
-                                tag: 'alarmTable',
-                                selCb: selCb,
-                                query: params
-                            });
+                // custom selection callback
+                function selCb($event, row) {
+                    $log.debug("selCb row=" + JSON.stringify(row, null, 4) +
+                            ", $event=" + JSON.stringify($event, null, 4));
+                    $log.debug('$scope.selId=', $scope.selId);
+                    if ($scope.selId) {
+                        $log.debug('send');
+                        wss.sendEvent(detailsReq, {id: row.id});
+                    } else {
+                        $log.debug('hidePanel');
+                        $scope.hidePanel();
+                    }
+                    $log.debug('Got a click on:', row);
+                }
 
-                            // cleanup
-                            $scope.$on('$destroy', function () {
-                                wss.unbindHandlers(handlers);
-                                $log.log('OvAlarmTableCtrl has been destroyed');
-                            });
+                // TableBuilderService creating a table for us
+                tbs.buildTable({
+                    scope: $scope,
+                    tag: 'alarmTable',
+                    selCb: selCb,
+                    query: params
+                });
 
-                            $log.log('OvAlarmTableCtrl has been created');
-                        }])
+                // cleanup
+                $scope.$on('$destroy', function () {
+                    wss.unbindHandlers(handlers);
+                    $log.log('OvAlarmTableCtrl has been destroyed');
+                });
 
-            .directive('ovAlarmTableItemDetailsPanel', ['PanelService', 'KeyService',
-                function (ps, ks) {
-                    return {
-                        restrict: 'E',
-                        link: function (scope, element, attrs) {
-                            // insert details panel with PanelService
-                            // create the panel
-                            var panel = ps.createPanel(pName, {
-                                width: 400,
-                                margin: 20,
-                                hideMargin: 0
-                            });
+                $log.log('OvAlarmTableCtrl has been created');
+            }])
+
+        .directive('ovAlarmTableItemDetailsPanel',
+            ['PanelService', 'KeyService',
+
+            function (ps, ks) {
+                return {
+                    restrict: 'E',
+                    link: function (scope, element, attrs) {
+                        // insert details panel with PanelService
+                        // create the panel
+                        var panel = ps.createPanel(pName, {
+                            width: 400,
+                            margin: 20,
+                            hideMargin: 0
+                        });
+                        panel.hide();
+                        scope.hidePanel = function () {
                             panel.hide();
-                            scope.hidePanel = function () {
+                        };
+
+                        function closePanel() {
+                            if (panel.isVisible()) {
+                                $scope.selId = null;
                                 panel.hide();
-                            };
-
-                            function closePanel() {
-                                if (panel.isVisible()) {
-                                    $scope.selId = null;
-                                    panel.hide();
-                                    return true;
-                                }
-                                return false;
+                                return true;
                             }
-
-                            // create key bindings to handle panel
-                            ks.keyBindings({
-                                esc: [closePanel, 'Close the details panel'],
-                                _helpFormat: ['esc']
-                            });
-                            ks.gestureNotes([
-                                ['click', 'Select a row to show item details']
-                            ]);
-
-                            // update the panel's contents when the data is changed
-                            scope.$watch('panelDetails', function () {
-                                if (!fs.isEmptyObject(scope.panelDetails)) {
-                                    panel.empty();
-                                    populatePanel(panel);
-                                    panel.show();
-                                }
-                            });
-
-                            // cleanup on destroyed scope
-                            scope.$on('$destroy', function () {
-                                ks.unbindKeys();
-                                ps.destroyPanel(pName);
-                            });
+                            return false;
                         }
-                    };
-                }]);
+
+                        // create key bindings to handle panel
+                        ks.keyBindings({
+                            esc: [closePanel, 'Close the details panel'],
+                            _helpFormat: ['esc']
+                        });
+                        ks.gestureNotes([
+                            ['click', 'Select a row to show item details']
+                        ]);
+
+                        // update the panel's contents when the data is changed
+                        scope.$watch('panelDetails', function () {
+                            if (!fs.isEmptyObject(scope.panelDetails)) {
+                                panel.empty();
+                                populatePanel(panel);
+                                panel.show();
+                            }
+                        });
+
+                        // cleanup on destroyed scope
+                        scope.$on('$destroy', function () {
+                            ks.unbindKeys();
+                            ps.destroyPanel(pName);
+                        });
+                    }
+                };
+            }]);
 }());
