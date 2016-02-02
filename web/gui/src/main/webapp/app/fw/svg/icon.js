@@ -222,6 +222,13 @@
         };
     }
 
+    function registerIconMapping(iconId, glyphId) {
+        if (glyphMapping[iconId]) {
+            $log.warn('Icon with id', iconId, 'already mapped. Ignoring.');
+        } else {
+            glyphMapping[iconId] = glyphId;
+        }
+    }
 
     // =========================
     // === DEFINE THE MODULE
@@ -256,7 +263,8 @@
                 addDeviceIcon: addDeviceIcon,
                 addHostIcon: addHostIcon,
                 iconConfig: function () { return config; },
-                sortIcons: sortIcons
+                sortIcons: sortIcons,
+                registerIconMapping: registerIconMapping
             };
         }]);
 
