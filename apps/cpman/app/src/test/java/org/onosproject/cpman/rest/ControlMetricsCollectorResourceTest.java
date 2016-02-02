@@ -52,6 +52,8 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
     final ControlPlaneMonitorService mockControlPlaneMonitorService =
                                      createMock(ControlPlaneMonitorService.class);
 
+    private static final String PREFIX = "collector";
+
     /**
      * Sets up the global values for all the tests.
      */
@@ -69,7 +71,7 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
                 (Optional<DeviceId>) anyObject());
         expectLastCall().times(5);
         replay(mockControlPlaneMonitorService);
-        basePostTest("cpu-metrics-post.json", "cpman/cpumetrics");
+        basePostTest("cpu-metrics-post.json", PREFIX + "/cpu_metrics");
     }
 
     @Test
@@ -78,7 +80,7 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
                 (Optional<DeviceId>) anyObject());
         expectLastCall().times(4);
         replay(mockControlPlaneMonitorService);
-        basePostTest("memory-metrics-post.json", "cpman/memorymetrics");
+        basePostTest("memory-metrics-post.json", PREFIX + "/memory_metrics");
     }
 
     @Test
@@ -87,7 +89,7 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
                 (Optional<DeviceId>) anyObject());
         expectLastCall().times(2);
         replay(mockControlPlaneMonitorService);
-        basePostTest("disk-metrics-post.json", "cpman/diskmetrics");
+        basePostTest("disk-metrics-post.json", PREFIX + "/disk_metrics");
     }
 
     @Test
@@ -96,12 +98,12 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
                 (Optional<DeviceId>) anyObject());
         expectLastCall().times(4);
         replay(mockControlPlaneMonitorService);
-        basePostTest("network-metrics-post.json", "cpman/networkmetrics");
+        basePostTest("network-metrics-post.json", PREFIX + "/network_metrics");
     }
 
     @Test
     public void testSystemSpecsPost() {
-        basePostTest("system-spec-post.json", "cpman/systemspecs");
+        basePostTest("system-spec-post.json", PREFIX + "/system_specs");
     }
 
     private void basePostTest(String jsonFile, String path) {

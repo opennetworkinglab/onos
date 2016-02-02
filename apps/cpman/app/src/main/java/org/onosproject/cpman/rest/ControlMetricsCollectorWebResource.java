@@ -37,7 +37,7 @@ import java.util.Optional;
 /**
  * Collect control plane metrics.
  */
-@Path("cpman")
+@Path("collector")
 public class ControlMetricsCollectorWebResource extends AbstractWebResource {
 
     final ControlPlaneMonitorService service = get(ControlPlaneMonitorService.class);
@@ -52,7 +52,7 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
      * @onos.rsModel CpuMetricsPost
      */
     @POST
-    @Path("cpumetrics")
+    @Path("cpu_metrics")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response cpuMetrics(InputStream stream) {
@@ -110,7 +110,7 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
      * @onos.rsModel MemoryMetricsPost
      */
     @POST
-    @Path("memorymetrics")
+    @Path("memory_metrics")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response memoryMetrics(InputStream stream) {
@@ -161,7 +161,7 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
      * @onos.rsModel DiskMetricsPost
      */
     @POST
-    @Path("diskmetrics")
+    @Path("disk_metrics")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response diskMetrics(InputStream stream) {
@@ -198,7 +198,7 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
      * @onos.rsModel NetworkMetricsPost
      */
     @POST
-    @Path("networkmetrics")
+    @Path("network_metrics")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response networkMetrics(InputStream stream) {
@@ -252,7 +252,7 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
      * @onos.rsModel SystemSpecsPost
      */
     @POST
-    @Path("systemspecs")
+    @Path("system_specs")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response systemSpecs(InputStream stream) {
