@@ -28,11 +28,11 @@ public class ControlMetric {
         this.metricValue = metricValue;
     }
 
-    ControlMetricType metricType() {
+    public ControlMetricType metricType() {
         return metricType;
     }
 
-    MetricValue metricValue() {
+    public MetricValue metricValue() {
         return metricValue;
     }
 }

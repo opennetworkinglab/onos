@@ -19,7 +19,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
 
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Control Plane Statistics Service Interface.
@@ -46,6 +45,8 @@ public interface ControlPlaneMonitorService {
 
     /**
      * Obtains the control plane load of a specific device.
+     * The metrics range from control messages and system metrics
+     * (e.g., CPU and memory info)
      *
      * @param nodeId   node id {@link org.onosproject.cluster.NodeId}
      * @param type     control metric type
@@ -55,15 +56,13 @@ public interface ControlPlaneMonitorService {
     ControlLoad getLoad(NodeId nodeId, ControlMetricType type, Optional<DeviceId> deviceId);
 
     /**
-     * Obtains the control plane load of a specific device with a specific time duration.
+     * Obtains the control plane load of a specific device.
+     * The metrics range from I/O device metrics (e.g., disk and network interface)
      *
-     * @param nodeId   node id {@link org.onosproject.cluster.NodeId}
-     * @param type     control metric type
-     * @param duration time duration
-     * @param unit     time unit
-     * @param deviceId device id {@link org.onosproject.net.Device}
+     * @param nodeId        node id {@link org.onosproject.cluster.NodeId}
+     * @param type          control metric type
+     * @param resourceName  resource name
      * @return control plane load
      */
-    ControlLoad getLoad(NodeId nodeId, ControlMetricType type, Optional<DeviceId> deviceId,
-                        int duration, TimeUnit unit);
+    ControlLoad getLoad(NodeId nodeId, ControlMetricType type, String resourceName);
 }

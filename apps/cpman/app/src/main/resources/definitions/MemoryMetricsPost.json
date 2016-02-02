@@ -1,18 +1,18 @@
 {
   "type": "object",
   "required": [
-    "memoryUsedPercentage",
-    "memoryFreePercentage",
+    "memoryUsedRatio",
+    "memoryFreeRatio",
     "memoryUsed",
     "memoryFree"
   ],
   "properties": {
-    "memoryUsedPercentage": {
+    "memoryUsedRatio": {
       "type": "integer",
       "format": "int64",
       "example": "30"
     },
-    "memoryFreePercentage": {
+    "memoryFreeRatio": {
       "type": "integer",
       "format": "int64",
       "example": "70"

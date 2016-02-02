@@ -243,10 +243,6 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
         private String metricName;
 
         public Builder() {
-
-            // define the resolution of monitored metrics
-            rrdDef = new RrdDef(DB_PATH, RESOLUTION);
-
             // initialize data source definition list
             dsDefs = new ArrayList<>();
         }
@@ -254,6 +250,9 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
         @Override
         public Builder withMetricName(String metricName) {
             this.metricName = metricName;
+
+            // define the resolution of monitored metrics
+            rrdDef = new RrdDef(DB_PATH + "_" + metricName, RESOLUTION);
             return this;
         }
 

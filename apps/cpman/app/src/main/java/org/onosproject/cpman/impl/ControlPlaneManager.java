@@ -53,5 +53,4 @@ public class ControlPlaneManager {
     protected void deactivate() {
         log.info("Stopped");
     }
-
 }

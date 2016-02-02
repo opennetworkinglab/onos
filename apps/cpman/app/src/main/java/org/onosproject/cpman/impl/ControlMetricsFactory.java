@@ -48,8 +48,8 @@ public final class ControlMetricsFactory {
     private MetricsAggregator cpuIdleTime;
     private MetricsAggregator memoryUsed;
     private MetricsAggregator memoryFree;
-    private MetricsAggregator memoryUsedPercentage;
-    private MetricsAggregator memoryFreePercentage;
+    private MetricsAggregator memoryUsedRatio;
+    private MetricsAggregator memoryFreeRatio;
     private Map<String, MetricsAggregator> diskReadBytes;
     private Map<String, MetricsAggregator> diskWriteBytes;
     private Map<String, MetricsAggregator> nwIncomingBytes;
@@ -283,10 +283,10 @@ public final class ControlMetricsFactory {
         /* Memory */
         memoryFree = new MetricsAggregator(metricsService, ControlMetricType.MEMORY_FREE);
         memoryUsed = new MetricsAggregator(metricsService, ControlMetricType.MEMORY_USED);
-        memoryFreePercentage = new MetricsAggregator(metricsService,
-                                        ControlMetricType.MEMORY_FREE_PERCENTAGE);
-        memoryUsedPercentage = new MetricsAggregator(metricsService,
-                                        ControlMetricType.MEMORY_USED_PERCENTAGE);
+        memoryFreeRatio = new MetricsAggregator(metricsService,
+                                        ControlMetricType.MEMORY_FREE_RATIO);
+        memoryUsedRatio = new MetricsAggregator(metricsService,
+                                        ControlMetricType.MEMORY_USED_RATIO);
 
         /* Disk I/O */
         diskReadBytes = new ConcurrentHashMap<>();
@@ -350,12 +350,12 @@ public final class ControlMetricsFactory {
         return cpuIdleTime;
     }
 
-    public MetricsAggregator memoryFreePercentage() {
-        return memoryFreePercentage;
+    public MetricsAggregator memoryFreeRatio() {
+        return memoryFreeRatio;
     }
 
-    public MetricsAggregator memoryUsedPercentage() {
-        return memoryUsedPercentage;
+    public MetricsAggregator memoryUsedRatio() {
+        return memoryUsedRatio;
     }
 
     public MetricsAggregator diskReadBytes(String partitionName) {

@@ -122,20 +122,20 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
         ControlMetric cm;
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            JsonNode memUsedPerc = jsonTree.get("memoryUsedPercentage");
-            JsonNode memFreePerc = jsonTree.get("memoryFreePercentage");
+            JsonNode memUsedRatio = jsonTree.get("memoryUsedRatio");
+            JsonNode memFreeRatio = jsonTree.get("memoryFreeRatio");
             JsonNode memUsed = jsonTree.get("memoryUsed");
             JsonNode memFree = jsonTree.get("memoryFree");
 
-            if (memUsedPerc != null) {
-                cm = new ControlMetric(ControlMetricType.MEMORY_USED_PERCENTAGE,
-                        new MetricValue.Builder().load(memUsedPerc.asLong()).add());
+            if (memUsedRatio != null) {
+                cm = new ControlMetric(ControlMetricType.MEMORY_USED_RATIO,
+                        new MetricValue.Builder().load(memUsedRatio.asLong()).add());
                 service.updateMetric(cm, UPDATE_INTERVAL, Optional.ofNullable(null));
             }
 
-            if (memFreePerc != null) {
-                cm = new ControlMetric(ControlMetricType.MEMORY_FREE_PERCENTAGE,
-                        new MetricValue.Builder().load(memFreePerc.asLong()).add());
+            if (memFreeRatio != null) {
+                cm = new ControlMetric(ControlMetricType.MEMORY_FREE_RATIO,
+                        new MetricValue.Builder().load(memFreeRatio.asLong()).add());
                 service.updateMetric(cm, UPDATE_INTERVAL, Optional.ofNullable(null));
             }
 

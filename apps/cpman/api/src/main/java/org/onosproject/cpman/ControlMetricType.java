@@ -62,11 +62,11 @@ public enum ControlMetricType {
     /* CPU Idle Time. **/
     CPU_IDLE_TIME,
 
-    /* Percentage of Used Memory Amount. */
-    MEMORY_USED_PERCENTAGE,
+    /* Ratio of Used Memory Amount. */
+    MEMORY_USED_RATIO,
 
-    /* Percentage of Free Memory Amount. **/
-    MEMORY_FREE_PERCENTAGE,
+    /* Ratio of Free Memory Amount. **/
+    MEMORY_FREE_RATIO,
 
     /* Used Memory Amount. **/
     MEMORY_USED,
