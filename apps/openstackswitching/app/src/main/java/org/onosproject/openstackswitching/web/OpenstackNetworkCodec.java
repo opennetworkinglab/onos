@@ -57,7 +57,7 @@ public class OpenstackNetworkCodec extends JsonCodec<OpenstackNetwork> {
                 .id(id);
 
         if (networkInfo.path(NETWORK_TYPE).isMissingNode()) {
-            log.warn("Network {} has no network type, ignore it.", name);
+            log.debug("Network {} has no network type, ignore it.", name);
             return null;
         }
 
@@ -65,7 +65,7 @@ public class OpenstackNetworkCodec extends JsonCodec<OpenstackNetwork> {
         try {
             onb.networkType(OpenstackNetwork.NetworkType.valueOf(networkType.toUpperCase()));
         } catch (IllegalArgumentException e) {
-            log.warn("Network {} has unsupported network type {}, ignore it.",
+            log.debug("Network {} has unsupported network type {}, ignore it.",
                      name, networkType);
             return null;
         }

@@ -123,13 +123,17 @@ public class CordVtnArpProxy {
      * @param gatewayMac gateway mac address
      */
     public void processArpPacket(PacketContext context, Ethernet ethPacket, MacAddress gatewayMac) {
-        checkArgument(!gatewayMac.equals(MacAddress.NONE));
-
         ARP arpPacket = (ARP) ethPacket.getPayload();
         Ip4Address targetIp = Ip4Address.valueOf(arpPacket.getTargetProtocolAddress());
 
         if (arpPacket.getOpCode() != ARP.OP_REQUEST || !serviceIPs.contains(targetIp)) {
            return;
+        }
+
+        if (gatewayMac.equals(MacAddress.NONE)) {
+            log.debug("Gateway mac address is not set, ignoring ARP request");
+            context.block();
+            return;
         }
 
         Ethernet ethReply = ARP.buildArpReply(
