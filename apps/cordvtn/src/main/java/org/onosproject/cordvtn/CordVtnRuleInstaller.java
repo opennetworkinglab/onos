@@ -196,6 +196,7 @@ public class CordVtnRuleInstaller {
 
         populateLocalInPortRule(deviceId, inPort, hostIp);
         populateDirectAccessRule(Ip4Prefix.valueOf(subnet.cidr()), Ip4Prefix.valueOf(subnet.cidr()));
+        populateServiceIsolationRule(Ip4Prefix.valueOf(subnet.cidr()));
         populateDstIpRule(deviceId, inPort, dstMac, hostIp, tunnelId, tunnelIp);
         populateTunnelInRule(deviceId, inPort, dstMac, tunnelId);
     }
@@ -785,6 +786,37 @@ public class CordVtnRuleInstaller {
                     .fromApp(appId)
                     .withSelector(selector)
                     .withTreatment(treatment)
+                    .withPriority(DEFAULT_PRIORITY)
+                    .forDevice(device.id())
+                    .forTable(TABLE_ACCESS_TYPE)
+                    .makePermanent()
+                    .build();
+
+            processFlowRule(true, flowRuleDirect);
+        }
+    }
+
+    /**
+     * Populates drop rules that does not match any direct access rules but has
+     * destination to a different service network in ACCESS_TYPE table.
+     *
+     * @param dstRange destination ip range
+     */
+    private void populateServiceIsolationRule(Ip4Prefix dstRange) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(dstRange)
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .drop()
+                .build();
+
+        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
+            FlowRule flowRuleDirect = DefaultFlowRule.builder()
+                    .fromApp(appId)
+                    .withSelector(selector)
+                    .withTreatment(treatment)
                     .withPriority(LOW_PRIORITY)
                     .forDevice(device.id())
                     .forTable(TABLE_ACCESS_TYPE)
@@ -820,7 +852,7 @@ public class CordVtnRuleInstaller {
                     .fromApp(appId)
                     .withSelector(selector)
                     .withTreatment(treatment)
-                    .withPriority(DEFAULT_PRIORITY)
+                    .withPriority(HIGH_PRIORITY)
                     .forDevice(outGroup.getKey())
                     .forTable(TABLE_ACCESS_TYPE)
                     .makePermanent()
