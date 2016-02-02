@@ -17,6 +17,7 @@ package org.onosproject.driver.pipeline;
 
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -52,13 +53,13 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
-import static org.onlab.util.Tools.delay;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
+import static org.onlab.util.Tools.delay;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -394,12 +395,15 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
             return Collections.emptySet();
         }
 
-        TrafficSelector filteredSelector =
-                DefaultTrafficSelector.builder()
-                        .matchEthType(Ethernet.TYPE_IPV4)
-                        .matchIPDst(((IPCriterion)
-                                selector.getCriterion(Criterion.Type.IPV4_DST)).ip())
-                        .build();
+        IpPrefix ipPrefix = ((IPCriterion)
+                selector.getCriterion(Criterion.Type.IPV4_DST)).ip();
+
+        TrafficSelector.Builder filteredSelector = DefaultTrafficSelector.builder()
+                        .matchEthType(Ethernet.TYPE_IPV4);
+
+        if (ipPrefix.prefixLength() != 0) {
+            filteredSelector.matchIPDst(ipPrefix);
+        }
 
         TrafficTreatment tt = null;
         if (fwd.nextId() != null) {
@@ -419,7 +423,7 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
                 .fromApp(fwd.appId())
                 .withPriority(fwd.priority())
                 .forDevice(deviceId)
-                .withSelector(filteredSelector);
+                .withSelector(filteredSelector.build());
 
         if (tt != null) {
             ruleBuilder.withTreatment(tt);
