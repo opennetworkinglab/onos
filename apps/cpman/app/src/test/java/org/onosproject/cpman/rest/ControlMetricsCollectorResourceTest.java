@@ -37,6 +37,7 @@ import java.net.ServerSocket;
 import java.util.Optional;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -84,19 +85,17 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
     }
 
     @Test
-    public void testDiskMetricsPost() {
-        mockControlPlaneMonitorService.updateMetric(anyObject(), anyObject(),
-                (Optional<DeviceId>) anyObject());
-        expectLastCall().times(2);
+    public void testDiskMetricsWithNullName() {
+        mockControlPlaneMonitorService.updateMetric(anyObject(), anyObject(), anyString());
+        expectLastCall().times(4);
         replay(mockControlPlaneMonitorService);
         basePostTest("disk-metrics-post.json", PREFIX + "/disk_metrics");
     }
 
     @Test
-    public void testNetworkMetricsPost() {
-        mockControlPlaneMonitorService.updateMetric(anyObject(), anyObject(),
-                (Optional<DeviceId>) anyObject());
-        expectLastCall().times(4);
+    public void testNetworkMetricsWithNullName() {
+        mockControlPlaneMonitorService.updateMetric(anyObject(), anyObject(), anyString());
+        expectLastCall().times(8);
         replay(mockControlPlaneMonitorService);
         basePostTest("network-metrics-post.json", PREFIX + "/network_metrics");
     }
@@ -106,16 +105,20 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
         basePostTest("system-spec-post.json", PREFIX + "/system_specs");
     }
 
-    private void basePostTest(String jsonFile, String path) {
+    private ClientResponse baseTest(String jsonFile, String path) {
         final WebResource rs = resource();
         InputStream jsonStream = ControlMetricsCollectorResourceTest.class
                 .getResourceAsStream(jsonFile);
 
         assertThat(jsonStream, notNullValue());
 
-        ClientResponse response = rs.path(path)
+        return rs.path(path)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .post(ClientResponse.class, jsonStream);
+    }
+
+    private void basePostTest(String jsonFile, String path) {
+        ClientResponse response = baseTest(jsonFile, path);
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
     }
 

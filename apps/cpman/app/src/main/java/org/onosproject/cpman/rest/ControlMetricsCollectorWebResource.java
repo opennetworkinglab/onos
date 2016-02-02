@@ -16,12 +16,13 @@
 package org.onosproject.cpman.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.cpman.ControlMetric;
 import org.onosproject.cpman.ControlMetricType;
-import org.onosproject.cpman.impl.ControlMetricsSystemSpec;
 import org.onosproject.cpman.ControlPlaneMonitorService;
 import org.onosproject.cpman.MetricValue;
+import org.onosproject.cpman.impl.ControlMetricsSystemSpec;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
@@ -34,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
+import static org.onlab.util.Tools.nullIsIllegal;
+
 /**
  * Collect control plane metrics.
  */
@@ -43,6 +46,7 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
     final ControlPlaneMonitorService service = get(ControlPlaneMonitorService.class);
     public static final int UPDATE_INTERVAL = 1;           // 1 minute update interval
     public static final String INVALID_SYSTEM_SPECS = "Invalid system specifications";
+    public static final String INVALID_RESOURCE_NAME = "Invalid resource name";
 
     /**
      * Collects CPU metrics.
@@ -68,13 +72,13 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
 
             if (cpuLoadJson != null) {
                 cm = new ControlMetric(ControlMetricType.CPU_LOAD,
-                     new MetricValue.Builder().load(cpuLoadJson.asLong()).add());
+                        new MetricValue.Builder().load(cpuLoadJson.asLong()).add());
                 service.updateMetric(cm, UPDATE_INTERVAL, Optional.ofNullable(null));
             }
 
             if (totalCpuTimeJson != null) {
                 cm = new ControlMetric(ControlMetricType.TOTAL_CPU_TIME,
-                     new MetricValue.Builder().load(totalCpuTimeJson.asLong()).add());
+                        new MetricValue.Builder().load(totalCpuTimeJson.asLong()).add());
                 service.updateMetric(cm, UPDATE_INTERVAL, Optional.ofNullable(null));
             }
 
@@ -166,24 +170,29 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response diskMetrics(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
-        ControlMetric cm;
+        final ControlMetric[] cm = new ControlMetric[1];
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            JsonNode readBytes = jsonTree.get("readBytes");
-            JsonNode writeBytes = jsonTree.get("writeBytes");
+            ArrayNode diskRes = (ArrayNode) jsonTree.get("disks");
+            diskRes.forEach(node-> {
+                JsonNode resourceName = node.get("resourceName");
+                nullIsIllegal(resourceName, INVALID_RESOURCE_NAME);
 
-            if (readBytes != null) {
-                cm = new ControlMetric(ControlMetricType.DISK_READ_BYTES,
-                        new MetricValue.Builder().load(readBytes.asLong()).add());
-                service.updateMetric(cm, UPDATE_INTERVAL, Optional.ofNullable(null));
-            }
+                JsonNode readBytes = jsonTree.get("readBytes");
+                JsonNode writeBytes = jsonTree.get("writeBytes");
 
-            if (writeBytes != null) {
-                cm = new ControlMetric(ControlMetricType.DISK_WRITE_BYTES,
-                        new MetricValue.Builder().load(writeBytes.asLong()).add());
-                service.updateMetric(cm, UPDATE_INTERVAL, Optional.ofNullable(null));
-            }
+                if (readBytes != null) {
+                    cm[0] = new ControlMetric(ControlMetricType.DISK_READ_BYTES,
+                            new MetricValue.Builder().load(readBytes.asLong()).add());
+                    service.updateMetric(cm[0], UPDATE_INTERVAL, resourceName.asText());
+                }
 
+                if (writeBytes != null) {
+                    cm[0] = new ControlMetric(ControlMetricType.DISK_WRITE_BYTES,
+                            new MetricValue.Builder().load(writeBytes.asLong()).add());
+                    service.updateMetric(cm[0], UPDATE_INTERVAL, resourceName.asText());
+                }
+            });
         } catch (IOException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -203,44 +212,48 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response networkMetrics(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
-        ControlMetric cm;
+        final ControlMetric[] cm = new ControlMetric[1];
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            JsonNode inBytes = jsonTree.get("incomingBytes");
-            JsonNode outBytes = jsonTree.get("outgoingBytes");
-            JsonNode inPackets = jsonTree.get("incomingPackets");
-            JsonNode outPackets = jsonTree.get("outgoingPackets");
+            ArrayNode networkRes = (ArrayNode) jsonTree.get("networks");
+            networkRes.forEach(node -> {
+                JsonNode resourceName = node.get("resourceName");
+                nullIsIllegal(resourceName, INVALID_RESOURCE_NAME);
 
-            if (inBytes != null) {
-                cm = new ControlMetric(ControlMetricType.NW_INCOMING_BYTES,
-                        new MetricValue.Builder().load(inBytes.asLong()).add());
-                service.updateMetric(cm, UPDATE_INTERVAL, Optional.ofNullable(null));
-            }
+                JsonNode inBytes = jsonTree.get("incomingBytes");
+                JsonNode outBytes = jsonTree.get("outgoingBytes");
+                JsonNode inPackets = jsonTree.get("incomingPackets");
+                JsonNode outPackets = jsonTree.get("outgoingPackets");
 
-            if (outBytes != null) {
-                cm = new ControlMetric(ControlMetricType.NW_OUTGOING_BYTES,
-                        new MetricValue.Builder().load(outBytes.asLong()).add());
-                service.updateMetric(cm, UPDATE_INTERVAL, Optional.ofNullable(null));
-            }
+                if (inBytes != null) {
+                    cm[0] = new ControlMetric(ControlMetricType.NW_INCOMING_BYTES,
+                            new MetricValue.Builder().load(inBytes.asLong()).add());
+                    service.updateMetric(cm[0], UPDATE_INTERVAL, resourceName.asText());
+                }
 
-            if (inPackets != null) {
-                cm = new ControlMetric(ControlMetricType.NW_INCOMING_PACKETS,
-                        new MetricValue.Builder().load(inPackets.asLong()).add());
-                service.updateMetric(cm, UPDATE_INTERVAL, Optional.ofNullable(null));
-            }
+                if (outBytes != null) {
+                    cm[0] = new ControlMetric(ControlMetricType.NW_OUTGOING_BYTES,
+                            new MetricValue.Builder().load(outBytes.asLong()).add());
+                    service.updateMetric(cm[0], UPDATE_INTERVAL, resourceName.asText());
+                }
 
-            if (outPackets != null) {
-                cm = new ControlMetric(ControlMetricType.NW_OUTGOING_PACKETS,
-                        new MetricValue.Builder().load(outPackets.asLong()).add());
-                service.updateMetric(cm, UPDATE_INTERVAL, Optional.ofNullable(null));
-            }
+                if (inPackets != null) {
+                    cm[0] = new ControlMetric(ControlMetricType.NW_INCOMING_PACKETS,
+                            new MetricValue.Builder().load(inPackets.asLong()).add());
+                    service.updateMetric(cm[0], UPDATE_INTERVAL, resourceName.asText());
+                }
 
+                if (outPackets != null) {
+                    cm[0] = new ControlMetric(ControlMetricType.NW_OUTGOING_PACKETS,
+                            new MetricValue.Builder().load(outPackets.asLong()).add());
+                    service.updateMetric(cm[0], UPDATE_INTERVAL, resourceName.asText());
+                }
+            });
         } catch (IOException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
         return ok(root).build();
     }
-
 
     /**
      * Collects system specifications.
