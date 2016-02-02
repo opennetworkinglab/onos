@@ -87,6 +87,7 @@ public class IntentPartitionManagerTest {
                 .withScheduledExecutor(new NullScheduledExecutor());
 
         partitionManager.clusterService = new TestClusterService();
+        partitionManager.localNodeId = MY_NODE_ID;
         partitionManager.leadershipService = leadershipService;
         partitionManager.eventDispatcher = new TestEventDispatcher();
     }

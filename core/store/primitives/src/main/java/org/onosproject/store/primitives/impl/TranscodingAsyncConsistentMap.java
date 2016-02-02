@@ -208,8 +208,8 @@ public class TranscodingAsyncConsistentMap<K1, V1, K2, V2> implements AsyncConsi
         public void event(MapEvent<K2, V2> event) {
             listener.event(new MapEvent<K1, V1>(event.name(),
                     keyDecoder.apply(event.key()),
-                    event.newValue().map(valueDecoder),
-                    event.oldValue().map(valueDecoder)));
+                    event.newValue() != null ? event.newValue().map(valueDecoder) : null,
+                    event.oldValue() != null ? event.oldValue().map(valueDecoder) : null));
         }
     }
 }
