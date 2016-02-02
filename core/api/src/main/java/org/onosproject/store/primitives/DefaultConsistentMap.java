@@ -1,5 +1,7 @@
+package org.onosproject.store.primitives;
+
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.onosproject.store.primitives.impl;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,7 +29,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.onlab.util.Tools;
-import org.onosproject.store.primitives.ConsistentMapBackedJavaMap;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
@@ -49,15 +47,15 @@ import com.google.common.base.Throwables;
  */
 public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K, V>> implements ConsistentMap<K, V> {
 
-    private static final int OPERATION_TIMEOUT_MILLIS = 5000;
     private static final int MAX_DELAY_BETWEEN_RETY_MILLS = 50;
-
     private final AsyncConsistentMap<K, V> asyncMap;
+    private final long operationTimeoutMillis;
     private Map<K, V> javaMap;
 
-    public DefaultConsistentMap(AsyncConsistentMap<K, V> asyncMap) {
+    public DefaultConsistentMap(AsyncConsistentMap<K, V> asyncMap, long operationTimeoutMillis) {
         super(asyncMap);
         this.asyncMap = asyncMap;
+        this.operationTimeoutMillis = operationTimeoutMillis;
     }
 
     @Override
@@ -203,9 +201,9 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
         return asJavaMap().toString();
     }
 
-    private static <T> T complete(CompletableFuture<T> future) {
+    private <T> T complete(CompletableFuture<T> future) {
         try {
-            return future.get(OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+            return future.get(operationTimeoutMillis, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new ConsistentMapException.Interrupted();

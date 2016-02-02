@@ -41,6 +41,7 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
     private boolean metering = true;
     private boolean relaxedReadConsistency = false;
     private final DatabaseManager manager;
+    private static final long DEFAULT_OPERATION_TIMEOUT_MILLIS = 5000L;
 
     public DefaultConsistentMapBuilder(DatabaseManager manager) {
         this.manager = manager;
@@ -107,7 +108,7 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
 
     @Override
     public ConsistentMap<K, V> build() {
-        return new DefaultConsistentMap<>(buildAndRegisterMap());
+        return buildAndRegisterMap().asConsistentMap(DEFAULT_OPERATION_TIMEOUT_MILLIS);
     }
 
     @Override

@@ -25,6 +25,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.onosproject.store.primitives.DefaultConsistentMap;
+
 /**
  * A distributed, strongly consistent map whose methods are all executed asynchronously.
  * <p>
@@ -315,4 +317,14 @@ public interface AsyncConsistentMap<K, V> extends DistributedPrimitive {
      * @return future that will be completed when the operation finishes
      */
     CompletableFuture<Void> removeListener(MapEventListener<K, V> listener);
+
+    /**
+     * Returns a new {@link ConsistentMap} that is backed by this instance.
+     *
+     * @param timeoutMillis timeout duration for the returned ConsistentMap operations
+     * @return new {@code ConsistentMap} instance
+     */
+    default ConsistentMap<K, V> asConsistentMap(long timeoutMillis) {
+        return new DefaultConsistentMap<>(this, timeoutMillis);
+    }
 }
