@@ -15,37 +15,51 @@
  */
 package org.onosproject.igmp;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IGMP;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.IGMP;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flowobjective.DefaultFilteringObjective;
+import org.onosproject.net.flowobjective.FilteringObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.olt.AccessDeviceConfig;
+import org.onosproject.olt.AccessDeviceData;
 import org.slf4j.Logger;
 
-import java.util.Optional;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Internet Group Management Protocol.
@@ -61,6 +75,9 @@ public class IgmpSnoop {
     private String multicastAddress = DEFAULT_MCAST_ADDR;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveService flowObjectiveService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -72,6 +89,12 @@ public class IgmpSnoop {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MulticastRouteService multicastService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    private Map<DeviceId, AccessDeviceData> oltData = new ConcurrentHashMap<>();
+
+    private DeviceListener deviceListener = new InternalDeviceListener();
     private IgmpPacketProcessor processor = new IgmpPacketProcessor();
     private static ApplicationId appId;
 
@@ -81,16 +104,18 @@ public class IgmpSnoop {
 
         packetService.addProcessor(processor, PacketProcessor.director(1));
 
-        networkConfig.getSubjects(DeviceId.class, IgmpDeviceConfig.class).forEach(
+        networkConfig.getSubjects(DeviceId.class, AccessDeviceConfig.class).forEach(
                 subject -> {
-                    IgmpDeviceConfig config = networkConfig.getConfig(subject,
-                                                                      IgmpDeviceConfig.class);
+                    AccessDeviceConfig config = networkConfig.getConfig(subject,
+                                                                        AccessDeviceConfig.class);
                     if (config != null) {
-                        IgmpDeviceData data = config.getDevice();
-                        submitPacketRequests(data.deviceId());
+                        AccessDeviceData data = config.getOlt();
+                        oltData.put(data.deviceId(), data);
                     }
                 }
         );
+
+        deviceService.addListener(deviceListener);
 
         log.info("Started");
     }
@@ -99,18 +124,52 @@ public class IgmpSnoop {
     public void deactivate() {
         packetService.removeProcessor(processor);
         processor = null;
+        deviceService.removeListener(deviceListener);
         log.info("Stopped");
     }
 
-    private void submitPacketRequests(DeviceId deviceId) {
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchEthType(Ethernet.TYPE_IPV4);
-        selector.matchIPProtocol(IPv4.PROTOCOL_IGMP);
-        packetService.requestPackets(selector.build(),
-                                     PacketPriority.REACTIVE,
-                                     appId,
-                                     Optional.of(deviceId));
+    private void processFilterObjective(DeviceId devId, Port port, boolean remove) {
 
+        //TODO migrate to packet requests when packet service uses filtering objectives
+        DefaultFilteringObjective.Builder builder = DefaultFilteringObjective.builder();
+
+        builder = remove ? builder.deny() : builder.permit();
+
+        FilteringObjective igmp = builder
+                .withKey(Criteria.matchInPort(port.number()))
+                .addCondition(Criteria.matchEthType(EthType.EtherType.IPV4.ethType()))
+                .addCondition(Criteria.matchIPProtocol(IPv4.PROTOCOL_IGMP))
+                .withMeta(DefaultTrafficTreatment.builder()
+                                  .setOutput(PortNumber.CONTROLLER).build())
+                .fromApp(appId)
+                .withPriority(1000)
+                .add(new ObjectiveContext() {
+                    @Override
+                    public void onSuccess(Objective objective) {
+                        log.info("Igmp filter for {} on {} installed.",
+                                 devId, port);
+                    }
+
+                    @Override
+                    public void onError(Objective objective, ObjectiveError error) {
+                        log.info("Igmp filter for {} on {} failed because {}.",
+                                 devId, port, error);
+                    }
+                });
+
+        flowObjectiveService.filter(devId, igmp);
+    }
+
+    private void processQuery(IGMP pkt, ConnectPoint location) {
+        pkt.getGroups().forEach(group -> group.getSources().forEach(src -> {
+
+            McastRoute route = new McastRoute(src,
+                                              group.getGaddr(),
+                                              McastRoute.Type.IGMP);
+            multicastService.add(route);
+            multicastService.addSink(route, location);
+
+        }));
     }
 
     /**
@@ -188,15 +247,45 @@ public class IgmpSnoop {
         }
     }
 
-    private void processQuery(IGMP pkt, ConnectPoint location) {
-        pkt.getGroups().forEach(group -> group.getSources().forEach(src -> {
 
-            McastRoute route = new McastRoute(src,
-                                              group.getGaddr(),
-                                              McastRoute.Type.IGMP);
-            multicastService.add(route);
-            multicastService.addSink(route, location);
 
-        }));
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            switch (event.type()) {
+
+                case DEVICE_ADDED:
+                case DEVICE_UPDATED:
+                case DEVICE_REMOVED:
+                case DEVICE_SUSPENDED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                case PORT_STATS_UPDATED:
+                    break;
+                case PORT_ADDED:
+                    if (event.port().isEnabled()) {
+                        processFilterObjective(event.subject().id(), event.port(), false);
+                    }
+                    break;
+                case PORT_UPDATED:
+                    if (event.port().isEnabled()) {
+                        processFilterObjective(event.subject().id(), event.port(), false);
+                    } else {
+                        processFilterObjective(event.subject().id(), event.port(), true);
+                    }
+                    break;
+                case PORT_REMOVED:
+                    processFilterObjective(event.subject().id(), event.port(), false);
+                    break;
+                default:
+                    log.warn("Unknown device event {}", event.type());
+                    break;
+            }
+
+        }
+
+        @Override
+        public boolean isRelevant(DeviceEvent event) {
+            return oltData.containsKey(event.subject().id());
+        }
     }
 }

@@ -24,7 +24,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.EthType;
-import org.onlab.packet.IPv4;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -54,6 +53,8 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.olt.AccessDeviceConfig;
+import org.onosproject.olt.AccessDeviceData;
 import org.onosproject.olt.AccessDeviceEvent;
 import org.onosproject.olt.AccessDeviceListener;
 import org.onosproject.olt.AccessDeviceService;
@@ -366,32 +367,8 @@ public class Olt
                     }
                 });
 
-
-        FilteringObjective igmp = DefaultFilteringObjective.builder()
-                .permit()
-                .withKey(Criteria.matchInPort(port.number()))
-                .addCondition(Criteria.matchEthType(EthType.EtherType.IPV4.ethType()))
-                .addCondition(Criteria.matchIPProtocol(IPv4.PROTOCOL_IGMP))
-                .withMeta(DefaultTrafficTreatment.builder()
-                                  .setOutput(PortNumber.CONTROLLER).build())
-                .fromApp(appId)
-                .withPriority(1000)
-                .add(new ObjectiveContext() {
-                    @Override
-                    public void onSuccess(Objective objective) {
-                        log.info("Igmp filter for {} on {} installed.",
-                                 devId, port);
-                    }
-
-                    @Override
-                    public void onError(Objective objective, ObjectiveError error) {
-                        log.info("Igmp filter for {} on {} failed because {}.",
-                                 devId, port, error);
-                    }
-                });
-
         flowObjectiveService.filter(devId, eapol);
-        flowObjectiveService.filter(devId, igmp);
+
     }
 
     private class InternalDeviceListener implements DeviceListener {
