@@ -28,6 +28,7 @@
   	<module>topology</module>
         <module>cfg</module>
   	<module>app</module>
+        <module>flow</module>
   </modules>
     <dependencies>
 
