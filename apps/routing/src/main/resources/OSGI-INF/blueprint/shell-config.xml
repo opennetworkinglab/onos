@@ -49,5 +49,8 @@
     <command>
       <action class="org.onosproject.routing.cli.RemovePeerCommand"/>
     </command>
+    <command>
+      <action class="org.onosproject.routing.fpm.cli.FpmConnectionsList"/>
+    </command>
   </command-bundle>
 </blueprint>

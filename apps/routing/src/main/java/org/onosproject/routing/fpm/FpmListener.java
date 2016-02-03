@@ -18,10 +18,12 @@ package org.onosproject.routing.fpm;
 
 import org.onosproject.routing.fpm.protocol.FpmHeader;
 
+import java.net.SocketAddress;
+
 /**
- * Listener for FPM messages.
+ * Listener for events from the route source.
  */
-public interface FpmMessageListener {
+public interface FpmListener {
 
     /**
      * Handles an FPM message.
@@ -29,4 +31,19 @@ public interface FpmMessageListener {
      * @param fpmMessage FPM message
      */
     void fpmMessage(FpmHeader fpmMessage);
+
+    /**
+     * Signifies that a new peer has attempted to initiate an FPM connection.
+     *
+     * @param address remote address of the peer
+     * @return true if the connection should be admitted, otherwise false
+     */
+    boolean peerConnected(SocketAddress address);
+
+    /**
+     * Signifies that an FPM connection has been disconnected.
+     *
+     * @param address remote address of the peer
+     */
+    void peerDisconnected(SocketAddress address);
 }

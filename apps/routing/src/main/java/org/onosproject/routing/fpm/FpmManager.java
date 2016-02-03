@@ -15,6 +15,7 @@
  */
 package org.onosproject.routing.fpm;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -46,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,12 +60,14 @@ import static org.onlab.util.Tools.groupedThreads;
  */
 @Service
 @Component(immediate = true, enabled = false)
-public class FpmManager implements RouteSourceService {
+public class FpmManager implements RouteSourceService, FpmInfoService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private ServerBootstrap serverBootstrap;
     private Channel serverChannel;
     private ChannelGroup allChannels = new DefaultChannelGroup();
+
+    private Map<SocketAddress, Long> peers = new ConcurrentHashMap<>();
 
     private Map<IpPrefix, RouteEntry> fpmRoutes = new ConcurrentHashMap<>();
 
@@ -209,10 +213,30 @@ public class FpmManager implements RouteSourceService {
         routeListener.update(Collections.singletonList(routeUpdate));
     }
 
-    private class InternalFpmListener implements FpmMessageListener {
+    @Override
+    public Map<SocketAddress, Long> peers() {
+        return ImmutableMap.copyOf(peers);
+    }
+
+    private class InternalFpmListener implements FpmListener {
         @Override
         public void fpmMessage(FpmHeader fpmMessage) {
             FpmManager.this.fpmMessage(fpmMessage);
+        }
+
+        @Override
+        public boolean peerConnected(SocketAddress address) {
+            if (peers.keySet().contains(address)) {
+                return false;
+            }
+
+            peers.put(address, System.currentTimeMillis());
+            return true;
+        }
+
+        @Override
+        public void peerDisconnected(SocketAddress address) {
+            peers.remove(address);
         }
     }
 

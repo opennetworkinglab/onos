@@ -35,7 +35,7 @@ public class FpmSessionHandler extends SimpleChannelHandler {
 
     private static Logger log = LoggerFactory.getLogger(FpmSessionHandler.class);
 
-    private final FpmMessageListener fpmListener;
+    private final FpmListener fpmListener;
 
     private Channel channel;
 
@@ -44,7 +44,7 @@ public class FpmSessionHandler extends SimpleChannelHandler {
      *
      * @param fpmListener listener for FPM messages
      */
-    public FpmSessionHandler(FpmMessageListener fpmListener) {
+    public FpmSessionHandler(FpmListener fpmListener) {
         this.fpmListener = checkNotNull(fpmListener);
     }
 
@@ -59,26 +59,27 @@ public class FpmSessionHandler extends SimpleChannelHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
         log.error("Exception thrown while handling FPM message", e.getCause());
-        channel.close();
+        if (channel != null) {
+            channel.close();
+        }
         handleDisconnect();
     }
 
     @Override
     public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        if (this.channel != null) {
+        if (!fpmListener.peerConnected(ctx.getChannel().getRemoteAddress())) {
             log.error("Received new FPM connection while already connected");
             ctx.getChannel().close();
             return;
         }
 
-        this.channel = ctx.getChannel();
+        channel = ctx.getChannel();
     }
 
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        super.channelConnected(ctx, e);
     }
 
     @Override
@@ -94,6 +95,7 @@ public class FpmSessionHandler extends SimpleChannelHandler {
     }
 
     private void handleDisconnect() {
-        this.channel = null;
+        fpmListener.peerDisconnected(channel.getRemoteAddress());
+        channel = null;
     }
 }
