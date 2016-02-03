@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import net.kuujo.copycat.CopycatConfig;
@@ -65,6 +66,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
@@ -74,6 +76,7 @@ import org.onosproject.store.service.DistributedSetBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.MapInfo;
 import org.onosproject.store.service.PartitionInfo;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Transaction;
@@ -318,7 +321,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     @Override
     public <E> DistributedSetBuilder<E> setBuilder() {
-        return new DefaultDistributedSetBuilder<>(this);
+        return new DefaultDistributedSetBuilder<>(() -> this.<E, Boolean>consistentMapBuilder());
     }
 
 
@@ -334,7 +337,12 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     @Override
     public <V> AtomicValueBuilder<V> atomicValueBuilder() {
-        return new DefaultAtomicValueBuilder<>(this);
+        Supplier<ConsistentMapBuilder<String, byte[]>> mapBuilderSupplier =
+                () -> this.<String, byte[]>consistentMapBuilder()
+                          .withName("onos-atomic-values")
+                          .withMeteringDisabled()
+                          .withSerializer(Serializer.using(KryoNamespaces.BASIC));
+        return new DefaultAtomicValueBuilder<>(mapBuilderSupplier);
     }
 
     @Override

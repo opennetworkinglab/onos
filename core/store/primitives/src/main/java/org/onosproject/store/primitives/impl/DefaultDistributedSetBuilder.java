@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.function.Supplier;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.ConsistentMapBuilder;
@@ -33,8 +35,8 @@ public class DefaultDistributedSetBuilder<E> implements DistributedSetBuilder<E>
     private ConsistentMapBuilder<E, Boolean>  mapBuilder;
     private boolean metering = true;
 
-    public DefaultDistributedSetBuilder(DatabaseManager manager) {
-        this.mapBuilder = manager.consistentMapBuilder();
+    public DefaultDistributedSetBuilder(Supplier<ConsistentMapBuilder<E, Boolean>> mapBuilderSupplier) {
+        this.mapBuilder = mapBuilderSupplier.get();
         mapBuilder.withMeteringDisabled();
     }
 

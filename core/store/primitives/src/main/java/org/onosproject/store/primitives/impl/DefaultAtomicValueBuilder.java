@@ -15,7 +15,8 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import org.onosproject.store.serializers.KryoNamespaces;
+import java.util.function.Supplier;
+
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AtomicValue;
 import org.onosproject.store.service.AtomicValueBuilder;
@@ -33,11 +34,8 @@ public class DefaultAtomicValueBuilder<V> implements AtomicValueBuilder<V> {
     private Serializer serializer;
     private ConsistentMapBuilder<String, byte[]> mapBuilder;
 
-    public DefaultAtomicValueBuilder(DatabaseManager manager) {
-        mapBuilder = manager.<String, byte[]>consistentMapBuilder()
-                            .withName("onos-atomic-values")
-                            .withMeteringDisabled()
-                            .withSerializer(Serializer.using(KryoNamespaces.BASIC));
+    public DefaultAtomicValueBuilder(Supplier<ConsistentMapBuilder<String, byte[]>> mapBuilderSupplier) {
+        mapBuilder = mapBuilderSupplier.get();
     }
 
     @Override
