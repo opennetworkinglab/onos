@@ -161,8 +161,7 @@
                    impl="org.onosproject.driver.pipeline.CpqdOFDPA2VlanPipeline"/>
     </driver>
     <driver name="calient" extends="default"
-            manufacturer="calient inc" hwVersion="calient hardware"
-            swVersion="ocs switch">
+            manufacturer="Calient Technologies" hwVersion=".*" swVersion="Optical Circuit Switch">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.CalientFiberSwitchHandshaker"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"

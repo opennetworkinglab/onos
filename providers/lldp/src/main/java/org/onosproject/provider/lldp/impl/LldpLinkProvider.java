@@ -15,29 +15,9 @@
  */
 package org.onosproject.provider.lldp.impl;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.onlab.packet.Ethernet.TYPE_BSN;
-import static org.onlab.packet.Ethernet.TYPE_LLDP;
-import static org.onlab.util.Tools.get;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.Link.Type.DIRECT;
-import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
-import static org.onosproject.net.config.basics.SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY;
-import static org.onosproject.net.config.basics.SubjectFactories.DEVICE_SUBJECT_FACTORY;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.cluster.ClusterMetadata.NO_NAME;
-
-import java.util.Dictionary;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -86,9 +66,28 @@ import org.onosproject.store.service.ConsistentMapException;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import java.util.Dictionary;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.onlab.packet.Ethernet.TYPE_BSN;
+import static org.onlab.packet.Ethernet.TYPE_LLDP;
+import static org.onlab.util.Tools.get;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.cluster.ClusterMetadata.NO_NAME;
+import static org.onosproject.net.Link.Type.DIRECT;
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.onosproject.net.config.basics.SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY;
+import static org.onosproject.net.config.basics.SubjectFactories.DEVICE_SUBJECT_FACTORY;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses LLDP and BDDP packets to detect network infrastructure links.
@@ -185,7 +184,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
     private ApplicationId appId;
 
     static final SuppressionRules DEFAULT_RULES
-        = new SuppressionRules(EnumSet.of(Device.Type.ROADM),
+        = new SuppressionRules(EnumSet.of(Device.Type.ROADM, Device.Type.FIBER_SWITCH),
                                ImmutableMap.of(NO_LLDP, SuppressionRules.ANY_VALUE));
 
     private SuppressionRules rules = LldpLinkProvider.DEFAULT_RULES;
