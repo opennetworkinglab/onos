@@ -46,6 +46,15 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
      */
     protected abstract S createProviderService(P provider);
 
+    /**
+     * Returns the default fall-back provider. Default implementation return null.
+     *
+     * @return default provider
+     */
+    protected P defaultProvider() {
+        return null;
+    }
+
     @Override
     public synchronized S register(P provider) {
         checkNotNull(provider, "Provider cannot be null");
@@ -89,13 +98,16 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
     }
 
     /**
-     * Returns the provider registered with the specified provider ID.
+     * Returns the provider registered with the specified provider ID or null
+     * if none is found for the given provider family and default fall-back is
+     * not supported.
      *
      * @param providerId provider identifier
      * @return provider
      */
     protected synchronized P getProvider(ProviderId providerId) {
-        return providers.get(providerId);
+        P provider = providers.get(providerId);
+        return provider != null ? provider : defaultProvider();
     }
 
     /**
@@ -105,7 +117,8 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
      * @return provider bound to the URI scheme
      */
     protected synchronized P getProvider(DeviceId deviceId) {
-        return providersByScheme.get(deviceId.uri().getScheme());
+        P provider = providersByScheme.get(deviceId.uri().getScheme());
+        return provider != null ? provider : defaultProvider();
     }
 
     /**

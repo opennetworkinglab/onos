@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -31,14 +30,14 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
-import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -60,6 +59,7 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
 import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -76,12 +76,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADD_REQUESTED;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVE_REQUESTED;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.FLOWRULE_READ;
+import static org.onosproject.security.AppPermission.Type.FLOWRULE_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
 
 
 
@@ -95,6 +97,8 @@ public class FlowRuleManager
                                                  FlowRuleProvider, FlowRuleProviderService>
         implements FlowRuleService, FlowRuleProviderRegistry {
 
+    private final Logger log = getLogger(getClass());
+
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
     private static final boolean ALLOW_EXTRANEOUS_RULES = false;
 
@@ -106,10 +110,15 @@ public class FlowRuleManager
             label = "Purge entries associated with a device when the device goes offline")
     private boolean purgeOnDisconnection = false;
 
-    private final Logger log = getLogger(getClass());
+    private static final int DEFAULT_POLL_FREQUENCY = 30;
+    @Property(name = "fallbackFlowPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
+            label = "Frequency (in seconds) for polling flow statistics via fallback provider")
+    private int fallbackFlowPollFrequency = DEFAULT_POLL_FREQUENCY;
 
     private final FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
     private final DeviceListener deviceListener = new InternalDeviceListener();
+
+    private final FlowRuleDriverProvider defaultProvider = new FlowRuleDriverProvider();
 
     protected ExecutorService deviceInstallers =
             Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "device-installer-%d"));
@@ -132,16 +141,19 @@ public class FlowRuleManager
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
     @Activate
     public void activate(ComponentContext context) {
+        modified(context);
         store.setDelegate(delegate);
         eventDispatcher.addSink(FlowRuleEvent.class, listenerRegistry);
         deviceService.addListener(deviceListener);
         cfgService.registerProperties(getClass());
         idGenerator = coreService.getIdGenerator(FLOW_OP_TOPIC);
-        modified(context);
         log.info("Started");
     }
 
@@ -160,6 +172,13 @@ public class FlowRuleManager
         if (context != null) {
             readComponentConfiguration(context);
         }
+        defaultProvider.init(new InternalFlowRuleProviderService(defaultProvider),
+                             deviceService, mastershipService, fallbackFlowPollFrequency);
+    }
+
+    @Override
+    protected FlowRuleProvider defaultProvider() {
+        return defaultProvider;
     }
 
     /**
@@ -190,6 +209,13 @@ public class FlowRuleManager
             log.info("Configured. PurgeOnDisconnection is {}",
                     purgeOnDisconnection ? "enabled" : "disabled");
         }
+
+        String s = get(properties, "fallbackFlowPollFrequency");
+        try {
+            fallbackFlowPollFrequency = isNullOrEmpty(s) ? DEFAULT_POLL_FREQUENCY : Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            fallbackFlowPollFrequency = DEFAULT_POLL_FREQUENCY;
+        }
     }
 
     /**
@@ -201,15 +227,13 @@ public class FlowRuleManager
      */
     private static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
             String propertyName) {
-        Boolean value = null;
         try {
             String s = (String) properties.get(propertyName);
-            value = isNullOrEmpty(s) ? null : s.trim().equals("true");
+            return  isNullOrEmpty(s) ? null : s.trim().equals("true");
         } catch (ClassCastException e) {
             // No propertyName defined.
-            value = null;
+            return null;
         }
-        return value;
     }
 
     @Override
@@ -229,8 +253,8 @@ public class FlowRuleManager
         checkPermission(FLOWRULE_WRITE);
 
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
-        for (int i = 0; i < flowRules.length; i++) {
-            builder.add(flowRules[i]);
+        for (FlowRule flowRule : flowRules) {
+            builder.add(flowRule);
         }
         apply(builder.build());
     }
@@ -240,8 +264,8 @@ public class FlowRuleManager
         checkPermission(FLOWRULE_WRITE);
 
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
-        for (int i = 0; i < flowRules.length; i++) {
-            builder.remove(flowRules[i]);
+        for (FlowRule flowRule : flowRules) {
+            builder.remove(flowRule);
         }
         apply(builder.build());
     }
@@ -419,15 +443,9 @@ public class FlowRuleManager
                 //lastSeen.put(storedRule, currentTime);
             }
             Long last = lastSeen.get(storedRule);
-            if (last == null) {
-                // concurrently removed? let the liveness check fail
-                return false;
-            }
 
-            if ((currentTime - last) <= timeout) {
-                return true;
-            }
-            return false;
+            // concurrently removed? let the liveness check fail
+            return last != null && (currentTime - last) <= timeout;
         }
 
         @Override
@@ -466,7 +484,6 @@ public class FlowRuleManager
                     }
                 } catch (Exception e) {
                     log.debug("Can't process added or extra rule {}", e.getMessage());
-                    continue;
                 }
             }
 
@@ -479,7 +496,6 @@ public class FlowRuleManager
                         flowMissing(rule);
                     } catch (Exception e) {
                         log.debug("Can't add missing flow rule:", e);
-                        continue;
                     }
                 }
             }

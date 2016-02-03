@@ -16,14 +16,16 @@
 package org.onosproject.net;
 
 import org.onlab.packet.ChassisId;
+import org.onosproject.net.driver.Behaviour;
+import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverData;
+import org.onosproject.net.driver.HandlerBehaviour;
 import org.onosproject.net.provider.ProviderId;
 
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static org.onlab.util.Tools.nullIsNotFound;
 
 /**
  * Default infrastructure device model implementation.
@@ -108,6 +110,15 @@ public class DefaultDevice extends AbstractElement implements Device {
         return chassisId;
     }
 
+    @Override
+    public <B extends Behaviour> B as(Class<B> projectionClass) {
+        if (HandlerBehaviour.class.isAssignableFrom(projectionClass)) {
+            bindAndCheckDriver();
+            return driver().createBehaviour(new DefaultDriverHandler(asData()), projectionClass);
+        }
+        return super.as(projectionClass);
+    }
+
     /**
      * Returns self as an immutable driver data instance.
      *
@@ -121,8 +132,7 @@ public class DefaultDevice extends AbstractElement implements Device {
     protected Driver locateDriver() {
         Driver driver = super.locateDriver();
         return driver != null ? driver :
-                nullIsNotFound(driverService().getDriver(manufacturer, hwVersion, swVersion),
-                               "Driver not found");
+                driverService().getDriver(manufacturer, hwVersion, swVersion);
     }
 
     /**

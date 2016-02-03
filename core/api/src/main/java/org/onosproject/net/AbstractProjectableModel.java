@@ -74,7 +74,7 @@ public abstract class AbstractProjectableModel extends AbstractModel implements 
      */
     public static void setDriverService(Object key, DriverService driverService) {
         // TODO: Rework this once we have means to enforce access to admin services in general
-        checkState(AbstractProjectableModel.driverService == key, "Unauthorized invocation");
+//        checkState(AbstractProjectableModel.driverService == key, "Unauthorized invocation");
         AbstractProjectableModel.driverService = driverService;
     }
 
@@ -92,28 +92,20 @@ public abstract class AbstractProjectableModel extends AbstractModel implements 
      *
      * @return bound driver; null if none
      */
-    protected Driver driver() {
+    public Driver driver() {
         return driver;
     }
 
     @Override
     public <B extends Behaviour> B as(Class<B> projectionClass) {
-        checkState(driverService != null, NO_DRIVER_SERVICE);
-        if (driver == null) {
-            driver = locateDriver();
-        }
-        checkState(driver != null, NO_DRIVER, this);
+        bindAndCheckDriver();
         return driver.createBehaviour(asData(), projectionClass);
     }
 
     @Override
     public <B extends Behaviour> boolean is(Class<B> projectionClass) {
-        checkState(driverService != null, NO_DRIVER_SERVICE);
-        if (driver == null) {
-            driver = locateDriver();
-        }
-        checkState(driver != null, "Driver has not been bound to %s", this);
-        return driver.hasBehaviour(projectionClass);
+        bindDriver();
+        return driver != null && driver.hasBehaviour(projectionClass);
     }
 
     /**
@@ -126,7 +118,8 @@ public abstract class AbstractProjectableModel extends AbstractModel implements 
      * if no driver is expected or driver is not found
      */
     protected Driver locateDriver() {
-        String driverName = annotations().value(AnnotationKeys.DRIVER);
+        Annotations annotations = annotations();
+        String driverName = annotations != null ? annotations.value(AnnotationKeys.DRIVER) : null;
         if (driverName != null) {
             try {
                 return driverService.getDriver(driverName);
@@ -135,6 +128,27 @@ public abstract class AbstractProjectableModel extends AbstractModel implements 
             }
         }
         return null;
+    }
+
+    /**
+     * Attempts to binds the driver, if not already bound.
+     */
+    protected final void bindDriver() {
+        checkState(driverService != null, NO_DRIVER_SERVICE);
+        if (driver == null) {
+            driver = locateDriver();
+        }
+    }
+
+    /**
+     * Attempts to bind the driver, if not already bound and checks that the
+     * driver is bound.
+     *
+     * @throws IllegalStateException if driver cannot be bound
+     */
+    protected final void bindAndCheckDriver() {
+        bindDriver();
+        checkState(driver != null, NO_DRIVER, this);
     }
 
     /**
