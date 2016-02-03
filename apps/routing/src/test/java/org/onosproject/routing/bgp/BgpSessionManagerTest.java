@@ -136,7 +136,7 @@ public class BgpSessionManagerTest {
         }
 
         /**
-         * Starts up the BGP peer and connects it to the tested SDN-IP
+         * Starts up the BGP peer and connects it to the tested BgpSessionManager
          * instance.
          *
          * @param connectToSocket the socket to connect to

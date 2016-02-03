@@ -28,20 +28,21 @@ import org.onosproject.routing.RoutingService;
 import java.util.Collection;
 
 /**
- * Command to show the list of routes in SDN-IP's routing table.
+ * Command to show the routes in the routing table.
  */
 @Command(scope = "onos", name = "routes",
-        description = "Lists all SDN-IP best routes")
+        description = "Lists all routes in the RIB")
 public class RoutesListCommand extends AbstractShellCommand {
+
     @Option(name = "-s", aliases = "--summary",
-            description = "SDN-IP routes summary",
+            description = "Show summary of routes",
             required = false, multiValued = false)
     private boolean routesSummary = false;
 
     private static final String FORMAT_SUMMARY_V4 =
-        "Total SDN-IP IPv4 routes = %d";
+        "Total IPv4 routes = %d";
     private static final String FORMAT_SUMMARY_V6 =
-        "Total SDN-IP IPv6 routes = %d";
+        "Total IPv6 routes = %d";
     private static final String FORMAT_HEADER =
         "   Network            Next Hop";
     private static final String FORMAT_ROUTE =

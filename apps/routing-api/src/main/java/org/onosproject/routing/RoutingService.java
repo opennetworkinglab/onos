@@ -49,16 +49,16 @@ public interface RoutingService {
     void stop();
 
     /**
-     * Gets all IPv4 routes known to SDN-IP.
+     * Gets all IPv4 routes from the RIB.
      *
-     * @return the SDN-IP IPv4 routes
+     * @return the IPv4 routes
      */
     Collection<RouteEntry> getRoutes4();
 
     /**
-     * Gets all IPv6 routes known to SDN-IP.
+     * Gets all IPv6 routes from the RIB.
      *
-     * @return the SDN-IP IPv6 routes
+     * @return the IPv6 routes
      */
     Collection<RouteEntry> getRoutes6();
 

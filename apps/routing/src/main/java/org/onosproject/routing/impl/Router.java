@@ -125,7 +125,7 @@ public class Router implements RoutingService {
 
         bgpUpdatesExecutor = Executors.newSingleThreadExecutor(
                 new ThreadFactoryBuilder()
-                .setNameFormat("sdnip-bgp-updates-%d").build());
+                .setNameFormat("rib-updates-%d").build());
     }
 
     @Deactivate
