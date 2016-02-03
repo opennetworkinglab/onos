@@ -16,9 +16,14 @@
 package org.onosproject.net.link;
 
 import org.junit.Test;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
+
+import com.google.common.testing.EqualsTester;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -44,7 +49,48 @@ public class DefaultLinkDescriptionTest {
         assertEquals("incorrect src", cp(DID1, P1), desc.src());
         assertEquals("incorrect dst", cp(DID2, P1), desc.dst());
         assertEquals("incorrect type", DIRECT, desc.type());
-        assertTrue("incorrect annotatios", desc.toString().contains("Key=Value"));
+        assertTrue("incorrect annotations", desc.toString().contains("Key=Value"));
     }
 
+    /**
+     * Tests the equals(), hashCode() and toString() methods.
+     */
+    @Test
+    public void testEquals() {
+        ConnectPoint connectPoint1 = NetTestTools.connectPoint("sw1", 1);
+        ConnectPoint connectPoint2 = NetTestTools.connectPoint("sw2", 2);
+        ConnectPoint connectPoint3 = NetTestTools.connectPoint("sw3", 3);
+
+        DefaultLinkDescription link1 =
+                new DefaultLinkDescription(connectPoint1, connectPoint2,
+                                           Link.Type.DIRECT);
+        DefaultLinkDescription sameAsLink1 =
+                new DefaultLinkDescription(connectPoint1, connectPoint2,
+                                           Link.Type.DIRECT);
+        DefaultLinkDescription link2 =
+                new DefaultLinkDescription(connectPoint1, connectPoint2,
+                                           Link.Type.INDIRECT);
+        DefaultLinkDescription link3 =
+                new DefaultLinkDescription(connectPoint1, connectPoint3,
+                                           Link.Type.DIRECT);
+        DefaultLinkDescription link4 =
+                new DefaultLinkDescription(connectPoint2, connectPoint3,
+                                           Link.Type.DIRECT);
+        DefaultLinkDescription link5 =
+                new DefaultLinkDescription(connectPoint1, connectPoint2,
+                                           Link.Type.DIRECT, false);
+        DefaultLinkDescription link6 =
+                new DefaultLinkDescription(connectPoint2, connectPoint3,
+                                           Link.Type.DIRECT, DA);
+
+        new EqualsTester()
+                .addEqualityGroup(link1, sameAsLink1)
+                .addEqualityGroup(link2)
+                .addEqualityGroup(link3)
+                .addEqualityGroup(link4)
+                .addEqualityGroup(link5)
+                .addEqualityGroup(link6)
+                .testEquals();
+
+    }
 }

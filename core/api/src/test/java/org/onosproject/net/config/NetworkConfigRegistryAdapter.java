@@ -17,6 +17,8 @@ package org.onosproject.net.config;
 
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+
 /**
  * Test adapter for network configuration service registry.
  */
@@ -29,11 +31,11 @@ public class NetworkConfigRegistryAdapter extends NetworkConfigServiceAdapter im
     }
 
     public Set<ConfigFactory> getConfigFactories() {
-        return null;
+        return ImmutableSet.of();
     }
 
     public <S, C extends Config<S>> Set<ConfigFactory<S, C>> getConfigFactories(Class<S> subjectClass) {
-        return null;
+        return ImmutableSet.of();
     }
 
     public <S, C extends Config<S>> ConfigFactory<S, C> getConfigFactory(Class<C> configClass) {

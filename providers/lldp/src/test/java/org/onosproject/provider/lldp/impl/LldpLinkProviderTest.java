@@ -15,13 +15,14 @@
  */
 package org.onosproject.provider.lldp.impl;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.After;
 import org.junit.Before;
@@ -65,10 +66,8 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.link.LinkDescription;
-import org.onosproject.net.link.LinkProvider;
-import org.onosproject.net.link.LinkProviderRegistry;
-import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.link.LinkProviderRegistryAdapter;
+import org.onosproject.net.link.LinkProviderServiceAdapter;
 import org.onosproject.net.link.LinkServiceAdapter;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
@@ -76,27 +75,24 @@ import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketServiceAdapter;
-import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
 
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.provider.lldp.impl.LldpLinkProvider.DEFAULT_RULES;
-import static org.junit.Assert.assertFalse;
 
 
 public class LldpLinkProviderTest {
@@ -111,7 +107,7 @@ public class LldpLinkProviderTest {
     private static Port pd4;
 
     private final LldpLinkProvider provider = new LldpLinkProvider();
-    private final TestLinkRegistry linkRegistry = new TestLinkRegistry();
+    private final LinkProviderRegistryAdapter linkRegistry = new LinkProviderRegistryAdapter();
     private final TestLinkService linkService = new TestLinkService();
     private final TestPacketService packetService = new TestPacketService();
     private final TestDeviceService deviceService = new TestDeviceService();
@@ -119,7 +115,7 @@ public class LldpLinkProviderTest {
     private final TestNetworkConfigRegistry configRegistry = new TestNetworkConfigRegistry();
 
     private CoreService coreService;
-    private TestLinkProviderService providerService;
+    private LinkProviderServiceAdapter providerService;
 
     private PacketProcessor testProcessor;
     private DeviceListener deviceListener;
@@ -154,7 +150,10 @@ public class LldpLinkProviderTest {
         provider.providerRegistry = linkRegistry;
         provider.masterService = masterService;
         provider.clusterMetadataService = new TestMetadataService();
+
         provider.activate(null);
+
+        providerService = linkRegistry.registeredProvider();
     }
 
     @Test
@@ -521,7 +520,7 @@ public class LldpLinkProviderTest {
 
     private boolean vanishedDpid(DeviceId... dids) {
         for (int i = 0; i < dids.length; i++) {
-            if (!providerService.vanishedDpid.contains(dids[i])) {
+            if (!providerService.vanishedDpid().contains(dids[i])) {
                 return false;
             }
         }
@@ -530,7 +529,7 @@ public class LldpLinkProviderTest {
 
     private boolean vanishedPort(Long... ports) {
         for (int i = 0; i < ports.length; i++) {
-            if (!providerService.vanishedPort.contains(ports[i])) {
+            if (!providerService.vanishedPort().contains(ports[i])) {
                 return false;
             }
         }
@@ -538,9 +537,9 @@ public class LldpLinkProviderTest {
     }
 
     private boolean detectedLink(DeviceId src, DeviceId dst) {
-        for (DeviceId key : providerService.discoveredLinks.keySet()) {
+        for (DeviceId key : providerService.discoveredLinks().keySet()) {
             if (key.equals(src)) {
-                return providerService.discoveredLinks.get(src).equals(dst);
+                return providerService.discoveredLinks().get(src).equals(dst);
             }
         }
         return false;
@@ -630,65 +629,6 @@ public class LldpLinkProviderTest {
                 appId,
                 SuppressionConfig.class));
     }
-
-
-    private class TestLinkRegistry implements LinkProviderRegistry {
-
-        @Override
-        public LinkProviderService register(LinkProvider provider) {
-            providerService = new TestLinkProviderService(provider);
-            return providerService;
-        }
-
-        @Override
-        public void unregister(LinkProvider provider) {
-        }
-
-        @Override
-        public Set<ProviderId> getProviders() {
-            return null;
-        }
-
-    }
-
-    private class TestLinkProviderService
-            extends AbstractProviderService<LinkProvider>
-            implements LinkProviderService {
-
-        List<DeviceId> vanishedDpid = Lists.newLinkedList();
-        List<Long> vanishedPort = Lists.newLinkedList();
-        Map<DeviceId, DeviceId> discoveredLinks = Maps.newHashMap();
-
-        protected TestLinkProviderService(LinkProvider provider) {
-            super(provider);
-        }
-
-        @Override
-        public void linkDetected(LinkDescription linkDescription) {
-            DeviceId sDid = linkDescription.src().deviceId();
-            DeviceId dDid = linkDescription.dst().deviceId();
-            discoveredLinks.put(sDid, dDid);
-        }
-
-        @Override
-        public void linkVanished(LinkDescription linkDescription) {
-        }
-
-        @Override
-        public void linksVanished(ConnectPoint connectPoint) {
-            vanishedPort.add(connectPoint.port().toLong());
-
-        }
-
-        @Override
-        public void linksVanished(DeviceId deviceId) {
-            vanishedDpid.add(deviceId);
-        }
-
-
-    }
-
-
 
     private class TestPacketContext implements PacketContext {
 
