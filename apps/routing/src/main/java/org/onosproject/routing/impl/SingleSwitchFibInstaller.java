@@ -24,12 +24,16 @@ import com.google.common.collect.Multiset;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
@@ -62,10 +66,12 @@ import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RouterConfig;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,10 +104,17 @@ public class SingleSwitchFibInstaller {
     protected NetworkConfigService networkConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService componentConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
+
+    @Property(name = "routeToNextHop", boolValue = false,
+            label = "Install a /32 route to each next hop")
+    private boolean routeToNextHop = false;
 
     private InternalDeviceListener deviceListener;
 
@@ -128,8 +141,11 @@ public class SingleSwitchFibInstaller {
 
 
     @Activate
-    protected void activate() {
+    protected void activate(ComponentContext context) {
+        modified(context);
         routerAppId = coreService.registerApplication(RoutingService.ROUTER_APP_ID);
+
+        componentConfigService.registerProperties(getClass());
 
         deviceListener = new InternalDeviceListener();
         deviceService.addListener(deviceListener);
@@ -150,7 +166,22 @@ public class SingleSwitchFibInstaller {
 
         //processIntfFilters(false, configService.getInterfaces()); //TODO necessary?
 
+        componentConfigService.unregisterProperties(getClass(), false);
+
         log.info("Stopped");
+    }
+
+    @Modified
+    protected void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        if (properties == null) {
+            return;
+        }
+
+        String strRouteToNextHop = Tools.get(properties, "routeToNextHop");
+        routeToNextHop = Boolean.parseBoolean(strRouteToNextHop);
+
+        log.info("routeToNextHop set to {}", routeToNextHop);
     }
 
     private void updateConfig() {
@@ -315,6 +346,12 @@ public class SingleSwitchFibInstaller {
 
             nextHops.put(nextHop.ip(), nextId);
 
+            if (routeToNextHop) {
+                // Install route to next hop
+                ForwardingObjective fob =
+                        generateRibForwardingObj(IpPrefix.valueOf(entry.nextHopIp(), 32), nextId).add();
+                flowObjectiveService.forward(deviceId, fob);
+            }
         }
 
         nextHopsCount.add(entry.nextHopIp());
