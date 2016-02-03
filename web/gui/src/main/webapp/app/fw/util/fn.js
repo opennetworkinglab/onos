@@ -287,11 +287,16 @@
         }
     }
 
-    // generate a trie structure from the given array of strings
-    // if ignoreCase is true, all words are converted to uppercase first
-    // note: each letter in each string must be valid as an object property key
-    function createTrie(words, ignoreCase) {
-        var trie = {};
+    // trie operation
+    function _trieOp(op, trie, word, data) {
+        var p = trie,
+            w = word.toUpperCase(),
+            s = w.split(''),
+            c = { p: p, s: s },
+            t = [],
+            x = 0,
+            f1 = op === '+' ? add : probe,
+            f2 = op === '+' ? insert : remove;
 
         function add(c) {
             var q = c.s.shift(),
@@ -300,30 +305,86 @@
             if (!np) {
                 c.p[q] = {};
                 np = c.p[q];
+                x = 1;
             }
-
-            return {
-                p: np,
-                s: c.s
-            }
+            return { p: np, s: c.s }
         }
 
-        words.forEach(function (word) {
-            var p = trie,
-                w = ignoreCase ? word.toUpperCase() : word,
-                s = w.split(''),
-                c = {
-                    p: p,
-                    s: s
-                };
+        function probe(c) {
+            var q = c.s.shift(),
+                k = Object.keys(c.p).length,
+                np = c.p[q];
 
-            while (c.s.length) {
-                c = add(c);
+            t.push({ q:q, k:k, p:c.p });
+            if (!np) {
+                t = [];
+                return { s: [] };
             }
-        });
+            return { p: np, s: c.s }
+        }
 
-        return trie;
+        function insert() {
+            c.p._data = data;
+            return x ? 'added' : 'updated';
+        }
+
+        function remove() {
+            if (t.length) {
+                t = t.reverse();
+                while (t.length) {
+                    c = t.shift();
+                    delete c.p[c.q];
+                    if (c.k > 1) {
+                        t = [];
+                    }
+                }
+                return 'removed';
+            }
+            return 'absent';
+        }
+
+        while (c.s.length) {
+            c = f1(c);
+        }
+        return f2();
     }
+
+    // add word to trie (word will be converted to uppercase)
+    // data associated with the word
+    // returns 'added' or 'updated'
+    function addToTrie(trie, word, data) {
+        return _trieOp('+', trie, word, data);
+    }
+
+    // remove word from trie (word will be converted to uppercase)
+    // returns 'removed' or 'absent'
+    function removeFromTrie(trie, word) {
+        return _trieOp('-', trie, word);
+    }
+
+    // lookup word (converted to uppercase) in trie
+    // returns:
+    //    undefined if the word is not in the trie
+    //    -1 for a partial match (word is a prefix to an existing word)
+    //    data for the word for an exact match
+    function trieLookup(trie, word) {
+        var s = word.toUpperCase().split(''),
+            p = trie,
+            n;
+
+        while (s.length) {
+            n = s.shift();
+            p = p[n];
+            if (!p) {
+                return undefined;
+            }
+        }
+        if (p._data) {
+            return p._data;
+        }
+        return -1;
+    }
+
 
     angular.module('onosUtil')
         .factory('FnService',
@@ -360,7 +421,9 @@
                 noPxStyle: noPxStyle,
                 endsWith: endsWith,
                 parseBitRate: parseBitRate,
-                createTrie: createTrie
+                addToTrie: addToTrie,
+                removeFromTrie: removeFromTrie,
+                trieLookup: trieLookup
             };
     }]);
 
