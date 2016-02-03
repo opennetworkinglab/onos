@@ -482,6 +482,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                  host.ipAddresses().stream().findFirst().get());
 
         ruleInstaller.removeBasicConnectionRules(host);
+        dhcpService.removeStaticMapping(host.mac());
 
         CordService service = getCordService(vNet);
         if (service == null) {
