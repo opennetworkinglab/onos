@@ -16,6 +16,7 @@
 package org.onosproject.store.primitives.impl;
 
 import org.onosproject.store.service.AsyncAtomicCounter;
+import org.onosproject.utils.MeteringAgent;
 
 import java.util.concurrent.CompletableFuture;
 

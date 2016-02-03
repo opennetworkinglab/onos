@@ -32,6 +32,7 @@ import org.onosproject.store.service.Versioned;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
+import org.onosproject.utils.MeteringAgent;
 
 
 public class DefaultAsyncAtomicValue<V> implements AsyncAtomicValue<V> {
