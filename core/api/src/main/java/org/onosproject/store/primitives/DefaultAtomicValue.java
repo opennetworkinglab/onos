@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.primitives.impl;
+package org.onosproject.store.primitives;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AtomicValue;
@@ -24,21 +26,20 @@ import org.onosproject.store.service.AtomicValueEventListener;
 import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.Synchronous;
 
-import com.google.common.util.concurrent.Futures;
-
 /**
- * Default implementation of {@link AtomicValue}.
+ * Default implementation for a {@code AtomicValue} backed by a {@link AsyncAtomicValue}.
  *
  * @param <V> value type
  */
 public class DefaultAtomicValue<V> extends Synchronous<AsyncAtomicValue<V>> implements AtomicValue<V> {
 
-    private static final int OPERATION_TIMEOUT_MILLIS = 5000;
     private final AsyncAtomicValue<V> asyncValue;
+    private final long operationTimeoutMillis;
 
-    public DefaultAtomicValue(AsyncAtomicValue<V> asyncValue) {
+    public DefaultAtomicValue(AsyncAtomicValue<V> asyncValue, long operationTimeoutMillis) {
         super(asyncValue);
         this.asyncValue = asyncValue;
+        this.operationTimeoutMillis = operationTimeoutMillis;
     }
 
     @Override
@@ -71,7 +72,16 @@ public class DefaultAtomicValue<V> extends Synchronous<AsyncAtomicValue<V>> impl
         complete(asyncValue.removeListener(listener));
     }
 
-    private static <V> V complete(CompletableFuture<V> future) {
-        return Futures.getChecked(future, StorageException.class, OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+    private <T> T complete(CompletableFuture<T> future) {
+        try {
+            return future.get(operationTimeoutMillis, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new StorageException.Interrupted();
+        } catch (TimeoutException e) {
+            throw new StorageException.Timeout();
+        } catch (ExecutionException e) {
+            throw new StorageException(e.getCause());
+        }
     }
 }

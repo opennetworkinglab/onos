@@ -17,6 +17,8 @@ package org.onosproject.store.service;
 
 import java.util.concurrent.CompletableFuture;
 
+import org.onosproject.store.primitives.DefaultAtomicValue;
+
 /**
  * Distributed version of java.util.concurrent.atomic.AtomicReference.
  * <p>
@@ -80,4 +82,23 @@ public interface AsyncAtomicValue<V> extends DistributedPrimitive {
      * @return CompletableFuture that will be completed when the operation finishes
      */
     CompletableFuture<Void> removeListener(AtomicValueEventListener<V> listener);
+
+    /**
+     * Returns a new {@link AtomicValue} that is backed by this instance.
+     *
+     * @param timeoutMillis timeout duration for the returned ConsistentMap operations
+     * @return new {@code AtomicValue} instance
+     */
+    default AtomicValue<V> asAtomicValue(long timeoutMillis) {
+        return new DefaultAtomicValue<>(this, timeoutMillis);
+    }
+
+    /**
+     * Returns a new {@link AtomicValue} that is backed by this instance and with a default operation timeout.
+     *
+     * @return new {@code AtomicValue} instance
+     */
+    default AtomicValue<V> asAtomicValue() {
+        return new DefaultAtomicValue<>(this, DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+    }
 }

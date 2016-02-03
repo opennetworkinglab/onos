@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.primitives.impl;
+package org.onosproject.store.primitives;
 
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AtomicCounter;
@@ -26,20 +26,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Default implementation for a distributed AtomicCounter backed by
- * partitioned Raft DB.
- * <p>
- * The initial value will be zero.
+ * Default implementation for a {@code AtomicCounter} backed by a {@link AsyncAtomicCounter}.
  */
 public class DefaultAtomicCounter extends Synchronous<AsyncAtomicCounter> implements AtomicCounter  {
 
-    private static final int OPERATION_TIMEOUT_MILLIS = 5000;
-
     private final AsyncAtomicCounter asyncCounter;
+    private final long operationTimeoutMillis;
 
-    public DefaultAtomicCounter(AsyncAtomicCounter asyncCounter) {
+    public DefaultAtomicCounter(AsyncAtomicCounter asyncCounter, long operationTimeoutMillis) {
         super(asyncCounter);
         this.asyncCounter = asyncCounter;
+        this.operationTimeoutMillis = operationTimeoutMillis;
     }
 
     @Override
@@ -77,9 +74,9 @@ public class DefaultAtomicCounter extends Synchronous<AsyncAtomicCounter> implem
         return complete(asyncCounter.get());
     }
 
-    private static <T> T complete(CompletableFuture<T> future) {
+    private <T> T complete(CompletableFuture<T> future) {
         try {
-            return future.get(OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+            return future.get(operationTimeoutMillis, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new StorageException.Interrupted();

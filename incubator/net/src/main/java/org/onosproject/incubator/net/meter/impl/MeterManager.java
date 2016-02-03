@@ -183,7 +183,8 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     private AtomicCounter allocateCounter(DeviceId deviceId) {
         return storageService.atomicCounterBuilder()
                 .withName(String.format(METERCOUNTERIDENTIFIER, deviceId))
-                .build();
+                .build()
+                .asAtomicCounter();
     }
 
     private class InternalMeterProviderService

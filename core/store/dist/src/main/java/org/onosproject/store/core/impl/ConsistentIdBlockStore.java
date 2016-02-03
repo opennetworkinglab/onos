@@ -69,7 +69,8 @@ public class ConsistentIdBlockStore implements IdBlockStore {
                 .computeIfAbsent(topic,
                                  name -> storageService.atomicCounterBuilder()
                                          .withName(name)
-                                         .build());
+                                         .build()
+                                         .asAtomicCounter());
         Long blockBase = Tools.retryable(counter::getAndAdd,
                 StorageException.class,
                 MAX_TRIES,

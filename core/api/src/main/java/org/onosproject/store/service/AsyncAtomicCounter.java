@@ -17,6 +17,8 @@ package org.onosproject.store.service;
 
 import java.util.concurrent.CompletableFuture;
 
+import org.onosproject.store.primitives.DefaultAtomicCounter;
+
 /**
  * An async atomic counter dispenses monotonically increasing values.
  */
@@ -81,4 +83,23 @@ public interface AsyncAtomicCounter extends DistributedPrimitive {
      * @return true if the update occurred and the expected value was equal to the current value, false otherwise
      */
     CompletableFuture<Boolean> compareAndSet(long expectedValue, long updateValue);
+
+    /**
+     * Returns a new {@link AtomicCounter} that is backed by this instance.
+     *
+     * @param timeoutMillis timeout duration for the returned ConsistentMap operations
+     * @return new {@code ConsistentMap} instance
+     */
+    default AtomicCounter asAtomicCounter(long timeoutMillis) {
+        return new DefaultAtomicCounter(this, timeoutMillis);
+    }
+
+    /**
+     * Returns a new {@link AtomicCounter} that is backed by this instance and with a default operation timeout.
+     *
+     * @return new {@code ConsistentMap} instance
+     */
+    default AtomicCounter asAtomicCounter() {
+        return new DefaultAtomicCounter(this, DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+    }
 }

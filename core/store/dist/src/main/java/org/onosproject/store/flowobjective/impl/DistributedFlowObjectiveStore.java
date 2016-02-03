@@ -68,7 +68,8 @@ public class DistributedFlowObjectiveStore
 
         nextIds = storageService.atomicCounterBuilder()
                 .withName("next-objective-counter")
-                .build();
+                .build()
+                .asAtomicCounter();
 
         log.info("Started");
     }

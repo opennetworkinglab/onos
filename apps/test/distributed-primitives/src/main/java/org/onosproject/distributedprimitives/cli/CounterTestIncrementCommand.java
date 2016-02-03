@@ -67,11 +67,11 @@ public class CounterTestIncrementCommand extends AbstractShellCommand {
             atomicCounter = storageService.atomicCounterBuilder()
                     .withName(counter)
                     .withPartitionsDisabled()
-                    .buildAsyncCounter();
+                    .build();
         } else {
             atomicCounter = storageService.atomicCounterBuilder()
                     .withName(counter)
-                    .buildAsyncCounter();
+                    .build();
         }
         CompletableFuture<Long> result;
         if (delta != null) {

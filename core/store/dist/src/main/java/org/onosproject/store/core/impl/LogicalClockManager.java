@@ -50,7 +50,8 @@ public class LogicalClockManager implements LogicalClockService {
         atomicCounter = storageService.atomicCounterBuilder()
                                       .withName(SYSTEM_LOGICAL_CLOCK_COUNTER_NAME)
                                       .withPartitionsDisabled()
-                                      .build();
+                                      .build()
+                                      .asAtomicCounter();
         log.info("Started");
     }
 
