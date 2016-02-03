@@ -21,6 +21,7 @@ import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
@@ -32,6 +33,7 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.slf4j.Logger;
 
@@ -57,12 +59,53 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
     }
 
     @Override
-    public void filter(FilteringObjective filter) {}
+    public void filter(FilteringObjective filter) {
+
+        TrafficTreatment.Builder actions;
+        switch (filter.type()) {
+            case PERMIT:
+                actions = (filter.meta() == null) ?
+                        DefaultTrafficTreatment.builder().punt() :
+                        DefaultTrafficTreatment.builder(filter.meta());
+                break;
+            case DENY:
+                actions = (filter.meta() == null) ?
+                        DefaultTrafficTreatment.builder() :
+                        DefaultTrafficTreatment.builder(filter.meta());
+                actions.drop();
+                break;
+            default:
+                log.warn("Unknown filter type: {}", filter.type());
+                actions = DefaultTrafficTreatment.builder().drop();
+        }
+
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+
+        filter.conditions().stream().forEach(selector::add);
+
+        if (filter.key() != null) {
+            selector.add(filter.key());
+        }
+
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(actions.build())
+                .fromApp(filter.appId())
+                .withPriority(filter.priority());
+
+        if (filter.permanent()) {
+            ruleBuilder.makePermanent();
+        } else {
+            ruleBuilder.makeTemporary(filter.timeout());
+        }
+
+        installObjective(ruleBuilder, filter);
+
+    }
 
     @Override
     public void forward(ForwardingObjective fwd) {
-        FlowRuleOperations.Builder flowBuilder = FlowRuleOperations.builder();
-
         if (fwd.flag() != ForwardingObjective.Flag.VERSATILE) {
             throw new UnsupportedOperationException(
                     "Only VERSATILE is supported.");
@@ -92,8 +135,13 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
             ruleBuilder.makeTemporary(fwd.timeout());
         }
 
+        installObjective(ruleBuilder, fwd);
 
-        switch (fwd.op()) {
+    }
+
+    private void installObjective(FlowRule.Builder ruleBuilder, Objective objective) {
+        FlowRuleOperations.Builder flowBuilder = FlowRuleOperations.builder();
+        switch (objective.op()) {
 
             case ADD:
                 flowBuilder.add(ruleBuilder.build());
@@ -102,28 +150,28 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
                 flowBuilder.remove(ruleBuilder.build());
                 break;
             default:
-                log.warn("Unknown operation {}", fwd.op());
+                log.warn("Unknown operation {}", objective.op());
         }
 
         flowRuleService.apply(flowBuilder.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                if (fwd.context().isPresent()) {
-                    fwd.context().get().onSuccess(fwd);
+                if (objective.context().isPresent()) {
+                    objective.context().get().onSuccess(objective);
                 }
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                if (fwd.context().isPresent()) {
-                    fwd.context().get().onError(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
+                if (objective.context().isPresent()) {
+                    objective.context().get().onError(objective, ObjectiveError.FLOWINSTALLATIONFAILED);
                 }
             }
         }));
-
     }
 
     @Override
-    public void next(NextObjective nextObjective) {}
+    public void next(NextObjective nextObjective) {
+    }
 
 }
