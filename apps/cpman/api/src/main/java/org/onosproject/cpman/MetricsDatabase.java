@@ -117,6 +117,14 @@ public interface MetricsDatabase {
     double[] metrics(String metricType, long startTime, long endTime);
 
     /**
+     * Returns the latest metric update time.
+     *
+     * @param metricType metric type
+     * @return timestamp
+     */
+    long lastUpdate(String metricType);
+
+    /**
      * A builder of MetricsDatabase.
      */
     interface Builder {

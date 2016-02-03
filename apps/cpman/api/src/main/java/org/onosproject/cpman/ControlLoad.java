@@ -39,4 +39,20 @@ public interface ControlLoad extends Load {
      * @return average control plane metric value
      */
     long average();
+
+    /**
+     * Obtains the most recent metric values of the specified time duration.
+     *
+     * @param duration time duration
+     * @param unit time unit
+     * @return a collection of the most recent metric values
+     */
+    long[] recent(int duration, TimeUnit unit);
+
+    /**
+     * Obtains all metrics.
+     *
+     * @return a collection of the all metric values
+     */
+    long[] all();
 }

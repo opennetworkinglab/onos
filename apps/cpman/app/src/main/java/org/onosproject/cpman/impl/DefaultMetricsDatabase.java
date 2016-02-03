@@ -183,6 +183,17 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
         return new double[0];
     }
 
+    @Override
+    public long lastUpdate(String metricType) {
+        try {
+            checkArgument(rrdDb.containsDs(metricType), NON_EXIST_METRIC);
+            rrdDb.getLastUpdateTime();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return 0L;
+    }
+
     // try to check whether projected time range is within a day
     private boolean checkTimeRange(long startTime, long endTime) {
         // check whether the given startTime and endTime larger than 1 minute
