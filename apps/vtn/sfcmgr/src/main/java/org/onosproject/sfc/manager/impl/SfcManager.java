@@ -15,17 +15,31 @@
  */
 package org.onosproject.sfc.manager.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
+import org.onlab.packet.IPv6;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.NshServicePathId;
+import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketProcessor;
+import org.onosproject.net.packet.PacketService;
 import org.onosproject.sfc.forwarder.ServiceFunctionForwarderService;
 import org.onosproject.sfc.forwarder.impl.ServiceFunctionForwarderImpl;
 import org.onosproject.sfc.installer.FlowClassifierInstallerService;
@@ -47,11 +61,6 @@ import org.onosproject.vtnrsc.event.VtnRscListener;
 import org.onosproject.vtnrsc.service.VtnRscService;
 import org.slf4j.Logger;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import static org.slf4j.LoggerFactory.getLogger;
-
 /**
  * Provides implementation of SFC Service.
  */
@@ -61,12 +70,18 @@ public class SfcManager implements SfcService {
 
     private final Logger log = getLogger(getClass());
     private static final String APP_ID = "org.onosproject.app.vtn";
+    private static final int SFC_PRIORITY = 1000;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected VtnRscService vtnRscService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PacketService packetService;
+
+    private SfcPacketProcessor processor = new SfcPacketProcessor();
 
     protected ApplicationId appId;
     private ServiceFunctionForwarderService serviceFunctionForwarderService;
@@ -91,13 +106,14 @@ public class SfcManager implements SfcService {
                 .register(FlowClassifierId.class)
                 .register(PortChainId.class);
 
+        packetService.addProcessor(processor, PacketProcessor.director(SFC_PRIORITY));
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         vtnRscService.removeListener(vtnRscListener);
-
+        packetService.removeProcessor(processor);
         log.info("Stopped");
     }
 
@@ -218,5 +234,36 @@ public class SfcManager implements SfcService {
 
         // remove SPI. No longer it will be used.
         nshSpiPortChainMap.remove(nshSpi);
+    }
+
+    private class SfcPacketProcessor implements PacketProcessor {
+
+        @Override
+        public void process(PacketContext context) {
+            Ethernet packet = context.inPacket().parsed();
+            if (packet == null) {
+                return;
+            }
+            // get the five tupple parameters for the packet
+            short ethType = packet.getEtherType();
+            VlanId vlanId = VlanId.vlanId(packet.getVlanID());
+            MacAddress srcMac = packet.getSourceMAC();
+            MacAddress dstMac = packet.getDestinationMAC();
+            IpAddress ipSrc;
+            IpAddress ipDst;
+
+            if (ethType == Ethernet.TYPE_IPV4) {
+                IPv4 ipv4Packet = (IPv4) packet.getPayload();
+                ipSrc = IpAddress.valueOf(ipv4Packet.getSourceAddress());
+                ipDst = IpAddress.valueOf(ipv4Packet.getDestinationAddress());
+            } else if (ethType == Ethernet.TYPE_IPV6) {
+                IPv6 ipv6Packet = (IPv6) packet.getPayload();
+                ipSrc = IpAddress.valueOf(ipv6Packet.getSourceAddress().toString());
+                ipDst = IpAddress.valueOf(ipv6Packet.getDestinationAddress().toString());
+            }
+
+            //todo
+           //identify the port chain to which the packet belongs
+        }
     }
 }
