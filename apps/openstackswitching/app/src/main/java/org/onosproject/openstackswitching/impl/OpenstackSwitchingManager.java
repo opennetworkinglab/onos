@@ -461,12 +461,6 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                     case DEVICE_ADDED:
                         processDeviceAdded((Device) deviceEvent.subject());
                         break;
-                    case DEVICE_UPDATED:
-                        Port port = (Port) deviceEvent.subject();
-                        if (port.isEnabled()) {
-                            processPortUpdated((Device) deviceEvent.subject(), deviceEvent.port());
-                        }
-                        break;
                     case DEVICE_AVAILABILITY_CHANGED:
                         Device device = (Device) deviceEvent.subject();
                         if (deviceService.isAvailable(device.id())) {
