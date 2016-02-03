@@ -102,6 +102,17 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
     }
 
     @Override
+    public Interface getInterfaceByName(ConnectPoint connectPoint, String name) {
+        Optional<Interface> intf =
+                interfaces.getOrDefault(connectPoint, Collections.emptySet())
+                .stream()
+                .filter(i -> i.name().equals(name))
+                .findAny();
+
+        return intf.isPresent() ? intf.get() : null;
+    }
+
+    @Override
     public Set<Interface> getInterfacesByPort(ConnectPoint port) {
         Set<Interface> intfs = interfaces.get(port);
         if (intfs == null) {

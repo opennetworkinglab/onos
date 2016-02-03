@@ -39,6 +39,15 @@ public interface InterfaceService
     Set<Interface> getInterfaces();
 
     /**
+     * Returns the interface with the given name.
+     *
+     * @param connectPoint connect point of the interface
+     * @param name name of the interface
+     * @return interface if it exists, otherwise null
+     */
+    Interface getInterfaceByName(ConnectPoint connectPoint, String name);
+
+    /**
      * Returns the set of interfaces configured on the given port.
      *
      * @param port connect point
