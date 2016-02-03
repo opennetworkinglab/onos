@@ -45,7 +45,8 @@
         <api.package>org.onosproject.cordvtn.rest</api.package>
         <onos.app.requires>
             org.onosproject.ovsdb-base,
-            org.onosproject.openstackswitching
+            org.onosproject.openstackswitching,
+            org.onosproject.dhcp
         </onos.app.requires>
     </properties>
 
@@ -108,6 +109,11 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-app-openstackswitching-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-dhcp-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

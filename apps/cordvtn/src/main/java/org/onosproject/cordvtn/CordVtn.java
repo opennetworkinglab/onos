@@ -15,6 +15,7 @@
  */
 package org.onosproject.cordvtn;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -23,11 +24,13 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.dhcp.DhcpService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -65,6 +68,7 @@ import org.onosproject.openstackswitching.OpenstackSubnet;
 import org.onosproject.openstackswitching.OpenstackSwitchingService;
 import org.slf4j.Logger;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -121,6 +125,9 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackSwitchingService openstackService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DhcpService dhcpService;
+
     private final ConfigFactory configFactory =
             new ConfigFactory(SubjectFactories.APP_SUBJECT_FACTORY, CordVtnConfig.class, "cordvtn") {
                 @Override
@@ -130,6 +137,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             };
 
     private static final String DEFAULT_TUNNEL = "vxlan";
+    private static final Ip4Address DEFAULT_DNS = Ip4Address.valueOf("8.8.8.8");
     private static final String SERVICE_ID = "serviceId";
     private static final String LOCATION_IP = "locationIp";
     private static final String OPENSTACK_VM_ID = "openstackVmId";
@@ -244,9 +252,13 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         if (host != null) {
             // Host is already known to the system, no HOST_ADDED event is triggered in this case.
             // It happens when the application is restarted.
-            // TODO check host description if it has all the information
-            serviceVmAdded(host);
-            return;
+            String vmId = host.annotations().value(OPENSTACK_VM_ID);
+            if (vmId != null && vmId.equals(vPort.deviceId())) {
+                serviceVmAdded(host);
+                return;
+            } else {
+                hostProvider.hostVanished(host.id());
+            }
         }
 
         Set<IpAddress> ip = Sets.newHashSet(vPort.fixedIps().values());
@@ -382,6 +394,26 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     }
 
     /**
+     * Registers static DHCP lease for a given host.
+     *
+     * @param host host
+     * @param service cord service
+     */
+    private void registerDhcpLease(Host host, CordService service) {
+        List<Ip4Address> options = Lists.newArrayList();
+        options.add(Ip4Address.makeMaskPrefix(service.serviceIpRange().prefixLength()));
+        options.add(service.serviceIp().getIp4Address());
+        options.add(service.serviceIp().getIp4Address());
+        options.add(DEFAULT_DNS);
+
+        log.debug("Set static DHCP mapping for {}", host.mac());
+        dhcpService.setStaticMapping(host.mac(),
+                                     host.ipAddresses().stream().findFirst().get().getIp4Address(),
+                                     true,
+                                     options);
+    }
+
+    /**
      * Handles VM detected situation.
      *
      * @param host host
@@ -420,6 +452,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         }
 
         ruleInstaller.populateBasicConnectionRules(host, getTunnelIp(host), vNet);
+        registerDhcpLease(host, service);
     }
 
     /**
@@ -428,6 +461,11 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param host host
      */
     private void serviceVmRemoved(Host host) {
+        if (host.annotations().value(OPENSTACK_VM_ID) == null) {
+            // this host was not injected from CordVtn, just return
+            return;
+        }
+
         String vNetId = host.annotations().value(SERVICE_ID);
         OpenstackNetwork vNet = openstackService.network(host.annotations().value(SERVICE_ID));
         if (vNet == null) {
