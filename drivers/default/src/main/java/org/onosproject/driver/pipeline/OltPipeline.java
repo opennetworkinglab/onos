@@ -390,7 +390,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(buildSelector(inport, innerVid))
-                .withTreatment(buildTreatment(popAndRewrite.getRight(),
+                .withTreatment(buildTreatment(popAndRewrite.getLeft(),
                                               output));
 
         applyRules(fwd, inner, outer);
