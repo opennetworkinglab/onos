@@ -67,6 +67,12 @@ public final class ControlMetricsFactory {
     private Set<String> diskPartitions = Sets.newConcurrentHashSet();
     private Set<String> nwInterfaces = Sets.newConcurrentHashSet();
 
+    /**
+     * Constructs a control metrics factory using the given metrics and device services.
+     *
+     * @param metricsService metric service reference
+     * @param deviceService  device service reference
+     */
     private ControlMetricsFactory(MetricsService metricsService, DeviceService deviceService) {
         this.metricsService = metricsService;
         registerMetrics();
@@ -76,6 +82,13 @@ public final class ControlMetricsFactory {
         addAllControlMessageMetrics(deviceIds);
     }
 
+    /**
+     * Obtains the unique instance of ControlMetricsFactory.
+     *
+     * @param metricsService metric service
+     * @param deviceService  device service
+     * @return instance of ControlMetricsFactory
+     */
     public static ControlMetricsFactory getInstance(MetricsService metricsService,
                                                     DeviceService deviceService) {
         if (uniqueInstance == null) {
@@ -102,7 +115,7 @@ public final class ControlMetricsFactory {
     /**
      * Adds control metrics of a new device.
      *
-     * @param deviceId {@link org.onosproject.net.DeviceId}
+     * @param deviceId device identifier
      */
     public void addControlMessageMetricsByDeviceId(DeviceId deviceId) {
         MetricsAggregator inbound = new MetricsAggregator(metricsService,
@@ -171,7 +184,7 @@ public final class ControlMetricsFactory {
     /**
      * Removes control metrics of an existing device.
      *
-     * @param deviceId {@link org.onosproject.net.DeviceId}
+     * @param deviceId device identifier
      */
     public void removeControlMessageMetricsByDeviceId(DeviceId deviceId) {
         inboundPacket.remove(deviceId);
@@ -211,9 +224,9 @@ public final class ControlMetricsFactory {
     }
 
     /**
-     * Returns all device ids.
+     * Returns all device identifiers.
      *
-     * @return a collection of device id
+     * @return a collection of device identifiers
      */
     public Set<DeviceId> getDeviceIds() {
         return ImmutableSet.copyOf(this.deviceIds);
@@ -222,7 +235,7 @@ public final class ControlMetricsFactory {
     /**
      * Returns all disk partition names.
      *
-     * @return a collection of disk partition.
+     * @return a collection of disk partitions.
      */
     public Set<String> getDiskPartitions() {
         return ImmutableSet.copyOf(this.diskPartitions);
@@ -231,7 +244,7 @@ public final class ControlMetricsFactory {
     /**
      * Returns all network interface names.
      *
-     * @return a collection of network interface.
+     * @return a collection of network interfaces.
      */
     public Set<String> getNetworkInterfaces() {
         return ImmutableSet.copyOf(this.nwInterfaces);
@@ -240,7 +253,7 @@ public final class ControlMetricsFactory {
     /**
      * Adds control metrics for all devices.
      *
-     * @param deviceIds a set of deviceIds
+     * @param deviceIds a set of device identifiers
      */
     public void addAllControlMessageMetrics(Set<DeviceId> deviceIds) {
         deviceIds.forEach(v -> addControlMessageMetricsByDeviceId(v));
@@ -330,102 +343,239 @@ public final class ControlMetricsFactory {
         replyPacket.clear();
     }
 
+    /**
+     * Returns CPU load metric aggregator.
+     *
+     * @return metric aggregator
+     */
     public MetricsAggregator cpuLoadMetric() {
         return cpuLoad;
     }
 
+    /**
+     * Returns total CPU time metric aggregator.
+     *
+     * @return metric aggregator
+     */
     public MetricsAggregator totalCpuTimeMetric() {
         return totalCpuTime;
     }
 
+    /**
+     * Returns system CPU time metric aggregator.
+     *
+     * @return metric aggregator
+     */
     public MetricsAggregator sysCpuTimeMetric() {
         return sysCpuTime;
     }
 
+    /**
+     * Returns user CPU time metric aggregator.
+     *
+     * @return metric aggregator
+     */
     public MetricsAggregator userCpuTime() {
         return userCpuTime;
     }
 
+    /**
+     * Returns CPU idle time metric aggregator.
+     *
+     * @return metric aggregator
+     */
     public MetricsAggregator cpuIdleTime() {
         return cpuIdleTime;
     }
 
+    /**
+     * Returns free memory ratio metric aggregator.
+     *
+     * @return metric aggregator
+     */
     public MetricsAggregator memoryFreeRatio() {
         return memoryFreeRatio;
     }
 
+    /**
+     * Returns used memory ratio metric aggregator.
+     *
+     * @return metric aggregator
+     */
     public MetricsAggregator memoryUsedRatio() {
         return memoryUsedRatio;
     }
 
-    public MetricsAggregator diskReadBytes(String partitionName) {
-        return diskReadBytes.get(partitionName);
+    /**
+     * Returns disk read bytes metric aggregator.
+     *
+     * @param resourceName name of disk resource
+     * @return metric aggregator
+     */
+    public MetricsAggregator diskReadBytes(String resourceName) {
+        return diskReadBytes.get(resourceName);
     }
 
-    public MetricsAggregator diskWriteBytes(String partitionName) {
-        return diskWriteBytes.get(partitionName);
+    /**
+     * Returns disk write bytes metric aggregator.
+     *
+     * @param resourceName name of disk resource
+     * @return metric aggregator
+     */
+    public MetricsAggregator diskWriteBytes(String resourceName) {
+        return diskWriteBytes.get(resourceName);
     }
 
+    /**
+     * Returns incoming bytes metric aggregator.
+     *
+     * @param interfaceName name of network interface
+     * @return metric aggregator
+     */
     public MetricsAggregator nwIncomingBytes(String interfaceName) {
         return nwIncomingBytes.get(interfaceName);
     }
 
+    /**
+     * Returns outgoing bytes metric aggregator.
+     *
+     * @param interfaceName name of network interface
+     * @return metric aggregator
+     */
     public MetricsAggregator nwOutgoingBytes(String interfaceName) {
         return nwOutgoingBytes.get(interfaceName);
     }
 
+    /**
+     * Returns incoming packets metric aggregator.
+     *
+     * @param interfaceName name of network interface
+     * @return metric aggregator
+     */
     public MetricsAggregator nwIncomingPackets(String interfaceName) {
         return nwIncomingPackets.get(interfaceName);
     }
 
+    /**
+     * Returns outgoing packets metric aggregator.
+     *
+     * @param interfaceName name of network interface
+     * @return metric aggregator
+     */
     public MetricsAggregator nwOutgoingPackets(String interfaceName) {
         return nwOutgoingPackets.get(interfaceName);
     }
 
+    /**
+     * Returns inbound packet metric aggregator of all devices.
+     *
+     * @return metric aggregator
+     */
     public Map<DeviceId, MetricsAggregator> inboundPacket() {
         return ImmutableMap.copyOf(inboundPacket);
     }
 
+    /**
+     * Returns outgoing packet metric aggregator of all devices.
+     *
+     * @return metric aggregator
+     */
     public Map<DeviceId, MetricsAggregator> outboundPacket() {
         return ImmutableMap.copyOf(outboundPacket);
     }
 
+    /**
+     * Returns flow-mod packet metric aggregator of all devices.
+     *
+     * @return metric aggregator
+     */
     public Map<DeviceId, MetricsAggregator> flowmodPacket() {
         return ImmutableMap.copyOf(flowmodPacket);
     }
 
+    /**
+     * Returns flow-removed packet metric aggregator of all devices.
+     *
+     * @return metric aggregator
+     */
     public Map<DeviceId, MetricsAggregator> flowrmvPacket() {
         return ImmutableMap.copyOf(flowrmvPacket);
     }
 
+    /**
+     * Returns request packet metric aggregator of all devices.
+     *
+     * @return metric aggregator
+     */
     public Map<DeviceId, MetricsAggregator> requestPacket() {
         return ImmutableMap.copyOf(requestPacket);
     }
 
+    /**
+     * Returns reply packet metric aggregator of all devices.
+     *
+     * @return metric aggregator
+     */
     public Map<DeviceId, MetricsAggregator> replyPacket() {
         return ImmutableMap.copyOf(replyPacket);
     }
 
+    /**
+     * Returns inbound packet metric aggregator of a specified device.
+     *
+     * @param deviceId device identifier
+     * @return metric aggregator
+     */
     public MetricsAggregator inboundPacket(DeviceId deviceId) {
         return inboundPacket.get(deviceId);
     }
 
+    /**
+     * Returns outbound packet metric aggregator of a specified device.
+     *
+     * @param deviceId device identifier
+     * @return metric aggregator
+     */
     public MetricsAggregator outboundPacket(DeviceId deviceId) {
         return outboundPacket.get(deviceId);
     }
 
+    /**
+     * Returns flow-mod packet metric aggregator of a specified device.
+     *
+     * @param deviceId device identifier
+     * @return metric aggregator
+     */
     public MetricsAggregator flowmodPacket(DeviceId deviceId) {
         return flowmodPacket.get(deviceId);
     }
 
+    /**
+     * Returns flow-removed packet metric aggregator of a specified device.
+     *
+     * @param deviceId device identifier
+     * @return metric aggregator
+     */
     public MetricsAggregator flowrmvPacket(DeviceId deviceId) {
         return flowrmvPacket.get(deviceId);
     }
 
+    /**
+     * Returns request packet metric aggregator of a specified device.
+     *
+     * @param deviceId device identifier
+     * @return metric aggregator
+     */
     public MetricsAggregator requestPacket(DeviceId deviceId) {
         return requestPacket.get(deviceId);
     }
 
+    /**
+     * Returns reply packet metric aggregator of a specified device.
+     *
+     * @param deviceId device identifier
+     * @return metric aggregator
+     */
     public MetricsAggregator replyPacket(DeviceId deviceId) {
         return replyPacket.get(deviceId);
     }

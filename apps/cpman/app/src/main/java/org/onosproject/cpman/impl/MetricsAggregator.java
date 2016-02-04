@@ -43,13 +43,13 @@ public class MetricsAggregator {
     private static final String COUNT_NAME = "count";
 
     /**
-     * Constructs a new MetricsAggregator for aggregating a metric.
+     * Constructs a new metrics aggregator for aggregating a metric.
      * Instantiates the metrics service
      * Initializes all the general metrics for that object
      *
-     * @param metricsService MetricsService reference
-     * @param type           Control metric type
-     * @param deviceId       DeviceId
+     * @param metricsService metric service reference
+     * @param type           control metric type
+     * @param deviceId       device identification
      */
     MetricsAggregator(MetricsService metricsService, ControlMetricType type,
                       Optional<DeviceId> deviceId) {
@@ -57,12 +57,12 @@ public class MetricsAggregator {
     }
 
     /**
-     * Constructs a new MetricAggregator for aggregating a metric.
+     * Constructs a new metrics aggregator for aggregating a metric.
      * Instantiates the metrics service
      * Initializes all the general metrics for that object
      *
-     * @param metricsService MetricsService reference
-     * @param type           Control metric type
+     * @param metricsService metric service reference
+     * @param type           control metric type
      * @param resourceName   resource name (e.g., ethernet interface name)
      */
     MetricsAggregator(MetricsService metricsService, ControlMetricType type,
@@ -72,12 +72,12 @@ public class MetricsAggregator {
     }
 
     /**
-     * Constructs a new MetricAggregator for aggregating a metric.
+     * Constructs a new metrics aggregator for aggregating a metric.
      * Instantiates the metrics service
      * Initializes all the general metrics for that object
      *
-     * @param metricsService MetricsService reference
-     * @param type           Control metric type
+     * @param metricsService metrics service reference
+     * @param type           control metric type
      */
     MetricsAggregator(MetricsService metricsService, ControlMetricType type) {
         init(metricsService, type, Optional.ofNullable(null), null);
@@ -86,9 +86,9 @@ public class MetricsAggregator {
     /**
      * Base method of the constructor of this class.
      *
-     * @param metricsService MetricsService reference
-     * @param type           Control metric type
-     * @param deviceId       DeviceId
+     * @param metricsService metrics service reference
+     * @param type           control metric type
+     * @param deviceId       device identification
      * @param resourceName   resource name
      */
     private void init(MetricsService metricsService, ControlMetricType type,
@@ -116,14 +116,19 @@ public class MetricsAggregator {
         this.countMeter = metricsService.createMeter(metricsComponent, metricsFeature, COUNT_NAME);
     }
 
+    /**
+     * Returns control metrics type.
+     *
+     * @return control metrics type
+     */
     public ControlMetricType getMetricsType() {
         return metricsType;
     }
 
     /**
-     * Increments the meter rate by {@code n}, and the meter counter by 1.
+     * Increments the meter rate by n, and the meter counter by 1.
      *
-     * @param n Increment the meter rate by {@code n}.
+     * @param n increment rate.
      */
     public void increment(long n) {
         rateMeter.mark(n);
@@ -131,7 +136,7 @@ public class MetricsAggregator {
     }
 
     /**
-     * Obtains the average load value.
+     * Returns the average load value.
      *
      * @return load value
      */
@@ -140,7 +145,7 @@ public class MetricsAggregator {
     }
 
     /**
-     * Obtains the average meter rate within recent 1 minute.
+     * Returns the average meter rate within recent 1 minute.
      *
      * @return rate value
      */
@@ -149,7 +154,7 @@ public class MetricsAggregator {
     }
 
     /**
-     * Obtains the average meter count within recent 1 minute.
+     * Returns the average meter count within recent 1 minute.
      *
      * @return count value
      */

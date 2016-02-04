@@ -36,6 +36,7 @@ import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.util.Optional;
 
+import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
@@ -68,7 +69,7 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
 
     @Test
     public void testCpuMetricsPost() {
-        mockControlPlaneMonitorService.updateMetric(anyObject(), anyObject(),
+        mockControlPlaneMonitorService.updateMetric(anyObject(), anyInt(),
                 (Optional<DeviceId>) anyObject());
         expectLastCall().times(5);
         replay(mockControlPlaneMonitorService);
@@ -77,7 +78,7 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
 
     @Test
     public void testMemoryMetricsPost() {
-        mockControlPlaneMonitorService.updateMetric(anyObject(), anyObject(),
+        mockControlPlaneMonitorService.updateMetric(anyObject(), anyInt(),
                 (Optional<DeviceId>) anyObject());
         expectLastCall().times(4);
         replay(mockControlPlaneMonitorService);
@@ -86,7 +87,7 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
 
     @Test
     public void testDiskMetricsWithNullName() {
-        mockControlPlaneMonitorService.updateMetric(anyObject(), anyObject(), anyString());
+        mockControlPlaneMonitorService.updateMetric(anyObject(), anyInt(), anyString());
         expectLastCall().times(4);
         replay(mockControlPlaneMonitorService);
         basePostTest("disk-metrics-post.json", PREFIX + "/disk_metrics");
@@ -94,7 +95,7 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
 
     @Test
     public void testNetworkMetricsWithNullName() {
-        mockControlPlaneMonitorService.updateMetric(anyObject(), anyObject(), anyString());
+        mockControlPlaneMonitorService.updateMetric(anyObject(), anyInt(), anyString());
         expectLastCall().times(8);
         replay(mockControlPlaneMonitorService);
         basePostTest("network-metrics-post.json", PREFIX + "/network_metrics");

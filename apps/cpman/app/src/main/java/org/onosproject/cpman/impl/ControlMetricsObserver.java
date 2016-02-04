@@ -28,7 +28,7 @@ public interface ControlMetricsObserver {
      * Feeds the extracted value from MetricAggregator to back-end storage.
      *
      * @param metricsAggregator metric aggregator
-     * @param deviceId          device id {@link org.onosproject.net.DeviceId}
+     * @param deviceId          device identification
      */
     void feedMetrics(MetricsAggregator metricsAggregator, Optional<DeviceId> deviceId);
 

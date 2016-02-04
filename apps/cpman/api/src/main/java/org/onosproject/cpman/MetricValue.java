@@ -27,7 +27,7 @@ public final class MetricValue {
     private final long count;
 
     /**
-     * Constructor.
+     * Constructs a metric value using the given rate, load and count.
      *
      * @param rate rate
      * @param load load

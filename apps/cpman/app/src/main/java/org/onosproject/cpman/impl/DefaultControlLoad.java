@@ -31,6 +31,13 @@ public class DefaultControlLoad implements ControlLoad {
     private final MetricsDatabase mdb;
     private final ControlMetricType type;
 
+    /**
+     * Constructs a control load using the given metrics database and
+     * control metric type.
+     *
+     * @param mdb  metrics database
+     * @param type control metric type
+     */
     public DefaultControlLoad(MetricsDatabase mdb, ControlMetricType type) {
         this.mdb = mdb;
         this.type = type;

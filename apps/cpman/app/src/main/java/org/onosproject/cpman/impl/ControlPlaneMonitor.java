@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.onosproject.cpman.ControlMetricType.CPU_IDLE_TIME;
@@ -83,18 +84,18 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     private static final String DISK = "Disk";
     private static final String NETWORK = "Network";
 
-    private static final ImmutableSet<ControlMetricType> CPU_METRICS =
+    private static final Set<ControlMetricType> CPU_METRICS =
             ImmutableSet.of(CPU_IDLE_TIME, CPU_LOAD, SYS_CPU_TIME,
                     USER_CPU_TIME, TOTAL_CPU_TIME);
-    private static final ImmutableSet<ControlMetricType> MEMORY_METRICS =
+    private static final Set<ControlMetricType> MEMORY_METRICS =
             ImmutableSet.of(MEMORY_FREE, MEMORY_FREE_RATIO, MEMORY_USED,
                     MEMORY_USED_RATIO);
-    private static final ImmutableSet<ControlMetricType> DISK_METRICS =
+    private static final Set<ControlMetricType> DISK_METRICS =
             ImmutableSet.of(DISK_READ_BYTES, DISK_WRITE_BYTES);
-    private static final ImmutableSet<ControlMetricType> NETWORK_METRICS =
+    private static final Set<ControlMetricType> NETWORK_METRICS =
             ImmutableSet.of(NW_INCOMING_BYTES, NW_OUTGOING_BYTES,
                     NW_INCOMING_PACKETS, NW_OUTGOING_PACKETS);
-    private static final ImmutableSet<ControlMetricType> CTRL_MSGS =
+    private static final Set<ControlMetricType> CTRL_MSGS =
             ImmutableSet.of(INBOUND_PACKET, OUTBOUND_PACKET, FLOW_MOD_PACKET,
                     FLOW_REMOVED_PACKET, REQUEST_PACKET, REPLY_PACKET);
     private Map<ControlMetricType, Double> cpuBuf;
@@ -134,7 +135,7 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     }
 
     @Override
-    public void updateMetric(ControlMetric cm, Integer updateInterval,
+    public void updateMetric(ControlMetric cm, int updateIntervalInMinutes,
                              Optional<DeviceId> deviceId) {
         if (deviceId.isPresent()) {
 
@@ -180,7 +181,7 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     }
 
     @Override
-    public void updateMetric(ControlMetric cm, Integer updateInterval,
+    public void updateMetric(ControlMetric cm, int updateIntervalInMinutes,
                              String resourceName) {
         // update disk metrics
         if (DISK_METRICS.contains(cm.metricType())) {
@@ -252,7 +253,7 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     }
 
     private MetricsDatabase genMDbBuilder(String metricName,
-                                          ImmutableSet<ControlMetricType> metricTypes) {
+                                          Set<ControlMetricType> metricTypes) {
         MetricsDatabase.Builder builder = new DefaultMetricsDatabase.Builder();
         builder.withMetricName(metricName);
         metricTypes.forEach(type -> builder.addMetricType(type.toString()));

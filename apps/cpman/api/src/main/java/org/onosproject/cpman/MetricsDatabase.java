@@ -32,34 +32,34 @@ public interface MetricsDatabase {
     /**
      * Update metric value by specifying metric type.
      *
-     * @param metricType metric type (e.g., load, usage, etc.)
-     * @param value metric value
+     * @param metricType    metric type (e.g., load, usage, etc.)
+     * @param value         metric value
      */
     void updateMetric(String metricType, double value);
 
     /**
      * Update metric value by specifying metric type in a certain time.
      *
-     * @param metricType metric type (e.g., load, usage, etc.)
-     * @param value metric value
-     * @param time update time in seconds
+     * @param metricType    metric type (e.g., load, usage, etc.)
+     * @param value         metric value
+     * @param time          update time in seconds
      */
     void updateMetric(String metricType, double value, long time);
 
     /**
      * Update metric values of a collection of metric types.
      *
-     * @param metrics a collection of metrics which consists of a pair of
-     *                metric type and metric value
-     * @param time    update time in seconds
+     * @param metrics       a collection of metrics which consists of a pair of
+     *                      metric type and metric value
+     * @param time          update time in seconds
      */
     void updateMetrics(Map<String, Double> metrics, long time);
 
     /**
      * Update metric values of a collection of metric types.
      *
-     * @param metrics a collection of metrics which consists of a pair of
-     *                metric type and metric value
+     * @param metrics       a collection of metrics which consists of a pair of
+     *                      metric type and metric value
      */
     void updateMetrics(Map<String, Double> metrics);
 
@@ -74,9 +74,9 @@ public interface MetricsDatabase {
     /**
      * Return most recent metric values of a given metric type for a given period.
      *
-     * @param metricType metric type
-     * @param duration duration
-     * @param unit time unit
+     * @param metricType    metric type
+     * @param duration      duration
+     * @param unit          time unit
      * @return a collection of metric value
      */
     double[] recentMetrics(String metricType, int duration, TimeUnit unit);
@@ -84,7 +84,7 @@ public interface MetricsDatabase {
     /**
      * Returns minimum metric value of a given metric type.
      *
-     * @param metricType metric type
+     * @param metricType    metric type
      * @return metric value
      */
     double minMetric(String metricType);
@@ -92,7 +92,7 @@ public interface MetricsDatabase {
     /**
      * Returns maximum metric value of a given metric type.
      *
-     * @param metricType metric type
+     * @param metricType    metric type
      * @return metric value
      */
     double maxMetric(String metricType);
@@ -100,7 +100,7 @@ public interface MetricsDatabase {
     /**
      * Returns a collection of metric values of a given metric type for a day.
      *
-     * @param metricType metric type
+     * @param metricType    metric type
      * @return a collection of metric value
      */
     double[] metrics(String metricType);
@@ -109,9 +109,9 @@ public interface MetricsDatabase {
      * Returns a collection of metric values of a given metric type for
      * a given period.
      *
-     * @param metricType metric type
-     * @param startTime start time
-     * @param endTime end time
+     * @param metricType    metric type
+     * @param startTime     start time
+     * @param endTime       end time
      * @return a collection of metric value
      */
     double[] metrics(String metricType, long startTime, long endTime);
@@ -119,7 +119,7 @@ public interface MetricsDatabase {
     /**
      * Returns the latest metric update time.
      *
-     * @param metricType metric type
+     * @param metricType    metric type
      * @return timestamp
      */
     long lastUpdate(String metricType);
@@ -145,9 +145,9 @@ public interface MetricsDatabase {
         Builder addMetricType(String metricType);
 
         /**
-         * Builds a MetricDatabase instance.
+         * Builds a metric database instance.
          *
-         * @return MetricDatabase instance
+         * @return metric database instance
          */
         MetricsDatabase build();
     }

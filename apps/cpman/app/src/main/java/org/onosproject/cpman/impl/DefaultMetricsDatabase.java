@@ -53,6 +53,13 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
     private static final String INSUFFICIENT_DURATION = "Given duration less than one minute.";
     private static final String EXCEEDED_DURATION = "Given duration exceeds a day time.";
 
+    /**
+     * Constructs a metrics database using the given metric name and
+     * round robin database.
+     *
+     * @param metricName  metric name
+     * @param rrdDb       round robin database
+     */
     private DefaultMetricsDatabase(String metricName, RrdDb rrdDb) {
         this.metricName = metricName;
         this.rrdDb = rrdDb;

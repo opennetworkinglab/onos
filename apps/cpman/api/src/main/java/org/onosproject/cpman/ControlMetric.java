@@ -23,15 +23,32 @@ public class ControlMetric {
     private final ControlMetricType metricType;
     private final MetricValue metricValue;
 
+    /**
+     * Constructs a control metric using the given control metric type and
+     * metric value.
+     *
+     * @param metricType metric type reference
+     * @param metricValue metric value reference
+     */
     public ControlMetric(ControlMetricType metricType, MetricValue metricValue) {
         this.metricType = metricType;
         this.metricValue = metricValue;
     }
 
+    /**
+     * Returns metric type reference.
+     *
+     * @return metric type reference
+     */
     public ControlMetricType metricType() {
         return metricType;
     }
 
+    /**
+     * Returns metric value reference.
+     *
+     * @return metric value reference
+     */
     public MetricValue metricValue() {
         return metricValue;
     }
