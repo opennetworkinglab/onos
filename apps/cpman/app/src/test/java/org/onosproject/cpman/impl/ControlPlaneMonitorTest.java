@@ -28,6 +28,7 @@ import org.onosproject.cpman.MetricValue;
 import org.onosproject.net.DeviceId;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
@@ -35,27 +36,8 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.onosproject.cpman.ControlMetricType.CPU_IDLE_TIME;
-import static org.onosproject.cpman.ControlMetricType.CPU_LOAD;
-import static org.onosproject.cpman.ControlMetricType.DISK_READ_BYTES;
-import static org.onosproject.cpman.ControlMetricType.DISK_WRITE_BYTES;
-import static org.onosproject.cpman.ControlMetricType.FLOW_MOD_PACKET;
-import static org.onosproject.cpman.ControlMetricType.FLOW_REMOVED_PACKET;
-import static org.onosproject.cpman.ControlMetricType.INBOUND_PACKET;
-import static org.onosproject.cpman.ControlMetricType.MEMORY_FREE;
-import static org.onosproject.cpman.ControlMetricType.MEMORY_FREE_RATIO;
-import static org.onosproject.cpman.ControlMetricType.MEMORY_USED;
-import static org.onosproject.cpman.ControlMetricType.MEMORY_USED_RATIO;
-import static org.onosproject.cpman.ControlMetricType.NW_INCOMING_BYTES;
-import static org.onosproject.cpman.ControlMetricType.NW_INCOMING_PACKETS;
-import static org.onosproject.cpman.ControlMetricType.NW_OUTGOING_BYTES;
-import static org.onosproject.cpman.ControlMetricType.NW_OUTGOING_PACKETS;
-import static org.onosproject.cpman.ControlMetricType.OUTBOUND_PACKET;
-import static org.onosproject.cpman.ControlMetricType.REPLY_PACKET;
-import static org.onosproject.cpman.ControlMetricType.REQUEST_PACKET;
-import static org.onosproject.cpman.ControlMetricType.SYS_CPU_TIME;
-import static org.onosproject.cpman.ControlMetricType.TOTAL_CPU_TIME;
-import static org.onosproject.cpman.ControlMetricType.USER_CPU_TIME;
+
+import static org.onosproject.cpman.ControlResource.*;
 
 /**
  * Unit test of control plane monitoring service.
@@ -67,23 +49,12 @@ public class ControlPlaneMonitorTest {
     private ClusterService mockClusterService;
     private ControllerNode mockControllerNode;
     private NodeId nodeId;
-    private static final ImmutableSet<ControlMetricType> CPU_METRICS =
-            ImmutableSet.of(CPU_IDLE_TIME, CPU_LOAD, SYS_CPU_TIME,
-                    USER_CPU_TIME, TOTAL_CPU_TIME);
-    private static final ImmutableSet<ControlMetricType> MEMORY_METRICS =
-            ImmutableSet.of(MEMORY_FREE, MEMORY_FREE_RATIO, MEMORY_USED,
-                    MEMORY_USED_RATIO);
-    private static final ImmutableSet<ControlMetricType> DISK_METRICS =
-            ImmutableSet.of(DISK_READ_BYTES, DISK_WRITE_BYTES);
-    private static final ImmutableSet<ControlMetricType> NETWORK_METRICS =
-            ImmutableSet.of(NW_INCOMING_BYTES, NW_OUTGOING_BYTES,
-                    NW_INCOMING_PACKETS, NW_OUTGOING_PACKETS);
-    private static final ImmutableSet<ControlMetricType> CTRL_MSGS =
-            ImmutableSet.of(INBOUND_PACKET, OUTBOUND_PACKET, FLOW_MOD_PACKET,
-                    FLOW_REMOVED_PACKET, REQUEST_PACKET, REPLY_PACKET);
 
+    /**
+     * Sets up the services required by control plane monitor.
+     */
     @Before
-    public void setup() throws Exception {
+    public void setup() {
         monitor = new ControlPlaneMonitor();
         monitor.activate();
 
@@ -134,13 +105,13 @@ public class ControlPlaneMonitorTest {
         assertThat(monitor.getLoad(nodeId, cmt, Optional.ofNullable(null)).latest(), is(mv.getLoad()));
     }
 
-    private void testUpdateMetricWithResource(ControlMetricType cmt, MetricValue mv, String resoureName) {
+    private void testUpdateMetricWithResource(ControlMetricType cmt, MetricValue mv, String resourceName) {
         ControlMetric cm = new ControlMetric(cmt, mv);
-        monitor.updateMetric(cm, UPDATE_INTERVAL, resoureName);
+        monitor.updateMetric(cm, UPDATE_INTERVAL, resourceName);
     }
 
-    private void testLoadMetricWithResource(ControlMetricType cmt, MetricValue mv, String resoureName) {
-        assertThat(monitor.getLoad(nodeId, cmt, resoureName).latest(), is(mv.getLoad()));
+    private void testLoadMetricWithResource(ControlMetricType cmt, MetricValue mv, String resourceName) {
+        assertThat(monitor.getLoad(nodeId, cmt, resourceName).latest(), is(mv.getLoad()));
     }
 
     private void testUpdateMetricWithId(ControlMetricType cmt, MetricValue mv, DeviceId did) {
@@ -152,6 +123,9 @@ public class ControlPlaneMonitorTest {
         assertThat(monitor.getLoad(nodeId, cmt, Optional.of(did)).latest(), is(mv.getLoad()));
     }
 
+    /**
+     * Tests cpu metric update and load function.
+     */
     @Test
     public void testCpuMetric() {
         MetricValue mv = new MetricValue.Builder().load(30).add();
@@ -160,6 +134,9 @@ public class ControlPlaneMonitorTest {
         CPU_METRICS.forEach(cmt -> testLoadMetricWithoutId(cmt, mv));
     }
 
+    /**
+     * Tests memory metric update and load function.
+     */
     @Test
     public void testMemoryMetric() {
         MetricValue mv = new MetricValue.Builder().load(40).add();
@@ -168,11 +145,14 @@ public class ControlPlaneMonitorTest {
         MEMORY_METRICS.forEach(cmt -> testLoadMetricWithoutId(cmt, mv));
     }
 
+    /**
+     * Tests disk metric update and load function.
+     */
     @Test
     public void testDiskMetric() {
         MetricValue mv = new MetricValue.Builder().load(50).add();
 
-        ImmutableSet<String> set = ImmutableSet.of("disk1", "disk2");
+        Set<String> set = ImmutableSet.of("disk1", "disk2");
 
         set.forEach(disk -> DISK_METRICS.forEach(cmt ->
                 testUpdateMetricWithResource(cmt, mv, disk)));
@@ -181,11 +161,14 @@ public class ControlPlaneMonitorTest {
                 testLoadMetricWithResource(cmt, mv, disk)));
     }
 
+    /**
+     * Tests network metric update and load function.
+     */
     @Test
     public void testNetworkMetric() {
         MetricValue mv = new MetricValue.Builder().load(10).add();
 
-        ImmutableSet<String> set = ImmutableSet.of("eth0", "eth1");
+        Set<String> set = ImmutableSet.of("eth0", "eth1");
 
         set.forEach(network -> NETWORK_METRICS.forEach(cmt ->
                 testUpdateMetricWithResource(cmt, mv, network)));
@@ -194,17 +177,40 @@ public class ControlPlaneMonitorTest {
                 testLoadMetricWithResource(cmt, mv, network)));
     }
 
+    /**
+     * Tests control message update and load function.
+     */
     @Test
-    public void testUpdateControlMessage() {
+    public void testControlMessage() {
         MetricValue mv = new MetricValue.Builder().load(10).add();
+        Set<DeviceId> set = ImmutableSet.of(DeviceId.deviceId("of:0000000000000001"),
+                                            DeviceId.deviceId("of:0000000000000002"));
 
-        ImmutableSet<String> set = ImmutableSet.of("of:0000000000000001",
-                                                   "of:0000000000000002");
+        set.forEach(devId -> CONTROL_MESSAGE_METRICS.forEach(cmt ->
+                testUpdateMetricWithId(cmt, mv, devId)));
 
-        set.forEach(ctrlMsg -> CTRL_MSGS.forEach(cmt ->
-                testUpdateMetricWithId(cmt, mv, DeviceId.deviceId(ctrlMsg))));
+        set.forEach(devId -> CONTROL_MESSAGE_METRICS.forEach(cmt ->
+                testLoadMetricWithId(cmt, mv, devId)));
+    }
 
-        set.forEach(ctrlMsg -> CTRL_MSGS.forEach(cmt ->
-                testLoadMetricWithId(cmt, mv, DeviceId.deviceId(ctrlMsg))));
+    /**
+     * Tests available resource update and load function.
+     */
+    @Test
+    public void testAvailableResources() {
+        MetricValue mv = new MetricValue.Builder().load(50).add();
+
+        Set<String> diskSet = ImmutableSet.of("disk1", "disk2");
+
+        diskSet.forEach(disk -> DISK_METRICS.forEach(cmt ->
+                testUpdateMetricWithResource(cmt, mv, disk)));
+
+        Set<String> networkSet = ImmutableSet.of("eth0", "eth1");
+
+        networkSet.forEach(network -> NETWORK_METRICS.forEach(cmt ->
+                testUpdateMetricWithResource(cmt, mv, network)));
+
+        assertThat(monitor.availableResources(Type.DISK), is(diskSet));
+        assertThat(monitor.availableResources(Type.NETWORK), is(networkSet));
     }
 }

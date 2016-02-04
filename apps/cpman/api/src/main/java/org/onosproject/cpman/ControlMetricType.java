@@ -41,57 +41,57 @@ public enum ControlMetricType {
     /* Number of CPU cores. */
     NUM_OF_CORES,
 
-    /* Number of CPUs. **/
+    /* Number of CPUs. */
     NUM_OF_CPUS,
 
-    /* CPU Speed. **/
+    /* CPU Speed. */
     CPU_SPEED,
 
-    /* CPU Load. **/
+    /* CPU Load. */
     CPU_LOAD,
 
-    /* Total Amount of CPU Up Time. **/
+    /* Total Amount of CPU Up Time. */
     TOTAL_CPU_TIME,
 
-    /* System CPU Up Time. **/
+    /* System CPU Up Time. */
     SYS_CPU_TIME,
 
-    /* User CPU Up Time. **/
+    /* User CPU Up Time. */
     USER_CPU_TIME,
 
-    /* CPU Idle Time. **/
+    /* CPU Idle Time. */
     CPU_IDLE_TIME,
 
     /* Ratio of Used Memory Amount. */
     MEMORY_USED_RATIO,
 
-    /* Ratio of Free Memory Amount. **/
+    /* Ratio of Free Memory Amount. */
     MEMORY_FREE_RATIO,
 
-    /* Used Memory Amount. **/
+    /* Used Memory Amount. */
     MEMORY_USED,
 
-    /* Free Memory Amount. **/
+    /* Free Memory Amount. */
     MEMORY_FREE,
 
-    /* Total Amount of Memory. **/
+    /* Total Amount of Memory. */
     MEMORY_TOTAL,
 
-    /* Disk Read Bytes. **/
+    /* Disk Read Bytes. */
     DISK_READ_BYTES,
 
-    /* Disk Write Bytes. **/
+    /* Disk Write Bytes. */
     DISK_WRITE_BYTES,
 
-    /* Network Incoming Bytes. **/
+    /* Network Incoming Bytes. */
     NW_INCOMING_BYTES,
 
-    /* Network Outgoing Bytes. **/
+    /* Network Outgoing Bytes. */
     NW_OUTGOING_BYTES,
 
-    /* Network Incoming Packets. **/
+    /* Network Incoming Packets. */
     NW_INCOMING_PACKETS,
 
-    /* Network Outgoing Packets. **/
+    /* Network Outgoing Packets. */
     NW_OUTGOING_PACKETS
 }

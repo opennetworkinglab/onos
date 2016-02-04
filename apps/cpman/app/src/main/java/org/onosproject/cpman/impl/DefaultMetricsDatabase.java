@@ -231,7 +231,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
     }
 
     public static final class Builder implements MetricsDatabase.Builder {
-        private static final int RESOLUTION = 60; // seconds
+        private static final int RESOLUTION_IN_SECOND = 60;
         private static final String STORING_METHOD = "MEMORY";
         private static final DsType SOURCE_TYPE = DsType.GAUGE;
         private static final String DB_PATH = "CPMAN";
@@ -259,7 +259,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
             this.metricName = metricName;
 
             // define the resolution of monitored metrics
-            rrdDef = new RrdDef(DB_PATH + "_" + metricName, RESOLUTION);
+            rrdDef = new RrdDef(DB_PATH + "_" + metricName, RESOLUTION_IN_SECOND);
             return this;
         }
 
@@ -279,7 +279,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
                 IntStream.range(0, dsDefs.size()).forEach(i -> dsDefArray[i] = dsDefs.get(i));
 
                 rrdDef.addDatasource(dsDefArray);
-                rrdDef.setStep(RESOLUTION);
+                rrdDef.setStep(RESOLUTION_IN_SECOND);
 
                 // raw archive, no aggregation is required
                 ArcDef rawArchive = new ArcDef(CONSOL_FUNCTION, XFF_VALUE,
@@ -296,7 +296,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
         }
 
         private DsDef defineSchema(String metricType) {
-            return new DsDef(metricType, SOURCE_TYPE, RESOLUTION,
+            return new DsDef(metricType, SOURCE_TYPE, RESOLUTION_IN_SECOND,
                     MIN_VALUE, MAX_VALUE);
         }
     }

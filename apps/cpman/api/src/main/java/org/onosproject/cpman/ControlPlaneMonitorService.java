@@ -19,6 +19,9 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
 
 import java.util.Optional;
+import java.util.Set;
+
+import static org.onosproject.cpman.ControlResource.*;
 
 /**
  * Control Plane Statistics Service Interface.
@@ -71,4 +74,11 @@ public interface ControlPlaneMonitorService {
      * @return control plane load
      */
     ControlLoad getLoad(NodeId nodeId, ControlMetricType type, String resourceName);
+
+    /**
+     * Obtains a list of names of available resources.
+     *
+     * @return a collection of names of available resources
+     */
+    Set<String> availableResources(Type resourceType);
 }

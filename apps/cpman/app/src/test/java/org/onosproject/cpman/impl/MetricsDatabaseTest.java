@@ -39,7 +39,7 @@ public class MetricsDatabaseTest {
     private static final String MEMORY_USED_PERC = "usedPerc";
 
     /**
-     * Initializes the MetricsDatabase instance.
+     * Initializes metrics database instance.
      */
     @Before
     public void setUp() {

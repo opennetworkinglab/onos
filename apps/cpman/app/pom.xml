@@ -58,13 +58,14 @@
             <artifactId>onos-cli</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.karaf.shell</groupId>
             <artifactId>org.apache.karaf.shell.console</artifactId>
-            <scope>compile</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
@@ -180,6 +181,7 @@
                             com.fasterxml.jackson.core,
                             org.apache.karaf.shell.commands,
                             org.apache.karaf.shell.console,
+                            org.apache.karaf.shell.console.completer,
                             com.google.common.*,
                             org.onlab.packet.*,
                             org.onlab.rest.*,

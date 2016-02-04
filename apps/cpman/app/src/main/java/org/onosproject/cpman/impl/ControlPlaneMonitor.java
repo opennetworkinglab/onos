@@ -16,6 +16,8 @@
 package org.onosproject.cpman.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -37,29 +39,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
-import static org.onosproject.cpman.ControlMetricType.CPU_IDLE_TIME;
-import static org.onosproject.cpman.ControlMetricType.CPU_LOAD;
-import static org.onosproject.cpman.ControlMetricType.DISK_READ_BYTES;
-import static org.onosproject.cpman.ControlMetricType.DISK_WRITE_BYTES;
-import static org.onosproject.cpman.ControlMetricType.FLOW_MOD_PACKET;
-import static org.onosproject.cpman.ControlMetricType.FLOW_REMOVED_PACKET;
-import static org.onosproject.cpman.ControlMetricType.INBOUND_PACKET;
-import static org.onosproject.cpman.ControlMetricType.MEMORY_FREE;
-import static org.onosproject.cpman.ControlMetricType.MEMORY_FREE_RATIO;
-import static org.onosproject.cpman.ControlMetricType.MEMORY_USED;
-import static org.onosproject.cpman.ControlMetricType.MEMORY_USED_RATIO;
-import static org.onosproject.cpman.ControlMetricType.NW_INCOMING_BYTES;
-import static org.onosproject.cpman.ControlMetricType.NW_INCOMING_PACKETS;
-import static org.onosproject.cpman.ControlMetricType.NW_OUTGOING_BYTES;
-import static org.onosproject.cpman.ControlMetricType.NW_OUTGOING_PACKETS;
-import static org.onosproject.cpman.ControlMetricType.OUTBOUND_PACKET;
-import static org.onosproject.cpman.ControlMetricType.REPLY_PACKET;
-import static org.onosproject.cpman.ControlMetricType.REQUEST_PACKET;
-import static org.onosproject.cpman.ControlMetricType.SYS_CPU_TIME;
-import static org.onosproject.cpman.ControlMetricType.TOTAL_CPU_TIME;
-import static org.onosproject.cpman.ControlMetricType.USER_CPU_TIME;
+import static org.onosproject.cpman.ControlResource.*;
 
 /**
  * Control plane monitoring service class.
@@ -78,45 +60,34 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
-    private static final String CPU = "Cpu";
-    private static final String MEMORY = "Memory";
-    private static final String CTRL_MSG = "ControlMessage";
-    private static final String DISK = "Disk";
-    private static final String NETWORK = "Network";
+    private static final Set RESOURCE_TYPE_SET =
+            ImmutableSet.of(Type.CONTROL_MESSAGE, Type.DISK, Type.NETWORK);
 
-    private static final Set<ControlMetricType> CPU_METRICS =
-            ImmutableSet.of(CPU_IDLE_TIME, CPU_LOAD, SYS_CPU_TIME,
-                    USER_CPU_TIME, TOTAL_CPU_TIME);
-    private static final Set<ControlMetricType> MEMORY_METRICS =
-            ImmutableSet.of(MEMORY_FREE, MEMORY_FREE_RATIO, MEMORY_USED,
-                    MEMORY_USED_RATIO);
-    private static final Set<ControlMetricType> DISK_METRICS =
-            ImmutableSet.of(DISK_READ_BYTES, DISK_WRITE_BYTES);
-    private static final Set<ControlMetricType> NETWORK_METRICS =
-            ImmutableSet.of(NW_INCOMING_BYTES, NW_OUTGOING_BYTES,
-                    NW_INCOMING_PACKETS, NW_OUTGOING_PACKETS);
-    private static final Set<ControlMetricType> CTRL_MSGS =
-            ImmutableSet.of(INBOUND_PACKET, OUTBOUND_PACKET, FLOW_MOD_PACKET,
-                    FLOW_REMOVED_PACKET, REQUEST_PACKET, REPLY_PACKET);
     private Map<ControlMetricType, Double> cpuBuf;
     private Map<ControlMetricType, Double> memoryBuf;
     private Map<String, Map<ControlMetricType, Double>> diskBuf;
     private Map<String, Map<ControlMetricType, Double>> networkBuf;
     private Map<DeviceId, Map<ControlMetricType, Double>> ctrlMsgBuf;
 
+    private Map<Type, Set<String>> availableResourceMap;
+    private Set<DeviceId> availableDeviceIdSet;
+
     @Activate
     public void activate() {
-        cpuMetrics = genMDbBuilder(CPU, CPU_METRICS);
-        memoryMetrics = genMDbBuilder(MEMORY, MEMORY_METRICS);
-        controlMessageMap = new ConcurrentHashMap<>();
-        diskMetricsMap = new ConcurrentHashMap<>();
-        networkMetricsMap = new ConcurrentHashMap<>();
+        cpuMetrics = genMDbBuilder(Type.CPU, CPU_METRICS);
+        memoryMetrics = genMDbBuilder(Type.MEMORY, MEMORY_METRICS);
+        controlMessageMap = Maps.newConcurrentMap();
+        diskMetricsMap = Maps.newConcurrentMap();
+        networkMetricsMap = Maps.newConcurrentMap();
 
-        cpuBuf = new ConcurrentHashMap<>();
-        memoryBuf = new ConcurrentHashMap<>();
-        diskBuf = new ConcurrentHashMap<>();
-        networkBuf = new ConcurrentHashMap<>();
-        ctrlMsgBuf = new ConcurrentHashMap<>();
+        cpuBuf = Maps.newConcurrentMap();
+        memoryBuf = Maps.newConcurrentMap();
+        diskBuf = Maps.newConcurrentMap();
+        networkBuf = Maps.newConcurrentMap();
+        ctrlMsgBuf = Maps.newConcurrentMap();
+
+        availableResourceMap = Maps.newConcurrentMap();
+        availableDeviceIdSet = Sets.newConcurrentHashSet();
 
         log.info("Started");
     }
@@ -140,10 +111,14 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
         if (deviceId.isPresent()) {
 
             // insert a new device entry if we cannot find any
-            ctrlMsgBuf.putIfAbsent(deviceId.get(), new ConcurrentHashMap<>());
+            ctrlMsgBuf.putIfAbsent(deviceId.get(), Maps.newConcurrentMap());
 
             // update control message metrics
-            if (CTRL_MSGS.contains(cm.metricType())) {
+            if (CONTROL_MESSAGE_METRICS.contains(cm.metricType())) {
+
+                if (!availableDeviceIdSet.contains(deviceId.get())) {
+                    availableDeviceIdSet.add(deviceId.get());
+                }
 
                 // we will accumulate the metric value into buffer first
                 ctrlMsgBuf.get(deviceId.get()).putIfAbsent(cm.metricType(),
@@ -151,7 +126,8 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
 
                 // if buffer contains all control message metrics,
                 // we simply set and update the values into MetricsDatabase.
-                if (ctrlMsgBuf.get(deviceId.get()).keySet().containsAll(CTRL_MSGS)) {
+                if (ctrlMsgBuf.get(deviceId.get()).keySet()
+                        .containsAll(CONTROL_MESSAGE_METRICS)) {
                     updateControlMessages(ctrlMsgBuf.get(deviceId.get()), deviceId.get());
                     ctrlMsgBuf.get(deviceId.get()).clear();
                 }
@@ -185,7 +161,14 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
                              String resourceName) {
         // update disk metrics
         if (DISK_METRICS.contains(cm.metricType())) {
-            diskBuf.putIfAbsent(resourceName, new ConcurrentHashMap<>());
+            diskBuf.putIfAbsent(resourceName, Maps.newConcurrentMap());
+
+            availableResourceMap.putIfAbsent(Type.DISK, Sets.newHashSet());
+            availableResourceMap.computeIfPresent(Type.DISK, (k, v) -> {
+                v.add(resourceName);
+                return v;
+            });
+
             diskBuf.get(resourceName).putIfAbsent(cm.metricType(),
                     (double) cm.metricValue().getLoad());
             if (diskBuf.get(resourceName).keySet().containsAll(DISK_METRICS)) {
@@ -196,7 +179,14 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
 
         // update network metrics
         if (NETWORK_METRICS.contains(cm.metricType())) {
-            networkBuf.putIfAbsent(resourceName, new ConcurrentHashMap<>());
+            networkBuf.putIfAbsent(resourceName, Maps.newConcurrentMap());
+
+            availableResourceMap.putIfAbsent(Type.NETWORK, Sets.newHashSet());
+            availableResourceMap.computeIfPresent(Type.NETWORK, (k, v) -> {
+                v.add(resourceName);
+                return v;
+            });
+
             networkBuf.get(resourceName).putIfAbsent(cm.metricType(),
                     (double) cm.metricValue().getLoad());
             if (networkBuf.get(resourceName).keySet().containsAll(NETWORK_METRICS)) {
@@ -213,7 +203,8 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
         if (clusterService.getLocalNode().equals(node)) {
 
             if (deviceId.isPresent()) {
-                if (CTRL_MSGS.contains(type)) {
+                if (CONTROL_MESSAGE_METRICS.contains(type) &&
+                        availableDeviceIdSet.contains(deviceId.get())) {
                     return new DefaultControlLoad(controlMessageMap.get(deviceId.get()), type);
                 }
             } else {
@@ -238,11 +229,13 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     public ControlLoad getLoad(NodeId nodeId, ControlMetricType type,
                                String resourceName) {
         if (clusterService.getLocalNode().id().equals(nodeId)) {
-            if (DISK_METRICS.contains(type)) {
+            if (DISK_METRICS.contains(type) &&
+                    availableResources(Type.DISK).contains(resourceName)) {
                 return new DefaultControlLoad(diskMetricsMap.get(resourceName), type);
             }
 
-            if (NETWORK_METRICS.contains(type)) {
+            if (NETWORK_METRICS.contains(type) &&
+                    availableResources(Type.NETWORK).contains(resourceName)) {
                 return new DefaultControlLoad(networkMetricsMap.get(resourceName), type);
             }
         } else {
@@ -252,34 +245,49 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
         return null;
     }
 
-    private MetricsDatabase genMDbBuilder(String metricName,
+    @Override
+    public Set<String> availableResources(Type resourceType) {
+        if (RESOURCE_TYPE_SET.contains(resourceType)) {
+            if (Type.CONTROL_MESSAGE.equals(resourceType)) {
+                return availableDeviceIdSet.stream().map(id ->
+                        id.toString()).collect(Collectors.toSet());
+            } else {
+                return availableResourceMap.get(resourceType);
+            }
+        }
+        return null;
+    }
+
+    private MetricsDatabase genMDbBuilder(Type resourceType,
                                           Set<ControlMetricType> metricTypes) {
         MetricsDatabase.Builder builder = new DefaultMetricsDatabase.Builder();
-        builder.withMetricName(metricName);
+        builder.withMetricName(resourceType.toString());
         metricTypes.forEach(type -> builder.addMetricType(type.toString()));
         return builder.build();
     }
 
     private void updateNetworkMetrics(Map<ControlMetricType, Double> metricMap,
                                       String resName) {
-        networkMetricsMap.putIfAbsent(resName, genMDbBuilder(NETWORK, NETWORK_METRICS));
+        networkMetricsMap.putIfAbsent(resName,
+                genMDbBuilder(Type.NETWORK, NETWORK_METRICS));
         networkMetricsMap.get(resName).updateMetrics(convertMap(metricMap));
     }
 
     private void updateDiskMetrics(Map<ControlMetricType, Double> metricMap,
                                    String resName) {
-        diskMetricsMap.putIfAbsent(resName, genMDbBuilder(DISK, DISK_METRICS));
+        diskMetricsMap.putIfAbsent(resName, genMDbBuilder(Type.DISK, DISK_METRICS));
         diskMetricsMap.get(resName).updateMetrics(convertMap(metricMap));
     }
 
     private void updateControlMessages(Map<ControlMetricType, Double> metricMap,
                                        DeviceId devId) {
-        controlMessageMap.putIfAbsent(devId, genMDbBuilder(CTRL_MSG, CTRL_MSGS));
+        controlMessageMap.putIfAbsent(devId,
+                genMDbBuilder(Type.CONTROL_MESSAGE, CONTROL_MESSAGE_METRICS));
         controlMessageMap.get(devId).updateMetrics(convertMap(metricMap));
     }
 
     private Map convertMap(Map<ControlMetricType, Double> map) {
-        Map newMap = new ConcurrentHashMap<>();
+        Map newMap = Maps.newConcurrentMap();
         map.forEach((k, v) -> newMap.putIfAbsent(k.toString(), v));
         return newMap;
     }
