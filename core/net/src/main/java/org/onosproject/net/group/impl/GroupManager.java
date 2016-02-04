@@ -87,6 +87,7 @@ public class GroupManager
     @Property(name = "purgeOnDisconnection", boolValue = false,
             label = "Purge entries associated with a device when the device goes offline")
     private boolean purgeOnDisconnection = false;
+    private final  GroupDriverProvider defaultProvider = new GroupDriverProvider();
 
     @Activate
     public void activate(ComponentContext context) {
@@ -111,6 +112,12 @@ public class GroupManager
         if (context != null) {
             readComponentConfiguration(context);
         }
+        defaultProvider.init(deviceService);
+    }
+
+    @Override
+    protected GroupProvider defaultProvider() {
+        return defaultProvider;
     }
 
     /**
