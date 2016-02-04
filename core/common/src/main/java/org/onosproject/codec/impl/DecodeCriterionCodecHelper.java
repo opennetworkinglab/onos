@@ -500,7 +500,9 @@ public final class DecodeCriterionCodecHelper {
      * @throws IllegalArgumentException if the JSON is invalid
      */
     public Criterion decode() {
-        String type = json.get(CriterionCodec.TYPE).asText();
+        String type =
+                nullIsIllegal(json.get(CriterionCodec.TYPE), "Type not specified")
+                        .asText();
 
         CriterionDecoder decoder = decoderMap.get(type);
         if (decoder != null) {
