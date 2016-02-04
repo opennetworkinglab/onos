@@ -29,6 +29,7 @@
         keyHandler = {
             globalKeys: {},
             maskedKeys: {},
+            dialogKeys: {},
             viewKeys: {},
             viewFn: null,
             viewGestures: []
@@ -104,6 +105,8 @@
             kh = keyHandler,
             gk = kh.globalKeys[key],
             gcb = fs.isF(gk) || (fs.isA(gk) && fs.isF(gk[0])),
+            dk = kh.dialogKeys[key],
+            dcb = fs.isF(dk),
             vk = kh.viewKeys[key],
             kl = fs.isF(kh.viewKeys._keyListener),
             vcb = fs.isF(vk) || (fs.isA(vk) && fs.isF(vk[0])) || fs.isF(kh.viewFn),
@@ -117,6 +120,12 @@
             // global callback?
             if (gcb && gcb(token, key, keyCode, event)) {
                 // if the event was 'handled', we are done
+                return;
+            }
+            // dialog callback?
+            if (dcb) {
+                dcb(token, key, keyCode, event);
+                // assume dialog handled the event
                 return;
             }
             // otherwise, let the view callback have a shot
@@ -170,26 +179,46 @@
         return true;
     }
 
-    function setKeyBindings(keyArg) {
-        var viewKeys,
-            masked = [];
+    function filterMaskedKeys(map, caller, remove) {
+        var masked = [],
+            msgs = [];
 
-        if (fs.isF(keyArg)) {
-            // set general key handler callback
-            keyHandler.viewFn = keyArg;
-        } else {
-            // set specific key filter map
-            viewKeys = d3.map(keyArg).keys();
-            viewKeys.forEach(function (key) {
-                if (keyHandler.maskedKeys[key]) {
-                    masked.push('setKeyBindings(): Key "' + key + '" is reserved');
-                }
-            });
-
-            if (masked.length) {
-                $log.warn(masked.join('\n'));
+        d3.map(map).keys().forEach(function (key) {
+            if (keyHandler.maskedKeys[key]) {
+                masked.push(key);
+                msgs.push(caller, ': Key "' + key + '" is reserved');
             }
-            keyHandler.viewKeys = keyArg;
+        });
+
+        if (msgs.length) {
+            $log.warn(msgs.join('\n'));
+        }
+
+        if (remove) {
+            masked.forEach(function (k) {
+                delete map[k];
+            });
+        }
+        return masked;
+    }
+
+    function unexParam(fname, x) {
+        $log.warn(fname, ": unexpected parameter-- ", x);
+    }
+
+    function setKeyBindings(keyArg) {
+        var fname = 'setKeyBindings()',
+            kFunc = fs.isF(keyArg),
+            kMap = fs.isO(keyArg);
+
+        if (kFunc) {
+            // set general key handler callback
+            keyHandler.viewFn = kFunc;
+        } else if (kMap) {
+            filterMaskedKeys(kMap, fname, true);
+            keyHandler.viewKeys = kMap;
+        } else {
+            unexParam(fname, keyArg);
         }
     }
 
@@ -211,6 +240,22 @@
         keyHandler.viewKeys = {};
         keyHandler.viewFn = null;
         keyHandler.viewGestures = [];
+    }
+
+    function bindDialogKeys(map) {
+        var fname = 'bindDialogKeys()',
+            kMap = fs.isO(map);
+
+        if (kMap) {
+            filterMaskedKeys(map, fname, true);
+            keyHandler.dialogKeys = kMap;
+        } else {
+            unexParam(fname, map);
+        }
+    }
+
+    function unbindDialogKeys() {
+        keyHandler.dialogKeys = {};
     }
 
     function checkNotGlobal(o) {
@@ -259,6 +304,13 @@
                     }
                 },
                 unbindKeys: unbindKeys,
+                dialogKeys: function (x) {
+                    if (x === undefined) {
+                        unbindDialogKeys();
+                    } else {
+                        bindDialogKeys(x);
+                    }
+                },
                 addSeq: function (word, data) {
                     fs.addToTrie(seq, word, data);
                 },

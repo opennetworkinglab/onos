@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, $window, fs, ps, bns;
+    var $log, $window, fs, ps, bns, ks;
 
     // configuration
     var defaultSettings = {
@@ -32,11 +32,8 @@
         };
 
     // internal state
-    var pApi, panel, dApi;
-
-    // TODO: ONOS-3741
-    // TODO: ESC key invokes Cancel callback
-    // TODO: Enter invokes OK callback
+    var pApi, panel, dApi,
+        keyBindings = {};
 
     // create the dialog; return its API
     function createDialog(id, opts) {
@@ -99,13 +96,20 @@
         };
     }
 
-    function makeButton(text, callback) {
-        var cb = fs.isF(callback);
+    function makeButton(text, callback, keyName) {
+        var cb = fs.isF(callback),
+            key = fs.isS(keyName);
 
         function invoke() {
             cb && cb();
+            clearBindings();
             panel.hide();
         }
+
+        if (key) {
+            keyBindings[key] = invoke;
+        }
+
         return createDiv('dialog-button')
             .text(text)
             .on('click', invoke);
@@ -125,11 +129,24 @@
         return dApi;
     }
 
-    function addButton(text, cb) {
+    function addButton(text, cb, key) {
         if (pApi) {
-            pApi.appendFooter(makeButton(text, cb));
+            pApi.appendFooter(makeButton(text, cb, key));
         }
         return dApi;
+    }
+
+    function addOk(cb) {
+        return addButton('OK', cb, 'enter');
+    }
+
+    function addCancel(cb) {
+        return addButton('Cancel', cb, 'esc');
+    }
+
+    function clearBindings() {
+        keyBindings = {};
+        ks.dialogKeys();
     }
 
     // opens the dialog (creates if necessary)
@@ -145,7 +162,12 @@
         dApi = {
             setTitle: setTitle,
             addContent: addContent,
-            addButton: addButton
+            addButton: addButton,
+            addOk: addOk,
+            addCancel: addCancel,
+            bindKeys: function () {
+                ks.dialogKeys(keyBindings);
+            }
         };
         return dApi;
     }
@@ -154,6 +176,7 @@
     function closeDialog() {
         $log.debug('Close DIALOG');
         if (pApi) {
+            clearBindings();
             panel.hide();
             pApi.destroy();
             pApi = null;
@@ -174,16 +197,18 @@
     angular.module('onosLayer')
     .factory('DialogService',
         ['$log', '$window', 'FnService', 'PanelService', 'ButtonService',
+            'KeyService',
 
         // TODO: for now, $window is not used, but we should provide an option
             // to center the dialog on the window.
 
-        function (_$log_, _$window_, _fs_, _ps_, _bns_) {
+        function (_$log_, _$window_, _fs_, _ps_, _bns_, _ks_) {
             $log = _$log_;
             $window = _$window_;
             fs = _fs_;
             ps = _ps_;
             bns = _bns_;
+            ks = _ks_;
 
             return {
                 openDialog: openDialog,

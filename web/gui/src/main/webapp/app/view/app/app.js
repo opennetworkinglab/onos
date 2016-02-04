@@ -308,8 +308,9 @@
             ds.openDialog(dialogId, dialogOpts)
                 .setTitle('Confirm Action')
                 .addContent(createConfirmationText(action, itemId))
-                .addButton('OK', dOk)
-                .addButton('Cancel', dCancel);
+                .addOk(dOk)
+                .addCancel(dCancel)
+                .bindKeys();
         }
 
         $scope.appAction = function (action) {
