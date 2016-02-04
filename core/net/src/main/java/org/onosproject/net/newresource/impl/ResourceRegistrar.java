@@ -32,6 +32,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.newresource.BandwidthCapacity;
 import org.onosproject.net.newresource.ResourceAdminService;
+import org.onosproject.net.newresource.ResourceService;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -51,6 +52,9 @@ public final class ResourceRegistrar {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceAdminService adminService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ResourceService resourceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
@@ -87,7 +91,8 @@ public final class ResourceRegistrar {
         cfgListener = new ResourceNetworkConfigListener(adminService, cfgRegistry, executor);
         cfgRegistry.addListener(cfgListener);
 
-        deviceListener = new ResourceDeviceListener(adminService, deviceService, driverService, cfgRegistry, executor);
+        deviceListener = new ResourceDeviceListener(adminService, resourceService,
+                deviceService, driverService, cfgRegistry, executor);
         deviceService.addListener(deviceListener);
 
         // TODO Attempt initial registration of existing resources?
