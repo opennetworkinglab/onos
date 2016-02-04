@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Base abstraction of a configuration facade for a specific subject. Derived
@@ -77,17 +78,17 @@ public abstract class Config<S> {
      * @param key      configuration key
      * @param node     JSON node where configuration data is stored
      * @param mapper   JSON object mapper
-     * @param delegate delegate context
+     * @param delegate delegate context, or null for detached configs.
      */
-    public void init(S subject, String key, JsonNode node, ObjectMapper mapper,
+    public final void init(S subject, String key, JsonNode node, ObjectMapper mapper,
                      ConfigApplyDelegate delegate) {
-        this.subject = checkNotNull(subject);
+        this.subject = checkNotNull(subject, "Subject cannot be null");
         this.key = key;
-        this.node = checkNotNull(node);
+        this.node = checkNotNull(node, "Node cannot be null");
         this.object = node instanceof ObjectNode ? (ObjectNode) node : null;
         this.array = node instanceof ArrayNode ? (ArrayNode) node : null;
-        this.mapper = checkNotNull(mapper);
-        this.delegate = checkNotNull(delegate);
+        this.mapper = checkNotNull(mapper, "Mapper cannot be null");
+        this.delegate = delegate;
     }
 
     /**
@@ -144,11 +145,13 @@ public abstract class Config<S> {
 
     /**
      * Applies any configuration changes made via this configuration.
+     *
+     * Not effective for detached configs.
      */
     public void apply() {
+        checkState(delegate != null, "Cannot apply detached config");
         delegate.onApply(this);
     }
-
 
     // Miscellaneous helpers for interacting with JSON
 

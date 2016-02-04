@@ -267,6 +267,33 @@ public class DistributedNetworkConfigStore
         return null;
     }
 
+    /**
+     * Produces a detached config from the specified subject, config class and
+     * raw JSON.
+     *
+     * A detached config can no longer be applied. This should be used only for
+     * passing the config object in the NetworkConfigEvent.
+     *
+     * @param subject     config subject
+     * @param configClass config class
+     * @param json        raw JSON data
+     * @return config object or null of no factory found or if the specified
+     * JSON is null
+     */
+    @SuppressWarnings("unchecked")
+    private Config createDetachedConfig(Object subject,
+            Class configClass, JsonNode json) {
+        if (json != null) {
+            ConfigFactory factory = factoriesByConfig.get(configClass.getName());
+            if (factory != null) {
+                Config config = factory.createConfig();
+                config.init(subject, factory.configKey(), json, mapper, null);
+                return config;
+            }
+        }
+        return null;
+    }
+
 
     // Auxiliary delegate to receive notifications about changes applied to
     // the network configuration - by the apps.
@@ -336,23 +363,35 @@ public class DistributedNetworkConfigStore
                 return;
             }
 
-            NetworkConfigEvent.Type type;
-            switch (event.type()) {
-                case INSERT:
-                    type = CONFIG_ADDED;
-                    break;
-                case UPDATE:
-                    type = CONFIG_UPDATED;
-                    break;
-                case REMOVE:
-                default:
-                    type = CONFIG_REMOVED;
-                    break;
-            }
             ConfigFactory factory = factoriesByConfig.get(event.key().configClass);
             if (factory != null) {
+                Object subject = event.key().subject;
+                Class configClass = factory.configClass();
+                Versioned<JsonNode> newValue = event.newValue();
+                Versioned<JsonNode> oldValue = event.oldValue();
+
+                Config config = (newValue != null) ?
+                        createDetachedConfig(subject, configClass, newValue.value()) :
+                        null;
+                Config prevConfig = (oldValue != null) ?
+                        createDetachedConfig(subject, configClass, oldValue.value()) :
+                        null;
+
+                NetworkConfigEvent.Type type;
+                switch (event.type()) {
+                    case INSERT:
+                        type = CONFIG_ADDED;
+                        break;
+                    case UPDATE:
+                        type = CONFIG_UPDATED;
+                        break;
+                    case REMOVE:
+                    default:
+                        type = CONFIG_REMOVED;
+                        break;
+                }
                 notifyDelegate(new NetworkConfigEvent(type, event.key().subject,
-                                                      factory.configClass()));
+                        config, prevConfig, factory.configClass()));
             }
         }
     }
