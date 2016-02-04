@@ -45,6 +45,13 @@ public interface BgpFactory {
     BgpNotificationMsg.Builder notificationMessageBuilder();
 
     /**
+     * Gets the builder object for a update message.
+     *
+     * @return builder object for update message
+     */
+    BgpUpdateMsg.Builder updateMessageBuilder();
+
+    /**
      * Gets the BGP message reader.
      *
      * @return BGP message reader

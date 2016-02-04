@@ -31,6 +31,7 @@ import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.FourOctetAsNumCapabilityTlv;
 import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
 import org.onosproject.bgpio.util.Validation;
+import org.onosproject.bgpio.util.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -293,6 +294,8 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
         private int bgpId;
         private boolean isLargeAsCapabilityTlvSet = false;
         private boolean isLsCapabilityTlvSet = false;
+        private boolean isFlowSpecCapabilityTlvSet = false;
+        private boolean isVpnFlowSpecCapabilityTlvSet = false;
 
         LinkedList<BgpValueType> capabilityTlv = new LinkedList<>();
 
@@ -319,6 +322,20 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
             if (this.isLsCapabilityTlvSet) {
                 BgpValueType tlv;
                 tlv = new MultiProtocolExtnCapabilityTlv(AFI, RES, SAFI);
+                this.capabilityTlv.add(tlv);
+            }
+
+            if (this.isFlowSpecCapabilityTlvSet) {
+                BgpValueType tlv;
+                tlv = new MultiProtocolExtnCapabilityTlv(Constants.AFI_FLOWSPEC_VALUE,
+                                                         RES, Constants.SAFI_FLOWSPEC_VALUE);
+                this.capabilityTlv.add(tlv);
+            }
+
+            if (this.isVpnFlowSpecCapabilityTlvSet) {
+                BgpValueType tlv;
+                tlv = new MultiProtocolExtnCapabilityTlv(Constants.AFI_FLOWSPEC_VALUE,
+                                                         RES, Constants.VPN_SAFI_FLOWSPEC_VALUE);
                 this.capabilityTlv.add(tlv);
             }
 
@@ -368,6 +385,18 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
         @Override
         public Builder setLsCapabilityTlv(boolean isLsCapabilitySet) {
             this.isLsCapabilityTlvSet = isLsCapabilitySet;
+            return this;
+        }
+
+        @Override
+        public Builder setFlowSpecCapabilityTlv(boolean isFlowSpecCapabilitySet) {
+            this.isFlowSpecCapabilityTlvSet = isFlowSpecCapabilitySet;
+            return this;
+        }
+
+        @Override
+        public Builder setVpnFlowSpecCapabilityTlv(boolean isVpnFlowSpecCapabilitySet) {
+            this.isVpnFlowSpecCapabilityTlvSet = isVpnFlowSpecCapabilitySet;
             return this;
         }
     }

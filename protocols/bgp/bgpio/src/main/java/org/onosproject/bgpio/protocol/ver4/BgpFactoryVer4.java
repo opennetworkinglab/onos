@@ -22,6 +22,7 @@ import org.onosproject.bgpio.protocol.BgpMessage;
 import org.onosproject.bgpio.protocol.BgpMessageReader;
 import org.onosproject.bgpio.protocol.BgpNotificationMsg;
 import org.onosproject.bgpio.protocol.BgpOpenMsg;
+import org.onosproject.bgpio.protocol.BgpUpdateMsg;
 import org.onosproject.bgpio.protocol.BgpVersion;
 
 /**
@@ -44,6 +45,11 @@ public class BgpFactoryVer4 implements BgpFactory {
     @Override
     public BgpNotificationMsg.Builder notificationMessageBuilder() {
         return new BgpNotificationMsgVer4.Builder();
+    }
+
+    @Override
+    public BgpUpdateMsg.Builder updateMessageBuilder() {
+        return new BgpUpdateMsgVer4.Builder();
     }
 
     @Override

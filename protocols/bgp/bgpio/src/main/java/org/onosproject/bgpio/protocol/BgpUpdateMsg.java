@@ -18,13 +18,47 @@ package org.onosproject.bgpio.protocol;
 
 import java.util.List;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.bgpio.protocol.ver4.BgpPathAttributes;
+import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecDetails;
+import org.onosproject.bgpio.types.BgpValueType;
+import org.onosproject.bgpio.types.BgpHeader;
 
 /**
  * Abstraction of an entity providing BGP Update Message.
  */
 public interface BgpUpdateMsg extends BgpMessage {
+
+    @Override
+    BgpVersion getVersion();
+
+    @Override
+    BgpType getType();
+
+    @Override
+    void writeTo(ChannelBuffer channelBuffer);
+
+    @Override
+    BgpHeader getHeader();
+
+    /**
+     * Builder interface with set functions to build update message.
+     */
+    interface Builder extends BgpMessage.Builder {
+        @Override
+        BgpUpdateMsg build();
+
+        Builder setBgpPathAttributes(List<BgpValueType> attributes);
+
+        Builder setNlriIdentifier(short afi, byte safi);
+
+        Builder setBgpFlowSpecComponents(BgpFlowSpecDetails flowSpecComponents);
+
+        @Override
+        Builder setHeader(BgpHeader bgpMsgHeader);
+    }
+
     /**
      * Returns path attributes in BGP Update Message.
      *

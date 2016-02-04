@@ -121,6 +121,24 @@ public interface BgpOpenMsg extends BgpMessage {
          */
         Builder setLsCapabilityTlv(boolean isLsCapabilitySet);
 
+        /**
+         * Sets flow specification capability and return its builder.
+         *
+         * @param isFlowSpecCapabilitySet boolean value to know whether flow specification capability is set or not
+         *
+         * @return builder by setting capabilities
+         */
+        Builder setFlowSpecCapabilityTlv(boolean isFlowSpecCapabilitySet);
+
+        /**
+         * Sets VPN flow specification capability and return its builder.
+         *
+         * @param isVpnFlowSpecCapabilitySet boolean value to know whether flow spec capability is set or not
+         *
+         * @return builder by setting capabilities
+         */
+        Builder setVpnFlowSpecCapabilityTlv(boolean isVpnFlowSpecCapabilitySet);
+
         @Override
         Builder setHeader(BgpHeader bgpMsgHeader);
     }

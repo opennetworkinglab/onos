@@ -22,12 +22,17 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpMessageReader;
+import org.onosproject.bgpio.protocol.BgpMessageWriter;
 import org.onosproject.bgpio.protocol.BgpType;
 import org.onosproject.bgpio.protocol.BgpUpdateMsg;
+import org.onosproject.bgpio.protocol.BgpVersion;
+import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecDetails;
 import org.onosproject.bgpio.types.BgpErrorType;
 import org.onosproject.bgpio.types.BgpHeader;
+import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
-import org.onosproject.bgpio.protocol.BgpVersion;
+
+import org.onosproject.bgpio.types.BgpValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,16 +77,26 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
     public static final byte PACKET_VERSION = 4;
     //Withdrawn Routes Length(2) + Total Path Attribute Length(2)
     public static final int PACKET_MINIMUM_LENGTH = 4;
+    public static final int MARKER_LENGTH = 16;
     public static final int BYTE_IN_BITS = 8;
     public static final int MIN_LEN_AFTER_WITHDRW_ROUTES = 2;
     public static final int MINIMUM_COMMON_HEADER_LENGTH = 19;
     public static final BgpType MSG_TYPE = BgpType.UPDATE;
+    public static byte[] marker = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                                              (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                                              (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                                              (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
+    public static final BgpHeader DEFAULT_UPDATE_HEADER = new BgpHeader(marker,
+                                                                        (short) PACKET_MINIMUM_LENGTH, (byte) 0X02);
     public static final BgpUpdateMsgVer4.Reader READER = new Reader();
 
     private List<IpPrefix> withdrawnRoutes;
     private BgpPathAttributes bgpPathAttributes;
     private BgpHeader bgpHeader;
     private List<IpPrefix> nlri;
+    private BgpFlowSpecDetails bgpFlowSpecComponents;
+    private short afi;
+    private byte safi;
 
     /**
      * Constructor to initialize parameters for BGP Update message.
@@ -97,6 +112,15 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
         this.withdrawnRoutes = withdrawnRoutes;
         this.bgpPathAttributes = bgpPathAttributes;
         this.nlri = nlri;
+    }
+
+    public BgpUpdateMsgVer4(BgpHeader bgpHeader, short afi, byte safi, BgpPathAttributes bgpPathAttributes,
+                                    BgpFlowSpecDetails bgpFlowSpecComponents) {
+        this.bgpHeader = bgpHeader;
+        this.bgpFlowSpecComponents = bgpFlowSpecComponents;
+        this.bgpPathAttributes = bgpPathAttributes;
+        this.afi = afi;
+        this.safi = safi;
     }
 
     /**
@@ -159,6 +183,82 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
             }
             return new BgpUpdateMsgVer4(bgpHeader, withDrwRoutes,
                     bgpPathAttributes, nlri);
+        }
+    }
+
+    /**
+     * Builder class for BGP update message.
+     */
+    static class Builder implements BgpUpdateMsg.Builder {
+        BgpHeader bgpMsgHeader = null;
+        BgpFlowSpecDetails bgpFlowSpecComponents;
+        BgpPathAttributes bgpPathAttributes;
+        private short afi;
+        private byte safi;
+
+        @Override
+        public BgpUpdateMsg build() /* throws BgpParseException */ {
+            BgpHeader bgpMsgHeader = DEFAULT_UPDATE_HEADER;
+
+            return new BgpUpdateMsgVer4(bgpMsgHeader, afi, safi, bgpPathAttributes, bgpFlowSpecComponents);
+        }
+
+        @Override
+        public Builder setHeader(BgpHeader bgpMsgHeader) {
+            this.bgpMsgHeader = bgpMsgHeader;
+            return this;
+        }
+
+        @Override
+        public Builder setBgpFlowSpecComponents(BgpFlowSpecDetails bgpFlowSpecComponents) {
+            this.bgpFlowSpecComponents = bgpFlowSpecComponents;
+            return this;
+        }
+
+        @Override
+        public Builder setBgpPathAttributes(List<BgpValueType> attributes) {
+            this.bgpPathAttributes = new BgpPathAttributes(attributes);
+            return this;
+        }
+
+        @Override
+        public Builder setNlriIdentifier(short afi, byte safi) {
+            this.afi = afi;
+            this.safi = safi;
+            return this;
+        }
+    }
+
+    public static final Writer WRITER = new Writer();
+
+    /**
+     * Writer class for writing BGP update message to channel buffer.
+     */
+    public static class Writer implements BgpMessageWriter<BgpUpdateMsgVer4> {
+
+        @Override
+        public void write(ChannelBuffer cb, BgpUpdateMsgVer4 message) throws BgpParseException {
+
+            int startIndex = cb.writerIndex();
+
+            // write common header and get msg length index
+            int msgLenIndex = message.bgpHeader.write(cb);
+
+            if (msgLenIndex <= 0) {
+                throw new BgpParseException("Unable to write message header.");
+            }
+
+            if ((message.afi == Constants.AFI_FLOWSPEC_VALUE) && (message.safi == Constants.SAFI_FLOWSPEC_VALUE)) {
+                //unfeasible route length
+                cb.writeShort(0);
+            }
+
+            // TODO: write path attributes
+
+            // write UPDATE Object Length
+            int length = cb.writerIndex() - startIndex;
+            cb.setShort(msgLenIndex, (short) length);
+            message.bgpHeader.setLength((short) length);
         }
     }
 
@@ -248,8 +348,12 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
     }
 
     @Override
-    public void writeTo(ChannelBuffer channelBuffer) throws BgpParseException {
-        //Not to be implemented as of now
+    public void writeTo(ChannelBuffer channelBuffer) {
+        try {
+            WRITER.write(channelBuffer, this);
+        } catch (BgpParseException e) {
+            log.debug("[writeTo] Error: " + e.toString());
+        }
     }
 
     @Override
