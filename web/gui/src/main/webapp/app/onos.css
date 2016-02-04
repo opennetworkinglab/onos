@@ -59,7 +59,7 @@ body.dark {
     color: #CE5650;
 }
 
-#eegg {
+.centered {
     position: fixed;
     top: 50%;
     left: 50%;

@@ -21,6 +21,9 @@
 (function () {
     'use strict';
 
+    // injected refs
+    var $log;
+
     // define core module dependencies here...
     var coreDependencies = [
         'ngRoute',
@@ -41,6 +44,18 @@
         ''
     ];
 
+    // secret sauce
+    var sauce = [
+        '20:70717066',
+        '24:886774868469',
+        '6:698570688669887967',
+        '7:6971806889847186',
+        '22:8369867682',
+        '13:736583',
+        '7:667186698384',
+        '1:857780888778876787'
+    ];
+
     var defaultView = 'topo',
         viewDependencies = [];
 
@@ -52,6 +67,13 @@
 
     var moduleDependencies = coreDependencies.concat(viewDependencies);
 
+    function saucy(ee, ks) {
+        var map = ee.genMap(sauce);
+        Object.keys(map).forEach(function (k) {
+            ks.addSeq(k, map[k]);
+        });
+    }
+
     function cap(s) {
         return s ? s[0].toUpperCase() + s.slice(1) : s;
     }
@@ -61,17 +83,18 @@
         .controller('OnosCtrl', [
             '$log', '$scope', '$route', '$routeParams', '$location',
             'KeyService', 'ThemeService', 'GlyphService', 'VeilService',
-            'PanelService', 'FlashService', 'QuickHelpService',
+            'PanelService', 'FlashService', 'QuickHelpService', 'EeService',
             'WebSocketService',
 
-            function ($log, $scope, $route, $routeParams, $location,
-                      ks, ts, gs, vs, ps, flash, qhs, wss) {
+            function (_$log_, $scope, $route, $routeParams, $location,
+                      ks, ts, gs, vs, ps, flash, qhs, ee, wss) {
                 var self = this;
+                $log = _$log_;
 
                 self.$route = $route;
                 self.$routeParams = $routeParams;
                 self.$location = $location;
-                self.version = '1.3.0';
+                self.version = '1.5.0';
 
                 // shared object inherited by all views:
                 $scope.onos = {};
@@ -83,6 +106,7 @@
                 gs.init();
                 vs.init();
                 ps.init();
+                saucy(ee, ks);
                 flash.initFlash();
                 qhs.initQuickHelp();
 

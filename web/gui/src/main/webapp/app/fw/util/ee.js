@@ -21,10 +21,25 @@
     'use strict';
 
     // injected services
-    var fs;
+    var $log, fs, flash;
 
     // function references
     var fcc = String.fromCharCode;
+
+    // magic beans
+    var beans = [
+        //'umpxwnwcw'
+        //'eufdvexoc',
+        //'egpdytgv',
+        //'xcjvte',
+        //'bgvest',
+        //'sevlr',
+        'ias'
+    ];
+
+    function pickBean() {
+        return beans[Math.floor(Math.random() * beans.length)] + '.foo';
+    }
 
     function computeTransform(x) {
         var m = x.split(':'),
@@ -45,18 +60,39 @@
 
         data.forEach(function (x) {
             var r = computeTransform(x);
-            map['shift' + r.e] = r.o.toLowerCase() + '.bin';
+            map[r.e] = r.o.toLowerCase() + '.foo';
         });
         return map;
     }
 
-    angular.module('onosUtil')
-    .factory('EeService',
-    ['FnService', function (_fs_) {
-        fs = _fs_;
+    function cluck(foo) {
+        var f = fs.isF(foo),
+            s = fs.isS(foo);
 
-        return {
-            genMap: genMap
+        $log.debug('>>> CLUCK! <<<', foo);
+
+        if (s === 'fgfb.foo') {
+            s = pickBean();
+            $log.debug('bean picked:', s);
         }
-    }]);
+
+        if (s && fs.endsWith(s, '.foo')) {
+            flash.tempDiv().append('img').attr('src', 'raw/'+s);
+        }
+
+        f && f();
+    }
+
+    angular.module('onosUtil')
+    .factory('EeService', ['$log', 'FnService', 'FlashService',
+        function (_$log_, _fs_, _flash_) {
+            $log = _$log_;
+            fs = _fs_;
+            flash = _flash_;
+
+            return {
+                genMap: genMap,
+                cluck: cluck
+            }
+        }]);
 }());

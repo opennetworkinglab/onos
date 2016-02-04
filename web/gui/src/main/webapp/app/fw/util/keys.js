@@ -21,11 +21,7 @@
     'use strict';
 
     // references to injected services
-    var $log, $timeout, fs, ts, ns, qhs;
-
-    // constants
-    var eeggMin = 'shiftO',
-        eeggMax = 'shiftONOS';
+    var $log, $timeout, fs, ts, ns, ee, qhs;
 
     // internal state
     var enabled = true,
@@ -37,23 +33,30 @@
             viewFn: null,
             viewGestures: []
         },
-        eegg = '';
+        seq = {},
+        matching = false,
+        matched = '',
+        lookup;
 
-    function layEgg(key) {
-        eegg += key;
-        if (eeggMax.indexOf(eegg) === 0) {
-            if (eegg === eeggMax) {
-                d3.select('body').append('div').attr('id', 'eegg')
-                    .append('img').attr('src', 'raw/ewo.foo');
-                $timeout(function () { d3.select('#eegg').remove(); }, 3000);
-                eegg = '';
-            }
+    function matchSeq(key) {
+        if (!matching && key === 'shift') {
+            matching = true;
             return true;
         }
-        if (eegg !== eeggMin) {
-            eegg = '';
+        if (matching) {
+            matched += key;
+            lookup = fs.trieLookup(seq, matched);
+            if (lookup === -1) {
+                return true;
+            }
+            matching = false;
+            matched = '';
+            if (!lookup) {
+                return;
+            }
+            ee.cluck(lookup);
+            return true;
         }
-        return false;
     }
 
     function whatKey(code) {
@@ -109,7 +112,7 @@
         d3.event.stopPropagation();
 
         if (enabled) {
-            if (layEgg(key)) return;
+            if (matchSeq(key)) return;
 
             // global callback?
             if (gcb && gcb(token, key, keyCode, event)) {
@@ -230,13 +233,15 @@
     angular.module('onosUtil')
     .factory('KeyService',
         ['$log', '$timeout', 'FnService', 'ThemeService', 'NavService',
+            'EeService',
 
-        function (_$log_, _$timeout_, _fs_, _ts_, _ns_) {
+        function (_$log_, _$timeout_, _fs_, _ts_, _ns_, _ee_) {
             $log = _$log_;
             $timeout = _$timeout_;
             fs = _fs_;
             ts = _ts_;
             ns = _ns_;
+            ee = _ee_;
 
             return {
                 bindQhs: function (_qhs_) {
@@ -254,6 +259,12 @@
                     }
                 },
                 unbindKeys: unbindKeys,
+                addSeq: function (word, data) {
+                    fs.addToTrie(seq, word, data);
+                },
+                remSeq: function (word) {
+                    fs.removeFromTrie(seq, word);
+                },
                 gestureNotes: function (g) {
                     if (g === undefined) {
                         return keyHandler.viewGestures;

@@ -143,6 +143,13 @@
         enabled = !!b;
     }
 
+    function tempDiv(ms) {
+        var div = d3.select('body').append('div').classed('centered', true),
+            delay = (ms === undefined || ms < 100) ? 3000 : ms;
+        $timeout(function () { div.remove(); }, delay);
+        return div;
+    }
+
     angular.module('onosLayer')
         .factory('FlashService', ['$log', '$timeout',
         function (_$log_, _$timeout_) {
@@ -158,7 +165,8 @@
             return {
                 initFlash: initFlash,
                 flash: flash,
-                enable: enable
+                enable: enable,
+                tempDiv: tempDiv
             };
         }]);
 
