@@ -47,17 +47,17 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanId
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
-import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
-import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpEthInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpOpInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
 import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
-import org.projectfloodlight.openflow.protocol.OFFlowDelete;
+import org.projectfloodlight.openflow.protocol.OFFlowDeleteStrict;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
@@ -119,7 +119,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     }
 
     @Override
-    public OFFlowAdd buildFlowAdd() {
+    public OFFlowMod buildFlowAdd() {
         Match match = buildMatch();
         List<OFAction> deferredActions = buildActions(treatment.deferred());
         List<OFAction> immediateActions = buildActions(treatment.immediate());
@@ -205,12 +205,12 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     }
 
     @Override
-    public OFFlowDelete buildFlowDel() {
+    public OFFlowMod buildFlowDel() {
         Match match = buildMatch();
 
         long cookie = flowRule().id().value();
 
-        OFFlowDelete fm = factory().buildFlowDelete()
+        OFFlowDeleteStrict fm = factory().buildFlowDeleteStrict()
                 .setXid(xid)
                 .setCookie(U64.of(cookie))
                 .setBufferId(OFBufferId.NO_BUFFER)

@@ -22,11 +22,11 @@ import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
-import org.onosproject.net.OduSignalId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.ArpHaCriterion;
@@ -65,8 +65,6 @@ import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 import org.onosproject.openflow.controller.ExtensionSelectorInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFactory;
-import org.projectfloodlight.openflow.protocol.OFFlowAdd;
-import org.projectfloodlight.openflow.protocol.OFFlowDelete;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
@@ -88,6 +86,7 @@ import org.projectfloodlight.openflow.types.OFBooleanValue;
 import org.projectfloodlight.openflow.types.OFMetadata;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.OduSignalID;
 import org.projectfloodlight.openflow.types.TransportPort;
 import org.projectfloodlight.openflow.types.U16;
 import org.projectfloodlight.openflow.types.U32;
@@ -95,7 +94,6 @@ import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
-import org.projectfloodlight.openflow.types.OduSignalID;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -163,7 +161,7 @@ public abstract class FlowModBuilder {
      *
      * @return the flow mod
      */
-    public abstract OFFlowAdd buildFlowAdd();
+    public abstract OFFlowMod buildFlowAdd();
 
     /**
      * Builds a MODIFY flow mod.
@@ -177,7 +175,7 @@ public abstract class FlowModBuilder {
      *
      * @return the flow mod
      */
-    public abstract OFFlowDelete buildFlowDel();
+    public abstract OFFlowMod buildFlowDel();
 
     /**
      * Builds the match for the flow mod.
