@@ -22,7 +22,9 @@ import org.onosproject.cpman.ControlMetric;
 import org.onosproject.cpman.ControlMetricType;
 import org.onosproject.cpman.ControlPlaneMonitorService;
 import org.onosproject.cpman.MetricValue;
-import org.onosproject.cpman.impl.ControlMetricsSystemSpec;
+import org.onosproject.cpman.SystemInfo;
+import org.onosproject.cpman.impl.DefaultSystemInfo;
+import org.onosproject.cpman.impl.SystemInfoFactory;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
@@ -227,19 +229,19 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
     }
 
     /**
-     * Collects system specifications.
-     * The system specs include the various control metrics
+     * Collects system information.
+     * The system information includes the various control metrics
      * which do not require aggregation.
      *
      * @param stream JSON stream
      * @return 200 OK
-     * @onos.rsModel SystemSpecsPost
+     * @onos.rsModel SystemInfoPost
      */
     @POST
-    @Path("system_specs")
+    @Path("system_info")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response systemSpecs(InputStream stream) {
+    public Response systemInfo(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
 
         try {
@@ -249,15 +251,17 @@ public class ControlMetricsCollectorWebResource extends AbstractWebResource {
             JsonNode cpuSpeed = jsonTree.get("cpuSpeed");
             JsonNode totalMemory = jsonTree.get("totalMemory");
 
-            if (numOfCores != null && numOfCpus != null && cpuSpeed != null && totalMemory != null) {
-                ControlMetricsSystemSpec.Builder builder = new ControlMetricsSystemSpec.Builder();
-                ControlMetricsSystemSpec cmss = builder.numOfCores(numOfCores.asInt())
+            if (numOfCores != null && numOfCpus != null &&
+                cpuSpeed != null && totalMemory != null) {
+                SystemInfo systemInfo = new DefaultSystemInfo.Builder()
+                        .numOfCores(numOfCores.asInt())
                         .numOfCpus(numOfCpus.asInt())
                         .cpuSpeed(cpuSpeed.asInt())
-                        .totalMemory(totalMemory.asLong())
+                        .totalMemory(totalMemory.asInt())
                         .build();
-                // TODO: need to implement spec store
 
+                // try to store the system info.
+                SystemInfoFactory.getInstance().setSystemInfo(systemInfo);
             } else {
                 throw new IllegalArgumentException(INVALID_SYSTEM_SPECS);
             }

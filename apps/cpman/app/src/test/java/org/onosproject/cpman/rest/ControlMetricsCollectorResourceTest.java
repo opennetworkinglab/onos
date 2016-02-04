@@ -27,6 +27,8 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.rest.BaseResource;
 import org.onosproject.cpman.ControlPlaneMonitorService;
+import org.onosproject.cpman.SystemInfo;
+import org.onosproject.cpman.impl.SystemInfoFactory;
 import org.onosproject.net.DeviceId;
 
 import javax.ws.rs.core.MediaType;
@@ -123,8 +125,14 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
     }
 
     @Test
-    public void testSystemSpecsPost() {
-        basePostTest("system-spec-post.json", PREFIX + "/system_specs");
+    public void testSystemInfoPost() {
+        basePostTest("system-info-post.json", PREFIX + "/system_info");
+
+        SystemInfo si = SystemInfoFactory.getInstance().getSystemInfo();
+        assertThat(si.cpuSpeed(), is(2048));
+        assertThat(si.coreCount(), is(6));
+        assertThat(si.cpuCount(), is(2));
+        assertThat(si.totalMemory(), is(4096));
     }
 
     private ClientResponse baseTest(String jsonFile, String path) {

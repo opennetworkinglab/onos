@@ -32,13 +32,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Singleton class to provide various control plane metrics to other components.
  */
 public final class ControlMetricsFactory {
-    private static volatile ControlMetricsFactory uniqueInstance;
-
     private MetricsService metricsService;
     private boolean enableMonitor = false;
-
-    // define a ControlMetricsSystemSpec
-    private ControlMetricsSystemSpec cmss;
+    private Boolean isInitialized = false;
 
     // define a set of MetricsAggregators
     private MetricsAggregator cpuLoad;
@@ -68,47 +64,22 @@ public final class ControlMetricsFactory {
     private Set<String> nwInterfaces = Sets.newConcurrentHashSet();
 
     /**
-     * Constructs a control metrics factory using the given metrics and device services.
-     *
-     * @param metricsService metric service reference
-     * @param deviceService  device service reference
-     */
-    private ControlMetricsFactory(MetricsService metricsService, DeviceService deviceService) {
-        this.metricsService = metricsService;
-        registerMetrics();
-
-        deviceService.getDevices().forEach(d->deviceIds.add(d.id()));
-
-        addAllControlMessageMetrics(deviceIds);
-    }
-
-    /**
-     * Obtains the unique instance of ControlMetricsFactory.
+     * Initializes the control metrics factory instance using the given
+     * metric service and device service. Makes sure that we only initialize
+     * control metrics factory instance once.
      *
      * @param metricsService metric service
      * @param deviceService  device service
-     * @return instance of ControlMetricsFactory
      */
-    public static ControlMetricsFactory getInstance(MetricsService metricsService,
-                                                    DeviceService deviceService) {
-        if (uniqueInstance == null) {
-            synchronized (ControlMetricsFactory.class) {
-                if (uniqueInstance == null) {
-                    uniqueInstance = new ControlMetricsFactory(metricsService, deviceService);
-                }
+    public void initialization(MetricsService metricsService, DeviceService deviceService) {
+        synchronized (isInitialized) {
+            if (!isInitialized) {
+                this.metricsService = metricsService;
+                registerMetrics();
+                deviceService.getDevices().forEach(d->deviceIds.add(d.id()));
+                addAllControlMessageMetrics(deviceIds);
+                isInitialized = true;
             }
-        }
-        return uniqueInstance;
-    }
-
-    /**
-     * Sets system specification.
-     *
-     * @param cmss ControlMetricsSystemSpec object
-     */
-    public void setSystemSpec(ControlMetricsSystemSpec cmss) {
-        if (this.cmss == null) {
-            this.cmss = cmss;
         }
     }
 
@@ -119,17 +90,17 @@ public final class ControlMetricsFactory {
      */
     public void addControlMessageMetricsByDeviceId(DeviceId deviceId) {
         MetricsAggregator inbound = new MetricsAggregator(metricsService,
-                        ControlMetricType.INBOUND_PACKET, Optional.of(deviceId));
+                ControlMetricType.INBOUND_PACKET, Optional.of(deviceId));
         MetricsAggregator outbound = new MetricsAggregator(metricsService,
-                        ControlMetricType.OUTBOUND_PACKET, Optional.of(deviceId));
+                ControlMetricType.OUTBOUND_PACKET, Optional.of(deviceId));
         MetricsAggregator flowmod = new MetricsAggregator(metricsService,
-                        ControlMetricType.FLOW_MOD_PACKET, Optional.of(deviceId));
+                ControlMetricType.FLOW_MOD_PACKET, Optional.of(deviceId));
         MetricsAggregator flowrmv = new MetricsAggregator(metricsService,
-                        ControlMetricType.FLOW_REMOVED_PACKET, Optional.of(deviceId));
+                ControlMetricType.FLOW_REMOVED_PACKET, Optional.of(deviceId));
         MetricsAggregator request = new MetricsAggregator(metricsService,
-                        ControlMetricType.REQUEST_PACKET, Optional.of(deviceId));
+                ControlMetricType.REQUEST_PACKET, Optional.of(deviceId));
         MetricsAggregator reply = new MetricsAggregator(metricsService,
-                        ControlMetricType.REPLY_PACKET, Optional.of(deviceId));
+                ControlMetricType.REPLY_PACKET, Optional.of(deviceId));
 
         inboundPacket.putIfAbsent(deviceId, inbound);
         outboundPacket.putIfAbsent(deviceId, outbound);
@@ -148,7 +119,7 @@ public final class ControlMetricsFactory {
      */
     public void addDiskMetricsByPartition(String partitionName) {
         MetricsAggregator readBytes = new MetricsAggregator(metricsService,
-                        ControlMetricType.DISK_READ_BYTES, partitionName);
+                ControlMetricType.DISK_READ_BYTES, partitionName);
         MetricsAggregator writeBytes = new MetricsAggregator(metricsService,
                 ControlMetricType.DISK_WRITE_BYTES, partitionName);
 
@@ -165,7 +136,7 @@ public final class ControlMetricsFactory {
      */
     public void addNetworkMetricsByInterface(String interfaceName) {
         MetricsAggregator incomingBytes = new MetricsAggregator(metricsService,
-                        ControlMetricType.NW_INCOMING_BYTES, interfaceName);
+                ControlMetricType.NW_INCOMING_BYTES, interfaceName);
         MetricsAggregator outgoingBytes = new MetricsAggregator(metricsService,
                 ControlMetricType.NW_OUTGOING_BYTES, interfaceName);
         MetricsAggregator incomingPackets = new MetricsAggregator(metricsService,
@@ -578,5 +549,18 @@ public final class ControlMetricsFactory {
      */
     public MetricsAggregator replyPacket(DeviceId deviceId) {
         return replyPacket.get(deviceId);
+    }
+
+    /**
+     * Returns an instance of control metrics factory.
+     *
+     * @return instance of control metrics factory
+     */
+    public static ControlMetricsFactory getInstance() {
+        return SingletonHelper.INSTANCE;
+    }
+
+    private static class SingletonHelper {
+        private static final ControlMetricsFactory INSTANCE = new ControlMetricsFactory();
     }
 }
