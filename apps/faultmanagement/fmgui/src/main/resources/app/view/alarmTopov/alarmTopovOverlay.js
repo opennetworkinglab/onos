@@ -7,7 +7,7 @@
     'use strict';
 
     // injected refs
-    var $log, tov, stds, ns;
+    var $log, tov, atds, ns;
 
     // internal state should be kept in the service module (not here)
 
@@ -87,7 +87,7 @@
             $log.debug("Alarm topology overlay ACTIVATED");
         },
         deactivate: function () {
-            stds.stopDisplay();
+            atds.stopDisplay();
             $log.debug("Alarm topology overlay DEACTIVATED");
         },
         // detail panel button definitions
@@ -114,14 +114,14 @@
         keyBindings: {
             0: {
                 cb: function () {
-                    stds.stopDisplay();
+                    atds.stopDisplay();
                 },
                 tt: 'Cancel Alarm Count on Device',
                 gid: 'xMark'
             },
             V: {
                 cb: function () {
-                    stds.startDisplay('mouse');
+                    atds.startDisplay('mouse');
                 },
                 tt: 'Start Alarm Count on Device',
                 gid: '*clock'
@@ -135,7 +135,7 @@
             // Must return true to consume ESC, false otherwise.
             escape: function () {
                 // Must return true to consume ESC, false otherwise.
-                return stds.stopDisplay();
+                return atds.stopDisplay();
             },
             // hooks for when the selection changes...
             empty: function () {
@@ -152,11 +152,11 @@
             mouseover: function (m) {
                 // m has id, class, and type properties
                 $log.debug('mouseover:', m);
-                stds.updateDisplay(m);
+                atds.updateDisplay(m);
             },
             mouseout: function () {
                 $log.debug('mouseout');
-                stds.updateDisplay();
+                atds.updateDisplay();
             }
         }
     };
@@ -173,10 +173,10 @@
     // invoke code to register with the overlay service
     angular.module('ovAlarmTopov')
         .run(['$log', 'TopoOverlayService', 'AlarmTopovDemoService', 'NavService',
-            function (_$log_, _tov_, _stds_, _ns_) {
+            function (_$log_, _tov_, _atds_, _ns_) {
                 $log = _$log_;
                 tov = _tov_;
-                stds = _stds_;
+                atds = _atds_;
                 ns = _ns_;
                 tov.register(overlay);
             }]);
