@@ -34,10 +34,11 @@
 }
 
 .dialog .dialog-button {
+    border-radius: 3px;
     display: inline-block;
     cursor: pointer;
     height: 20px;
-    padding: 2px 6px;
+    padding: 6px 8px 2px 8px;
     margin: 4px;
     float: right;
     /* color works for both light and dark themes */
