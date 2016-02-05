@@ -47,7 +47,6 @@ public class BgpConfig implements BgpCfg {
     private int localAs;
     private int maxSession;
     private boolean lsCapability;
-    private boolean flowSpecCapability;
     private short holdTime;
     private boolean largeAs = false;
     private int maxConnRetryTime;
@@ -117,16 +116,6 @@ public class BgpConfig implements BgpCfg {
     @Override
     public void setLsCapability(boolean lsCapability) {
         this.lsCapability = lsCapability;
-    }
-
-    @Override
-    public boolean flowSpecCapability() {
-        return this.flowSpecCapability;
-    }
-
-    @Override
-    public void setFlowSpecCapability(boolean vpnFlowSpecCapability) {
-        this.flowSpecCapability = flowSpecCapability;
     }
 
     @Override

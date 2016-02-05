@@ -73,20 +73,6 @@ public interface BgpCfg {
     void setLsCapability(boolean lscapability);
 
     /**
-     * Get the status of the flow specification support for this BGP speaker.
-     *
-     * @return true if the flow specification is supported otherwise false
-     */
-    boolean flowSpecCapability();
-
-    /**
-     * Set the flow specification support to this BGP speaker.
-     *
-     * @param flowSpecCapability BGP flow specification capability support
-     */
-    void setFlowSpecCapability(boolean flowSpecCapability);
-
-    /**
      * Get the status of the 32 bit AS support for this BGP speaker.
      *
      * @return true if the 32 bit AS number is supported else false

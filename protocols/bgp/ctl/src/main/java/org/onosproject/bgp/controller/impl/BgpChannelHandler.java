@@ -665,11 +665,23 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
      */
     private void sendHandshakeOpenMessage() throws IOException, BgpParseException {
         int bgpId;
+        boolean flowSpecStatus = false;
+        boolean vpnFlowSpecStatus = false;
 
         bgpId = Ip4Address.valueOf(bgpconfig.getRouterId()).toInt();
+        BgpPeerConfig peerConfig = (BgpPeerConfig) bgpconfig.displayPeers(peerAddr);
+        if (peerConfig.flowSpecStatus() == BgpPeerCfg.FlowSpec.IPV4) {
+            flowSpecStatus = true;
+        } else if (peerConfig.flowSpecStatus() == BgpPeerCfg.FlowSpec.VPNV4) {
+            vpnFlowSpecStatus = true;
+        }
+
         BgpMessage msg = factory4.openMessageBuilder().setAsNumber((short) bgpconfig.getAsNumber())
-                .setHoldTime(bgpconfig.getHoldTime()).setBgpId(bgpId).setLsCapabilityTlv(bgpconfig.getLsCapability())
-                .setLargeAsCapabilityTlv(bgpconfig.getLargeASCapability()).build();
+                .setHoldTime(bgpconfig.getHoldTime()).setBgpId(bgpId)
+                .setLsCapabilityTlv(bgpconfig.getLsCapability())
+                .setLargeAsCapabilityTlv(bgpconfig.getLargeASCapability())
+                .setFlowSpecCapabilityTlv(flowSpecStatus)
+                .setVpnFlowSpecCapabilityTlv(vpnFlowSpecStatus).build();
         log.debug("Sending open message to {}", channel.getRemoteAddress());
         channel.write(Collections.singletonList(msg));
 
@@ -775,11 +787,16 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         BgpValueType tempTlv;
         boolean isLargeAsCapabilityCfg = h.bgpconfig.getLargeASCapability();
         boolean isLsCapabilityCfg = h.bgpconfig.getLsCapability();
-        boolean isFlowSpecCapabilityCfg = h.bgpconfig.flowSpecCapability();
+        boolean isFlowSpecCapabilityCfg = false;
         MultiProtocolExtnCapabilityTlv tempCapability;
         boolean isMultiProtocolLsCapability = false;
         boolean isMultiProtocolFlowSpecCapability = false;
         boolean isMultiProtocolVpnFlowSpecCapability = false;
+
+        BgpPeerConfig peerConfig = (BgpPeerConfig) h.bgpconfig.displayPeers(peerAddr);
+        if (peerConfig.flowSpecStatus() != BgpPeerCfg.FlowSpec.NONE) {
+            isFlowSpecCapabilityCfg = true;
+        }
 
         while (listIterator.hasNext()) {
             BgpValueType tlv = listIterator.next();
