@@ -94,6 +94,12 @@
         <property name="message" value="Line has trailing spaces."/>
     </module>
 
+    <module name="RegexpMultiline">
+        <property name="format" value="\r\n"/>
+        <property name="maximum" value="0"/>
+        <property name="message" value="Line has windows line endings."/>
+    </module>
+
     <!-- Checks for Headers                                -->
     <!-- See http://checkstyle.sf.net/config_header.html   -->
     <!-- <module name="Header"> -->
