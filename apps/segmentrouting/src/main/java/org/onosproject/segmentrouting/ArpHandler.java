@@ -76,7 +76,7 @@ public class ArpHandler {
      * hosts in the same subnet.
      * For an ARP packet with broadcast destination MAC,
      * some switches pipelines will send it to the controller due to table miss,
-     * other swithches will flood the packets directly in the data plane without
+     * other switches will flood the packets directly in the data plane without
      * packet in.
      * We can deal with both cases.
      *
@@ -92,10 +92,6 @@ public class ArpHandler {
         DeviceId deviceId = connectPoint.deviceId();
         byte[] senderMacAddressByte = arp.getSenderHardwareAddress();
         Ip4Address hostIpAddress = Ip4Address.valueOf(arp.getSenderProtocolAddress());
-
-        srManager.routingRulePopulator.populateIpRuleForHost(deviceId, hostIpAddress, MacAddress.
-                valueOf(senderMacAddressByte), inPort);
-
         if (arp.getOpCode() == ARP.OP_REQUEST) {
             handleArpRequest(deviceId, connectPoint, ethernet);
         } else {

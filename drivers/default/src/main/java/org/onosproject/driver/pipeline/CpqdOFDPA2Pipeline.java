@@ -588,6 +588,9 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
                 if (ins instanceof OutputInstruction) {
                     OutputInstruction o = (OutputInstruction) ins;
                     if (o.port() == PortNumber.CONTROLLER) {
+                        // emulating real ofdpa behavior by popping off internal
+                        // vlan before sending to controller
+                        ttBuilder.popVlan();
                         ttBuilder.add(o);
                     } else {
                         log.warn("Only allowed treatments in versatile forwarding "
