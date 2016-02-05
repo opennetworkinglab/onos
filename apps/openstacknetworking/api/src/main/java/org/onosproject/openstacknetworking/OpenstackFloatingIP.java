@@ -19,12 +19,14 @@ import org.onlab.packet.Ip4Address;
 
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  *  An Openstack Neutron Floating IP Model.
  */
 public final class OpenstackFloatingIP {
 
-    public enum FloatingIPStatus {
+    public enum FloatingIpStatus {
         UP,
         DOWN,
         ACTIVE,
@@ -33,13 +35,13 @@ public final class OpenstackFloatingIP {
     private final String tenantId;
     private final String networkId;
     private final Ip4Address fixedIpAddress;
-    private final String portId;
-    private final String routerId;
+    private String portId;
+    private String routerId;
     private final String id;
     private final Ip4Address floatingIpAddress;
-    private final FloatingIPStatus status;
+    private final FloatingIpStatus status;
 
-    private OpenstackFloatingIP(FloatingIPStatus status, String id, String tenantId,
+    private OpenstackFloatingIP(FloatingIpStatus status, String id, String tenantId,
                                 String networkId, Ip4Address fixedIpAddress, String portId,
                                 String routerId, Ip4Address floatingIpAddress) {
         this.status = status;
@@ -57,7 +59,7 @@ public final class OpenstackFloatingIP {
      *
      * @return floating IP status
      */
-    public FloatingIPStatus status() {
+    public FloatingIpStatus status() {
         return status;
     }
 
@@ -107,12 +109,30 @@ public final class OpenstackFloatingIP {
     }
 
     /**
+     * Updates port ID.
+     *
+     * @param portId Updated port ID
+     */
+    public void updatePortId(String portId) {
+        this.portId = portId;
+    }
+
+    /**
      * Returns router ID.
      *
      * @return router ID
      */
     public String routerId() {
         return routerId;
+    }
+
+    /**
+     * Updates router ID.
+     *
+     * @param routerId Updated router ID
+     */
+    public void updateRouterId(String routerId) {
+        this.routerId = routerId;
     }
 
     /**
@@ -162,7 +182,7 @@ public final class OpenstackFloatingIP {
         private String routerId;
         private String id;
         private Ip4Address floatingIpAddress;
-        private FloatingIPStatus status;
+        private FloatingIpStatus status;
 
         /**
          * Sets tenant ID.
@@ -181,7 +201,7 @@ public final class OpenstackFloatingIP {
          * @param status Floating IP status
          * @return Builder object
          */
-        public Builder status(FloatingIPStatus status) {
+        public Builder status(FloatingIpStatus status) {
             this.status = status;
             return this;
         }
@@ -258,8 +278,9 @@ public final class OpenstackFloatingIP {
          * @return OpenstackFloatingIP object
          */
         public OpenstackFloatingIP build() {
-            return new OpenstackFloatingIP(status, id, tenantId, networkId,
-                    fixedIpAddress, portId, routerId, floatingIpAddress);
+            return new OpenstackFloatingIP(checkNotNull(status), checkNotNull(id), checkNotNull(tenantId),
+                    checkNotNull(networkId), fixedIpAddress, portId,
+                    routerId, checkNotNull(floatingIpAddress));
 
         }
     }

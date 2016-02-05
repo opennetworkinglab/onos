@@ -17,24 +17,29 @@ package org.onosproject.openstacknetworking.routing;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TCP;
 import org.onlab.packet.UDP;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
+import org.onosproject.net.Port;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.openstacknetworking.OpenstackNetwork;
+import org.onosproject.openstacknetworking.OpenstackNetworkingService;
 import org.onosproject.openstacknetworking.OpenstackPort;
+import org.onosproject.openstacknetworking.OpenstackRouter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.osgi.DefaultServiceDirectory.getService;
 
 
 /**
@@ -50,13 +55,20 @@ public class OpenstackPnatHandler implements Runnable {
     private final OpenstackRoutingRulePopulator rulePopulator;
     private final int portNum;
     private final OpenstackPort openstackPort;
+    private final Port port;
+
+    private static final String DEVICE_OWNER_ROUTER_INTERFACE = "network:router_interface";
+    // TODO: This will be replaced to get the information from openstacknetworkingservice.
+    private static final MacAddress GATEWAYMAC = MacAddress.valueOf("1f:1f:1f:1f:1f:1f");
+    private static final MacAddress EXTERNAL_INTERFACE_MAC = MacAddress.valueOf("00:00:00:00:00:11");
 
     OpenstackPnatHandler(OpenstackRoutingRulePopulator rulePopulator, PacketContext context,
-                         int portNum, OpenstackPort openstackPort) {
+                         int portNum, OpenstackPort openstackPort, Port port) {
         this.rulePopulator = checkNotNull(rulePopulator);
         this.context = checkNotNull(context);
         this.portNum = checkNotNull(portNum);
         this.openstackPort = checkNotNull(openstackPort);
+        this.port = checkNotNull(port);
     }
 
     @Override
@@ -70,14 +82,41 @@ public class OpenstackPnatHandler implements Runnable {
             return;
         }
 
-        packetOut(inboundPacket, portNum);
+        OpenstackRouter router = getOpenstackRouter(openstackPort);
 
         rulePopulator.populatePnatFlowRules(inboundPacket, openstackPort, portNum,
-                getExternalInterfaceMacAddress(), getExternalRouterMacAddress());
+                getExternalIp(router), getExternalInterfaceMacAddress(), getExternalRouterMacAddress());
+
+        packetOut((Ethernet) ethernet.clone(), inboundPacket.receivedFrom().deviceId(), portNum, router);
     }
 
-    private void packetOut(InboundPacket inboundPacket, int portNum) {
-        Ethernet ethernet = checkNotNull(inboundPacket.parsed());
+    private OpenstackRouter getOpenstackRouter(OpenstackPort openstackPort) {
+        OpenstackNetworkingService networkingService = getService(OpenstackNetworkingService.class);
+        OpenstackNetwork network = networkingService.network(openstackPort.networkId());
+
+        OpenstackPort port = networkingService.ports()
+                .stream()
+                .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE))
+                .filter(p -> checkSameSubnet(p, openstackPort))
+                .findAny()
+                .orElse(null);
+
+        return checkNotNull(networkingService.router(port.deviceId()));
+    }
+
+    private boolean checkSameSubnet(OpenstackPort p, OpenstackPort openstackPort) {
+        String key1 = checkNotNull(p.fixedIps().keySet().stream().findFirst().orElse(null)).toString();
+        String key2 = checkNotNull(openstackPort.fixedIps().keySet().stream().findFirst().orElse(null)).toString();
+        return key1.equals(key2) ? true : false;
+    }
+
+    private Ip4Address getExternalIp(OpenstackRouter router) {
+        return router.gatewayExternalInfo().externalFixedIps().values().stream().findAny().orElse(null);
+    }
+
+    private void packetOut(Ethernet ethernet, DeviceId deviceId, int portNum, OpenstackRouter router) {
+        PacketService packetService = getService(PacketService.class);
+
         IPv4 iPacket = (IPv4) ethernet.getPayload();
 
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
@@ -98,31 +137,27 @@ public class OpenstackPnatHandler implements Runnable {
                 iPacket.setPayload(udpPacket);
                 break;
             default:
-                break;
+                log.error("Temporally, this method can process UDP and TCP protocol.");
+                return;
         }
 
+        iPacket.setSourceAddress(getExternalIp(router).toString());
         iPacket.resetChecksum();
-        iPacket.setPayload(ethernet);
+        iPacket.setParent(ethernet);
         ethernet.setSourceMACAddress(getExternalInterfaceMacAddress())
                 .setDestinationMACAddress(getExternalRouterMacAddress());
         ethernet.resetChecksum();
 
-        treatment.setOutput(getExternalPort(inboundPacket.receivedFrom().deviceId()));
+        treatment.setOutput(port.number());
 
-        packetService.emit(new DefaultOutboundPacket(inboundPacket.receivedFrom().deviceId(),
-                treatment.build(), ByteBuffer.wrap(ethernet.serialize())));
+        packetService.emit(new DefaultOutboundPacket(deviceId, treatment.build(),
+                ByteBuffer.wrap(ethernet.serialize())));
     }
 
-    private PortNumber getExternalPort(DeviceId deviceId) {
-        // TODO
-        return null;
-    }
     private MacAddress getExternalInterfaceMacAddress() {
-        // TODO
-        return null;
+        return EXTERNAL_INTERFACE_MAC;
     }
     private MacAddress getExternalRouterMacAddress() {
-        // TODO
-        return null;
+        return GATEWAYMAC;
     }
 }

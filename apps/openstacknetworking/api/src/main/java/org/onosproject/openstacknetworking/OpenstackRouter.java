@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworking;
 
 import java.util.Objects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An Openstack Neutron Router Model.
@@ -31,9 +32,9 @@ public final class OpenstackRouter {
     private final String tenantId;
     private final String id;
     private final String name;
-    private final RouterStatus status;
-    private final boolean adminStateUp;
-    private final OpenstackExternalGateway gatewayExternalInfo;
+    private RouterStatus status;
+    private boolean adminStateUp;
+    private OpenstackExternalGateway gatewayExternalInfo;
 
     private OpenstackRouter(String id, String tenantId, String name, RouterStatus status,
                            boolean adminStateUp, OpenstackExternalGateway gatewayExternalInfo) {
@@ -209,8 +210,8 @@ public final class OpenstackRouter {
          * @return OpenstasckRouter object
          */
         public OpenstackRouter build() {
-            return new OpenstackRouter(id, tenantId, name, status,
-                    adminStateUp, gatewayExternalInfo);
+            return new OpenstackRouter(checkNotNull(id), checkNotNull(tenantId), name, checkNotNull(status),
+                    checkNotNull(adminStateUp), gatewayExternalInfo);
         }
     }
 

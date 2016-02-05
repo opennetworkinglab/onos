@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacknetworking;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.onlab.packet.Ip4Address;
 import java.util.Map;
@@ -60,7 +61,7 @@ public final class OpenstackExternalGateway {
      * @return External fixed IP informations
      */
     public Map<String, Ip4Address> externalFixedIps() {
-        return externalFixedIps;
+        return ImmutableMap.copyOf(externalFixedIps);
     }
 
     @Override
@@ -137,7 +138,7 @@ public final class OpenstackExternalGateway {
          * @return OpenstackExternalGateway object
          */
         public OpenstackExternalGateway build() {
-            return new OpenstackExternalGateway(networkId, enablePnat, externalFixedIps);
+            return new OpenstackExternalGateway(networkId, enablePnat, ImmutableMap.copyOf(externalFixedIps));
         }
     }
 

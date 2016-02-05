@@ -39,7 +39,7 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-openstackrouting</artifactId>
+            <artifactId>onos-app-openstackrouting-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

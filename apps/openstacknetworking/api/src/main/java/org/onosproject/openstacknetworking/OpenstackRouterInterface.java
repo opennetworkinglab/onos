@@ -99,12 +99,12 @@ public final class OpenstackRouterInterface {
      * An Openstack Router Interface Builder class.
      */
     public static final class Builder {
-         private String id;
-         private String tenantId;
-         private String subnetId;
-         private String portId;
+        private String id;
+        private String tenantId;
+        private String subnetId;
+        private String portId;
 
-         /**
+        /**
          * Sets Router Interface ID.
          *
          * @param id router interface ID
@@ -148,14 +148,14 @@ public final class OpenstackRouterInterface {
             return this;
         }
 
-
         /**
          * Builds an Openstack Router Interface object.
          *
          * @return OpenstackRouterInterface object
          */
         public OpenstackRouterInterface build() {
-            return new OpenstackRouterInterface(id, tenantId, subnetId, portId);
+            return new OpenstackRouterInterface(checkNotNull(id), checkNotNull(tenantId),
+                    checkNotNull(subnetId), checkNotNull(portId));
         }
 
     }
