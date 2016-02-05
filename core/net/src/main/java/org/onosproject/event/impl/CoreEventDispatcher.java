@@ -124,7 +124,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
                     process(event);
                 } catch (InterruptedException e) {
                     log.warn("Dispatch loop interrupted");
-                } catch (Exception e) {
+                } catch (Exception | Error e) {
                     log.warn("Error encountered while dispatching event:", e);
                 }
             }
