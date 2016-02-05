@@ -57,6 +57,15 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
     private static final String PREFIX = "collector";
 
     /**
+     * Constructs a control metrics collector resource test instance.
+     */
+    public ControlMetricsCollectorResourceTest() {
+        super(new WebAppDescriptor.Builder("javax.ws.rs.Application",
+                CPManWebApplication.class.getCanonicalName())
+                .servletClass(ServletContainer.class).build());
+    }
+
+    /**
      * Sets up the global values for all the tests.
      */
     @Before
@@ -67,6 +76,9 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
         BaseResource.setServiceDirectory(testDirectory);
     }
 
+    /**
+     * Tests CPU metrics POST through REST API.
+     */
     @Test
     public void testCpuMetricsPost() {
         mockControlPlaneMonitorService.updateMetric(anyObject(), anyInt(),
@@ -76,6 +88,9 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
         basePostTest("cpu-metrics-post.json", PREFIX + "/cpu_metrics");
     }
 
+    /**
+     * Tests memory metrics POST through REST API.
+     */
     @Test
     public void testMemoryMetricsPost() {
         mockControlPlaneMonitorService.updateMetric(anyObject(), anyInt(),
@@ -85,16 +100,22 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
         basePostTest("memory-metrics-post.json", PREFIX + "/memory_metrics");
     }
 
+    /**
+     * Tests disk metrics POST through REST API.
+     */
     @Test
-    public void testDiskMetricsWithNullName() {
+    public void testDiskMetrics() {
         mockControlPlaneMonitorService.updateMetric(anyObject(), anyInt(), anyString());
         expectLastCall().times(4);
         replay(mockControlPlaneMonitorService);
         basePostTest("disk-metrics-post.json", PREFIX + "/disk_metrics");
     }
 
+    /**
+     * Tests network metrics POST through REST API.
+     */
     @Test
-    public void testNetworkMetricsWithNullName() {
+    public void testNetworkMetrics() {
         mockControlPlaneMonitorService.updateMetric(anyObject(), anyInt(), anyString());
         expectLastCall().times(8);
         replay(mockControlPlaneMonitorService);
@@ -121,12 +142,6 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
     private void basePostTest(String jsonFile, String path) {
         ClientResponse response = baseTest(jsonFile, path);
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
-    }
-
-    public ControlMetricsCollectorResourceTest() {
-        super(new WebAppDescriptor.Builder("javax.ws.rs.Application",
-                CPManWebApplication.class.getCanonicalName())
-                .servletClass(ServletContainer.class).build());
     }
 
     /**
