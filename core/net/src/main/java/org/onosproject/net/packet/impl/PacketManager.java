@@ -89,19 +89,19 @@ public class PacketManager
     private final PacketStoreDelegate delegate = new InternalStoreDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private CoreService coreService;
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private ClusterService clusterService;
+    protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private DeviceService deviceService;
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private FlowRuleService flowService;
+    protected FlowRuleService flowService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private PacketStore store;
+    protected PacketStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private FlowObjectiveService objectiveService;
@@ -111,6 +111,8 @@ public class PacketManager
     private final DeviceListener deviceListener = new InternalDeviceListener();
 
     private final List<ProcessorEntry> processors = Lists.newCopyOnWriteArrayList();
+
+    private final  PacketDriverProvider defaultProvider = new PacketDriverProvider();
 
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -124,6 +126,7 @@ public class PacketManager
         store.setDelegate(delegate);
         deviceService.addListener(deviceListener);
         store.existingRequests().forEach(this::pushToAllDevices);
+        defaultProvider.init(deviceService);
         log.info("Started");
     }
 
@@ -133,6 +136,11 @@ public class PacketManager
         deviceService.removeListener(deviceListener);
         eventHandlingExecutor.shutdown();
         log.info("Stopped");
+    }
+
+    @Override
+    protected PacketProvider defaultProvider() {
+        return defaultProvider;
     }
 
     @Override
@@ -374,7 +382,7 @@ public class PacketManager
     /**
      * Internal callback from the packet store.
      */
-    private class InternalStoreDelegate implements PacketStoreDelegate {
+    protected class InternalStoreDelegate implements PacketStoreDelegate {
         @Override
         public void notify(PacketEvent event) {
             localEmit(event.subject());
