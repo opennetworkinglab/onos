@@ -96,7 +96,7 @@
         };
     }
 
-    function makeButton(text, callback, keyName) {
+    function makeButton(callback, text, keyName) {
         var cb = fs.isF(callback),
             key = fs.isS(keyName);
 
@@ -129,19 +129,19 @@
         return dApi;
     }
 
-    function addButton(text, cb, key) {
+    function addButton(cb, text, key) {
         if (pApi) {
-            pApi.appendFooter(makeButton(text, cb, key));
+            pApi.appendFooter(makeButton(cb, text, key));
         }
         return dApi;
     }
 
-    function addOk(cb) {
-        return addButton('OK', cb, 'enter');
+    function addOk(cb, text) {
+        return addButton(cb, text || 'OK', 'enter');
     }
 
-    function addCancel(cb) {
-        return addButton('Cancel', cb, 'esc');
+    function addCancel(cb, text) {
+        return addButton(cb, text || 'Cancel', 'esc');
     }
 
     function clearBindings() {
