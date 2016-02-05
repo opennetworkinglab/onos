@@ -61,7 +61,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
-import static org.onosproject.sdnip.TestIntentServiceHelper.eqExceptId;
+import static org.onosproject.routing.TestIntentServiceHelper.eqExceptId;
 
 /**
  * Unit tests for SdnIpFib.

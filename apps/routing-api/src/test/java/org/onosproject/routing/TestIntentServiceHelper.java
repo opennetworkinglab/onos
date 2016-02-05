@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip;
+package org.onosproject.routing;
 
+import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentUtils;
-
-import static org.easymock.EasyMock.reportMatcher;
 
 /**
  * Helper class for testing operations submitted to the IntentService.
@@ -38,8 +37,8 @@ public final class TestIntentServiceHelper {
      * @param intent the expected Intent
      * @return the submitted Intent
      */
-    static Intent eqExceptId(Intent intent) {
-        reportMatcher(new IdAgnosticIntentMatcher(intent));
+    public static Intent eqExceptId(Intent intent) {
+        EasyMock.reportMatcher(new IdAgnosticIntentMatcher(intent));
         return intent;
     }
 
