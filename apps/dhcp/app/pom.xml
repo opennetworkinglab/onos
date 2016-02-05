@@ -148,6 +148,7 @@
                             com.fasterxml.jackson.core,
                             org.apache.karaf.shell.commands,
                             org.apache.karaf.shell.console,
+                            org.apache.karaf.shell.console.completer,
                             com.google.common.*,
                             org.onlab.packet.*,
                             org.onlab.rest.*,
