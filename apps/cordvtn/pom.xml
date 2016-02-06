@@ -43,11 +43,6 @@
             APIs for interacting with the CORD VTN application.
         </api.description>
         <api.package>org.onosproject.cordvtn.rest</api.package>
-        <onos.app.requires>
-            org.onosproject.ovsdb-base,
-            org.onosproject.openstackswitching,
-            org.onosproject.dhcp
-        </onos.app.requires>
     </properties>
 
     <dependencies>
@@ -116,6 +111,11 @@
             <artifactId>onos-app-dhcp-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.53</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -145,6 +145,7 @@
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,
                             com.fasterxml.jackson.core,
+                            com.jcraft.jsch,
                             org.apache.karaf.shell.commands,
                             org.apache.karaf.shell.console,
                             com.google.common.*,
