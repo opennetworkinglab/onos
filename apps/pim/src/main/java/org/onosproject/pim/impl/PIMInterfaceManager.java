@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.SafeRecurringTask;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceEvent;
 import org.onosproject.incubator.net.intf.InterfaceListener;
@@ -58,8 +59,10 @@ public class PIMInterfaceManager implements PIMInterfaceService {
     private static final Class<PimInterfaceConfig> PIM_INTERFACE_CONFIG_CLASS = PimInterfaceConfig.class;
     private static final String PIM_INTERFACE_CONFIG_KEY = "pimInterface";
 
-    // Create a Scheduled Executor service to send PIM hellos
-    private final ScheduledExecutorService helloScheduler =
+    private static final int DEFAULT_TIMEOUT_TASK_PERIOD_MS = 250;
+
+    // Create a Scheduled Executor service for recurring tasks
+    private final ScheduledExecutorService scheduledExecutorService =
             Executors.newScheduledThreadPool(1);
 
     // Wait for a bout 3 seconds before sending the initial hello messages.
@@ -68,6 +71,8 @@ public class PIMInterfaceManager implements PIMInterfaceService {
 
     // Send PIM hello packets: 30 seconds.
     private final long pimHelloPeriod = 30;
+
+    private final int timeoutTaskPeriod = DEFAULT_TIMEOUT_TASK_PERIOD_MS;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
@@ -113,18 +118,16 @@ public class PIMInterfaceManager implements PIMInterfaceService {
         interfaceService.addListener(interfaceListener);
 
         // Schedule the periodic hello sender.
-        helloScheduler.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    for (PIMInterface pif : pimInterfaces.values()) {
-                        pif.sendHello();
-                    }
-                } catch (Exception e) {
-                    log.warn("exception", e);
-                }
-            }
-        }, initialHelloDelay, pimHelloPeriod, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleAtFixedRate(
+                SafeRecurringTask.wrap(
+                        () -> pimInterfaces.values().forEach(PIMInterface::sendHello)),
+                initialHelloDelay, pimHelloPeriod, TimeUnit.SECONDS);
+
+        // Schedule task to periodically time out expired neighbors
+        scheduledExecutorService.scheduleAtFixedRate(
+                SafeRecurringTask.wrap(
+                        () -> pimInterfaces.values().forEach(PIMInterface::checkNeighborTimeouts)),
+                0, timeoutTaskPeriod, TimeUnit.MILLISECONDS);
 
         log.info("Started");
     }
@@ -136,7 +139,7 @@ public class PIMInterfaceManager implements PIMInterfaceService {
         networkConfig.unregisterConfigFactory(pimConfigFactory);
 
         // Shutdown the periodic hello task.
-        helloScheduler.shutdown();
+        scheduledExecutorService.shutdown();
 
         log.info("Stopped");
     }

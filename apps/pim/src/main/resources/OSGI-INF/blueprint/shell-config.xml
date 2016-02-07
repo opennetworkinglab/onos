@@ -19,6 +19,9 @@
         <command>
             <action class="org.onosproject.pim.cli.PimInterfacesListCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.pim.cli.PimNeighborsListCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>

@@ -15,216 +15,226 @@
  */
 package org.onosproject.pim.impl;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.pim.PIMHelloOption;
-import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Map;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
-import static org.slf4j.LoggerFactory.getLogger;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Represents a PIM neighbor.
+ */
 public class PIMNeighbor {
 
-    private final Logger log = getLogger(getClass());
-
     // IP Address of this neighbor
-    private IpAddress ipAddr;
+    private final IpAddress ipAddr;
 
     // MAC Address of the neighbor (Need for sending J/P)
-    private MacAddress macAddr;
+    private final MacAddress macAddr;
 
     // Hello Options
     // Our hello opt holdTime
-    private short holdTime;
+    private final short holdTime;
 
     // Our hello opt prune delay
-    private int pruneDelay;
+    private final int pruneDelay;
 
     // Neighbor priority
-    private int priority;
+    private final int priority;
 
     // Our current genId
-    private int genId;
+    private final int genId;
+
+    private final long upTime;
 
     // Our timestamp for this neighbor
-    private Date lastRefresh;
+    private long lastRefresh;
 
     /**
-     * Construct a new PIM Neighbor.
+     * Class constructor.
      *
-     * @param ipAddr the IP Address of our new neighbor
-     * @param opts option map
+     * @param ipAddress neighbor IP address
+     * @param macAddress neighbor MAC address
+     * @param holdTime hold time
+     * @param pruneDelay prune delay
+     * @param priority priority
+     * @param genId generation ID
      */
-    public PIMNeighbor(IpAddress ipAddr, Map<Short, PIMHelloOption> opts) {
-        this.ipAddr = ipAddr;
-        this.addOptions(opts);
+    public PIMNeighbor(IpAddress ipAddress, MacAddress macAddress,
+                       short holdTime, int pruneDelay, int priority, int genId) {
+        this.ipAddr = checkNotNull(ipAddress);
+        this.macAddr = checkNotNull(macAddress);
+        this.holdTime = holdTime;
+        this.pruneDelay = pruneDelay;
+        this.priority = priority;
+        this.genId = genId;
+
+        this.upTime = System.currentTimeMillis();
     }
 
     /**
-     * Construct a new PIM neighbor.
-     *
-     * @param ipAddr the neighbors IP addr
-     * @param macAddr MAC address
-     */
-    public PIMNeighbor(IpAddress ipAddr, MacAddress macAddr) {
-        this.ipAddr = ipAddr;
-        this.macAddr = macAddr;
-    }
-
-    /**
-     * Get the MAC address of this neighbor.
-     *
-     * @return the mac address
-     */
-    public MacAddress getMacaddr() {
-        return macAddr;
-    }
-
-    /**
-     * Get the IP Address of our neighbor.
+     * Gets the IP address of our neighbor.
      *
      * @return the IP address of our neighbor
      */
-    public IpAddress getIpaddr() {
+    public IpAddress ipAddress() {
         return ipAddr;
     }
 
     /**
-     * Set the IP address of our neighbor.
+     * Gets the MAC address of this neighbor.
      *
-     * @param ipAddr our neighbors IP address
+     * @return the mac address
      */
-    public void setIpaddr(IpAddress ipAddr) {
-        this.ipAddr = ipAddr;
+    public MacAddress macAddress() {
+        return macAddr;
     }
 
     /**
-     * Get our neighbors holdTime.
+     * Gets our neighbor's hold time.
      *
-     * @return the holdTime
+     * @return the hold time
      */
-    public short getHoldtime() {
+    public short holdtime() {
         return holdTime;
     }
 
     /**
-     * Set our neighbors holdTime.
+     * Gets our neighbor's prune delay.
      *
-     * @param holdTime the holdTime
+     * @return our neighbor's prune delay
      */
-    public void setHoldtime(short holdTime) {
-        this.holdTime = holdTime;
-    }
-
-    /**
-     * Get our neighbors prune delay.
-     *
-     * @return our neighbors prune delay
-     */
-    public int getPruneDelay() {
+    public int pruneDelay() {
         return pruneDelay;
     }
 
     /**
-     * Set our neighbors prune delay.
+     * Gets our neighbor's priority.
      *
-     * @param pruneDelay the prune delay
+     * @return our neighbor's priority
      */
-    public void setPruneDelay(int pruneDelay) {
-        this.pruneDelay = pruneDelay;
-    }
-
-    /**
-     * Get our neighbors priority.
-     *
-     * @return our neighbors priority
-     */
-    public int getPriority() {
+    public int priority() {
         return priority;
     }
 
     /**
-     * Set our neighbors priority.
+     * Gets our neighbor's generation ID.
      *
-     * @param priority our neighbors priority
+     * @return our neighbor's generation ID
      */
-    public void setPriority(int priority) {
-        this.priority = priority;
-    }
-
-    /**
-     * Get our neighbors Genid.
-     *
-     * @return our neighbor Genid
-     */
-    public int getGenid() {
+    public int generationId() {
         return genId;
     }
 
     /**
-     * Set our neighbors GenId.
+     * Gets the last time we heard a HELLO from this neighbor.
      *
-     * @param genId our neighbors GenId
+     * @return last refresh time
      */
-    public void setGenid(int genId) {
-        this.genId = genId;
+    public long lastRefresh() {
+        return lastRefresh;
     }
 
     /**
-     * Add the options for this neighbor if needed.
+     * Gets the time that we first learnt of this neighbor.
      *
-     * @param opts the options to be added/modified
-     * @return true if options changed, false if no option has changed
+     * @return up time
      */
-    public boolean addOptions(Map<Short, PIMHelloOption> opts) {
-
-        boolean changed = false;
-
-        for (PIMHelloOption opt : opts.values()) {
-            Short otype = opt.getOptType();
-            ByteBuffer val = ByteBuffer.wrap(opt.getValue());
-
-            if (otype == PIMHelloOption.OPT_ADDRLIST) {
-                // TODO: Will implement someday
-            } else if (otype == PIMHelloOption.OPT_GENID) {
-                int newval = val.getInt();
-                if (newval != genId) {
-                    genId = newval;
-                    changed = true;
-                }
-            } else if (otype == PIMHelloOption.OPT_HOLDTIME) {
-                short newval = val.getShort();
-                if (newval != holdTime) {
-                    holdTime = newval;
-                    changed = true;
-                }
-            } else if (otype == PIMHelloOption.OPT_PRIORITY) {
-                int newval = val.getInt();
-                if (newval != priority) {
-                    priority = newval;
-                    changed = true;
-                }
-            } else if (otype == PIMHelloOption.OPT_PRUNEDELAY) {
-                int newval = val.getInt();
-                if (newval != pruneDelay) {
-                    pruneDelay = newval;
-                    changed = true;
-                }
-            } else {
-                log.warn("received unknown pim hello options" + otype);
-            }
-        }
-        return changed;
+    public long upTime() {
+        return upTime;
     }
 
     /**
-     * Refresh this neighbors timestamp.
+     * Refreshes this neighbor's last seen timestamp.
      */
     public void refreshTimestamp() {
-        lastRefresh = Calendar.getInstance().getTime();
+        lastRefresh = System.currentTimeMillis();
     }
+
+    /**
+     * Returns whether this neighbor is expired or not.
+     *
+     * @return true if the neighbor is expired, otherwise false
+     */
+    public boolean isExpired() {
+        return lastRefresh + TimeUnit.SECONDS.toMillis(holdTime)
+                < System.currentTimeMillis();
+    }
+
+    /**
+     * Creates a PIM neighbor based on an IP, MAC, and collection of PIM HELLO
+     * options.
+     *
+     * @param ipAddress neighbor IP address
+     * @param macAddress neighbor MAC address
+     * @param opts options from the PIM HELLO packet
+     * @return new PIM neighbor
+     */
+    public static PIMNeighbor createPimNeighbor(IpAddress ipAddress,
+                                                MacAddress macAddress,
+                                                Collection<PIMHelloOption> opts) {
+
+        int generationID = PIMHelloOption.DEFAULT_GENID;
+        short holdTime = PIMHelloOption.DEFAULT_HOLDTIME;
+        int priority = PIMHelloOption.DEFAULT_PRIORITY;
+        int pruneDelay = PIMHelloOption.DEFAULT_PRUNEDELAY;
+
+        for (PIMHelloOption opt : opts) {
+            short type = opt.getOptType();
+            ByteBuffer value = ByteBuffer.wrap(opt.getValue());
+
+            if (type == PIMHelloOption.OPT_GENID) {
+                generationID = value.getInt();
+            } else if (type == PIMHelloOption.OPT_HOLDTIME) {
+                holdTime = value.getShort();
+            } else if (type == PIMHelloOption.OPT_PRIORITY) {
+                priority = value.getInt();
+            } else if (type == PIMHelloOption.OPT_PRUNEDELAY) {
+                pruneDelay = value.getInt();
+            } else if (type == PIMHelloOption.OPT_ADDRLIST) {
+                // TODO: Will implement someday
+            }
+        }
+
+        return new PIMNeighbor(ipAddress, macAddress, holdTime, pruneDelay, priority, generationID);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof PIMNeighbor)) {
+            return false;
+        }
+
+        PIMNeighbor that = (PIMNeighbor) other;
+
+        return this.ipAddr.equals(that.ipAddress()) &&
+                this.macAddr.equals(that.macAddress()) &&
+                this.genId == that.genId &&
+                this.holdTime == that.holdTime &&
+                this.priority == that.priority;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ipAddr, macAddr, genId, holdTime, priority);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("ipAddress", ipAddr)
+                .add("macAddress", macAddr)
+                .add("generationId", genId)
+                .add("holdTime", holdTime)
+                .add("priority", priority)
+                .add("pruneDelay", pruneDelay)
+                .toString();
+    }
+
 }

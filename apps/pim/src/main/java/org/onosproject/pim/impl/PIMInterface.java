@@ -32,10 +32,12 @@ import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -99,10 +101,7 @@ public final class PIMInterface {
         generationId = new Random().nextInt();
 
         // Create a PIM Neighbor to represent ourselves for DR election.
-        PIMNeighbor us = new PIMNeighbor(ourIp, mac);
-
-        // Priority and IP address are all we need to DR election.
-        us.setPriority(priority);
+        PIMNeighbor us = new PIMNeighbor(ourIp, mac, holdTime, 0, priority, generationId);
 
         pimNeighbors.put(ourIp, us);
         drIpaddress = ourIp;
@@ -199,6 +198,32 @@ public final class PIMInterface {
     }
 
     /**
+     * Gets the neighbors seen on this interface.
+     *
+     * @return PIM neighbors
+     */
+    public Collection<PIMNeighbor> getNeighbors() {
+        return pimNeighbors.values();
+    }
+
+    /**
+     * Checks whether any of our neighbors have expired, and cleans up their
+     * state if they have.
+     */
+    public void checkNeighborTimeouts() {
+        Set<PIMNeighbor> expired = pimNeighbors.values().stream()
+                // Don't time ourselves out!
+                .filter(neighbor -> !neighbor.ipAddress().equals(getIpAddress()))
+                .filter(neighbor -> neighbor.isExpired())
+                .collect(Collectors.toSet());
+
+        for (PIMNeighbor neighbor : expired) {
+            log.info("Timing out neighbor {}", neighbor);
+            pimNeighbors.remove(neighbor.ipAddress(), neighbor);
+        }
+    }
+
+    /**
      * Multicast a hello message out our interface.  This hello message is sent
      * periodically during the normal PIM Neighbor refresh time, as well as a
      * result of a newly created interface.
@@ -234,7 +259,7 @@ public final class PIMInterface {
      *     <li>We <em>may</em> have to create a new neighbor if one does not already exist</li>
      *     <li>We <em>may</em> need to re-elect a new DR if new information is received</li>
      *     <li>We <em>may</em> need to send an existing neighbor all joins if the genid changed</li>
-     *     <li>We will refresh the neighbors timestamp</li>
+     *     <li>We will refresh the neighbor's timestamp</li>
      * </ul>
      *
      * @param ethPkt the Ethernet packet header
@@ -259,7 +284,7 @@ public final class PIMInterface {
         checkNotNull(dr);
 
         IpAddress drip = drIpaddress;
-        int drpri = dr.getPriority();
+        int drpri = dr.priority();
 
         // Assume we do not need to run a DR election
         boolean reElectDr = false;
@@ -269,18 +294,24 @@ public final class PIMInterface {
 
         // Determine if we already have a PIMNeighbor
         PIMNeighbor nbr = pimNeighbors.getOrDefault(srcip, null);
+        PIMNeighbor newNbr = PIMNeighbor.createPimNeighbor(srcip, nbrmac, hello.getOptions().values());
+
         if (nbr == null) {
-            nbr = new PIMNeighbor(srcip, hello.getOptions());
-            checkNotNull(nbr);
-        } else {
-            Integer previousGenid = nbr.getGenid();
-            nbr.addOptions(hello.getOptions());
-            if (previousGenid != nbr.getGenid()) {
-                genidChanged = true;
+            pimNeighbors.putIfAbsent(srcip, newNbr);
+            nbr = newNbr;
+        } else if (!nbr.equals(newNbr)) {
+            if (newNbr.holdtime() == 0) {
+                // Neighbor has shut down. Remove them and clean up
+                pimNeighbors.remove(srcip, nbr);
+                return;
+            } else {
+                // Neighbor has changed one of their options.
+                pimNeighbors.put(srcip, newNbr);
+                nbr = newNbr;
             }
         }
 
-        // Refresh this neighbors timestamp
+        // Refresh this neighbor's timestamp
         nbr.refreshTimestamp();
 
         /*
@@ -300,8 +331,8 @@ public final class PIMInterface {
     // Run an election if we need to.  Return the elected IP address.
     private IpAddress election(PIMNeighbor nbr, IpAddress drIp, int drPriority) {
 
-        IpAddress nbrIp = nbr.getIpaddr();
-        if (nbr.getPriority() > drPriority) {
+        IpAddress nbrIp = nbr.ipAddress();
+        if (nbr.priority() > drPriority) {
             return nbrIp;
         }
 
