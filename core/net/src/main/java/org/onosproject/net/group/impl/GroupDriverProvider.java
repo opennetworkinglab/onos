@@ -16,6 +16,7 @@
 
 package org.onosproject.net.group.impl;
 
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.group.GroupOperations;
@@ -60,10 +61,12 @@ public class GroupDriverProvider extends AbstractProvider implements GroupProvid
     }
 
     private GroupProgrammable getGroupProgrammable(DeviceId deviceId) {
-        GroupProgrammable programmable = deviceService.getDevice(deviceId).as(GroupProgrammable.class);
-        if (programmable == null) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device.is(GroupProgrammable.class)) {
+            return device.as(GroupProgrammable.class);
+        } else {
             log.warn("Device {} is not group programmable");
+            return null;
         }
-        return programmable;
     }
 }

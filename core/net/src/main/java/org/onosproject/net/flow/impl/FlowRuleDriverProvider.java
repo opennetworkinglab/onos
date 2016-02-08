@@ -22,6 +22,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.CompletedBatchOperation;
@@ -154,11 +155,13 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
     }
 
     private FlowRuleProgrammable getFlowRuleProgrammable(DeviceId deviceId) {
-        FlowRuleProgrammable programmable = deviceService.getDevice(deviceId).as(FlowRuleProgrammable.class);
-        if (programmable == null) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device.is(FlowRuleProgrammable.class)) {
+            return device.as(FlowRuleProgrammable.class);
+        } else {
             log.warn("Device {} is not flow rule programmable");
+            return null;
         }
-        return programmable;
     }
 
 

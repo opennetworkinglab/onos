@@ -16,6 +16,7 @@
 
 package org.onosproject.net.packet.impl;
 
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.packet.OutboundPacket;
@@ -60,10 +61,12 @@ public class PacketDriverProvider extends AbstractProvider implements PacketProv
     }
 
     private PacketProgrammable getPacketProgrammable(DeviceId deviceId) {
-        PacketProgrammable programmable = deviceService.getDevice(deviceId).as(PacketProgrammable.class);
-        if (programmable == null) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device.is(PacketProgrammable.class)) {
+            return device.as(PacketProgrammable.class);
+        } else {
             log.warn("Device {} is not packet programmable");
+            return null;
         }
-        return programmable;
     }
 }
