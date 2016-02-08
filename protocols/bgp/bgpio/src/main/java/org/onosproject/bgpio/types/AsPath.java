@@ -63,6 +63,7 @@ public class AsPath implements BgpValueType {
     public static final byte ASPATH_SET_TYPE = 1;
     public static final byte ASPATH_SEQ_TYPE = 2;
     public static final byte ASNUM_SIZE = 2;
+    public static final byte FLAGS = (byte) 0x40;
 
     private boolean isAsPath = false;
     private List<Short> aspathSet;
@@ -201,8 +202,25 @@ public class AsPath implements BgpValueType {
 
     @Override
     public int write(ChannelBuffer cb) {
-        //Not required to Implement as of now
-        return 0;
+        int iLenStartIndex = cb.writerIndex();
+        cb.writeByte(FLAGS);
+        cb.writeByte(getType());
+        if (isaspathSet()) {
+            int iAsLenIndex = cb.writerIndex();
+            cb.writeByte(0);
+            cb.writeByte(ASPATH_SEQ_TYPE);
+            cb.writeByte(aspathSeq.size());
+
+            for (int j = 0; j < aspathSeq.size(); j++) {
+                cb.writeShort(aspathSeq.get(j));
+            }
+
+            int asLen = cb.writerIndex() - iAsLenIndex;
+            cb.setByte(iAsLenIndex, (byte) (asLen - 1));
+        } else {
+            cb.writeByte(0);
+        }
+        return cb.writerIndex() - iLenStartIndex;
     }
 
     @Override

@@ -30,6 +30,7 @@ import com.google.common.base.MoreObjects;
 public class LocalPref implements BgpValueType {
     public static final byte LOCAL_PREF_TYPE = 5;
     public static final byte LOCAL_PREF_MAX_LEN = 4;
+    public static final byte FLAGS = (byte) 0x40;
 
     private int localPref;
 
@@ -109,8 +110,12 @@ public class LocalPref implements BgpValueType {
 
     @Override
     public int write(ChannelBuffer cb) {
-        //Not to implement as of now
-        return 0;
+        int iLenStartIndex = cb.writerIndex();
+        cb.writeByte(FLAGS);
+        cb.writeByte(getType());
+        cb.writeByte(4);
+        cb.writeInt(localPref());
+        return cb.writerIndex() - iLenStartIndex;
     }
 
     @Override

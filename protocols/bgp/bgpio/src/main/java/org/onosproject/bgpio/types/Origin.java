@@ -55,6 +55,7 @@ public class Origin implements BgpValueType {
 
     public static final byte ORIGIN_TYPE = 1;
     public static final byte ORIGIN_VALUE_LEN = 1;
+    public static final byte FLAGS = (byte) 0x40;
 
     private boolean isOrigin = false;
     private byte origin;
@@ -131,8 +132,12 @@ public class Origin implements BgpValueType {
 
     @Override
     public int write(ChannelBuffer cb) {
-        //Not required to Implement as of now
-        return 0;
+        int iLenStartIndex = cb.writerIndex();
+        cb.writeByte(FLAGS);
+        cb.writeByte(ORIGIN_TYPE);
+        cb.writeByte(1);
+        cb.writeByte(origin().value);
+        return cb.writerIndex() - iLenStartIndex;
     }
 
     @Override

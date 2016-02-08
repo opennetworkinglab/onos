@@ -34,6 +34,7 @@ public class As4Path implements BgpValueType {
     private static final Logger log = LoggerFactory.getLogger(AsPath.class);
     public static final byte AS4PATH_TYPE = 17;
     public static final byte ASNUM_SIZE = 4;
+    public static final byte FLAGS = (byte) 0x40;
 
     private List<Integer> as4pathSet;
     private List<Integer> as4pathSeq;
@@ -162,8 +163,27 @@ public class As4Path implements BgpValueType {
 
     @Override
     public int write(ChannelBuffer cb) {
-        //Not required to Implement as of now
-        return 0;
+
+        int iLenStartIndex = cb.writerIndex();
+
+        cb.writeByte(FLAGS);
+        cb.writeByte(getType());
+        if ((as4pathSet != null) && (as4pathSeq != null)) {
+            int iAsLenIndex = cb.writerIndex();
+            cb.writeByte(0);
+            cb.writeByte(AsPath.ASPATH_SEQ_TYPE);
+            cb.writeByte(as4pathSeq.size());
+
+            for (int j = 0; j < as4pathSeq.size(); j++) {
+                cb.writeInt(as4pathSeq.get(j));
+            }
+
+            int asLen = cb.writerIndex() - iAsLenIndex;
+            cb.setByte(iAsLenIndex, (byte) (asLen - 1));
+        } else {
+            cb.writeByte(0);
+        }
+        return cb.writerIndex() - iLenStartIndex;
     }
 
     @Override

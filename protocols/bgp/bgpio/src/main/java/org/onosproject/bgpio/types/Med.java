@@ -30,6 +30,7 @@ import com.google.common.base.MoreObjects;
 public class Med implements BgpValueType {
     public static final byte MED_TYPE = 4;
     public static final byte MED_MAX_LEN = 4;
+    public static final byte FLAGS = (byte) 0x80;
 
     private int med;
 
@@ -109,8 +110,12 @@ public class Med implements BgpValueType {
 
     @Override
     public int write(ChannelBuffer cb) {
-        //Not to implement as of now
-        return 0;
+        int iLenStartIndex = cb.writerIndex();
+        cb.writeByte(FLAGS);
+        cb.writeByte(getType());
+        cb.writeByte(4);
+        cb.writeInt(med());
+        return cb.writerIndex() - iLenStartIndex;
     }
 
     @Override
