@@ -17,6 +17,8 @@ package org.onosproject.sfc.manager.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -28,15 +30,16 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
-import org.onlab.packet.IPv6;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
+import org.onlab.packet.TCP;
+import org.onlab.packet.UDP;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.NshServicePathId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
@@ -46,6 +49,9 @@ import org.onosproject.sfc.installer.FlowClassifierInstallerService;
 import org.onosproject.sfc.installer.impl.FlowClassifierInstallerImpl;
 import org.onosproject.sfc.manager.NshSpiIdGenerators;
 import org.onosproject.sfc.manager.SfcService;
+import org.onosproject.vtnrsc.DefaultFiveTuple;
+import org.onosproject.vtnrsc.FiveTuple;
+import org.onosproject.vtnrsc.FixedIp;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.FlowClassifierId;
 import org.onosproject.vtnrsc.PortChain;
@@ -55,10 +61,15 @@ import org.onosproject.vtnrsc.PortPairGroup;
 import org.onosproject.vtnrsc.PortPairGroupId;
 import org.onosproject.vtnrsc.PortPairId;
 import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.VirtualPort;
+import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.event.VtnRscEvent;
 import org.onosproject.vtnrsc.event.VtnRscEventFeedback;
 import org.onosproject.vtnrsc.event.VtnRscListener;
+import org.onosproject.vtnrsc.flowclassifier.FlowClassifierService;
+import org.onosproject.vtnrsc.portchain.PortChainService;
 import org.onosproject.vtnrsc.service.VtnRscService;
+import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 import org.slf4j.Logger;
 
 /**
@@ -71,6 +82,7 @@ public class SfcManager implements SfcService {
     private final Logger log = getLogger(getClass());
     private static final String APP_ID = "org.onosproject.app.vtn";
     private static final int SFC_PRIORITY = 1000;
+    private static final int NULL_PORT = 0;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected VtnRscService vtnRscService;
@@ -80,6 +92,15 @@ public class SfcManager implements SfcService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PortChainService portChainService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowClassifierService flowClassifierService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VirtualPortService virtualPortService;
 
     private SfcPacketProcessor processor = new SfcPacketProcessor();
 
@@ -238,32 +259,193 @@ public class SfcManager implements SfcService {
 
     private class SfcPacketProcessor implements PacketProcessor {
 
+        /**
+         * Check for given ip match with the fixed ips for the virtual port.
+         *
+         * @param vPortId virtual port id
+         * @param ip ip address to match
+         * @return true if the ip match with the fixed ips in virtual port false otherwise
+         */
+        private boolean checkIpInVirtualPort(VirtualPortId vPortId, IpAddress ip) {
+            boolean found = false;
+            Set<FixedIp> ips = virtualPortService.getPort(vPortId).fixedIps();
+            for (FixedIp fixedIp : ips) {
+                if (fixedIp.ip().equals(ip)) {
+                    found = true;
+                    break;
+                }
+            }
+            return found;
+        }
+
+        /**
+         * Find the port chain for the received packet.
+         *
+         * @param fiveTuple five tuple info from the packet
+         * @return portChainId id of port chain
+         */
+        private PortChainId findPortChainFromFiveTuple(FiveTuple fiveTuple) {
+
+            PortChainId portChainId = null;
+
+            Iterable<PortChain> portChains = portChainService.getPortChains();
+            if (portChains == null) {
+                log.error("Could not retrive port chain list");
+            }
+
+            // Identify the port chain to which the packet belongs
+            for (final PortChain portChain : portChains) {
+
+                Iterable<FlowClassifierId> flowClassifiers = portChain.flowClassifiers();
+
+                // One port chain can have multiple flow classifiers.
+                for (final FlowClassifierId flowClassifierId : flowClassifiers) {
+
+                    FlowClassifier flowClassifier = flowClassifierService.getFlowClassifier(flowClassifierId);
+                    boolean match = false;
+                    // Check whether protocol is set in flow classifier
+                    if (flowClassifier.protocol() != null) {
+                        if ((flowClassifier.protocol().equals("TCP") && fiveTuple.protocol() == IPv4.PROTOCOL_TCP) ||
+                                (flowClassifier.protocol().equals("UDP") &&
+                                        fiveTuple.protocol() == IPv4.PROTOCOL_UDP)) {
+                            match = true;
+                        } else {
+                            continue;
+                        }
+                    }
+
+                    // Check whether source ip prefix is set in flow classifier
+                    if (flowClassifier.srcIpPrefix() != null) {
+                        if (flowClassifier.srcIpPrefix().contains(fiveTuple.ipSrc())) {
+                            match = true;
+                        } else {
+                            continue;
+                        }
+                    }
+
+                    // Check whether destination ip prefix is set in flow classifier
+                    if (flowClassifier.dstIpPrefix() != null) {
+                        if (flowClassifier.dstIpPrefix().contains(fiveTuple.ipDst())) {
+                            match = true;
+                        } else {
+                            continue;
+                        }
+                    }
+
+                    // Check whether source port is set in flow classifier
+                    if (fiveTuple.portSrc().toLong() >= flowClassifier.minSrcPortRange() ||
+                            fiveTuple.portSrc().toLong() <= flowClassifier.maxSrcPortRange()) {
+                        match = true;
+                    } else {
+                        continue;
+                    }
+
+                    // Check whether destination port is set in flow classifier
+                    if (fiveTuple.portDst().toLong() >= flowClassifier.minSrcPortRange() ||
+                            fiveTuple.portDst().toLong() <= flowClassifier.maxSrcPortRange()) {
+                        match = true;
+                    } else {
+                        continue;
+                    }
+
+                    // Check whether neutron source port is set in flow classfier
+                    if ((flowClassifier.srcPort() != null) && (!flowClassifier.srcPort().portId().isEmpty())) {
+                        match = checkIpInVirtualPort(VirtualPortId.portId(flowClassifier.srcPort().portId()),
+                                                     fiveTuple.ipSrc());
+                        if (!match) {
+                            continue;
+                        }
+                    }
+
+                    // Check whether destination neutron destination port is set in flow classifier
+                    if ((flowClassifier.dstPort() != null) && (!flowClassifier.dstPort().portId().isEmpty())) {
+                        match = checkIpInVirtualPort(VirtualPortId.portId(flowClassifier.dstPort().portId()),
+                                                     fiveTuple.ipDst());
+                        if (!match) {
+                            continue;
+                        }
+                    }
+
+                    if (match) {
+                        portChainId = portChain.portChainId();
+                        break;
+                    }
+                }
+            }
+            return portChainId;
+        }
+
+
+        /**
+         * Get the tenant id for the given mac address.
+         *
+         * @param mac mac address
+         * @return tenantId tenant id for the given mac address
+         */
+        private TenantId getTenantId(MacAddress mac) {
+            Collection<VirtualPort> virtualPorts = virtualPortService.getPorts();
+            for (VirtualPort virtualPort : virtualPorts) {
+                if (virtualPort.macAddress().equals(mac)) {
+                    return virtualPort.tenantId();
+                }
+            }
+            return null;
+        }
+
         @Override
         public void process(PacketContext context) {
             Ethernet packet = context.inPacket().parsed();
             if (packet == null) {
                 return;
             }
-            // get the five tupple parameters for the packet
+            // get the five tuple parameters for the packet
             short ethType = packet.getEtherType();
-            VlanId vlanId = VlanId.vlanId(packet.getVlanID());
-            MacAddress srcMac = packet.getSourceMAC();
-            MacAddress dstMac = packet.getDestinationMAC();
-            IpAddress ipSrc;
-            IpAddress ipDst;
+            IpAddress ipSrc = null;
+            IpAddress ipDst = null;
+            int portSrc = 0;
+            int portDst = 0;
+            byte protocol = 0;
+            MacAddress macSrc = packet.getSourceMAC();
+            TenantId tenantId = getTenantId(macSrc);
 
             if (ethType == Ethernet.TYPE_IPV4) {
                 IPv4 ipv4Packet = (IPv4) packet.getPayload();
                 ipSrc = IpAddress.valueOf(ipv4Packet.getSourceAddress());
                 ipDst = IpAddress.valueOf(ipv4Packet.getDestinationAddress());
+                protocol = ipv4Packet.getProtocol();
+                if (protocol == IPv4.PROTOCOL_TCP) {
+                    TCP tcpPacket = (TCP) ipv4Packet.getPayload();
+                    portSrc = tcpPacket.getSourcePort();
+                    portDst = tcpPacket.getDestinationPort();
+                } else  if (protocol == IPv4.PROTOCOL_UDP) {
+                    UDP udpPacket = (UDP) ipv4Packet.getPayload();
+                    portSrc = udpPacket.getSourcePort();
+                    portDst = udpPacket.getDestinationPort();
+                }
             } else if (ethType == Ethernet.TYPE_IPV6) {
-                IPv6 ipv6Packet = (IPv6) packet.getPayload();
-                ipSrc = IpAddress.valueOf(ipv6Packet.getSourceAddress().toString());
-                ipDst = IpAddress.valueOf(ipv6Packet.getDestinationAddress().toString());
+                return;
             }
 
-            //todo
-           //identify the port chain to which the packet belongs
+
+            FiveTuple fiveTuple = DefaultFiveTuple.builder()
+                    .setIpSrc(ipSrc)
+                    .setIpDst(ipDst)
+                    .setPortSrc(PortNumber.portNumber(portSrc))
+                    .setPortDst(PortNumber.portNumber(portDst))
+                    .setProtocol(protocol)
+                    .setTenantId(tenantId)
+                    .build();
+
+            PortChainId portChainId = findPortChainFromFiveTuple(fiveTuple);
+
+            if (portChainId == null) {
+                log.error("Packet does not match with any classifier");
+                return;
+            }
+
+            // TODO
+            // download the required flow rules for classifier and forwarding
+            // resend the packet back to classifier
         }
     }
 }
