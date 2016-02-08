@@ -25,6 +25,11 @@ public enum PrepareResult {
     OK,
 
     /**
+     * Signifies some participants in a distributed prepare operation failed.
+     */
+    PARTIAL_FAILURE,
+
+    /**
      * Signifies a failure to another transaction locking the underlying state.
      */
     CONCURRENT_TRANSACTION,

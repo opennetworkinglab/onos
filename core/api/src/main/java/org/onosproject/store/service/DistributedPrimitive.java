@@ -61,7 +61,12 @@ public interface DistributedPrimitive {
         /**
          * Leader elector.
          */
-        LEADER_ELECTOR
+        LEADER_ELECTOR,
+
+        /**
+         * Transaction Context.
+         */
+        TRANSACTION_CONTEXT
     }
 
     static final long DEFAULT_OPERTATION_TIMEOUT_MILLIS = 5000L;

@@ -199,6 +199,7 @@ import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.link.MplsLabelResourceRequest;
 import org.onosproject.security.Permission;
 import org.onosproject.store.Timestamp;
+import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.SetEvent;
 import org.onosproject.store.service.Versioned;
@@ -483,6 +484,7 @@ public final class KryoNamespaces {
             .register(new ExtensionCriterionSerializer(), ExtensionCriterion.class)
             .register(ExtensionSelectorType.class)
             .register(ExtensionTreatmentType.class)
+            .register(TransactionId.class)
             .register(Versioned.class)
             .register(MapEvent.class)
             .register(MapEvent.Type.class)

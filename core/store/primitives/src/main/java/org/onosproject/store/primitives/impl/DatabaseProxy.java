@@ -17,7 +17,6 @@
 package org.onosproject.store.primitives.impl;
 
 import org.onlab.util.Match;
-import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;

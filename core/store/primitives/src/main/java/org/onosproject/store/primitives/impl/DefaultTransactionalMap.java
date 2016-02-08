@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.onlab.util.HexString;
+import org.onosproject.store.primitives.resources.impl.MapUpdate;
 import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionalMap;
@@ -159,14 +159,14 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
         return latest;
     }
 
-    protected List<DatabaseUpdate> prepareDatabaseUpdates() {
-        List<DatabaseUpdate> updates = Lists.newLinkedList();
+    protected List<MapUpdate<String, byte[]>> toMapUpdates() {
+        List<MapUpdate<String, byte[]>> updates = Lists.newLinkedList();
         deleteSet.forEach(key -> {
             Versioned<V> original = readCache.get(key);
             if (original != null) {
-                updates.add(DatabaseUpdate.newBuilder()
+                updates.add(MapUpdate.<String, byte[]>newBuilder()
                         .withMapName(name)
-                        .withType(DatabaseUpdate.Type.REMOVE_IF_VERSION_MATCH)
+                        .withType(MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
                         .withKey(keyCache.getUnchecked(key))
                         .withCurrentVersion(original.version())
                         .build());
@@ -175,16 +175,16 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
         writeCache.forEach((key, value) -> {
             Versioned<V> original = readCache.get(key);
             if (original == null) {
-                updates.add(DatabaseUpdate.newBuilder()
+                updates.add(MapUpdate.<String, byte[]>newBuilder()
                         .withMapName(name)
-                        .withType(DatabaseUpdate.Type.PUT_IF_ABSENT)
+                        .withType(MapUpdate.Type.PUT_IF_ABSENT)
                         .withKey(keyCache.getUnchecked(key))
                         .withValue(serializer.encode(value))
                         .build());
             } else {
-                updates.add(DatabaseUpdate.newBuilder()
+                updates.add(MapUpdate.<String, byte[]>newBuilder()
                         .withMapName(name)
-                        .withType(DatabaseUpdate.Type.PUT_IF_VERSION_MATCH)
+                        .withType(MapUpdate.Type.PUT_IF_VERSION_MATCH)
                         .withKey(keyCache.getUnchecked(key))
                         .withCurrentVersion(original.version())
                         .withValue(serializer.encode(value))
@@ -199,7 +199,7 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("backingMap", backingMap)
-                .add("updates", prepareDatabaseUpdates())
+                .add("updates", toMapUpdates())
                 .toString();
     }
 

@@ -15,6 +15,13 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.primitives.resources.impl.CommitResult;
+import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionContextBuilder;
 
@@ -22,29 +29,28 @@ import org.onosproject.store.service.TransactionContextBuilder;
  * The default implementation of a transaction context builder. This builder
  * generates a {@link DefaultTransactionContext}.
  */
-public class DefaultTransactionContextBuilder implements TransactionContextBuilder {
+public class DefaultTransactionContextBuilder extends TransactionContextBuilder {
 
-    private boolean partitionsEnabled = true;
-    private final DatabaseManager manager;
-    private final long transactionId;
+    private final Supplier<ConsistentMapBuilder> mapBuilderSupplier;
+    private final Function<Transaction, CompletableFuture<CommitResult>> transactionCommitter;
+    private final TransactionId transactionId;
 
-    public DefaultTransactionContextBuilder(DatabaseManager manager, long transactionId) {
-        this.manager = manager;
+    public DefaultTransactionContextBuilder(Supplier<ConsistentMapBuilder> mapBuilderSupplier,
+            Function<Transaction, CompletableFuture<CommitResult>> transactionCommiter,
+            TransactionId transactionId) {
+        this.mapBuilderSupplier = mapBuilderSupplier;
+        this.transactionCommitter = transactionCommiter;
         this.transactionId = transactionId;
     }
 
     @Override
-    public TransactionContextBuilder withPartitionsDisabled() {
-        partitionsEnabled = false;
-        return this;
-    }
-
-    @Override
     public TransactionContext build() {
-        return new DefaultTransactionContext(
-                transactionId,
-                partitionsEnabled ? manager.partitionedDatabase : manager.inMemoryDatabase,
-                () -> partitionsEnabled ? manager.consistentMapBuilder()
-                                        : manager.consistentMapBuilder().withPartitionsDisabled());
+        return new DefaultTransactionContext(transactionId, transactionCommitter, () -> {
+            ConsistentMapBuilder mapBuilder = mapBuilderSupplier.get();
+            if (partitionsDisabled()) {
+                mapBuilder = mapBuilder.withPartitionsDisabled();
+            }
+            return mapBuilder;
+        });
     }
 }

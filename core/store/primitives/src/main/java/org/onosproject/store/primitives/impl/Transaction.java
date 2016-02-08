@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.service;
+package org.onosproject.store.primitives.impl;
 
 import java.util.List;
+
+import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.primitives.resources.impl.MapUpdate;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 
 /**
  * An immutable transaction object.
  */
-public interface Transaction {
+public class Transaction {
 
     enum State {
         /**
@@ -55,48 +61,44 @@ public interface Transaction {
         ROLLEDBACK
     }
 
-    /**
-     * Returns the transaction Id.
-     *
-     * @return transaction id
-     */
-    long id();
+    private final TransactionId transactionId;
+    private final List<MapUpdate<String, byte[]>> updates;
+    private final State state;
 
-    /**
-     * Returns the list of updates that are part of this transaction.
-     *
-     * @return list of database updates
-     */
-    List<DatabaseUpdate> updates();
-
-    /**
-     * Returns the current state of this transaction.
-     *
-     * @return transaction state
-     */
-    State state();
-
-    /**
-     * Returns true if this transaction has completed execution.
-     *
-     * @return true is yes, false otherwise
-     */
-    default boolean isDone() {
-        return state() == State.COMMITTED || state() == State.ROLLEDBACK;
+    public Transaction(TransactionId transactionId, List<MapUpdate<String, byte[]>> updates) {
+        this(transactionId, updates, State.PREPARING);
     }
 
-    /**
-     * Returns a new transaction that is created by transitioning this one to the specified state.
-     *
-     * @param newState destination state
-     * @return a new transaction instance similar to the current one but its state set to specified state
-     */
-    Transaction transition(State newState);
+    private Transaction(TransactionId transactionId,
+            List<MapUpdate<String, byte[]>> updates,
+            State state) {
+        this.transactionId = transactionId;
+        this.updates = ImmutableList.copyOf(updates);
+        this.state = state;
+    }
 
-    /**
-     * Returns the system time when the transaction was last updated.
-     *
-     * @return last update time
-     */
-    long lastUpdated();
+    public TransactionId id() {
+        return transactionId;
+    }
+
+    public List<MapUpdate<String, byte[]>> updates() {
+        return updates;
+    }
+
+    public State state() {
+        return state;
+    }
+
+    public Transaction transition(State newState) {
+        return new Transaction(transactionId, updates, newState);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("transactionId", transactionId)
+                .add("updates", updates)
+                .add("state", state)
+                .toString();
+    }
 }

@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -46,7 +47,6 @@ import net.kuujo.copycat.protocol.Consistency;
 import net.kuujo.copycat.protocol.Protocol;
 import net.kuujo.copycat.util.concurrent.NamedThreadFactory;
 
-import org.apache.commons.lang.math.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -63,10 +63,12 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.IdGenerator;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.primitives.resources.impl.MapUpdate;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
@@ -79,7 +81,6 @@ import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.TransactionContextBuilder;
 import org.slf4j.Logger;
 
@@ -112,7 +113,8 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     protected NodeId localNodeId;
 
     private TransactionManager transactionManager;
-    private final IdGenerator transactionIdGenerator = () -> RandomUtils.nextLong();
+    private final Supplier<TransactionId> transactionIdGenerator =
+            () -> TransactionId.from(UUID.randomUUID().toString());
 
     private ApplicationListener appListener = new InternalApplicationListener();
 
@@ -212,7 +214,17 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
         Futures.getUnchecked(status);
 
-        transactionManager = new TransactionManager(partitionedDatabase, consistentMapBuilder());
+        AsyncConsistentMap<TransactionId, Transaction> transactions =
+                this.<TransactionId, Transaction>consistentMapBuilder()
+                    .withName("onos-transactions")
+                    .withSerializer(Serializer.using(KryoNamespaces.API,
+                            MapUpdate.class,
+                            MapUpdate.Type.class,
+                            Transaction.class,
+                            Transaction.State.class))
+                    .buildAsyncMap();
+
+        transactionManager = new TransactionManager(partitionedDatabase, transactions);
         partitionedDatabase.setTransactionManager(transactionManager);
 
         log.info("Started");
@@ -238,7 +250,9 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     @Override
     public TransactionContextBuilder transactionContextBuilder() {
-        return new DefaultTransactionContextBuilder(this, transactionIdGenerator.getNewId());
+        return new DefaultTransactionContextBuilder(this::consistentMapBuilder,
+                transactionManager::execute,
+                transactionIdGenerator.get());
     }
 
     @Override
@@ -385,8 +399,8 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     }
 
     @Override
-    public Collection<Transaction> getTransactions() {
-        return complete(transactionManager.getTransactions());
+    public Collection<TransactionId> getPendingTransactions() {
+        return complete(transactionManager.getPendingTransactionIds());
     }
 
     private static <T> T complete(CompletableFuture<T> future) {
@@ -400,11 +414,6 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         } catch (ExecutionException e) {
             throw new ConsistentMapException(e.getCause());
         }
-    }
-
-    @Override
-    public void redriveTransactions() {
-        getTransactions().stream().forEach(transactionManager::execute);
     }
 
     protected <K, V> DefaultAsyncConsistentMap<K, V> registerMap(DefaultAsyncConsistentMap<K, V> map) {

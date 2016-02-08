@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.onosproject.store.primitives.TransactionId;
+
 /**
  * Service for administering storage instances.
  */
@@ -62,14 +64,9 @@ public interface StorageAdminService {
     Map<String, Long> getInMemoryDatabaseCounters();
 
     /**
-     * Returns all the transactions in the system.
+     * Returns all pending transactions.
      *
-     * @return collection of transactions
+     * @return collection of pending transaction identifiers.
      */
-    Collection<Transaction> getTransactions();
-
-    /**
-     * Redrives stuck transactions while removing those that are done.
-     */
-    void redriveTransactions();
+    Collection<TransactionId> getPendingTransactions();
 }

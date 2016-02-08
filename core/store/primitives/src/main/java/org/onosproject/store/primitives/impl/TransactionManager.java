@@ -17,87 +17,62 @@ package org.onosproject.store.primitives.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import org.onlab.util.KryoNamespace;
-import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.primitives.resources.impl.CommitResult;
 import org.onosproject.store.service.AsyncConsistentMap;
-import org.onosproject.store.service.ConsistentMapBuilder;
-import org.onosproject.store.service.DatabaseUpdate;
-import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.Transaction;
-import org.onosproject.store.service.Versioned;
-import org.onosproject.store.service.Transaction.State;
 
-import com.google.common.collect.ImmutableList;
+import static org.onosproject.store.primitives.impl.Transaction.State.COMMITTED;
+import static org.onosproject.store.primitives.impl.Transaction.State.COMMITTING;
+import static org.onosproject.store.primitives.impl.Transaction.State.ROLLEDBACK;
+import static org.onosproject.store.primitives.impl.Transaction.State.ROLLINGBACK;
 
 /**
  * Agent that runs the two phase commit protocol.
  */
 public class TransactionManager {
 
-    private static final KryoNamespace KRYO_NAMESPACE = KryoNamespace.newBuilder()
-            .register(KryoNamespaces.BASIC)
-            .nextId(KryoNamespace.FLOATING_ID)
-            .register(Versioned.class)
-            .register(DatabaseUpdate.class)
-            .register(DatabaseUpdate.Type.class)
-            .register(DefaultTransaction.class)
-            .register(Transaction.State.class)
-            .build();
-
-    private final Serializer serializer = Serializer.using(Arrays.asList(KRYO_NAMESPACE));
     private final Database database;
-    private final AsyncConsistentMap<Long, Transaction> transactions;
+    private final AsyncConsistentMap<TransactionId, Transaction> transactions;
 
-    /**
-     * Constructs a new TransactionManager for the specified database instance.
-     *
-     * @param database database
-     * @param mapBuilder builder for ConsistentMap instances
-     */
-    public TransactionManager(Database database, ConsistentMapBuilder<Long, Transaction> mapBuilder) {
+    public TransactionManager(Database database, AsyncConsistentMap<TransactionId, Transaction> transactions) {
         this.database = checkNotNull(database, "database cannot be null");
-        this.transactions = mapBuilder.withName("onos-transactions")
-                                      .withSerializer(serializer)
-                                      .buildAsyncMap();
+        this.transactions = transactions;
     }
 
     /**
      * Executes the specified transaction by employing a two phase commit protocol.
      *
      * @param transaction transaction to commit
-     * @return transaction result. Result value true indicates a successful commit, false
-     * indicates abort
+     * @return transaction commit result
      */
-    public CompletableFuture<CommitResponse> execute(Transaction transaction) {
+    public CompletableFuture<CommitResult> execute(Transaction transaction) {
         // clean up if this transaction in already in a terminal state.
-        if (transaction.state() == Transaction.State.COMMITTED ||
-                transaction.state() == Transaction.State.ROLLEDBACK) {
-            return transactions.remove(transaction.id()).thenApply(v -> CommitResponse.success(ImmutableList.of()));
-        } else if (transaction.state() == Transaction.State.COMMITTING) {
+        if (transaction.state() == COMMITTED || transaction.state() == ROLLEDBACK) {
+            return transactions.remove(transaction.id()).thenApply(v -> CommitResult.OK);
+        } else if (transaction.state() == COMMITTING) {
             return commit(transaction);
-        } else if (transaction.state() == Transaction.State.ROLLINGBACK) {
-            return rollback(transaction).thenApply(v -> CommitResponse.success(ImmutableList.of()));
+        } else if (transaction.state() == ROLLINGBACK) {
+            return rollback(transaction).thenApply(v -> CommitResult.FAILURE_TO_PREPARE);
         } else {
             return prepare(transaction).thenCompose(v -> v ? commit(transaction) : rollback(transaction));
         }
     }
 
-
     /**
-     * Returns all transactions in the system.
+     * Returns all pending transaction identifiers.
      *
-     * @return future for a collection of transactions
+     * @return future for a collection of transaction identifiers.
      */
-    public CompletableFuture<Collection<Transaction>> getTransactions() {
-        return transactions.values().thenApply(c -> {
-            Collection<Transaction> txns = c.stream().map(v -> v.value()).collect(Collectors.toList());
-            return txns;
-        });
+    public CompletableFuture<Collection<TransactionId>> getPendingTransactionIds() {
+        return transactions.values().thenApply(c -> c.stream()
+                    .map(v -> v.value())
+                    .filter(v -> v.state() != COMMITTED && v.state() != ROLLEDBACK)
+                    .map(Transaction::id)
+                    .collect(Collectors.toList()));
     }
 
     private CompletableFuture<Boolean> prepare(Transaction transaction) {
@@ -105,22 +80,25 @@ public class TransactionManager {
                 .thenCompose(v -> database.prepare(transaction))
                 .thenCompose(status -> transactions.put(
                             transaction.id(),
-                            transaction.transition(status ? State.COMMITTING : State.ROLLINGBACK))
+                            transaction.transition(status ? COMMITTING : ROLLINGBACK))
                 .thenApply(v -> status));
     }
 
-    private CompletableFuture<CommitResponse> commit(Transaction transaction) {
+    private CompletableFuture<CommitResult> commit(Transaction transaction) {
         return database.commit(transaction)
-                .whenComplete((r, e) -> transactions.put(
-                            transaction.id(),
-                            transaction.transition(Transaction.State.COMMITTED)));
+                       .thenCompose(r -> {
+                           if (r.success()) {
+                               return transactions.put(transaction.id(), transaction.transition(COMMITTED))
+                                                  .thenApply(v -> CommitResult.OK);
+                           } else {
+                               return CompletableFuture.completedFuture(CommitResult.FAILURE_DURING_COMMIT);
+                           }
+                       });
     }
 
-    private CompletableFuture<CommitResponse> rollback(Transaction transaction) {
+    private CompletableFuture<CommitResult> rollback(Transaction transaction) {
         return database.rollback(transaction)
-                .thenCompose(v -> transactions.put(
-                            transaction.id(),
-                            transaction.transition(Transaction.State.ROLLEDBACK)))
-                .thenApply(v -> CommitResponse.failure());
+                       .thenCompose(v -> transactions.put(transaction.id(), transaction.transition(ROLLEDBACK)))
+                       .thenApply(v -> CommitResult.FAILURE_TO_PREPARE);
     }
 }

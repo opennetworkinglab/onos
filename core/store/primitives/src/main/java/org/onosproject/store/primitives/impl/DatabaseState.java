@@ -22,7 +22,6 @@ import net.kuujo.copycat.state.Query;
 import net.kuujo.copycat.state.StateContext;
 
 import org.onlab.util.Match;
-import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;

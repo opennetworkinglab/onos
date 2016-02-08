@@ -26,7 +26,6 @@ import net.kuujo.copycat.util.concurrent.Futures;
 import net.kuujo.copycat.util.function.TriConsumer;
 
 import org.onlab.util.Match;
-import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;

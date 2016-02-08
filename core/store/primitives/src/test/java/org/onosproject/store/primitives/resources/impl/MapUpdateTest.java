@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.service;
+package org.onosproject.store.primitives.resources.impl;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
@@ -22,63 +22,63 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 /**
- * Unit Tests for DatabseUpdate class.
+ * Unit Tests for MapUpdate class.
  */
 
-public class DatabaseUpdateTest {
+public class MapUpdateTest {
 
-    private final DatabaseUpdate stats1 = DatabaseUpdate.newBuilder()
+    private final MapUpdate<String, byte[]> stats1 = MapUpdate.<String, byte[]>newBuilder()
             .withCurrentValue("1".getBytes())
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
             .withMapName("5")
-            .withType(DatabaseUpdate.Type.PUT)
+            .withType(MapUpdate.Type.PUT)
             .build();
 
-    private final DatabaseUpdate stats2 = DatabaseUpdate.newBuilder()
+    private final MapUpdate<String, byte[]> stats2 = MapUpdate.<String, byte[]>newBuilder()
             .withCurrentValue("1".getBytes())
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
             .withMapName("5")
-            .withType(DatabaseUpdate.Type.REMOVE)
+            .withType(MapUpdate.Type.REMOVE)
             .build();
 
-    private final DatabaseUpdate stats3 = DatabaseUpdate.newBuilder()
+    private final MapUpdate<String, byte[]> stats3 = MapUpdate.<String, byte[]>newBuilder()
             .withCurrentValue("1".getBytes())
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
             .withMapName("5")
-            .withType(DatabaseUpdate.Type.REMOVE_IF_VALUE_MATCH)
+            .withType(MapUpdate.Type.REMOVE_IF_VALUE_MATCH)
             .build();
 
-    private final DatabaseUpdate stats4 = DatabaseUpdate.newBuilder()
+    private final MapUpdate<String, byte[]> stats4 = MapUpdate.<String, byte[]>newBuilder()
             .withCurrentValue("1".getBytes())
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
             .withMapName("5")
-            .withType(DatabaseUpdate.Type.REMOVE_IF_VERSION_MATCH)
+            .withType(MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
             .build();
 
-    private final DatabaseUpdate stats5 = DatabaseUpdate.newBuilder()
+    private final MapUpdate<String, byte[]> stats5 = MapUpdate.<String, byte[]>newBuilder()
             .withCurrentValue("1".getBytes())
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
             .withMapName("5")
-            .withType(DatabaseUpdate.Type.PUT_IF_VALUE_MATCH)
+            .withType(MapUpdate.Type.PUT_IF_VALUE_MATCH)
             .build();
 
-    private final DatabaseUpdate stats6 = DatabaseUpdate.newBuilder()
+    private final MapUpdate<String, byte[]> stats6 = MapUpdate.<String, byte[]>newBuilder()
             .withCurrentValue("1".getBytes())
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
             .withMapName("5")
-            .withType(DatabaseUpdate.Type.PUT_IF_VERSION_MATCH)
+            .withType(MapUpdate.Type.PUT_IF_VERSION_MATCH)
             .build();
 
     /**
@@ -91,7 +91,7 @@ public class DatabaseUpdateTest {
         assertThat(stats1.currentVersion(), is(3L));
         assertThat(stats1.key(), is("4"));
         assertThat(stats1.mapName(), is("5"));
-        assertThat(stats1.type(), is(DatabaseUpdate.Type.PUT));
+        assertThat(stats1.type(), is(MapUpdate.Type.PUT));
     }
 
     /**

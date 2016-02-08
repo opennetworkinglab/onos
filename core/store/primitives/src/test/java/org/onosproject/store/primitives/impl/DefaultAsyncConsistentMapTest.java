@@ -41,7 +41,6 @@ import org.onlab.util.Match;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.base.MoreObjects;

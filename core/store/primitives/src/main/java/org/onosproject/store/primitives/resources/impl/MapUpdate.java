@@ -70,11 +70,21 @@ public final class MapUpdate<K, V> {
         REMOVE_IF_VALUE_MATCH,
     }
 
+    private String mapName;
     private Type type;
     private K key;
     private V value;
     private V currentValue;
     private long currentVersion = -1;
+
+    /**
+     * Returns the name of the map.
+     *
+     * @return map name
+     */
+    public String mapName() {
+        return mapName;
+    }
 
     /**
      * Returns the type of update operation.
@@ -119,6 +129,7 @@ public final class MapUpdate<K, V> {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+            .add("mapName", mapName)
             .add("type", type)
             .add("key", key)
             .add("value", value)
@@ -151,6 +162,11 @@ public final class MapUpdate<K, V> {
         public MapUpdate<K, V> build() {
             validateInputs();
             return update;
+        }
+
+        public Builder<K, V> withMapName(String name) {
+            update.mapName = checkNotNull(name, "name cannot be null");
+            return this;
         }
 
         public Builder<K, V> withType(Type type) {

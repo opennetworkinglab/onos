@@ -21,10 +21,10 @@ import java.nio.ByteBuffer;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Match;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.primitives.resources.impl.MapUpdate;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
-import org.onosproject.store.service.DatabaseUpdate;
-import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
 import net.kuujo.copycat.cluster.internal.MemberInfo;
@@ -69,13 +69,14 @@ public class DatabaseSerializer extends SerializerConfig {
     private static final KryoNamespace ONOS_STORE = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.FLOATING_ID)
             .register(Versioned.class)
-            .register(DatabaseUpdate.class)
-            .register(DatabaseUpdate.Type.class)
+            .register(MapUpdate.class)
+            .register(MapUpdate.Type.class)
             .register(Result.class)
             .register(UpdateResult.class)
             .register(Result.Status.class)
-            .register(DefaultTransaction.class)
+            .register(Transaction.class)
             .register(Transaction.State.class)
+            .register(TransactionId.class)
             .register(org.onosproject.store.primitives.impl.CommitResponse.class)
             .register(Match.class)
             .register(NodeId.class)

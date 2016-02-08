@@ -26,8 +26,8 @@ import net.kuujo.copycat.state.Initializer;
 import net.kuujo.copycat.state.StateContext;
 
 import org.onlab.util.Match;
-import org.onosproject.store.service.DatabaseUpdate;
-import org.onosproject.store.service.Transaction;
+import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.primitives.resources.impl.MapUpdate;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Arrays;
@@ -278,7 +278,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         return queues.computeIfAbsent(queueName, name -> new LinkedList<>());
     }
 
-    private boolean isUpdatePossible(DatabaseUpdate update) {
+    private boolean isUpdatePossible(MapUpdate<String, byte[]> update) {
         Versioned<byte[]> existingEntry = mapGet(update.mapName(), update.key());
         switch (update.type()) {
         case PUT:
@@ -299,7 +299,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         }
     }
 
-    private void doProvisionalUpdate(DatabaseUpdate update, long transactionId) {
+    private void doProvisionalUpdate(MapUpdate<String, byte[]> update, TransactionId transactionId) {
         Map<String, Update> lockMap = getLockMap(update.mapName());
         switch (update.type()) {
         case PUT:
@@ -318,7 +318,8 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         }
     }
 
-    private UpdateResult<String, byte[]> commitProvisionalUpdate(DatabaseUpdate update, long transactionId) {
+    private UpdateResult<String, byte[]> commitProvisionalUpdate(
+            MapUpdate<String, byte[]> update, TransactionId transactionId) {
         String mapName = update.mapName();
         String key = update.key();
         Update provisionalUpdate = getLockMap(mapName).get(key);
@@ -330,7 +331,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         return mapUpdate(mapName, key, Match.any(), Match.any(), provisionalUpdate.value()).value();
     }
 
-    private void undoProvisionalUpdate(DatabaseUpdate update, long transactionId) {
+    private void undoProvisionalUpdate(MapUpdate<String, byte[]> update, TransactionId transactionId) {
         String mapName = update.mapName();
         String key = update.key();
         Update provisionalUpdate = getLockMap(mapName).get(key);
@@ -342,7 +343,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         }
     }
 
-    private boolean isLockedByAnotherTransaction(String mapName, String key, long transactionId) {
+    private boolean isLockedByAnotherTransaction(String mapName, String key, TransactionId transactionId) {
         Update update = getLockMap(mapName).get(key);
         return update != null && !Objects.equal(transactionId, update.transactionId());
     }
@@ -356,15 +357,15 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     private class Update {
-        private final long transactionId;
+        private final TransactionId transactionId;
         private final byte[] value;
 
-        public Update(long txId, byte[] value) {
+        public Update(TransactionId txId, byte[] value) {
             this.transactionId = txId;
             this.value = value;
         }
 
-        public long transactionId() {
+        public TransactionId transactionId() {
             return this.transactionId;
         }
 

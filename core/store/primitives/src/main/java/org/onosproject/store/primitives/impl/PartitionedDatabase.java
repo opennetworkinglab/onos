@@ -26,8 +26,8 @@ import net.kuujo.copycat.cluster.Cluster;
 import net.kuujo.copycat.resource.ResourceState;
 
 import org.onlab.util.Match;
-import org.onosproject.store.service.DatabaseUpdate;
-import org.onosproject.store.service.Transaction;
+import org.onosproject.store.primitives.resources.impl.CommitResult;
+import org.onosproject.store.primitives.resources.impl.MapUpdate;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;
@@ -273,7 +273,9 @@ public class PartitionedDatabase implements Database {
             if (transactionManager == null) {
                 throw new IllegalStateException("TransactionManager is not initialized");
             }
-            return transactionManager.execute(transaction);
+            return transactionManager.execute(transaction)
+                                     .thenApply(r -> r == CommitResult.OK
+                                             ? CommitResponse.success(ImmutableList.of()) : CommitResponse.failure());
         }
     }
 
@@ -373,15 +375,15 @@ public class PartitionedDatabase implements Database {
 
     private Map<Database, Transaction> createSubTransactions(
             Transaction transaction) {
-        Map<Database, List<DatabaseUpdate>> perPartitionUpdates = Maps.newHashMap();
-        for (DatabaseUpdate update : transaction.updates()) {
+        Map<Database, List<MapUpdate<String, byte[]>>> perPartitionUpdates = Maps.newHashMap();
+        for (MapUpdate<String, byte[]> update : transaction.updates()) {
             Database partition = partitioner.getPartition(update.mapName(), update.key());
-            List<DatabaseUpdate> partitionUpdates =
+            List<MapUpdate<String, byte[]>> partitionUpdates =
                     perPartitionUpdates.computeIfAbsent(partition, k -> Lists.newLinkedList());
             partitionUpdates.add(update);
         }
         Map<Database, Transaction> subTransactions = Maps.newHashMap();
-        perPartitionUpdates.forEach((k, v) -> subTransactions.put(k, new DefaultTransaction(transaction.id(), v)));
+        perPartitionUpdates.forEach((k, v) -> subTransactions.put(k, new Transaction(transaction.id(), v)));
         return subTransactions;
     }
 

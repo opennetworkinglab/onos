@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.util.Tools;
+import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.primitives.impl.Transaction;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Versioned;
@@ -351,10 +353,9 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
                 .withValue(value1)
                 .build();
 
-        TransactionalMapUpdate<String, byte[]> txMapUpdate =
-                new TransactionalMapUpdate<>(TransactionId.from("tx1"), Arrays.asList(update1));
+        Transaction tx = new Transaction(TransactionId.from("tx1"), Arrays.asList(update1));
 
-        map.prepare(txMapUpdate).thenAccept(result -> {
+        map.prepare(tx).thenAccept(result -> {
             assertEquals(PrepareResult.OK, result);
         }).join();
         assertNull(listener.event());
@@ -376,7 +377,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
 
         assertNull(listener.event());
 
-        map.commit(txMapUpdate.transactionId()).join();
+        map.commit(tx.id()).join();
         assertNotNull(listener.event());
         assertEquals(MapEvent.Type.INSERT, listener.event().type());
         assertTrue(Arrays.equals(value1, listener.event().newValue().value()));
@@ -406,14 +407,13 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
                 .withKey("foo")
                 .withValue(value1)
                 .build();
-        TransactionalMapUpdate<String, byte[]> txMapUpdate =
-                new TransactionalMapUpdate<>(TransactionId.from("tx1"), Arrays.asList(update1));
-        map.prepare(txMapUpdate).thenAccept(result -> {
+        Transaction tx = new Transaction(TransactionId.from("tx1"), Arrays.asList(update1));
+        map.prepare(tx).thenAccept(result -> {
             assertEquals(PrepareResult.OK, result);
         }).join();
         assertNull(listener.event());
 
-        map.rollback(txMapUpdate.transactionId()).join();
+        map.rollback(tx.id()).join();
         assertNull(listener.event());
 
         map.get("foo").thenAccept(result -> {

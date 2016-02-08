@@ -29,6 +29,8 @@ import com.google.common.base.MoreObjects;
  * Both old and new values are accessible along with a flag that indicates if the
  * the value was updated. If flag is false, oldValue and newValue both
  * point to the same unmodified value.
+ *
+ * @param <K> key type
  * @param <V> result type
  */
 public class MapEntryUpdateResult<K, V> {
@@ -123,6 +125,8 @@ public class MapEntryUpdateResult<K, V> {
      * @param keyTransform transformer to use for transcoding keys
      * @param valueMapper mapper to use for transcoding values
      * @return new instance
+     * @param <K1> key type of returned {@code MapEntryUpdateResult}
+     * @param <V1> value type of returned {@code MapEntryUpdateResult}
      */
     public <K1, V1> MapEntryUpdateResult<K1, V1> map(Function<K, K1> keyTransform, Function<V, V1> valueMapper) {
         return new MapEntryUpdateResult<>(status,
