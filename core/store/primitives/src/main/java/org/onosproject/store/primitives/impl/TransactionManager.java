@@ -50,6 +50,12 @@ public class TransactionManager {
      * @return transaction commit result
      */
     public CompletableFuture<CommitResult> execute(Transaction transaction) {
+        // short-circuit if there is only a single update
+        if (transaction.updates().size() <= 1) {
+            return database.prepareAndCommit(transaction)
+                    .thenApply(response -> response.success()
+                                   ? CommitResult.OK : CommitResult.FAILURE_DURING_COMMIT);
+        }
         // clean up if this transaction in already in a terminal state.
         if (transaction.state() == COMMITTED || transaction.state() == ROLLEDBACK) {
             return transactions.remove(transaction.id()).thenApply(v -> CommitResult.OK);
