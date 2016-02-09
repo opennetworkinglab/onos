@@ -56,7 +56,7 @@ public class NetworkConfigManager
 
     private static final String NULL_FACTORY_MSG = "Factory cannot be null";
     private static final String NULL_SCLASS_MSG = "Subject class cannot be null";
-    private static final String NULL_SKEY_MSG = "Subject key cannot be null";
+    private static final String NULL_SCKEY_MSG = "Subject class key cannot be null";
     private static final String NULL_CCLASS_MSG = "Config class cannot be null";
     private static final String NULL_CKEY_MSG = "Config key cannot be null";
     private static final String NULL_SUBJECT_MSG = "Subject cannot be null";
@@ -159,7 +159,7 @@ public class NetworkConfigManager
 
     @Override
     public Class<? extends Config> getConfigClass(String subjectClassKey, String configKey) {
-        checkNotNull(subjectClassKey, NULL_SKEY_MSG);
+        checkNotNull(subjectClassKey, NULL_SCKEY_MSG);
         checkNotNull(configKey, NULL_CKEY_MSG);
         return configClasses.get(new ConfigIdentifier(subjectClassKey, configKey));
     }
@@ -205,7 +205,7 @@ public class NetworkConfigManager
     public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, JsonNode json) {
         checkNotNull(subject, NULL_SUBJECT_MSG);
         checkNotNull(configClass, NULL_CCLASS_MSG);
-        checkNotNull(subject, NULL_JSON_MSG);
+        checkNotNull(json, NULL_JSON_MSG);
         return store.applyConfig(subject, configClass, json);
     }
 
@@ -213,10 +213,10 @@ public class NetworkConfigManager
     @SuppressWarnings("unchecked")
     public <S, C extends Config<S>> C applyConfig(String subjectClassKey, S subject,
                                                   String configKey, JsonNode json) {
-        checkNotNull(subjectClassKey, NULL_SKEY_MSG);
+        checkNotNull(subjectClassKey, NULL_SCKEY_MSG);
         checkNotNull(subject, NULL_SUBJECT_MSG);
         checkNotNull(configKey, NULL_CKEY_MSG);
-        checkNotNull(subject, NULL_JSON_MSG);
+        checkNotNull(json, NULL_JSON_MSG);
         Class<? extends Config> configClass = configClasses.get(new ConfigIdentifier(subjectClassKey, configKey));
         if (configClass != null) {
             return store.applyConfig(subject, (Class<C>) configClass, json);
@@ -236,9 +236,9 @@ public class NetworkConfigManager
 
     @Override
     public <S> void removeConfig(String subjectClassKey, S subject, String configKey) {
-        checkNotNull(subjectClassKey, NULL_SKEY_MSG);
+        checkNotNull(subjectClassKey, NULL_SCKEY_MSG);
         checkNotNull(subject, NULL_SUBJECT_MSG);
-        checkNotNull(configKey, NULL_CCLASS_MSG);
+        checkNotNull(configKey, NULL_CKEY_MSG);
         Class<? extends Config> configClass = configClasses.get(new ConfigIdentifier(subjectClassKey, configKey));
         if (configClass != null) {
             store.clearConfig(subject, configClass);
