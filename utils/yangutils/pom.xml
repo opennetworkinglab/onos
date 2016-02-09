@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>yangutils-maven-plugin</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>onos-yang-utils-plugin</name>
     <packaging>maven-plugin</packaging>
 
