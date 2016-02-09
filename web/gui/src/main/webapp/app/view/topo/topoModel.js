@@ -62,23 +62,18 @@
             y = meta && meta.y,
             xy;
 
-        // If we have [x,y] already, use that...
+        // if the device contains explicit LONG/LAT data, use that to position
+        if (setLongLat(node)) {
+            // indicate we want to update cached meta data...
+            return true;
+        }
+
+        // else if we have [x,y] cached in meta data, use that...
         if (x && y) {
             node.fixed = true;
             node.px = node.x = x;
             node.py = node.y = y;
             return;
-        }
-
-        var location = node.location,
-            coord;
-
-        if (location && location.type === 'latlng') {
-            coord = coordFromLngLat(location);
-            node.fixed = true;
-            node.px = node.x = coord[0];
-            node.py = node.y = coord[1];
-            return true;
         }
 
         // if this is a node update (not a node add).. skip randomizer
@@ -114,6 +109,25 @@
 
         xy = (node.class === 'host') ? near(getDevice(node.cp)) : rand();
         angular.extend(node, xy);
+    }
+
+    function setLongLat(node) {
+        var loc = node.location,
+            coord;
+
+        if (loc && loc.type === 'lnglat') {
+            coord = coordFromLngLat(loc);
+            node.fixed = true;
+            node.px = node.x = coord[0];
+            node.py = node.y = coord[1];
+            return true;
+        }
+    }
+
+    function resetAllLocations() {
+        nodes.forEach(function (d) {
+            setLongLat(d);
+        });
     }
 
     function mkSvgCls(dh, t, on) {
@@ -428,6 +442,7 @@
                 destroyModel: destroyModel,
 
                 positionNode: positionNode,
+                resetAllLocations: resetAllLocations,
                 createDeviceNode: createDeviceNode,
                 createHostNode: createHostNode,
                 createHostLink: createHostLink,

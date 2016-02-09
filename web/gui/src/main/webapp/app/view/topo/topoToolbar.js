@@ -51,6 +51,7 @@
         B: { id: 'bkgrnd-tog', gid: 'map', isel: false },
         S: { id: 'sprite-tog', gid: 'cloud', isel: false },
 
+        // TODO: add reset-node-locations button to toolbar
         //X: { id: 'nodelock-tog', gid: 'lock', isel: false },
         Z: { id: 'oblique-tog', gid: 'oblique', isel: false },
         N: { id: 'filters-btn', gid: 'filters' },

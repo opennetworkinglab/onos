@@ -55,7 +55,7 @@
             B: [toggleMap, 'Toggle background map'],
             S: [toggleSprites, 'Toggle sprite layer'],
 
-            //X: [toggleNodeLock, 'Lock / unlock node positions'],
+            X: [tfs.resetAllLocations, 'Reset node locations'],
             Z: [tos.toggleOblique, 'Toggle oblique view (Experimental)'],
             N: [fltr.clickAction, 'Cycle node layers'],
             L: [tfs.cycleDeviceLabels, 'Cycle device labels'],

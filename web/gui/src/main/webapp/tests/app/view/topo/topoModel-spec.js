@@ -232,7 +232,7 @@ describe('factory: view/topo/topoModel.js', function() {
     it('should position a node by translating lng/lat', function () {
         var node = {
             location: {
-                type: 'latlng',
+                type: 'lnglat',
                 lng: 2008,
                 lat: 3009
             }
@@ -319,7 +319,7 @@ describe('factory: view/topo/topoModel.js', function() {
             type: 'yowser',
             online: true,
             location: {
-                type: 'latlng',
+                type: 'lnglat',
                 lng: 2048,
                 lat: 3096
             }

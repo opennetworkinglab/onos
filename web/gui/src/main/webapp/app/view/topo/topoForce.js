@@ -455,10 +455,17 @@
             ll;
 
         // if we are not clearing the position data (unpinning),
-        // attach the x, y, longitude, latitude...
+        // attach the x, y, (and equivalent longitude, latitude)...
         if (!clearPos) {
             ll = tms.lngLatFromCoord([d.x, d.y]);
-            metaUi = {x: d.x, y: d.y, lng: ll[0], lat: ll[1]};
+            metaUi = {
+                x: d.x,
+                y: d.y,
+                equivLoc: {
+                    lng: ll[0],
+                    lat: ll[1]
+                }
+            };
         }
         d.metaUi = metaUi;
         wss.sendEvent('updateMeta', {
@@ -578,6 +585,13 @@
         });
         // back to normal after 2 seconds...
         $timeout(updateLinks, 2000);
+    }
+
+    function resetAllLocations() {
+        tms.resetAllLocations();
+        updateNodes();
+        tick(); // force nodes to be redrawn in their new locations
+        flash.flash('Reset Node Locations');
     }
 
     // ==========================================
@@ -1169,6 +1183,7 @@
                 showMastership: showMastership,
                 showBadLinks: showBadLinks,
 
+                resetAllLocations: resetAllLocations,
                 addDevice: addDevice,
                 updateDevice: updateDevice,
                 removeDevice: removeDevice,

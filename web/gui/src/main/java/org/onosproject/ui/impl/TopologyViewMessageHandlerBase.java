@@ -357,18 +357,24 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             return;
         }
 
-        String slat = annotations.value(AnnotationKeys.LATITUDE);
         String slng = annotations.value(AnnotationKeys.LONGITUDE);
+        String slat = annotations.value(AnnotationKeys.LATITUDE);
+        boolean haveLng = slng != null && !slng.isEmpty();
+        boolean haveLat = slat != null && !slat.isEmpty();
         try {
-            if (slat != null && slng != null && !slat.isEmpty() && !slng.isEmpty()) {
-                double lat = Double.parseDouble(slat);
+            if (haveLng && haveLat) {
                 double lng = Double.parseDouble(slng);
+                double lat = Double.parseDouble(slat);
                 ObjectNode loc = objectNode()
-                        .put("type", "latlng").put("lat", lat).put("lng", lng);
+                        .put("type", "lnglat")
+                        .put("lng", lng)
+                        .put("lat", lat);
                 payload.set("location", loc);
+            } else {
+                log.trace("missing Lng/Lat: lng={}, lat={}", slng, slat);
             }
         } catch (NumberFormatException e) {
-            log.warn("Invalid geo data latitude={}; longiture={}", slat, slng);
+            log.warn("Invalid geo data: longitude={}, latitude={}", slng, slat);
         }
     }
 
