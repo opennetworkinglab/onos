@@ -163,6 +163,7 @@
             tgtPort: host.cp.port,
 
             type: function () { return 'hostLink'; },
+            expected: function () { return true; },
             online: function () {
                 // hostlink target is edge switch
                 return lnk.target.online;
