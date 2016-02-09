@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
+import com.google.common.collect.Sets;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ip4Address;
@@ -219,6 +220,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class KryoNamespaces {
 
@@ -228,6 +230,7 @@ public final class KryoNamespaces {
             .register(AtomicBoolean.class)
             .register(AtomicInteger.class)
             .register(AtomicLong.class)
+            .register(AtomicReference.class)
             .register(new ImmutableListSerializer(),
                       ImmutableList.class,
                       ImmutableList.of(1).getClass(),
@@ -245,6 +248,7 @@ public final class KryoNamespaces {
             .register(HashMap.class)
             .register(ConcurrentHashMap.class)
             .register(CopyOnWriteArraySet.class)
+            .register(Sets.newConcurrentHashSet().getClass())
             .register(ArrayList.class,
                       LinkedList.class,
                       HashSet.class,

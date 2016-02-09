@@ -51,7 +51,7 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
     void storeSink(McastRoute route, ConnectPoint sink, Type operation);
 
     /**
-     * Obtain the source for a multicast route.
+     * Obtains the source for a multicast route.
      *
      * @param route a multicast route
      * @return a connect point
@@ -59,10 +59,17 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
     ConnectPoint sourceFor(McastRoute route);
 
     /**
-     * Obtain the sinks for a multicast route.
+     * Obtains the sinks for a multicast route.
      *
      * @param route a multicast route
      * @return a set of sinks
      */
     Set<ConnectPoint> sinksFor(McastRoute route);
+
+    /**
+     * Gets the set of all known multicast routes.
+     *
+     * @return set of multicast routes
+     */
+    Set<McastRoute> getRoutes();
 }

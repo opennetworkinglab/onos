@@ -43,6 +43,13 @@ public interface MulticastRouteService
     void remove(McastRoute route);
 
     /**
+     * Gets all multicast routes in the system.
+     *
+     * @return set of multicast routes
+     */
+    Set<McastRoute> getRoutes();
+
+    /**
      * Adds a source connection to the route from where the
      * data stream is originating.
      *

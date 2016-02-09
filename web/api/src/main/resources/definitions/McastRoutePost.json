@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "title": "route",
+  "required": [
+    "source",
+    "group"
+  ],
+  "properties": {
+    "source": {
+      "type": "string",
+      "example": "10.1.1.0",
+      "description": "Multicast source IP address"
+    },
+    "group": {
+      "type": "string",
+      "example": "10.1.1.0",
+      "description": "Multicast group IP address"
+    }
+  }
+}

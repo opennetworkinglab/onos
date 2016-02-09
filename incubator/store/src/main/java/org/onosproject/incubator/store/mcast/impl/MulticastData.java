@@ -61,10 +61,12 @@ public final class MulticastData {
     }
 
     public void appendSink(ConnectPoint sink) {
+        checkNotNull(sink);
         sinks.add(sink);
     }
 
     public boolean removeSink(ConnectPoint sink) {
+        checkNotNull(sink);
         return sinks.remove(sink);
     }
 

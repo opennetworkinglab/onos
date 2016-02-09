@@ -6,7 +6,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.mcast.McastEvent;
@@ -15,12 +14,12 @@ import org.onosproject.net.mcast.McastRouteInfo;
 import org.onosproject.net.mcast.McastStore;
 import org.onosproject.net.mcast.McastStoreDelegate;
 import org.onosproject.store.AbstractStore;
+import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,7 +42,7 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
     private Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private StorageService storageService;
+    protected StorageService storageService;
 
     protected ConsistentMap<McastRoute, MulticastData> mcastRib;
     protected Map<McastRoute, MulticastData> mcastRoutes;
@@ -54,12 +53,13 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
 
         mcastRib = storageService.<McastRoute, MulticastData>consistentMapBuilder()
                 .withName(MCASTRIB)
-                .withSerializer(Serializer.using(KryoNamespace.newBuilder().register(
+                .withSerializer(Serializer.using(KryoNamespace.newBuilder()
+                        .register(KryoNamespaces.BASIC)
+                        .register(KryoNamespaces.MISC)
+                        .register(
                         MulticastData.class,
                         McastRoute.class,
                         McastRoute.Type.class,
-                        IpAddress.class,
-                        List.class,
                         ConnectPoint.class
                 ).build()))
                 .withRelaxedReadConsistency()
@@ -172,6 +172,11 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
     @Override
     public Set<ConnectPoint> sinksFor(McastRoute route) {
         return mcastRoutes.getOrDefault(route, MulticastData.empty()).sinks();
+    }
+
+    @Override
+    public Set<McastRoute> getRoutes() {
+        return mcastRoutes.keySet();
     }
 
 }

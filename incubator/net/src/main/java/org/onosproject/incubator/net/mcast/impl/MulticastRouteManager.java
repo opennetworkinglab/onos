@@ -55,7 +55,6 @@ public class MulticastRouteManager
 
     @Activate
     public void activate() {
-
         eventDispatcher.addSink(McastEvent.class, listenerRegistry);
         store.setDelegate(delegate);
 
@@ -80,6 +79,11 @@ public class MulticastRouteManager
     }
 
     @Override
+    public Set<McastRoute> getRoutes() {
+        return store.getRoutes();
+    }
+
+    @Override
     public void addSource(McastRoute route, ConnectPoint connectPoint) {
         checkNotNull(route, "Route cannot be null");
         checkNotNull(connectPoint, "Source cannot be null");
@@ -93,7 +97,6 @@ public class MulticastRouteManager
         store.storeSink(route, connectPoint, McastStore.Type.ADD);
 
     }
-
 
     @Override
     public void removeSink(McastRoute route, ConnectPoint connectPoint) {
