@@ -34,6 +34,9 @@ import java.util.List;
         description = "Lists all nodes registered in CORD VTN service")
 public class CordVtnNodeListCommand extends AbstractShellCommand {
 
+    private static final String COMPLETE = "COMPLETE";
+    private static final String INCOMPLETE = "INCOMPLETE";
+
     @Override
     protected void execute() {
         CordVtnNodeManager nodeManager = AbstractShellCommand.get(CordVtnNodeManager.class);
@@ -44,12 +47,12 @@ public class CordVtnNodeListCommand extends AbstractShellCommand {
             print("%s", json(nodeManager, nodes));
         } else {
             for (CordVtnNode node : nodes) {
-                print("hostname=%s, ovsdb=%s, br-int=%s, phyPort=%s, localIp=%s, init=%s",
+                print("hostname=%s, hostMgmtIp=%s, dpIp=%s, br-int=%s, dpIntf=%s, init=%s",
                       node.hostname(),
-                      node.ovsdbIp().toString() + ":" + node.ovsdbPort().toString(),
+                      node.hostMgmtIp().cidr(),
+                      node.dpIp().cidr(),
                       node.intBrId().toString(),
-                      node.phyPortName(),
-                      node.localIp().toString(),
+                      node.dpIntf(),
                       getState(nodeManager, node));
             }
             print("Total %s nodes", nodeManager.getNodeCount());
@@ -60,19 +63,18 @@ public class CordVtnNodeListCommand extends AbstractShellCommand {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
         for (CordVtnNode node : nodes) {
-            String ipPort = node.ovsdbIp().toString() + ":" + node.ovsdbPort().toString();
             result.add(mapper.createObjectNode()
                                .put("hostname", node.hostname())
-                               .put("ovsdb", ipPort)
-                               .put("brInt", node.intBrId().toString())
-                               .put("phyPort", node.phyPortName())
-                               .put("localIp", node.localIp().toString())
+                               .put("hostManagementIp", node.hostMgmtIp().cidr())
+                               .put("dataPlaneIp", node.dpIp().cidr())
+                               .put("bridgeId", node.intBrId().toString())
+                               .put("dataPlaneInterface", node.dpIntf())
                                .put("init", getState(nodeManager, node)));
         }
         return result;
     }
 
     private String getState(CordVtnNodeManager nodeManager, CordVtnNode node) {
-        return nodeManager.getNodeInitState(node) ? "COMPLETE" : "INCOMPLETE";
+        return nodeManager.isNodeInitComplete(node) ? COMPLETE : INCOMPLETE;
     }
 }

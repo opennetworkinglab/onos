@@ -22,7 +22,7 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -48,8 +48,10 @@ public final class RemoteIpCommandUtil {
     private static final String DEFAULT_STRICT_HOST_CHECKING = "no";
     private static final int DEFAULT_SESSION_TIMEOUT = 60000; // milliseconds
 
-    private static final String IP_PATTERN = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.)" +
-            "{3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$";
+    private static final String IP_PATTERN = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+            "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+            "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+            "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
 
     private static final String IP_ADDR_SHOW = "sudo ip addr show %s";
     private static final String IP_ADDR_FLUSH = "sudo ip addr flush %s";
@@ -68,18 +70,18 @@ public final class RemoteIpCommandUtil {
      * Adds a given IP address to a given device.
      *
      * @param session ssh connection
-     * @param ip ip address
+     * @param ip network address
      * @param device device name to assign the ip address
      * @return true if the command succeeds, or false
      */
-    public static boolean addIp(Session session, IpPrefix ip, String device) {
+    public static boolean addIp(Session session, NetworkAddress ip, String device) {
         if (session == null || !session.isConnected()) {
             return false;
         }
 
-        executeCommand(session, String.format(IP_ADDR_ADD, ip, device));
-        Set<IpPrefix> result = getCurrentIps(session, device);
-        return result.contains(ip);
+        executeCommand(session, String.format(IP_ADDR_ADD, ip.cidr(), device));
+        Set<IpAddress> result = getCurrentIps(session, device);
+        return result.contains(ip.ip());
     }
 
     /**
@@ -90,13 +92,13 @@ public final class RemoteIpCommandUtil {
      * @param device device name
      * @return true if the command succeeds, or false
      */
-    public static boolean deleteIp(Session session, IpPrefix ip, String device) {
+    public static boolean deleteIp(Session session, IpAddress ip, String device) {
         if (session == null || !session.isConnected()) {
             return false;
         }
 
         executeCommand(session, String.format(IP_ADDR_DELETE, ip, device));
-        Set<IpPrefix> result = getCurrentIps(session, device);
+        Set<IpAddress> result = getCurrentIps(session, device);
         return !result.contains(ip);
     }
 
@@ -123,16 +125,16 @@ public final class RemoteIpCommandUtil {
      * @param device device name
      * @return set of IP prefix or empty set
      */
-    public static Set<IpPrefix> getCurrentIps(Session session, String device) {
+    public static Set<IpAddress> getCurrentIps(Session session, String device) {
         if (session == null || !session.isConnected()) {
             return Sets.newHashSet();
         }
 
         String output = executeCommand(session, String.format(IP_ADDR_SHOW, device));
-        Set<IpPrefix> result = Pattern.compile(" ")
+        Set<IpAddress> result = Pattern.compile(" |/")
                 .splitAsStream(output)
                 .filter(s -> s.matches(IP_PATTERN))
-                .map(IpPrefix::valueOf)
+                .map(IpAddress::valueOf)
                 .collect(Collectors.toSet());
 
         return result;

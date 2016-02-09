@@ -17,7 +17,6 @@ package org.onosproject.cordvtn;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
@@ -37,14 +36,19 @@ public class CordVtnConfig extends Config<ApplicationId> {
 
     protected final Logger log = getLogger(getClass());
 
-    public static final String CORDVTN_NODES = "nodes";
-    public static final String HOSTNAME = "hostname";
-    public static final String OVSDB_IP = "ovsdbIp";
-    public static final String OVSDB_PORT = "ovsdbPort";
-    public static final String BRIDGE_ID = "bridgeId";
-    public static final String PHYSICAL_PORT_NAME = "phyPortName";
-    public static final String LOCAL_IP = "localIp";
     public static final String GATEWAY_MAC = "gatewayMac";
+    public static final String LOCAL_MANAGEMENT_IP = "localManagementIp";
+    public static final String OVSDB_PORT = "ovsdbPort";
+    public static final String SSH_PORT = "sshPort";
+    public static final String SSH_USER = "sshUser";
+    public static final String SSH_KEY_FILE = "sshKeyFile";
+    public static final String CORDVTN_NODES = "nodes";
+
+    public static final String HOSTNAME = "hostname";
+    public static final String HOST_MANAGEMENT_IP = "hostManagementIp";
+    public static final String DATA_PLANE_IP = "dataPlaneIp";
+    public static final String DATA_PLANE_INTF = "dataPlaneIntf";
+    public static final String BRIDGE_ID = "bridgeId";
 
     /**
      * Returns the set of nodes read from network config.
@@ -58,13 +62,19 @@ public class CordVtnConfig extends Config<ApplicationId> {
         if (jsonNodes == null) {
             return null;
         }
-        jsonNodes.forEach(jsonNode -> nodes.add(new CordVtnNodeConfig(
-            jsonNode.path(HOSTNAME).asText(),
-            IpAddress.valueOf(jsonNode.path(OVSDB_IP).asText()),
-            TpPort.tpPort(jsonNode.path(OVSDB_PORT).asInt()),
-            DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText()),
-            jsonNode.path(PHYSICAL_PORT_NAME).asText(),
-            IpAddress.valueOf(jsonNode.path(LOCAL_IP).asText()))));
+
+        jsonNodes.forEach(jsonNode -> {
+            try {
+                nodes.add(new CordVtnNodeConfig(
+                        jsonNode.path(HOSTNAME).asText(),
+                        NetworkAddress.valueOf(jsonNode.path(HOST_MANAGEMENT_IP).asText()),
+                        NetworkAddress.valueOf(jsonNode.path(DATA_PLANE_IP).asText()),
+                        jsonNode.path(DATA_PLANE_INTF).asText(),
+                        DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText())));
+            } catch (IllegalArgumentException | NullPointerException e) {
+                log.error("Failed to read {}", e.toString());
+            }
+        });
 
         return nodes;
     }
@@ -89,25 +99,108 @@ public class CordVtnConfig extends Config<ApplicationId> {
     }
 
     /**
+     * Returns local management network address.
+     *
+     * @return network address
+     */
+    public NetworkAddress localMgmtIp() {
+        JsonNode jsonNode = object.get(LOCAL_MANAGEMENT_IP);
+        if (jsonNode == null) {
+            return null;
+        }
+
+        try {
+            return NetworkAddress.valueOf(jsonNode.asText());
+        } catch (IllegalArgumentException e) {
+            log.error("Wrong address format {}", jsonNode.asText());
+            return null;
+        }
+    }
+
+    /**
+     * Returns the port number used for OVSDB connection.
+     *
+     * @return port number, or null
+     */
+    public TpPort ovsdbPort() {
+        JsonNode jsonNode = object.get(OVSDB_PORT);
+        if (jsonNode == null) {
+            return null;
+        }
+
+        try {
+            return TpPort.tpPort(jsonNode.asInt());
+        } catch (IllegalArgumentException e) {
+            log.error("Wrong TCP port format {}", jsonNode.asText());
+            return null;
+        }
+    }
+
+    /**
+     * Returns the port number used for SSH connection.
+     *
+     * @return port number, or null
+     */
+    public TpPort sshPort() {
+        JsonNode jsonNode = object.get(SSH_PORT);
+        if (jsonNode == null) {
+            return null;
+        }
+
+        try {
+            return TpPort.tpPort(jsonNode.asInt());
+        } catch (IllegalArgumentException e) {
+            log.error("Wrong TCP port format {}", jsonNode.asText());
+            return null;
+        }
+    }
+
+    /**
+     * Returns the user name for SSH connection.
+     *
+     * @return user name, or null
+     */
+    public String sshUser() {
+        JsonNode jsonNode = object.get(SSH_USER);
+        if (jsonNode == null) {
+            return null;
+        }
+
+        return jsonNode.asText();
+    }
+
+    /**
+     * Returns the private key file for SSH connection.
+     *
+     * @return file path, or null
+     */
+    public String sshKeyFile() {
+        JsonNode jsonNode = object.get(SSH_KEY_FILE);
+        if (jsonNode == null) {
+            return null;
+        }
+
+        return jsonNode.asText();
+    }
+
+    /**
      * Configuration for CordVtn node.
      */
     public static class CordVtnNodeConfig {
 
         private final String hostname;
-        private final IpAddress ovsdbIp;
-        private final TpPort ovsdbPort;
+        private final NetworkAddress hostMgmtIp;
+        private final NetworkAddress dpIp;
+        private final String dpIntf;
         private final DeviceId bridgeId;
-        private final String phyPortName;
-        private final IpAddress localIp;
 
-        public CordVtnNodeConfig(String hostname, IpAddress ovsdbIp, TpPort ovsdbPort,
-                                 DeviceId bridgeId, String phyPortName, IpAddress localIp) {
+        public CordVtnNodeConfig(String hostname, NetworkAddress hostMgmtIp, NetworkAddress dpIp,
+                                 String dpIntf, DeviceId bridgeId) {
             this.hostname = checkNotNull(hostname);
-            this.ovsdbIp = checkNotNull(ovsdbIp);
-            this.ovsdbPort = checkNotNull(ovsdbPort);
+            this.hostMgmtIp = checkNotNull(hostMgmtIp);
+            this.dpIp = checkNotNull(dpIp);
+            this.dpIntf = checkNotNull(dpIntf);
             this.bridgeId = checkNotNull(bridgeId);
-            this.phyPortName = checkNotNull(phyPortName);
-            this.localIp = checkNotNull(localIp);
         }
 
         /**
@@ -120,21 +213,30 @@ public class CordVtnConfig extends Config<ApplicationId> {
         }
 
         /**
-         * Returns OVSDB ip address of the node.
+         * Returns the host management network address of the node.
          *
-         * @return OVSDB server IP address
+         * @return management network address
          */
-        public IpAddress ovsdbIp() {
-            return this.ovsdbIp;
+        public NetworkAddress hostMgmtIp() {
+            return this.hostMgmtIp;
         }
 
         /**
-         * Returns OVSDB port number of the node.
+         * Returns the data plane network address.
          *
-         * @return port number
+         * @return network address
          */
-        public TpPort ovsdbPort() {
-            return this.ovsdbPort;
+        public NetworkAddress dpIp() {
+            return this.dpIp;
+        }
+
+        /**
+         * Returns the data plane interface name.
+         *
+         * @return interface name
+         */
+        public String dpIntf() {
+            return this.dpIntf;
         }
 
         /**
@@ -144,24 +246,6 @@ public class CordVtnConfig extends Config<ApplicationId> {
          */
         public DeviceId bridgeId() {
             return this.bridgeId;
-        }
-
-        /**
-         * Returns physical port name.
-         *
-         * @return physical port name
-         */
-        public String phyPortName() {
-            return this.phyPortName;
-        }
-
-        /**
-         * Returns local IP address.
-         *
-         * @return ip address
-         */
-        public IpAddress localIp() {
-            return this.localIp;
         }
     }
 }

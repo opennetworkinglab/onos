@@ -265,7 +265,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         SparseAnnotations annotations = DefaultAnnotations.builder()
                 .set(OPENSTACK_VM_ID, vPort.deviceId())
                 .set(SERVICE_ID, vPort.networkId())
-                .set(LOCATION_IP, node.localIp().toString())
+                .set(LOCATION_IP, node.dpIp().ip().toString())
                 .build();
 
         HostDescription hostDesc = new DefaultHostDescription(

@@ -96,6 +96,7 @@ public class CordVtnRuleInstaller {
 
     protected final Logger log = getLogger(getClass());
 
+    private static final String PORT_NAME = "portName";
     private static final int TABLE_FIRST = 0;
     private static final int TABLE_IN_PORT = 1;
     private static final int TABLE_ACCESS_TYPE = 2;
@@ -150,18 +151,18 @@ public class CordVtnRuleInstaller {
      * Installs table miss rule to a give device.
      *
      * @param deviceId device id to install the rules
-     * @param phyPortName physical port name
-     * @param localIp local data plane ip address
+     * @param dpIntf data plane interface name
+     * @param dpIp data plane ip address
      */
-    public void init(DeviceId deviceId, String phyPortName, IpAddress localIp) {
+    public void init(DeviceId deviceId, String dpIntf, IpAddress dpIp) {
         // default is drop packets which can be accomplished without
         // a table miss entry for all table.
         PortNumber tunnelPort = getTunnelPort(deviceId);
-        PortNumber phyPort = getPhyPort(deviceId, phyPortName);
+        PortNumber dpPort = getDpPort(deviceId, dpIntf);
 
-        processFirstTable(deviceId, phyPort, localIp);
-        processInPortTable(deviceId, tunnelPort, phyPort);
-        processAccessTypeTable(deviceId, phyPort);
+        processFirstTable(deviceId, dpPort, dpIp);
+        processInPortTable(deviceId, tunnelPort, dpPort);
+        processAccessTypeTable(deviceId, dpPort);
     }
 
     /**
@@ -510,21 +511,21 @@ public class CordVtnRuleInstaller {
 
     /**
      * Populates default rules on the first table.
-     * The rules are for shuttling vxlan-encapped packets and supporting physical
-     * network connectivity.
+     * It includes the rules for shuttling vxlan-encapped packets between ovs and
+     * linux stack,and external network connectivity.
      *
      * @param deviceId device id
-     * @param phyPort physical port number
-     * @param localIp local data plane ip address
+     * @param dpPort data plane interface port number
+     * @param dpIp data plane ip address
      */
-    private void processFirstTable(DeviceId deviceId, PortNumber phyPort, IpAddress localIp) {
+    private void processFirstTable(DeviceId deviceId, PortNumber dpPort, IpAddress dpIp) {
         // take vxlan packet out onto the physical port
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchInPort(PortNumber.LOCAL)
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(phyPort)
+                .setOutput(dpPort)
                 .build();
 
         FlowRule flowRule = DefaultFlowRule.builder()
@@ -541,7 +542,7 @@ public class CordVtnRuleInstaller {
 
         // take a vxlan encap'd packet through the Linux stack
         selector = DefaultTrafficSelector.builder()
-                .matchInPort(phyPort)
+                .matchInPort(dpPort)
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
                 .matchUdpDst(TpPort.tpPort(VXLAN_UDP_PORT))
@@ -563,11 +564,11 @@ public class CordVtnRuleInstaller {
 
         processFlowRule(true, flowRule);
 
-        // take a packet to the local ip through Linux stack
+        // take a packet to the data plane ip through Linux stack
         selector = DefaultTrafficSelector.builder()
-                .matchInPort(phyPort)
+                .matchInPort(dpPort)
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(localIp.toIpPrefix())
+                .matchIPDst(dpIp.toIpPrefix())
                 .build();
 
         treatment = DefaultTrafficTreatment.builder()
@@ -588,7 +589,7 @@ public class CordVtnRuleInstaller {
 
         // take an arp packet from physical through Linux stack
         selector = DefaultTrafficSelector.builder()
-                .matchInPort(phyPort)
+                .matchInPort(dpPort)
                 .matchEthType(Ethernet.TYPE_ARP)
                 .build();
 
@@ -630,17 +631,17 @@ public class CordVtnRuleInstaller {
     }
 
     /**
-     * Forward table miss packets in ACCESS_TYPE table to physical port.
+     * Forward table miss packets in ACCESS_TYPE table to data plane port.
      *
      * @param deviceId device id
-     * @param phyPort physical port number
+     * @param dpPort data plane interface port number
      */
-    private void processAccessTypeTable(DeviceId deviceId, PortNumber phyPort) {
+    private void processAccessTypeTable(DeviceId deviceId, PortNumber dpPort) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(phyPort)
+                .setOutput(dpPort)
                 .build();
 
         FlowRule flowRule = DefaultFlowRule.builder()
@@ -659,13 +660,13 @@ public class CordVtnRuleInstaller {
     /**
      * Populates default rules for IN_PORT table.
      * All packets from tunnel port are forwarded to TUNNEL_ID table and all packets
-     * from physical port to ACCESS_TYPE table.
+     * from data plane interface port to ACCESS_TYPE table.
      *
      * @param deviceId device id to install the rules
      * @param tunnelPort tunnel port number
-     * @param phyPort physical port number
+     * @param dpPort data plane interface port number
      */
-    private void processInPortTable(DeviceId deviceId, PortNumber tunnelPort, PortNumber phyPort) {
+    private void processInPortTable(DeviceId deviceId, PortNumber tunnelPort, PortNumber dpPort) {
         checkNotNull(tunnelPort);
 
         TrafficSelector selector = DefaultTrafficSelector.builder()
@@ -689,7 +690,7 @@ public class CordVtnRuleInstaller {
         processFlowRule(true, flowRule);
 
         selector = DefaultTrafficSelector.builder()
-                .matchInPort(phyPort)
+                .matchInPort(dpPort)
                 .build();
 
         treatment = DefaultTrafficTreatment.builder()
@@ -1027,22 +1028,22 @@ public class CordVtnRuleInstaller {
      */
     private PortNumber getTunnelPort(DeviceId deviceId) {
         Port port = deviceService.getPorts(deviceId).stream()
-                    .filter(p -> p.annotations().value("portName").contains(tunnelType))
+                    .filter(p -> p.annotations().value(PORT_NAME).contains(tunnelType))
                     .findFirst().orElse(null);
 
         return port == null ? null : port.number();
     }
 
     /**
-     * Returns physical port name of a given device.
+     * Returns data plane interface port name of a given device.
      *
      * @param deviceId device id
-     * @param phyPortName physical port name
-     * @return physical port number, or null if no physical port exists
+     * @param dpIntf data plane interface port name
+     * @return data plane interface port number, or null if no such port exists
      */
-    private PortNumber getPhyPort(DeviceId deviceId, String phyPortName) {
+    private PortNumber getDpPort(DeviceId deviceId, String dpIntf) {
         Port port = deviceService.getPorts(deviceId).stream()
-                    .filter(p -> p.annotations().value("portName").contains(phyPortName) &&
+                    .filter(p -> p.annotations().value(PORT_NAME).contains(dpIntf) &&
                             p.isEnabled())
                     .findFirst().orElse(null);
 
