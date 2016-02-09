@@ -37,6 +37,7 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.newresource.DiscreteResource;
 import org.onosproject.net.newresource.ResourceAdminService;
 import org.onosproject.net.newresource.BandwidthCapacity;
 import org.onosproject.net.newresource.Resource;
@@ -130,7 +131,7 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private void unregisterDeviceResource(Device device) {
         executor.submit(() -> {
-            Resource devResource = Resources.discrete(device.id()).resource();
+            DiscreteResource devResource = Resources.discrete(device.id()).resource();
             List<Resource> allResources = getDescendantResources(devResource);
             adminService.unregisterResources(allResources);
         });
@@ -186,25 +187,27 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private void unregisterPortResource(Device device, Port port) {
         executor.submit(() -> {
-            Resource portResource = Resources.discrete(device.id(), port.number()).resource();
+            DiscreteResource portResource = Resources.discrete(device.id(), port.number()).resource();
             List<Resource> allResources = getDescendantResources(portResource);
             adminService.unregisterResources(allResources);
         });
     }
 
     // Returns list of all descendant resources of given resource, including itself.
-    private List<Resource> getDescendantResources(Resource parent) {
+    private List<Resource> getDescendantResources(DiscreteResource parent) {
         LinkedList<Resource> allResources = new LinkedList<>();
         allResources.add(parent);
 
-        Set<Resource> nextResources = resourceService.getRegisteredResources(parent);
+        Set<Resource> nextResources = resourceService.getRegisteredResources(parent.id());
         while (!nextResources.isEmpty()) {
             Set<Resource> currentResources = nextResources;
             // resource list should be ordered from leaf to root
             allResources.addAll(0, currentResources);
 
             nextResources = currentResources.stream()
-                    .flatMap(r -> resourceService.getRegisteredResources(r).stream())
+                    .filter(r -> r instanceof DiscreteResource)
+                    .map(r -> (DiscreteResource) r)
+                    .flatMap(r -> resourceService.getRegisteredResources(r.id()).stream())
                     .collect(Collectors.toSet());
         }
 
