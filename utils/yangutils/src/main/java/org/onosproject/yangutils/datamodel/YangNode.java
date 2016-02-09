@@ -151,7 +151,7 @@ public abstract class YangNode {
      * @param newChild refers to a child to be added
      * @throws DataModelException due to violation in data model rules
      */
-    void addChild(YangNode newChild) throws DataModelException {
+    public void addChild(YangNode newChild) throws DataModelException {
         if (newChild.getNodeType() == null) {
             throw new DataModelException("Abstract node cannot be inserted into a tree");
         }
