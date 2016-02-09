@@ -104,6 +104,15 @@ public class NetworkConfigLinksProviderTest {
         public void addListener(DeviceListener listener) {
             deviceListener = listener;
         }
+
+        @Override
+        public Device getDevice(DeviceId deviceId) {
+            if (deviceId.equals(dev1.id())) {
+                return dev1;
+            } else {
+                return dev2;
+            }
+        }
     }
 
     /**

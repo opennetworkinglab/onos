@@ -62,6 +62,8 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.provider.lldpcommon.LinkDiscoveryContext;
+import org.onosproject.provider.lldpcommon.LinkDiscovery;
 import org.onosproject.store.service.ConsistentMapException;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -169,7 +171,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
             label = "Number of millis beyond which links will be considered stale")
     private int staleLinkAge = DEFAULT_STALE_LINK_AGE;
 
-    private final DiscoveryContext context = new InternalDiscoveryContext();
+    private final LinkDiscoveryContext context = new InternalDiscoveryContext();
     private final InternalRoleListener roleListener = new InternalRoleListener();
     private final InternalDeviceListener deviceListener = new InternalDeviceListener();
     private final InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
@@ -718,7 +720,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
     /**
      * Provides processing context for the device link discovery helpers.
      */
-    private class InternalDiscoveryContext implements DiscoveryContext {
+    private class InternalDiscoveryContext implements LinkDiscoveryContext {
         @Override
         public MastershipService mastershipService() {
             return masterService;

@@ -60,6 +60,8 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.provider.lldpcommon.LinkDiscoveryContext;
+import org.onosproject.provider.lldpcommon.LinkDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +106,7 @@ public class NetworkConfigLinksProvider
     // Device link discovery helpers.
     protected final Map<DeviceId, LinkDiscovery> discoverers = new ConcurrentHashMap<>();
 
-    private final DiscoveryContext context = new InternalDiscoveryContext();
+    private final LinkDiscoveryContext context = new InternalDiscoveryContext();
 
     private LinkProviderService providerService;
 
@@ -206,7 +208,7 @@ public class NetworkConfigLinksProvider
     /**
      * Provides processing context for the device link discovery helpers.
      */
-    private class InternalDiscoveryContext implements DiscoveryContext {
+    private class InternalDiscoveryContext implements LinkDiscoveryContext {
         @Override
         public MastershipService mastershipService() {
             return masterService;
@@ -234,7 +236,16 @@ public class NetworkConfigLinksProvider
 
         @Override
         public void touchLink(LinkKey key) {
-            //linkTimes.put(key, System.currentTimeMillis());
+        }
+
+        @Override
+        public String fingerprint() {
+            return "";
+        }
+
+        @Override
+        public DeviceService deviceService() {
+            return deviceService;
         }
     }
 
