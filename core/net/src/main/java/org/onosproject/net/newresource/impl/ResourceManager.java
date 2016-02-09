@@ -171,14 +171,14 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     }
 
     @Override
-    public boolean registerResources(List<Resource> resources) {
+    public boolean register(List<Resource> resources) {
         checkNotNull(resources);
 
         return store.register(resources);
     }
 
     @Override
-    public boolean unregisterResources(List<ResourceId> ids) {
+    public boolean unregister(List<ResourceId> ids) {
         checkNotNull(ids);
 
         return store.unregister(ids);

@@ -127,25 +127,25 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private void registerDeviceResource(Device device) {
-        executor.submit(() -> adminService.registerResources(Resources.discrete(device.id()).resource()));
+        executor.submit(() -> adminService.register(Resources.discrete(device.id()).resource()));
     }
 
     private void unregisterDeviceResource(Device device) {
         executor.submit(() -> {
             DiscreteResource devResource = Resources.discrete(device.id()).resource();
             List<Resource> allResources = getDescendantResources(devResource);
-            adminService.unregisterResources(Lists.transform(allResources, Resource::id));
+            adminService.unregister(Lists.transform(allResources, Resource::id));
         });
     }
 
     private void registerPortResource(Device device, Port port) {
         Resource portPath = Resources.discrete(device.id(), port.number()).resource();
         executor.submit(() -> {
-            adminService.registerResources(portPath);
+            adminService.register(portPath);
 
             queryBandwidth(device.id(), port.number())
                 .map(bw -> portPath.child(Bandwidth.class, bw.bps()))
-                .map(adminService::registerResources)
+                .map(adminService::register)
                 .ifPresent(success -> {
                    if (!success) {
                        log.error("Failed to register Bandwidth for {}", portPath.id());
@@ -155,33 +155,33 @@ final class ResourceDeviceListener implements DeviceListener {
             // for VLAN IDs
             Set<VlanId> vlans = queryVlanIds(device.id(), port.number());
             if (!vlans.isEmpty()) {
-                adminService.registerResources(vlans.stream()
-                                               .map(portPath::child)
-                                               .collect(Collectors.toList()));
+                adminService.register(vlans.stream()
+                        .map(portPath::child)
+                        .collect(Collectors.toList()));
             }
 
             // for MPLS labels
             Set<MplsLabel> mplsLabels = queryMplsLabels(device.id(), port.number());
             if (!mplsLabels.isEmpty()) {
-                adminService.registerResources(mplsLabels.stream()
-                                               .map(portPath::child)
-                                               .collect(Collectors.toList()));
+                adminService.register(mplsLabels.stream()
+                        .map(portPath::child)
+                        .collect(Collectors.toList()));
             }
 
             // for Lambdas
             Set<OchSignal> lambdas = queryLambdas(device.id(), port.number());
             if (!lambdas.isEmpty()) {
-                adminService.registerResources(lambdas.stream()
-                                               .map(portPath::child)
-                                               .collect(Collectors.toList()));
+                adminService.register(lambdas.stream()
+                        .map(portPath::child)
+                        .collect(Collectors.toList()));
             }
 
             // for Tributary slots
             Set<TributarySlot> tSlots = queryTributarySlots(device.id(), port.number());
             if (!tSlots.isEmpty()) {
-                adminService.registerResources(tSlots.stream()
-                                               .map(portPath::child)
-                                               .collect(Collectors.toList()));
+                adminService.register(tSlots.stream()
+                        .map(portPath::child)
+                        .collect(Collectors.toList()));
             }
         });
     }
@@ -190,7 +190,7 @@ final class ResourceDeviceListener implements DeviceListener {
         executor.submit(() -> {
             DiscreteResource portResource = Resources.discrete(device.id(), port.number()).resource();
             List<Resource> allResources = getDescendantResources(portResource);
-            adminService.unregisterResources(Lists.transform(allResources, Resource::id));
+            adminService.unregister(Lists.transform(allResources, Resource::id));
         });
     }
 

@@ -32,8 +32,8 @@ public interface ResourceAdminService {
      * @return true if registration is successfully done, false otherwise. Registration
      * succeeds when each resource is not registered or unallocated.
      */
-    default boolean registerResources(Resource... resources) {
-        return registerResources(ImmutableList.copyOf(resources));
+    default boolean register(Resource... resources) {
+        return register(ImmutableList.copyOf(resources));
     }
 
     /**
@@ -43,7 +43,7 @@ public interface ResourceAdminService {
      * @return true if registration is successfully done, false otherwise. Registration
      * succeeds when each resource is not registered or unallocated.
      */
-    boolean registerResources(List<Resource> resources);
+    boolean register(List<Resource> resources);
 
     /**
      * Unregisters the specified resources.
@@ -52,8 +52,8 @@ public interface ResourceAdminService {
      * @return true if unregistration is successfully done, false otherwise. Unregistration
      * succeeds when each resource is not registered or unallocated.
      */
-    default boolean unregisterResources(ResourceId... ids) {
-        return unregisterResources(ImmutableList.copyOf(ids));
+    default boolean unregister(ResourceId... ids) {
+        return unregister(ImmutableList.copyOf(ids));
     }
 
     /**
@@ -64,5 +64,5 @@ public interface ResourceAdminService {
      * succeeds when each resource is not registered or unallocated.
      */
     // TODO: might need to change the first argument type to ResourceId
-    boolean unregisterResources(List<ResourceId> ids);
+    boolean unregister(List<ResourceId> ids);
 }
