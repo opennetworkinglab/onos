@@ -484,7 +484,7 @@ public class DeviceManager
 
             if (requested == null && response == null) {
                 // something was off with DeviceProvider, maybe check channel too?
-                log.warn("Failed to assert role [{}] onto Device {}", requested, deviceId);
+                log.warn("Failed to assert role onto Device {}", deviceId);
                 mastershipService.relinquishMastership(deviceId);
                 return;
             }
