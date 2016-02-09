@@ -65,7 +65,7 @@ public class PacketDriverProvider extends AbstractProvider implements PacketProv
         if (device.is(PacketProgrammable.class)) {
             return device.as(PacketProgrammable.class);
         } else {
-            log.warn("Device {} is not packet programmable", deviceId);
+            log.debug("Device {} is not packet programmable", deviceId);
             return null;
         }
     }

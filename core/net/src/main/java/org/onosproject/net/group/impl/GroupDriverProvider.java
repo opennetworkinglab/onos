@@ -65,7 +65,7 @@ public class GroupDriverProvider extends AbstractProvider implements GroupProvid
         if (device.is(GroupProgrammable.class)) {
             return device.as(GroupProgrammable.class);
         } else {
-            log.warn("Device {} is not group programmable", deviceId);
+            log.debug("Device {} is not group programmable", deviceId);
             return null;
         }
     }

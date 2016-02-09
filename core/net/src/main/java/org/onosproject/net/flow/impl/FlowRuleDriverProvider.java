@@ -159,7 +159,7 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
         if (device.is(FlowRuleProgrammable.class)) {
             return device.as(FlowRuleProgrammable.class);
         } else {
-            log.warn("Device {} is not flow rule programmable", deviceId);
+            log.debug("Device {} is not flow rule programmable", deviceId);
             return null;
         }
     }
