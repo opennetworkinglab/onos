@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -162,9 +163,10 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         TransactionalMap<DiscreteResourceId, Set<Resource>> childTxMap =
                 tx.getTransactionalMap(CHILD_MAP, SERIALIZER);
 
+        // the order is preserved by LinkedHashMap
         Map<DiscreteResource, List<Resource>> resourceMap = resources.stream()
                 .filter(x -> x.parent().isPresent())
-                .collect(Collectors.groupingBy(x -> x.parent().get()));
+                .collect(Collectors.groupingBy(x -> x.parent().get(), LinkedHashMap::new, Collectors.toList()));
 
         for (Map.Entry<DiscreteResource, List<Resource>> entry: resourceMap.entrySet()) {
             if (!lookup(childTxMap, entry.getKey().id()).isPresent()) {
@@ -208,8 +210,9 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
+        // the order is preserved by LinkedHashMap
         Map<DiscreteResourceId, List<Resource>> resourceMap = resources.stream()
-                .collect(Collectors.groupingBy(x -> x.parent().get().id()));
+                .collect(Collectors.groupingBy(x -> x.parent().get().id(), LinkedHashMap::new, Collectors.toList()));
 
         // even if one of the resources is allocated to a consumer,
         // all unregistrations are regarded as failure
