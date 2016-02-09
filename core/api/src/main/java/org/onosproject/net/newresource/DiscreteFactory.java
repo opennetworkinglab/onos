@@ -23,6 +23,7 @@ import com.google.common.annotations.Beta;
 @Beta
 public final class DiscreteFactory {
     private final DiscreteResourceId id;
+    private final DiscreteResource resource;
 
     /**
      * Create an instance with the specified resource ID.
@@ -32,6 +33,7 @@ public final class DiscreteFactory {
      */
     DiscreteFactory(DiscreteResourceId id) {
         this.id = id;
+        this.resource = new DiscreteResource(id);
     }
 
     /**
@@ -49,6 +51,6 @@ public final class DiscreteFactory {
      * @return discrete-type resource
      */
     public DiscreteResource resource() {
-        return new DiscreteResource(id);
+        return resource;
     }
 }
