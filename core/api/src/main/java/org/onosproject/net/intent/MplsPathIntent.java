@@ -30,8 +30,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Abstraction of explicit MPLS label-switched path.
+ *
+ * @deprecated in Goldeneye Release, in favour of encapsulation
+ * constraint {@link org.onosproject.net.intent.constraint.EncapsulationConstraint}
  */
 @Beta
+@Deprecated
 public final class MplsPathIntent extends PathIntent {
 
     private final Optional<MplsLabel> ingressLabel;

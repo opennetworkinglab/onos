@@ -15,10 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -42,9 +39,12 @@ import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
+
 
 @Component(immediate = true)
 public class PathIntentCompiler
@@ -84,6 +84,7 @@ public class PathIntentCompiler
         List<DeviceId> devices = new LinkedList<>();
         compile(this, intent, rules, devices);
 
+
         return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources()));
     }
 
@@ -97,12 +98,14 @@ public class PathIntentCompiler
         return resourceService;
     }
 
+
     @Override
     public void createFlow(TrafficSelector originalSelector, TrafficTreatment originalTreatment,
                            ConnectPoint ingress, ConnectPoint egress,
                            int priority, boolean applyTreatment,
                            List<FlowRule> rules,
                            List<DeviceId> devices) {
+
         TrafficSelector selector = DefaultTrafficSelector.builder(originalSelector)
                 .matchInPort(ingress.port())
                 .build();
@@ -123,5 +126,6 @@ public class PathIntentCompiler
                 .fromApp(appId)
                 .makePermanent()
                 .build());
+
     }
 }

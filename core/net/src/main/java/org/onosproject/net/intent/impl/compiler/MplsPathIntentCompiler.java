@@ -68,6 +68,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.LinkKey.linkKey;
 import static org.slf4j.LoggerFactory.getLogger;
 
+/**
+ * @deprecated in Goldeneye Release, in favour of encapsulation
+ * constraint {@link org.onosproject.net.intent.constraint.EncapsulationConstraint}
+ */
+@Deprecated
 @Component(immediate = true)
 public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
 

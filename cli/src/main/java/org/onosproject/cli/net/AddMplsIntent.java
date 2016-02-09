@@ -31,7 +31,11 @@ import java.util.Optional;
 
 /**
  * Installs MPLS intents.
+ *
+ * @deprecated in Goldeneye Release, in favour of encapsulation
+ * constraint {@link org.onosproject.net.intent.constraint.EncapsulationConstraint}
  */
+@Deprecated
 @Command(scope = "onos", name = "add-mpls-intent", description = "Installs mpls connectivity intent")
 public class AddMplsIntent extends ConnectivityIntentCommand {
 

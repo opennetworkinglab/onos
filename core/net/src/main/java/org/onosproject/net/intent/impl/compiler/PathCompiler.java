@@ -25,6 +25,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.onlab.packet.EthType;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -35,12 +38,16 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.newresource.Resource;
+import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.newresource.Resources;
 import org.slf4j.Logger;
@@ -227,6 +234,185 @@ public class PathCompiler<T> {
         }
     }
 
+    private Map<LinkKey, MplsLabel> assignMplsLabel(PathCompilerCreateFlow creator, PathIntent intent) {
+                Set<LinkKey> linkRequest =
+                Sets.newHashSetWithExpectedSize(intent.path()
+                        .links().size() - 2);
+        for (int i = 1; i <= intent.path().links().size() - 2; i++) {
+            LinkKey link = linkKey(intent.path().links().get(i));
+            linkRequest.add(link);
+            // add the inverse link. I want that the VLANID is reserved both for
+            // the direct and inverse link
+            linkRequest.add(linkKey(link.dst(), link.src()));
+        }
+
+        Map<LinkKey, MplsLabel> labels = findMplsLabels(creator, linkRequest);
+        if (labels.isEmpty()) {
+            throw new IntentCompilationException("No available MPLS Label");
+        }
+
+        // for short term solution: same label is used for both directions
+        // TODO: introduce the concept of Tx and Rx resources of a port
+        Set<Resource> resources = labels.entrySet().stream()
+                .flatMap(x -> Stream.of(
+                        Resources.discrete(x.getKey().src().deviceId(), x.getKey().src().port(), x.getValue())
+                                .resource(),
+                        Resources.discrete(x.getKey().dst().deviceId(), x.getKey().dst().port(), x.getValue())
+                                .resource()
+                ))
+                .collect(Collectors.toSet());
+        List<ResourceAllocation> allocations =
+                creator.resourceService().allocate(intent.id(), ImmutableList.copyOf(resources));
+        if (allocations.isEmpty()) {
+            Collections.emptyMap();
+        }
+
+        return labels;
+    }
+
+    private Map<LinkKey, MplsLabel> findMplsLabels(PathCompilerCreateFlow creator, Set<LinkKey> links) {
+        Map<LinkKey, MplsLabel> labels = new HashMap<>();
+        for (LinkKey link : links) {
+            Set<MplsLabel> forward = findMplsLabel(creator, link.src());
+            Set<MplsLabel> backward = findMplsLabel(creator, link.dst());
+            Set<MplsLabel> common = Sets.intersection(forward, backward);
+            if (common.isEmpty()) {
+                continue;
+            }
+            labels.put(link, common.iterator().next());
+        }
+
+        return labels;
+    }
+
+    private Set<MplsLabel> findMplsLabel(PathCompilerCreateFlow creator, ConnectPoint cp) {
+        return creator.resourceService().getAvailableResourceValues(
+                Resources.discrete(cp.deviceId(), cp.port()).id(),
+                MplsLabel.class);
+    }
+
+    private void manageMplsEncap(PathCompilerCreateFlow<T> creator, List<T> flows,
+                                           List<DeviceId> devices,
+                                           PathIntent intent) {
+        Map<LinkKey, MplsLabel> mplsLabels = assignMplsLabel(creator, intent);
+
+        Iterator<Link> links = intent.path().links().iterator();
+        Link srcLink = links.next();
+
+        Link link = links.next();
+        // List of flow rules to be installed
+
+        // Ingress traffic
+        MplsLabel mplsLabel = mplsLabels.get(linkKey(link));
+        if (mplsLabel == null) {
+            throw new IntentCompilationException("No available MPLS Label for " + link);
+        }
+        MplsLabel prevMplsLabel = mplsLabel;
+
+        Optional<MplsCriterion> mplsCriterion = intent.selector().criteria()
+                .stream().filter(criterion -> criterion.type() == Criterion.Type.MPLS_LABEL)
+                .map(criterion -> (MplsCriterion) criterion)
+                .findAny();
+
+        //Push MPLS if selector does not include MPLS
+        TrafficTreatment.Builder treatBuilder = DefaultTrafficTreatment.builder();
+        if (!mplsCriterion.isPresent()) {
+            treatBuilder.pushMpls();
+        }
+        //Tag the traffic with the new encapsulation MPLS label
+        treatBuilder.setMpls(mplsLabel);
+        creator.createFlow(intent.selector(), treatBuilder.build(),
+                srcLink.dst(), link.src(), intent.priority(), true, flows, devices);
+
+        ConnectPoint prev = link.dst();
+
+        while (links.hasNext()) {
+
+            link = links.next();
+
+            if (links.hasNext()) {
+                // Transit traffic
+                MplsLabel transitMplsLabel = mplsLabels.get(linkKey(link));
+                if (transitMplsLabel == null) {
+                    throw new IntentCompilationException("No available MPLS label for " + link);
+                }
+                prevMplsLabel = transitMplsLabel;
+
+                TrafficSelector transitSelector = DefaultTrafficSelector.builder()
+                        .matchInPort(prev.port())
+                        .matchEthType(Ethernet.MPLS_UNICAST)
+                        .matchMplsLabel(prevMplsLabel).build();
+
+                TrafficTreatment.Builder transitTreat = DefaultTrafficTreatment.builder();
+
+                // Set the new MPLS Label only if the previous one is different
+                if (!prevMplsLabel.equals(transitMplsLabel)) {
+                    transitTreat.setMpls(transitMplsLabel);
+                }
+                creator.createFlow(transitSelector,
+                        transitTreat.build(), prev, link.src(), intent.priority(), true, flows, devices);
+                prev = link.dst();
+            } else {
+                TrafficSelector.Builder egressSelector = DefaultTrafficSelector.builder()
+                        .matchInPort(prev.port())
+                        .matchEthType(Ethernet.MPLS_UNICAST)
+                        .matchMplsLabel(prevMplsLabel);
+                TrafficTreatment.Builder egressTreat = DefaultTrafficTreatment.builder(intent.treatment());
+
+                // Egress traffic
+                // check if the treatement is popVlan or setVlan (rewrite),
+                // than selector needs to match any VlanId
+                for (Instruction instruct : intent.treatment().allInstructions()) {
+                    if (instruct instanceof L2ModificationInstruction) {
+                        L2ModificationInstruction l2Mod = (L2ModificationInstruction) instruct;
+                        if (l2Mod.subtype() == L2ModificationInstruction.L2SubType.VLAN_PUSH) {
+                            break;
+                        }
+                        if (l2Mod.subtype() == L2ModificationInstruction.L2SubType.VLAN_POP ||
+                                l2Mod.subtype() == L2ModificationInstruction.L2SubType.VLAN_ID) {
+                            egressSelector.matchVlanId(VlanId.ANY);
+                        }
+                    }
+                }
+
+                if (mplsCriterion.isPresent()) {
+                    egressTreat.setMpls(mplsCriterion.get().label());
+                } else {
+                    egressTreat.popMpls(outputEthType(intent.selector()));
+                }
+
+
+                if (mplsCriterion.isPresent()) {
+                    egressTreat.setMpls(mplsCriterion.get().label());
+                } else {
+                    egressTreat.popVlan();
+                }
+
+                creator.createFlow(egressSelector.build(),
+                        egressTreat.build(), prev, link.src(), intent.priority(), true, flows, devices);
+            }
+
+        }
+
+    }
+
+    private MplsLabel getMplsLabel(Map<LinkKey, MplsLabel> labels, LinkKey link) {
+        return labels.get(link);
+    }
+
+    // if the ingress ethertype is defined, the egress traffic
+    // will be use that value, otherwise the IPv4 ethertype is used.
+    private EthType outputEthType(TrafficSelector selector) {
+        Criterion c = selector.getCriterion(Criterion.Type.ETH_TYPE);
+        if (c != null && c instanceof EthTypeCriterion) {
+            EthTypeCriterion ethertype = (EthTypeCriterion) c;
+            return ethertype.ethType();
+        } else {
+            return EthType.EtherType.IPV4.ethType();
+        }
+    }
+
+
     /**
      * Compiles an intent down to flows.
      *
@@ -263,7 +449,10 @@ public class PathCompiler<T> {
                     switch (type) {
                         case VLAN:
                             manageVlanEncap(creator, flows, devices, intent);
-                            // TODO: implement MPLS case here
+                            break;
+                        case MPLS:
+                             manageMplsEncap(creator, flows, devices, intent);
+                            break;
                         default:
                             // Nothing to do
                     }

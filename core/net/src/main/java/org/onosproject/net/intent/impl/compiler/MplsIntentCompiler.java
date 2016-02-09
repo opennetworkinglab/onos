@@ -36,7 +36,11 @@ import org.onosproject.net.intent.MplsPathIntent;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 
-
+/**
+ * @deprecated in Goldeneye Release, in favour of encapsulation
+ * constraint {@link org.onosproject.net.intent.constraint.EncapsulationConstraint}
+ */
+@Deprecated
 @Component(immediate = true)
 public class MplsIntentCompiler  extends ConnectivityIntentCompiler<MplsIntent> {
 
