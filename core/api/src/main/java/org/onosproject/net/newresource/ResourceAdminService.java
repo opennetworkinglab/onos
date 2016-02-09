@@ -48,22 +48,21 @@ public interface ResourceAdminService {
     /**
      * Unregisters the specified resources.
      *
-     * @param resources resources to be unregistered
+     * @param ids IDs of resources to be unregistered
      * @return true if unregistration is successfully done, false otherwise. Unregistration
      * succeeds when each resource is not registered or unallocated.
      */
-    // TODO: might need to change the first argument type to ResourceId
-    default boolean unregisterResources(Resource... resources) {
-        return unregisterResources(ImmutableList.copyOf(resources));
+    default boolean unregisterResources(ResourceId... ids) {
+        return unregisterResources(ImmutableList.copyOf(ids));
     }
 
     /**
      * Unregisters the specified resources.
      *
-     * @param resources resources to be unregistered
+     * @param ids IDs of resources to be unregistered
      * @return true if unregistration is successfully done, false otherwise. Unregistration
      * succeeds when each resource is not registered or unallocated.
      */
     // TODO: might need to change the first argument type to ResourceId
-    boolean unregisterResources(List<Resource> resources);
+    boolean unregisterResources(List<ResourceId> ids);
 }

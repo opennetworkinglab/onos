@@ -45,10 +45,10 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * or none of the given resources is unregistered. The whole unregistration fails when any one of the
      * resource can't be unregistered.
      *
-     * @param resources resources to be unregistered
+     * @param ids resources to be unregistered
      * @return true if the registration succeeds, false otherwise
      */
-    boolean unregister(List<Resource> resources);
+    boolean unregister(List<ResourceId> ids);
 
     /**
      * Allocates the specified resources to the specified consumer in transactional way.

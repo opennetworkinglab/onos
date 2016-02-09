@@ -117,7 +117,7 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
             // FIXME Following should be an update to the value based on port speed
             if (!adminService.unregisterResources(Resources.continuous(cp.deviceId(),
                     cp.port(),
-                    Bandwidth.class).resource(0))) {
+                    Bandwidth.class).id())) {
                 log.warn("Failed to unregister Bandwidth for {}", cp);
             }
             break;
@@ -148,7 +148,7 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
         // returns true (success)
 
         if (!adminService.unregisterResources(
-                Resources.continuous(cp.deviceId(), cp.port(), Bandwidth.class).resource(0))) {
+                Resources.continuous(cp.deviceId(), cp.port(), Bandwidth.class).id())) {
             log.warn("unregisterResources for {} failed", cp);
         }
         return adminService.registerResources(Resources.continuous(cp.deviceId(),

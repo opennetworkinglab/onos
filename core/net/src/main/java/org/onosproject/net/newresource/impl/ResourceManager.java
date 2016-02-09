@@ -178,10 +178,10 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     }
 
     @Override
-    public boolean unregisterResources(List<Resource> resources) {
-        checkNotNull(resources);
+    public boolean unregisterResources(List<ResourceId> ids) {
+        checkNotNull(ids);
 
-        return store.unregister(resources);
+        return store.unregister(ids);
     }
 
     private class InternalStoreDelegate implements ResourceStoreDelegate {

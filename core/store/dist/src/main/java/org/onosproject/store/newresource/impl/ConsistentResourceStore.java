@@ -167,8 +167,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 .collect(Collectors.groupingBy(x -> x.parent().get()));
 
         for (Map.Entry<DiscreteResource, List<Resource>> entry: resourceMap.entrySet()) {
-            Optional<DiscreteResource> child = lookup(childTxMap, entry.getKey());
-            if (!child.isPresent()) {
+            if (!lookup(childTxMap, entry.getKey().id()).isPresent()) {
                 return abortTransaction(tx);
             }
 
@@ -189,8 +188,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     }
 
     @Override
-    public boolean unregister(List<Resource> resources) {
-        checkNotNull(resources);
+    public boolean unregister(List<ResourceId> ids) {
+        checkNotNull(ids);
 
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
@@ -203,8 +202,13 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 tx.getTransactionalMap(CONTINUOUS_CONSUMER_MAP, SERIALIZER);
 
         // Extract Discrete instances from resources
-        Map<DiscreteResourceId, List<Resource>> resourceMap = resources.stream()
+        List<Resource> resources = ids.stream()
                 .filter(x -> x.parent().isPresent())
+                .map(x -> lookup(childTxMap, x))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+        Map<DiscreteResourceId, List<Resource>> resourceMap = resources.stream()
                 .collect(Collectors.groupingBy(x -> x.parent().get().id()));
 
         // even if one of the resources is allocated to a consumer,
@@ -241,7 +245,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                     .collect(Collectors.toList());
             notifyDelegate(events);
         } else {
-            log.warn("Failed to unregister {}: Commit failed.", resources);
+            log.warn("Failed to unregister {}: Commit failed.", ids);
         }
         return success;
     }
@@ -263,7 +267,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
 
         for (Resource resource: resources) {
             if (resource instanceof DiscreteResource) {
-                if (!lookup(childTxMap, resource).isPresent()) {
+                if (!lookup(childTxMap, resource.id()).isPresent()) {
                     return abortTransaction(tx);
                 }
 
@@ -272,18 +276,20 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                     return abortTransaction(tx);
                 }
             } else if (resource instanceof ContinuousResource) {
-                Optional<ContinuousResource> continuous = lookup(childTxMap, (ContinuousResource) resource);
-                if (!continuous.isPresent()) {
+                Optional<Resource> lookedUp = lookup(childTxMap, resource.id());
+                if (!lookedUp.isPresent()) {
                     return abortTransaction(tx);
                 }
 
-                ContinuousResourceAllocation allocations = continuousConsumerTxMap.get(continuous.get().id());
-                if (!hasEnoughResource(continuous.get(), (ContinuousResource) resource, allocations)) {
+                // Down cast: this must be safe as ContinuousResource is associated with ContinuousResourceId
+                ContinuousResource continuous = (ContinuousResource) lookedUp.get();
+                ContinuousResourceAllocation allocations = continuousConsumerTxMap.get(continuous.id());
+                if (!hasEnoughResource(continuous, (ContinuousResource) resource, allocations)) {
                     return abortTransaction(tx);
                 }
 
                 boolean success = appendValue(continuousConsumerTxMap,
-                        continuous.get(), new ResourceAllocation(continuous.get(), consumer));
+                        continuous, new ResourceAllocation(continuous, consumer));
                 if (!success) {
                     return abortTransaction(tx);
                 }
@@ -534,34 +540,29 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     }
 
     /**
-     * Returns the resource which has the same key as the key of the specified resource
-     * in the list as a value of the map.
+     * Returns the resource which has the same key as the specified resource ID
+     * in the set as a value of the map.
      *
-     * @param map map storing parent - child relationship of resources
-     * @param resource resource to be checked for its key
+     * @param childTxMap map storing parent - child relationship of resources
+     * @param id ID of resource to be checked
      * @return the resource which is regarded as the same as the specified resource
      */
-    // Naive implementation, which traverses all elements in the list
+    // Naive implementation, which traverses all elements in the set
     // computational complexity: O(n) where n is the number of elements
     // in the associated set
-    private <T extends Resource> Optional<T> lookup(
-            TransactionalMap<DiscreteResourceId, Set<Resource>> map, T resource) {
-        // if it is root, always returns itself
-        if (!resource.parent().isPresent()) {
-            return Optional.of(resource);
+    private Optional<Resource> lookup(TransactionalMap<DiscreteResourceId, Set<Resource>> childTxMap, ResourceId id) {
+        if (!id.parent().isPresent()) {
+            return Optional.of(Resource.ROOT);
         }
 
-        Set<Resource> values = map.get(resource.parent().get().id());
+        Set<Resource> values = childTxMap.get(id.parent().get());
         if (values == null) {
             return Optional.empty();
         }
 
-        @SuppressWarnings("unchecked")
-        Optional<T> result = values.stream()
-                .filter(x -> x.id().equals(resource.id()))
-                .map(x -> (T) x)
+        return values.stream()
+                .filter(x -> x.id().equals(id))
                 .findFirst();
-        return result;
     }
 
     /**

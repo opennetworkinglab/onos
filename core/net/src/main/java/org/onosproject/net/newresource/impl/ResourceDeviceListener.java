@@ -16,6 +16,7 @@
 package org.onosproject.net.newresource.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
@@ -133,7 +134,7 @@ final class ResourceDeviceListener implements DeviceListener {
         executor.submit(() -> {
             DiscreteResource devResource = Resources.discrete(device.id()).resource();
             List<Resource> allResources = getDescendantResources(devResource);
-            adminService.unregisterResources(allResources);
+            adminService.unregisterResources(Lists.transform(allResources, Resource::id));
         });
     }
 
@@ -189,7 +190,7 @@ final class ResourceDeviceListener implements DeviceListener {
         executor.submit(() -> {
             DiscreteResource portResource = Resources.discrete(device.id(), port.number()).resource();
             List<Resource> allResources = getDescendantResources(portResource);
-            adminService.unregisterResources(allResources);
+            adminService.unregisterResources(Lists.transform(allResources, Resource::id));
         });
     }
 
