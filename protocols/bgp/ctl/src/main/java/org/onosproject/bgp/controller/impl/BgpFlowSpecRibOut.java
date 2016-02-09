@@ -104,7 +104,7 @@ public class BgpFlowSpecRibOut {
      * Removes flow spec.
      *
      * @param routeDistinguisher route distinguisher
-     * @param flowSpec BGP flow specification
+     * @param flowSpecPrefix BGP flow specification prefix
      */
     public void delete(RouteDistinguisher routeDistinguisher, BgpFlowSpecPrefix flowSpecPrefix) {
         if (vpnFlowSpecTree.containsKey(routeDistinguisher)) {
