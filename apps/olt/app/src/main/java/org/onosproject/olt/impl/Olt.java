@@ -60,6 +60,7 @@ import org.onosproject.olt.AccessDeviceListener;
 import org.onosproject.olt.AccessDeviceService;
 import org.slf4j.Logger;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -149,7 +150,7 @@ public class Olt
                 .flatMap(did -> deviceService.getPorts(did).stream())
                 .filter(p -> oltData.get(p.element().id()).uplink() != p.number())
                 .filter(p -> p.isEnabled())
-                .forEach(p -> installFilteringObjectives((DeviceId) p.element().id(), p));
+                .forEach(p -> processFilteringObjectives((DeviceId) p.element().id(), p, true));
 
         deviceService.addListener(deviceListener);
 
@@ -344,9 +345,10 @@ public class Olt
 
     }
 
-    private void installFilteringObjectives(DeviceId devId, Port port) {
-        FilteringObjective eapol = DefaultFilteringObjective.builder()
-                .permit()
+    private void processFilteringObjectives(DeviceId devId, Port port, boolean install) {
+        DefaultFilteringObjective.Builder builder = DefaultFilteringObjective.builder();
+
+        FilteringObjective eapol = (install ? builder.permit() : builder.deny())
                 .withKey(Criteria.matchInPort(port.number()))
                 .addCondition(Criteria.matchEthType(EthType.EtherType.EAPOL.ethType()))
                 .withMeta(DefaultTrafficTreatment.builder()
@@ -383,9 +385,9 @@ public class Olt
                 //TODO: Port handling and bookkeeping should be inproved once
                 // olt firmware handles correct behaviour.
                 case PORT_ADDED:
-                    if (oltData.get(devId).uplink() != event.port().number() &&
-                                            event.port().isEnabled()) {
-                        installFilteringObjectives(devId, event.port());
+                    if (!oltData.get(devId).uplink().equals(event.port().number()) &&
+                            event.port().isEnabled()) {
+                        processFilteringObjectives(devId, event.port(), true);
                     }
                     break;
                 case PORT_REMOVED:
@@ -393,8 +395,20 @@ public class Olt
                     unprovisionSubscriber(devId, olt.uplink(),
                                           event.port().number(),
                                           olt.vlan());
+                    if (!oltData.get(devId).uplink().equals(event.port().number()) &&
+                            event.port().isEnabled()) {
+                        processFilteringObjectives(devId, event.port(), false);
+                    }
                     break;
                 case PORT_UPDATED:
+                    if (oltData.get(devId).uplink().equals(event.port().number())) {
+                        break;
+                    }
+                    if (event.port().isEnabled()) {
+                        processFilteringObjectives(devId, event.port(), true);
+                    } else {
+                        processFilteringObjectives(devId, event.port(), false);
+                    }
                     break;
                 case DEVICE_ADDED:
                     post(new AccessDeviceEvent(
@@ -419,7 +433,6 @@ public class Olt
                     break;
                 case DEVICE_UPDATED:
                 case DEVICE_SUSPENDED:
-
                 case PORT_STATS_UPDATED:
                 default:
                     return;
@@ -439,6 +452,7 @@ public class Olt
                                 networkConfig.getConfig((DeviceId) event.subject(), CONFIG_CLASS);
                         if (config != null) {
                             oltData.put(config.getOlt().deviceId(), config.getOlt());
+                            provisionDefaultFlows((DeviceId) event.subject());
                         }
                     }
                     break;
@@ -448,6 +462,16 @@ public class Olt
                     break;
             }
         }
+    }
+
+    private void provisionDefaultFlows(DeviceId deviceId) {
+        List<Port> ports = deviceService.getPorts(deviceId);
+
+        ports.stream()
+                .filter(p -> !oltData.get(p.element().id()).uplink().equals(p.number()))
+                .filter(p -> p.isEnabled())
+                .forEach(p -> processFilteringObjectives((DeviceId) p.element().id(), p, true));
+
     }
 
 }
