@@ -292,6 +292,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
         private short asNumber;
         private boolean isBgpIdSet = false;
         private int bgpId;
+        private boolean isIpV4UnicastCapabilityTlvSet = true;
         private boolean isLargeAsCapabilityTlvSet = false;
         private boolean isLsCapabilityTlvSet = false;
         private boolean isFlowSpecCapabilityTlvSet = false;
@@ -310,6 +311,13 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
 
             if (!this.isBgpIdSet) {
                 throw new BgpParseException("BGPID  is not set (mandatory)");
+            }
+
+            if (this.isIpV4UnicastCapabilityTlvSet) {
+                BgpValueType tlv;
+                tlv = new MultiProtocolExtnCapabilityTlv((short) Constants.AFI_IPV4_UNICAST, RES,
+                                                         (byte) Constants.SAFI_IPV4_UNICAST);
+                this.capabilityTlv.add(tlv);
             }
 
             if (this.isLargeAsCapabilityTlvSet) {

@@ -34,7 +34,8 @@ public final class Constants {
     public static final short AFI_VALUE = 16388;
     public static final byte VPN_SAFI_VALUE = (byte) 0x80;
     public static final byte SAFI_VALUE = 71;
-
+    public static final short AFI_IPV4_UNICAST = 1;
+    public static final byte SAFI_IPV4_UNICAST = 1;
     public static final short AFI_FLOWSPEC_VALUE = 1;
     public static final byte SAFI_FLOWSPEC_VALUE = (byte) 133;
     public static final byte VPN_SAFI_FLOWSPEC_VALUE = (byte) 134;
