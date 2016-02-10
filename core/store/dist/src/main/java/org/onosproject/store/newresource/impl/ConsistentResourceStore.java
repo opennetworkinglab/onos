@@ -403,7 +403,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         return Stream.concat(discreteStream, continuousStream).collect(Collectors.toList());
     }
 
-    // computational complexity: O(n)
+    // computational complexity: O(1)
     @Override
     public Set<Resource> getChildResources(DiscreteResourceId parent) {
         checkNotNull(parent);
