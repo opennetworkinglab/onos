@@ -50,6 +50,9 @@ import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RouterConfig;
 import org.slf4j.Logger;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -69,6 +72,7 @@ public class ControlPlaneRedirectManager {
 
     private ConnectPoint controlPlaneConnectPoint;
     private boolean ospfEnabled = false;
+    private List<String> interfaces = Collections.emptyList();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -119,6 +123,7 @@ public class ControlPlaneRedirectManager {
 
         controlPlaneConnectPoint = config.getControlPlaneConnectPoint();
         ospfEnabled = config.getOspfEnabled();
+        interfaces = config.getInterfaces();
 
         updateDevice();
     }
@@ -130,6 +135,7 @@ public class ControlPlaneRedirectManager {
 
             interfaceService.getInterfaces().stream()
                     .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
+                    .filter(intf -> interfaces.isEmpty() || interfaces.contains(intf.name()))
                     .forEach(this::provisionInterface);
 
             log.info("Set up interfaces on {}", controlPlaneConnectPoint.deviceId());

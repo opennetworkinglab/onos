@@ -16,9 +16,15 @@
 
 package org.onosproject.routing.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.Config;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Routing configuration.
@@ -28,6 +34,7 @@ public class RouterConfig extends Config<ApplicationId> {
     private static final String CP_CONNECT_POINT = "controlPlaneConnectPoint";
     private static final String OSPF_ENABLED = "ospfEnabled";
     private static final String PIM_ENABLED = "pimEnabled";
+    private static final String INTERFACES = "interfaces";
 
     /**
      * Returns the routing control plane connect point.
@@ -55,4 +62,24 @@ public class RouterConfig extends Config<ApplicationId> {
     public boolean pimEnabled() {
         return object.path(PIM_ENABLED).asBoolean(false);
     }
+
+    /**
+     * Returns the list of interfaces enabled on this router.
+     *
+     * @return list of interface names that are enabled, or an empty list if
+     * all available interfaces should be used
+     */
+    public List<String> getInterfaces() {
+        JsonNode intfNode = object.path(INTERFACES);
+        if (intfNode.isMissingNode() || !intfNode.isArray()) {
+            return Collections.emptyList();
+        }
+        ArrayNode array = (ArrayNode) intfNode;
+        List<String> interfaces = new ArrayList<>(array.size());
+        for (JsonNode intf : array) {
+            interfaces.add(intf.asText());
+        }
+        return interfaces;
+    }
+
 }

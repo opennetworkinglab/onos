@@ -67,8 +67,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Programs routes to a single OpenFlow switch.
@@ -107,6 +109,8 @@ public class SingleSwitchFibInstaller {
     private DeviceId deviceId;
 
     private ConnectPoint controlPlaneConnectPoint;
+
+    private List<String> interfaces;
 
     private ApplicationId routerAppId;
 
@@ -161,15 +165,29 @@ public class SingleSwitchFibInstaller {
         log.info("Control Plane Connect Point: {}", controlPlaneConnectPoint);
 
         deviceId = routerConfig.getControlPlaneConnectPoint().deviceId();
-
         log.info("Router device ID is {}", deviceId);
+
+        interfaces = routerConfig.getInterfaces();
+        log.info("Using interfaces: {}", interfaces.isEmpty() ? "all" : interfaces);
 
         updateDevice();
     }
 
     private void updateDevice() {
         if (deviceId != null && deviceService.isAvailable(deviceId)) {
-            processIntfFilters(true, interfaceService.getInterfaces());
+
+            Set<Interface> intfs;
+            if (interfaces.isEmpty()) {
+                intfs = interfaceService.getInterfaces();
+            } else {
+                // TODO need to fix by making interface names globally unique
+                intfs = interfaceService.getInterfaces().stream()
+                        .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
+                        .filter(intf -> interfaces.contains(intf.name()))
+                        .collect(Collectors.toSet());
+            }
+
+            processIntfFilters(true, intfs);
         }
     }
 
