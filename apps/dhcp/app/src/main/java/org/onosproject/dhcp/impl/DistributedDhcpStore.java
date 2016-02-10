@@ -89,7 +89,8 @@ public class DistributedDhcpStore implements DhcpStore {
         freeIPPool = storageService.<Ip4Address>setBuilder()
                 .withName("onos-dhcp-freeIP")
                 .withSerializer(Serializer.using(KryoNamespaces.API))
-                .build();
+                .build()
+                .asDistributedSet();
 
         log.info("Started");
     }

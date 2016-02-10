@@ -20,7 +20,8 @@ import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
 /**
  * Abstract base class for a transaction context builder.
  */
-public abstract class TransactionContextBuilder extends DistributedPrimitiveBuilder<TransactionContext> {
+public abstract class TransactionContextBuilder
+    extends DistributedPrimitiveBuilder<TransactionContextBuilder, TransactionContext> {
 
     public TransactionContextBuilder() {
         super(DistributedPrimitive.Type.TRANSACTION_CONTEXT);

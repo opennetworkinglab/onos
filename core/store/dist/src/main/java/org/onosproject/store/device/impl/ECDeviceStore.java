@@ -237,7 +237,8 @@ public class ECDeviceStore
                 .withSerializer(Serializer.using(KryoNamespaces.API))
                 .withPartitionsDisabled()
                 .withRelaxedReadConsistency()
-                .build();
+                .build()
+                .asDistributedSet();
 
         deviceDescriptions.addListener(deviceUpdateListener);
         portDescriptions.addListener(portUpdateListener);

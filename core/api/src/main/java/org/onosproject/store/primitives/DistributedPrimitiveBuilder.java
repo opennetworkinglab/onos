@@ -24,7 +24,8 @@ import org.onosproject.store.service.Serializer;
  *
  * @param <T> distributed primitive type
  */
-public abstract class DistributedPrimitiveBuilder<T extends DistributedPrimitive> {
+public abstract class DistributedPrimitiveBuilder<B extends DistributedPrimitiveBuilder<B, T>,
+                                                  T extends DistributedPrimitive> {
 
     private DistributedPrimitive.Type type;
     private String name;
@@ -32,6 +33,8 @@ public abstract class DistributedPrimitiveBuilder<T extends DistributedPrimitive
     private Serializer serializer;
     private boolean partitionsDisabled = false;
     private boolean meteringDisabled = false;
+    private boolean readOnly = false;
+    private boolean relaxedReadConsistency = false;
 
     public DistributedPrimitiveBuilder(DistributedPrimitive.Type type) {
         this.type = type;
@@ -43,9 +46,9 @@ public abstract class DistributedPrimitiveBuilder<T extends DistributedPrimitive
      * @param name primitive name
      * @return this builder
      */
-    public DistributedPrimitiveBuilder<T> withName(String name) {
+    public B withName(String name) {
         this.name = name;
-        return this;
+        return (B) this;
     }
 
     /**
@@ -54,9 +57,9 @@ public abstract class DistributedPrimitiveBuilder<T extends DistributedPrimitive
      * @param serializer serializer
      * @return this builder
      */
-    public DistributedPrimitiveBuilder<T> withSerializer(Serializer serializer) {
+    public B withSerializer(Serializer serializer) {
         this.serializer = serializer;
-        return this;
+        return (B) this;
     }
 
     /**
@@ -65,9 +68,9 @@ public abstract class DistributedPrimitiveBuilder<T extends DistributedPrimitive
      * @param applicationId application identifier
      * @return this builder
      */
-    public DistributedPrimitiveBuilder<T> withApplicationId(ApplicationId applicationId) {
+    public B withApplicationId(ApplicationId applicationId) {
         this.applicationId = applicationId;
-        return this;
+        return (B) this;
     }
 
     /**
@@ -77,9 +80,9 @@ public abstract class DistributedPrimitiveBuilder<T extends DistributedPrimitive
      * @return this builder
      */
     @Deprecated
-    public DistributedPrimitiveBuilder<T> withPartitionsDisabled() {
+    public B withPartitionsDisabled() {
         this.partitionsDisabled = true;
-        return this;
+        return (B) this;
     }
 
     /**
@@ -88,9 +91,27 @@ public abstract class DistributedPrimitiveBuilder<T extends DistributedPrimitive
      * @return this builder
      */
     @Deprecated
-    public DistributedPrimitiveBuilder<T> withMeteringDisabled() {
+    public B withMeteringDisabled() {
         this.meteringDisabled = true;
-        return this;
+        return (B) this;
+    }
+
+    /**
+     * Disables state changing operations on the returned distributed primitive.
+     * @return this builder
+     */
+    public B withUpdatesDisabled() {
+        this.readOnly = true;
+        return (B) this;
+    }
+
+    /**
+     * Turns on relaxed consistency for read operations.
+     * @return this builder
+     */
+    public B withRelaxedReadConsistency() {
+        this.relaxedReadConsistency = true;
+        return (B) this;
     }
 
     /**
@@ -109,6 +130,24 @@ public abstract class DistributedPrimitiveBuilder<T extends DistributedPrimitive
      */
     public final boolean partitionsDisabled() {
         return partitionsDisabled;
+    }
+
+    /**
+     * Returns if updates are disabled.
+     *
+     * @return {@code true} if yes; {@code false} otherwise
+     */
+    public final boolean readOnly() {
+        return readOnly;
+    }
+
+    /**
+     * Returns if consistency is relaxed for read operations.
+     *
+     * @return {@code true} if yes; {@code false} otherwise
+     */
+    public final boolean relaxedReadConsistency() {
+        return relaxedReadConsistency;
     }
 
     /**

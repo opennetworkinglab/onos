@@ -82,14 +82,16 @@ public class DefaultTransactionContext implements TransactionContext {
         checkState(isOpen, TX_NOT_OPEN_ERROR);
         checkNotNull(mapName);
         checkNotNull(serializer);
-        return txMaps.computeIfAbsent(mapName, name -> new DefaultTransactionalMap<>(
+        return txMaps.computeIfAbsent(mapName, name -> {
+            ConsistentMapBuilder mapBuilder =  (ConsistentMapBuilder) mapBuilderSupplier.get()
+                                                                                        .withName(name)
+                                                                                        .withSerializer(serializer);
+            return new DefaultTransactionalMap<>(
                                 name,
-                                mapBuilderSupplier.get()
-                                                  .withName(name)
-                                                  .withSerializer(serializer)
-                                                  .buildAsyncMap(),
+                                mapBuilder.buildAsyncMap(),
                                 this,
-                                serializer));
+                                serializer);
+        });
     }
 
     @SuppressWarnings("unchecked")

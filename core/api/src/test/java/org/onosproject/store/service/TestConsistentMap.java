@@ -29,7 +29,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.onosproject.core.ApplicationId;
 import org.onosproject.store.primitives.ConsistentMapBackedJavaMap;
 
 import com.google.common.base.Objects;
@@ -293,53 +292,11 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
         return new Builder();
     }
 
-    public static class Builder<K, V> implements ConsistentMapBuilder<K, V> {
-        String mapName = "map";
-
-        @Override
-        public ConsistentMapBuilder<K, V> withName(String mapName) {
-            this.mapName = mapName;
-            return this;
-        }
-
-        @Override
-        public ConsistentMapBuilder<K, V> withApplicationId(ApplicationId id) {
-            return this;
-        }
-
-        @Override
-        public ConsistentMapBuilder<K, V> withSerializer(Serializer serializer) {
-            return this;
-        }
-
-        @Override
-        public ConsistentMapBuilder<K, V> withPartitionsDisabled() {
-            return this;
-        }
-
-        @Override
-        public ConsistentMapBuilder<K, V> withUpdatesDisabled() {
-            return this;
-        }
-
-        @Override
-        public ConsistentMapBuilder<K, V> withPurgeOnUninstall() {
-            return this;
-        }
-
-        @Override
-        public ConsistentMapBuilder<K, V> withRelaxedReadConsistency() {
-            return this;
-        }
-
-        @Override
-        public ConsistentMapBuilder<K, V> withMeteringDisabled() {
-            return this;
-        }
+    public static class Builder<K, V> extends ConsistentMapBuilder<K, V> {
 
         @Override
         public ConsistentMap<K, V> build() {
-            return new TestConsistentMap<>(mapName);
+            return new TestConsistentMap<>(name());
         }
 
         @Override

@@ -56,7 +56,8 @@ public class SetTestAddCommand extends AbstractShellCommand {
         set = storageService.<String>setBuilder()
                 .withName(setName)
                 .withSerializer(serializer)
-                .build();
+                .build()
+                .asDistributedSet();
 
         // Add a single element to the set
         if (values.length == 1) {

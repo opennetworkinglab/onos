@@ -61,7 +61,8 @@ public class SetTestGetCommand extends AbstractShellCommand {
         set = storageService.<String>setBuilder()
                 .withName(setName)
                 .withSerializer(serializer)
-                .build();
+                .build()
+                .asDistributedSet();
 
         // Print the set size
         if (size) {

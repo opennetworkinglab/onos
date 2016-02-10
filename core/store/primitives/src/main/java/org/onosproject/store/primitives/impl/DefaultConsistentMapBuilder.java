@@ -15,13 +15,10 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import org.onosproject.core.ApplicationId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
-import org.onosproject.store.service.Serializer;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -30,85 +27,25 @@ import static com.google.common.base.Preconditions.checkState;
  * @param <K> type for map key
  * @param <V> type for map value
  */
-public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K, V> {
+public class DefaultConsistentMapBuilder<K, V> extends ConsistentMapBuilder<K, V> {
 
-    private Serializer serializer;
-    private String name;
-    private ApplicationId applicationId;
-    private boolean purgeOnUninstall = false;
-    private boolean partitionsEnabled = true;
-    private boolean readOnly = false;
-    private boolean metering = true;
-    private boolean relaxedReadConsistency = false;
     private final DatabaseManager manager;
-    private static final long DEFAULT_OPERATION_TIMEOUT_MILLIS = 5000L;
 
     public DefaultConsistentMapBuilder(DatabaseManager manager) {
         this.manager = manager;
     }
 
-    @Override
-    public ConsistentMapBuilder<K, V> withName(String name) {
-        checkArgument(name != null && !name.isEmpty());
-        this.name = name;
-        return this;
-    }
-
-    @Override
-    public ConsistentMapBuilder<K, V> withApplicationId(ApplicationId id) {
-        checkArgument(id != null);
-        this.applicationId = id;
-        return this;
-    }
-
-    @Override
-    public ConsistentMapBuilder<K, V> withPurgeOnUninstall() {
-        purgeOnUninstall = true;
-        return this;
-    }
-
-    @Override
-    public ConsistentMapBuilder<K, V> withMeteringDisabled() {
-        metering = false;
-        return this;
-    }
-
-    @Override
-    public ConsistentMapBuilder<K, V> withSerializer(Serializer serializer) {
-        checkArgument(serializer != null);
-        this.serializer = serializer;
-        return this;
-    }
-
-    @Override
-    public ConsistentMapBuilder<K, V> withPartitionsDisabled() {
-        partitionsEnabled = false;
-        return this;
-    }
-
-    @Override
-    public ConsistentMapBuilder<K, V> withUpdatesDisabled() {
-        readOnly = true;
-        return this;
-    }
-
-    @Override
-    public ConsistentMapBuilder<K, V> withRelaxedReadConsistency() {
-        relaxedReadConsistency = true;
-        return this;
-    }
-
     private void validateInputs() {
-        checkState(name != null, "name must be specified");
-        checkState(serializer != null, "serializer must be specified");
-        if (purgeOnUninstall) {
-            checkState(applicationId != null, "ApplicationId must be specified when purgeOnUninstall is enabled");
+        checkState(name() != null, "name must be specified");
+        checkState(serializer() != null, "serializer must be specified");
+        if (purgeOnUninstall()) {
+            checkState(applicationId() != null, "ApplicationId must be specified when purgeOnUninstall is enabled");
         }
     }
 
     @Override
     public ConsistentMap<K, V> build() {
-        return buildAndRegisterMap().asConsistentMap(DEFAULT_OPERATION_TIMEOUT_MILLIS);
+        return buildAndRegisterMap().asConsistentMap();
     }
 
     @Override
@@ -118,25 +55,25 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
 
     private DefaultAsyncConsistentMap<K, V> buildAndRegisterMap() {
         validateInputs();
-        Database database = partitionsEnabled ? manager.partitionedDatabase : manager.inMemoryDatabase;
-        if (relaxedReadConsistency) {
+        Database database = partitionsDisabled() ? manager.inMemoryDatabase : manager.partitionedDatabase;
+        if (relaxedReadConsistency()) {
             return manager.registerMap(
-                    new AsyncCachingConsistentMap<>(name,
-                        applicationId,
+                    new AsyncCachingConsistentMap<>(name(),
+                        applicationId(),
                         database,
-                        serializer,
-                        readOnly,
-                        purgeOnUninstall,
-                        metering));
+                        serializer(),
+                        readOnly(),
+                        purgeOnUninstall(),
+                        meteringEnabled()));
         } else {
             return manager.registerMap(
-                    new DefaultAsyncConsistentMap<>(name,
-                        applicationId,
+                    new DefaultAsyncConsistentMap<>(name(),
+                        applicationId(),
                         database,
-                        serializer,
-                        readOnly,
-                        purgeOnUninstall,
-                        metering));
+                        serializer(),
+                        readOnly(),
+                        purgeOnUninstall(),
+                        meteringEnabled()));
         }
     }
 }

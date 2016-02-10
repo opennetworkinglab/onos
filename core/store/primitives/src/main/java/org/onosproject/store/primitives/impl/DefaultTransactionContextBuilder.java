@@ -48,7 +48,7 @@ public class DefaultTransactionContextBuilder extends TransactionContextBuilder 
         return new DefaultTransactionContext(transactionId, transactionCommitter, () -> {
             ConsistentMapBuilder mapBuilder = mapBuilderSupplier.get();
             if (partitionsDisabled()) {
-                mapBuilder = mapBuilder.withPartitionsDisabled();
+                mapBuilder = (ConsistentMapBuilder) mapBuilder.withPartitionsDisabled();
             }
             return mapBuilder;
         });

@@ -20,7 +20,6 @@ import java.util.function.Supplier;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.ConsistentMapBuilder;
-import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.DistributedSetBuilder;
 
@@ -29,7 +28,7 @@ import org.onosproject.store.service.DistributedSetBuilder;
  *
  * @param <E> type for set elements
  */
-public class DefaultDistributedSetBuilder<E> implements DistributedSetBuilder<E> {
+public class DefaultDistributedSetBuilder<E> extends DistributedSetBuilder<E> {
 
     private String name;
     private ConsistentMapBuilder<E, Boolean>  mapBuilder;
@@ -90,12 +89,7 @@ public class DefaultDistributedSetBuilder<E> implements DistributedSetBuilder<E>
     }
 
     @Override
-    public DistributedSet<E> build() {
-        return new DefaultDistributedSet<E>(buildAsyncSet());
-    }
-
-    @Override
-    public AsyncDistributedSet<E> buildAsyncSet() {
+    public AsyncDistributedSet<E> build() {
         return new DefaultAsyncDistributedSet<E>(mapBuilder.buildAsyncMap(), name, metering);
     }
 }

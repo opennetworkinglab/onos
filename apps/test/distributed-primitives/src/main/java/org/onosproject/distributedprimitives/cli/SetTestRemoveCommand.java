@@ -64,7 +64,8 @@ public class SetTestRemoveCommand extends AbstractShellCommand {
         set = storageService.<String>setBuilder()
                 .withName(setName)
                 .withSerializer(serializer)
-                .build();
+                .build()
+                .asDistributedSet();
 
         if (clear) {
             set.clear();

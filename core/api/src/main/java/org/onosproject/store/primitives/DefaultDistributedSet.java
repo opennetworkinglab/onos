@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.primitives.impl;
+package org.onosproject.store.primitives;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
@@ -37,30 +37,14 @@ import org.onosproject.store.service.Synchronous;
  */
 public class DefaultDistributedSet<E> extends Synchronous<AsyncDistributedSet<E>> implements DistributedSet<E> {
 
-    private static final long OPERATION_TIMEOUT_MILLIS = 5000;
+    private final long operationTimeoutMillis;
 
     private final AsyncDistributedSet<E> asyncSet;
 
-    public DefaultDistributedSet(AsyncDistributedSet<E> asyncSet) {
+    public DefaultDistributedSet(AsyncDistributedSet<E> asyncSet, long operationTimeoutMillis) {
         super(asyncSet);
         this.asyncSet = asyncSet;
-    }
-
-    private static <T> T complete(CompletableFuture<T> future) {
-        try {
-            return future.get(OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new StorageException.Interrupted();
-        } catch (TimeoutException e) {
-            throw new StorageException.Timeout();
-        } catch (ExecutionException e) {
-            if (e.getCause() instanceof StorageException) {
-                throw (StorageException) e.getCause();
-            } else {
-                throw new StorageException(e.getCause());
-            }
-        }
+        this.operationTimeoutMillis = operationTimeoutMillis;
     }
 
     @Override
@@ -148,5 +132,22 @@ public class DefaultDistributedSet<E> extends Synchronous<AsyncDistributedSet<E>
     @Override
     public void removeListener(SetEventListener<E> listener) {
         complete(asyncSet.removeListener(listener));
+    }
+
+    private <T> T complete(CompletableFuture<T> future) {
+        try {
+            return future.get(operationTimeoutMillis, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new StorageException.Interrupted();
+        } catch (TimeoutException e) {
+            throw new StorageException.Timeout();
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof StorageException) {
+                throw (StorageException) e.getCause();
+            } else {
+                throw new StorageException(e.getCause());
+            }
+        }
     }
 }

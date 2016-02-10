@@ -52,7 +52,8 @@ public class ClassifierManager implements ClassifierService {
         classifierList = storageService.<DeviceId>setBuilder()
                 .withName("classifier")
                 .withSerializer(Serializer.using(KryoNamespaces.API))
-                .build();
+                .build()
+                .asDistributedSet();
         log.info("Started");
     }
 

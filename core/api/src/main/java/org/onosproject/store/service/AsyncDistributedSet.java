@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.onosproject.store.primitives.DefaultDistributedSet;
+
 /**
  * A distributed collection designed for holding unique elements.
  * <p>
@@ -121,6 +123,26 @@ public interface AsyncDistributedSet<E> extends DistributedPrimitive {
      * @return {@code true} if this set changed as a result of the call
      */
     CompletableFuture<Boolean> removeAll(Collection<? extends E> c);
+
+
+    /**
+     * Returns a new {@link DistributedSet} that is backed by this instance.
+     *
+     * @return new {@code DistributedSet} instance
+     */
+    default DistributedSet<E> asDistributedSet() {
+        return asDistributedSet(DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+    }
+
+    /**
+     * Returns a new {@link DistributedSet} that is backed by this instance.
+     *
+     * @param timeoutMillis timeout duration for the returned DistributedSet operations
+     * @return new {@code DistributedSet} instance
+     */
+    default DistributedSet<E> asDistributedSet(long timeoutMillis) {
+        return new DefaultDistributedSet<>(this, timeoutMillis);
+    }
 
     /**
      * Returns the entries as a immutable set. The returned set is a snapshot and will not reflect new changes made to
