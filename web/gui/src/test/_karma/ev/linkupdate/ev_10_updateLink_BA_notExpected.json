@@ -3,8 +3,8 @@
   "payload": {
     "id": "of:000000000000000b/2-of:000000000000000a/1",
     "type": "direct",
-    "online": false,
-    "expected": true,
+    "online": true,
+    "expected": false,
     "linkWidth": 1.2,
     "src": "of:000000000000000b",
     "srcPort": "2",
