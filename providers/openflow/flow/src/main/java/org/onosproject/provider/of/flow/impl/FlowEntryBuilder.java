@@ -77,7 +77,7 @@ import org.projectfloodlight.openflow.protocol.instruction.OFInstructionWriteMet
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
-import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigid;
 import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.IPv4Address;
@@ -339,8 +339,11 @@ public class FlowEntryBuilder {
                     if (exp.getExperimenter() == 0x80005A06 ||
                             exp.getExperimenter() == 0x748771) {
                         OFActionCircuit ct = (OFActionCircuit) exp;
-                        short lambda = ((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber();
-                        builder.add(Instructions.modL0Lambda(Lambda.indexedLambda(lambda)));
+                        CircuitSignalID circuitSignalID = ((OFOxmOchSigid) ct.getField()).getValue();
+                        builder.add(Instructions.modL0Lambda(Lambda.ochSignal(
+                                lookupGridType(circuitSignalID.getGridType()),
+                                lookupChannelSpacing(circuitSignalID.getChannelSpacing()),
+                                circuitSignalID.getChannelNumber(), circuitSignalID.getSpectralWidth())));
                     }  else if (exp.getExperimenter() == 0x2320) {
                         if (treatmentInterpreter != null) {
                             builder.extension(treatmentInterpreter.mapAction(exp),
