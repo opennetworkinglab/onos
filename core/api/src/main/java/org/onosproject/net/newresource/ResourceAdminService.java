@@ -43,7 +43,7 @@ public interface ResourceAdminService {
      * @return true if registration is successfully done, false otherwise. Registration
      * succeeds when each resource is not registered or unallocated.
      */
-    boolean register(List<Resource> resources);
+    boolean register(List<? extends Resource> resources);
 
     /**
      * Unregisters the specified resources.
@@ -63,5 +63,5 @@ public interface ResourceAdminService {
      * @return true if unregistration is successfully done, false otherwise. Unregistration
      * succeeds when each resource is not registered or unallocated.
      */
-    boolean unregister(List<ResourceId> ids);
+    boolean unregister(List<? extends ResourceId> ids);
 }

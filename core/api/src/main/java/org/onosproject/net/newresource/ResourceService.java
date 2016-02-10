@@ -66,7 +66,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @param resources resources to be allocated
      * @return non-empty list of allocation information if succeeded, otherwise empty list
      */
-    List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources);
+    List<ResourceAllocation> allocate(ResourceConsumer consumer, List<? extends Resource> resources);
 
     /**
      * Transactionally allocates the specified resources to the specified user.
