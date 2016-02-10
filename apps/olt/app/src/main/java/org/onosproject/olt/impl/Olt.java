@@ -406,9 +406,20 @@ public class Olt
                             AccessDeviceEvent.Type.DEVICE_DISCONNECTED, devId,
                             null, null));
                     break;
+                case DEVICE_AVAILABILITY_CHANGED:
+                    if (deviceService.isAvailable(devId)) {
+                        post(new AccessDeviceEvent(
+                                AccessDeviceEvent.Type.DEVICE_CONNECTED, devId,
+                                null, null));
+                    } else {
+                        post(new AccessDeviceEvent(
+                                AccessDeviceEvent.Type.DEVICE_DISCONNECTED, devId,
+                                null, null));
+                    }
+                    break;
                 case DEVICE_UPDATED:
                 case DEVICE_SUSPENDED:
-                case DEVICE_AVAILABILITY_CHANGED:
+
                 case PORT_STATS_UPDATED:
                 default:
                     return;
