@@ -18,6 +18,8 @@ package org.onosproject.openflow.controller;
 import org.onlab.packet.Ethernet;
 import org.projectfloodlight.openflow.types.OFPort;
 
+import java.util.Optional;
+
 /**
  * A representation of a packet context which allows any provider
  * to view a packet in event, but may block the response to the
@@ -29,12 +31,14 @@ public interface OpenFlowPacketContext {
     /**
      * Blocks further responses (ie. send() calls) on this
      * packet in event.
+     *
      * @return true if blocks
      */
     boolean block();
 
     /**
      * Checks whether the packet has been handled.
+     *
      * @return true if handled, false otherwise.
      */
     boolean isHandled();
@@ -47,12 +51,14 @@ public interface OpenFlowPacketContext {
 
     /**
      * Build the packet out in response to this packet in event.
+     *
      * @param outPort the out port to send to packet out of.
      */
     void build(OFPort outPort);
 
     /**
      * Build the packet out in response to this packet in event.
+     *
      * @param ethFrame the actual packet to send out.
      * @param outPort the out port to send to packet out of.
      */
@@ -60,31 +66,43 @@ public interface OpenFlowPacketContext {
 
     /**
      * Provided a handle onto the parsed payload.
+     *
      * @return the parsed form of the payload.
      */
     Ethernet parsed();
 
     /**
      * Provide an unparsed copy of the data.
+     *
      * @return the unparsed form of the payload.
      */
     byte[] unparsed();
 
     /**
      * Provide the dpid of the switch where the packet in arrived.
+     *
      * @return the dpid of the switch.
      */
     Dpid dpid();
 
     /**
      * Provide the port on which the packet arrived.
+     *
      * @return the port
      */
     Integer inPort();
 
     /**
      * Indicates that this packet is buffered at the switch.
+     *
      * @return buffer indication
      */
     boolean isBuffered();
+
+    /**
+     * Provide the cookie in the packet in message.
+     *
+     * @return optional flow cookie
+     */
+    Optional<Long> cookie();
 }

@@ -19,6 +19,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onlab.packet.Ethernet;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 /**
  * Represents a data packet intercepted from an infrastructure device.
@@ -47,4 +48,10 @@ public interface InboundPacket {
      */
     ByteBuffer unparsed();
 
+    /**
+     * Returns the cookie in the packet in message.
+     *
+     * @return optional flow cookie
+     */
+    Optional<Long> cookie();
 }

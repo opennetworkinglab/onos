@@ -156,7 +156,8 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
 
             DefaultInboundPacket inPkt = new DefaultInboundPacket(
                     new ConnectPoint(id, PortNumber.portNumber(pktCtx.inPort())),
-                    pktCtx.parsed(), ByteBuffer.wrap(pktCtx.unparsed()));
+                    pktCtx.parsed(), ByteBuffer.wrap(pktCtx.unparsed()),
+                    pktCtx.cookie());
 
             DefaultOutboundPacket outPkt = null;
             if (!pktCtx.isBuffered()) {

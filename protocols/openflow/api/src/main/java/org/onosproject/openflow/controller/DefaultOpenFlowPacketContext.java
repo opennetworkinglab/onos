@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.BufferUnderflowException;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.onosproject.security.AppGuard.checkPermission;
@@ -177,6 +178,16 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
         checkPermission(PACKET_READ);
 
         return isBuffered;
+    }
+
+    @Override
+    public Optional<Long> cookie() {
+        checkPermission(PACKET_READ);
+        if (pktin.getVersion() != OFVersion.OF_10) {
+            return Optional.of(pktin.getCookie().getValue());
+        } else {
+            return Optional.empty();
+        }
     }
 
 }
