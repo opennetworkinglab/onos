@@ -364,7 +364,7 @@ public class DefaultFlowRule implements FlowRule {
 
         @Override
         public FlowRule build() {
-            checkArgument(flowId != null || appId != null, "Either an application" +
+            checkArgument((flowId != null) ^ (appId != null), "Either an application" +
                     " id or a cookie must be supplied");
             checkNotNull(selector, "Traffic selector cannot be null");
             checkArgument(timeout != null || permanent != null, "Must either have " +
