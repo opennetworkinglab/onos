@@ -17,26 +17,29 @@
 package org.onosproject.incubator.net.key;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.event.ListenerService;
+
+import java.util.Collection;
 
 /**
  * Service for querying device keys.
  */
 @Beta
-public interface DeviceKeyService {
+public interface DeviceKeyService extends ListenerService<DeviceKeyEvent, DeviceKeyListener> {
 
     /**
      * Returns all device keys.
      *
-     * @return collection of device keys
+     * @return Collection of device keys
      */
-    Iterable<DeviceKey> getDeviceKeys();
+    Collection<DeviceKey> getDeviceKeys();
 
     /**
-     * Returns the device key(s) using a device key identifier.
+     * Returns the device key using a device key identifier.
      *
-     * @param id device key identifier
-     * @return collection of device keys
+     * @param deviceKeyId device key identifier
+     * @return device key
      */
-    Iterable<DeviceKey> getDeviceKey(DeviceKeyId id);
+    DeviceKey getDeviceKey(DeviceKeyId deviceKeyId);
 }
 

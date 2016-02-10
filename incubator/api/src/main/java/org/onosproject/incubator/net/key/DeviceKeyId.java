@@ -48,7 +48,7 @@ public final class DeviceKeyId {
      * @param id for the device key identifier
      * @return device key identifier
      */
-    static final DeviceKeyId deviceKeyId(String id) {
+    public static final DeviceKeyId deviceKeyId(String id) {
         return new DeviceKeyId(id);
     }
 

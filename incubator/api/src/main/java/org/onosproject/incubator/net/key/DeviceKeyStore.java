@@ -19,6 +19,8 @@ package org.onosproject.incubator.net.key;
 import com.google.common.annotations.Beta;
 import org.onosproject.store.Store;
 
+import java.util.Collection;
+
 /**
  * Manages inventory of device keys; not intended for direct use.
  */
@@ -28,15 +30,28 @@ public interface DeviceKeyStore extends Store<DeviceKeyEvent, DeviceKeyStoreDele
      * Creates or updates a device key.
      *
      * @param deviceKey device key
-     * @return device key event
      */
-    DeviceKeyEvent createOrUpdateDeviceKey(DeviceKey deviceKey);
+    void createOrUpdateDeviceKey(DeviceKey deviceKey);
 
     /**
      * Deletes a device key by a specific device key identifier.
      *
      * @param deviceKeyId device key unique identifier
-     * @return device key event
      */
-    DeviceKeyEvent deleteDeviceKey(DeviceKeyId deviceKeyId);
+    void deleteDeviceKey(DeviceKeyId deviceKeyId);
+
+    /**
+     * Returns all device keys.
+     *
+     * @return set of device keys
+     */
+    Collection<DeviceKey> getDeviceKeys();
+
+    /**
+     * Returns the device key matching a device key identifier.
+     *
+     * @param deviceKeyId device key unique identifier
+     * @return device key
+     */
+    DeviceKey getDeviceKey(DeviceKeyId deviceKeyId);
 }
