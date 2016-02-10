@@ -56,7 +56,7 @@ public interface StatisticStore {
     Set<FlowEntry> getCurrentStatistic(ConnectPoint connectPoint);
 
     /**
-     * Fetches the current observed stats values.
+     * Fetches the previous observed stats values.
      *
      * @param connectPoint the port to fetch information for
      * @return set of current values
