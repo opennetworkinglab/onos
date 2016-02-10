@@ -28,12 +28,12 @@
 
     // magic beans
     var beans = [
-        //'umpxwnwcw'
-        //'eufdvexoc',
-        //'egpdytgv',
-        //'xcjvte',
-        //'bgvest',
-        //'sevlr',
+        'umpxwnwcw',
+        'eufdvexoc',
+        'egpdytgv',
+        'xcjvte',
+        'bgvest',
+        'sevlr',
         'ias'
     ];
 
