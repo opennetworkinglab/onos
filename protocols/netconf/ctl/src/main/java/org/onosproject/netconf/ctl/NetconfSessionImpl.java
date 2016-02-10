@@ -28,10 +28,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -71,12 +73,14 @@ public class NetconfSessionImpl implements NetconfSession {
     private String serverCapabilities;
     private NetconfStreamHandler t;
     private Map<Integer, CompletableFuture<String>> replies;
+    private List<String> errorReplies;
 
 
     public NetconfSessionImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
         this.deviceInfo = deviceInfo;
         connectionActive = false;
         replies = new HashMap<>();
+        errorReplies = new ArrayList<>();
         startConnection();
     }
 
@@ -194,18 +198,13 @@ public class NetconfSessionImpl implements NetconfSession {
         request = formatRequestMessageId(request);
         request = formatXmlHeader(request);
         CompletableFuture<String> futureReply = request(request);
+        messageIdInteger.incrementAndGet();
         String rp;
         try {
             rp = futureReply.get(FUTURE_REPLY_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            //replies.remove(messageIdInteger.get());
-            throw new NetconfException("Can't get the reply for request" + request, e);
+            throw new NetconfException("No matching reply for request " + request, e);
         }
-//        String rp = Tools.futureGetOrElse(futureReply, FUTURE_REPLY_TIMEOUT, TimeUnit.MILLISECONDS,
-//                                          "Error in completing the request with message-id " +
-//                                                  messageIdInteger.get() +
-//                                                  ": future timed out.");
-        messageIdInteger.incrementAndGet();
         log.debug("Result {} from request {} to device {}", rp, request, deviceInfo);
         return rp;
     }
@@ -442,8 +441,16 @@ public class NetconfSessionImpl implements NetconfSession {
     public class NetconfSessionDelegateImpl implements NetconfSessionDelegate {
 
         @Override
-        public void notify(NetconfDeviceOutputEvent event) {
-            CompletableFuture<String> completedReply = replies.get(event.getMessageID());
+        public void notify(NetconfDeviceOutputEvent event)  {
+            Optional<Integer> messageId = event.getMessageID();
+            if (!messageId.isPresent()) {
+                errorReplies.add(event.getMessagePayload());
+                log.error("Device " + event.getDeviceInfo() +
+                          " sent error reply " + event.getMessagePayload());
+                return;
+            }
+            CompletableFuture<String> completedReply =
+                    replies.get(messageId.get());
             completedReply.complete(event.getMessagePayload());
         }
     }

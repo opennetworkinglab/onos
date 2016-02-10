@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -48,6 +49,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
     private static final String RPC_REPLY = "rpc-reply";
     private static final String RPC_ERROR = "rpc-error";
     private static final String NOTIFICATION_LABEL = "<notification>";
+    private static final String MESSAGE_ID = "message-id=";
 
     private PrintWriter outputStream;
     private final InputStream err;
@@ -163,7 +165,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                         log.debug("char {} " + bufferReader.read());
                         NetconfDeviceOutputEvent event = new NetconfDeviceOutputEvent(
                                 NetconfDeviceOutputEvent.Type.DEVICE_UNREGISTERED,
-                                null, null, -1, netconfDeviceInfo);
+                                null, null, Optional.of(-1), netconfDeviceInfo);
                         netconfDeviceEventListeners.forEach(
                                 listener -> listener.event(event));
                     }
@@ -175,7 +177,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                         if (deviceReply.equals(END_PATTERN)) {
                             NetconfDeviceOutputEvent event = new NetconfDeviceOutputEvent(
                                     NetconfDeviceOutputEvent.Type.DEVICE_UNREGISTERED,
-                                    null, null, -1, netconfDeviceInfo);
+                                    null, null, Optional.of(-1), netconfDeviceInfo);
                             netconfDeviceEventListeners.forEach(
                                     listener -> listener.event(event));
                         } else {
@@ -211,18 +213,20 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
             }
     }
 
-    private static int getMsgId(String reply) {
-        if (!reply.contains(HELLO)) {
-            String[] outer = reply.split("message-id=");
-            Preconditions.checkArgument(outer.length != 1,
-                                        "Error in retrieving the message id");
-            String messageID = outer[1].substring(0, 3).replace("\"", "");
-            Preconditions.checkNotNull(Integer.parseInt(messageID),
-                                       "Error in retrieving the message id");
-            return Integer.parseInt(messageID);
-        } else {
-            return 0;
+    private static Optional<Integer> getMsgId(String reply) {
+        if (reply.contains(HELLO)) {
+            return Optional.of(0);
         }
+        if (reply.contains(RPC_ERROR) && !reply.contains(MESSAGE_ID)) {
+            return Optional.empty();
+        }
+        String[] outer = reply.split(MESSAGE_ID);
+        Preconditions.checkArgument(outer.length != 1,
+                                    "Error in retrieving the message id");
+        String messageID = outer[1].substring(0, 3).replace("\"", "");
+        Preconditions.checkNotNull(Integer.parseInt(messageID),
+                                   "Error in retrieving the message id");
+        return Optional.of(Integer.parseInt(messageID));
     }
 
     public void addDeviceEventListener(NetconfDeviceOutputEventListener listener) {

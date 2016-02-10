@@ -18,6 +18,8 @@ package org.onosproject.netconf;
 
 import org.onosproject.event.AbstractEvent;
 
+import java.util.Optional;
+
 /**
  * Describes network configuration event.
  */
@@ -25,7 +27,7 @@ public final class NetconfDeviceOutputEvent extends
         AbstractEvent<NetconfDeviceOutputEvent.Type, Object> {
 
     private final String messagePayload;
-    private final int messageID;
+    private final Optional<Integer> messageID;
     private final NetconfDeviceInfo deviceInfo;
 
     /**
@@ -64,7 +66,8 @@ public final class NetconfDeviceOutputEvent extends
      * @param msgID             id of the message related to the event
      * @param netconfDeviceInfo device of event
      */
-    public NetconfDeviceOutputEvent(Type type, Object subject, String payload, int msgID,
+    public NetconfDeviceOutputEvent(Type type, Object subject, String payload,
+                                    Optional<Integer> msgID,
                                     NetconfDeviceInfo netconfDeviceInfo) {
         super(type, subject);
         messagePayload = payload;
@@ -83,8 +86,10 @@ public final class NetconfDeviceOutputEvent extends
      * @param msgID             id of the message related to the event
      * @param time              occurrence time
      */
-    public NetconfDeviceOutputEvent(Type type, Object subject, String payload, int msgID,
-                                    NetconfDeviceInfo netconfDeviceInfo, long time) {
+    public NetconfDeviceOutputEvent(Type type, Object subject, String payload,
+                                    Optional<Integer> msgID,
+                                    NetconfDeviceInfo netconfDeviceInfo,
+                                    long time) {
         super(type, subject, time);
         messagePayload = payload;
         deviceInfo = netconfDeviceInfo;
@@ -111,7 +116,7 @@ public final class NetconfDeviceOutputEvent extends
      * Reply messageId.
      * @return messageId
      */
-    public Integer getMessageID() {
+    public Optional<Integer> getMessageID() {
         return messageID;
     }
 }
