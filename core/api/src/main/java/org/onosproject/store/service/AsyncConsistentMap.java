@@ -26,6 +26,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.onosproject.store.primitives.DefaultConsistentMap;
+import org.onosproject.store.primitives.TransactionId;
 
 /**
  * A distributed, strongly consistent map whose methods are all executed asynchronously.
@@ -317,6 +318,37 @@ public interface AsyncConsistentMap<K, V> extends DistributedPrimitive {
      * @return future that will be completed when the operation finishes
      */
     CompletableFuture<Void> removeListener(MapEventListener<K, V> listener);
+
+    /**
+     * Prepares a transaction for commitment.
+     * @param transaction transaction
+     * @return {@code true} if prepare is successful and transaction is ready to be committed;
+     * {@code false} otherwise
+     */
+    CompletableFuture<Boolean> prepare(MapTransaction<K, V> transaction);
+
+    /**
+     * Commits a previously prepared transaction.
+     * @param transactionId transaction identifier
+     * @return future that will be completed when the operation finishes
+     */
+    CompletableFuture<Void> commit(TransactionId transactionId);
+
+    /**
+     * Aborts a previously prepared transaction.
+     * @param transactionId transaction identifier
+     * @return future that will be completed when the operation finishes
+     */
+    CompletableFuture<Void> rollback(TransactionId transactionId);
+
+    /**
+     * Returns a new {@link ConsistentMap} that is backed by this instance.
+     *
+     * @return new {@code ConsistentMap} instance
+     */
+    default ConsistentMap<K, V> asConsistentMap() {
+        return asConsistentMap(DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+    }
 
     /**
      * Returns a new {@link ConsistentMap} that is backed by this instance.

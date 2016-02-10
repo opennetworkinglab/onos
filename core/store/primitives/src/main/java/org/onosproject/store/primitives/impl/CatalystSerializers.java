@@ -32,17 +32,18 @@ import java.util.Scanner;
 import org.onlab.util.Match;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.Change;
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapState;
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands;
 import org.onosproject.store.primitives.resources.impl.CommitResult;
 import org.onosproject.store.primitives.resources.impl.MapEntryUpdateResult;
-import org.onosproject.store.primitives.resources.impl.MapUpdate;
 import org.onosproject.store.primitives.resources.impl.PrepareResult;
 import org.onosproject.store.primitives.resources.impl.RollbackResult;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.base.Throwables;
@@ -65,7 +66,7 @@ public final class CatalystSerializers {
                                 MapEntryUpdateResult.Status.class,
                                 MapUpdate.class,
                                 MapUpdate.Type.class,
-                                Transaction.class,
+                                MapTransaction.class,
                                 Transaction.State.class,
                                 TransactionId.class,
                                 PrepareResult.class,
@@ -99,7 +100,7 @@ public final class CatalystSerializers {
         serializer.register(Match.class, factory);
         serializer.register(MapEntryUpdateResult.class, factory);
         serializer.register(MapEntryUpdateResult.Status.class, factory);
-        serializer.register(Transaction.class, factory);
+        serializer.register(MapTransaction.class, factory);
         serializer.register(Transaction.State.class, factory);
         serializer.register(PrepareResult.class, factory);
         serializer.register(CommitResult.class, factory);

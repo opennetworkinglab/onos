@@ -19,10 +19,13 @@ package org.onosproject.store.primitives.impl;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.onlab.util.HexString;
-import org.onosproject.store.primitives.resources.impl.MapUpdate;
+import org.onosproject.store.primitives.MapUpdate;
+import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionalMap;
@@ -46,11 +49,12 @@ import com.google.common.collect.Sets;
  * @param <K> key type
  * @param <V> value type.
  */
-public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
+public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V>, TransactionParticipant {
 
     private final TransactionContext txContext;
     private static final String TX_CLOSED_ERROR = "Transaction is closed";
-    private final ConsistentMap<K, V> backingMap;
+    private final AsyncConsistentMap<K, V> backingMap;
+    private final ConsistentMap<K, V> backingConsitentMap;
     private final String name;
     private final Serializer serializer;
     private final Map<K, Versioned<V>> readCache = Maps.newConcurrentMap();
@@ -76,11 +80,12 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
 
     public DefaultTransactionalMap(
             String name,
-            ConsistentMap<K, V> backingMap,
+            AsyncConsistentMap<K, V> backingMap,
             TransactionContext txContext,
             Serializer serializer) {
         this.name = name;
         this.backingMap = backingMap;
+        this.backingConsitentMap = backingMap.asConsistentMap();
         this.txContext = txContext;
         this.serializer = serializer;
     }
@@ -96,7 +101,7 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
         if (latest != null) {
             return latest;
         } else {
-            Versioned<V> v = readCache.computeIfAbsent(key, k -> backingMap.get(k));
+            Versioned<V> v = readCache.computeIfAbsent(key, k -> backingConsitentMap.get(k));
             return v != null ? v.value() : null;
         }
     }
@@ -159,6 +164,62 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
         return latest;
     }
 
+    @Override
+    public CompletableFuture<Boolean> prepare() {
+        return backingMap.prepare(new MapTransaction<>(txContext.transactionId(), updates()));
+    }
+
+    @Override
+    public CompletableFuture<Void> commit() {
+        return backingMap.commit(txContext.transactionId());
+    }
+
+    @Override
+    public CompletableFuture<Void> rollback() {
+        return backingMap.rollback(txContext.transactionId());
+    }
+
+    @Override
+    public boolean hasPendingUpdates() {
+        return updates().size() > 0;
+    }
+
+    protected List<MapUpdate<K, V>> updates() {
+        List<MapUpdate<K, V>> updates = Lists.newLinkedList();
+        deleteSet.forEach(key -> {
+            Versioned<V> original = readCache.get(key);
+            if (original != null) {
+                updates.add(MapUpdate.<K, V>newBuilder()
+                        .withMapName(name)
+                        .withType(MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
+                        .withKey(key)
+                        .withCurrentVersion(original.version())
+                        .build());
+            }
+        });
+        writeCache.forEach((key, value) -> {
+            Versioned<V> original = readCache.get(key);
+            if (original == null) {
+                updates.add(MapUpdate.<K, V>newBuilder()
+                        .withMapName(name)
+                        .withType(MapUpdate.Type.PUT_IF_ABSENT)
+                        .withKey(key)
+                        .withValue(value)
+                        .build());
+            } else {
+                updates.add(MapUpdate.<K, V>newBuilder()
+                        .withMapName(name)
+                        .withType(MapUpdate.Type.PUT_IF_VERSION_MATCH)
+                        .withKey(key)
+                        .withCurrentVersion(original.version())
+                        .withValue(value)
+                        .build());
+            }
+        });
+        return updates;
+    }
+
+
     protected List<MapUpdate<String, byte[]>> toMapUpdates() {
         List<MapUpdate<String, byte[]>> updates = Lists.newLinkedList();
         deleteSet.forEach(key -> {
@@ -194,19 +255,18 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
         return updates;
     }
 
-    // TODO: build expected result Map processing DB updates?
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("backingMap", backingMap)
-                .add("updates", toMapUpdates())
+                .add("updates", updates())
                 .toString();
     }
 
     /**
      * Discards all changes made to this transactional map.
      */
-    protected void rollback() {
+    protected void abort() {
         readCache.clear();
         writeCache.clear();
         deleteSet.clear();

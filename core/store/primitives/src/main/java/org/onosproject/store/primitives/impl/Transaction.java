@@ -17,8 +17,8 @@ package org.onosproject.store.primitives.impl;
 
 import java.util.List;
 
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.primitives.resources.impl.MapUpdate;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;

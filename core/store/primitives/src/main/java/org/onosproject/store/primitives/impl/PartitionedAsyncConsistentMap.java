@@ -28,10 +28,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
+import org.onlab.util.Tools;
 import org.onosproject.cluster.PartitionId;
+import org.onosproject.store.primitives.MapUpdate;
+import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.collect.Lists;
@@ -196,6 +201,39 @@ public class PartitionedAsyncConsistentMap<K, V> implements AsyncConsistentMap<K
         return CompletableFuture.allOf(getMaps().stream()
                                                 .map(map -> map.removeListener(listener))
                                                 .toArray(CompletableFuture[]::new));
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepare(MapTransaction<K, V> transaction) {
+
+        Map<AsyncConsistentMap<K, V>, List<MapUpdate<K, V>>> updatesGroupedByMap = Maps.newIdentityHashMap();
+        transaction.updates().forEach(update -> {
+            AsyncConsistentMap<K, V> map = getMap(update.key());
+            updatesGroupedByMap.computeIfAbsent(map, k -> Lists.newLinkedList()).add(update);
+        });
+        Map<AsyncConsistentMap<K, V>, MapTransaction<K, V>> transactionsByMap =
+                Maps.transformValues(updatesGroupedByMap,
+                                     list -> new MapTransaction<>(transaction.transactionId(), list));
+
+        return Tools.allOf(transactionsByMap.entrySet()
+                         .stream()
+                         .map(e -> e.getKey().prepare(e.getValue()))
+                         .collect(Collectors.toList()))
+                    .thenApply(list -> list.stream().reduce(Boolean::logicalAnd).orElse(true));
+    }
+
+    @Override
+    public CompletableFuture<Void> commit(TransactionId transactionId) {
+        return CompletableFuture.allOf(getMaps().stream()
+                                                .map(e -> e.commit(transactionId))
+                                                .toArray(CompletableFuture[]::new));
+    }
+
+    @Override
+    public CompletableFuture<Void> rollback(TransactionId transactionId) {
+        return CompletableFuture.allOf(getMaps().stream()
+                .map(e -> e.rollback(transactionId))
+                .toArray(CompletableFuture[]::new));
     }
 
     /**

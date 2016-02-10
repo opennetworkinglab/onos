@@ -26,9 +26,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.collect.Maps;
@@ -194,6 +196,21 @@ public class TranscodingAsyncConsistentMap<K1, V1, K2, V2> implements AsyncConsi
         } else {
             return CompletableFuture.completedFuture(null);
         }
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepare(MapTransaction<K1, V1> transaction) {
+        return backingMap.prepare(transaction.map(keyEncoder, valueEncoder));
+    }
+
+    @Override
+    public CompletableFuture<Void> commit(TransactionId transactionId) {
+        return backingMap.commit(transactionId);
+    }
+
+    @Override
+    public CompletableFuture<Void> rollback(TransactionId transactionId) {
+        return backingMap.rollback(transactionId);
     }
 
     private class InternalBackingMapEventListener implements MapEventListener<K2, V2> {

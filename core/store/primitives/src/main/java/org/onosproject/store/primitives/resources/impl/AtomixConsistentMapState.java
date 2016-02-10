@@ -37,10 +37,11 @@ import java.util.stream.Collectors;
 
 import org.onlab.util.CountDownCompleter;
 import org.onlab.util.Match;
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.primitives.impl.Transaction;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionPrepare;
 import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.collect.Maps;
@@ -384,7 +385,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements
             Commit<? extends AtomixConsistentMapCommands.TransactionPrepare> commit) {
         boolean ok = false;
         try {
-            Transaction transaction = commit.operation().transaction();
+            MapTransaction<String, byte[]> transaction = commit.operation().transaction();
             for (MapUpdate<String, byte[]> update : transaction.updates()) {
                 String key = update.key();
                 if (preparedKeys.contains(key)) {
@@ -404,7 +405,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements
             // No violations detected. Add to pendingTranctions and mark
             // modified keys as
             // currently locked to updates.
-            pendingTransactions.put(transaction.id(), commit);
+            pendingTransactions.put(transaction.transactionId(), commit);
             transaction.updates().forEach(u -> preparedKeys.add(u.key()));
             ok = true;
             return PrepareResult.OK;
@@ -430,7 +431,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements
             if (prepareCommit == null) {
                 return CommitResult.UNKNOWN_TRANSACTION_ID;
             }
-            Transaction transaction = prepareCommit.operation().transaction();
+            MapTransaction<String, byte[]> transaction = prepareCommit.operation().transaction();
             long totalReferencesToCommit = transaction
                     .updates()
                     .stream()
@@ -610,7 +611,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements
 
         @Override
         public byte[] value() {
-            Transaction transaction = completer.object().operation().transaction();
+            MapTransaction<String, byte[]> transaction = completer.object().operation().transaction();
             return valueForKey(key, transaction);
         }
 
@@ -624,7 +625,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements
             completer.countDown();
         }
 
-        private byte[] valueForKey(String key, Transaction transaction) {
+        private byte[] valueForKey(String key, MapTransaction<String, byte[]> transaction) {
             MapUpdate<String, byte[]>  update = transaction.updates()
                                                            .stream()
                                                            .filter(u -> u.key().equals(key))

@@ -26,8 +26,8 @@ import net.kuujo.copycat.cluster.Cluster;
 import net.kuujo.copycat.resource.ResourceState;
 
 import org.onlab.util.Match;
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.resources.impl.CommitResult;
-import org.onosproject.store.primitives.resources.impl.MapUpdate;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;

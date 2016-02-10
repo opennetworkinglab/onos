@@ -40,11 +40,13 @@ import org.onlab.util.Match;
 import org.onlab.util.SharedExecutors;
 import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.ConsistentMapException.ConcurrentModification;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.utils.MeteringAgent;
@@ -489,6 +491,21 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
     public CompletableFuture<Void> removeListener(MapEventListener<K, V> listener) {
         listeners.remove(listener);
         return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepare(MapTransaction<K, V> transaction) {
+        return Tools.exceptionalFuture(new UnsupportedOperationException());
+    }
+
+    @Override
+    public CompletableFuture<Void> commit(TransactionId transactionId) {
+        return Tools.exceptionalFuture(new UnsupportedOperationException());
+    }
+
+    @Override
+    public CompletableFuture<Void> rollback(TransactionId transactionId) {
+        return Tools.exceptionalFuture(new UnsupportedOperationException());
     }
 
     protected void notifyListeners(MapEvent<K, V> event) {

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.onosproject.store.primitives.resources.impl;
+package org.onosproject.store.primitives;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+
+import java.util.function.Function;
 
 import com.google.common.base.MoreObjects;
 
@@ -126,6 +127,26 @@ public final class MapUpdate<K, V> {
         return currentVersion;
     }
 
+    /**
+     * Transforms this instance into an instance of different paramterized types.
+     *
+     * @param keyMapper transcoder for key type
+     * @param valueMapper transcoder to value type
+     * @return new instance
+     * @param <S> key type of returned instance
+     * @param <T> value type of returned instance
+     */
+    public <S, T> MapUpdate<S, T> map(Function<K, S> keyMapper, Function<V, T> valueMapper) {
+        return MapUpdate.<S, T>newBuilder()
+                .withMapName(mapName)
+                .withType(type)
+                .withKey(keyMapper.apply(key))
+                .withValue(value == null ? null : valueMapper.apply(value))
+                .withCurrentValue(currentValue == null ? null : valueMapper.apply(currentValue))
+                .withCurrentVersion(currentVersion)
+                .build();
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -180,17 +201,16 @@ public final class MapUpdate<K, V> {
         }
 
         public Builder<K, V> withCurrentValue(V value) {
-            update.currentValue = checkNotNull(value, "currentValue cannot be null");
+            update.currentValue = value;
             return this;
         }
 
         public Builder<K, V> withValue(V value) {
-            update.value = checkNotNull(value, "value cannot be null");
+            update.value = value;
             return this;
         }
 
         public Builder<K, V> withCurrentVersion(long version) {
-            checkArgument(version >= 0, "version cannot be negative");
             update.currentVersion = version;
             return this;
         }

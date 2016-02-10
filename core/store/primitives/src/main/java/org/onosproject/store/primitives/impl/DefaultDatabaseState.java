@@ -26,8 +26,8 @@ import net.kuujo.copycat.state.Initializer;
 import net.kuujo.copycat.state.StateContext;
 
 import org.onlab.util.Match;
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.primitives.resources.impl.MapUpdate;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Arrays;

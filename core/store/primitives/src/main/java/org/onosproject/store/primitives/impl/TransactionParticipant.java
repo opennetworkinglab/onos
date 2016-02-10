@@ -17,34 +17,32 @@ package org.onosproject.store.primitives.impl;
 
 import java.util.concurrent.CompletableFuture;
 
-import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.primitives.resources.impl.CommitResult;
-import org.onosproject.store.primitives.resources.impl.PrepareResult;
-import org.onosproject.store.primitives.resources.impl.RollbackResult;
-
 /**
  * Participant in a two-phase commit protocol.
  */
 public interface TransactionParticipant {
 
     /**
-     * Attempts to execute the prepare phase for the specified {@link Transaction transaction}.
-     * @param transaction transaction
-     * @return future for prepare result
+     * Returns if this participant has updates that need to be committed.
+     * @return {@code true} if yes; {@code false} otherwise
      */
-    CompletableFuture<PrepareResult> prepare(Transaction transaction);
+    boolean hasPendingUpdates();
+
+    /**
+     * Executes the prepare phase.
+     * @return {@code true} is successful; {@code false} otherwise
+     */
+    CompletableFuture<Boolean> prepare();
 
     /**
      * Attempts to execute the commit phase for previously prepared transaction.
-     * @param transactionId transaction identifier
-     * @return future for commit result
+     * @return future that is completed when the operation completes
      */
-    CompletableFuture<CommitResult> commit(TransactionId transactionId);
+    CompletableFuture<Void> commit();
 
     /**
      * Attempts to execute the rollback phase for previously prepared transaction.
-     * @param transactionId transaction identifier
-     * @return future for rollback result
+     * @return future that is completed when the operation completes
      */
-    CompletableFuture<RollbackResult> rollback(TransactionId transactionId);
+    CompletableFuture<Void> rollback();
 }

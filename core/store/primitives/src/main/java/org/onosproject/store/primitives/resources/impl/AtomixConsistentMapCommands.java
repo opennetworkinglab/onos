@@ -29,7 +29,7 @@ import java.util.Set;
 
 import org.onlab.util.Match;
 import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.primitives.impl.Transaction;
+import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.base.MoreObjects;
@@ -209,35 +209,35 @@ public final class AtomixConsistentMapCommands {
      */
     @SuppressWarnings("serial")
     public static class TransactionPrepare extends MapCommand<PrepareResult> {
-        private Transaction transaction;
+        private MapTransaction<String, byte[]> mapTransaction;
 
         public TransactionPrepare() {
         }
 
-        public TransactionPrepare(Transaction transaction) {
-            this.transaction = transaction;
+        public TransactionPrepare(MapTransaction<String, byte[]> mapTransaction) {
+            this.mapTransaction = mapTransaction;
         }
 
-        public Transaction transaction() {
-            return transaction;
+        public MapTransaction<String, byte[]> transaction() {
+            return mapTransaction;
         }
 
         @Override
         public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
             super.writeObject(buffer, serializer);
-            serializer.writeObject(transaction, buffer);
+            serializer.writeObject(mapTransaction, buffer);
         }
 
         @Override
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
             super.readObject(buffer, serializer);
-            transaction = serializer.readObject(buffer);
+            mapTransaction = serializer.readObject(buffer);
         }
 
         @Override
         public String toString() {
             return MoreObjects.toStringHelper(getClass())
-                    .add("transaction", transaction)
+                    .add("mapTransaction", mapTransaction)
                     .toString();
         }
     }

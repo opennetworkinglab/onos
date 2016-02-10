@@ -24,9 +24,9 @@ import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.*;
 
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.primitives.resources.impl.CommitResult;
-import org.onosproject.store.primitives.resources.impl.MapUpdate;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TransactionContext;
@@ -84,7 +84,10 @@ public class DefaultTransactionContext implements TransactionContext {
         checkNotNull(serializer);
         return txMaps.computeIfAbsent(mapName, name -> new DefaultTransactionalMap<>(
                                 name,
-                                mapBuilderSupplier.get().withName(name).withSerializer(serializer).build(),
+                                mapBuilderSupplier.get()
+                                                  .withName(name)
+                                                  .withSerializer(serializer)
+                                                  .buildAsyncMap(),
                                 this,
                                 serializer));
     }
@@ -113,7 +116,7 @@ public class DefaultTransactionContext implements TransactionContext {
     public void abort() {
         if (isOpen) {
             try {
-                txMaps.values().forEach(m -> m.rollback());
+                txMaps.values().forEach(m -> m.abort());
             } finally {
                 isOpen = false;
             }
