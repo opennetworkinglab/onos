@@ -34,7 +34,6 @@ import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
 
-import com.eclipsesource.json.Json;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +48,7 @@ import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
 import org.onosproject.vtnweb.web.SfcCodecContext;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -121,6 +121,17 @@ public class PortPairGroupResourceTest extends VtnResourceTest {
             return this.equals(portPairGroup) &&
                     Objects.equals(this.portPairGroupId, portPairGroup.portPairGroupId()) &&
                     Objects.equals(this.tenantId, portPairGroup.tenantId());
+        }
+
+        @Override
+        public void addLoad(PortPairId portPairId) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public int getLoad(PortPairId portPairId) {
+            // TODO Auto-generated method stub
+            return 0;
         }
     }
 

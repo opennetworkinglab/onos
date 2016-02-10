@@ -30,11 +30,11 @@ import java.net.HttpURLConnection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
 
-import com.eclipsesource.json.Json;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,14 +42,18 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
+import org.onosproject.vtnrsc.FiveTuple;
 import org.onosproject.vtnrsc.FlowClassifierId;
+import org.onosproject.vtnrsc.LoadBalanceId;
 import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.PortChainId;
 import org.onosproject.vtnrsc.PortPairGroupId;
+import org.onosproject.vtnrsc.PortPairId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.portchain.PortChainService;
 import org.onosproject.vtnweb.web.SfcCodecContext;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -134,6 +138,41 @@ public class PortChainResourceTest extends VtnResourceTest {
             return this.equals(portChain) &&
                     Objects.equals(this.portChainId, portChain.portChainId()) &&
                     Objects.equals(this.tenantId, portChain.tenantId());
+        }
+
+        @Override
+        public void addLoadBalancePath(FiveTuple fiveTuple, LoadBalanceId id, List<PortPairId> path) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public LoadBalanceId getLoadBalanceId(FiveTuple fiveTuple) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public Set<FiveTuple> getLoadBalanceIdMapKeys() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public List<PortPairId> getLoadBalancePath(LoadBalanceId id) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public List<PortPairId> getLoadBalancePath(FiveTuple fiveTuple) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public Optional<LoadBalanceId> matchPath(List<PortPairId> path) {
+            // TODO Auto-generated method stub
+            return null;
         }
     }
 

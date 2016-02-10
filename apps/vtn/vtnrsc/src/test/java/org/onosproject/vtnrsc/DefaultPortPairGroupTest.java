@@ -15,6 +15,10 @@
  */
 package org.onosproject.vtnrsc;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,14 +26,34 @@ import org.junit.Test;
 
 import com.google.common.testing.EqualsTester;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-
 /**
  * Unit tests for DefaultPortPairGroup class.
  */
 public class DefaultPortPairGroupTest {
+
+    final PortPairGroupId portPairGroupId = PortPairGroupId.of("78888888-fc23-aeb6-f44b-56dc5e2fb3ae");
+    final TenantId tenantId = TenantId.tenantId("1");
+    final String name = "PortPairGroup1";
+    final String description = "PortPairGroup1";
+    final List<PortPairId> portPairList = new LinkedList<PortPairId>();
+
+    private PortPairGroup getPortPairGroup() {
+
+        portPairList.clear();
+        // Create same two port-pair-group objects.
+        PortPairId portPairId = PortPairId.of("73333333-fc23-aeb6-f44b-56dc5e2fb3ae");
+        portPairList.add(portPairId);
+        portPairId = PortPairId.of("74444444-fc23-aeb6-f44b-56dc5e2fb3ae");
+        portPairList.add(portPairId);
+
+        DefaultPortPairGroup.Builder portPairGroupBuilder = new DefaultPortPairGroup.Builder();
+        PortPairGroup portPairGroup = portPairGroupBuilder.setId(portPairGroupId).setTenantId(tenantId)
+                .setName(name).setDescription(description).setPortPairs(portPairList).build();
+
+        return portPairGroup;
+
+    }
+
     /**
      * Checks that the DefaultPortPairGroup class is immutable.
      */
@@ -43,25 +67,11 @@ public class DefaultPortPairGroupTest {
      */
     @Test
     public void testEquals() {
-        // Create same two port-pair-group objects.
-        final PortPairGroupId portPairGroupId = PortPairGroupId.of("78888888-fc23-aeb6-f44b-56dc5e2fb3ae");
-        final TenantId tenantId = TenantId.tenantId("1");
-        final String name = "PortPairGroup1";
-        final String description = "PortPairGroup1";
-        // create port-pair-id list
-        final List<PortPairId> portPairList = new LinkedList<PortPairId>();
-        PortPairId portPairId = PortPairId.of("73333333-fc23-aeb6-f44b-56dc5e2fb3ae");
-        portPairList.add(portPairId);
-        portPairId = PortPairId.of("74444444-fc23-aeb6-f44b-56dc5e2fb3ae");
-        portPairList.add(portPairId);
+
+        final PortPairGroup portPairGroup1 = getPortPairGroup();
 
         DefaultPortPairGroup.Builder portPairGroupBuilder = new DefaultPortPairGroup.Builder();
-        final PortPairGroup portPairGroup1 = portPairGroupBuilder.setId(portPairGroupId).setTenantId(tenantId)
-                .setName(name).setDescription(description).setPortPairs(portPairList).build();
-
-        portPairGroupBuilder = new DefaultPortPairGroup.Builder();
-        final PortPairGroup samePortPairGroup1 = portPairGroupBuilder.setId(portPairGroupId).setTenantId(tenantId)
-                .setName(name).setDescription(description).setPortPairs(portPairList).build();
+        final PortPairGroup samePortPairGroup1 = getPortPairGroup();
 
         // Create different port-pair-group object.
         final PortPairGroupId portPairGroupId2 = PortPairGroupId.of("79999999-fc23-aeb6-f44b-56dc5e2fb3ae");
@@ -70,7 +80,7 @@ public class DefaultPortPairGroupTest {
         final String description2 = "PortPairGroup2";
         // create port-pair-id list
         final List<PortPairId> portPairList2 = new LinkedList<PortPairId>();
-        portPairId = PortPairId.of("75555555-fc23-aeb6-f44b-56dc5e2fb3ae");
+        PortPairId portPairId = PortPairId.of("75555555-fc23-aeb6-f44b-56dc5e2fb3ae");
         portPairList2.add(portPairId);
         portPairId = PortPairId.of("75555555-fc23-aeb6-f44b-56dc5e2fb3ae");
         portPairList2.add(portPairId);
@@ -80,7 +90,7 @@ public class DefaultPortPairGroupTest {
                 .setName(name2).setDescription(description2).setPortPairs(portPairList2).build();
 
         new EqualsTester().addEqualityGroup(portPairGroup1, samePortPairGroup1).addEqualityGroup(portPairGroup2)
-                .testEquals();
+        .testEquals();
     }
 
     /**
@@ -88,25 +98,28 @@ public class DefaultPortPairGroupTest {
      */
     @Test
     public void testConstruction() {
-        final PortPairGroupId portPairGroupId = PortPairGroupId.of("78888888-fc23-aeb6-f44b-56dc5e2fb3ae");
-        final TenantId tenantId = TenantId.tenantId("1");
-        final String name = "PortPairGroup";
-        final String description = "PortPairGroup";
-        // create port-pair-id list
-        final List<PortPairId> portPairList = new LinkedList<PortPairId>();
-        PortPairId portPairId = PortPairId.of("73333333-fc23-aeb6-f44b-56dc5e2fb3ae");
-        portPairList.add(portPairId);
-        portPairId = PortPairId.of("74444444-fc23-aeb6-f44b-56dc5e2fb3ae");
-        portPairList.add(portPairId);
 
-        DefaultPortPairGroup.Builder portPairGroupBuilder = new DefaultPortPairGroup.Builder();
-        final PortPairGroup portPairGroup = portPairGroupBuilder.setId(portPairGroupId).setTenantId(tenantId)
-                .setName(name).setDescription(description).setPortPairs(portPairList).build();
+        final PortPairGroup portPairGroup = getPortPairGroup();
 
         assertThat(portPairGroupId, is(portPairGroup.portPairGroupId()));
         assertThat(tenantId, is(portPairGroup.tenantId()));
         assertThat(name, is(portPairGroup.name()));
         assertThat(description, is(portPairGroup.description()));
         assertThat(portPairList, is(portPairGroup.portPairs()));
+    }
+
+    /**
+     * Checks the port pair load map.
+     */
+    @Test
+    public void testPortPairLod() {
+
+        PortPairId portPairId = PortPairId.of("73333333-fc23-aeb6-f44b-56dc5e2fb3ae");
+        final PortPairGroup portPairGroup = getPortPairGroup();
+        int load1 = portPairGroup.getLoad(portPairId);
+        portPairGroup.addLoad(portPairId);
+        int load2 = portPairGroup.getLoad(portPairId);
+
+        assertThat((load1 + 1), is(load2));
     }
 }

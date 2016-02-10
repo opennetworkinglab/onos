@@ -16,6 +16,8 @@
 package org.onosproject.vtnrsc;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Abstraction of an entity providing Port Chain information.
@@ -68,6 +70,55 @@ public interface PortChain {
      * @return list of flow classifiers
      */
     List<FlowClassifierId> flowClassifiers();
+
+    /**
+     * Adds a new load balanced path.
+     *
+     * @param fiveTuple five tuple from the packet
+     * @param id load balance path identifier
+     * @param path load balanced path of list of port pairs
+     */
+    void addLoadBalancePath(FiveTuple fiveTuple, LoadBalanceId id,
+                            List<PortPairId> path);
+
+    /**
+     * Get the load balance id from five tuple.
+     *
+     * @param fiveTuple five tuple from the packet
+     * @return load balance identifier for the given packet
+     */
+    LoadBalanceId getLoadBalanceId(FiveTuple fiveTuple);
+
+    /**
+     * Get the keys set from load balanced id map.
+     *
+     * @return set of five tuple info
+     */
+    Set<FiveTuple> getLoadBalanceIdMapKeys();
+
+    /**
+     * Get the load balanced path from load balance Id.
+     *
+     * @param id load balance id.
+     * @return path containing list of port pairs
+     */
+    List<PortPairId> getLoadBalancePath(LoadBalanceId id);
+
+    /**
+     * Get the load balanced path from five tuple.
+     *
+     * @param fiveTuple five tuple from the packet
+     * @return path containing list of port pairs
+     */
+    List<PortPairId> getLoadBalancePath(FiveTuple fiveTuple);
+
+    /**
+     * Match the given path with existing load balanced paths.
+     *
+     * @param path load balanced path
+     * @return load balance id if the path matches, null otherwise.
+     */
+    Optional<LoadBalanceId> matchPath(List<PortPairId> path);
 
     /**
      * Returns whether this port chain is an exact match to the port chain given

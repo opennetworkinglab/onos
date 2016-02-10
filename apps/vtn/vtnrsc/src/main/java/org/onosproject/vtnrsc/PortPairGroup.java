@@ -59,6 +59,21 @@ public interface PortPairGroup {
     List<PortPairId> portPairs();
 
     /**
+     * Adds the load on the given port pair id.
+     *
+     * @param portPairId port pair id.
+     */
+    public void addLoad(PortPairId portPairId);
+
+    /**
+     * Get the load on the given port pair id.
+     *
+     * @param portPairId port pair id
+     * @return load on the given port pair id.
+     */
+    public int getLoad(PortPairId portPairId);
+
+    /**
      * Returns whether this port pair group is an exact match to the
      * port pair group given in the argument.
      * <p>

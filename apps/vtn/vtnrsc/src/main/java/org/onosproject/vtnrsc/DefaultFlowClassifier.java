@@ -15,11 +15,13 @@
  */
 package org.onosproject.vtnrsc;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Objects;
+
 import org.onlab.packet.IpPrefix;
 
 import com.google.common.base.MoreObjects;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Provides Default flow classifier.

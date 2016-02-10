@@ -19,7 +19,9 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.ImmutableList;
 
@@ -33,6 +35,7 @@ public final class DefaultPortPairGroup implements PortPairGroup {
     private final String name;
     private final String description;
     private final List<PortPairId> portPairList;
+    private final Map<PortPairId, Integer> portPairLoadMap;
 
     /**
      * Default constructor to create Port Pair Group.
@@ -52,6 +55,10 @@ public final class DefaultPortPairGroup implements PortPairGroup {
         this.name = name;
         this.description = description;
         this.portPairList = portPairList;
+        portPairLoadMap = new ConcurrentHashMap<>();
+        for (PortPairId portPairId : portPairList) {
+            portPairLoadMap.put(portPairId, new Integer(0));
+        }
     }
 
     @Override
@@ -77,6 +84,18 @@ public final class DefaultPortPairGroup implements PortPairGroup {
     @Override
     public List<PortPairId> portPairs() {
         return ImmutableList.copyOf(portPairList);
+    }
+
+    @Override
+    public void addLoad(PortPairId portPairId) {
+        int load = portPairLoadMap.get(portPairId);
+        load = load + 1;
+        portPairLoadMap.put(portPairId, new Integer(load));
+    }
+
+    @Override
+    public int getLoad(PortPairId portPairId) {
+        return portPairLoadMap.get(portPairId);
     }
 
     @Override
