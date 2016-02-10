@@ -36,8 +36,7 @@ public interface ControlMessageStore
      * @param controlMessages a collection of control message stats
      * @return ready to send event describing what occurred
      */
-    ControlMessageEvent updateStatsInfo(ProviderId providerId,
-                                        DeviceId deviceId,
+    ControlMessageEvent updateStatsInfo(ProviderId providerId, DeviceId deviceId,
                                         Collection<ControlMessage> controlMessages);
 
 }

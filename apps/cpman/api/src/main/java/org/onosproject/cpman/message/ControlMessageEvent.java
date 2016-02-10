@@ -18,13 +18,15 @@ package org.onosproject.cpman.message;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.cpman.ControlMessage;
 
+import java.util.Collection;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Describes control message event.
  */
 public class ControlMessageEvent
-        extends AbstractEvent<ControlMessageEvent.Type, ControlMessage> {
+        extends AbstractEvent<ControlMessageEvent.Type, Collection<ControlMessage>> {
 
     /**
      * Type of control message events.
@@ -39,11 +41,11 @@ public class ControlMessageEvent
     /**
      * Creates an event of given type and the current time.
      *
-     * @param type  control message event type
-     * @param controlMessage event control message subject
+     * @param type control message event type
+     * @param controlMessages event control message subject
      */
-    public ControlMessageEvent(Type type, ControlMessage controlMessage) {
-        super(type, controlMessage);
+    public ControlMessageEvent(Type type, Collection<ControlMessage> controlMessages) {
+        super(type, controlMessages);
     }
 
     @Override

@@ -13,15 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cpman.message;
-
-import org.onosproject.event.ListenerService;
-
 /**
- * Service for obtaining control message statistic information.
+ * Implementation of control message manager.
  */
-public interface ControlMessageService
-        extends ListenerService<ControlMessageEvent, ControlMessageListener> {
-
-
-}
+package org.onosproject.cpman.impl.message;
