@@ -1,4 +1,4 @@
-package org.onlab.netty;
+package org.onosproject.store.cluster.messaging.impl;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
@@ -9,10 +9,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cluster.ClusterMetadata;
+import org.onosproject.cluster.ClusterMetadataEventListener;
+import org.onosproject.cluster.ClusterMetadataService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.cluster.messaging.Endpoint;
 
 import com.google.common.util.concurrent.MoreExecutors;
@@ -24,34 +31,39 @@ import static org.onlab.junit.TestTools.findAvailablePort;
 /**
  * Unit tests for NettyMessaging.
  */
-public class NettyMessagingTest {
+public class NettyMessagingManagerTest {
 
-    NettyMessaging netty1;
-    NettyMessaging netty2;
+    NettyMessagingManager netty1;
+    NettyMessagingManager netty2;
 
-    Endpoint ep1 = new Endpoint(IpAddress.valueOf("127.0.0.1"), 5001);
-    Endpoint ep2 = new Endpoint(IpAddress.valueOf("127.0.0.1"), 5002);
-    Endpoint invalidEndPoint = new Endpoint(IpAddress.valueOf("127.0.0.1"), 5003);
+    private static final String DUMMY_NAME = "node";
+    private static final String IP_STRING = "127.0.0.1";
+
+    Endpoint ep1 = new Endpoint(IpAddress.valueOf(IP_STRING), 5001);
+    Endpoint ep2 = new Endpoint(IpAddress.valueOf(IP_STRING), 5002);
+    Endpoint invalidEndPoint = new Endpoint(IpAddress.valueOf(IP_STRING), 5003);
 
     @Before
     public void setUp() throws Exception {
         ep1 = new Endpoint(IpAddress.valueOf("127.0.0.1"), findAvailablePort(5001));
-        netty1 = new NettyMessaging();
-        netty1.start(12, ep1);
+        netty1 = new NettyMessagingManager();
+        netty1.clusterMetadataService = dummyMetadataService(DUMMY_NAME, IP_STRING, ep1);
+        netty1.activate();
 
         ep2 = new Endpoint(IpAddress.valueOf("127.0.0.1"), findAvailablePort(5003));
-        netty2 = new NettyMessaging();
-        netty2.start(12, ep2);
+        netty2 = new NettyMessagingManager();
+        netty2.clusterMetadataService = dummyMetadataService(DUMMY_NAME, IP_STRING, ep2);
+        netty2.activate();
     }
 
     @After
     public void tearDown() throws Exception {
         if (netty1 != null) {
-            netty1.stop();
+            netty1.deactivate();
         }
 
         if (netty2 != null) {
-            netty2.stop();
+            netty2.deactivate();
         }
     }
 
@@ -113,9 +125,9 @@ public class NettyMessagingTest {
         netty2.registerHandler("test-subject", handler, handlerExecutor);
 
         CompletableFuture<byte[]> response = netty1.sendAndReceive(ep2,
-                "test-subject",
-                "hello world".getBytes(),
-                completionExecutor);
+                                                                   "test-subject",
+                                                                   "hello world".getBytes(),
+                                                                   completionExecutor);
         response.whenComplete((r, e) -> {
             completionThreadName.set(Thread.currentThread().getName());
         });
@@ -124,5 +136,41 @@ public class NettyMessagingTest {
         assertTrue(Arrays.equals("hello there".getBytes(), response.join()));
         assertEquals("completion-thread", completionThreadName.get());
         assertEquals("handler-thread", handlerThreadName.get());
+    }
+
+    private ClusterMetadataService dummyMetadataService(String name, String ipAddress, Endpoint ep) {
+        return new ClusterMetadataService() {
+            @Override
+            public ClusterMetadata getClusterMetadata() {
+                return new ClusterMetadata(new ProviderId(DUMMY_NAME, DUMMY_NAME),
+                                           name, Sets.newHashSet(), Sets.newHashSet());
+            }
+
+            @Override
+            public ControllerNode getLocalNode() {
+                return new ControllerNode() {
+                    @Override
+                    public NodeId id() {
+                        return null;
+                    }
+
+                    @Override
+                    public IpAddress ip() {
+                        return IpAddress.valueOf(ipAddress);
+                    }
+
+                    @Override
+                    public int tcpPort() {
+                        return ep.port();
+                    }
+                };
+            }
+
+            @Override
+            public void addListener(ClusterMetadataEventListener listener) {}
+
+            @Override
+            public void removeListener(ClusterMetadataEventListener listener) {}
+        };
     }
 }

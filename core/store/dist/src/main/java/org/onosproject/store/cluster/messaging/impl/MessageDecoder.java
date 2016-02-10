@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.netty;
+package org.onosproject.store.cluster.messaging.impl;
 
+import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
-
-import java.util.List;
-
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpAddress.Version;
 import org.onosproject.store.cluster.messaging.Endpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Charsets;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -54,7 +52,7 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
     }
 
     @Override
-    @java.lang.SuppressWarnings("squid:S128") // suppress switch fall through warning
+    @SuppressWarnings("squid:S128") // suppress switch fall through warning
     protected void decode(
             ChannelHandlerContext context,
             ByteBuf buffer,
@@ -97,9 +95,9 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
             byte[] payload = new byte[contentLength];
             buffer.readBytes(payload);
             InternalMessage message = new InternalMessage(messageId,
-                    new Endpoint(senderIp, senderPort),
-                    messageType,
-                    payload);
+                                                          new Endpoint(senderIp, senderPort),
+                                                          messageType,
+                                                          payload);
             out.add(message);
             checkpoint(DecoderState.READ_MESSAGE_PREAMBLE);
             break;

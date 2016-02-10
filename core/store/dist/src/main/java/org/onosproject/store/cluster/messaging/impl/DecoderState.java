@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.store.cluster.messaging.impl;
 
 /**
- * Asynchronous messaging APIs implemented using the Netty framework.
+ * State transitions a decoder goes through as it is decoding an incoming message.
  */
-package org.onlab.netty;
+public enum DecoderState {
+    READ_MESSAGE_PREAMBLE,
+    READ_MESSAGE_ID,
+    READ_SENDER_IP_VERSION,
+    READ_SENDER_IP,
+    READ_SENDER_PORT,
+    READ_MESSAGE_TYPE_LENGTH,
+    READ_MESSAGE_TYPE,
+    READ_CONTENT_LENGTH,
+    READ_CONTENT
+}
