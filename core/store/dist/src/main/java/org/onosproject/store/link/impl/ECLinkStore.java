@@ -493,8 +493,12 @@ public class ECLinkStore
             if (linkDiscoveryMode == LinkDiscoveryMode.STRICT) {
                 // Remove any previous links to force them to go through the strict
                 // discovery process
-                linkDescriptions.clear();
-                links.clear();
+                if (linkDescriptions != null) {
+                    linkDescriptions.clear();
+                }
+                if (links != null) {
+                    links.clear();
+                }
             }
             log.debug("config set link discovery mode to {}",
                       linkDiscoveryMode.name());
