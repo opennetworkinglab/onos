@@ -353,29 +353,29 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             // check if already consumed
             return getResourceAllocations(resource.id()).isEmpty();
         } else {
-            // check if it's registered or not.
-            Versioned<Set<Resource>> v = childMap.get(resource.parent().get().id());
-            if (v == null) {
-                return false;
-            }
-
-            ContinuousResource requested = (ContinuousResource) resource;
-            ContinuousResource registered = v.value().stream()
-                    .filter(c -> c.id().equals(resource.id()))
-                    .findFirst()
-                    .map(c -> (ContinuousResource) c)
-                    .get();
-            if (registered.value() < requested.value()) {
-                // Capacity < requested, can never satisfy
-                return false;
-            }
-            // check if there's enough left
-            return isAvailable(requested);
+            return isAvailable((ContinuousResource) resource);
         }
     }
 
     // computational complexity: O(n) where n is the number of existing allocations for the resource
     private boolean isAvailable(ContinuousResource resource) {
+        // check if it's registered or not.
+        Versioned<Set<Resource>> children = childMap.get(resource.parent().get().id());
+        if (children == null) {
+            return false;
+        }
+
+        ContinuousResource registered = children.value().stream()
+                .filter(c -> c.id().equals(resource.id()))
+                .findFirst()
+                .map(c -> (ContinuousResource) c)
+                .get();
+        if (registered.value() < resource.value()) {
+            // Capacity < requested, can never satisfy
+            return false;
+        }
+
+        // check if there's enough left
         Versioned<ContinuousResourceAllocation> allocation = continuousConsumers.get(resource.id());
         if (allocation == null) {
             // no allocation (=no consumer) full registered resources available
