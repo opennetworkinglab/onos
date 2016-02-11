@@ -17,6 +17,9 @@
 package org.onosproject.yangutils.parser;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
+
+import java.io.IOException;
 
 /**
  * Abstraction of entity which provides parser service of YANG files for yangutils-maven-plugin.
@@ -28,6 +31,7 @@ public interface YangUtilsParser {
      *
      * @param file input YANG file
      * @return YangNode root node of the data model tree
+     * @throws ParserException when fails to get the data model
      */
-    YangNode getDataModel(String file);
+    YangNode getDataModel(String file) throws IOException, ParserException;
 }
