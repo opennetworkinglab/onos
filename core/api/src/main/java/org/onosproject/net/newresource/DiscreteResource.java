@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Represents a resource path which specifies a resource which can be measured
@@ -64,6 +65,8 @@ public final class DiscreteResource implements Resource {
 
     @Override
     public boolean isSubTypeOf(Class<?> ancestor) {
+        checkNotNull(ancestor);
+
         return id.components().stream()
                 .map(Object::getClass)
                 .filter(x -> x.equals(ancestor))

@@ -21,6 +21,8 @@ import com.google.common.base.MoreObjects;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Represents a resource path which specifies a resource which can be measured
  * as continuous value. Bandwidth of a link is an example of the resource.
@@ -74,6 +76,8 @@ public final class ContinuousResource implements Resource {
 
     @Override
     public boolean isSubTypeOf(Class<?> ancestor) {
+        checkNotNull(ancestor);
+
         String typeName = (String) id.components().get(id.components().size() - 1);
         boolean foundInLeaf = typeName.equals(ancestor.getCanonicalName());
         boolean foundInAncestor = id.components().subList(0, id.components().size()).stream()
