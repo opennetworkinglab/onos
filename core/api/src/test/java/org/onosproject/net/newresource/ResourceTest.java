@@ -90,6 +90,19 @@ public class ResourceTest {
     }
 
     @Test
+    public void testTypeOf() {
+        DiscreteResource discrete = Resources.discrete(D1, P1, VLAN1).resource();
+        assertThat(discrete.isTypeOf(DeviceId.class), is(false));
+        assertThat(discrete.isTypeOf(PortNumber.class), is(false));
+        assertThat(discrete.isTypeOf(VlanId.class), is(true));
+
+        ContinuousResource continuous = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
+        assertThat(continuous.isTypeOf(DeviceId.class), is(false));
+        assertThat(continuous.isTypeOf(PortNumber.class), is(false));
+        assertThat(continuous.isTypeOf(Bandwidth.class), is(true));
+    }
+
+    @Test
     public void testSubTypeOf() {
         DiscreteResource discrete = Resources.discrete(D1, P1, VLAN1).resource();
         assertThat(discrete.isSubTypeOf(DeviceId.class), is(true));

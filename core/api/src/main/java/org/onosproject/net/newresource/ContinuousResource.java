@@ -48,6 +48,14 @@ public final class ContinuousResource implements Resource {
         return id;
     }
 
+    @Override
+    public boolean isTypeOf(Class<?> type) {
+        checkNotNull(type);
+
+        String typeName = (String) id.components().get(id.components().size() - 1);
+        return typeName.equals(type.getCanonicalName());
+    }
+
     /**
      * The user of this methods must receive the return value as Double or double.
      * Otherwise, this methods throws an exception.

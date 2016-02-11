@@ -45,6 +45,17 @@ public final class DiscreteResource implements Resource {
         return id;
     }
 
+    @Override
+    public boolean isTypeOf(Class<?> type) {
+        checkNotNull(type);
+
+        if (isRoot()) {
+            return false;
+        }
+
+        return type.isAssignableFrom(id.components().get(id.components().size() - 1).getClass());
+    }
+
     /**
      * The user of this methods must receive the return value as the correct type.
      * Otherwise, this methods throws an exception.
@@ -76,6 +87,10 @@ public final class DiscreteResource implements Resource {
             return null;
         }
         return id.components().get(id.components().size() - 1);
+    }
+
+    private boolean isRoot() {
+        return id.equals(ResourceId.ROOT);
     }
 
     @Override

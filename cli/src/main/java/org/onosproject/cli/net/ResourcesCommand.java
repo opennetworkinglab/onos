@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+import com.google.common.collect.Iterables;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -158,7 +159,7 @@ public class ResourcesCommand extends AbstractShellCommand {
             if (r instanceof ContinuousResource) {
                 // non-aggregatable terminal node
                 nonAggregatable.add(r);
-            } else if (aggregatableTypes.contains(r.last().getClass())) {
+            } else if (Iterables.any(aggregatableTypes, r::isTypeOf)) {
                 // aggregatable & terminal node
                 String className = r.last().getClass().getSimpleName();
                 aggregatables.put(className, r);

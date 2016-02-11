@@ -48,6 +48,14 @@ public interface Resource {
     ResourceId id();
 
     /**
+     * Checks if the type of this instance is the specified type.
+     *
+     * @param type type of resource to be checked
+     * @return true if this resource is the type of the specified type. Otherwise, false.
+     */
+    boolean isTypeOf(Class<?> type);
+
+    /**
      * Checks if the type of this instance is the sub-type of the specified type.
      *
      * @param ancestor type of resource to be checked.

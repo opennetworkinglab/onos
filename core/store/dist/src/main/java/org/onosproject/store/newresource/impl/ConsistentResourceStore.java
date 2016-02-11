@@ -429,7 +429,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         }
 
         Stream<DiscreteResource> discrete = children.value().stream()
-                .filter(x -> x.last().getClass().equals(cls))
+                .filter(x -> x.isTypeOf(cls))
                 .filter(x -> x instanceof DiscreteResource)
                 .map(x -> ((DiscreteResource) x))
                 .filter(x -> discreteConsumers.containsKey(x.id()));
