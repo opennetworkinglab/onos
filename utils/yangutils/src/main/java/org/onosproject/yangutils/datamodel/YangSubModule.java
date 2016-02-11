@@ -21,62 +21,72 @@ import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
-import org.onosproject.yangutils.translator.CodeGenerator;
-import org.onosproject.yangutils.utils.io.CachedFileHandle;
 
-/*-
- * Reference:RFC 6020.
- * The "module" statement defines the module's name,
- * and groups all statements that belong to the module together. The "module"
- * statement's argument is the name of the module, followed by a block of
- * sub statements that hold detailed module information.
- * The module's sub statements
+/*
+ *  Reference RFC 6020.
  *
- *                +--------------+---------+-------------+-----------------------+
- *                |sub statement | section | cardinality | data model mapping    |
- *                +--------------+---------+-------------+-----------------------+
- *                | anyxml       | 7.10    | 0..n        | not supported         |
- *                | augment      | 7.15    | 0..n        | child nodes           |
- *                | choice       | 7.9     | 0..n        | child nodes           |
- *                | contact      | 7.1.8   | 0..1        | string                |
- *                | container    | 7.5     | 0..n        | child nodes           |
- *                | description  | 7.19.3  | 0..1        | string                |
- *                | deviation    | 7.18.3  | 0..n        | TODO                  |
- *                | extension    | 7.17    | 0..n        | TODO                  |
- *                | feature      | 7.18.1  | 0..n        | TODO                  |
- *                | grouping     | 7.11    | 0..n        | child nodes           |
- *                | identity     | 7.16    | 0..n        | TODO                  |
- *                | import       | 7.1.5   | 0..n        | list of import info   |
- *                | include      | 7.1.6   | 0..n        | list of include info  |
- *                | leaf         | 7.6     | 0..n        | list of leaf info     |
- *                | leaf-list    | 7.7     | 0..n        | list of leaf-list info|
- *                | list         | 7.8     | 0..n        | child nodes           |
- *                | namespace    | 7.1.3   | 1           | string/uri            |
- *                | notification | 7.14    | 0..n        | TODO                  |
- *                | organization | 7.1.7   | 0..1        | string                |
- *                | prefix       | 7.1.4   | 1           | string                |
- *                | reference    | 7.19.4  | 0..1        | string                |
- *                | revision     | 7.1.9   | 0..n        | revision              |
- *                | rpc          | 7.13    | 0..n        | TODO                  |
- *                | typedef      | 7.3     | 0..n        | child nodes           |
- *                | uses         | 7.12    | 0..n        | child nodes           |
- *                | YANG-version | 7.1.2   | 0..1        | int                   |
- *                +--------------+---------+-------------+-----------------------+
+ *  While the primary unit in YANG is a module, a YANG module can itself
+ *  be constructed out of several submodules.  Submodules allow a module
+ *  designer to split a complex model into several pieces where all the
+ *  submodules contribute to a single namespace, which is defined by the
+ *  module that includes the submodules.
+ *
+ *  The "submodule" statement defines the submodule's name, and groups
+ *  all statements that belong to the submodule together.  The
+ *  "submodule" statement's argument is the name of the submodule,
+ *  followed by a block of sub-statements that hold detailed submodule
+ *  information.
+ *
+ *  The submodule's sub-statements
+ *
+ *                +--------------+---------+-------------+------------------+
+ *                | substatement | section | cardinality |data model mapping|
+ *                +--------------+---------+-------------+------------------+
+ *                | anyxml       | 7.10    | 0..n        | - not supported  |
+ *                | augment      | 7.15    | 0..n        | - child nodes    |
+ *                | belongs-to   | 7.2.2   | 1           | - YangBelongsTo  |
+ *                | choice       | 7.9     | 0..n        | - child nodes    |
+ *                | contact      | 7.1.8   | 0..1        | - string         |
+ *                | container    | 7.5     | 0..n        | - child nodes    |
+ *                | description  | 7.19.3  | 0..1        | - string         |
+ *                | deviation    | 7.18.3  | 0..n        | - TODO           |
+ *                | extension    | 7.17    | 0..n        | - TODO           |
+ *                | feature      | 7.18.1  | 0..n        | - TODO           |
+ *                | grouping     | 7.11    | 0..n        | - child nodes    |
+ *                | identity     | 7.16    | 0..n        | - TODO           |
+ *                | import       | 7.1.5   | 0..n        | - YangImport     |
+ *                | include      | 7.1.6   | 0..n        | - YangInclude    |
+ *                | leaf         | 7.6     | 0..n        | - YangLeaf       |
+ *                | leaf-list    | 7.7     | 0..n        | - YangLeafList   |
+ *                | list         | 7.8     | 0..n        | - child nodes    |
+ *                | notification | 7.14    | 0..n        | - TODO           |
+ *                | organization | 7.1.7   | 0..1        | - string         |
+ *                | reference    | 7.19.4  | 0..1        | - string         |
+ *                | revision     | 7.1.9   | 0..n        | - string         |
+ *                | rpc          | 7.13    | 0..n        | - TODO           |
+ *                | typedef      | 7.3     | 0..n        | - child nodes    |
+ *                | uses         | 7.12    | 0..n        | - child nodes    |
+ *                | YANG-version | 7.1.2   | 0..1        | - int            |
+ *                +--------------+---------+-------------+------------------+
  */
-
 /**
- * Data model node to maintain information defined in YANG module.
+ * Data model node to maintain information defined in YANG sub-module.
  */
-public class YangModule extends YangNode
-        implements YangLeavesHolder, YangDesc, YangReference, Parsable, CodeGenerator {
+public class YangSubModule extends YangNode
+        implements YangLeavesHolder, YangDesc, YangReference, Parsable {
 
     /**
-     * Name of the module.
+     * Name of sub module.
      */
     private String name;
 
     /**
-     * Reference:RFC 6020.
+     * Module to which it belongs to.
+     */
+    private YangBelongsTo belongsTo;
+
+    /**
+     * Reference RFC 6020.
      *
      * The "contact" statement provides contact information for the module. The
      * argument is a string that is used to specify contact information for the
@@ -87,12 +97,7 @@ public class YangModule extends YangNode
     private String contact;
 
     /**
-     * Reference:RFC 6020.
-     *
-     * The "description" statement takes as an argument a string that contains a
-     * human-readable textual description of this definition. The text is
-     * provided in a language (or languages) chosen by the module developer; for
-     * the sake of interoperability.
+     * Description.
      */
     private String description;
 
@@ -107,44 +112,29 @@ public class YangModule extends YangNode
     private List<YangInclude> includeList;
 
     /**
-     * List of leaves at root level in the module.
+     * List of leaves at root level in the sub-module.
      */
     @SuppressWarnings("rawtypes")
     private List<YangLeaf> listOfLeaf;
 
     /**
-     * List of leaf-lists at root level in the module.
+     * List of leaf-lists at root level in the sub-module.
      */
     @SuppressWarnings("rawtypes")
     private List<YangLeafList> listOfLeafList;
 
     /**
-     * Name space of the module.
-     */
-    private YangNameSpace nameSpace;
-
-    /**
-     * Reference:RFC 6020.
-     *
-     * The "organization" statement defines the party responsible for this
-     * module. The argument is a string that is used to specify a textual
-     * description of the organization(s) under whose auspices this module was
-     * developed.
+     * organization owner of the sub-module.
      */
     private String organization;
 
     /**
-     * Prefix to refer to the objects in module.
-     */
-    private String prefix;
-
-    /**
-     * Reference of the module.
+     * reference of the sub-module.
      */
     private String reference;
 
     /**
-     * Revision info of the module.
+     * revision info of the sub-module.
      */
     private YangRevision revision;
 
@@ -154,20 +144,10 @@ public class YangModule extends YangNode
     private byte version;
 
     /**
-     * package of the generated java code.
+     * Create a sub module node.
      */
-    private String pkg;
-
-    /**
-     * Cached Java File Handle.
-     */
-    private CachedFileHandle fileHandle;
-
-    /**
-     * Create a YANG node of module type.
-     */
-    public YangModule() {
-        super(YangNodeType.MODULE_NODE);
+    public YangSubModule() {
+        super(YangNodeType.SUB_MODULE_NODE);
     }
 
     /* (non-Javadoc)
@@ -182,41 +162,59 @@ public class YangModule extends YangNode
      * @see org.onosproject.yangutils.datamodel.YangNode#setName(java.lang.String)
      */
     @Override
-    public void setName(String moduleName) {
-        name = moduleName;
+    public void setName(String subModuleName) {
+        name = subModuleName;
     }
 
     /**
-     * Get the contact details of the module owner.
+     * Get the module info.
      *
-     * @return the contact details of YANG owner.
+     * @return the belongs to info
+     */
+    public YangBelongsTo getBelongsTo() {
+        return belongsTo;
+    }
+
+    /**
+     * Set the module info.
+     *
+     * @param belongsTo module info to set.
+     */
+    public void setBelongsTo(YangBelongsTo belongsTo) {
+        this.belongsTo = belongsTo;
+    }
+
+    /**
+     * Get the contact.
+     *
+     * @return the contact.
      */
     public String getContact() {
         return contact;
     }
 
     /**
-     * Set the contact details of the module owner.
+     * Set the contact.
      *
-     * @param contact the contact details of YANG owner.
+     * @param contact the contact to set
      */
     public void setContact(String contact) {
         this.contact = contact;
     }
 
     /**
-     * Get the description of module.
+     * Get the description.
      *
-     * @return the description of YANG module.
+     * @return the description.
      */
     public String getDescription() {
         return description;
     }
 
     /**
-     * Set the description of module.
+     * Set the description.
      *
-     * @param description set the description of YANG module.
+     * @param description set the description.
      */
     public void setDescription(String description) {
         this.description = description;
@@ -290,7 +288,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the list of leaves in module.
+     * Get the list of leaves.
      *
      * @return the list of leaves.
      */
@@ -300,7 +298,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the list of leaf in module.
+     * Set the list of leaves.
      *
      * @param leafsList the list of leaf to set.
      */
@@ -310,7 +308,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Add a leaf in module.
+     * Add a leaf.
      *
      * @param leaf the leaf to be added.
      */
@@ -324,7 +322,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the list of leaf-list from module.
+     * Get the list of leaf-list.
      *
      * @return the list of leaf-list.
      */
@@ -334,7 +332,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the list of leaf-list in module.
+     * Set the list of leaf-list.
      *
      * @param listOfLeafList the list of leaf-list to set.
      */
@@ -344,7 +342,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Add a leaf-list in module.
+     * Add a leaf-list.
      *
      * @param leafList the leaf-list to be added.
      */
@@ -358,25 +356,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the name space of module elements.
-     *
-     * @return the nameSpace.
-     */
-    public YangNameSpace getNameSpace() {
-        return nameSpace;
-    }
-
-    /**
-     * Set the name space of module elements.
-     *
-     * @param nameSpace the nameSpace to set.
-     */
-    public void setNameSpace(YangNameSpace nameSpace) {
-        this.nameSpace = nameSpace;
-    }
-
-    /**
-     * Get the modules organization.
+     * Get the sub-modules organization.
      *
      * @return the organization.
      */
@@ -385,30 +365,12 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the modules organization.
+     * Set the sub-modules organization.
      *
      * @param org the organization to set.
      */
     public void setOrganization(String org) {
         organization = org;
-    }
-
-    /**
-     * Get the prefix.
-     *
-     * @return the prefix
-     */
-    public String getPrefix() {
-        return prefix;
-    }
-
-    /**
-     * Set the prefix.
-     *
-     * @param prefix the prefix to set.
-     */
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
     }
 
     /**
@@ -466,56 +428,18 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the mapped java package.
-     *
-     * @return the java package
-     */
-    @Override
-    public String getPackage() {
-        return pkg;
-    }
-
-    /**
-     * Set the mapped java package.
-     *
-     * @param pcg the package to set
-     */
-    @Override
-    public void setPackage(String pcg) {
-        pkg = pcg;
-    }
-
-    /**
-     * Get the cached file handle.
-     *
-     * @return the fileHandle
-     */
-    public CachedFileHandle getFileHandle() {
-        return fileHandle;
-    }
-
-    /**
-     * Set the cached file handle.
-     *
-     * @param handle the fileHandle to set
-     */
-    public void setFileHandle(CachedFileHandle handle) {
-        fileHandle = handle;
-    }
-
-    /**
      * Returns the type of the parsed data.
      *
-     * @return returns MODULE_DATA.
+     * @return returns SUB_MODULE_DATA.
      */
     public ParsableDataType getParsableDataType() {
-        return ParsableDataType.MODULE_DATA;
+        return ParsableDataType.SUB_MODULE_DATA;
     }
 
     /**
      * Validate the data on entering the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules
+     * @throws DataModelException a violation of data model rules.
      */
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
@@ -524,27 +448,43 @@ public class YangModule extends YangNode
     /**
      * Validate the data on exiting the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules
+     * @throws DataModelException a violation of data model rules.
      */
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
-    /**
-     * Generates java code for module.
+    /* (non-Javadoc)
+     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeEntry()
      */
     public void generateJavaCodeEntry() {
-        //TODO: autogenerated method stub, to be implemented
+        // TODO Auto-generated method stub
 
-        return;
     }
 
-    /**
-     * Free resources used to generate code.
+    /* (non-Javadoc)
+     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeExit()
      */
     public void generateJavaCodeExit() {
-                //TODO: autogenerated method stub, to be implemented
-        return;
+        // TODO Auto-generated method stub
+
     }
 
+    /* (non-Javadoc)
+     * @see org.onosproject.yangutils.datamodel.YangNode#getPackage()
+     */
+    @Override
+    public String getPackage() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see org.onosproject.yangutils.datamodel.YangNode#setPackage(java.lang.String)
+     */
+    @Override
+    public void setPackage(String pkg) {
+        // TODO Auto-generated method stub
+
+    }
 }

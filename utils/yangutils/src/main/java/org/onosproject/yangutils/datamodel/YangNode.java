@@ -16,25 +16,36 @@
 package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.translator.CodeGenerator;
 
 /**
  * Base class of a node in data model tree.
  */
-public abstract class YangNode {
+public abstract class YangNode implements CodeGenerator {
 
-    /* Type of information maintained in node */
+    /**
+     * Type of node.
+     */
     private YangNodeType nodeType;
 
-    /* Parent reference */
+    /**
+     * Parent reference.
+     */
     private YangNode parent;
 
-    /* First child reference */
+    /**
+     * First child reference.
+     */
     private YangNode child;
 
-    /* Next sibling reference */
+    /**
+     * Next sibling reference.
+     */
     private YangNode nextSibling;
 
-    /* Previous sibling reference */
+    /**
+     * Previous sibling reference.
+     */
     private YangNode previousSibling;
 
     /**
@@ -213,4 +224,33 @@ public abstract class YangNode {
         curNode.setNextSibling(newChild);
         return;
     }
+
+    /**
+     * Get the YANG name of the node.
+     *
+     * @return the name of node as defined in YANG file.
+     */
+    public abstract String getName();
+
+    /**
+     * Set the YANG name of the node.
+     *
+     * @param name the name of node as defined in YANG file.
+     */
+    public abstract void setName(String name);
+
+    /**
+     * Get the mapped java package.
+     *
+     * @return the java package
+     */
+    public abstract String getPackage();
+
+    /**
+     * Set the mapped java package.
+     *
+     * @param pkg the package to set
+     */
+    public abstract void setPackage(String pkg);
+
 }

@@ -22,18 +22,21 @@ package org.onosproject.yangutils.datamodel;
 public enum YangDataTypes {
     /**
      * Reference:RFC 6020.
+     *
      * int8 represents integer values between -128 and 127, inclusively.
      */
     INT8,
 
     /**
      * Reference:RFC 6020.
+     *
      * int16 represents integer values between -32768 and 32767, inclusively.
      */
     INT16,
 
     /**
      * Reference:RFC 6020.
+     *
      * int32 represents integer values between -2147483648 and 2147483647,
      * inclusively.
      */
@@ -41,6 +44,7 @@ public enum YangDataTypes {
 
     /**
      * Reference:RFC 6020.
+     *
      * int64 represents integer values between -9223372036854775808 and
      * 9223372036854775807, inclusively.
      */
@@ -48,24 +52,28 @@ public enum YangDataTypes {
 
     /**
      * Reference:RFC 6020.
+     *
      * uint8 represents integer values between 0 and 255, inclusively.
      */
     UINT8,
 
     /**
      * Reference:RFC 6020.
+     *
      * uint16 represents integer values between 0 and 65535, inclusively.
      */
     UINT16,
 
     /**
      * Reference:RFC 6020.
+     *
      * uint32 represents integer values between 0 and 4294967295, inclusively.
      */
     UINT32,
 
     /**
      * Reference:RFC 6020.
+     *
      * uint64 represents integer values between 0 and 18446744073709551615,
      * inclusively.
      */
@@ -73,6 +81,7 @@ public enum YangDataTypes {
 
     /**
      * Reference:RFC 6020.
+     *
      * The decimal64 type represents a subset of the real numbers, which can be
      * represented by decimal numerals. The value space of decimal64 is the set
      * of numbers that can be obtained by multiplying a 64-bit signed integer by
@@ -83,6 +92,7 @@ public enum YangDataTypes {
 
     /**
      * Reference:RFC 6020.
+     *
      * The string built-in type represents human-readable strings in YANG. Legal
      * characters are tab, carriage return, line feed, and the legal characters
      * of Unicode and ISO/IEC 10646
@@ -91,12 +101,14 @@ public enum YangDataTypes {
 
     /**
      * Reference:RFC 6020.
+     *
      * The boolean built-in type represents a boolean value.
      */
     BOOLEAN,
 
     /**
      * Reference:RFC 6020.
+     *
      * The enumeration built-in type represents values from a set of assigned
      * names.
      */
@@ -104,6 +116,7 @@ public enum YangDataTypes {
 
     /**
      * Reference:RFC 6020.
+     *
      * The bits built-in type represents a bit set. That is, a bits value is a
      * set of flags identified by small integer position numbers starting at 0.
      * Each bit number has an assigned name.
@@ -112,6 +125,7 @@ public enum YangDataTypes {
 
     /**
      * Reference:RFC 6020.
+     *
      * The binary built-in type represents any binary data, i.e., a sequence of
      * octets.
      */
@@ -119,6 +133,7 @@ public enum YangDataTypes {
 
     /**
      * Reference:RFC 6020.
+     *
      * The leafref type is used to reference a particular leaf instance in the
      * data tree. The "path" sub-statement (Section 9.9.2) selects a set of leaf
      * instances, and the leafref value space is the set of values of these leaf
@@ -139,12 +154,14 @@ public enum YangDataTypes {
 
     /**
      * Reference:RFC 6020.
+     *
      * The identityref type is used to reference an existing identity.
      */
     IDENTITYREF,
 
     /**
      * Reference:RFC 6020.
+     *
      * The empty built-in type represents a leaf that does not have any value,
      * it conveys information by its presence or absence.
      *
@@ -154,6 +171,7 @@ public enum YangDataTypes {
 
     /**
      * Reference:RFC 6020.
+     *
      * The union built-in type represents a value that corresponds to one of its
      * member types.
      *
@@ -175,6 +193,7 @@ public enum YangDataTypes {
 
     /**
      * Reference:RFC 6020.
+     *
      * The instance-identifier built-in type is used to uniquely identify a
      * particular instance node in the data tree.
      *

@@ -23,27 +23,30 @@ package org.onosproject.yangutils.datamodel;
  */
 
 /**
- * ENUM to represent the status of YANG entities.
+ * Represents the status of YANG entities.
  */
 public enum YangStatusType {
     /**
      * Reference:RFC 6020.
+     *
      * "current" means that the definition is current and valid.
      */
     CURRENT,
 
     /**
      * Reference:RFC 6020.
-     * "deprecated" indicates an obsolete definition, but it permits new/
-     * continued implementation in order to foster interoperability with
-     * older/existing implementations.
+     *
+     * "deprecated" indicates an obsolete definition, but it
+     * permits new/ continued implementation in order to foster interoperability
+     * with older/existing implementations.
      */
     DEPRECATED,
 
     /**
      * Reference:RFC 6020.
-     * "obsolete" means the definition is obsolete and SHOULD NOT be implemented
-     * and/or can be removed from implementations.
+     *
+     * "obsolete" means the definition is obsolete and
+     * SHOULD NOT be implemented and/or can be removed from implementations.
      */
     OBSOLETE
 }
