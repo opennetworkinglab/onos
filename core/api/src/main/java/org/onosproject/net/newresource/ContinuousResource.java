@@ -73,12 +73,12 @@ public final class ContinuousResource implements Resource {
     }
 
     @Override
-    public boolean isTypeOf(Class<?> ancestorType) {
+    public boolean isSubTypeOf(Class<?> ancestor) {
         String typeName = (String) id.components().get(id.components().size() - 1);
-        boolean foundInLeaf = typeName.equals(ancestorType.getCanonicalName());
+        boolean foundInLeaf = typeName.equals(ancestor.getCanonicalName());
         boolean foundInAncestor = id.components().subList(0, id.components().size()).stream()
                 .map(Object::getClass)
-                .filter(x -> x.equals(ancestorType))
+                .filter(x -> x.equals(ancestor))
                 .findAny()
                 .isPresent();
         return foundInAncestor || foundInLeaf;

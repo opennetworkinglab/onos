@@ -302,7 +302,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     private class InternalResourceListener implements ResourceListener {
         @Override
         public void event(ResourceEvent event) {
-            if (event.subject().isTypeOf(PortNumber.class)) {
+            if (event.subject().isSubTypeOf(PortNumber.class)) {
                 executorService.execute(() -> {
                     if (delegate == null) {
                         return;

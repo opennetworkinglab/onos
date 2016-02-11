@@ -48,13 +48,12 @@ public interface Resource {
     ResourceId id();
 
     /**
-     * Checks if the type of this instance is the specified type.
+     * Checks if the type of this instance is the sub-type of the specified type.
      *
-     * @param ancestorType type of resource to be checked.
+     * @param ancestor type of resource to be checked.
      * @return true if this resource is under the resource whose type is the given type.
      */
-    // TODO: find more proper name
-    boolean isTypeOf(Class<?> ancestorType);
+    boolean isSubTypeOf(Class<?> ancestor);
 
     /**
      * Returns the volume of this resource.

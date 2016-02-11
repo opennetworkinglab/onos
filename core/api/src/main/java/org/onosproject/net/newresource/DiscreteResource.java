@@ -63,10 +63,10 @@ public final class DiscreteResource implements Resource {
     }
 
     @Override
-    public boolean isTypeOf(Class<?> ancestorType) {
+    public boolean isSubTypeOf(Class<?> ancestor) {
         return id.components().stream()
                 .map(Object::getClass)
-                .filter(x -> x.equals(ancestorType))
+                .filter(x -> x.equals(ancestor))
                 .findAny()
                 .isPresent();
     }
