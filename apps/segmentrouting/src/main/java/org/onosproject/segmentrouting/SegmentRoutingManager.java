@@ -814,7 +814,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
          * Reads network config and initializes related data structure accordingly.
          */
         public void configureNetwork() {
-            deviceConfiguration = new DeviceConfiguration(segmentRoutingManager.cfgService);
+            deviceConfiguration = new DeviceConfiguration(appId,
+                    segmentRoutingManager.cfgService);
 
             arpHandler = new ArpHandler(segmentRoutingManager);
             icmpHandler = new IcmpHandler(segmentRoutingManager);
@@ -987,22 +988,25 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             Set<IpAddress> ips = event.subject().ipAddresses();
             log.info("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
 
-            // Populate bridging table entry
-            log.debug("Populate L2 table entry for host {} at {}:{}",
-                      mac, deviceId, port);
-            ForwardingObjective.Builder fob =
-                    getForwardingObjectiveBuilder(deviceId, mac, vlanId, port);
-            flowObjectiveService.forward(deviceId, fob.add(
-                    new BridgingTableObjectiveContext(mac, vlanId)
-            ));
+            if (!deviceConfiguration.excludedPorts()
+                    .contains(new ConnectPoint(deviceId, port))) {
+                // Populate bridging table entry
+                log.debug("Populate L2 table entry for host {} at {}:{}",
+                          mac, deviceId, port);
+                ForwardingObjective.Builder fob =
+                        getForwardingObjectiveBuilder(deviceId, mac, vlanId, port);
+                flowObjectiveService.forward(deviceId, fob.add(
+                        new BridgingTableObjectiveContext(mac, vlanId)
+                ));
 
-            // Populate IP table entry
-            ips.forEach(ip -> {
-                if (ip.isIp4()) {
-                    routingRulePopulator.populateIpRuleForHost(
-                            deviceId, ip.getIp4Address(), mac, port);
-                }
-            });
+                // Populate IP table entry
+                ips.forEach(ip -> {
+                    if (ip.isIp4()) {
+                        routingRulePopulator.populateIpRuleForHost(
+                                deviceId, ip.getIp4Address(), mac, port);
+                    }
+                });
+            }
         }
 
         private void processHostRemoveEvent(HostEvent event) {
@@ -1013,20 +1017,23 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             Set<IpAddress> ips = event.subject().ipAddresses();
             log.debug("Host {}/{} is removed from {}:{}", mac, vlanId, deviceId, port);
 
-            // Revoke bridging table entry
-            ForwardingObjective.Builder fob =
-                    getForwardingObjectiveBuilder(deviceId, mac, vlanId, port);
-            flowObjectiveService.forward(deviceId, fob.remove(
-                    new BridgingTableObjectiveContext(mac, vlanId)
-            ));
+            if (!deviceConfiguration.excludedPorts()
+                    .contains(new ConnectPoint(deviceId, port))) {
+                // Revoke bridging table entry
+                ForwardingObjective.Builder fob =
+                        getForwardingObjectiveBuilder(deviceId, mac, vlanId, port);
+                flowObjectiveService.forward(deviceId, fob.remove(
+                        new BridgingTableObjectiveContext(mac, vlanId)
+                ));
 
-            // Revoke IP table entry
-            ips.forEach(ip -> {
-                if (ip.isIp4()) {
-                    routingRulePopulator.revokeIpRuleForHost(
-                            deviceId, ip.getIp4Address(), mac, port);
-                }
-            });
+                // Revoke IP table entry
+                ips.forEach(ip -> {
+                    if (ip.isIp4()) {
+                        routingRulePopulator.revokeIpRuleForHost(
+                                deviceId, ip.getIp4Address(), mac, port);
+                    }
+                });
+            }
         }
 
         private void processHostMovedEvent(HostEvent event) {
@@ -1041,35 +1048,41 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             log.debug("Host {}/{} is moved from {}:{} to {}:{}",
                     mac, vlanId, prevDeviceId, prevPort, newDeviceId, newPort);
 
-            // Revoke previous bridging table entry
-            ForwardingObjective.Builder prevFob =
-                    getForwardingObjectiveBuilder(prevDeviceId, mac, vlanId, prevPort);
-            flowObjectiveService.forward(prevDeviceId, prevFob.remove(
-                    new BridgingTableObjectiveContext(mac, vlanId)
-            ));
+            if (!deviceConfiguration.excludedPorts()
+                    .contains(new ConnectPoint(prevDeviceId, prevPort))) {
+                // Revoke previous bridging table entry
+                ForwardingObjective.Builder prevFob =
+                        getForwardingObjectiveBuilder(prevDeviceId, mac, vlanId, prevPort);
+                flowObjectiveService.forward(prevDeviceId, prevFob.remove(
+                        new BridgingTableObjectiveContext(mac, vlanId)
+                ));
 
-            // Revoke previous IP table entry
-            prevIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    routingRulePopulator.revokeIpRuleForHost(
-                            prevDeviceId, ip.getIp4Address(), mac, prevPort);
-                }
-            });
+                // Revoke previous IP table entry
+                prevIps.forEach(ip -> {
+                    if (ip.isIp4()) {
+                        routingRulePopulator.revokeIpRuleForHost(
+                                prevDeviceId, ip.getIp4Address(), mac, prevPort);
+                    }
+                });
+            }
 
-            // Populate new bridging table entry
-            ForwardingObjective.Builder newFob =
-                    getForwardingObjectiveBuilder(newDeviceId, mac, vlanId, newPort);
-            flowObjectiveService.forward(newDeviceId, newFob.add(
-                    new BridgingTableObjectiveContext(mac, vlanId)
-            ));
+            if (!deviceConfiguration.excludedPorts()
+                    .contains(new ConnectPoint(newDeviceId, newPort))) {
+                // Populate new bridging table entry
+                ForwardingObjective.Builder newFob =
+                        getForwardingObjectiveBuilder(newDeviceId, mac, vlanId, newPort);
+                flowObjectiveService.forward(newDeviceId, newFob.add(
+                        new BridgingTableObjectiveContext(mac, vlanId)
+                ));
 
-            // Populate new IP table entry
-            newIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    routingRulePopulator.populateIpRuleForHost(
-                            newDeviceId, ip.getIp4Address(), mac, newPort);
-                }
-            });
+                // Populate new IP table entry
+                newIps.forEach(ip -> {
+                    if (ip.isIp4()) {
+                        routingRulePopulator.populateIpRuleForHost(
+                                newDeviceId, ip.getIp4Address(), mac, newPort);
+                    }
+                });
+            }
         }
 
         private void processHostUpdatedEvent(HostEvent event) {
@@ -1083,21 +1096,27 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             Set<IpAddress> newIps = event.subject().ipAddresses();
             log.debug("Host {}/{} is updated", mac, vlanId);
 
-            // Revoke previous IP table entry
-            prevIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    routingRulePopulator.revokeIpRuleForHost(
-                            prevDeviceId, ip.getIp4Address(), mac, prevPort);
-                }
-            });
+            if (!deviceConfiguration.excludedPorts()
+                    .contains(new ConnectPoint(prevDeviceId, prevPort))) {
+                // Revoke previous IP table entry
+                prevIps.forEach(ip -> {
+                    if (ip.isIp4()) {
+                        routingRulePopulator.revokeIpRuleForHost(
+                                prevDeviceId, ip.getIp4Address(), mac, prevPort);
+                    }
+                });
+            }
 
-            // Populate new IP table entry
-            newIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    routingRulePopulator.populateIpRuleForHost(
-                            newDeviceId, ip.getIp4Address(), mac, newPort);
-                }
-            });
+            if (!deviceConfiguration.excludedPorts()
+                    .contains(new ConnectPoint(newDeviceId, newPort))) {
+                // Populate new IP table entry
+                newIps.forEach(ip -> {
+                    if (ip.isIp4()) {
+                        routingRulePopulator.populateIpRuleForHost(
+                                newDeviceId, ip.getIp4Address(), mac, newPort);
+                    }
+                });
+            }
         }
 
         @Override

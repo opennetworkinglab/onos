@@ -18,11 +18,13 @@ package org.onosproject.segmentrouting.config;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.config.basics.ConfigException;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
 import org.onosproject.incubator.net.intf.Interface;
@@ -51,11 +53,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DeviceConfiguration implements DeviceProperties {
 
-    private static final Logger log = LoggerFactory
-            .getLogger(DeviceConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(DeviceConfiguration.class);
     private final List<Integer> allSegmentIds = new ArrayList<>();
     private final Map<DeviceId, SegmentRouterInfo> deviceConfigMap = new ConcurrentHashMap<>();
     private final Map<VlanId, List<ConnectPoint>> xConnects = new ConcurrentHashMap<>();
+    private final Set<ConnectPoint> excludedPorts = Sets.newConcurrentHashSet();
+    private SegmentRoutingAppConfig appConfig;
 
     private class SegmentRouterInfo {
         int nodeSid;
@@ -77,9 +80,11 @@ public class DeviceConfiguration implements DeviceProperties {
      * Constructs device configuration for all Segment Router devices,
      * organizing the data into various maps for easier access.
      *
+     * @param appId application id
      * @param cfgService config service
      */
-    public DeviceConfiguration(NetworkConfigRegistry cfgService) {
+    public DeviceConfiguration(ApplicationId appId,
+            NetworkConfigRegistry cfgService) {
         // Read config from device subject, excluding gatewayIps and subnets.
         Set<DeviceId> deviceSubjects =
                 cfgService.getSubjects(DeviceId.class, SegmentRoutingDeviceConfig.class);
@@ -98,6 +103,11 @@ public class DeviceConfiguration implements DeviceProperties {
             allSegmentIds.add(info.nodeSid);
         });
 
+        // Read excluded port names from config
+        appConfig = cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
+        Set<String> excludePorts = (appConfig != null) ?
+                appConfig.excludePorts() : ImmutableSet.of();
+
         // Read gatewayIps and subnets from port subject.
         Set<ConnectPoint> portSubjects =
             cfgService.getSubjects(ConnectPoint.class, InterfaceConfig.class);
@@ -112,6 +122,12 @@ public class DeviceConfiguration implements DeviceProperties {
                 return;
             }
             networkInterfaces.forEach(networkInterface -> {
+                // Do not process excluded ports
+                if (excludePorts.contains(networkInterface.name())) {
+                    excludedPorts.add(subject);
+                    return;
+                }
+
                 VlanId vlanId = networkInterface.vlan();
                 ConnectPoint connectPoint = networkInterface.connectPoint();
                 DeviceId dpid = connectPoint.deviceId();
@@ -343,7 +359,13 @@ public class DeviceConfiguration implements DeviceProperties {
         if (srinfo != null) {
             log.trace("getSubnets for device{} is {}", deviceId,
                       srinfo.subnets.values());
-            return ImmutableSet.copyOf(srinfo.subnets.values());
+
+            ImmutableSet.Builder<Ip4Prefix> builder = ImmutableSet.builder();
+            builder.addAll(srinfo.subnets.values());
+            if (deviceId.equals(appConfig.vRouterId())) {
+                builder.add(Ip4Prefix.valueOf("0.0.0.0/0"));
+            }
+            return builder.build();
         }
         return null;
     }
@@ -463,5 +485,14 @@ public class DeviceConfiguration implements DeviceProperties {
     public boolean isAdjacencySid(DeviceId deviceId, int sid) {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         return srinfo != null && srinfo.adjacencySids.containsKey(sid);
+    }
+
+    /**
+     * Returns a set of excluded ports.
+     *
+     * @return excluded ports
+     */
+    public Set<ConnectPoint> excludedPorts() {
+        return excludedPorts;
     }
 }

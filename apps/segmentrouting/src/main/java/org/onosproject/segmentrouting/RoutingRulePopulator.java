@@ -471,8 +471,9 @@ public class RoutingRulePopulator {
         }
 
         for (Port port : srManager.deviceService.getPorts(deviceId)) {
-            if (port.number().toLong() > 0 &&
-                    port.number().toLong() < SegmentRoutingService.OFPP_MAX &&
+            ConnectPoint cp = new ConnectPoint(deviceId, port.number());
+            // TODO: Handles dynamic port events when we are ready for dynamic config
+            if (!srManager.deviceConfiguration.excludedPorts().contains(cp) &&
                     port.isEnabled()) {
                 Ip4Prefix portSubnet = config.getPortSubnet(deviceId, port.number());
                 VlanId assignedVlan = (portSubnet == null)

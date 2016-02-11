@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import java.util.Set;
 
@@ -31,10 +32,14 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     private static final String VROUTER_MACS = "vRouterMacs";
+    private static final String VROUTER_ID = "vRouterId";
+    private static final String EXCLUDE_PORTS = "excludePorts";
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(VROUTER_MACS) && vRouterMacs() != null;
+        return hasOnlyFields(VROUTER_MACS, VROUTER_ID, EXCLUDE_PORTS) &&
+                vRouterMacs() != null && vRouterId() != null &&
+                excludePorts() != null;
     }
 
     /**
@@ -88,10 +93,84 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
         return this;
     }
 
+    /**
+     * Gets vRouter device ID.
+     *
+     * @return vRouter device ID, or null if not valid
+     */
+    public DeviceId vRouterId() {
+        if (!object.has(VROUTER_ID)) {
+            return null;
+        }
+
+        try {
+            return DeviceId.deviceId(object.path(VROUTER_ID).asText());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Sets vRouter device ID.
+     *
+     * @param vRouterId vRouter device ID
+     * @return this {@link SegmentRoutingAppConfig}
+     */
+    public SegmentRoutingAppConfig setVRouterId(DeviceId vRouterId) {
+        if (vRouterId == null) {
+            object.remove(VROUTER_ID);
+        } else {
+            object.put(VROUTER_ID, vRouterId.toString());
+        }
+        return this;
+    }
+
+    /**
+     * Gets names of ports that are ignored by SegmentRouting.
+     *
+     * @return set of port names
+     */
+    public Set<String> excludePorts() {
+        if (!object.has(EXCLUDE_PORTS)) {
+            return null;
+        }
+
+        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+        ArrayNode arrayNode = (ArrayNode) object.path(EXCLUDE_PORTS);
+        for (JsonNode jsonNode : arrayNode) {
+            String portName = jsonNode.asText(null);
+            if (portName == null) {
+                return null;
+            }
+            builder.add(portName);
+        }
+        return builder.build();
+    }
+
+    /**
+     * Sets names of ports that are ignored by SegmentRouting.
+     *
+     * @paran excludePorts names of ports that are ignored by SegmentRouting
+     * @return this {@link SegmentRoutingAppConfig}
+     */
+    public SegmentRoutingAppConfig setExcludePorts(Set<String> excludePorts) {
+        if (excludePorts == null) {
+            object.remove(EXCLUDE_PORTS);
+        } else {
+            ArrayNode arrayNode = mapper.createArrayNode();
+            excludePorts.forEach(portName -> {
+                arrayNode.add(portName);
+            });
+            object.set(EXCLUDE_PORTS, arrayNode);
+        }
+        return this;
+    }
+
     @Override
     public String toString() {
         return toStringHelper(this)
                 .add("vRouterMacs", vRouterMacs())
+                .add("excludePorts", excludePorts())
                 .toString();
     }
 }
