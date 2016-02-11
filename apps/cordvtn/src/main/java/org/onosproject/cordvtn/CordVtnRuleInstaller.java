@@ -254,8 +254,10 @@ public class CordVtnRuleInstaller {
      *
      * @param tService tenant cord service
      * @param pService provider cord service
+     * @param isBidirectional true to enable bidirectional connection between two services
      */
-    public void populateServiceDependencyRules(CordService tService, CordService pService) {
+    public void populateServiceDependencyRules(CordService tService, CordService pService,
+                                               boolean isBidirectional) {
         checkNotNull(tService);
         checkNotNull(pService);
 
@@ -280,6 +282,9 @@ public class CordVtnRuleInstaller {
 
         populateIndirectAccessRule(srcRange, serviceIp, outGroups);
         populateDirectAccessRule(srcRange, dstRange);
+        if (isBidirectional) {
+            populateDirectAccessRule(dstRange, srcRange);
+        }
         populateInServiceRule(inPorts, outGroups);
     }
 

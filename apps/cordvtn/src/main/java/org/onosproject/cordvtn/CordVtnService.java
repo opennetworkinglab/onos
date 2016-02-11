@@ -44,8 +44,11 @@ public interface CordVtnService {
      *
      * @param tServiceId id of the service which has a dependency
      * @param pServiceId id of the service which provide dependency
+     * @param isBidirectional true to enable bidirectional connectivity between two services
      */
-    void createServiceDependency(CordServiceId tServiceId, CordServiceId pServiceId);
+    void createServiceDependency(CordServiceId tServiceId,
+                                 CordServiceId pServiceId,
+                                 boolean isBidirectional);
 
     /**
      * Removes all dependencies from a given tenant service.
