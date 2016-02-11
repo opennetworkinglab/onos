@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mfwd.cli;
+package org.onosproject.cli.net;
 
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.mfwd.impl.McastForwarding;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.MulticastRouteService;
@@ -31,9 +29,6 @@ import org.onosproject.net.mcast.MulticastRouteService;
 @Command(scope = "onos", name = "mcast-join",
          description = "Installs a source, multicast group flow")
 public class McastJoinCommand extends AbstractShellCommand {
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    MulticastRouteService mcastRouteManager = AbstractShellCommand.get(MulticastRouteService.class);
 
     @Argument(index = 0, name = "sAddr",
               description = "IP Address of the multicast source. '*' can be used for any source (*, G) entry",
@@ -57,19 +52,26 @@ public class McastJoinCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
+        MulticastRouteService mcastRouteManager = get(MulticastRouteService.class);
 
-        McastRoute mRoute = McastForwarding.createStaticRoute(sAddr, gAddr);
+        //McastRoute mRoute = McastForwarding.createStaticRoute(sAddr, gAddr);
+        McastRoute mRoute = new McastRoute(IpAddress.valueOf(sAddr),
+                IpAddress.valueOf(gAddr), McastRoute.Type.STATIC);
         mcastRouteManager.add(mRoute);
 
-        ConnectPoint ingress = ConnectPoint.deviceConnectPoint(ingressPort);
-        mcastRouteManager.addSource(mRoute, ingress);
-
-        for (String egCP : ports) {
-            log.debug("Egress port provided: " + egCP);
-            ConnectPoint egress = ConnectPoint.deviceConnectPoint(egCP);
-            mcastRouteManager.addSink(mRoute, egress);
-
+        if (ingressPort != null) {
+            ConnectPoint ingress = ConnectPoint.deviceConnectPoint(ingressPort);
+            mcastRouteManager.addSource(mRoute, ingress);
         }
-        print("Added the mcast route");
+
+        if (ports != null) {
+            for (String egCP : ports) {
+                log.debug("Egress port provided: " + egCP);
+                ConnectPoint egress = ConnectPoint.deviceConnectPoint(egCP);
+                mcastRouteManager.addSink(mRoute, egress);
+
+            }
+        }
+        print("Added the mcast route: %s", mRoute);
     }
 }

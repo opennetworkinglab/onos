@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.serializers;
 
+import com.esotericsoftware.kryo.serializers.JavaSerializer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -251,7 +252,7 @@ public final class KryoNamespaces {
             .register(HashMap.class)
             .register(ConcurrentHashMap.class)
             .register(CopyOnWriteArraySet.class)
-            .register(Sets.newConcurrentHashSet().getClass())
+            .register(new JavaSerializer(), Sets.newConcurrentHashSet().getClass())
             .register(ArrayList.class,
                       LinkedList.class,
                       HashSet.class,

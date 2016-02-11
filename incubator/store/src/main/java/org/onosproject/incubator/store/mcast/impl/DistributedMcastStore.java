@@ -62,7 +62,7 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
                         McastRoute.Type.class,
                         ConnectPoint.class
                 ).build()))
-                .withRelaxedReadConsistency()
+                //.withRelaxedReadConsistency()
                 .build();
 
         mcastRoutes = mcastRib.asJavaMap();

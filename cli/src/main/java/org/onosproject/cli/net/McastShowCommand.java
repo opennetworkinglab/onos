@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mfwd.cli;
+package org.onosproject.cli.net;
 
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.karaf.shell.commands.Command;
-
 import org.onosproject.cli.AbstractShellCommand;
-
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.MulticastRouteService;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Set;
 
 /**
  * Displays the source, multicast group flows entries.
@@ -31,15 +29,20 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Command(scope = "onos", name = "mcast-show", description = "Displays the source, multicast group flows")
 public class McastShowCommand extends AbstractShellCommand {
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    MulticastRouteService mcastRouteManager = AbstractShellCommand.get(MulticastRouteService.class);
-
-    private final Logger log = getLogger(getClass());
-    private static final String MCAST_GROUP = "mcastgroup";
+    private static final String FORMAT = "route=%s, source=%s, sinks=%s";
 
     @Override
     protected void execute() {
-        //TODO
+        MulticastRouteService mcastService = get(MulticastRouteService.class);
+
+        Set<McastRoute> routes = mcastService.getRoutes();
+
+        for (McastRoute route : routes) {
+            Set<ConnectPoint> sinks = mcastService.fetchSinks(route);
+            ConnectPoint source = mcastService.fetchSource(route);
+
+            print(FORMAT, route, source, sinks);
+        }
     }
 
 }
