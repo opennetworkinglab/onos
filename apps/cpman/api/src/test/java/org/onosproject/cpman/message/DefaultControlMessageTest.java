@@ -17,6 +17,7 @@ package org.onosproject.cpman.message;
 
 import org.junit.Test;
 import org.onosproject.cpman.DefaultControlMessage;
+import org.onosproject.net.DeviceId;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -42,12 +43,13 @@ public class DefaultControlMessageTest {
      */
     @Test
     public void testBasic() {
+        final DeviceId deviceId = DeviceId.deviceId("of:0000000000000001");
         final DefaultControlMessage cm =
-                new DefaultControlMessage(INBOUND_PACKET, 0L, 1L, 2L, 3L);
+                new DefaultControlMessage(INBOUND_PACKET, deviceId, 0L, 1L, 2L, 3L);
         assertThat(cm.type(), is(INBOUND_PACKET));
         assertThat(cm.load(), is(0L));
         assertThat(cm.rate(), is(1L));
         assertThat(cm.count(), is(2L));
-        assertThat(cm.timeStamp(), is(3L));
+        assertThat(cm.timestamp(), is(3L));
     }
 }

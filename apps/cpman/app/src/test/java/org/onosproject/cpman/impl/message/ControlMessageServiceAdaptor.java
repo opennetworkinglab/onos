@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cpman.message;
+package org.onosproject.cpman.impl.message;
+
+import org.onosproject.cpman.message.ControlMessageListener;
+import org.onosproject.cpman.message.ControlMessageService;
 
 /**
  * Test adapter for control message service.

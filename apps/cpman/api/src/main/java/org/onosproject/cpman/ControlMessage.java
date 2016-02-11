@@ -15,6 +15,8 @@
  */
 package org.onosproject.cpman;
 
+import org.onosproject.net.DeviceId;
+
 /**
  * Abstraction of control message.
  */
@@ -31,6 +33,13 @@ public interface ControlMessage {
      * @return control message type
      */
     Type type();
+
+    /**
+     * Returns the device identification.
+     *
+     * @return device identification
+     */
+    DeviceId deviceId();
 
     /**
      * Returns the latest control message load.
@@ -56,7 +65,7 @@ public interface ControlMessage {
     /**
      * Returns the time that this control message stats collected.
      *
-     * @return
+     * @return time stamp.
      */
-    long timeStamp();
+    long timestamp();
 }

@@ -36,7 +36,7 @@ import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import java.util.Collection;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -90,7 +90,7 @@ public class ControlMessageManager
         }
 
         @Override
-        public void updateStatsInfo(DeviceId deviceId, Collection<ControlMessage> controlMessages) {
+        public void updateStatsInfo(DeviceId deviceId, Set<ControlMessage> controlMessages) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
 

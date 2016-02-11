@@ -28,7 +28,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
-import java.util.Collection;
+import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -46,7 +46,7 @@ public class DefaultControlMessageStore
 
     @Override
     public ControlMessageEvent updateStatsInfo(ProviderId providerId, DeviceId deviceId,
-                                                     Collection<ControlMessage> controlMessages) {
+                                                     Set<ControlMessage> controlMessages) {
 
         return new ControlMessageEvent(ControlMessageEvent.Type.STATS_UPDATE, controlMessages);
     }

@@ -22,9 +22,20 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.device.DeviceService;
+import org.onosproject.cpman.ControlMessage;
+import org.onosproject.cpman.ControlMetric;
+import org.onosproject.cpman.ControlPlaneMonitorService;
+import org.onosproject.cpman.MetricValue;
+import org.onosproject.cpman.message.ControlMessageEvent;
+import org.onosproject.cpman.message.ControlMessageListener;
+import org.onosproject.cpman.message.ControlMessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
+import java.util.Set;
+
+import static org.onosproject.cpman.message.ControlMessageEvent.Type.STATS_UPDATE;
 
 /**
  * Skeletal control plane management component.
@@ -38,19 +49,53 @@ public class ControlPlaneManager {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
+    protected ControlMessageService messageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ControlPlaneMonitorService monitorService;
+
+    private final ControlMessageListener messageListener =
+            new InternalControlMessageListener();
 
     private ApplicationId appId;
 
     @Activate
     protected void activate() {
         appId = coreService.registerApplication("org.onosproject.cpman");
-        deviceService.getAvailableDevices();
+        messageService.addListener(messageListener);
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
+        messageService.removeListener(messageListener);
         log.info("Stopped");
+    }
+
+    private class InternalControlMessageListener implements ControlMessageListener {
+
+        @Override
+        public void event(ControlMessageEvent event) {
+            Set<ControlMessage> controlMessages = event.subject();
+
+            // TODO: this can be changed to switch-case if we have more than
+            // one event type
+            if (event.type().equals(STATS_UPDATE)) {
+                controlMessages.forEach(c -> {
+                    monitorService.updateMetric(getControlMetric(c), 1,
+                            Optional.of(c.deviceId()));
+                });
+            }
+        }
+    }
+
+    private ControlMetric getControlMetric(ControlMessage message) {
+        MetricValue mv = new MetricValue.Builder()
+                            .load(message.load())
+                            .rate(message.rate())
+                            .count(message.count())
+                            .add();
+        return new ControlMetric(ControlMessageMetricMapper
+                    .lookupControlMetricType(message.type()), mv);
     }
 }

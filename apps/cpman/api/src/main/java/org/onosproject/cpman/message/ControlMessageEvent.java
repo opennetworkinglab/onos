@@ -15,10 +15,10 @@
  */
 package org.onosproject.cpman.message;
 
-import org.onosproject.event.AbstractEvent;
 import org.onosproject.cpman.ControlMessage;
+import org.onosproject.event.AbstractEvent;
 
-import java.util.Collection;
+import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -26,7 +26,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * Describes control message event.
  */
 public class ControlMessageEvent
-        extends AbstractEvent<ControlMessageEvent.Type, Collection<ControlMessage>> {
+        extends AbstractEvent<ControlMessageEvent.Type, Set<ControlMessage>> {
 
     /**
      * Type of control message events.
@@ -44,7 +44,7 @@ public class ControlMessageEvent
      * @param type control message event type
      * @param controlMessages event control message subject
      */
-    public ControlMessageEvent(Type type, Collection<ControlMessage> controlMessages) {
+    public ControlMessageEvent(Type type, Set<ControlMessage> controlMessages) {
         super(type, controlMessages);
     }
 

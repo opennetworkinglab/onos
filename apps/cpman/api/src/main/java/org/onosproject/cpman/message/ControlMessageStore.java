@@ -20,7 +20,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.Store;
 
-import java.util.Collection;
+import java.util.Set;
 
 /**
  * Manages inventory of control message.
@@ -37,6 +37,6 @@ public interface ControlMessageStore
      * @return ready to send event describing what occurred
      */
     ControlMessageEvent updateStatsInfo(ProviderId providerId, DeviceId deviceId,
-                                        Collection<ControlMessage> controlMessages);
+                                        Set<ControlMessage> controlMessages);
 
 }

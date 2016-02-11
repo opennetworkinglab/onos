@@ -19,7 +19,7 @@ import org.onosproject.cpman.ControlMessage;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.ProviderService;
 
-import java.util.Collection;
+import java.util.Set;
 
 /**
  * Service through which control message providers can inject control message
@@ -34,5 +34,5 @@ public interface ControlMessageProviderService
      * @param deviceId device identifier
      * @param controlMessages a collection of control message stats
      */
-    void updateStatsInfo(DeviceId deviceId, Collection<ControlMessage> controlMessages);
+    void updateStatsInfo(DeviceId deviceId, Set<ControlMessage> controlMessages);
 }

@@ -15,36 +15,40 @@
  */
 package org.onosproject.cpman.message;
 
+import com.google.common.collect.Sets;
 import org.junit.Test;
 import org.onosproject.cpman.ControlMessage;
 import org.onosproject.cpman.DefaultControlMessage;
 import org.onosproject.event.AbstractEventTest;
+import org.onosproject.net.DeviceId;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Set;
 
-import static org.onosproject.cpman.ControlMessage.Type.*;
+import static org.onosproject.cpman.ControlMessage.Type.INBOUND_PACKET;
+import static org.onosproject.cpman.ControlMessage.Type.OUTBOUND_PACKET;
 
 /**
  * Tests of the control message event.
  */
 public class ControlMessageEventTest extends AbstractEventTest {
 
-    private ControlMessage createControlMessage(ControlMessage.Type type) {
-        return new DefaultControlMessage(type, 0L, 0L, 0L, 0L);
+    private ControlMessage createControlMessage(ControlMessage.Type type,
+                                                DeviceId deviceId) {
+        return new DefaultControlMessage(type, deviceId, 0L, 0L, 0L, 0L);
     }
 
-    private Collection<ControlMessage> createControlMessages() {
-        Collection<ControlMessage> controlMessages = new ArrayList<>();
-        controlMessages.add(createControlMessage(INBOUND_PACKET));
-        controlMessages.add(createControlMessage(OUTBOUND_PACKET));
+    private Set<ControlMessage> createControlMessages() {
+        final DeviceId deviceId = DeviceId.deviceId("of:0000000000000001");
+        Set<ControlMessage> controlMessages = Sets.newConcurrentHashSet();
+        controlMessages.add(createControlMessage(INBOUND_PACKET, deviceId));
+        controlMessages.add(createControlMessage(OUTBOUND_PACKET, deviceId));
         return controlMessages;
     }
 
     @Override
     @Test
     public void withoutTime() {
-        Collection<ControlMessage> cms = createControlMessages();
+        Set<ControlMessage> cms = createControlMessages();
         long before = System.currentTimeMillis();
         ControlMessageEvent event =
                 new ControlMessageEvent(ControlMessageEvent.Type.STATS_UPDATE, cms);

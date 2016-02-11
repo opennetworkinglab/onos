@@ -141,6 +141,7 @@ public interface MetricsDatabase {
          * Add a new metric to be monitored.
          *
          * @param metricType control metric type
+         * @return builder object
          */
         Builder addMetricType(String metricType);
 

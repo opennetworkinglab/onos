@@ -78,6 +78,7 @@ public interface ControlPlaneMonitorService {
     /**
      * Obtains a list of names of available resources.
      *
+     * @param resourceType resource type
      * @return a collection of names of available resources
      */
     Set<String> availableResources(Type resourceType);
