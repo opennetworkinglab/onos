@@ -27,8 +27,8 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpFlowSpecDetails {
     private List<BgpValueType> flowSpecComponents;
-    BgpValueType fsActionTlv;
-    RouteDistinguisher routeDistinguisher;
+    private BgpValueType fsActionTlv;
+    private RouteDistinguisher routeDistinguisher;
 
     /**
      * Flow specification details object constructor with the parameter.

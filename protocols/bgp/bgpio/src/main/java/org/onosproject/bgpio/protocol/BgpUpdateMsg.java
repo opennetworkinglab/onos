@@ -21,7 +21,6 @@ import java.util.List;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.bgpio.protocol.ver4.BgpPathAttributes;
-import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecDetails;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.BgpHeader;
 
@@ -50,10 +49,6 @@ public interface BgpUpdateMsg extends BgpMessage {
         BgpUpdateMsg build();
 
         Builder setBgpPathAttributes(List<BgpValueType> attributes);
-
-        Builder setNlriIdentifier(short afi, byte safi);
-
-        Builder setBgpFlowSpecComponents(BgpFlowSpecDetails flowSpecComponents);
 
         @Override
         Builder setHeader(BgpHeader bgpMsgHeader);

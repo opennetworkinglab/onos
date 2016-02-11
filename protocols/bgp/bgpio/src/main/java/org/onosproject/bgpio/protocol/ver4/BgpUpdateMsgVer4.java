@@ -15,6 +15,7 @@
  */
 package org.onosproject.bgpio.protocol.ver4;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,9 +27,10 @@ import org.onosproject.bgpio.protocol.BgpMessageWriter;
 import org.onosproject.bgpio.protocol.BgpType;
 import org.onosproject.bgpio.protocol.BgpUpdateMsg;
 import org.onosproject.bgpio.protocol.BgpVersion;
-import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecDetails;
 import org.onosproject.bgpio.types.BgpErrorType;
 import org.onosproject.bgpio.types.BgpHeader;
+import org.onosproject.bgpio.types.MpReachNlri;
+import org.onosproject.bgpio.types.MpUnReachNlri;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
 
@@ -94,9 +96,6 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
     private BgpPathAttributes bgpPathAttributes;
     private BgpHeader bgpHeader;
     private List<IpPrefix> nlri;
-    private BgpFlowSpecDetails bgpFlowSpecComponents;
-    private short afi;
-    private byte safi;
 
     /**
      * Constructor to initialize parameters for BGP Update message.
@@ -112,15 +111,6 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
         this.withdrawnRoutes = withdrawnRoutes;
         this.bgpPathAttributes = bgpPathAttributes;
         this.nlri = nlri;
-    }
-
-    public BgpUpdateMsgVer4(BgpHeader bgpHeader, short afi, byte safi, BgpPathAttributes bgpPathAttributes,
-                                    BgpFlowSpecDetails bgpFlowSpecComponents) {
-        this.bgpHeader = bgpHeader;
-        this.bgpFlowSpecComponents = bgpFlowSpecComponents;
-        this.bgpPathAttributes = bgpPathAttributes;
-        this.afi = afi;
-        this.safi = safi;
     }
 
     /**
@@ -191,16 +181,15 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
      */
     static class Builder implements BgpUpdateMsg.Builder {
         BgpHeader bgpMsgHeader = null;
-        BgpFlowSpecDetails bgpFlowSpecComponents;
         BgpPathAttributes bgpPathAttributes;
-        private short afi;
-        private byte safi;
+        List<IpPrefix> withdrawnRoutes;
+        List<IpPrefix> nlri;
 
         @Override
-        public BgpUpdateMsg build() /* throws BgpParseException */ {
+        public BgpUpdateMsg build() {
             BgpHeader bgpMsgHeader = DEFAULT_UPDATE_HEADER;
 
-            return new BgpUpdateMsgVer4(bgpMsgHeader, afi, safi, bgpPathAttributes, bgpFlowSpecComponents);
+            return new BgpUpdateMsgVer4(bgpMsgHeader, withdrawnRoutes, bgpPathAttributes, nlri);
         }
 
         @Override
@@ -210,23 +199,11 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
         }
 
         @Override
-        public Builder setBgpFlowSpecComponents(BgpFlowSpecDetails bgpFlowSpecComponents) {
-            this.bgpFlowSpecComponents = bgpFlowSpecComponents;
-            return this;
-        }
-
-        @Override
         public Builder setBgpPathAttributes(List<BgpValueType> attributes) {
             this.bgpPathAttributes = new BgpPathAttributes(attributes);
             return this;
         }
 
-        @Override
-        public Builder setNlriIdentifier(short afi, byte safi) {
-            this.afi = afi;
-            this.safi = safi;
-            return this;
-        }
     }
 
     public static final Writer WRITER = new Writer();
@@ -240,6 +217,8 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
         public void write(ChannelBuffer cb, BgpUpdateMsgVer4 message) throws BgpParseException {
 
             int startIndex = cb.writerIndex();
+            short afi = 0;
+            byte safi = 0;
 
             // write common header and get msg length index
             int msgLenIndex = message.bgpHeader.write(cb);
@@ -247,13 +226,34 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
             if (msgLenIndex <= 0) {
                 throw new BgpParseException("Unable to write message header.");
             }
+            List<BgpValueType> pathAttr = message.bgpPathAttributes.pathAttributes();
+            if (pathAttr != null) {
+                Iterator<BgpValueType> listIterator = pathAttr.iterator();
 
-            if ((message.afi == Constants.AFI_FLOWSPEC_VALUE) && (message.safi == Constants.SAFI_FLOWSPEC_VALUE)) {
-                //unfeasible route length
-                cb.writeShort(0);
+                while (listIterator.hasNext()) {
+                    BgpValueType attr = listIterator.next();
+                    if (attr instanceof MpReachNlri) {
+                        MpReachNlri mpReach = (MpReachNlri) attr;
+                        afi = mpReach.afi();
+                        safi = mpReach.safi();
+                    } else if (attr instanceof MpUnReachNlri) {
+                        MpUnReachNlri mpUnReach = (MpUnReachNlri) attr;
+                        afi = mpUnReach.afi();
+                        safi = mpUnReach.safi();
+                    }
+
+                    if ((afi == Constants.AFI_FLOWSPEC_VALUE) && ((safi == Constants.SAFI_FLOWSPEC_VALUE)
+                            || (safi == Constants.VPN_SAFI_FLOWSPEC_VALUE))) {
+                        //unfeasible route length
+                        cb.writeShort(0);
+                    }
+                }
+
             }
 
-            // TODO: write path attributes
+            if (message.bgpPathAttributes != null) {
+                message.bgpPathAttributes.write(cb);
+            }
 
             // write UPDATE Object Length
             int length = cb.writerIndex() - startIndex;

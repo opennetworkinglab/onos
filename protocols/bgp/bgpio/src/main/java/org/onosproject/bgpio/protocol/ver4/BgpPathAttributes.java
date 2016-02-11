@@ -17,12 +17,14 @@ package org.onosproject.bgpio.protocol.ver4;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.types.As4Path;
 import org.onosproject.bgpio.types.AsPath;
 import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpExtendedCommunity;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.LinkStateAttributes;
 import org.onosproject.bgpio.types.LocalPref;
@@ -33,6 +35,7 @@ import org.onosproject.bgpio.types.MpReachNlri;
 import org.onosproject.bgpio.types.MpUnReachNlri;
 import org.onosproject.bgpio.util.UnSupportedAttribute;
 import org.onosproject.bgpio.util.Validation;
+import org.onosproject.bgpio.util.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +61,7 @@ public class BgpPathAttributes {
     public static final int LINK_STATE_ATTRIBUTE_TYPE = 29;
     public static final int MPREACHNLRI_TYPE = 14;
     public static final int MPUNREACHNLRI_TYPE = 15;
+    public static final int EXTENDED_COMMUNITY_TYPE = 16;
 
     private final List<BgpValueType> pathAttribute;
 
@@ -142,6 +146,9 @@ public class BgpPathAttributes {
             case LINK_STATE_ATTRIBUTE_TYPE:
                 pathAttribute = LinkStateAttributes.read(cb);
                 break;
+            case EXTENDED_COMMUNITY_TYPE:
+                pathAttribute = BgpExtendedCommunity.read(cb);
+                break;
             default:
                 //skip bytes for unsupported attribute types
                 UnSupportedAttribute.read(cb);
@@ -152,6 +159,81 @@ public class BgpPathAttributes {
         checkMandatoryAttr(isOrigin, isAsPath, isNextHop, isMpReach, isMpUnReach);
         //TODO:if mp_reach or mp_unreach not present ignore the packet
         return new BgpPathAttributes(pathAttributeList);
+    }
+
+    /**
+     * Write path attributes to channelBuffer.
+     *
+     * @param cb channelBuffer
+     * @return object of BgpPathAttributes
+     * @throws BgpParseException while parsing BGP path attributes
+     */
+    public int write(ChannelBuffer cb)
+            throws BgpParseException {
+
+        if (pathAttribute == null) {
+            return 0;
+        }
+        int iLenStartIndex = cb.writerIndex();
+
+        ListIterator<BgpValueType> iterator = pathAttribute.listIterator();
+
+        int pathAttributeIndx = cb.writerIndex();
+        cb.writeShort(0);
+
+        while (iterator.hasNext()) {
+
+            BgpValueType attr = iterator.next();
+
+            switch (attr.getType()) {
+            case Origin.ORIGIN_TYPE:
+                Origin origin = (Origin) attr;
+                origin.write(cb);
+                break;
+            case AsPath.ASPATH_TYPE:
+                AsPath asPath = (AsPath) attr;
+                asPath.write(cb);
+                break;
+            case As4Path.AS4PATH_TYPE:
+                As4Path as4Path = (As4Path) attr;
+                as4Path.write(cb);
+                break;
+            case NextHop.NEXTHOP_TYPE:
+                NextHop nextHop = (NextHop) attr;
+                nextHop.write(cb);
+                break;
+            case Med.MED_TYPE:
+                Med med = (Med) attr;
+                med.write(cb);
+                break;
+            case LocalPref.LOCAL_PREF_TYPE:
+                LocalPref localPref = (LocalPref) attr;
+                localPref.write(cb);
+                break;
+            case Constants.BGP_EXTENDED_COMMUNITY:
+                BgpExtendedCommunity extendedCommunity = (BgpExtendedCommunity) attr;
+                extendedCommunity.write(cb);
+                break;
+            case MpReachNlri.MPREACHNLRI_TYPE:
+                MpReachNlri mpReach = (MpReachNlri) attr;
+                mpReach.write(cb);
+                break;
+            case MpUnReachNlri.MPUNREACHNLRI_TYPE:
+                MpUnReachNlri mpUnReach = (MpUnReachNlri) attr;
+                mpUnReach.write(cb);
+                break;
+            case LINK_STATE_ATTRIBUTE_TYPE:
+                LinkStateAttributes linkState = (LinkStateAttributes) attr;
+                linkState.write(cb);
+                break;
+            default:
+                return cb.writerIndex() - iLenStartIndex;
+            }
+        }
+
+        int pathAttrLen = cb.writerIndex() - pathAttributeIndx;
+        cb.setShort(pathAttributeIndx, (short) (pathAttrLen - 2));
+        return cb.writerIndex() - iLenStartIndex;
     }
 
     /**
