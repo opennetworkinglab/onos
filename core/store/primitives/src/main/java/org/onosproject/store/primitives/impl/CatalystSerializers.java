@@ -22,6 +22,7 @@ import io.atomix.copycat.client.Query;
 import io.atomix.manager.state.GetResource;
 import io.atomix.manager.state.GetResourceKeys;
 import io.atomix.resource.ResourceQuery;
+import io.atomix.variables.state.ValueCommands;
 
 import java.io.IOException;
 import java.net.URL;
@@ -93,6 +94,8 @@ public final class CatalystSerializers {
                                 GetResource.class,
                                 GetResourceKeys.class,
                                 ResourceQuery.class,
+                                ValueCommands.Get.class,
+                                ValueCommands.Set.class,
                                 Query.ConsistencyLevel.class));
         // ONOS classes
         serializer.register(Change.class, factory);
@@ -115,6 +118,8 @@ public final class CatalystSerializers {
         serializer.register(ResourceQuery.class, factory);
         serializer.register(GetResource.class, factory);
         serializer.register(GetResourceKeys.class, factory);
+        serializer.register(ValueCommands.Get.class, factory);
+        serializer.register(ValueCommands.Set.class, factory);
 
         // ConsistentMap
         serializer.register(AtomixConsistentMapCommands.UpdateAndGet.class, factory);

@@ -34,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import org.onosproject.cluster.NodeId;
+import org.onosproject.store.service.PartitionInfo;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -123,5 +124,17 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
     @Override
     public boolean isClosed() {
         return server.isClosed();
+    }
+
+    /**
+     * Returns the partition information.
+     * @return partition info
+     */
+    public PartitionInfo info() {
+        return new StoragePartitionDetails(partition.getId(),
+                server.cluster().members(),
+                server.cluster().members(),
+                server.cluster().leader(),
+                server.cluster().term()).toPartitionInfo();
     }
 }

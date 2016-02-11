@@ -71,8 +71,7 @@ public class AtomixCounter implements AsyncAtomicCounter {
     }
 
     @Override
-    public CompletableFuture<Boolean> compareAndSet(long expectedValue,
-            long updateValue) {
+    public CompletableFuture<Boolean> compareAndSet(long expectedValue, long updateValue) {
         return distLong.compareAndSet(expectedValue, updateValue);
     }
 }

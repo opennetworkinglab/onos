@@ -31,6 +31,7 @@ public interface StorageAdminService {
      *
      * @return list of partition information
      */
+    @Deprecated
     List<PartitionInfo> getPartitionInfo();
 
     /**
@@ -38,6 +39,7 @@ public interface StorageAdminService {
      *
      * @return list of map information
      */
+    @Deprecated
     List<MapInfo> getMapInfo();
 
     /**
@@ -47,6 +49,7 @@ public interface StorageAdminService {
      *
      * @return mapping from counter name to that counter's next value
      */
+    @Deprecated
     Map<String, Long> getCounters();
 
     /**
@@ -54,6 +57,7 @@ public interface StorageAdminService {
      *
      * @return mapping from counter name to that counter's next value
      */
+    @Deprecated
     Map<String, Long> getPartitionedDatabaseCounters();
 
     /**
@@ -61,6 +65,7 @@ public interface StorageAdminService {
      *
      * @return mapping from counter name to that counter's next value
      */
+    @Deprecated
     Map<String, Long> getInMemoryDatabaseCounters();
 
     /**

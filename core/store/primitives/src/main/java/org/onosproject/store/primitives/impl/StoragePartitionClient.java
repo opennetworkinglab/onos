@@ -22,6 +22,7 @@ import io.atomix.resource.ResourceType;
 import io.atomix.variables.DistributedLong;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.onlab.util.HexString;
@@ -133,6 +134,16 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     @Override
     public AsyncLeaderElector newAsyncLeaderElector(String name) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<String> getAsyncConsistentMapNames() {
+        return client.keys(AtomixConsistentMap.class).join();
+    }
+
+    @Override
+    public Set<String> getAsyncAtomicCounterNames() {
+        return client.keys(DistributedLong.class).join();
     }
 
     @Override

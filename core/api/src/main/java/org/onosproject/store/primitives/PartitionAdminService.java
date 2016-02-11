@@ -15,14 +15,22 @@
  */
 package org.onosproject.store.primitives;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.onosproject.cluster.PartitionId;
+import org.onosproject.store.service.PartitionInfo;
 
 /**
  * Administrative interface for partition membership changes.
  */
 public interface PartitionAdminService {
+
+    /**
+     * Returns the {@link PartitionInfo information} for existing partitions.
+     * @return list of {@code PartitionInfo}
+     */
+    List<PartitionInfo> partitionInfo();
 
     /**
      * Leaves a partition.

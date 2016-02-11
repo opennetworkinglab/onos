@@ -15,7 +15,12 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import org.onosproject.store.service.Serializer;
+import org.slf4j.Logger;
+
+import com.google.common.base.Throwables;
 
 import io.atomix.catalyst.buffer.BufferInput;
 import io.atomix.catalyst.buffer.BufferOutput;
@@ -28,6 +33,7 @@ import io.atomix.catalyst.serializer.TypeSerializerFactory;
  */
 public class DefaultCatalystTypeSerializerFactory implements TypeSerializerFactory {
 
+    private final Logger log = getLogger(getClass());
     private final TypeSerializer<?> typeSerializer;
 
     public DefaultCatalystTypeSerializerFactory(Serializer serializer) {
@@ -53,15 +59,25 @@ public class DefaultCatalystTypeSerializerFactory implements TypeSerializerFacto
             int size = input.readInt();
             byte[] payload = new byte[size];
             input.read(payload);
-            return this.serializer.decode(payload);
+            try {
+                return this.serializer.decode(payload);
+            } catch (Exception e) {
+                log.warn("Failed to deserialize as type {}", clazz, e);
+                Throwables.propagate(e);
+                return null;
+            }
         }
 
         @Override
         public void write(T object, BufferOutput<?> output,
                           io.atomix.catalyst.serializer.Serializer serializer) {
-            byte[] payload = this.serializer.encode(object);
-            output.writeInt(payload.length);
-            output.write(payload);
+            try {
+                byte[] payload = this.serializer.encode(object);
+                output.writeInt(payload.length);
+                output.write(payload);
+            } catch (Exception e) {
+                log.warn("Failed to serialize {}", object, e);
+            }
         }
     }
 }

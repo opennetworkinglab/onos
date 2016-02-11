@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
@@ -33,8 +34,10 @@ import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedQueue;
 import org.onosproject.store.service.Serializer;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.primitives.Bytes;
@@ -91,6 +94,24 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
     @Override
     public AsyncLeaderElector newAsyncLeaderElector(String name) {
         return getCreator(name).newAsyncLeaderElector(name);
+    }
+
+    @Override
+    public Set<String> getAsyncConsistentMapNames() {
+        return members.values()
+                      .stream()
+                      .map(DistributedPrimitiveCreator::getAsyncConsistentMapNames)
+                      .reduce(Sets::union)
+                      .orElse(ImmutableSet.of());
+    }
+
+    @Override
+    public Set<String> getAsyncAtomicCounterNames() {
+        return members.values()
+                      .stream()
+                      .map(DistributedPrimitiveCreator::getAsyncAtomicCounterNames)
+                      .reduce(Sets::union)
+                      .orElse(ImmutableSet.of());
     }
 
     /**

@@ -19,9 +19,12 @@ package org.onosproject.store.primitives.impl;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -40,6 +43,7 @@ import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionEvent;
 import org.onosproject.store.primitives.PartitionEventListener;
 import org.onosproject.store.primitives.PartitionService;
+import org.onosproject.store.service.PartitionInfo;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableSet;
@@ -136,5 +140,15 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
         // TODO: This needs to query metadata to determine currently active
         // members of partition
         return getConfiguredMembers(partitionId);
+    }
+
+    @Override
+    public List<PartitionInfo> partitionInfo() {
+        return partitions.values()
+                         .stream()
+                         .map(StoragePartition::info)
+                         .filter(Optional::isPresent)
+                         .map(Optional::get)
+                         .collect(Collectors.toList());
     }
 }

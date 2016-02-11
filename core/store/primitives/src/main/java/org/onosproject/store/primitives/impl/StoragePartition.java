@@ -33,6 +33,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
 import org.onosproject.store.cluster.messaging.MessagingService;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMap;
+import org.onosproject.store.service.PartitionInfo;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
@@ -145,5 +146,14 @@ public class StoragePartition extends DefaultPartition implements Managed<Storag
     @Override
     public boolean isClosed() {
         return isOpened.get() && isClosed.get();
+    }
+
+    /**
+     * Returns the partition information if this partition is locally managed i.e.
+     * this node is a active member of the partition.
+     * @return partition info
+     */
+    public Optional<PartitionInfo> info() {
+        return server.map(StoragePartitionServer::info);
     }
 }

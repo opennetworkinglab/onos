@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.primitives;
 
+import java.util.Set;
+
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
@@ -84,4 +86,16 @@ public interface DistributedPrimitiveCreator {
      * @return leader elector
      */
     AsyncLeaderElector newAsyncLeaderElector(String name);
+
+    /**
+     * Returns the names of all created {@code AsyncConsistentMap} instances.
+     * @return set of {@code AsyncConsistentMap} names
+     */
+    Set<String> getAsyncConsistentMapNames();
+
+    /**
+     * Returns the names of all created {@code AsyncAtomicCounter} instances.
+     * @return set of {@code AsyncAtomicCounter} names
+     */
+    Set<String> getAsyncAtomicCounterNames();
 }
