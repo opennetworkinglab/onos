@@ -58,6 +58,8 @@
         <bundle>mvn:com.typesafe/config/1.2.1</bundle>
         <bundle>mvn:org.onosproject/onlab-thirdparty/@ONOS-VERSION</bundle>
 
+        <bundle>mvn:com.sun.jersey/jersey-client/1.19</bundle>
+
         <bundle>mvn:org.mapdb/mapdb/1.0.7</bundle>
     </feature>
 

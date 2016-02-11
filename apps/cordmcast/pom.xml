@@ -63,5 +63,10 @@
             <artifactId>org.osgi.compendium</artifactId>
             <version>5.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>1.19</version>
+        </dependency>
     </dependencies>
 </project>
