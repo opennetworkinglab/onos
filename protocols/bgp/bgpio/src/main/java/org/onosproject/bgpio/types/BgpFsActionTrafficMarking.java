@@ -77,12 +77,15 @@ public class BgpFsActionTrafficMarking implements BgpValueType {
      * Reads the channel buffer and returns object.
      *
      * @param cb channelBuffer
-     * @param type address type
      * @return object of flow spec action traffic marking
      * @throws BgpParseException while parsing BgpFsActionTrafficMarking
      */
-    public static BgpFsActionTrafficMarking read(ChannelBuffer cb, short type) throws BgpParseException {
-        return null;
+    public static BgpFsActionTrafficMarking read(ChannelBuffer cb) throws BgpParseException {
+        byte[] dscpValue;
+        ChannelBuffer tempCb = cb.copy();
+
+        dscpValue = tempCb.readBytes(tempCb.readableBytes()).array();
+        return new BgpFsActionTrafficMarking(dscpValue);
     }
 
     @Override

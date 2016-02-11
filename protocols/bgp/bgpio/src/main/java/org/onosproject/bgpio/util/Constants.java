@@ -48,6 +48,8 @@ public final class Constants {
     public static final int ENHANCED = 0x20;
     public static final int RESERVED = 0x40;
 
+    public static final byte BGP_EXTENDED_COMMUNITY = 0x10;
+
     public static final byte BGP_FLOWSPEC_DST_PREFIX = 0x01;
     public static final byte BGP_FLOWSPEC_SRC_PREFIX = 0x02;
     public static final byte BGP_FLOWSPEC_IP_PROTO = 0x03;

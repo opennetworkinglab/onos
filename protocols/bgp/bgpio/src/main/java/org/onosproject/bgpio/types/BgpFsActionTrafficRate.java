@@ -80,12 +80,17 @@ public class BgpFsActionTrafficRate implements BgpValueType {
      * Reads the channel buffer and returns object.
      *
      * @param cb channelBuffer
-     * @param type address type
      * @return object of flow spec action traffic rate
      * @throws BgpParseException while parsing BgpFsActionTrafficRate
      */
-    public static BgpFsActionTrafficRate read(ChannelBuffer cb, short type) throws BgpParseException {
-        return null;
+    public static BgpFsActionTrafficRate read(ChannelBuffer cb) throws BgpParseException {
+        short asn;
+        float rate;
+        ChannelBuffer tempCb = cb.copy();
+
+        asn = tempCb.readShort();
+        rate = tempCb.readFloat();
+        return new BgpFsActionTrafficRate(asn, rate);
     }
 
     @Override

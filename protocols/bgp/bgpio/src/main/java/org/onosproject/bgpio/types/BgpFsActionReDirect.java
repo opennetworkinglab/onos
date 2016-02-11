@@ -77,12 +77,15 @@ public class BgpFsActionReDirect implements BgpValueType {
      * Reads the channel buffer and returns object.
      *
      * @param cb channelBuffer
-     * @param type address type
      * @return object of flow spec action redirect
      * @throws BgpParseException while parsing BgpFsActionReDirect
      */
-    public static BgpFsActionReDirect read(ChannelBuffer cb, short type) throws BgpParseException {
-        return null;
+    public static BgpFsActionReDirect read(ChannelBuffer cb) throws BgpParseException {
+        byte[] routeTarget;
+        ChannelBuffer tempCb = cb.copy();
+
+        routeTarget = tempCb.readBytes(tempCb.readableBytes()).array();
+        return new BgpFsActionReDirect(routeTarget);
     }
 
     @Override
