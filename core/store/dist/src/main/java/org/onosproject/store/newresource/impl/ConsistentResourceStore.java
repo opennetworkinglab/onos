@@ -545,9 +545,9 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
      * @param id ID of resource to be checked
      * @return the resource which is regarded as the same as the specified resource
      */
-    // Naive implementation, which traverses all elements in the set
-    // computational complexity: O(n) where n is the number of elements
-    // in the associated set
+    // Naive implementation, which traverses all elements in the set when continuous resource
+    // computational complexity: O(1) when discrete resource. O(n) when continuous resource
+    // where n is the number of elements in the associated set
     private Optional<Resource> lookup(TransactionalMap<DiscreteResourceId, Set<Resource>> childTxMap, ResourceId id) {
         if (!id.parent().isPresent()) {
             return Optional.of(Resource.ROOT);
@@ -558,6 +558,19 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             return Optional.empty();
         }
 
+        // short-circuit if discrete resource
+        // check the existence in the set: O(1) operation
+        if (id instanceof DiscreteResourceId) {
+            DiscreteResource discrete = Resources.discrete((DiscreteResourceId) id).resource();
+            if (values.contains(discrete)) {
+                return Optional.of(discrete);
+            } else {
+                return Optional.empty();
+            }
+        }
+
+        // continuous resource case
+        // iterate over the values in the set: O(n) operation
         return values.stream()
                 .filter(x -> x.id().equals(id))
                 .findFirst();
