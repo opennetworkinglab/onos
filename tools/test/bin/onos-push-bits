@@ -19,10 +19,12 @@ summary:
 _EOF_
 }
 
-[ "$1" = "-h" ] && _usage && exit 0
-
-[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+[ $# -gt 1 ] || [ "$1" = "-h" ] && _usage && exit 0
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT isn't set correctly" >&2 && exit 1
+set -e
+set -u
 . $ONOS_ROOT/tools/build/envDefaults
+[ ! -f "$ONOS_TAR" ] && echo "$ONOS_TAR does not exist - run onos-package?" >&2 && exit 1
 
 node=${1:-$OCI}
 remote=$ONOS_USER@$node
@@ -30,7 +32,7 @@ remote=$ONOS_USER@$node
 locHash=$(cksum $ONOS_TAR | cut -d' ' -f1,2)
 remHash=$(ssh $remote cksum $ONOS_TAR 2>/dev/null | cut -d' ' -f1,2)
 
-if [ "$locHash" = "$remHash" ]; then
+if [ -n "$locHash" ] && [ "$locHash" = "$remHash" ]; then
     echo "ONOS bits $ONOS_TAR already up-to-date on $node..."
 else
     scp -q $ONOS_TAR $remote:/tmp
