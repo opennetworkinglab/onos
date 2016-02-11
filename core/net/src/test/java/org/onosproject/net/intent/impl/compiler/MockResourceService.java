@@ -44,7 +44,7 @@ class MockResourceService implements ResourceService {
     private final Map<Resource, ResourceConsumer> assignment = new HashMap<>();
 
     @Override
-    public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<? extends Resource> resources) {
+    public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources) {
         assignment.putAll(
                 resources.stream().collect(Collectors.toMap(x -> x, x -> consumer))
         );

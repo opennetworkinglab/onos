@@ -150,7 +150,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     }
 
     @Override
-    public boolean register(List<? extends Resource> resources) {
+    public boolean register(List<Resource> resources) {
         checkNotNull(resources);
         if (log.isTraceEnabled()) {
             resources.forEach(r -> log.trace("registering {}", r));
@@ -189,7 +189,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     }
 
     @Override
-    public boolean unregister(List<? extends ResourceId> ids) {
+    public boolean unregister(List<ResourceId> ids) {
         checkNotNull(ids);
 
         TransactionContext tx = service.transactionContextBuilder().build();
@@ -253,7 +253,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     }
 
     @Override
-    public boolean allocate(List<? extends Resource> resources, ResourceConsumer consumer) {
+    public boolean allocate(List<Resource> resources, ResourceConsumer consumer) {
         checkNotNull(resources);
         checkNotNull(consumer);
 
