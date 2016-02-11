@@ -40,6 +40,7 @@ public class NetconfDeviceInfo {
     private IpAddress ipAddress;
     private int port;
     private File keyFile;
+    private DeviceId deviceId;
 
 
     /**
@@ -143,13 +144,14 @@ public class NetconfDeviceInfo {
      * @return DeviceId
      */
     public DeviceId getDeviceId() {
-
-        try {
-            return DeviceId.deviceId(new URI(this.toString()));
-        } catch (URISyntaxException e) {
-            log.debug("Unable to build deviceID for device {} ", this, e);
+        if (deviceId == null) {
+            try {
+                deviceId = DeviceId.deviceId(new URI("netconf", ipAddress.toString() + ":" + port, null));
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Unable to build deviceID for device " + toString(), e);
+            }
         }
-        return null;
+        return deviceId;
     }
 
     @Override

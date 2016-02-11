@@ -1,6 +1,6 @@
 {
   "devices":{
-    "netconf:mininet@10.1.9.24:830":{
+    "netconf:10.1.9.24:830":{
       "basic":{
         "driver":"ovs-netconf"
       }

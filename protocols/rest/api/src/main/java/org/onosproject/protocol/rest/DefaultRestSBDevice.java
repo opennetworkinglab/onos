@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Objects;
 
 /**
@@ -74,7 +76,13 @@ public class DefaultRestSBDevice implements RestSBDevice {
 
     @Override
     public DeviceId deviceId() {
-        return DeviceId.deviceId(REST + COLON + ip + COLON + port);
+        try {
+            return DeviceId.deviceId(new URI(REST, ip + COLON + port, null));
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Cannot create deviceID " +
+                                                       REST + COLON + ip +
+                                                       COLON + port, e);
+        }
     }
 
     @Override

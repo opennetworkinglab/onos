@@ -81,8 +81,7 @@ public class NetconfControllerImpl implements NetconfController {
     @Override
     public NetconfDevice getNetconfDevice(IpAddress ip, int port) {
         for (DeviceId info : netconfDeviceMap.keySet()) {
-            if (IpAddress.valueOf(info.uri().getHost()).equals(ip) &&
-                    info.uri().getPort() == port) {
+            if (info.uri().getSchemeSpecificPart().equals(ip.toString() + ":" + port)) {
                 return netconfDeviceMap.get(info);
             }
         }
@@ -102,7 +101,7 @@ public class NetconfControllerImpl implements NetconfController {
 
     @Override
     public void removeDevice(NetconfDeviceInfo deviceInfo) {
-        if (netconfDeviceMap.containsKey(deviceInfo.getDeviceId())) {
+        if (!netconfDeviceMap.containsKey(deviceInfo.getDeviceId())) {
             log.warn("Device {} is not present", deviceInfo);
         } else {
             stopDevice(deviceInfo);
