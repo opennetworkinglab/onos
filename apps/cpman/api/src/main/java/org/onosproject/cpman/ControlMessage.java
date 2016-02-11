@@ -21,7 +21,7 @@ package org.onosproject.cpman;
 public interface ControlMessage {
 
     enum Type {
-        INCOMING_PACKET, OUTGOING_PACKET, FLOW_MOD_PACKET,
+        INBOUND_PACKET, OUTBOUND_PACKET, FLOW_MOD_PACKET,
         FLOW_REMOVED_PACKET, REQUEST_PACKET, REPLY_PACKET
     }
 

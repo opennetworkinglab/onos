@@ -39,8 +39,8 @@ public final class OpenFlowControlMessageMapper {
     static {
         // key is OpenFlow specific OFType
         // value is protocol agnostic ControlMessage.Type
-        MESSAGE_TYPE.put(PACKET_IN, INCOMING_PACKET);
-        MESSAGE_TYPE.put(PACKET_OUT, OUTGOING_PACKET);
+        MESSAGE_TYPE.put(PACKET_IN, INBOUND_PACKET);
+        MESSAGE_TYPE.put(PACKET_OUT, OUTBOUND_PACKET);
         MESSAGE_TYPE.put(FLOW_MOD, FLOW_MOD_PACKET);
         MESSAGE_TYPE.put(FLOW_REMOVED, FLOW_REMOVED_PACKET);
         MESSAGE_TYPE.put(STATS_REQUEST, REQUEST_PACKET);
