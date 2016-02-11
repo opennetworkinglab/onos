@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.cluster.messaging.impl;
 
+import com.google.common.base.Throwables;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -68,6 +69,7 @@ public class ClusterCommunicationManager
     private static final String DESERIALIZING = "deserialization";
     private static final String NODE_PREFIX = "node:";
     private static final String ROUND_TRIP_SUFFIX = ".rtt";
+    private static final String ONE_WAY_SUFFIX = ".oneway";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ClusterService clusterService;
@@ -168,16 +170,17 @@ public class ClusterCommunicationManager
         ControllerNode node = clusterService.getNode(toNodeId);
         checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
         Endpoint nodeEp = new Endpoint(node.ip(), node.tcpPort());
-        return messagingService.sendAsync(nodeEp, subject.value(), payload);
+        MeteringAgent.Context context = subjectMeteringAgent.startTimer(subject.toString() + ONE_WAY_SUFFIX);
+        return messagingService.sendAsync(nodeEp, subject.value(), payload).whenComplete((r, e) -> context.stop(e));
     }
 
     private CompletableFuture<byte[]> sendAndReceive(MessageSubject subject, byte[] payload, NodeId toNodeId) {
         ControllerNode node = clusterService.getNode(toNodeId);
         checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
         Endpoint nodeEp = new Endpoint(node.ip(), node.tcpPort());
-        final MeteringAgent.Context epContext = endpointMeteringAgent.
+        MeteringAgent.Context epContext = endpointMeteringAgent.
                 startTimer(NODE_PREFIX + toNodeId.toString() + ROUND_TRIP_SUFFIX);
-        final MeteringAgent.Context subjectContext = subjectMeteringAgent.
+        MeteringAgent.Context subjectContext = subjectMeteringAgent.
                 startTimer(subject.toString() + ROUND_TRIP_SUFFIX);
         return messagingService.sendAndReceive(nodeEp, subject.value(), payload).
                 whenComplete((bytes, throwable) -> {
@@ -261,12 +264,12 @@ public class ClusterCommunicationManager
                 B result = null;
                 try {
                     result = timedFunction.apply(a);
-                } catch (Exception e) {
-                    context.stop(e);
-                    throw new RuntimeException(e);
-                } finally {
                     context.stop(null);
                     return result;
+                } catch (Exception e) {
+                    context.stop(e);
+                    Throwables.propagate(e);
+                    return null;
                 }
             }
         };
