@@ -170,7 +170,6 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      */
     Set<Resource> getRegisteredResources(DiscreteResourceId parent);
 
-
     /**
      * Returns the availability of the specified resource.
      *
