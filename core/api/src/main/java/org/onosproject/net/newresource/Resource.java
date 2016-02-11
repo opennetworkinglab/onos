@@ -41,6 +41,13 @@ public interface Resource {
     DiscreteResource ROOT = new DiscreteResource();
 
     /**
+     * Returns the ID of this resource.
+     *
+     * @return the ID of this resource
+     */
+    ResourceId id();
+
+    /**
      * Checks if the type of this instance is the specified type.
      *
      * @param ancestorType type of resource to be checked.
@@ -57,6 +64,14 @@ public interface Resource {
      */
     // TODO: think about other naming possibilities. amount? quantity?
     <T> T volume();
+
+    /**
+     * Returns the last component of this instance.
+     *
+     * @return the last component of this instance.
+     * The return value is equal to the last object of {@code components()}.
+     */
+    Object last();
 
     /**
      * Returns the parent resource of this instance.
@@ -89,19 +104,4 @@ public interface Resource {
      * @return a child resource
      */
     ContinuousResource child(Class<?> child, double value);
-
-    /**
-     * Returns the last component of this instance.
-     *
-     * @return the last component of this instance.
-     * The return value is equal to the last object of {@code components()}.
-     */
-    Object last();
-
-    /**
-     * Returns the ID of this resource.
-     *
-     * @return the ID of this resource
-     */
-    ResourceId id();
 }
