@@ -43,7 +43,9 @@ import org.snmp4j.smi.OctetString;
 
 /**
  * BTI 7000 specific implementation to provide a list of current alarms.
+ * @deprecated 1.5.0 Falcon, not compliant with ONOS SB and driver architecture.
  */
+@Deprecated
 public class Bti7000SnmpAlarmProvider implements SnmpDeviceAlarmProvider {
     private final Logger log = getLogger(getClass());
     protected static final IClassRegistry CLASS_REGISTRY = new ClassRegistry(_OidRegistry.oidRegistry, I_Device.class);

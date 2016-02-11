@@ -117,6 +117,7 @@ public class SnmpDeviceProvider extends AbstractProvider
         super(new ProviderId("snmp", "org.onosproject.provider.device"));
         sessionFactory = new SnmpSessionFactory(
                 new DefaultSnmpConfigurationFactory(new V2cSnmpConfiguration()));
+        //TODO refactor, no hardcoding in provider, device information should be in drivers
         providers.put("1.3.6.1.4.1.18070.2.2", new Bti7000DeviceDescriptionProvider());
         providers.put("1.3.6.1.4.1.20408", new NetSnmpDeviceDescriptionProvider());
     }
@@ -362,7 +363,10 @@ public class SnmpDeviceProvider extends AbstractProvider
                         + (device != null ? device.deviceInfo() : null), e);
             }
         }
-
+        /**
+         * @deprecated 1.5.0 Falcon, not compliant with ONOS SB and driver architecture.
+         */
+        @Deprecated
         private DeviceDescription populateDescriptionFromDevice(DeviceId did, DeviceDescription desc) {
             String[] deviceComponents = did.toString().split(":");
             if (deviceComponents.length > 1) {

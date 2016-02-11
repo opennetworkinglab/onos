@@ -60,7 +60,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * SNMP alarms provider.
+ * @deprecated 1.5.0 Falcon, not compliant with ONOS SB and driver architecture.
  */
+@Deprecated
 @Component(immediate = true)
 @Service
 public class SnmpAlarmProviderService extends AbstractProvider implements AlarmProvider {
@@ -87,6 +89,7 @@ public class SnmpAlarmProviderService extends AbstractProvider implements AlarmP
     // TODO Could be replaced with a service lookup, and bundles per device variant.
     Map<String, SnmpDeviceAlarmProvider> providers = new HashMap<>();
 
+    @Deprecated
     public SnmpAlarmProviderService() {
         super(new ProviderId("snmp", "org.onosproject.provider.alarm"));
         log.info("SnmpAlarmProviderService ...");

@@ -36,7 +36,9 @@ import org.snmp4j.smi.OID;
 
 /**
  * Net SNMP specific implementation to provide a list of current alarms.
+ * @deprecated 1.5.0 Falcon, not compliant with ONOS SB and driver architecture.
  */
+@Deprecated
 public class NetSnmpAlarmProvider implements SnmpDeviceAlarmProvider {
     private final Logger log = getLogger(getClass());
     protected static final IClassRegistry CLASS_REGISTRY =

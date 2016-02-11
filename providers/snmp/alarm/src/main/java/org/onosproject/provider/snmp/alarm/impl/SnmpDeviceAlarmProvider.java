@@ -18,13 +18,19 @@ import java.util.Collection;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.net.DeviceId;
 
+/**
+ * @deprecated 1.5.0 Falcon, not compliant with ONOS SB and driver architecture.
+ */
+@Deprecated
 public interface SnmpDeviceAlarmProvider {
     /**
      * Implemented by device specific implementations which query the current
      * alarms from a device.
+     * @deprecated 1.5.0 Falcon
      * @param snmpSession SNMP Session
      * @param deviceId device identifier
      * @return device alarms
      */
+    @Deprecated
     Collection<Alarm> getAlarms(ISnmpSession snmpSession, DeviceId deviceId);
 }

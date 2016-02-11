@@ -30,7 +30,9 @@ import org.snmp4j.smi.OID;
 
 /**
  * A agent-specific implementation supporting NET-SNMP agents.
+ * @deprecated 1.5.0 Falcon, not compliant with ONOS SB and driver architecture.
  */
+@Deprecated
 public class NetSnmpDeviceDescriptionProvider implements SnmpDeviceDescriptionProvider {
     private final Logger log = getLogger(getClass());
     protected static final IClassRegistry CLASS_REGISTRY =

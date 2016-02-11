@@ -18,16 +18,19 @@ import org.onosproject.net.device.DeviceDescription;
 
 /**
  * Abstraction of an entity which updates a device description with information retrieved via SNMP.
+ * @deprecated 1.5.0 Falcon, not compliant with ONOS SB and driver architecture.
  */
+@Deprecated
 public interface SnmpDeviceDescriptionProvider {
 
     /**
      * Generated an updated device description.
-     *
+     * @deprecated 1.5.0 Falcon
      * @param session SNMP session
      * @param description old device description
      * @return new updated description
      */
+    @Deprecated
     DeviceDescription populateDescription(ISnmpSession session, DeviceDescription description);
 
 }

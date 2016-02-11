@@ -29,7 +29,9 @@ import org.snmp4j.smi.OID;
 
 /**
  * A vendor-specific implementation supporting BTI Systems BTI-7000 equipment.
+ * @deprecated 1.5.0 Falcon, not compliant with ONOS SB and driver architecture.
  */
+@Deprecated
 public class Bti7000DeviceDescriptionProvider implements SnmpDeviceDescriptionProvider {
     private final Logger log = getLogger(getClass());
     protected static final IClassRegistry CLASS_REGISTRY =
