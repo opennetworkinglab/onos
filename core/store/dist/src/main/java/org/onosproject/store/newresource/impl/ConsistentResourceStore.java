@@ -349,16 +349,16 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         checkNotNull(resource);
         checkArgument(resource instanceof DiscreteResource || resource instanceof ContinuousResource);
 
-        // check if it's registered or not.
-        Versioned<Set<Resource>> v = childMap.get(resource.parent().get().id());
-        if (v == null || !v.value().contains(resource)) {
-            return false;
-        }
-
         if (resource instanceof DiscreteResource) {
             // check if already consumed
             return getResourceAllocations(resource.id()).isEmpty();
         } else {
+            // check if it's registered or not.
+            Versioned<Set<Resource>> v = childMap.get(resource.parent().get().id());
+            if (v == null) {
+                return false;
+            }
+
             ContinuousResource requested = (ContinuousResource) resource;
             ContinuousResource registered = v.value().stream()
                     .filter(c -> c.id().equals(resource.id()))
