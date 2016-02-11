@@ -441,9 +441,17 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 .filter(x -> x.id().equals(parent.child(cls)))
                 .filter(x -> x instanceof ContinuousResource)
                 .map(x -> (ContinuousResource) x)
-                .filter(x -> continuousConsumers.containsKey(x.id()))
-                .filter(x -> continuousConsumers.get(x.id()) != null)
-                .filter(x -> !continuousConsumers.get(x.id()).value().allocations().isEmpty());
+                // we don't use cascading simple predicates like follows to reduce accesses to consistent map
+                // .filter(x -> continuousConsumers.containsKey(x.id()))
+                // .filter(x -> continuousConsumers.get(x.id()) != null)
+                // .filter(x -> !continuousConsumers.get(x.id()).value().allocations().isEmpty());
+                .filter(resource -> {
+                    Versioned<ContinuousResourceAllocation> allocation = continuousConsumers.get(resource.id());
+                    if (allocation == null) {
+                        return false;
+                    }
+                    return !allocation.value().allocations().isEmpty();
+                });
 
         return Stream.concat(discrete, continuous).collect(Collectors.toList());
     }
