@@ -17,8 +17,8 @@
 <app name="org.onosproject.cpman" origin="ON.Lab" version="${project.version}"
      category="default" url="http://onosproject.org"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
-     features="${project.artifactId}">
+     features="${project.artifactId}" apps="org.onosproject.openflow-message">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-cpman/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-cpman-api/${project.version}</artifact>
 </app>

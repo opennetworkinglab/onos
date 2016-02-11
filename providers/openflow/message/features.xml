@@ -19,5 +19,6 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/onos-of-provider-message/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-app-cpman-api/${project.version}</bundle>
     </feature>
 </features>
