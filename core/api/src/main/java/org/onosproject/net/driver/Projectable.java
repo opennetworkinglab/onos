@@ -30,7 +30,9 @@ public interface Projectable {
      *
      * @param projectionClass requested projection class
      * @param <B> type of behaviour
-     * @return projection instance or null if requested projection is not supported
+     * @return projection instance
+     * @throws IllegalStateException if a driver cannot be found
+     * @throws IllegalArgumentException if the projection is not supported
      */
     <B extends Behaviour> B as(Class<B> projectionClass);
 

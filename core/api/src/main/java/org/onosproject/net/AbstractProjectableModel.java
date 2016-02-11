@@ -88,7 +88,7 @@ public abstract class AbstractProjectableModel extends AbstractModel implements 
     }
 
     /**
-     * Returns the currently bound driver or null of no driver is bound.
+     * Returns the currently bound driver or null if no driver is bound.
      *
      * @return bound driver; null if none
      */
