@@ -135,6 +135,16 @@ public final class AnnotationKeys {
     public static final String MANAGEMENT_ADDRESS = "managementAddress";
 
     /**
+     * Annotation key for the username.
+     */
+    public static final String USERNAME = "username";
+
+    /**
+     * Annotation key for the password.
+     */
+    public static final String PASSWORD = "password";
+
+    /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
      * If parsing fails, the returned value will be 1.0.

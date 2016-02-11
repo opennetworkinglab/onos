@@ -19,7 +19,7 @@ package org.onosproject.incubator.net.key;
 /**
  * Representation of an SNMP community name authentication token.
  */
-public final class CommunityName {
+public final class CommunityName extends DeviceKey {
     private final String name;
 
     /**

@@ -125,4 +125,36 @@ public class DeviceKey extends AbstractAnnotated {
         String name = annotations().value(AnnotationKeys.NAME);
         return CommunityName.communityName(name);
     }
+
+    /**
+     * Method to create a device key of type USERNAME_PASSWORD.
+     *
+     * @param id    device key identifier
+     * @param label optional label for this device key
+     * @param username username for this device key
+     * @param password password for this device key
+     * @return device key
+     */
+    public static DeviceKey createDeviceKeyUsingUsernamePassword(DeviceKeyId id, String label,
+                                                                 String username, String password) {
+        DefaultAnnotations annotations = builder().set(AnnotationKeys.USERNAME, username)
+                .set(AnnotationKeys.PASSWORD, password).build();
+
+        return new DeviceKey(id, label, Type.USERNAME_PASSWORD, annotations);
+    }
+
+    /**
+     * Returns a username and password object from the device key.
+     *
+     * @return username and password
+     */
+    public UsernamePassword asUsernamePassword() {
+
+        // Validate that the device key is of type USERNAME_PASSWORD.
+        checkState(this.type == Type.USERNAME_PASSWORD, "This device key is not a USERNAME_PASSWORD type.");
+
+        String username = annotations().value(AnnotationKeys.USERNAME);
+        String password = annotations().value(AnnotationKeys.PASSWORD);
+        return UsernamePassword.usernamePassword(username, password);
+    }
 }
