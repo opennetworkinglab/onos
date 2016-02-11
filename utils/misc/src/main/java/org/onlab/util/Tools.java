@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -581,6 +582,17 @@ public abstract class Tools {
      */
     public static <T> Stream<T> stream(Iterable<T> it) {
         return StreamSupport.stream(it.spliterator(), false);
+    }
+
+    /**
+     * Converts an optional to a stream.
+     *
+     * @param optional optional to convert
+     * @param <T> type of enclosed value
+     * @return optional as a stream
+     */
+    public static <T> Stream<T> stream(Optional<T> optional) {
+        return optional.map(Stream::of).orElse(Stream.empty());
     }
 
     // Auxiliary path visitor for recursive directory structure copying.

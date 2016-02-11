@@ -18,8 +18,11 @@ package org.onlab.util;
 import org.junit.Test;
 import org.onlab.junit.TestTools;
 
+import java.util.Optional;
 import java.util.concurrent.ThreadFactory;
+import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.onlab.junit.TestTools.assertAfter;
 
@@ -71,6 +74,16 @@ public class ToolsTest {
         assertNotNull("thread should have exception handler", t.getUncaughtExceptionHandler());
         t.start();
         assertAfter(100, () -> assertEquals("incorrect thread state", Thread.State.TERMINATED, t.getState()));
+    }
+
+    @Test
+    public void testOptionalStream() {
+        Stream<Object> empty = Tools.stream(Optional.empty());
+        assertThat(empty.count(), is(0L));
+
+        String value = "value";
+        Stream<String> stream = Tools.stream(Optional.of(value));
+        assertThat(stream.allMatch(value::equals), is(true));
     }
 
 }
