@@ -28,6 +28,7 @@ import org.onosproject.cpman.message.ControlMessageProviderService;
 import org.onosproject.net.DeviceId;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFType;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,11 +37,14 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.onosproject.provider.of.message.impl.OpenFlowControlMessageMapper.lookupControlMessageType;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Collects the OpenFlow messages and aggregates using MetricsService.
  */
 public class OpenFlowControlMessageAggregator implements Runnable {
+
+    private final Logger log = getLogger(getClass());
 
     private static final Set<OFType> OF_TYPE_SET =
             ImmutableSet.of(OFType.PACKET_IN, OFType.PACKET_OUT, OFType.FLOW_MOD,
@@ -103,8 +107,10 @@ public class OpenFlowControlMessageAggregator implements Runnable {
                 new DefaultControlMessage(lookupControlMessageType(type),
                         getLoad(type), getRate(type), getCount(type),
                         System.currentTimeMillis())));
+        log.debug("sent aggregated control message");
         providerService.updateStatsInfo(deviceId,
                 Collections.unmodifiableCollection(controlMessages));
+        controlMessages.clear();
     }
 
     /**
@@ -114,8 +120,11 @@ public class OpenFlowControlMessageAggregator implements Runnable {
      * @return load value
      */
     private long getLoad(OFType type) {
+        if (countMeterMap.get(type).getOneMinuteRate() == 0D) {
+            return 0L;
+        }
         return (long) rateMeterMap.get(type).getOneMinuteRate() /
-                (long) countMeterMap.get(type).getOneMinuteRate();
+               (long) countMeterMap.get(type).getOneMinuteRate();
     }
 
     /**

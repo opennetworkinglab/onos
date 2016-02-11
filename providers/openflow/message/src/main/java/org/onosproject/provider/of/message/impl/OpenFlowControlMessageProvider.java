@@ -106,7 +106,7 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
         controller.getSwitches().forEach(sw -> sw.addEventListener(outMsgListener));
 
         executor = Executors.newSingleThreadScheduledExecutor(
-                groupedThreads("onos/provider", "aggregator"));
+                             groupedThreads("onos/provider", "aggregator"));
 
         connectInitialDevices();
         log.info("Started");
