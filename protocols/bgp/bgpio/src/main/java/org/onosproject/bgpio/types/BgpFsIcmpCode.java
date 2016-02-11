@@ -15,6 +15,7 @@
  */
 package org.onosproject.bgpio.types;
 
+import java.util.LinkedList;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -79,12 +80,21 @@ public class BgpFsIcmpCode implements BgpValueType {
      * Reads the channel buffer and returns object.
      *
      * @param cb channelBuffer
-     * @param type address type
      * @return object of flow spec ICMP code
      * @throws BgpParseException while parsing BgpFsIcmpCode
      */
-    public static BgpFsIcmpCode read(ChannelBuffer cb, short type) throws BgpParseException {
-        return null;
+    public static BgpFsIcmpCode read(ChannelBuffer cb) throws BgpParseException {
+        List<BgpFsOperatorValue> operatorValue = new LinkedList<>();
+        byte option;
+        byte icmpCode;
+
+        do {
+            option = (byte) cb.readByte();
+            icmpCode = cb.readByte();
+            operatorValue.add(new BgpFsOperatorValue(option, new byte[] {(byte) icmpCode}));
+        } while ((option & Constants.BGP_FLOW_SPEC_END_OF_LIST_MASK) == 0);
+
+        return new BgpFsIcmpCode(operatorValue);
     }
 
     @Override

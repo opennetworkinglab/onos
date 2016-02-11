@@ -22,6 +22,8 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.util.Constants;
+import org.onosproject.bgpio.util.Validation;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
@@ -33,6 +35,7 @@ public class BgpFsDestinationPrefix implements BgpValueType {
     public static final byte FLOW_SPEC_TYPE = Constants.BGP_FLOWSPEC_DST_PREFIX;
     private byte length;
     private IpPrefix ipPrefix;
+    public static final int BYTE_IN_BITS = 8;
 
     /**
      * Constructor to initialize parameters.
@@ -89,12 +92,32 @@ public class BgpFsDestinationPrefix implements BgpValueType {
      * Reads the channel buffer and returns object of IPv4AddressTlv.
      *
      * @param cb channelBuffer
-     * @param type address type
      * @return object of flow spec destination prefix
      * @throws BgpParseException while parsing BgpFsDestinationPrefix
      */
-    public static BgpFsDestinationPrefix read(ChannelBuffer cb, short type) throws BgpParseException {
-        return null;
+    public static BgpFsDestinationPrefix read(ChannelBuffer cb) throws BgpParseException {
+        IpPrefix ipPrefix;
+
+        int length = cb.readByte();
+        if (length == 0) {
+            byte[] prefix = new byte[] {0};
+            ipPrefix = Validation.bytesToPrefix(prefix, length);
+            return new BgpFsDestinationPrefix((byte) ipPrefix.prefixLength(), ipPrefix);
+        }
+        int len = length / BYTE_IN_BITS;
+        int reminder = length % BYTE_IN_BITS;
+        if (reminder > 0) {
+            len = len + 1;
+        }
+        if (cb.readableBytes() < len) {
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                    BgpErrorType.MALFORMED_ATTRIBUTE_LIST, cb.readableBytes());
+        }
+        byte[] prefix = new byte[len];
+        cb.readBytes(prefix, 0, len);
+        ipPrefix = Validation.bytesToPrefix(prefix, length);
+
+        return new BgpFsDestinationPrefix((byte) ipPrefix.prefixLength(), ipPrefix);
     }
 
     /**

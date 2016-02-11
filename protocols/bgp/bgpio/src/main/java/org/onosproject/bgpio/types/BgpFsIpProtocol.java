@@ -15,6 +15,7 @@
  */
 package org.onosproject.bgpio.types;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -89,12 +90,21 @@ public class BgpFsIpProtocol implements BgpValueType {
      * Reads the channel buffer and returns object.
      *
      * @param cb channelBuffer
-     * @param type address type
      * @return object of flow spec IP protocol
      * @throws BgpParseException while parsing BgpFsIpProtocol
      */
-    public static BgpFsIpProtocol read(ChannelBuffer cb, short type) throws BgpParseException {
-        return null;
+    public static BgpFsIpProtocol read(ChannelBuffer cb) throws BgpParseException {
+        List<BgpFsOperatorValue> operatorValue = new LinkedList<>();
+        byte option;
+        byte proto;
+
+        do {
+            option = (byte) cb.readByte();
+            proto = cb.readByte();
+            operatorValue.add(new BgpFsOperatorValue(option, new byte[] {(byte) proto}));
+        } while ((option & Constants.BGP_FLOW_SPEC_END_OF_LIST_MASK) == 0);
+
+        return new BgpFsIpProtocol(operatorValue);
     }
 
     @Override

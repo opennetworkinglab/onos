@@ -15,6 +15,7 @@
  */
 package org.onosproject.bgpio.types;
 
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.List;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -79,12 +80,28 @@ public class BgpFsPacketLength implements BgpValueType {
      * Reads the channel buffer and returns object.
      *
      * @param cb channelBuffer
-     * @param type address type
      * @return object of flow spec packet length
      * @throws BgpParseException while parsing BgpFsPacketLength
      */
-    public static BgpFsPacketLength read(ChannelBuffer cb, short type) throws BgpParseException {
-        return null;
+    public static BgpFsPacketLength read(ChannelBuffer cb) throws BgpParseException {
+        List<BgpFsOperatorValue> operatorValue = new LinkedList<>();
+        byte option;
+        short packetLen;
+
+        do {
+            option = (byte) cb.readByte();
+            int len = (option & Constants.BGP_FLOW_SPEC_LEN_MASK) >> 4;
+            if ((1 << len) == 1) {
+                packetLen = cb.readByte();
+                operatorValue.add(new BgpFsOperatorValue(option, new byte[] {(byte) packetLen}));
+            } else {
+                packetLen = cb.readShort();
+                operatorValue.add(new BgpFsOperatorValue(option,
+                                  new byte[] {(byte) (packetLen >> 8), (byte) packetLen}));
+            }
+        } while ((option & Constants.BGP_FLOW_SPEC_END_OF_LIST_MASK) == 0);
+
+        return new BgpFsPacketLength(operatorValue);
     }
 
     @Override
