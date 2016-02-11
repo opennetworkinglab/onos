@@ -98,14 +98,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     public boolean release(List<ResourceAllocation> allocations) {
         checkNotNull(allocations);
 
-        List<Resource> resources = allocations.stream()
-                .map(ResourceAllocation::resource)
-                .collect(Collectors.toList());
-        List<ResourceConsumer> consumers = allocations.stream()
-                .map(ResourceAllocation::consumer)
-                .collect(Collectors.toList());
-
-        return store.release(resources, consumers);
+        return store.release(allocations);
     }
 
     @Override

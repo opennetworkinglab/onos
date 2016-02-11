@@ -52,7 +52,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -303,10 +302,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     }
 
     @Override
-    public boolean release(List<Resource> resources, List<ResourceConsumer> consumers) {
-        checkNotNull(resources);
-        checkNotNull(consumers);
-        checkArgument(resources.size() == consumers.size());
+    public boolean release(List<ResourceAllocation> allocations) {
+        checkNotNull(allocations);
 
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
@@ -315,12 +312,10 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 tx.getTransactionalMap(DISCRETE_CONSUMER_MAP, SERIALIZER);
         TransactionalMap<ContinuousResourceId, ContinuousResourceAllocation> continuousConsumerTxMap =
                 tx.getTransactionalMap(CONTINUOUS_CONSUMER_MAP, SERIALIZER);
-        Iterator<Resource> resourceIte = resources.iterator();
-        Iterator<ResourceConsumer> consumerIte = consumers.iterator();
 
-        while (resourceIte.hasNext() && consumerIte.hasNext()) {
-            Resource resource = resourceIte.next();
-            ResourceConsumer consumer = consumerIte.next();
+        for (ResourceAllocation allocation : allocations) {
+            Resource resource = allocation.resource();
+            ResourceConsumer consumer = allocation.consumer();
 
             if (resource instanceof DiscreteResource) {
                 // if this single release fails (because the resource is allocated to another consumer,
@@ -330,14 +325,14 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 }
             } else if (resource instanceof ContinuousResource) {
                 ContinuousResource continuous = (ContinuousResource) resource;
-                ContinuousResourceAllocation allocation = continuousConsumerTxMap.get(continuous.id());
-                ImmutableList<ResourceAllocation> newAllocations = allocation.allocations().stream()
+                ContinuousResourceAllocation continuousAllocation = continuousConsumerTxMap.get(continuous.id());
+                ImmutableList<ResourceAllocation> newAllocations = continuousAllocation.allocations().stream()
                         .filter(x -> !(x.consumer().equals(consumer) &&
                                 ((ContinuousResource) x.resource()).value() == continuous.value()))
                         .collect(GuavaCollectors.toImmutableList());
 
-                if (!continuousConsumerTxMap.replace(continuous.id(), allocation,
-                        new ContinuousResourceAllocation(allocation.original(), newAllocations))) {
+                if (!continuousConsumerTxMap.replace(continuous.id(), continuousAllocation,
+                        new ContinuousResourceAllocation(continuousAllocation.original(), newAllocations))) {
                     return abortTransaction(tx);
                 }
             }

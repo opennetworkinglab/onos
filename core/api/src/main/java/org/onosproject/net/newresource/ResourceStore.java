@@ -63,18 +63,17 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
     boolean allocate(List<? extends Resource> resources, ResourceConsumer consumer);
 
     /**
-     * Releases the specified resources allocated to the specified corresponding consumers
-     * in transactional way. The state after completion of this method is all the resources
+     * Releases the specified allocated resources in transactional way.
+     * The state after completion of this method is all the resources
      * are released from the consumer, or no resource is released. The whole release fails
      * when any one of the resource can't be released. The size of the list of resources and
      * that of consumers must be equal. The resource and consumer with the same position from
      * the head of each list correspond to each other.
      *
-     * @param resources resources to be released
-     * @param consumers resource consumers to whom the resource allocated to
+     * @param allocations allocaitons to be released
      * @return true if succeeds, otherwise false
      */
-    boolean release(List<Resource> resources, List<ResourceConsumer> consumers);
+    boolean release(List<ResourceAllocation> allocations);
 
     /**
      * Returns the resource consumers to whom the specified resource is allocated.
