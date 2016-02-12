@@ -56,20 +56,6 @@ public final class DiscreteResource implements Resource {
         return type.isAssignableFrom(id.components().get(id.components().size() - 1).getClass());
     }
 
-    /**
-     * The user of this methods must receive the return value as the correct type.
-     * Otherwise, this methods throws an exception.
-     *
-     * @param <T> type of the return value
-     * @return the volume of this resource
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    // TODO: consider receiving Class<T> as an argument. Which approach is convenient?
-    public <T> T volume() {
-        return (T) last();
-    }
-
     @Override
     public boolean isSubTypeOf(Class<?> ancestor) {
         checkNotNull(ancestor);
@@ -79,6 +65,19 @@ public final class DiscreteResource implements Resource {
                 .filter(x -> x.equals(ancestor))
                 .findAny()
                 .isPresent();
+    }
+
+    @Override
+    public <T> Optional<T> valueAs(Class<T> type) {
+        checkNotNull(type);
+
+        if (!isTypeOf(type)) {
+            return Optional.empty();
+        }
+
+        @SuppressWarnings("unchecked")
+        T value = (T) id.components().get(id.components().size() - 1);
+        return Optional.of(value);
     }
 
     @Override
@@ -133,7 +132,6 @@ public final class DiscreteResource implements Resource {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("id", id)
-                .add("volume", volume())
                 .toString();
     }
 }

@@ -64,13 +64,15 @@ public interface Resource {
     boolean isSubTypeOf(Class<?> ancestor);
 
     /**
-     * Returns the volume of this resource.
+     * Returns value interpreted as the specified type. If the specified type is
+     * incompatible with the underlying value, an empty instance is returned.
      *
-     * @param <T> type of return value
-     * @return the volume of this resource
+     * @param type class instance specifying the type of return value
+     * @param <T> type of the return value
+     * @return the value of this resource as the specified type. If type mismatches,
+     * returns an empty instance.
      */
-    // TODO: think about other naming possibilities. amount? quantity?
-    <T> T volume();
+    <T> Optional<T> valueAs(Class<T> type);
 
     /**
      * Returns the last component of this instance.

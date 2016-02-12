@@ -128,7 +128,7 @@ public class ResourcesCommand extends AbstractShellCommand {
             } else {
                 String resourceName = resource.last().getClass().getSimpleName();
 
-                String toString = String.valueOf(resource.last());
+                String toString = String.valueOf(resource.valueAs(Object.class).orElse(""));
                 if (toString.startsWith(resourceName)) {
                     print("%s%s", Strings.repeat(" ", level),
                           toString);
@@ -178,14 +178,13 @@ public class ResourcesCommand extends AbstractShellCommand {
 
                 // aggregate into RangeSet
                 e.getValue().stream()
-                    .map(Resource::last)
                     .map(res -> {
-                            if (res instanceof VlanId) {
-                                return (long) ((VlanId) res).toShort();
-                            } else if (res instanceof MplsLabel) {
-                                return (long) ((MplsLabel) res).toInt();
-                            } else if (res instanceof TributarySlot) {
-                                return ((TributarySlot) res).index();
+                            if (res.isTypeOf(VlanId.class)) {
+                                return (long) res.valueAs(VlanId.class).get().toShort();
+                            } else if (res.isTypeOf(MplsLabel.class)) {
+                                return (long) res.valueAs(MplsLabel.class).get().toInt();
+                            } else if (res.isTypeOf(TributarySlot.class)) {
+                                return res.valueAs(TributarySlot.class).get().index();
                             }
                             // TODO support Lambda (OchSignal types)
                             return 0L;

@@ -57,24 +57,10 @@ public final class ContinuousResource implements Resource {
     }
 
     /**
-     * The user of this methods must receive the return value as Double or double.
-     * Otherwise, this methods throws an exception.
-     *
-     * @param <T> type of the return value
-     * @return the volume of this resource
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> T volume() {
-        return (T) Double.valueOf(value);
-    }
-
-    /**
      * Returns the value of the resource amount.
      *
      * @return the value of the resource amount
      */
-    // FIXME: overlapping a purpose with volume()
     public double value() {
         return value;
     }
@@ -91,6 +77,24 @@ public final class ContinuousResource implements Resource {
                 .findAny()
                 .isPresent();
         return foundInAncestor || foundInLeaf;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * A user must specify Double.class or double.class to avoid an empty value.
+     */
+    @Override
+    public <T> Optional<T> valueAs(Class<T> type) {
+        checkNotNull(type);
+
+        if (type == Object.class || type == double.class || type == Double.class) {
+            @SuppressWarnings("unchecked")
+            T value = (T) Double.valueOf(this.value);
+            return Optional.of(value);
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -138,7 +142,7 @@ public final class ContinuousResource implements Resource {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("id", id)
-                .add("volume", value)
+                .add("value", value)
                 .toString();
     }
 }

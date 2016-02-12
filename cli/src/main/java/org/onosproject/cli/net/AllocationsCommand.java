@@ -115,7 +115,7 @@ public class AllocationsCommand extends AbstractShellCommand {
 
             for (ResourceAllocation a : allocations) {
                 print("%s%s allocated by %s", Strings.repeat(" ", level + 1),
-                                          a.resource().last(), asVerboseString(a.consumer()));
+                                          a.resource().valueAs(Object.class).orElse(""), asVerboseString(a.consumer()));
             }
         }
     }

@@ -126,18 +126,25 @@ public class ResourceTest {
     }
 
     @Test
-    public void testVolumeOfDiscrete() {
+    public void testValueOfDiscrete() {
         Resource resource = Resources.discrete(D1).resource();
 
-        DeviceId volume = resource.volume();
-        assertThat(volume, is(D1));
+        Optional<DeviceId> volume = resource.valueAs(DeviceId.class);
+        assertThat(volume.get(), is(D1));
     }
 
     @Test
-    public void testVolumeOfContinuous() {
+    public void testValueOfRoot() {
+        Resource resource = Resource.ROOT;
+
+        assertThat(resource.valueAs(Object.class), is(Optional.empty()));
+    }
+
+    @Test
+    public void testValueOfContinuous() {
         Resource resource = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
 
-        double volume = resource.volume();
-        assertThat(volume, is(BW1.bps()));
+        Optional<Double> volume = resource.valueAs(double.class);
+        assertThat(volume.get(), is(BW1.bps()));
     }
 }

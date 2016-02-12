@@ -17,7 +17,6 @@ package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -25,6 +24,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.util.Frequency;
+import org.onlab.util.Tools;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
@@ -218,8 +218,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                         Resources.discrete(x.dst().deviceId(), x.dst().port()).id()
                 ))
                 .map(resourceService::getAvailableResources)
-                .map(x -> Iterables.filter(x, r -> r.last() instanceof OchSignal))
-                .map(x -> Iterables.transform(x, r -> (OchSignal) r.last()))
+                .map(x -> x.stream()
+                        .flatMap(r -> Tools.stream(r.valueAs(OchSignal.class))).collect(Collectors.toList()))
                 .map(x -> (Set<OchSignal>) ImmutableSet.copyOf(x))
                 .reduce(Sets::intersection)
                 .orElse(Collections.emptySet());

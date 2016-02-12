@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -286,8 +287,7 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
 
     private Set<VlanId> findVlanId(ConnectPoint cp) {
         return resourceService.getAvailableResources(Resources.discrete(cp.deviceId(), cp.port()).id()).stream()
-                .filter(x -> x.last() instanceof VlanId)
-                .map(x -> (VlanId) x.last())
+                .flatMap(x -> Tools.stream(x.valueAs(VlanId.class)))
                 .collect(Collectors.toSet());
     }
 
