@@ -277,8 +277,14 @@ public class PathManager implements PathService {
 
     // Produces a direct edge-to-edge path.
     private DisjointPath edgeToEdgePathD(EdgeLink srcLink, EdgeLink dstLink, DisjointPath path) {
-        return new DefaultDisjointPath(PID, (DefaultPath) edgeToEdgePath(srcLink, dstLink, path.primary()),
-                                       (DefaultPath) edgeToEdgePath(srcLink, dstLink, path.backup()));
+        Path primary = null;
+        Path backup = null;
+        if (path != null) {
+            primary = path.primary();
+            backup = path.backup();
+        }
+        return new DefaultDisjointPath(PID, (DefaultPath) edgeToEdgePath(srcLink, dstLink, primary),
+                                       (DefaultPath) edgeToEdgePath(srcLink, dstLink, backup));
     }
 
 
