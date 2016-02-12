@@ -43,6 +43,7 @@ import org.onosproject.bgpio.protocol.linkstate.BgpPrefixIPv4LSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
 import org.onosproject.bgpio.types.AsPath;
 import org.onosproject.bgpio.types.As4Path;
+import org.onosproject.bgpio.types.BgpExtendedCommunity;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.LocalPref;
 import org.onosproject.bgpio.types.Med;
@@ -227,7 +228,7 @@ public class BgpPeerImpl implements BgpPeer {
             attributesList.add(new LocalPref(100));
         }
 
-        // TODO: Update flow spec action
+        attributesList.add(new BgpExtendedCommunity(flowSpec.fsActionTlv()));
 
         if (operType == FlowSpecOperation.ADD) {
             attributesList.add(new MpReachNlri(flowSpec, Constants.AFI_FLOWSPEC_VALUE, sAfi));

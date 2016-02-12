@@ -189,73 +189,76 @@ public class MpReachNlri implements BgpValueType {
                                                && ((safi == Constants.SAFI_FLOWSPEC_VALUE)
                                                || (safi == Constants.VPN_SAFI_FLOWSPEC_VALUE))) {
                 List<BgpValueType> flowSpecComponents = new LinkedList<>();
-                BgpValueType flowSpecComponent = null;
 
-                byte nextHopLen = tempCb.readByte();
-                if (nextHopLen > 0) {
-                    InetAddress ipAddress = Validation.toInetAddress(nextHopLen, tempCb);
-                    if (ipAddress.isMulticastAddress()) {
-                        throw new BgpParseException("Multicast not supported");
-                    }
-                    ipNextHop = Ip4Address.valueOf(ipAddress);
-                }
+                if (tempCb.readableBytes() > 0) {
+                    BgpValueType flowSpecComponent = null;
 
-                byte reserved = tempCb.readByte();
-                short totNlriLen = tempCb.getByte(tempCb.readerIndex());
-                if (totNlriLen >= FLOW_SPEC_LEN) {
-                    totNlriLen = tempCb.readShort();
-                } else {
-                    totNlriLen = tempCb.readByte();
-                }
-                if (tempCb.readableBytes() < totNlriLen) {
-                    Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
-                            BgpErrorType.ATTRIBUTE_LENGTH_ERROR, totNlriLen);
-                }
-                tempBuf = tempCb.readBytes(totNlriLen);
-                while (tempBuf.readableBytes() > 0) {
-                    short type = tempBuf.readByte();
-                    switch (type) {
-                    case Constants.BGP_FLOWSPEC_DST_PREFIX:
-                        flowSpecComponent = BgpFsDestinationPrefix.read(tempBuf);
-                        break;
-                    case Constants.BGP_FLOWSPEC_SRC_PREFIX:
-                        flowSpecComponent = BgpFsSourcePrefix.read(tempBuf);
-                        break;
-                    case Constants.BGP_FLOWSPEC_IP_PROTO:
-                        flowSpecComponent = BgpFsIpProtocol.read(tempBuf);
-                        break;
-                    case Constants.BGP_FLOWSPEC_PORT:
-                        flowSpecComponent = BgpFsPortNum.read(tempBuf);
-                        break;
-                    case Constants.BGP_FLOWSPEC_DST_PORT:
-                        flowSpecComponent = BgpFsDestinationPortNum.read(tempBuf);
-                        break;
-                    case Constants.BGP_FLOWSPEC_SRC_PORT:
-                        flowSpecComponent = BgpFsSourcePortNum.read(tempBuf);
-                        break;
-                    case Constants.BGP_FLOWSPEC_ICMP_TP:
-                        flowSpecComponent = BgpFsIcmpType.read(tempBuf);
-                        break;
-                    case Constants.BGP_FLOWSPEC_ICMP_CD:
-                        flowSpecComponent = BgpFsIcmpType.read(tempBuf);
-                        break;
-                    case Constants.BGP_FLOWSPEC_TCP_FLAGS:
-                        flowSpecComponent = BgpFsTcpFlags.read(tempBuf);
-                        break;
-                    case Constants.BGP_FLOWSPEC_PCK_LEN:
-                        flowSpecComponent = BgpFsPacketLength.read(tempBuf);
-                        break;
-                    case Constants.BGP_FLOWSPEC_DSCP:
-                        flowSpecComponent = BgpFsDscpValue.read(tempBuf);
-                        break;
-                    case Constants.BGP_FLOWSPEC_FRAGMENT:
-                        flowSpecComponent = BgpFsFragment.read(tempBuf);
-                        break;
-                    default:
-                        log.debug("flow spec type not supported" + type);
-                        break;
+                    byte nextHopLen = tempCb.readByte();
+                    if (nextHopLen > 0) {
+                        InetAddress ipAddress = Validation.toInetAddress(nextHopLen, tempCb);
+                        if (ipAddress.isMulticastAddress()) {
+                            throw new BgpParseException("Multicast not supported");
+                        }
+                        ipNextHop = Ip4Address.valueOf(ipAddress);
                     }
-                    flowSpecComponents.add(flowSpecComponent);
+
+                    byte reserved = tempCb.readByte();
+                    short totNlriLen = tempCb.getByte(tempCb.readerIndex());
+                    if (totNlriLen >= FLOW_SPEC_LEN) {
+                        totNlriLen = tempCb.readShort();
+                    } else {
+                        totNlriLen = tempCb.readByte();
+                    }
+                    if (tempCb.readableBytes() < totNlriLen) {
+                        Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                BgpErrorType.ATTRIBUTE_LENGTH_ERROR, totNlriLen);
+                    }
+                    tempBuf = tempCb.readBytes(totNlriLen);
+                    while (tempBuf.readableBytes() > 0) {
+                        short type = tempBuf.readByte();
+                        switch (type) {
+                        case Constants.BGP_FLOWSPEC_DST_PREFIX:
+                            flowSpecComponent = BgpFsDestinationPrefix.read(tempBuf);
+                            break;
+                        case Constants.BGP_FLOWSPEC_SRC_PREFIX:
+                            flowSpecComponent = BgpFsSourcePrefix.read(tempBuf);
+                            break;
+                        case Constants.BGP_FLOWSPEC_IP_PROTO:
+                            flowSpecComponent = BgpFsIpProtocol.read(tempBuf);
+                            break;
+                        case Constants.BGP_FLOWSPEC_PORT:
+                            flowSpecComponent = BgpFsPortNum.read(tempBuf);
+                            break;
+                        case Constants.BGP_FLOWSPEC_DST_PORT:
+                            flowSpecComponent = BgpFsDestinationPortNum.read(tempBuf);
+                            break;
+                        case Constants.BGP_FLOWSPEC_SRC_PORT:
+                            flowSpecComponent = BgpFsSourcePortNum.read(tempBuf);
+                            break;
+                        case Constants.BGP_FLOWSPEC_ICMP_TP:
+                            flowSpecComponent = BgpFsIcmpType.read(tempBuf);
+                            break;
+                        case Constants.BGP_FLOWSPEC_ICMP_CD:
+                            flowSpecComponent = BgpFsIcmpType.read(tempBuf);
+                            break;
+                        case Constants.BGP_FLOWSPEC_TCP_FLAGS:
+                            flowSpecComponent = BgpFsTcpFlags.read(tempBuf);
+                            break;
+                        case Constants.BGP_FLOWSPEC_PCK_LEN:
+                            flowSpecComponent = BgpFsPacketLength.read(tempBuf);
+                            break;
+                        case Constants.BGP_FLOWSPEC_DSCP:
+                            flowSpecComponent = BgpFsDscpValue.read(tempBuf);
+                            break;
+                        case Constants.BGP_FLOWSPEC_FRAGMENT:
+                            flowSpecComponent = BgpFsFragment.read(tempBuf);
+                            break;
+                        default:
+                            log.debug("flow spec type not supported" + type);
+                            break;
+                        }
+                        flowSpecComponents.add(flowSpecComponent);
+                    }
                 }
                 return new MpReachNlri(new BgpFlowSpecDetails(flowSpecComponents), afi, safi);
             } else {
