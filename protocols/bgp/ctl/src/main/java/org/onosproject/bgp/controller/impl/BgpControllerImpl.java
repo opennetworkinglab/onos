@@ -133,8 +133,16 @@ public class BgpControllerImpl implements BgpController {
             boolean isLinkstate = false;
             while (listIterator.hasNext()) {
                 BgpValueType attr = listIterator.next();
-                if ((attr instanceof MpReachNlri) || (attr instanceof MpUnReachNlri)) {
-                    isLinkstate = true;
+                if (attr instanceof MpReachNlri) {
+                    MpReachNlri mpReach = (MpReachNlri) attr;
+                    if (mpReach.bgpFlowSpecInfo() == null) {
+                        isLinkstate = true;
+                    }
+                } else if (attr instanceof MpUnReachNlri) {
+                    MpUnReachNlri mpUnReach = (MpUnReachNlri) attr;
+                    if (mpUnReach.bgpFlowSpecInfo() == null) {
+                        isLinkstate = true;
+                    }
                 }
             }
             if (isLinkstate) {

@@ -19,6 +19,8 @@ import org.jboss.netty.channel.Channel;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpFactory;
 import org.onosproject.bgpio.protocol.BgpMessage;
+import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecDetails;
+import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecPrefix;
 import org.onosproject.bgpio.types.BgpValueType;
 
 /**
@@ -27,6 +29,23 @@ import org.onosproject.bgpio.types.BgpValueType;
  */
 public interface BgpPeer {
 
+    enum FlowSpecOperation {
+
+        /**
+         * Signifies addition of flow specification rule.
+         */
+        ADD,
+
+        /**
+         *  Signifies updation of flow specification rule.
+         */
+        UPDATE,
+
+        /**
+         * Signifies deletion of flow specification rule.
+         */
+        DELETE
+    }
     /**
      * Sets the associated Netty channel for this bgp peer.
      *
@@ -110,4 +129,14 @@ public interface BgpPeer {
      * @return sessionInfo bgp session info
      */
     BgpSessionInfo sessionInfo();
+
+    /**
+     * Updates flow specification rule.
+     *
+     * @param operType operation type add or delete or update
+     * @param prefix prefix for the flow rule
+     * @param flowSpec BGP flow specification components
+     */
+    void updateFlowSpec(FlowSpecOperation operType, BgpFlowSpecPrefix prefix,
+                               BgpFlowSpecDetails flowSpec);
 }

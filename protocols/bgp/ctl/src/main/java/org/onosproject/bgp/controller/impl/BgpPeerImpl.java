@@ -17,6 +17,13 @@
 package org.onosproject.bgp.controller.impl;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
+
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
 import org.onosproject.bgp.controller.BgpController;
@@ -28,13 +35,23 @@ import org.onosproject.bgpio.protocol.BgpFactories;
 import org.onosproject.bgpio.protocol.BgpFactory;
 import org.onosproject.bgpio.protocol.BgpLSNlri;
 import org.onosproject.bgpio.protocol.BgpMessage;
+import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecDetails;
+import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecPrefix;
 import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BgpPrefixIPv4LSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
+import org.onosproject.bgpio.types.AsPath;
+import org.onosproject.bgpio.types.As4Path;
 import org.onosproject.bgpio.types.BgpValueType;
+import org.onosproject.bgpio.types.LocalPref;
+import org.onosproject.bgpio.types.Med;
 import org.onosproject.bgpio.types.MpReachNlri;
 import org.onosproject.bgpio.types.MpUnReachNlri;
+import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
+import org.onosproject.bgpio.types.Origin;
+import org.onosproject.bgpio.types.RouteDistinguisher;
+import org.onosproject.bgpio.util.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +82,26 @@ public class BgpPeerImpl implements BgpPeer {
     private BgpLocalRib bgplocalRibVpn;
     private AdjRibIn adjRib;
     private VpnAdjRibIn vpnAdjRib;
+    private BgpFlowSpecRibOut flowSpecRibOut;
+    private BgpFlowSpecRibOut vpnFlowSpecRibOut;
+
+    /**
+     * Returns the flowSpec RIB out.
+     *
+     * @return flow Specification RIB out
+     */
+    public BgpFlowSpecRibOut flowSpecRibOut() {
+        return flowSpecRibOut;
+    }
+
+    /**
+     * Returns the VPN flowSpec RIB out.
+     *
+     * @return VPN flow Specification RIB out
+     */
+    public BgpFlowSpecRibOut vpnFlowSpecRibOut() {
+        return vpnFlowSpecRibOut;
+    }
 
     /**
      * Return the adjacency RIB-IN.
@@ -104,8 +141,129 @@ public class BgpPeerImpl implements BgpPeer {
         this.bgplocalRibVpn =  bgpController.bgpLocalRibVpn();
         this.adjRib = new AdjRibIn();
         this.vpnAdjRib = new VpnAdjRibIn();
+        this.flowSpecRibOut = new BgpFlowSpecRibOut();
+        this.vpnFlowSpecRibOut = new BgpFlowSpecRibOut();
     }
 
+    /**
+     * Check if peer support capability.
+     *
+     * @param type capability type
+     * @param afi address family identifier
+     * @param sAfi subsequent address family identifier
+     * @return true if capability is supported, otherwise false
+     */
+    public final boolean isCapabilitySupported(short type, short afi, byte sAfi) {
+
+        List<BgpValueType> capability = sessionInfo.remoteBgpCapability();
+        ListIterator<BgpValueType> listIterator = capability.listIterator();
+
+        while (listIterator.hasNext()) {
+            BgpValueType tlv = listIterator.next();
+
+            if (tlv.getType() == type) {
+                if (tlv.getType() == MultiProtocolExtnCapabilityTlv.TYPE) {
+                    MultiProtocolExtnCapabilityTlv temp = (MultiProtocolExtnCapabilityTlv) tlv;
+                    if ((temp.getAfi() == afi) && (temp.getSafi() == sAfi)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Send flow specification update message to peer.
+     *
+     * @param operType operation type
+     * @param flowSpec flow specification details
+     */
+    public final void sendFlowSpecUpdateMessageToPeer(FlowSpecOperation operType, BgpFlowSpecDetails flowSpec) {
+
+        List<BgpValueType> attributesList = new LinkedList<>();
+        byte sessionType = sessionInfo.isIbgpSession() ? (byte) 0 : (byte) 1;
+        byte sAfi = Constants.SAFI_FLOWSPEC_VALUE;
+
+        boolean isFsCapabilitySet = isCapabilitySupported(MultiProtocolExtnCapabilityTlv.TYPE,
+                                                        Constants.AFI_FLOWSPEC_VALUE,
+                                                        Constants.SAFI_FLOWSPEC_VALUE);
+
+        boolean isVpnFsCapabilitySet = isCapabilitySupported(MultiProtocolExtnCapabilityTlv.TYPE,
+                                                        Constants.AFI_FLOWSPEC_VALUE,
+                                                        Constants.VPN_SAFI_FLOWSPEC_VALUE);
+        if ((!isFsCapabilitySet) && (!isVpnFsCapabilitySet)) {
+            log.debug("Peer do not support BGP flow spec capability", channel.getRemoteAddress());
+            return;
+        }
+
+        if (isVpnFsCapabilitySet) {
+            sAfi = Constants.VPN_SAFI_FLOWSPEC_VALUE;
+        }
+
+        attributesList.add(new Origin(sessionType));
+
+        if (sessionType != 0) {
+            // EBGP
+            if (!bgpController.getConfig().getLargeASCapability()) {
+                List<Short> aspathSet = new ArrayList<>();
+                List<Short> aspathSeq = new ArrayList<>();
+                aspathSeq.add((short) bgpController.getConfig().getAsNumber());
+
+                AsPath asPath = new AsPath(aspathSet, aspathSeq);
+                attributesList.add(asPath);
+            } else {
+                List<Integer> aspathSet = new ArrayList<>();
+                List<Integer> aspathSeq = new ArrayList<>();
+                aspathSeq.add(bgpController.getConfig().getAsNumber());
+
+                As4Path as4Path = new As4Path(aspathSet, aspathSeq);
+                attributesList.add(as4Path);
+            }
+            attributesList.add(new Med(0));
+        } else {
+            attributesList.add(new AsPath());
+            attributesList.add(new Med(0));
+            attributesList.add(new LocalPref(100));
+        }
+
+        // TODO: Update flow spec action
+
+        if (operType == FlowSpecOperation.ADD) {
+            attributesList.add(new MpReachNlri(flowSpec, Constants.AFI_FLOWSPEC_VALUE, sAfi));
+        } else if (operType == FlowSpecOperation.DELETE) {
+            attributesList.add(new MpUnReachNlri(flowSpec, Constants.AFI_FLOWSPEC_VALUE, sAfi));
+        }
+
+        BgpMessage msg = Controller.getBgpMessageFactory4().updateMessageBuilder()
+                                                           .setBgpPathAttributes(attributesList).build();
+
+        log.debug("Sending Flow spec Update message to {}", channel.getRemoteAddress());
+        channel.write(Collections.singletonList(msg));
+    }
+
+    @Override
+    public void updateFlowSpec(FlowSpecOperation operType, BgpFlowSpecPrefix prefix, BgpFlowSpecDetails flowSpec) {
+        Preconditions.checkNotNull(operType, "flow specification operation type cannot be null");
+        Preconditions.checkNotNull(prefix, "flow specification prefix cannot be null");
+        Preconditions.checkNotNull(flowSpec, "flow specification details cannot be null");
+        Preconditions.checkNotNull(flowSpec.fsActionTlv(), "flow specification action cannot be null");
+
+        if (operType == FlowSpecOperation.ADD) {
+            if (flowSpec.routeDistinguisher() == null) {
+                flowSpecRibOut.add(prefix, flowSpec);
+            } else {
+                vpnFlowSpecRibOut.add(flowSpec.routeDistinguisher(), prefix, flowSpec);
+            }
+        } else if (operType == FlowSpecOperation.DELETE) {
+            if (flowSpec.routeDistinguisher() == null) {
+                flowSpecRibOut.delete(prefix);
+            } else {
+                vpnFlowSpecRibOut.delete(flowSpec.routeDistinguisher(), prefix);
+            }
+        }
+        sendFlowSpecUpdateMessageToPeer(operType, flowSpec);
+    }
 
     @Override
     public void buildAdjRibIn(List<BgpValueType> pathAttr) throws BgpParseException {
@@ -255,12 +413,47 @@ public class BgpPeerImpl implements BgpPeer {
         localRibVpn.localRibUpdate(vpnAdjacencyRib());
     }
 
+    /**
+     * Update peer flow specification RIB on peer disconnect.
+     *
+     */
+    public void updateFlowSpecOnPeerDisconnect() {
+
+        boolean isCapabilitySet = isCapabilitySupported(MultiProtocolExtnCapabilityTlv.TYPE,
+                                                        Constants.AFI_FLOWSPEC_VALUE,
+                                                        Constants.SAFI_FLOWSPEC_VALUE);
+        if (isCapabilitySet) {
+            Set<BgpFlowSpecPrefix> flowSpecKeys = flowSpecRibOut.flowSpecTree().keySet();
+            for (BgpFlowSpecPrefix key : flowSpecKeys) {
+                BgpFlowSpecDetails flowSpecDetails = flowSpecRibOut.flowSpecTree().get(key);
+                sendFlowSpecUpdateMessageToPeer(FlowSpecOperation.DELETE, flowSpecDetails);
+            }
+        }
+
+        boolean isVpnCapabilitySet = isCapabilitySupported(MultiProtocolExtnCapabilityTlv.TYPE,
+                                                        Constants.AFI_FLOWSPEC_VALUE,
+                                                        Constants.VPN_SAFI_FLOWSPEC_VALUE);
+        if (isVpnCapabilitySet) {
+            Set<RouteDistinguisher> flowSpecKeys = vpnFlowSpecRibOut.vpnFlowSpecTree().keySet();
+            for (RouteDistinguisher key : flowSpecKeys) {
+                Map<BgpFlowSpecPrefix, BgpFlowSpecDetails> fsTree = vpnFlowSpecRibOut.vpnFlowSpecTree().get(key);
+
+                Set<BgpFlowSpecPrefix> fsKeys = fsTree.keySet();
+                for (BgpFlowSpecPrefix fsKey : fsKeys) {
+                    BgpFlowSpecDetails flowSpecDetails = vpnFlowSpecRibOut.flowSpecTree().get(fsKey);
+                    sendFlowSpecUpdateMessageToPeer(FlowSpecOperation.DELETE, flowSpecDetails);
+                }
+            }
+        }
+    }
+
     // ************************
     // Channel related
     // ************************
 
     @Override
     public final void disconnectPeer() {
+        this.updateFlowSpecOnPeerDisconnect();
         this.channel.close();
     }
 
