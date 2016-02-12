@@ -114,9 +114,22 @@ public class OpenFlowDeviceProviderTest {
         assertEquals("Should be SLAVE", RoleState.SLAVE, controller.roleMap.get(DPID1));
     }
 
+    //sending a features req, msg will be added to sent
     @Test
     public void triggerProbe() {
+        int cur = SW1.sent.size();
+        provider.triggerProbe(DID1);
+        assertEquals("OF message not sent", cur + 1, SW1.sent.size());
+    }
 
+    //test receiving features reply
+    @Test
+    public void switchChanged() {
+        controller.listener.switchChanged(DPID1);
+        Collection<PortDescription> updatedDescr = registry.ports.values();
+        for (PortDescription pd : updatedDescr) {
+            assertNotNull("Switch change not handled by the provider service", pd);
+        }
     }
 
     @Test
@@ -322,6 +335,7 @@ public class OpenFlowDeviceProviderTest {
 
         @Override
         public void handleMessage(OFMessage fromSwitch) {
+
         }
 
         @Override
