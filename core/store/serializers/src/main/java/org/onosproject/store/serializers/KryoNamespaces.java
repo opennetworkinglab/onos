@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-
 import com.google.common.collect.Sets;
+
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ip4Address;
@@ -249,6 +249,7 @@ public final class KryoNamespaces {
                       ImmutableMap.of().getClass(),
                       ImmutableMap.of("a", 1).getClass(),
                       ImmutableMap.of("R", 2, "D", 2).getClass())
+            .register(Collections.unmodifiableSet(Collections.emptySet()).getClass())
             .register(HashMap.class)
             .register(ConcurrentHashMap.class)
             .register(CopyOnWriteArraySet.class)
@@ -265,7 +266,6 @@ public final class KryoNamespaces {
             .register(Collections.emptySet().getClass())
             .register(Optional.class)
             .register(Collections.emptyList().getClass())
-            .register(Collections.unmodifiableSet(Collections.emptySet()).getClass())
             .register(Collections.singleton(Object.class).getClass())
             .build();
 
