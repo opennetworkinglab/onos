@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,66 +25,50 @@ import org.onosproject.net.PortNumber;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
-public class ResourceTest {
+/**
+ * Unit test for DiscreteResource.
+ */
+public class DiscreteResourceTest {
 
     private static final DeviceId D1 = DeviceId.deviceId("of:001");
     private static final DeviceId D2 = DeviceId.deviceId("of:002");
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final VlanId VLAN1 = VlanId.vlanId((short) 100);
     private static final Bandwidth BW1 = Bandwidth.gbps(2);
-    private static final Bandwidth BW2 = Bandwidth.gbps(1);
 
     @Test
     public void testEquals() {
-        Resource resource1 = Resources.discrete(D1, P1, VLAN1).resource();
-        Resource sameAsResource1 = Resources.discrete(D1, P1, VLAN1).resource();
-        Resource resource2 = Resources.discrete(D2, P1, VLAN1).resource();
-        Resource resource3 = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
-        Resource sameAsResource3 = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
+        DiscreteResource resource1 = Resources.discrete(D1, P1, VLAN1).resource();
+        DiscreteResource sameAsResource1 = Resources.discrete(D1, P1, VLAN1).resource();
+        DiscreteResource resource2 = Resources.discrete(D2, P1, VLAN1).resource();
 
         new EqualsTester()
                 .addEqualityGroup(resource1, sameAsResource1)
                 .addEqualityGroup(resource2)
-                .addEqualityGroup(resource3, sameAsResource3)
                 .testEquals();
     }
 
     @Test
-    public void testIdEquality() {
-        ResourceId id1 = Resources.discrete(D1, P1, VLAN1).id();
-        ResourceId sameAsId1 = Resources.discrete(D1, P1, VLAN1).id();
-        ResourceId id2 = Resources.discrete(D2, P1, VLAN1).id();
-        ResourceId id3 = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps()).id();
-        // intentionally set a different value
-        ResourceId sameAsId3 = Resources.continuous(D1, P1, Bandwidth.class).resource(BW2.bps()).id();
-
-        new EqualsTester()
-                .addEqualityGroup(id1, sameAsId1)
-                .addEqualityGroup(id2)
-                .addEqualityGroup(id3, sameAsId3);
-    }
-
-    @Test
     public void testChild() {
-        Resource r1 = Resources.discrete(D1).resource().child(P1);
-        Resource sameAsR2 = Resources.discrete(D1, P1).resource();
+        DiscreteResource r1 = Resources.discrete(D1).resource().child(P1);
+        DiscreteResource sameAsR2 = Resources.discrete(D1, P1).resource();
 
         assertThat(r1, is(sameAsR2));
     }
 
     @Test
     public void testThereIsParent() {
-        Resource resource = Resources.discrete(D1, P1, VLAN1).resource();
-        Resource parent = Resources.discrete(D1, P1).resource();
+        DiscreteResource resource = Resources.discrete(D1, P1, VLAN1).resource();
+        DiscreteResource parent = Resources.discrete(D1, P1).resource();
 
         assertThat(resource.parent(), is(Optional.of(parent)));
     }
 
     @Test
     public void testNoParent() {
-        Resource resource = Resources.discrete(D1).resource();
+        DiscreteResource resource = Resources.discrete(D1).resource();
 
         assertThat(resource.parent(), is(Optional.of(Resource.ROOT)));
     }
@@ -95,11 +79,6 @@ public class ResourceTest {
         assertThat(discrete.isTypeOf(DeviceId.class), is(false));
         assertThat(discrete.isTypeOf(PortNumber.class), is(false));
         assertThat(discrete.isTypeOf(VlanId.class), is(true));
-
-        ContinuousResource continuous = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
-        assertThat(continuous.isTypeOf(DeviceId.class), is(false));
-        assertThat(continuous.isTypeOf(PortNumber.class), is(false));
-        assertThat(continuous.isTypeOf(Bandwidth.class), is(true));
     }
 
     @Test
@@ -109,25 +88,19 @@ public class ResourceTest {
         assertThat(discrete.isSubTypeOf(PortNumber.class), is(true));
         assertThat(discrete.isSubTypeOf(VlanId.class), is(true));
         assertThat(discrete.isSubTypeOf(Bandwidth.class), is(false));
-
-        ContinuousResource continuous = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
-        assertThat(continuous.isSubTypeOf(DeviceId.class), is(true));
-        assertThat(continuous.isSubTypeOf(PortNumber.class), is(true));
-        assertThat(continuous.isSubTypeOf(Bandwidth.class), is(true));
-        assertThat(continuous.isSubTypeOf(VlanId.class), is(false));
     }
 
     @Test
     public void testBase() {
-        Resource resource = Resources.discrete(D1).resource();
+        DiscreteResource resource = Resources.discrete(D1).resource();
 
         DeviceId child = (DeviceId) resource.last();
         assertThat(child, is(D1));
     }
 
     @Test
-    public void testValueOfDiscrete() {
-        Resource resource = Resources.discrete(D1).resource();
+    public void testValueAs() {
+        DiscreteResource resource = Resources.discrete(D1).resource();
 
         Optional<DeviceId> volume = resource.valueAs(DeviceId.class);
         assertThat(volume.get(), is(D1));
@@ -135,16 +108,8 @@ public class ResourceTest {
 
     @Test
     public void testValueOfRoot() {
-        Resource resource = Resource.ROOT;
+        DiscreteResource resource = Resource.ROOT;
 
         assertThat(resource.valueAs(Object.class), is(Optional.empty()));
-    }
-
-    @Test
-    public void testValueOfContinuous() {
-        Resource resource = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
-
-        Optional<Double> volume = resource.valueAs(double.class);
-        assertThat(volume.get(), is(BW1.bps()));
     }
 }
