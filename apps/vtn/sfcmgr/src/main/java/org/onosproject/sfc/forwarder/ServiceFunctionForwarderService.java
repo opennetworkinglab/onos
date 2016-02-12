@@ -15,37 +15,48 @@
  */
 package org.onosproject.sfc.forwarder;
 
-import org.onosproject.net.flowobjective.Objective;
+import java.util.List;
+
 import org.onosproject.net.NshServicePathId;
 import org.onosproject.vtnrsc.PortChain;
+import org.onosproject.vtnrsc.PortPairId;
 
 /**
- * Abstraction of an entity which provides Service function forwarder.
+ * Abstraction of an entity which provides service function forwarder.
  */
 public interface ServiceFunctionForwarderService {
 
     /**
-     * Install Forwarding rule.
+     * Install forwarding rule.
      *
      * @param portChain port-chain
      * @param nshSpi nsh spi
      */
+    @Deprecated
     void installForwardingRule(PortChain portChain, NshServicePathId nshSpi);
 
     /**
-     * Uninstall Forwarding rule.
+     * Uninstall forwarding rule.
      *
      * @param portChain port-chain
      * @param nshSpi nsh spi
      */
+    @Deprecated
     void unInstallForwardingRule(PortChain portChain, NshServicePathId nshSpi);
 
     /**
-     * Prepare forwarding object for Service Function.
+     * Install load balanced forwarding rules.
      *
-     * @param portChain port-chain
-     * @param nshSpi nsh spi
-     * @param type forwarding objective operation type
+     * @param path load balanced path of port pairs
+     * @param nshSpi nsh service path index
      */
-    void prepareServiceFunctionForwarder(PortChain portChain, NshServicePathId nshSpi, Objective.Operation type);
+    void installLoadBalancedForwardingRule(List<PortPairId> path, NshServicePathId nshSpi);
+
+    /**
+     * Uninstall load balanced forwarding rules.
+     *
+     * @param path load balanced path of port pairs
+     * @param nshSpi nsh service path index
+     */
+    void unInstallLoadBalancedForwardingRule(List<PortPairId> path, NshServicePathId nshSpi);
 }
