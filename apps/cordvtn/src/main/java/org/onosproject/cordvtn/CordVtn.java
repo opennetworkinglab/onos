@@ -172,7 +172,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                                                  mastershipService,
                                                  DEFAULT_TUNNEL);
 
-        arpProxy = new CordVtnArpProxy(appId, packetService);
+        arpProxy = new CordVtnArpProxy(appId, packetService, hostService);
         packetService.addProcessor(packetProcessor, PacketProcessor.director(0));
         arpProxy.requestPacket();
 

@@ -28,6 +28,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
@@ -50,6 +51,7 @@ public class CordVtnArpProxy {
 
     private final ApplicationId appId;
     private final PacketService packetService;
+    private final HostService hostService;
 
     private Set<Ip4Address> serviceIPs = Sets.newHashSet();
 
@@ -59,9 +61,10 @@ public class CordVtnArpProxy {
      * @param appId application id
      * @param packetService packet service
      */
-    public CordVtnArpProxy(ApplicationId appId, PacketService packetService) {
+    public CordVtnArpProxy(ApplicationId appId, PacketService packetService, HostService hostService) {
         this.appId = appId;
         this.packetService = packetService;
+        this.hostService = hostService;
     }
 
     /**
@@ -124,14 +127,16 @@ public class CordVtnArpProxy {
      */
     public void processArpPacket(PacketContext context, Ethernet ethPacket, MacAddress gatewayMac) {
         ARP arpPacket = (ARP) ethPacket.getPayload();
-        Ip4Address targetIp = Ip4Address.valueOf(arpPacket.getTargetProtocolAddress());
-
-        if (arpPacket.getOpCode() != ARP.OP_REQUEST || !serviceIPs.contains(targetIp)) {
+        if (arpPacket.getOpCode() != ARP.OP_REQUEST) {
            return;
         }
 
-        if (gatewayMac.equals(MacAddress.NONE)) {
-            log.debug("Gateway mac address is not set, ignoring ARP request");
+        Ip4Address targetIp = Ip4Address.valueOf(arpPacket.getTargetProtocolAddress());
+        MacAddress macAddr = serviceIPs.contains(targetIp) ?
+                gatewayMac : getMacFromHostService(targetIp);
+
+        if (macAddr.equals(MacAddress.NONE)) {
+            log.debug("Failed to find MAC for {}", targetIp.toString());
             context.block();
             return;
         }
@@ -204,5 +209,28 @@ public class CordVtnArpProxy {
 
         eth.setPayload(arp);
         return eth;
+    }
+
+    /**
+     * Returns MAC address of a host with a given target IP address by asking to
+     * host service. It does not support overlapping IP.
+     *
+     * @param targetIp target ip
+     * @return mac address, or NONE mac address if it fails to find the mac
+     */
+    private MacAddress getMacFromHostService(IpAddress targetIp) {
+        checkNotNull(targetIp);
+
+        Host host = hostService.getHostsByIp(targetIp)
+                .stream()
+                .findFirst()
+                .orElse(null);
+
+        if (host != null) {
+            log.debug("Found MAC from host service for {}", targetIp.toString());
+            return host.mac();
+        } else {
+            return MacAddress.NONE;
+        }
     }
 }
