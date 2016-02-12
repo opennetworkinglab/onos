@@ -115,7 +115,7 @@ public class ResourcesCommand extends AbstractShellCommand {
             print("ROOT");
         } else {
             if (resource instanceof ContinuousResource) {
-                String s = ((String) resource.last());
+                String s = resource.simpleTypeName();
                 String simpleName = s.substring(s.lastIndexOf('.') + 1);
                 print("%s%s: %f", Strings.repeat(" ", level),
                                   simpleName,
@@ -126,7 +126,7 @@ public class ResourcesCommand extends AbstractShellCommand {
                 // Continuous resource is terminal node, stop here
                 return;
             } else {
-                String resourceName = resource.last().getClass().getSimpleName();
+                String resourceName = resource.simpleTypeName();
 
                 String toString = String.valueOf(resource.valueAs(Object.class).orElse(""));
                 if (toString.startsWith(resourceName)) {
@@ -161,7 +161,7 @@ public class ResourcesCommand extends AbstractShellCommand {
                 nonAggregatable.add(r);
             } else if (Iterables.any(aggregatableTypes, r::isTypeOf)) {
                 // aggregatable & terminal node
-                String className = r.last().getClass().getSimpleName();
+                String className = r.simpleTypeName();
                 aggregatables.put(className, r);
             } else {
                 nonAggregatable.add(r);
@@ -216,8 +216,7 @@ public class ResourcesCommand extends AbstractShellCommand {
 
         String resourceName;
         if (resource instanceof ContinuousResource) {
-            String s = (String) resource.last();
-            resourceName = s.substring(s.lastIndexOf('.') + 1);
+            resourceName = resource.simpleTypeName();
         } else if (resource instanceof DiscreteResource) {
             // TODO This distributed store access incurs overhead.
             //      This should be merged with the one in printResource()
@@ -225,7 +224,7 @@ public class ResourcesCommand extends AbstractShellCommand {
                 // resource which has children should be printed
                 return true;
             }
-            resourceName = resource.last().getClass().getSimpleName();
+            resourceName = resource.simpleTypeName();
         } else {
             log.warn("Unexpected resource class: {}", resource.getClass().getSimpleName());
             return false;

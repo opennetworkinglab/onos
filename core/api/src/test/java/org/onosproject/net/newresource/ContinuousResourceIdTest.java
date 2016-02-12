@@ -21,6 +21,9 @@ import org.onlab.util.Bandwidth;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 /**
  * Unit test for ContinuousResourceId.
  */
@@ -41,5 +44,12 @@ public class ContinuousResourceIdTest {
 
         new EqualsTester()
                 .addEqualityGroup(id1, sameAsId1);
+    }
+
+    @Test
+    public void testSimpleTypeName() {
+        ContinuousResourceId id1 = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps()).id();
+
+        assertThat(id1.simpleTypeName(), is("Bandwidth"));
     }
 }

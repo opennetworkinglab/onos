@@ -47,6 +47,11 @@ public final class ContinuousResourceId extends ResourceId {
         return components;
     }
 
+    @Override
+    String simpleTypeName() {
+        return name;
+    }
+
     /**
      * {@inheritDoc}
      *

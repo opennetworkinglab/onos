@@ -91,14 +91,6 @@ public class DiscreteResourceTest {
     }
 
     @Test
-    public void testBase() {
-        DiscreteResource resource = Resources.discrete(D1).resource();
-
-        DeviceId child = (DeviceId) resource.last();
-        assertThat(child, is(D1));
-    }
-
-    @Test
     public void testValueAs() {
         DiscreteResource resource = Resources.discrete(D1).resource();
 

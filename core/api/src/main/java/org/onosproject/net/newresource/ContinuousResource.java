@@ -49,6 +49,11 @@ public final class ContinuousResource implements Resource {
     }
 
     @Override
+    public String simpleTypeName() {
+        return id.simpleTypeName();
+    }
+
+    @Override
     public boolean isTypeOf(Class<?> type) {
         checkNotNull(type);
 
@@ -95,14 +100,6 @@ public final class ContinuousResource implements Resource {
         }
 
         return Optional.empty();
-    }
-
-    @Override
-    public Object last() {
-        if (id.components().isEmpty()) {
-            return null;
-        }
-        return id.components().get(id.components().size() - 1);
     }
 
     @Override

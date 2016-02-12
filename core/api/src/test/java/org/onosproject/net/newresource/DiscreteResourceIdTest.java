@@ -21,6 +21,9 @@ import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 /**
  * Unit test for DiscreteResourceId.
  */
@@ -40,5 +43,16 @@ public class DiscreteResourceIdTest {
         new EqualsTester()
                 .addEqualityGroup(id1, sameAsId1)
                 .addEqualityGroup(id2);
+    }
+
+    @Test
+    public void testSimpleTypeName() {
+        DiscreteResourceId id = Resources.discrete(D1, P1, VLAN1).id();
+        assertThat(id.simpleTypeName(), is("VlanId"));
+    }
+
+    @Test
+    public void testSimpleTypeNameOfRoot() {
+        assertThat(ResourceId.ROOT.simpleTypeName(), is("Root"));
     }
 }

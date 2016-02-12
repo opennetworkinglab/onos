@@ -45,6 +45,15 @@ public final class DiscreteResourceId extends ResourceId {
     }
 
     @Override
+    String simpleTypeName() {
+        if (components.isEmpty()) {
+            return "Root";
+        }
+
+        return components.get(components.size() - 1).getClass().getSimpleName();
+    }
+
+    @Override
     public DiscreteResourceId child(Object child) {
         checkArgument(!(child instanceof Class<?>));
 

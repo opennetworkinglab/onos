@@ -46,6 +46,11 @@ public final class DiscreteResource implements Resource {
     }
 
     @Override
+    public String simpleTypeName() {
+        return id.simpleTypeName();
+    }
+
+    @Override
     public boolean isTypeOf(Class<?> type) {
         checkNotNull(type);
 
@@ -78,14 +83,6 @@ public final class DiscreteResource implements Resource {
         @SuppressWarnings("unchecked")
         T value = (T) id.components().get(id.components().size() - 1);
         return Optional.of(value);
-    }
-
-    @Override
-    public Object last() {
-        if (id.components().isEmpty()) {
-            return null;
-        }
-        return id.components().get(id.components().size() - 1);
     }
 
     private boolean isRoot() {

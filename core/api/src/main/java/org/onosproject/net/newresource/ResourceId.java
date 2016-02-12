@@ -29,6 +29,8 @@ public abstract class ResourceId {
 
     abstract ImmutableList<Object> components();
 
+    abstract String simpleTypeName();
+
     /**
      * Returns the parent resource ID of this instance.
      *

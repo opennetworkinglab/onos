@@ -48,6 +48,17 @@ public interface Resource {
     ResourceId id();
 
     /**
+     * Returns the simple type name of this resource.
+     *
+     * Example:<br>
+     * Resource: DeviceId:1/PortNumber:1/VlanId:200<br>
+     * Simple type name: VlanId<br>
+     *
+     * @return the simple type name of this resource
+     */
+    String simpleTypeName();
+
+    /**
      * Checks if the type of this instance is the specified type.
      *
      * @param type type of resource to be checked
@@ -73,14 +84,6 @@ public interface Resource {
      * returns an empty instance.
      */
     <T> Optional<T> valueAs(Class<T> type);
-
-    /**
-     * Returns the last component of this instance.
-     *
-     * @return the last component of this instance.
-     * The return value is equal to the last object of {@code components()}.
-     */
-    Object last();
 
     /**
      * Returns the parent resource of this instance.
