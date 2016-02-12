@@ -29,7 +29,7 @@ import org.onosproject.event.AbstractListenerManager;
 /**
  * Provides implementation of the portChainService.
  */
-public class PortChainManagerTestImpl
+public class PortChainAdapter
             extends AbstractListenerManager<PortChainEvent, PortChainListener>
             implements PortChainService {
 

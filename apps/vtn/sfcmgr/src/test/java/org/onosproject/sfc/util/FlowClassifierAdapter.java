@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * Provides implementation of the Flow Classifier Service.
  */
-public class FlowClassifierManagerTestImpl implements FlowClassifierService {
+public class FlowClassifierAdapter implements FlowClassifierService {
 
     private final ConcurrentMap<FlowClassifierId, FlowClassifier> flowClassifierStore = new ConcurrentHashMap<>();
 

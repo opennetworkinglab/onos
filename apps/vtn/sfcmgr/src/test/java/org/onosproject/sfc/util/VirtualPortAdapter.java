@@ -31,7 +31,7 @@ import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 /**
  * Provides implementation of the VirtualPort APIs.
  */
-public class VirtualPortManagerTestImpl implements VirtualPortService {
+public class VirtualPortAdapter implements VirtualPortService {
 
     protected ConcurrentMap<VirtualPortId, VirtualPort> vPortStore = new ConcurrentHashMap<>();
 

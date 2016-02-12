@@ -1,10 +1,24 @@
+/*
+ * Copyright 2016 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.sfc.installer;
 
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.NshServicePathId;
-import org.onosproject.net.flowobjective.Objective.Operation;
-import org.onosproject.vtnrsc.FlowClassifier;
+import org.onosproject.vtnrsc.FiveTuple;
 import org.onosproject.vtnrsc.PortChain;
-import org.onosproject.vtnrsc.PortPair;
 
 /**
  * Abstraction of an entity which installs flow classification rules in ovs.
@@ -12,29 +26,38 @@ import org.onosproject.vtnrsc.PortPair;
 public interface FlowClassifierInstallerService {
 
     /**
-     * Install Flow-Classifier.
+     * Install flow classifier.
      *
      * @param portChain port-chain
-     * @param nshSpiId nsh spi-id
+     * @param nshSpiId service path index identifier
      */
-    void installFlowClassifier(PortChain portChain, NshServicePathId nshSpiId);
+    ConnectPoint installFlowClassifier(PortChain portChain, NshServicePathId nshSpiId);
 
     /**
-     * Uninstall Flow-Classifier.
+     * Uninstall flow classifier.
      *
      * @param portChain port-chain
-     * @param nshSpiId nsh spi-id
+     * @param nshSpiId service path index identifier
      */
-    void unInstallFlowClassifier(PortChain portChain, NshServicePathId nshSpiId);
+    ConnectPoint unInstallFlowClassifier(PortChain portChain, NshServicePathId nshSpiId);
 
     /**
-     * Prepare forwarding object for flow classifier.
+     * Install load balanced flow classifier.
      *
-     * @param flowClassifier flow classifier
-     * @param portPair port pair
-     * @param nshSpiId nsh spi id
-     * @param type forwarding objective operation type
+     * @param portChain port-chain
+     * @param fiveTuple five tuple packet information
+     * @param nshSpiId service path index identifier
      */
-    void prepareFlowClassification(FlowClassifier flowClassifier, PortPair portPair, NshServicePathId nshSpiId,
-                                   Operation type);
+    ConnectPoint installLoadBalancedFlowClassifier(PortChain portChain, FiveTuple fiveTuple,
+                                                   NshServicePathId nshSpiId);
+
+    /**
+     * Uninstall load balanced flow classifier.
+     *
+     * @param portChain port-chain
+     * @param fiveTuple five tuple packet information
+     * @param nshSpiId service path index identifier
+     */
+    ConnectPoint unInstallLoadBalancedFlowClassifier(PortChain portChain, FiveTuple fiveTuple,
+                                                     NshServicePathId nshSpiId);
 }

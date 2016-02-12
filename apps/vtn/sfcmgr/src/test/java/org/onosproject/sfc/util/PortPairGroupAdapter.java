@@ -27,7 +27,7 @@ import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
 /**
  * Provides implementation of the portPairGroupService.
  */
-public class PortPairGroupManagerTestImpl implements PortPairGroupService {
+public class PortPairGroupAdapter implements PortPairGroupService {
 
     private ConcurrentMap<PortPairGroupId, PortPairGroup> portPairGroupStore = new ConcurrentHashMap<>();
 

@@ -16,16 +16,17 @@
 package org.onosproject.sfc.util;
 
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.FilteringObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 
 /**
  * Testing version of implementation on FlowObjectiveService.
  */
-public class FlowObjectiveServiceTestImpl implements FlowObjectiveService {
+public class FlowObjectiveAdapter implements FlowObjectiveService {
 
+    private ForwardingObjective forwardingObjective;
     @Override
     public void filter(DeviceId deviceId, FilteringObjective filteringObjective) {
 
@@ -33,7 +34,7 @@ public class FlowObjectiveServiceTestImpl implements FlowObjectiveService {
 
     @Override
     public void forward(DeviceId deviceId, ForwardingObjective forwardingObjective) {
-
+        this.forwardingObjective = forwardingObjective;
     }
 
     @Override
@@ -49,5 +50,9 @@ public class FlowObjectiveServiceTestImpl implements FlowObjectiveService {
     @Override
     public void initPolicy(String policy) {
 
+    }
+
+    public ForwardingObjective forwardingObjective() {
+        return forwardingObjective;
     }
 }

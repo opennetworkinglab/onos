@@ -31,7 +31,7 @@ import org.onosproject.vtnrsc.service.VtnRscService;
 /**
  * Provides implementation of the VtnRsc service.
  */
-public class VtnRscManagerTestImpl implements VtnRscService {
+public class VtnRscAdapter implements VtnRscService {
     @Override
     public void addListener(VtnRscListener listener) {
     }
@@ -62,13 +62,12 @@ public class VtnRscManagerTestImpl implements VtnRscService {
 
     @Override
     public boolean isServiceFunction(VirtualPortId portId) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public DeviceId getSfToSffMaping(VirtualPortId portId) {
-        return DeviceId.deviceId("www.google.com");
+        return DeviceId.deviceId("of:000000000000001");
     }
 
     @Override
