@@ -20,15 +20,11 @@
             <action class="org.onosproject.cpman.cli.ControlMetricsStatsListCommand"/>
             <completers>
                 <ref component-id="controlResourceTypeCompleter"/>
-                <ref component-id="networkResourceNameCompleter"/>
-                <ref component-id="diskResourceNameCompleter"/>
-                <ref component-id="controlMessageDeviceIdCompleter"/>
+                <ref component-id="resourceNameCompleter"/>
             </completers>
         </command>
     </command-bundle>
 
     <bean id="controlResourceTypeCompleter" class="org.onosproject.cpman.cli.ControlResourceTypeCompleter"/>
-    <bean id="networkResourceNameCompleter" class="org.onosproject.cpman.cli.NetworkResourceNameCompleter"/>
-    <bean id="diskResourceNameCompleter" class="org.onosproject.cpman.cli.DiskResourceNameCompleter"/>
-    <bean id="controlMessageDeviceIdCompleter" class="org.onosproject.cpman.cli.ControlMessageDeviceIdCompleter"/>
+    <bean id="resourceNameCompleter" class="org.onosproject.cpman.cli.ResourceNameCompleter"/>
 </blueprint>

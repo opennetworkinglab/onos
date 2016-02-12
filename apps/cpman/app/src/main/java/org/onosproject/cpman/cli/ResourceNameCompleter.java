@@ -15,22 +15,35 @@
  */
 package org.onosproject.cpman.cli;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.karaf.shell.console.completer.ArgumentCompleter;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onosproject.cli.AbstractCompleter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cpman.ControlPlaneMonitorService;
+import org.onosproject.cpman.ControlResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
-import static org.onosproject.cpman.ControlResource.Type;
-
 /**
- * Network resource name completer.
+ * Resource name completer.
  */
-public class NetworkResourceNameCompleter extends AbstractCompleter {
+public class ResourceNameCompleter extends AbstractCompleter {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final String NETWORK = "network";
+    private static final String DISK = "disk";
+    private static final String CONTROL_MESSAGE = "control_message";
+    Set<String> resourceTypes = ImmutableSet.of(NETWORK, DISK, CONTROL_MESSAGE);
+    private static final String INVALID_MSG = "Invalid type name";
+
+
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {
         // delegate string completer
@@ -40,14 +53,29 @@ public class NetworkResourceNameCompleter extends AbstractCompleter {
         ArgumentCompleter.ArgumentList list = getArgumentList();
         String type = list.getArguments()[1];
 
-        if (Type.NETWORK.toString().toLowerCase().equals(type)) {
+        if (resourceTypes.contains(type)) {
             ControlPlaneMonitorService monitorService =
                     AbstractShellCommand.get(ControlPlaneMonitorService.class);
 
-            Set<String> set = monitorService.availableResources(Type.NETWORK);
+            Set<String> set = Sets.newHashSet();
+            switch (type) {
+                case NETWORK:
+                    set = monitorService.availableResources(ControlResource.Type.NETWORK);
+                    break;
+                case DISK:
+                    set = monitorService.availableResources(ControlResource.Type.DISK);
+                    break;
+                case CONTROL_MESSAGE:
+                    set = monitorService.availableResources(ControlResource.Type.CONTROL_MESSAGE);
+                    break;
+                default:
+                    log.warn(INVALID_MSG);
+                    break;
+            }
+
             SortedSet<String> strings = delegate.getStrings();
 
-            if (set != null) {
+            if (set.size() != 0) {
                 set.forEach(s -> strings.add(s));
             }
         }
