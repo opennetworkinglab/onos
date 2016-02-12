@@ -122,6 +122,10 @@ public class LinkViewMessageHandler extends UiMessageHandler {
         }
 
         private String linkState(BaseLink link) {
+            if (link.one() == null || link.two() == null) {
+                return ICON_ID_OFFLINE;
+            }
+
             return (link.one().state() == Link.State.ACTIVE ||
                     link.two().state() == Link.State.ACTIVE) ?
                     ICON_ID_ONLINE : ICON_ID_OFFLINE;
