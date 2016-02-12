@@ -148,7 +148,7 @@ public class Olt
 
         oltData.keySet().stream()
                 .flatMap(did -> deviceService.getPorts(did).stream())
-                .filter(p -> oltData.get(p.element().id()).uplink() != p.number())
+                .filter(p -> !oltData.get(p.element().id()).uplink().equals(p.number()))
                 .filter(p -> p.isEnabled())
                 .forEach(p -> processFilteringObjectives((DeviceId) p.element().id(), p, true));
 
@@ -159,6 +159,7 @@ public class Olt
 
     @Deactivate
     public void deactivate() {
+        deviceService.removeListener(deviceListener);
         networkConfig.removeListener(configListener);
         networkConfig.unregisterConfigFactory(configFactory);
         log.info("Stopped");

@@ -34,7 +34,11 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -56,6 +60,7 @@ import org.onosproject.olt.AccessDeviceConfig;
 import org.onosproject.olt.AccessDeviceData;
 import org.slf4j.Logger;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -98,11 +103,30 @@ public class IgmpSnoop {
     private IgmpPacketProcessor processor = new IgmpPacketProcessor();
     private static ApplicationId appId;
 
+    private InternalNetworkConfigListener configListener =
+            new InternalNetworkConfigListener();
+
+    private static final Class<AccessDeviceConfig> CONFIG_CLASS =
+            AccessDeviceConfig.class;
+
+    private ConfigFactory<DeviceId, AccessDeviceConfig> configFactory =
+            new ConfigFactory<DeviceId, AccessDeviceConfig>(
+                    SubjectFactories.DEVICE_SUBJECT_FACTORY, CONFIG_CLASS, "accessDevice") {
+                @Override
+                public AccessDeviceConfig createConfig() {
+                    return new AccessDeviceConfig();
+                }
+            };
+
+
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.igmp");
 
         packetService.addProcessor(processor, PacketProcessor.director(1));
+
+        networkConfig.registerConfigFactory(configFactory);
+        networkConfig.addListener(configListener);
 
         networkConfig.getSubjects(DeviceId.class, AccessDeviceConfig.class).forEach(
                 subject -> {
@@ -111,9 +135,16 @@ public class IgmpSnoop {
                     if (config != null) {
                         AccessDeviceData data = config.getOlt();
                         oltData.put(data.deviceId(), data);
+
                     }
                 }
         );
+
+        oltData.keySet().stream()
+                .flatMap(did -> deviceService.getPorts(did).stream())
+                .filter(p -> !oltData.get(p.element().id()).uplink().equals(p.number()))
+                .filter(p -> p.isEnabled())
+                .forEach(p -> processFilterObjective((DeviceId) p.element().id(), p, false));
 
         deviceService.addListener(deviceListener);
 
@@ -125,6 +156,8 @@ public class IgmpSnoop {
         packetService.removeProcessor(processor);
         processor = null;
         deviceService.removeListener(deviceListener);
+        networkConfig.removeListener(configListener);
+        networkConfig.unregisterConfigFactory(configFactory);
         log.info("Stopped");
     }
 
@@ -248,7 +281,6 @@ public class IgmpSnoop {
     }
 
 
-
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
@@ -274,7 +306,7 @@ public class IgmpSnoop {
                     }
                     break;
                 case PORT_REMOVED:
-                    processFilterObjective(event.subject().id(), event.port(), false);
+                    processFilterObjective(event.subject().id(), event.port(), true);
                     break;
                 default:
                     log.warn("Unknown device event {}", event.type());
@@ -287,5 +319,39 @@ public class IgmpSnoop {
         public boolean isRelevant(DeviceEvent event) {
             return oltData.containsKey(event.subject().id());
         }
+    }
+
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+        @Override
+        public void event(NetworkConfigEvent event) {
+            switch (event.type()) {
+
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
+                    if (event.configClass().equals(CONFIG_CLASS)) {
+                        AccessDeviceConfig config =
+                                networkConfig.getConfig((DeviceId) event.subject(), CONFIG_CLASS);
+                        if (config != null) {
+                            oltData.put(config.getOlt().deviceId(), config.getOlt());
+                            provisionDefaultFlows((DeviceId) event.subject());
+                        }
+                    }
+                    break;
+                case CONFIG_UNREGISTERED:
+                case CONFIG_REMOVED:
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void provisionDefaultFlows(DeviceId deviceId) {
+        List<Port> ports = deviceService.getPorts(deviceId);
+
+        ports.stream()
+                .filter(p -> !oltData.get(p.element().id()).uplink().equals(p.number()))
+                .filter(p -> p.isEnabled())
+                .forEach(p -> processFilterObjective((DeviceId) p.element().id(), p, false));
+
     }
 }
