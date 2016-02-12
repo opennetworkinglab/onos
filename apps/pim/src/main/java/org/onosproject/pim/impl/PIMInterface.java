@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015, 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,13 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.PIM;
 import org.onlab.packet.pim.PIMHello;
 import org.onlab.packet.pim.PIMHelloOption;
+import org.onlab.packet.pim.PIMJoinPrune;
+import org.onlab.packet.pim.PIMJoinPruneGroup;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -348,7 +351,39 @@ public final class PIMInterface {
      * @param ethPkt the Ethernet packet header.
      */
     public void processJoinPrune(Ethernet ethPkt) {
-        // TODO: add Join/Prune processing code.
+
+        IPv4 ip = (IPv4) ethPkt.getPayload();
+        checkNotNull(ip);
+
+        PIM pim = (PIM) ip.getPayload();
+        checkNotNull(pim);
+
+        PIMJoinPrune jpHdr = (PIMJoinPrune) pim.getPayload();
+        checkNotNull(jpHdr);
+
+        /*
+         * The Join/Prune messages are grouped by Group address. We'll walk each group address
+         * where we will possibly have to walk a list of source address for the joins and prunes.
+         */
+        Collection<PIMJoinPruneGroup> jpgs = jpHdr.getJoinPrunes();
+        for (PIMJoinPruneGroup jpg : jpgs) {
+            IpPrefix gpfx = jpg.getGroup();
+
+            // Walk the joins first.
+            for (IpPrefix spfx : jpg.getJoins().values()) {
+
+                // We may need
+
+
+            }
+
+            for (IpPrefix spfx : jpg.getPrunes().values()) {
+
+                // TODO: this is where we many need to remove multi-cast state and possibly intents.
+
+            }
+        }
+
     }
 
     /**
