@@ -220,7 +220,7 @@ public final class RemoteIpCommandUtil {
             return null;
         }
 
-        log.debug("Execute command {} to {}", command, session.getHost());
+        log.trace("Execute command {} to {}", command, session.getHost());
 
         try {
             Channel channel = session.openChannel("exec");

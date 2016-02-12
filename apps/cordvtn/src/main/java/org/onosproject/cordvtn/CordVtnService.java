@@ -15,7 +15,11 @@
  */
 package org.onosproject.cordvtn;
 
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.HostId;
+
+import java.util.Set;
 
 /**
  * Service for provisioning overlay virtual networks on compute nodes.
@@ -57,4 +61,14 @@ public interface CordVtnService {
      * @param pServiceId id of the service which provide dependency
      */
     void removeServiceDependency(CordServiceId tServiceId, CordServiceId pServiceId);
+
+    /**
+     * Updates virtual service gateways.
+     *
+     * @param vSgHost host id of vSG host
+     * @param serviceVlan service vlan id
+     * @param vSgIps set of ip address of vSGs running in this vSG host
+     */
+    void updateVirtualSubscriberGateways(HostId vSgHost, String serviceVlan,
+                                         Set<IpAddress> vSgIps);
 }

@@ -38,7 +38,6 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Port;
-import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -137,10 +136,14 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             };
 
     private static final String DEFAULT_TUNNEL = "vxlan";
-    private static final Ip4Address DEFAULT_DNS = Ip4Address.valueOf("8.8.8.8");
     private static final String SERVICE_ID = "serviceId";
-    private static final String LOCATION_IP = "locationIp";
     private static final String OPENSTACK_VM_ID = "openstackVmId";
+    private static final String OPENSTACK_PORT_ID = "openstackPortId";
+    private static final String DATA_PLANE_IP = "dataPlaneIp";
+    private static final String DATA_PLANE_INTF = "dataPlaneIntf";
+    private static final String S_TAG = "stag";
+
+    private static final Ip4Address DEFAULT_DNS = Ip4Address.valueOf("8.8.8.8");
 
     private final ExecutorService eventExecutor =
             newSingleThreadScheduledExecutor(groupedThreads("onos/cordvtn", "event-handler"));
@@ -263,18 +266,24 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         }
 
         Set<IpAddress> ip = Sets.newHashSet(vPort.fixedIps().values());
-        SparseAnnotations annotations = DefaultAnnotations.builder()
-                .set(OPENSTACK_VM_ID, vPort.deviceId())
+        DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                 .set(SERVICE_ID, vPort.networkId())
-                .set(LOCATION_IP, node.dpIp().ip().toString())
-                .build();
+                .set(OPENSTACK_VM_ID, vPort.deviceId())
+                .set(OPENSTACK_PORT_ID, vPort.id())
+                .set(DATA_PLANE_IP, node.dpIp().ip().toString())
+                .set(DATA_PLANE_INTF, node.dpIntf());
+
+        String serviceVlan = getServiceVlan(vPort);
+        if (serviceVlan != null) {
+            annotations.set(S_TAG, serviceVlan);
+        }
 
         HostDescription hostDesc = new DefaultHostDescription(
                 mac,
                 VlanId.NONE,
                 new HostLocation(connectPoint, System.currentTimeMillis()),
                 ip,
-                annotations);
+                annotations.build());
 
         hostProvider.hostDetected(hostId, hostDesc, false);
     }
@@ -292,6 +301,20 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         }
 
         hostProvider.hostVanished(host.id());
+    }
+
+    @Override
+    public void updateVirtualSubscriberGateways(HostId vSgHostId, String serviceVlan,
+                                                Set<IpAddress> vSgIps) {
+        Host vSgVm = hostService.getHost(vSgHostId);
+
+        if (vSgVm == null || !vSgVm.annotations().value(S_TAG).equals(serviceVlan)) {
+            log.debug("Invalid vSG updates for {}", serviceVlan);
+            return;
+        }
+
+        log.info("Updates vSGs in {} with {}", vSgVm.id(), vSgIps.toString());
+        ruleInstaller.populateSubscriberGatewayRules(vSgVm, vSgIps);
     }
 
     /**
@@ -357,10 +380,11 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * Returns IP address for tunneling for a given host.
      *
      * @param host host
-     * @return ip address
+     * @return ip address, or null
      */
     private IpAddress getTunnelIp(Host host) {
-        return IpAddress.valueOf(host.annotations().value(LOCATION_IP));
+        String ip = host.annotations().value(DATA_PLANE_IP);
+        return ip == null ? null : IpAddress.valueOf(ip);
     }
 
     /**
@@ -371,6 +395,22 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      */
     private String getPortName(Port port) {
         return port.annotations().value("portName");
+    }
+
+    /**
+     * Returns s-tag from a given OpenStack port.
+     *
+     * @param vPort openstack port
+     * @return s-tag string
+     */
+    private String getServiceVlan(OpenstackPort vPort) {
+        checkNotNull(vPort);
+
+        if (vPort.name() != null && vPort.name().startsWith(S_TAG)) {
+            return vPort.name().split("-")[1];
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -392,6 +432,30 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
         hosts.remove(null);
         return hosts;
+    }
+
+    /**
+     * Returns public ip addresses of vSGs running inside a give vSG host.
+     *
+     * @param vSgHost vSG host
+     * @return set of ip address, or empty set
+     */
+    private Set<IpAddress> getSubscriberGatewayIps(Host vSgHost) {
+        String vPortId = vSgHost.annotations().value(OPENSTACK_PORT_ID);
+        String serviceVlan = vSgHost.annotations().value(S_TAG);
+
+        OpenstackPort vPort = openstackService.port(vPortId);
+        if (vPort == null) {
+            log.warn("Failed to get OpenStack port {} for VM {}", vPortId, vSgHost.id());
+            return Sets.newHashSet();
+        }
+
+        if (!serviceVlan.equals(getServiceVlan(vPort))) {
+            log.error("Host({}) s-tag does not match with vPort s-tag", vSgHost.id());
+            return Sets.newHashSet();
+        }
+
+        return vPort.allowedAddressPairs().keySet();
     }
 
     /**
@@ -452,8 +516,13 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             arpProxy.sendGratuitousArp(service.serviceIp(), gatewayMac, Sets.newHashSet(host));
         }
 
-        ruleInstaller.populateBasicConnectionRules(host, getTunnelIp(host), vNet);
         registerDhcpLease(host, service);
+        ruleInstaller.populateBasicConnectionRules(host, getTunnelIp(host), vNet);
+
+        if (host.annotations().value(S_TAG) != null) {
+            log.debug("vSG VM detected {}", host.id());
+            ruleInstaller.populateSubscriberGatewayRules(host, getSubscriberGatewayIps(host));
+        }
     }
 
     /**
@@ -468,7 +537,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         }
 
         String vNetId = host.annotations().value(SERVICE_ID);
-        OpenstackNetwork vNet = openstackService.network(host.annotations().value(SERVICE_ID));
+        OpenstackNetwork vNet = openstackService.network(vNetId);
         if (vNet == null) {
             log.warn("Failed to get OpenStack network {} for VM {}({}).",
                      vNetId,

@@ -25,6 +25,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
+import org.onlab.packet.VlanId;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultGroupId;
@@ -59,6 +60,7 @@ import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
@@ -87,6 +89,7 @@ import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_DST;
 import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_SRC;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.ETH_DST;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_PUSH;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -96,21 +99,27 @@ public class CordVtnRuleInstaller {
 
     protected final Logger log = getLogger(getClass());
 
-    private static final String PORT_NAME = "portName";
     private static final int TABLE_FIRST = 0;
     private static final int TABLE_IN_PORT = 1;
     private static final int TABLE_ACCESS_TYPE = 2;
     private static final int TABLE_IN_SERVICE = 3;
     private static final int TABLE_DST_IP = 4;
     private static final int TABLE_TUNNEL_IN = 5;
+    private static final int TABLE_Q_IN_Q = 6;
 
     private static final int MANAGEMENT_PRIORITY = 55000;
+    private static final int VSG_PRIORITY = 55000;
     private static final int HIGH_PRIORITY = 50000;
     private static final int DEFAULT_PRIORITY = 5000;
     private static final int LOW_PRIORITY = 4000;
     private static final int LOWEST_PRIORITY = 0;
 
     private static final int VXLAN_UDP_PORT = 4789;
+    private static final VlanId VLAN_WAN = VlanId.vlanId((short) 500);
+
+    private static final String PORT_NAME = "portName";
+    private static final String DATA_PLANE_INTF = "dataPlaneIntf";
+    private static final String S_TAG = "stag";
 
     private final ApplicationId appId;
     private final FlowRuleService flowRuleService;
@@ -163,6 +172,7 @@ public class CordVtnRuleInstaller {
         processFirstTable(deviceId, dpPort, dpIp);
         processInPortTable(deviceId, tunnelPort, dpPort);
         processAccessTypeTable(deviceId, dpPort);
+        processQInQTable(deviceId, dpPort);
     }
 
     /**
@@ -406,6 +416,10 @@ public class CordVtnRuleInstaller {
         DeviceId deviceId = host.location().deviceId();
         IpAddress hostIp = host.ipAddresses().stream().findFirst().get();
 
+        if (!mastershipService.isLocalMaster(deviceId)) {
+            return;
+        }
+
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_ARP)
                 .matchArpTpa(mService.serviceIp().getIp4Address())
@@ -502,6 +516,10 @@ public class CordVtnRuleInstaller {
     public void removeManagementNetworkRules(Host host, CordService mService) {
         checkNotNull(mService);
 
+        if (!mastershipService.isLocalMaster(host.location().deviceId())) {
+            return;
+        }
+
         for (FlowRule flowRule : flowRuleService.getFlowRulesById(appId)) {
             if (flowRule.deviceId().equals(host.location().deviceId())) {
                 PortNumber port = getOutputFromTreatment(flowRule);
@@ -511,6 +529,113 @@ public class CordVtnRuleInstaller {
             }
 
             // TODO remove the other rules if mgmt network is not in use
+        }
+    }
+
+    /**
+     * Populates rules for vSG VM.
+     *
+     * @param vSgHost vSG host
+     * @param vSgIps set of ip addresses of vSGs running inside the vSG VM
+     */
+    public void populateSubscriberGatewayRules(Host vSgHost, Set<IpAddress> vSgIps) {
+        VlanId serviceVlan = getServiceVlan(vSgHost);
+        PortNumber dpPort = getDpPort(vSgHost);
+
+        if (serviceVlan == null || dpPort == null) {
+            log.warn("Failed to populate rules for vSG VM {}", vSgHost.id());
+            return;
+        }
+
+        // for traffics with s-tag, strip the tag and take through the vSG VM
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchVlanId(serviceVlan)
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .popVlan()
+                .setOutput(vSgHost.location().port())
+                .build();
+
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(DEFAULT_PRIORITY)
+                .forDevice(vSgHost.location().deviceId())
+                .forTable(TABLE_Q_IN_Q)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+
+        // for traffics with customer vlan, tag with the service vlan based on input port with
+        // lower priority to avoid conflict with WAN tag
+        selector = DefaultTrafficSelector.builder()
+                .matchInPort(vSgHost.location().port())
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .pushVlan()
+                .setVlanId(serviceVlan)
+                .setOutput(dpPort)
+                .build();
+
+        flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(LOW_PRIORITY)
+                .forDevice(vSgHost.location().deviceId())
+                .forTable(TABLE_Q_IN_Q)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+
+        // for traffic coming from WAN, tag 500 and take through the vSG VM
+        // based on destination ip
+        vSgIps.stream().forEach(ip -> {
+            TrafficSelector downstream = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(ip.toIpPrefix())
+                    .build();
+
+            TrafficTreatment downstreamTreatment = DefaultTrafficTreatment.builder()
+                    .pushVlan()
+                    .setVlanId(VLAN_WAN)
+                    .setEthDst(vSgHost.mac())
+                    .setOutput(vSgHost.location().port())
+                    .build();
+
+            FlowRule downstreamFlowRule = DefaultFlowRule.builder()
+                    .fromApp(appId)
+                    .withSelector(downstream)
+                    .withTreatment(downstreamTreatment)
+                    .withPriority(DEFAULT_PRIORITY)
+                    .forDevice(vSgHost.location().deviceId())
+                    .forTable(TABLE_DST_IP)
+                    .makePermanent()
+                    .build();
+
+            processFlowRule(true, downstreamFlowRule);
+        });
+
+        // remove downstream flow rules for the vSG not shown in vSgIps
+        for (FlowRule rule : flowRuleService.getFlowRulesById(appId)) {
+            if (!rule.deviceId().equals(vSgHost.location().deviceId())) {
+                continue;
+            }
+            PortNumber output = getOutputFromTreatment(rule);
+            if (output == null || !output.equals(vSgHost.location().port()) ||
+                    !isVlanPushFromTreatment(rule)) {
+                continue;
+            }
+
+            IpPrefix dstIp = getDstIpFromSelector(rule);
+            if (dstIp != null && !vSgIps.contains(dstIp.address())) {
+                processFlowRule(false, rule);
+            }
         }
     }
 
@@ -596,6 +721,7 @@ public class CordVtnRuleInstaller {
         selector = DefaultTrafficSelector.builder()
                 .matchInPort(dpPort)
                 .matchEthType(Ethernet.TYPE_ARP)
+                .matchArpTpa(dpIp.getIp4Address())
                 .build();
 
         treatment = DefaultTrafficTreatment.builder()
@@ -627,6 +753,27 @@ public class CordVtnRuleInstaller {
                 .withSelector(selector)
                 .withTreatment(treatment)
                 .withPriority(LOWEST_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_FIRST)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+
+        // take all vlan tagged packet to the Q_IN_Q table
+        selector = DefaultTrafficSelector.builder()
+                .matchVlanId(VlanId.ANY)
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .transition(TABLE_Q_IN_Q)
+                .build();
+
+        flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(VSG_PRIORITY)
                 .forDevice(deviceId)
                 .forTable(TABLE_FIRST)
                 .makePermanent()
@@ -709,6 +856,57 @@ public class CordVtnRuleInstaller {
                 .withPriority(DEFAULT_PRIORITY)
                 .forDevice(deviceId)
                 .forTable(TABLE_IN_PORT)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+    }
+
+    /**
+     * Populates default rules for Q_IN_Q table.
+     *
+     * @param deviceId device id
+     * @param dpPort data plane interface port number
+     */
+    private void processQInQTable(DeviceId deviceId, PortNumber dpPort) {
+        // for traffic going out to WAN, strip vid 500 and take through data plane interface
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchVlanId(VLAN_WAN)
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .popVlan()
+                .setOutput(dpPort)
+                .build();
+
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(DEFAULT_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_Q_IN_Q)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+
+        selector = DefaultTrafficSelector.builder()
+                .matchVlanId(VLAN_WAN)
+                .matchEthType(Ethernet.TYPE_ARP)
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.CONTROLLER)
+                .build();
+
+        flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(HIGH_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_Q_IN_Q)
                 .makePermanent()
                 .build();
 
@@ -1033,8 +1231,8 @@ public class CordVtnRuleInstaller {
      */
     private PortNumber getTunnelPort(DeviceId deviceId) {
         Port port = deviceService.getPorts(deviceId).stream()
-                    .filter(p -> p.annotations().value(PORT_NAME).contains(tunnelType))
-                    .findFirst().orElse(null);
+                .filter(p -> p.annotations().value(PORT_NAME).contains(tunnelType))
+                .findFirst().orElse(null);
 
         return port == null ? null : port.number();
     }
@@ -1048,11 +1246,32 @@ public class CordVtnRuleInstaller {
      */
     private PortNumber getDpPort(DeviceId deviceId, String dpIntf) {
         Port port = deviceService.getPorts(deviceId).stream()
-                    .filter(p -> p.annotations().value(PORT_NAME).contains(dpIntf) &&
-                            p.isEnabled())
-                    .findFirst().orElse(null);
+                .filter(p -> p.annotations().value(PORT_NAME).contains(dpIntf) &&
+                        p.isEnabled())
+                .findFirst().orElse(null);
 
         return port == null ? null : port.number();
+    }
+
+    /** Returns data plane interface port number of a given host.
+     *
+     * @param host host
+     * @return port number, or null
+     */
+    private PortNumber getDpPort(Host host) {
+        String portName = host.annotations().value(DATA_PLANE_INTF);
+        return portName == null ? null : getDpPort(host.location().deviceId(), portName);
+    }
+
+    /**
+     * Returns service vlan from a given host.
+     *
+     * @param host host
+     * @return vlan id, or null
+     */
+    private VlanId getServiceVlan(Host host) {
+        String serviceVlan = host.annotations().value(S_TAG);
+        return serviceVlan == null ? null : VlanId.vlanId(Short.parseShort(serviceVlan));
     }
 
     /**
@@ -1171,7 +1390,7 @@ public class CordVtnRuleInstaller {
      */
     private PortNumber getOutputFromTreatment(FlowRule flowRule) {
         Instruction instruction = flowRule.treatment().allInstructions().stream()
-                .filter(inst -> inst instanceof  Instructions.OutputInstruction)
+                .filter(inst -> inst instanceof Instructions.OutputInstruction)
                 .findFirst()
                 .orElse(null);
 
@@ -1180,6 +1399,22 @@ public class CordVtnRuleInstaller {
         }
 
         return ((Instructions.OutputInstruction) instruction).port();
+    }
+
+    /**
+     * Returns if a given flow rule has vlan push instruction or not.
+     *
+     * @param flowRule flow rule
+     * @return true if it includes vlan push, or false
+     */
+    private boolean isVlanPushFromTreatment(FlowRule flowRule) {
+        Instruction instruction = flowRule.treatment().allInstructions().stream()
+                .filter(inst -> inst instanceof L2ModificationInstruction)
+                .filter(inst -> ((L2ModificationInstruction) inst).subtype().equals(VLAN_PUSH))
+                .findAny()
+                .orElse(null);
+
+        return instruction != null;
     }
 
     /**

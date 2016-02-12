@@ -15,6 +15,13 @@
  */
 package org.onosproject.cordvtn.rest;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onosproject.cordvtn.CordVtnService;
+import org.onosproject.net.HostId;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,15 +36,28 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.Set;
+
 
 /**
  * Dummy Neutron ML2 mechanism driver.
- * It just returns OK for ports resource requests.
+ * It just returns OK for ports resource requests except for the port update.
  */
 @Path("ports")
 public class NeutronMl2PortsWebResource extends AbstractWebResource {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private static final String PORTS_MESSAGE = "Received ports %s";
+
+    private static final String PORT = "port";
+    private static final String DEVICE_ID = "device_id";
+    private static final String NAME = "name";
+    private static final String MAC_ADDRESS = "mac_address";
+    private static final String ADDRESS_PAIRS = "allowed_address_pairs";
+    private static final String IP_ADDERSS = "ip_address";
+    private static final String STAG_PREFIX = "stag-";
+    private static final int STAG_BEGIN_INDEX = 5;
+
+    private final CordVtnService service = get(CordVtnService.class);
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -53,6 +73,35 @@ public class NeutronMl2PortsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updatePorts(@PathParam("id") String id, InputStream input) {
         log.debug(String.format(PORTS_MESSAGE, "update"));
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jsonNode = mapper.readTree(input).get(PORT);
+            log.trace("{}", jsonNode.toString());
+
+            String deviceId = jsonNode.path(DEVICE_ID).asText();
+            String name = jsonNode.path(NAME).asText();
+            if (deviceId.isEmpty() || name.isEmpty() || !name.startsWith(STAG_PREFIX)) {
+                // ignore all updates other than allowed address pairs
+                return Response.status(Response.Status.OK).build();
+            }
+
+            // this is allowed address pairs updates
+            MacAddress mac = MacAddress.valueOf(jsonNode.path(MAC_ADDRESS).asText());
+            Set<IpAddress> vSgIps = Sets.newHashSet();
+            jsonNode.path(ADDRESS_PAIRS).forEach(addrPair -> {
+                IpAddress ip = IpAddress.valueOf(addrPair.path(IP_ADDERSS).asText());
+                vSgIps.add(ip);
+            });
+
+            service.updateVirtualSubscriberGateways(
+                    HostId.hostId(mac),
+                    name.substring(STAG_BEGIN_INDEX),
+                    vSgIps);
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+
         return Response.status(Response.Status.OK).build();
     }
 
