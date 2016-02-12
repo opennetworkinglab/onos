@@ -150,7 +150,8 @@ public class Olt
                 .flatMap(did -> deviceService.getPorts(did).stream())
                 .filter(p -> !oltData.get(p.element().id()).uplink().equals(p.number()))
                 .filter(p -> p.isEnabled())
-                .forEach(p -> processFilteringObjectives((DeviceId) p.element().id(), p, true));
+                .forEach(p -> processFilteringObjectives((DeviceId) p.element().id(),
+                                                         p.number(), true));
 
         deviceService.addListener(deviceListener);
 
@@ -232,6 +233,7 @@ public class Olt
                                            deviceId,
                                            deviceVlan,
                                            subscriberVlan));
+                processFilteringObjectives(deviceId, subscriberPort, true);
             } else if (downStatus != null) {
                 log.error("Subscriber with vlan {} on device {} " +
                                   "on port {} failed downstream uninstallation: {}",
@@ -333,6 +335,8 @@ public class Olt
                                            deviceId,
                                            deviceVlan,
                                            subscriberVlan));
+
+                processFilteringObjectives(deviceId, subscriberPort, false);
             } else if (downStatus != null) {
                 log.error("Subscriber with vlan {} on device {} " +
                                   "on port {} failed downstream installation: {}",
@@ -346,11 +350,11 @@ public class Olt
 
     }
 
-    private void processFilteringObjectives(DeviceId devId, Port port, boolean install) {
+    private void processFilteringObjectives(DeviceId devId, PortNumber port, boolean install) {
         DefaultFilteringObjective.Builder builder = DefaultFilteringObjective.builder();
 
         FilteringObjective eapol = (install ? builder.permit() : builder.deny())
-                .withKey(Criteria.matchInPort(port.number()))
+                .withKey(Criteria.matchInPort(port))
                 .addCondition(Criteria.matchEthType(EthType.EtherType.EAPOL.ethType()))
                 .withMeta(DefaultTrafficTreatment.builder()
                                   .setOutput(PortNumber.CONTROLLER).build())
@@ -388,7 +392,7 @@ public class Olt
                 case PORT_ADDED:
                     if (!oltData.get(devId).uplink().equals(event.port().number()) &&
                             event.port().isEnabled()) {
-                        processFilteringObjectives(devId, event.port(), true);
+                        processFilteringObjectives(devId, event.port().number(), true);
                     }
                     break;
                 case PORT_REMOVED:
@@ -398,7 +402,7 @@ public class Olt
                                           olt.vlan());
                     if (!oltData.get(devId).uplink().equals(event.port().number()) &&
                             event.port().isEnabled()) {
-                        processFilteringObjectives(devId, event.port(), false);
+                        processFilteringObjectives(devId, event.port().number(), false);
                     }
                     break;
                 case PORT_UPDATED:
@@ -406,9 +410,9 @@ public class Olt
                         break;
                     }
                     if (event.port().isEnabled()) {
-                        processFilteringObjectives(devId, event.port(), true);
+                        processFilteringObjectives(devId, event.port().number(), true);
                     } else {
-                        processFilteringObjectives(devId, event.port(), false);
+                        processFilteringObjectives(devId, event.port().number(), false);
                     }
                     break;
                 case DEVICE_ADDED:
@@ -471,7 +475,8 @@ public class Olt
         ports.stream()
                 .filter(p -> !oltData.get(p.element().id()).uplink().equals(p.number()))
                 .filter(p -> p.isEnabled())
-                .forEach(p -> processFilteringObjectives((DeviceId) p.element().id(), p, true));
+                .forEach(p -> processFilteringObjectives((DeviceId) p.element().id(),
+                                                         p.number(), true));
 
     }
 
