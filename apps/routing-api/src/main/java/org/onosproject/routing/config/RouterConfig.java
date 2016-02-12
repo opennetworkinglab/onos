@@ -82,4 +82,19 @@ public class RouterConfig extends Config<ApplicationId> {
         return interfaces;
     }
 
+    @Override
+    public boolean isValid() {
+        if (!hasOnlyFields(INTERFACES, CP_CONNECT_POINT, OSPF_ENABLED, PIM_ENABLED)) {
+            return false;
+        }
+
+        JsonNode intfNode = object.path(INTERFACES);
+        if (!intfNode.isMissingNode() && !intfNode.isArray()) {
+            return false;
+        }
+
+        return isConnectPoint(CP_CONNECT_POINT, FieldPresence.MANDATORY) &&
+                isBoolean(OSPF_ENABLED, FieldPresence.OPTIONAL) &&
+                isBoolean(PIM_ENABLED, FieldPresence.OPTIONAL);
+    }
 }

@@ -112,4 +112,20 @@ public class PimInterfaceConfig extends Config<ConnectPoint> {
         }
         return Optional.of(Short.parseShort(node.path(OVERRIDE_INTERVAL).asText()));
     }
+
+    @Override
+    public boolean isValid() {
+        if (!hasOnlyFields(INTERFACE_NAME, ENABLED, HELLO_INTERVAL, HOLD_TIME,
+                PRIORITY, PROPAGATION_DELAY, OVERRIDE_INTERVAL)) {
+            return false;
+        }
+
+        return isString(INTERFACE_NAME, FieldPresence.MANDATORY) &&
+                isBoolean(ENABLED, FieldPresence.MANDATORY) &&
+                isIntegralNumber(HELLO_INTERVAL, FieldPresence.OPTIONAL) &&
+                isIntegralNumber(HOLD_TIME, FieldPresence.OPTIONAL) &&
+                isIntegralNumber(PRIORITY, FieldPresence.OPTIONAL) &&
+                isIntegralNumber(PROPAGATION_DELAY, FieldPresence.OPTIONAL) &&
+                isIntegralNumber(OVERRIDE_INTERVAL, FieldPresence.OPTIONAL);
+    }
 }
