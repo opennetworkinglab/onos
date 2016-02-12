@@ -3,6 +3,9 @@
 # Allows a select group of commands to be sent to all ONOS instances in a cell.
 # -----------------------------------------------------------------------------
 
+echo "This command has been deprecated and will be removed after Falcon release"
+echo "Please use the 'stc setup|shutdown|teardown' command instead"
+
 set -o pipefail
 IFS=$'\n'
 

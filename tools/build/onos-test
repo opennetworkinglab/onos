@@ -3,6 +3,9 @@
 # Launches the ONOS tests on the current cell environment.
 # -----------------------------------------------------------------------------
 
+echo "This command has been deprecated and will be removed after Falcon release"
+echo "Please use the 'stc setup' command instead"
+
 set -e
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
