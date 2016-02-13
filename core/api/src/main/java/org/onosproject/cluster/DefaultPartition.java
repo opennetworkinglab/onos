@@ -32,16 +32,30 @@ public class DefaultPartition implements Partition {
     private final PartitionId id;
     private final Collection<NodeId> members;
 
-    private DefaultPartition() {
+    /**
+     * Constructs an empty partition for the serializer.
+     */
+    protected DefaultPartition() {
         id = null;
         members = null;
     }
 
+    /**
+     * Constructs a partition.
+     *
+     * @param id partition identifier
+     * @param members partition member nodes
+     */
     public DefaultPartition(PartitionId id, Collection<NodeId> members) {
         this.id = checkNotNull(id);
         this.members = ImmutableSet.copyOf(members);
     }
 
+    /**
+     * Constructs a partition that is a copy of another.
+     *
+     * @param other partition to copy
+     */
     public DefaultPartition(Partition other) {
         this.id = checkNotNull(other.getId());
         this.members = ImmutableSet.copyOf(other.getMembers());
