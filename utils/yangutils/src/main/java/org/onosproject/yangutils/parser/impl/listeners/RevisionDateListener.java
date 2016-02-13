@@ -16,8 +16,17 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangImport;
+import org.onosproject.yangutils.datamodel.YangInclude;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -69,6 +78,34 @@ public final class RevisionDateListener {
      */
     public static void processRevisionDateEntry(TreeWalkListener listener,
                                                 GeneratedYangParser.RevisionDateStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.REVISION_DATE_DATA,
+                                                String.valueOf(ctx.DATE_ARG().getText()),
+                                                ListenerErrorLocation.ENTRY);
+
+        // Obtain the node of the stack.
+        Parsable tmpNode = listener.getParsedDataStack().peek();
+        switch (tmpNode.getParsableDataType()) {
+        case IMPORT_DATA: {
+            YangImport importNode = (YangImport) tmpNode;
+            importNode.setRevision(String.valueOf(ctx.DATE_ARG().getText()));
+            break;
+        }
+        case INCLUDE_DATA: {
+            YangInclude includeNode = (YangInclude) tmpNode;
+            includeNode.setRevision(String.valueOf(ctx.DATE_ARG().getText()));
+            break;
+        }
+        default:
+            throw new ParserException(
+                                      ListenerErrorMessageConstruction
+                                              .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                                                                             ParsableDataType.REVISION_DATE_DATA,
+                                                                             String.valueOf(ctx.DATE_ARG().getText()),
+                                                                             ListenerErrorLocation.ENTRY));
+        }
     }
+    // TODO Implement the DATE_ARG validation as per RFC 6020.
 }

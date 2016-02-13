@@ -21,11 +21,17 @@ package org.onosproject.yangutils.parser.impl.parserutils;
  */
 public class ListenerError {
 
-    // Maintains the state of Exception.
+    // Maintains the state of exception.
     private boolean errorFlag = false;
 
-    // Maintains the reason of Exception.
+    // Maintains the reason of exception.
     private String errorMsg;
+
+    // Maintains the line number of exception.
+    private int lineNumber;
+
+    // Maintains the character position in lin of exception.
+    private int charPositionInLine;
 
     /**
      * Returns error flag.
@@ -37,18 +43,36 @@ public class ListenerError {
     }
 
     /**
-     * Returns error message.
+     * Returns reason for error.
      *
-     * @return error msg.
+     * @return error message
      */
     public String getErrorMsg() {
         return errorMsg;
     }
 
     /**
+     * Returns error line number.
+     *
+     * @return error line number.
+     */
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    /**
+     * Returns error position in line.
+     *
+     * @return error character position in line.
+     */
+    public int getCharPositionInLine() {
+        return charPositionInLine;
+    }
+
+    /**
      * Set error flag.
      *
-     * @param errorFlag error existence flag
+     * @param errorFlag error existence flag.
      */
     public void setErrorFlag(boolean errorFlag) {
         this.errorFlag = errorFlag;
@@ -61,5 +85,23 @@ public class ListenerError {
      */
     public void setErrorMsg(String errorMsg) {
         this.errorMsg = errorMsg;
+    }
+
+    /**
+     * Set error line number.
+     *
+     * @param lineNumber line number of error.
+     */
+    public void setLineNumber(int lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    /**
+     * Set error character position in line.
+     *
+     * @param charPositionInLine error character position in line.
+     */
+    public void setCharPositionInLine(int charPositionInLine) {
+        this.charPositionInLine = charPositionInLine;
     }
 }

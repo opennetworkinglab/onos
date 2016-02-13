@@ -29,37 +29,13 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
  */
 public class ParseTreeErrorListener extends BaseErrorListener {
 
-    // Exception of type parser exceptions are catched during parsing.
-    private ParserException parserException = new ParserException();
-
-    // Flag to indicate presence of exception.
-    private boolean exceptionFlag = false;
-
-    /**
-     * Returns the status of exception flag.
-     *
-     * @return flag which contains the status of exception.
-     */
-    public boolean isExceptionFlag() {
-        return exceptionFlag;
-    }
-
-    /**
-     * Returns the parser exception object populated with line, character
-     * position and message.
-     *
-     * @return object of parser exception.
-     */
-    public ParserException getParserException() {
-        return parserException;
-    }
-
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
                             String msg, RecognitionException e) {
+
+        ParserException parserException = new ParserException(msg);
         parserException.setLine(line);
         parserException.setCharPosition(charPositionInLine);
-        parserException.setMsg(msg);
-        exceptionFlag = true;
+        throw parserException;
     }
 }

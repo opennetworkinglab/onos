@@ -1,0 +1,6 @@
+module Antlrtest {
+yang-version 1;
+namespace urn:ietf:params:xml:ns:yang:ietf-ospf;
+prefix Ant;
+}
+

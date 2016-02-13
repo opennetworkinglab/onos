@@ -69,16 +69,12 @@ public class YangUtilsParserManager implements YangUtilsParser {
         // Add customized error listener to catch errors during parsing.
         parser.addErrorListener(parseTreeErrorListener);
 
-        // Begin parsing YANG file and generate parse tree.
-        ParseTree tree = parser.yangfile();
+        ParseTree tree;
 
-        /**
-         * Throws an parser Exception if exception flag is set i.e. exception has
-         * occurred during parsing.
-         */
-        if (parseTreeErrorListener.isExceptionFlag()) {
-            // Get the exception occurred during parsing.
-            ParserException parserException = parseTreeErrorListener.getParserException();
+        try {
+            // Begin parsing YANG file and generate parse tree.
+            tree = parser.yangfile();
+        } catch (ParserException parserException) {
             parserException.setFileName(yangFile);
             throw parserException;
         }
@@ -93,15 +89,14 @@ public class YangUtilsParserManager implements YangUtilsParser {
           * Walk parse tree, provide call backs to methods in listener and
           * build data model tree.
           */
-        walker.walk(treeWalker, tree);
-
-        // Throws an parser exception which has occurred during listener walk.
-        if (treeWalker.getErrorInformation().isErrorFlag()) {
-            // Create object of listener exception
-            ParserException listenerException = new ParserException();
-            listenerException.setMsg(treeWalker.getErrorInformation().getErrorMsg());
+        try {
+            walker.walk(treeWalker, tree);
+        } catch (ParserException listenerException) {
+            // TODO free incomplete data model tree.
             listenerException.setFileName(yangFile);
             throw listenerException;
+        } finally {
+            // TODO free parsable stack
         }
 
         // Returns the Root Node of the constructed data model tree.

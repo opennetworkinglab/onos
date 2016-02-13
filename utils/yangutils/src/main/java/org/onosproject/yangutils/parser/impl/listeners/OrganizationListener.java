@@ -16,8 +16,17 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -28,7 +37,8 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
  *                       [contact-stmt stmtsep]
  *                       [description-stmt stmtsep]
  *                       [reference-stmt stmtsep]
- * contact-stmt        = contact-keyword sep string optsep stmtend
+ * organization-stmt   = organization-keyword sep string
+ *                            optsep stmtend
  *
  * ANTLR grammar rule
  * meta_stmts : organization_stmt? contact_stmt? description_stmt? reference_stmt?
@@ -56,7 +66,7 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
  *            | description_stmt? organization_stmt? contact_stmt? reference_stmt?
  *            | description_stmt? organization_stmt? reference_stmt? contact_stmt?
  *            ;
- * contact_stmt : CONTACT_KEYWORD string STMTEND;
+ * organization_stmt : ORGANIZATION_KEYWORD string STMTEND;
  */
 
 /**
@@ -81,6 +91,32 @@ public final class OrganizationListener {
      */
     public static void processOrganizationEntry(TreeWalkListener listener,
                                                 GeneratedYangParser.OrganizationStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.ORGANIZATION_DATA,
+                                                String.valueOf(ctx.string().getText()), ListenerErrorLocation.ENTRY);
+
+        // Obtain the node of the stack.
+        Parsable tmpNode = listener.getParsedDataStack().peek();
+        switch (tmpNode.getParsableDataType()) {
+        case MODULE_DATA: {
+            YangModule module = (YangModule) tmpNode;
+            module.setOrganization(String.valueOf(ctx.string().getText()));
+            break;
+        }
+        case SUB_MODULE_DATA: {
+            YangSubModule subModule = (YangSubModule) tmpNode;
+            subModule.setOrganization(String.valueOf(ctx.string().getText()));
+            break;
+        }
+        default:
+            throw new ParserException(
+                                      ListenerErrorMessageConstruction
+                                              .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                                                                             ParsableDataType.ORGANIZATION_DATA,
+                                                                             String.valueOf(ctx.string().getText()),
+                                                                             ListenerErrorLocation.ENTRY));
+        }
     }
 }

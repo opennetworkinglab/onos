@@ -1,0 +1,4 @@
+module Test {
+yang-version 1;
+prefix On;
+}

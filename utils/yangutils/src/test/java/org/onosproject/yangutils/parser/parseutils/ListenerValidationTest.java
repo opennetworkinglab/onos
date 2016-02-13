@@ -16,74 +16,54 @@
 
 package org.onosproject.yangutils.parser.parseutils;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.datamodel.YangRevision;
+import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerError;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
 import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
-
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test case for testing listener validation util.
  */
 public class ListenerValidationTest {
 
-    /**
-     * This test case checks in case error pre-exists, listener validate
-     * function returns true.
-     */
-    @Test
-    public void listenerValidationErrorExists() {
-
-        // Create an test error.
-        ListenerError testError = new ListenerError();
-        testError.setErrorFlag(true);
-        testError.setErrorMsg("Test Error");
-
-        // Create test walker and assign test error to it.
-        TreeWalkListener testWalker = new TreeWalkListener();
-        testWalker.setErrorInformation(testError);
-
-        // Create a temporary node of parsable.
-        YangRevision tmpNode = new YangRevision();
-        testWalker.getParsedDataStack().push(tmpNode);
-
-        boolean errorFlag = ListenerValidation.preValidation(testWalker, "ErrorTest");
-
-        /**
-         * Check for the values set in syntax error function. If not set properly
-         * report an assert.
-         */
-        assertThat(errorFlag, is(true));
-    }
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     /**
-     * This test case checks in case parsable stack is empty, listener validate
-     * function returns true.
+     * Checks for exception in case parsable stack is empty while validating for
+     * not empty scenario.
      */
     @Test
-    public void listenerValidationEmptyStack() {
+    public void validateStackIsNotEmptyForEmptyStack() {
+
+        String expectedError = ListenerErrorMessageConstruction
+                .constructListenerErrorMessage(ListenerErrorType.MISSING_HOLDER, ParsableDataType.YANGBASE_DATA, "",
+                        ListenerErrorLocation.EXIT);
+
+        // Get the exception occurred during parsing.
+        thrown.expect(ParserException.class);
+        thrown.expectMessage(expectedError);
 
         // Create test walker and assign test error to it.
         TreeWalkListener testWalker = new TreeWalkListener();
 
-        boolean errorFlag = ListenerValidation.preValidation(testWalker, "ErrorTest");
-
-        /**
-         * Check for the values set in syntax error function. If not set properly
-         * report an assert.
-         */
-        assertThat(errorFlag, is(true));
+        ListenerValidation.checkStackIsNotEmpty(testWalker, ListenerErrorType.MISSING_HOLDER,
+                ParsableDataType.YANGBASE_DATA, "", ListenerErrorLocation.EXIT);
     }
 
     /**
-     * This test case checks in case of error doesn't pre-exists and stack is,
-     * non empty, listener validate function returns false.
+     * Checks if there is no exception in case parsable stack is not empty while validating
+     * for not empty scenario.
      */
     @Test
-    public void listenerValidationNoErrorNotExists() {
+    public void validateStackIsNotEmptyForNonEmptyStack() {
 
         // Create test walker and assign test error to it.
         TreeWalkListener testWalker = new TreeWalkListener();
@@ -92,12 +72,47 @@ public class ListenerValidationTest {
         YangRevision tmpNode = new YangRevision();
         testWalker.getParsedDataStack().push(tmpNode);
 
-        boolean errorFlag = ListenerValidation.preValidation(testWalker, "ErrorTest");
+        ListenerValidation.checkStackIsNotEmpty(testWalker, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.YANGBASE_DATA, "", ListenerErrorLocation.EXIT);
+    }
 
-        /**
-         * Check for the values set in syntax error function. If not set properly
-         * report an assert.
-         */
-        assertThat(errorFlag, is(false));
+    /**
+     * Checks for exception in case parsable stack is not empty while validating
+     * for empty scenario.
+     */
+    @Test
+    public void validateStackIsEmptyForNonEmptyStack() {
+
+        String expectedError = ListenerErrorMessageConstruction
+                .constructListenerErrorMessage(ListenerErrorType.MISSING_HOLDER, ParsableDataType.YANGBASE_DATA, "",
+                        ListenerErrorLocation.EXIT);
+
+        // Get the exception occurred during parsing.
+        thrown.expect(ParserException.class);
+        thrown.expectMessage(expectedError);
+
+        // Create test walker and assign test error to it.
+        TreeWalkListener testWalker = new TreeWalkListener();
+
+        // Create a temporary node of parsable.
+        YangRevision tmpNode = new YangRevision();
+        testWalker.getParsedDataStack().push(tmpNode);
+
+        ListenerValidation.checkStackIsEmpty(testWalker, ListenerErrorType.MISSING_HOLDER,
+                                             ParsableDataType.YANGBASE_DATA, "", ListenerErrorLocation.EXIT);
+    }
+
+    /**
+     * Checks if there is no exception in case parsable stack is empty while validating
+     * for empty scenario.
+     */
+    @Test
+    public void validateStackIsEmptyForEmptyStack() {
+
+        // Create test walker and assign test error to it.
+        TreeWalkListener testWalker = new TreeWalkListener();
+
+        ListenerValidation.checkStackIsEmpty(testWalker, ListenerErrorType.MISSING_HOLDER,
+                                             ParsableDataType.YANGBASE_DATA, "", ListenerErrorLocation.EXIT);
     }
 }

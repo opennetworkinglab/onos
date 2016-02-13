@@ -130,7 +130,186 @@ public enum ParsableDataType {
     REVISION_DATA,
 
     /**
+     * Identifies the YANG revision date parsed data.
+     */
+    REVISION_DATE_DATA,
+
+    /**
      * Identifies the YANG namespace parsed data.
      */
-    NAMESPACE_DATA
+    NAMESPACE_DATA,
+
+    /**
+     * Identifies the YANG contact parsed data.
+     */
+    CONTACT_DATA,
+
+    /**
+     * Identifies the YANG config parsed data.
+     */
+    CONFIG_DATA,
+
+    /**
+     * Identifies the YANG description parsed data.
+     */
+    DESCRIPTION_DATA,
+
+    /**
+     * Identifies the YANG key parsed data.
+     */
+    KEY_DATA,
+
+    /**
+     * Identifies the YANG mandatory parsed data.
+     */
+    MANDATORY_DATA,
+
+    /**
+     * Identifies the YANG max element parsed data.
+     */
+    MAX_ELEMENT_DATA,
+
+    /**
+     * Identifies the YANG min element parsed data.
+     */
+    MIN_ELEMENT_DATA,
+
+    /**
+     * Identifies the YANG presence element parsed data.
+     */
+    PRESENCE_DATA,
+
+    /**
+     * Identifies the YANG reference element parsed data.
+     */
+    REFERENCE_DATA,
+
+    /**
+     * Identifies the YANG status element parsed data.
+     */
+    STATUS_DATA,
+
+    /**
+     * Identifies the YANG units element parsed data.
+     */
+    UNITS_DATA,
+
+    /**
+     * Identifies the YANG version element parsed data.
+     */
+    VERSION_DATA,
+
+    /**
+     * Identifies the YANG base element parsed data.
+     */
+    YANGBASE_DATA,
+
+    /**
+     * Identifies the YANG prefix element parsed data.
+     */
+    PREFIX_DATA,
+
+    /**
+     * Identifies the YANG default element parsed data.
+     */
+    DEFAULT_DATA,
+
+    /**
+     * Identifies the YANG organization parsed data.
+     */
+    ORGANIZATION_DATA;
+
+    /**
+     * Returns the YANG construct keyword corresponding to enum values.
+     *
+     * @param parsableDataType enum value for parsable data type.
+     * @return YANG construct keyword.
+     */
+    public static String getParsableDataType(ParsableDataType parsableDataType) {
+
+        switch (parsableDataType) {
+        case MODULE_DATA:
+            return "module";
+        case SUB_MODULE_DATA:
+            return "submodule";
+        case TYPEDEF_DATA:
+            return "typedef";
+        case TYPE_DATA:
+            return "type";
+        case CHOICE_DATA:
+            return "choice";
+        case CASE_DATA:
+            return "case";
+        case ENUMERATION_DATA:
+            return "enumeration";
+        case GROUPING_DATA:
+            return "grouping";
+        case USES_DATA:
+            return "uses";
+        case AUGMENT_DATA:
+            return "augment";
+        case CONTAINER_DATA:
+            return "container";
+        case LIST_DATA:
+            return "list";
+        case BELONGS_TO_DATA:
+            return "belongs-to";
+        case BIT_DATA:
+            return "bit";
+        case BITS_DATA:
+            return "bits";
+        case ENUM_DATA:
+            return "enum";
+        case IMPORT_DATA:
+            return "import";
+        case INCLUDE_DATA:
+            return "include";
+        case LEAF_DATA:
+            return "leaf";
+        case LEAF_LIST_DATA:
+            return "leaf-list";
+        case MUST_DATA:
+            return "must";
+        case REVISION_DATA:
+            return "revision";
+        case REVISION_DATE_DATA:
+            return "revision-date";
+        case NAMESPACE_DATA:
+            return "namespace";
+        case CONTACT_DATA:
+            return "contact";
+        case CONFIG_DATA:
+            return "config";
+        case DESCRIPTION_DATA:
+            return "description";
+        case KEY_DATA:
+            return "key";
+        case MANDATORY_DATA:
+            return "mandatory";
+        case MAX_ELEMENT_DATA:
+            return "max-elements";
+        case MIN_ELEMENT_DATA:
+            return "min-elements";
+        case PRESENCE_DATA:
+            return "presence";
+        case REFERENCE_DATA:
+            return "reference";
+        case STATUS_DATA:
+            return "status";
+        case UNITS_DATA:
+            return "units";
+        case VERSION_DATA:
+            return "version";
+        case YANGBASE_DATA:
+            return "yangbase";
+        case PREFIX_DATA:
+            return "prefix";
+        case ORGANIZATION_DATA:
+            return "organization";
+        case DEFAULT_DATA:
+            return "default";
+        default:
+            return "yang";
+        }
+    }
 }

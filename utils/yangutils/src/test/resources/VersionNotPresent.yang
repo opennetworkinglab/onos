@@ -1,0 +1,4 @@
+module Test {
+namespace urn:ietf:params:xml:ns:yang:ietf-ospf;
+prefix On;
+}

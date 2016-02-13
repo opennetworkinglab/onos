@@ -19,13 +19,12 @@ package org.onosproject.yangutils.parser.exceptions;
 /**
  * Base class for exceptions in parser operations.
  */
-public class ParserException extends Exception {
+public class ParserException extends RuntimeException {
 
     private static final long serialVersionUID = 20160211L;
     private int lineNumber;
     private int charPositionInLine;
     private String fileName;
-    private String msg;
 
     /**
      * Create a new parser exception.
@@ -90,15 +89,6 @@ public class ParserException extends Exception {
     }
 
     /**
-     * Returns msg detail of exception in string.
-     *
-     * @return msg detail of exception in string
-     */
-    public String getMsg() {
-        return  this.msg;
-    }
-
-    /**
      * Sets line number of YANG file.
      *
      * @param line line number of YANG file
@@ -114,15 +104,6 @@ public class ParserException extends Exception {
      */
     public void setCharPosition(int charPosition) {
         this.charPositionInLine = charPosition;
-    }
-
-    /**
-     * Sets the detail of exception in string.
-     *
-     * @param msg the detail of exception in string
-     */
-    public void setMsg(String msg) {
-        this.msg = msg;
     }
 
     /**

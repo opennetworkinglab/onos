@@ -16,8 +16,15 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -58,7 +65,16 @@ public final class ModuleListener {
      * @param ctx context object of the grammar rule.
      */
     public static void processModuleEntry(TreeWalkListener listener, GeneratedYangParser.ModuleStatementContext ctx) {
-        // TODO method implementation
+
+        // Check if stack is empty.
+        ListenerValidation
+                .checkStackIsEmpty(listener, ListenerErrorType.INVALID_HOLDER, ParsableDataType.MODULE_DATA,
+                                   String.valueOf(ctx.IDENTIFIER().getText()), ListenerErrorLocation.ENTRY);
+
+        YangModule yangModule = new YangModule();
+        yangModule.setName(ctx.IDENTIFIER().getText());
+
+        listener.getParsedDataStack().push(yangModule);
     }
 
     /**
@@ -69,6 +85,21 @@ public final class ModuleListener {
      * @param ctx context object of the grammar rule.
      */
     public static void processModuleExit(TreeWalkListener listener, GeneratedYangParser.ModuleStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.MODULE_DATA,
+                                                String.valueOf(ctx.IDENTIFIER().getText()),
+                                                ListenerErrorLocation.EXIT);
+
+        if (!(listener.getParsedDataStack().peek() instanceof YangModule)) {
+            throw new ParserException(
+                                      ListenerErrorMessageConstruction
+                                              .constructListenerErrorMessage(ListenerErrorType.MISSING_CURRENT_HOLDER,
+                                                                             ParsableDataType.MODULE_DATA, String
+                                                                                     .valueOf(ctx.IDENTIFIER()
+                                                                                             .getText()),
+                                                                             ListenerErrorLocation.EXIT));
+        }
     }
 }

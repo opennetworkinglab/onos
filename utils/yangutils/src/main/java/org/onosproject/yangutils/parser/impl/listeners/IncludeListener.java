@@ -16,8 +16,18 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangInclude;
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -37,7 +47,7 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
  * linkage_stmts : (import_stmt
  *               | include_stmt)*;
  * include_stmt : INCLUDE_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE
- *                revision_date_stmt_body? RIGHT_CURLY_BRACE);
+ *                revision_date_stmt? RIGHT_CURLY_BRACE);
  */
 
 /**
@@ -61,7 +71,17 @@ public final class IncludeListener {
      * @param ctx context object of the grammar rule.
      */
     public static void processIncludeEntry(TreeWalkListener listener, GeneratedYangParser.IncludeStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.INCLUDE_DATA,
+                                                String.valueOf(ctx.IDENTIFIER().getText()),
+                                                ListenerErrorLocation.ENTRY);
+
+        YangInclude includeNode = new YangInclude();
+        includeNode.setSubModuleName(String.valueOf(ctx.IDENTIFIER().getText()));
+
+        listener.getParsedDataStack().push(includeNode);
     }
 
     /**
@@ -72,6 +92,52 @@ public final class IncludeListener {
      * @param ctx context object of the grammar rule.
      */
     public static void processIncludeExit(TreeWalkListener listener, GeneratedYangParser.IncludeStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.INCLUDE_DATA,
+                                                String.valueOf(ctx.IDENTIFIER().getText()),
+                                                ListenerErrorLocation.EXIT);
+
+        Parsable tmpIncludeNode = listener.getParsedDataStack().peek();
+        if (tmpIncludeNode instanceof YangInclude) {
+            listener.getParsedDataStack().pop();
+
+            // Check for stack to be non empty.
+            ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                    ParsableDataType.INCLUDE_DATA,
+                                                    String.valueOf(ctx.IDENTIFIER().getText()),
+                                                    ListenerErrorLocation.EXIT);
+
+            Parsable tmpNode = listener.getParsedDataStack().peek();
+            switch (tmpNode.getParsableDataType()) {
+            case MODULE_DATA: {
+                YangModule module = (YangModule) tmpNode;
+                module.addIncludedInfo((YangInclude) tmpIncludeNode);
+                break;
+            }
+            case SUB_MODULE_DATA: {
+                YangSubModule subModule = (YangSubModule) tmpNode;
+                subModule.addIncludedInfo((YangInclude) tmpIncludeNode);
+                break;
+            }
+            default:
+                throw new ParserException(
+                                          ListenerErrorMessageConstruction
+                                                  .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                                                                                 ParsableDataType.INCLUDE_DATA,
+                                                                                 String.valueOf(ctx.IDENTIFIER()
+                                                                                         .getText()),
+                                                                                 ListenerErrorLocation.EXIT));
+            }
+        } else {
+            throw new ParserException(
+                                      ListenerErrorMessageConstruction
+                                              .constructListenerErrorMessage(ListenerErrorType.MISSING_CURRENT_HOLDER,
+                                                                             ParsableDataType.INCLUDE_DATA, String
+                                                                                     .valueOf(ctx.IDENTIFIER()
+                                                                                             .getText()),
+                                                                             ListenerErrorLocation.EXIT));
+        }
     }
 }

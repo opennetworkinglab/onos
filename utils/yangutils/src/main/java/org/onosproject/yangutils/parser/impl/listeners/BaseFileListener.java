@@ -16,8 +16,17 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -48,7 +57,11 @@ public final class BaseFileListener {
      * @param ctx context object of the grammar rule.
      */
     public static void processYangFileEntry(TreeWalkListener listener, GeneratedYangParser.YangfileContext ctx) {
-        // TODO method implementation
+
+        // Check if stack is empty.
+        ListenerValidation.checkStackIsEmpty(listener, ListenerErrorType.INVALID_HOLDER,
+                                             ParsableDataType.YANGBASE_DATA, "", ListenerErrorLocation.ENTRY);
+
     }
 
     /**
@@ -59,6 +72,25 @@ public final class BaseFileListener {
      * @param ctx context object of the grammar rule.
      */
     public static void processYangFileExit(TreeWalkListener listener, GeneratedYangParser.YangfileContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.YANGBASE_DATA, "", ListenerErrorLocation.EXIT);
+
+        // Data Model tree root node is set.
+        if (listener.getParsedDataStack().peek() instanceof YangModule
+                | listener.getParsedDataStack().peek() instanceof YangSubModule) {
+            listener.setRootNode((YangNode) listener.getParsedDataStack().pop());
+        } else {
+            throw new ParserException(
+                                      ListenerErrorMessageConstruction
+                                              .constructListenerErrorMessage(ListenerErrorType.INVALID_CHILD,
+                                                                             ParsableDataType.YANGBASE_DATA, "",
+                                                                             ListenerErrorLocation.EXIT));
+        }
+
+        // Check if stack is empty.
+        ListenerValidation.checkStackIsEmpty(listener, ListenerErrorType.INVALID_HOLDER,
+                                             ParsableDataType.YANGBASE_DATA, "", ListenerErrorLocation.EXIT);
     }
 }

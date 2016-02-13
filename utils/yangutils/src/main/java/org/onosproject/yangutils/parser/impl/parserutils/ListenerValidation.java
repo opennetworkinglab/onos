@@ -16,39 +16,66 @@
 
 package org.onosproject.yangutils.parser.impl.parserutils;
 
+import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 /**
- * Its a utility to carry out listener validation.
+ * It's a utility to carry out listener validation.
  */
 public final class ListenerValidation {
 
     /**
-     * Creates a new belongto listener.
+     * Creates a new listener validation.
      */
     private ListenerValidation() {
     }
 
     /**
-     * Checks if error is set or parsed data stack is empty.
+     * Checks parsed data stack is not empty.
      *
      * @param listener Listener's object.
-     * @param errNode parsable node for which validation needs to be done.
-     * @return validation result.
+     * @param errorType error type needs to be set in error message.
+     * @param parsableDataType type of parsable data in which error occurred.
+     * @param parsableDataTypeName name of parsable data type in which error occurred.
+     * @param errorLocation location where error occurred.
      */
-    public static boolean preValidation(TreeWalkListener listener, String errNode) {
-
-        // Check whether error found while walking YANG file, if yes return true.
-        if (listener.getErrorInformation().isErrorFlag()) {
-            return true;
-        }
-
-        // If stack is empty it indicates error condition
+    public static void checkStackIsNotEmpty(TreeWalkListener listener, ListenerErrorType errorType,
+                                               ParsableDataType parsableDataType, String parsableDataTypeName,
+                                               ListenerErrorLocation errorLocation) {
         if (listener.getParsedDataStack().empty()) {
-            listener.getErrorInformation().setErrorFlag(true);
-            listener.getErrorInformation().setErrorMsg("Parsable stack empty at" + errNode + "entry");
-            return true;
+            /*
+             * If stack is empty it indicates error condition, value of parsableDataTypeName will be null in case there
+             * is no name attached to parsable data type.
+             */
+            String message = ListenerErrorMessageConstruction.constructListenerErrorMessage(errorType, parsableDataType,
+                    parsableDataTypeName, errorLocation);
+            throw new ParserException(message);
         }
-        return false;
+    }
+
+    /**
+     * Checks parsed data stack is empty.
+     *
+     * @param listener Listener's object.
+     * @param errorType error type needs to be set in error message.
+     * @param parsableDataType type of parsable data in which error occurred.
+     * @param parsableDataTypeName name of parsable data type in which error occurred.
+     * @param errorLocation location where error occurred.
+     */
+
+    public static void checkStackIsEmpty(TreeWalkListener listener, ListenerErrorType errorType,
+                                            ParsableDataType parsableDataType, String parsableDataTypeName,
+                                            ListenerErrorLocation errorLocation) {
+
+        if (!listener.getParsedDataStack().empty()) {
+            /*
+             * If stack is empty it indicates error condition, value of parsableDataTypeName will be null in case there
+             * is no name attached to parsable data type.
+             */
+            String message = ListenerErrorMessageConstruction.constructListenerErrorMessage(errorType, parsableDataType,
+                    parsableDataTypeName, errorLocation);
+            throw new ParserException(message);
+        }
     }
 }

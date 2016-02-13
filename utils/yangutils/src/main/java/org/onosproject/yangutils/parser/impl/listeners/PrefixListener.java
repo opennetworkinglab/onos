@@ -16,8 +16,18 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangBelongsTo;
+import org.onosproject.yangutils.datamodel.YangImport;
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -63,6 +73,39 @@ public final class PrefixListener {
      * @param ctx context object of the grammar rule.
      */
     public static void processPrefixEntry(TreeWalkListener listener, GeneratedYangParser.PrefixStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.PREFIX_DATA,
+                                                String.valueOf(ctx.IDENTIFIER().getText()),
+                                                ListenerErrorLocation.ENTRY);
+
+        // Obtain the node of the stack.
+        Parsable tmpNode = listener.getParsedDataStack().peek();
+        switch (tmpNode.getParsableDataType()) {
+        case MODULE_DATA: {
+            YangModule module = (YangModule) tmpNode;
+            module.setPrefix(ctx.IDENTIFIER().getText());
+            break;
+        }
+        case IMPORT_DATA: {
+            YangImport importNode = (YangImport) tmpNode;
+            importNode.setPrefixId(ctx.IDENTIFIER().getText());
+            break;
+        }
+        case BELONGS_TO_DATA: {
+            YangBelongsTo belongstoNode = (YangBelongsTo) tmpNode;
+            belongstoNode.setPrefix(ctx.IDENTIFIER().getText());
+            break;
+        }
+        default:
+            throw new ParserException(
+                                      ListenerErrorMessageConstruction
+                                              .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                                                                             ParsableDataType.PREFIX_DATA, String
+                                                                                     .valueOf(ctx.IDENTIFIER()
+                                                                                             .getText()),
+                                                                             ListenerErrorLocation.ENTRY));
+        }
     }
 }

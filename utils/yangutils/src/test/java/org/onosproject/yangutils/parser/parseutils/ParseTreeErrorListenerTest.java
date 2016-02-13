@@ -14,28 +14,25 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.parser.impl.parseutils;
+package org.onosproject.yangutils.parser.parseutils;
 
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangLexer;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
+import org.onosproject.yangutils.parser.impl.CustomExceptionMatcher;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.parser.impl.parserutils.ParseTreeErrorListener;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test case for testing parse tree error listener.
@@ -46,31 +43,16 @@ public class ParseTreeErrorListenerTest {
     File file;
     BufferedWriter out;
 
-    @Before
-    public void setUp() throws Exception {
-        file = new File("demo.yang");
-        out = new BufferedWriter(new FileWriter(file));
-    }
-    @After
-    public void tearDown() throws Exception {
-        file.delete();
-    }
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     /**
-     * This test case checks whether the error received from parser is correctly
-     * handled.
+     * Checks that no exception is generated for YANG file with valid syntax.
      */
     @Test
-    public void syntaxErrorValidationTest() throws IOException {
+    public void checkValidYangFileForNoSyntaxError() throws IOException {
 
-        out.write("module ONOS {\n");
-        out.write("yang-version 1\n");
-        out.write("namespace urn:ietf:params:xml:ns:yang:ietf-ospf;\n");
-        out.write("prefix On;\n");
-        out.write("}\n");
-        out.close();
-
-        ANTLRInputStream input = new ANTLRFileStream("demo.yang");
+        ANTLRInputStream input = new ANTLRFileStream("src/test/resources/YangFileWithoutSyntaxError.yang");
 
         // Create a lexer that feeds off of input char stream.
         GeneratedYangLexer lexer = new GeneratedYangLexer(input);
@@ -86,15 +68,34 @@ public class ParseTreeErrorListenerTest {
         parser.addErrorListener(parseTreeErrorListener);
         // Begin parsing YANG file and generate parse tree.
         ParseTree tree = parser.yangfile();
-        // Get the exception occurred during parsing.
-        ParserException parserException = parseTreeErrorListener.getParserException();
+    }
 
-        /**
-         * Check for the values set in syntax error function. If not set properly
-         * report an assert.
-         */
-        assertThat(parseTreeErrorListener.isExceptionFlag(), is(true));
-        assertThat(parserException.getLineNumber(), is(3));
-        assertThat(parserException.getCharPositionInLine(), is(0));
+    /**
+     * Checks that exception is generated for YANG file with invalid syntax.
+     */
+    @Test
+    public void checkInvalidYangFileForSyntaxError() throws IOException {
+
+        // Get the exception occurred during parsing.
+        thrown.expect(ParserException.class);
+        thrown.expect(CustomExceptionMatcher.errorLocation(3, 0));
+        thrown.expectMessage("no viable alternative at input 'yang-version 1\\nnamespace'");
+
+        ANTLRInputStream input = new ANTLRFileStream("src/test/resources/YangFileWithSyntaxError.yang");
+
+        // Create a lexer that feeds off of input char stream.
+        GeneratedYangLexer lexer = new GeneratedYangLexer(input);
+        // Create a buffer of tokens pulled from the lexer.
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        // Create a parser that feeds off the tokens buffer.
+        GeneratedYangParser parser = new GeneratedYangParser(tokens);
+        // Remove console error listener.
+        parser.removeErrorListeners();
+        // Create instance of customized error listener.
+        ParseTreeErrorListener parseTreeErrorListener = new ParseTreeErrorListener();
+        // Add customized error listener to catch errors during parsing.
+        parser.addErrorListener(parseTreeErrorListener);
+        // Begin parsing YANG file and generate parse tree.
+        ParseTree tree = parser.yangfile();
     }
 }

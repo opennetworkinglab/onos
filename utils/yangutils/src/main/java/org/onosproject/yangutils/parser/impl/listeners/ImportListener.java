@@ -16,8 +16,18 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangImport;
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -62,7 +72,18 @@ public final class ImportListener {
      * @param ctx context object of the grammar rule.
      */
     public static void processImportEntry(TreeWalkListener listener, GeneratedYangParser.ImportStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.IMPORT_DATA,
+                                                String.valueOf(ctx.IDENTIFIER().getText()),
+                                                ListenerErrorLocation.ENTRY);
+
+        YangImport importNode = new YangImport();
+        importNode.setModuleName(String.valueOf(ctx.IDENTIFIER().getText()));
+
+        // Push import node to the stack.
+        listener.getParsedDataStack().push(importNode);
     }
 
     /**
@@ -73,6 +94,52 @@ public final class ImportListener {
      * @param ctx context object of the grammar rule.
      */
     public static void processImportExit(TreeWalkListener listener, GeneratedYangParser.ImportStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.IMPORT_DATA,
+                                                String.valueOf(ctx.IDENTIFIER().getText()),
+                                                ListenerErrorLocation.EXIT);
+
+        Parsable tmpImportNode = listener.getParsedDataStack().peek();
+        if (tmpImportNode instanceof YangImport) {
+            listener.getParsedDataStack().pop();
+
+            // Check for stack to be non empty.
+            ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                    ParsableDataType.IMPORT_DATA,
+                                                    String.valueOf(ctx.IDENTIFIER().getText()),
+                                                    ListenerErrorLocation.EXIT);
+
+            Parsable tmpNode = listener.getParsedDataStack().peek();
+            switch (tmpNode.getParsableDataType()) {
+            case MODULE_DATA: {
+                YangModule module = (YangModule) tmpNode;
+                module.addImportedInfo((YangImport) tmpImportNode);
+                break;
+            }
+            case SUB_MODULE_DATA: {
+                YangSubModule subModule = (YangSubModule) tmpNode;
+                subModule.addImportedInfo((YangImport) tmpImportNode);
+                break;
+            }
+            default:
+                throw new ParserException(
+                                          ListenerErrorMessageConstruction
+                                                  .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                                                                                 ParsableDataType.IMPORT_DATA,
+                                                                                 String.valueOf(ctx.IDENTIFIER()
+                                                                                         .getText()),
+                                                                                 ListenerErrorLocation.EXIT));
+            }
+        } else {
+            throw new ParserException(
+                                      ListenerErrorMessageConstruction
+                                              .constructListenerErrorMessage(ListenerErrorType.MISSING_CURRENT_HOLDER,
+                                                                             ParsableDataType.IMPORT_DATA, String
+                                                                                     .valueOf(ctx.IDENTIFIER()
+                                                                                             .getText()),
+                                                                             ListenerErrorLocation.EXIT));
+        }
     }
 }

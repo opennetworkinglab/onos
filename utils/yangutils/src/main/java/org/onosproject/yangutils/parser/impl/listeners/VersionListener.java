@@ -16,8 +16,17 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -73,6 +82,48 @@ public final class VersionListener {
      */
     public static void processVersionEntry(TreeWalkListener listener,
                                            GeneratedYangParser.YangVersionStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation
+                .checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER, ParsableDataType.VERSION_DATA,
+                                      String.valueOf(ctx.INTEGER().getText()), ListenerErrorLocation.ENTRY);
+
+        Integer version = Integer.valueOf(ctx.INTEGER().getText());
+        if (!isVersionValid(version)) {
+            ParserException parserException = new ParserException("Input version not supported");
+            parserException.setLine(ctx.INTEGER().getSymbol().getLine());
+            parserException.setCharPosition(ctx.INTEGER().getSymbol().getCharPositionInLine());
+            throw parserException;
+        }
+
+        // Obtain the node of the stack.
+        Parsable tmpNode = listener.getParsedDataStack().peek();
+        switch (tmpNode.getParsableDataType()) {
+        case MODULE_DATA: {
+            YangModule module = (YangModule) tmpNode;
+            module.setVersion((byte) 1);
+            break;
+        }
+        case SUB_MODULE_DATA: {
+            YangSubModule subModule = (YangSubModule) tmpNode;
+            subModule.setVersion((byte) 1);
+            break;
+        }
+        default:
+            throw new ParserException(ListenerErrorMessageConstruction.
+                    constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                            ParsableDataType.VERSION_DATA, String.valueOf(ctx.INTEGER().getText()),
+                            ListenerErrorLocation.ENTRY));
+        }
+    }
+
+    /**
+     * Validates whether the value of YANG version.
+     *
+     * @param version input yang version
+     * @return validation result
+     */
+    private static boolean isVersionValid(Integer version) {
+        return version == 1;
     }
 }

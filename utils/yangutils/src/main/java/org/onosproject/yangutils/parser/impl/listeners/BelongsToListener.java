@@ -16,8 +16,17 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangBelongsTo;
+import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -64,7 +73,18 @@ public final class BelongsToListener {
      */
     public static void processBelongsToEntry(TreeWalkListener listener,
                                              GeneratedYangParser.BelongstoStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.BELONGS_TO_DATA,
+                                                String.valueOf(ctx.IDENTIFIER().getText()),
+                                                ListenerErrorLocation.ENTRY);
+
+        YangBelongsTo belongstoNode = new YangBelongsTo();
+        belongstoNode.setBelongsToModuleName(String.valueOf(ctx.IDENTIFIER().getText()));
+
+        // Push belongsto into the stack.
+        listener.getParsedDataStack().push(belongstoNode);
     }
 
     /**
@@ -76,6 +96,47 @@ public final class BelongsToListener {
      */
     public static void processBelongsToExit(TreeWalkListener listener,
                                             GeneratedYangParser.BelongstoStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.BELONGS_TO_DATA,
+                                                String.valueOf(ctx.IDENTIFIER().getText()),
+                                                ListenerErrorLocation.EXIT);
+
+        Parsable tmpBelongstoNode = listener.getParsedDataStack().peek();
+        if (tmpBelongstoNode instanceof YangBelongsTo) {
+            listener.getParsedDataStack().pop();
+
+            // Check for stack to be empty.
+            ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                    ParsableDataType.BELONGS_TO_DATA,
+                                                    String.valueOf(ctx.IDENTIFIER().getText()),
+                                                    ListenerErrorLocation.EXIT);
+
+            Parsable tmpNode = listener.getParsedDataStack().peek();
+            switch (tmpNode.getParsableDataType()) {
+            case SUB_MODULE_DATA: {
+                YangSubModule subModule = (YangSubModule) tmpNode;
+                subModule.setBelongsTo((YangBelongsTo) tmpBelongstoNode);
+                break;
+            }
+            default:
+                throw new ParserException(
+                                          ListenerErrorMessageConstruction
+                                                  .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                                                                                 ParsableDataType.BELONGS_TO_DATA,
+                                                                                 String.valueOf(ctx.IDENTIFIER()
+                                                                                         .getText()),
+                                                                                 ListenerErrorLocation.EXIT));
+            }
+        } else {
+            throw new ParserException(
+                                      ListenerErrorMessageConstruction
+                                              .constructListenerErrorMessage(ListenerErrorType.MISSING_CURRENT_HOLDER,
+                                                                             ParsableDataType.BELONGS_TO_DATA,
+                                                                             String.valueOf(ctx.IDENTIFIER()
+                                                                                     .getText()),
+                                                                             ListenerErrorLocation.EXIT));
+        }
     }
 }

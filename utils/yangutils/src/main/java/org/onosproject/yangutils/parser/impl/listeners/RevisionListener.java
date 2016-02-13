@@ -16,8 +16,18 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangRevision;
+import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -59,17 +69,25 @@ public final class RevisionListener {
     private RevisionListener() {
     }
 
-    /**
-     * It is called when parser receives an input matching the grammar
-     * rule (revision), perform validations and update the data model
-     * tree.
-     *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
-     */
-    public static void processRevisionEntry(TreeWalkListener listener, GeneratedYangParser.RevisionStatementContext
-            ctx) {
-        // TODO method implementation
+    public static void processRevisionEntry(TreeWalkListener listener,
+                                            GeneratedYangParser.RevisionStatementContext ctx) {
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.REVISION_DATA,
+                                                String.valueOf(ctx.DATE_ARG().getText()),
+                                                ListenerErrorLocation.ENTRY);
+
+        // Validate for reverse chronological order of revision & for revision value.
+        if (!validateRevision(listener, ctx)) {
+            return;
+            // TODO to be implemented.
+        }
+
+        YangRevision revisionNode = new YangRevision();
+        revisionNode.setRevDate(String.valueOf(ctx.DATE_ARG().getText()));
+
+        listener.getParsedDataStack().push(revisionNode);
     }
 
     /**
@@ -79,8 +97,66 @@ public final class RevisionListener {
      * @param listener Listener's object.
      * @param ctx context object of the grammar rule.
      */
-    public static void processRevisionExit(TreeWalkListener listener, GeneratedYangParser.RevisionStatementContext
-            ctx) {
-        // TODO method implementation
+    public static void processRevisionExit(TreeWalkListener listener,
+                                           GeneratedYangParser.RevisionStatementContext ctx) {
+
+        // Check for stack to be non empty.
+        ListenerValidation
+                .checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER, ParsableDataType.REVISION_DATA,
+                                      String.valueOf(ctx.DATE_ARG().getText()), ListenerErrorLocation.EXIT);
+
+        Parsable tmpRevisionNode = listener.getParsedDataStack().peek();
+        if (tmpRevisionNode instanceof YangRevision) {
+            listener.getParsedDataStack().pop();
+
+            // Check for stack to be non empty.
+            ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                    ParsableDataType.REVISION_DATA,
+                                                    String.valueOf(ctx.DATE_ARG().getText()),
+                                                    ListenerErrorLocation.EXIT);
+
+            Parsable tmpNode = listener.getParsedDataStack().peek();
+            switch (tmpNode.getParsableDataType()) {
+            case MODULE_DATA: {
+                YangModule module = (YangModule) tmpNode;
+                module.setRevision((YangRevision) tmpRevisionNode);
+                break;
+            }
+            case SUB_MODULE_DATA: {
+                YangSubModule subModule = (YangSubModule) tmpNode;
+                subModule.setRevision((YangRevision) tmpRevisionNode);
+                break;
+            }
+            default:
+                throw new ParserException(
+                                          ListenerErrorMessageConstruction
+                                                  .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                                                                                 ParsableDataType.REVISION_DATA,
+                                                                                 String.valueOf(ctx.DATE_ARG()
+                                                                                         .getText()),
+                                                                                 ListenerErrorLocation.EXIT));
+            }
+        } else {
+            throw new ParserException(
+                                      ListenerErrorMessageConstruction
+                                              .constructListenerErrorMessage(ListenerErrorType.MISSING_CURRENT_HOLDER,
+                                                                             ParsableDataType.REVISION_DATA, String
+                                                                                     .valueOf(ctx.DATE_ARG()
+                                                                                             .getText()),
+                                                                             ListenerErrorLocation.EXIT));
+        }
+    }
+
+    /**
+     * Validate revision.
+     *
+     * @param listener Listener's object.
+     * @param ctx context object of the grammar rule.
+     * @return validation result
+     */
+    private static boolean validateRevision(TreeWalkListener listener,
+                                            GeneratedYangParser.RevisionStatementContext ctx) {
+        // TODO to be implemented
+        return true;
     }
 }

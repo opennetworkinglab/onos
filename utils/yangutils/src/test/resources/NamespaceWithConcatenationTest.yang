@@ -1,0 +1,6 @@
+module Test {
+yang-version 1;
+namespace "urn:ietf:params:xml:ns:"
+             + "yang:ietf-segment-routing";
+prefix On;
+}

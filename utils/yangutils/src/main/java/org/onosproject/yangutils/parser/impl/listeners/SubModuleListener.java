@@ -16,8 +16,15 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -60,7 +67,16 @@ public final class SubModuleListener {
      */
     public static void processSubModuleEntry(TreeWalkListener listener,
                                              GeneratedYangParser.SubModuleStatementContext ctx) {
-        // TODO method implementation
+
+        // Check if stack is empty.
+        ListenerValidation
+                .checkStackIsEmpty(listener, ListenerErrorType.INVALID_HOLDER, ParsableDataType.SUB_MODULE_DATA,
+                                   String.valueOf(ctx.IDENTIFIER().getText()), ListenerErrorLocation.ENTRY);
+
+        YangSubModule yangSubModule = new YangSubModule();
+        yangSubModule.setName(ctx.IDENTIFIER().getText());
+
+        listener.getParsedDataStack().push(yangSubModule);
     }
 
     /**
@@ -72,6 +88,21 @@ public final class SubModuleListener {
      */
     public static void processSubModuleExit(TreeWalkListener listener,
                                             GeneratedYangParser.SubModuleStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                                                ParsableDataType.SUB_MODULE_DATA,
+                                                String.valueOf(ctx.IDENTIFIER().getText()),
+                                                ListenerErrorLocation.EXIT);
+
+        if (!(listener.getParsedDataStack().peek() instanceof YangSubModule)) {
+            throw new ParserException(
+                                      ListenerErrorMessageConstruction
+                                              .constructListenerErrorMessage(ListenerErrorType.MISSING_CURRENT_HOLDER,
+                                                                             ParsableDataType.SUB_MODULE_DATA,
+                                                                             String.valueOf(ctx.IDENTIFIER()
+                                                                                     .getText()),
+                                                                             ListenerErrorLocation.EXIT));
+        }
     }
 }
