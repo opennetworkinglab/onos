@@ -1,0 +1,17 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    container valid {
+        leaf-list invalid-interval {
+            type "uint16";
+            units "seconds";
+            description "Interval before a route is declared invalid";
+            config true;
+            min-elements 1;
+            max-elements unbounded;
+            status current;
+            reference "RFC 6020";
+        }
+    }
+}
