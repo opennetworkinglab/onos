@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IGMP;
+import org.onlab.packet.IGMPMembership;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
@@ -76,7 +77,7 @@ public class IgmpSnoop {
     private static final String DEFAULT_MCAST_ADDR = "224.0.0.0/4";
 
     @Property(name = "multicastAddress",
-            label = "Define the multicast base raneg to listen to")
+            label = "Define the multicast base range to listen to")
     private String multicastAddress = DEFAULT_MCAST_ADDR;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -194,6 +195,7 @@ public class IgmpSnoop {
     }
 
     private void processQuery(IGMP pkt, ConnectPoint location) {
+        // TODO is this the right thing to do for a query?
         pkt.getGroups().forEach(group -> group.getSources().forEach(src -> {
 
             McastRoute route = new McastRoute(src,
@@ -203,6 +205,36 @@ public class IgmpSnoop {
             multicastService.addSink(route, location);
 
         }));
+    }
+
+    private void processMembership(IGMP pkt, ConnectPoint location) {
+        pkt.getGroups().forEach(group -> {
+
+            if (!(group instanceof IGMPMembership)) {
+                log.warn("Wrong group type in IGMP membership");
+                return;
+            }
+
+            IGMPMembership membership = (IGMPMembership) group;
+
+            McastRoute route = new McastRoute(IpAddress.valueOf("0.0.0.0"),
+                    group.getGaddr(),
+                    McastRoute.Type.IGMP);
+
+            if (membership.getRecordType() == IGMPMembership.MODE_IS_INCLUDE ||
+                    membership.getRecordType() == IGMPMembership.CHANGE_TO_INCLUDE_MODE) {
+
+
+                multicastService.add(route);
+                multicastService.addSink(route, location);
+
+            } else if (membership.getRecordType() == IGMPMembership.MODE_IS_EXCLUDE ||
+                    membership.getRecordType() == IGMPMembership.CHANGE_TO_EXCLUDE_MODE) {
+                multicastService.removeSink(route, location);
+                // TODO remove route if all sinks are gone
+            }
+
+        });
     }
 
     /**
@@ -259,7 +291,7 @@ public class IgmpSnoop {
             switch (igmp.getIgmpType()) {
 
                 case IGMP.TYPE_IGMPV3_MEMBERSHIP_REPORT:
-                    IGMPProcessMembership.processMembership(igmp, pkt.receivedFrom());
+                    processMembership(igmp, pkt.receivedFrom());
                     break;
 
                 case IGMP.TYPE_IGMPV3_MEMBERSHIP_QUERY:
@@ -269,12 +301,11 @@ public class IgmpSnoop {
                 case IGMP.TYPE_IGMPV1_MEMBERSHIP_REPORT:
                 case IGMP.TYPE_IGMPV2_MEMBERSHIP_REPORT:
                 case IGMP.TYPE_IGMPV2_LEAVE_GROUP:
-                    log.debug("IGMP version 1 & 2 message types are not currently supported. Message type: " +
+                    log.debug("IGMP version 1 & 2 message types are not currently supported. Message type: {}",
                                       igmp.getIgmpType());
                     break;
-
                 default:
-                    log.debug("Unkown IGMP message type: " + igmp.getIgmpType());
+                    log.debug("Unknown IGMP message type: {}", igmp.getIgmpType());
                     break;
             }
         }
@@ -312,7 +343,6 @@ public class IgmpSnoop {
                     log.warn("Unknown device event {}", event.type());
                     break;
             }
-
         }
 
         @Override

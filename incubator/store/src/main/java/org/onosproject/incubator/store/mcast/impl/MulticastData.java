@@ -16,9 +16,9 @@
 package org.onosproject.incubator.store.mcast.impl;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.onosproject.net.ConnectPoint;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,13 +37,16 @@ public final class MulticastData {
     private final AtomicBoolean isEmpty = new AtomicBoolean();
 
     private MulticastData() {
-        this.sinks = Sets.newConcurrentHashSet();
+        // FIXME we have major problems trying to serialize these sets
+        //this.sinks = Sets.newConcurrentHashSet();
+        this.sinks = new HashSet<>();
         isEmpty.set(true);
     }
 
     public MulticastData(ConnectPoint source) {
         this.source.set(checkNotNull(source, "Multicast source cannot be null."));
-        this.sinks = Sets.newConcurrentHashSet();
+        //this.sinks = Sets.newConcurrentHashSet();
+        this.sinks = new HashSet<>();
         isEmpty.set(false);
     }
 

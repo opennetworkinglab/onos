@@ -54,13 +54,11 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
         mcastRib = storageService.<McastRoute, MulticastData>consistentMapBuilder()
                 .withName(MCASTRIB)
                 .withSerializer(Serializer.using(KryoNamespace.newBuilder()
-                        .register(KryoNamespaces.BASIC)
-                        .register(KryoNamespaces.MISC)
+                        .register(KryoNamespaces.API)
                         .register(
                         MulticastData.class,
                         McastRoute.class,
-                        McastRoute.Type.class,
-                        ConnectPoint.class
+                        McastRoute.Type.class
                 ).build()))
                 //.withRelaxedReadConsistency()
                 .build();

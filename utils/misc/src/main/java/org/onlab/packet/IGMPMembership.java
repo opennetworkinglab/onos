@@ -20,6 +20,7 @@ import static org.onlab.packet.PacketUtils.checkBufferLength;
 
 public class IGMPMembership extends IGMPGroup {
 
+    // TODO should be an enum
     public static final byte MODE_IS_INCLUDE = 0x1;
     public static final byte MODE_IS_EXCLUDE = 0x2;
     public static final byte CHANGE_TO_INCLUDE_MODE = 0x3;
@@ -47,6 +48,15 @@ public class IGMPMembership extends IGMPGroup {
      */
     public IGMPMembership() {
         super();
+    }
+
+    /**
+     * Gets the IGMP record type.
+     *
+     * @return record type
+     */
+    public byte getRecordType() {
+        return recordType;
     }
 
     /**
