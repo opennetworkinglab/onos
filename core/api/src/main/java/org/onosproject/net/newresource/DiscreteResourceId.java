@@ -46,11 +46,28 @@ public final class DiscreteResourceId extends ResourceId {
 
     @Override
     String simpleTypeName() {
-        if (components.isEmpty()) {
+        if (isRoot()) {
             return "Root";
         }
 
-        return components.get(components.size() - 1).getClass().getSimpleName();
+        return lastComponent().getClass().getSimpleName();
+    }
+
+    @Override
+    boolean isTypeOf(Class<?> type) {
+        if (isRoot()) {
+            return false;
+        }
+
+        return type.isAssignableFrom(lastComponent().getClass());
+    }
+
+    @Override
+    boolean isSubTypeOf(Class<?> ancestor) {
+        return components.stream()
+                .filter(x -> ancestor.isAssignableFrom(x.getClass()))
+                .findAny()
+                .isPresent();
     }
 
     @Override
@@ -69,7 +86,7 @@ public final class DiscreteResourceId extends ResourceId {
 
     @Override
     public Optional<DiscreteResourceId> parent() {
-        if (components.size() == 0) {
+        if (isRoot()) {
             return Optional.empty();
         }
         if (components.size() == 1) {
@@ -77,6 +94,25 @@ public final class DiscreteResourceId extends ResourceId {
         } else {
             return Optional.of(new DiscreteResourceId(components.subList(0, components.size() - 1)));
         }
+    }
+
+    <T> Optional<T> lastComponentAs(Class<T> type) {
+        if (!isTypeOf(type)) {
+            return Optional.empty();
+        }
+
+        @SuppressWarnings("unchecked")
+        T value = (T) lastComponent();
+        return Optional.of(value);
+    }
+
+
+    private boolean isRoot() {
+        return components.isEmpty();
+    }
+
+    private Object lastComponent() {
+        return components.get(components.size() - 1);
     }
 
     @Override

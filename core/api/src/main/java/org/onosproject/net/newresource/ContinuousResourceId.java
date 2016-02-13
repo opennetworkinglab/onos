@@ -52,6 +52,23 @@ public final class ContinuousResourceId extends ResourceId {
         return name;
     }
 
+    @Override
+    boolean isTypeOf(Class<?> type) {
+        String typeName = (String) lastComponent();
+        return typeName.equals(type.getCanonicalName());
+    }
+
+    @Override
+    boolean isSubTypeOf(Class<?> ancestor) {
+        String typeName = (String) lastComponent();
+        boolean foundInLeaf = typeName.equals(ancestor.getCanonicalName());
+        boolean foundInAncestor = components.subList(0, components.size()).stream()
+                .filter(x -> ancestor.isAssignableFrom(x.getClass()))
+                .findAny()
+                .isPresent();
+        return foundInAncestor || foundInLeaf;
+    }
+
     /**
      * {@inheritDoc}
      *
@@ -84,6 +101,10 @@ public final class ContinuousResourceId extends ResourceId {
         } else {
             return Optional.of(new DiscreteResourceId(components.subList(0, components.size() - 1)));
         }
+    }
+
+    private Object lastComponent() {
+        return components.get(components.size() - 1);
     }
 
     @Override

@@ -57,8 +57,7 @@ public final class ContinuousResource implements Resource {
     public boolean isTypeOf(Class<?> type) {
         checkNotNull(type);
 
-        String typeName = (String) id.components().get(id.components().size() - 1);
-        return typeName.equals(type.getCanonicalName());
+        return id.isTypeOf(type);
     }
 
     /**
@@ -74,13 +73,7 @@ public final class ContinuousResource implements Resource {
     public boolean isSubTypeOf(Class<?> ancestor) {
         checkNotNull(ancestor);
 
-        String typeName = (String) id.components().get(id.components().size() - 1);
-        boolean foundInLeaf = typeName.equals(ancestor.getCanonicalName());
-        boolean foundInAncestor = id.components().subList(0, id.components().size()).stream()
-                .filter(x -> ancestor.isAssignableFrom(x.getClass()))
-                .findAny()
-                .isPresent();
-        return foundInAncestor || foundInLeaf;
+        return id.isSubTypeOf(ancestor);
     }
 
     /**
