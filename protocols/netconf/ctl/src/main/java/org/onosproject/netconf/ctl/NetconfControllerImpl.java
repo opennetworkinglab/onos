@@ -24,6 +24,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
+import org.onosproject.netconf.NetconfDeviceFactory;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceListener;
 import org.onosproject.netconf.NetconfException;
@@ -49,6 +50,7 @@ public class NetconfControllerImpl implements NetconfController {
     private Map<DeviceId, NetconfDevice> netconfDeviceMap = new ConcurrentHashMap<>();
 
     protected Set<NetconfDeviceListener> netconfDeviceListeners = new CopyOnWriteArraySet<>();
+    protected NetconfDeviceFactory deviceFactory = new DefaultNetconfDeviceFactory();
 
     @Activate
     public void activate(ComponentContext context) {
@@ -109,7 +111,7 @@ public class NetconfControllerImpl implements NetconfController {
     }
 
     private NetconfDevice createDevice(NetconfDeviceInfo deviceInfo) throws NetconfException {
-        NetconfDevice netconfDevice = new NetconfDeviceImpl(deviceInfo);
+        NetconfDevice netconfDevice = deviceFactory.createNetconfDevice(deviceInfo);
         for (NetconfDeviceListener l : netconfDeviceListeners) {
             l.deviceAdded(deviceInfo);
         }
@@ -128,5 +130,14 @@ public class NetconfControllerImpl implements NetconfController {
     @Override
     public Map<DeviceId, NetconfDevice> getDevicesMap() {
         return netconfDeviceMap;
+    }
+
+    //Device factory for the specific NetconfDeviceImpl
+    private class DefaultNetconfDeviceFactory implements NetconfDeviceFactory {
+
+        @Override
+        public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo) throws NetconfException {
+            return new DefaultNetconfDevice(netconfDeviceInfo);
+        }
     }
 }

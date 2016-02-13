@@ -27,9 +27,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * Implementation of a NETCONF device.
+ * Defautl implementation of a NETCONF device.
  */
-public class NetconfDeviceImpl implements NetconfDevice {
+public class DefaultNetconfDevice implements NetconfDevice {
 
     public static final Logger log = LoggerFactory
             .getLogger(NetconfSessionImpl.class);
@@ -39,8 +39,15 @@ public class NetconfDeviceImpl implements NetconfDevice {
     protected NetconfSessionFactory sessionFactory = new SshNetconfSessionFactory();
     private NetconfSession netconfSession;
 
-
-    public NetconfDeviceImpl(NetconfDeviceInfo deviceInfo)
+    /**
+     * Creates a new default NETCONF device with the information provided.
+     * The device gets created only if no exception is thrwn while connecting to
+     * it and establishing the NETCONF session.
+     * @param deviceInfo information about the device to be created.
+     * @throws NetconfException if there are problems in creating or establishing
+     * the underlying NETCONF connection and session.
+     */
+    public DefaultNetconfDevice(NetconfDeviceInfo deviceInfo)
             throws NetconfException {
         netconfDeviceInfo = deviceInfo;
         try {

@@ -17,16 +17,17 @@
 package org.onosproject.netconf;
 
 /**
- * Abstract interface for the creation of a NETCONF session.
+ * Abstract interface for the creation of a NETCONF device.
  */
-public interface NetconfSessionFactory {
+public interface NetconfDeviceFactory {
 
     /**
-     * Creates a new NETCONF session for the specified device.
-     * @param netconfDeviceInfo information of the device to create the session for.
-     * @return Instance of NetconfSession.
-     * @throws NetconfException when problems arise establishing the connection.
+     * Creates a new NETCONF device based on the supplied information.
+     * @param netconfDeviceInfo information of the device to create.
+     * @return Instance of NetconfDevice.
+     * @throws NetconfException when problems arise creating the device and establishing
+     * the connection.
      */
-    NetconfSession createNetconfSession(NetconfDeviceInfo netconfDeviceInfo)
+    NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo)
             throws NetconfException;
 }

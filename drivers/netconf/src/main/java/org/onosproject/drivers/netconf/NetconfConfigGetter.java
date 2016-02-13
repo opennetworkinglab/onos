@@ -39,7 +39,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class NetconfConfigGetter extends AbstractHandlerBehaviour
         implements ConfigGetter {
 
-    private final Logger log = getLogger(NetconfControllerConfig.class);
+    private final Logger log = getLogger(getClass());
 
     //FIXME the error string should be universal for all implementations of
     // ConfigGetter
@@ -58,7 +58,7 @@ public class NetconfConfigGetter extends AbstractHandlerBehaviour
                     getConfig(type);
         } catch (IOException e) {
             log.error("Configuration could not be retrieved {}",
-                      e.getStackTrace().toString());
+                      e.getMessage());
         }
         return UNABLE_TO_READ_CONFIG;
     }
