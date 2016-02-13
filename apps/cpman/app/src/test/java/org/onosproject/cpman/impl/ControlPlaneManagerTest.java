@@ -15,6 +15,8 @@
  */
 package org.onosproject.cpman.impl;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.cpman.impl.message.ControlMessageServiceAdaptor;
@@ -30,7 +32,7 @@ public class ControlPlaneManagerTest {
     /**
      * Sets up the services required by the CPMan application.
      */
-    //@Before
+    @Before
     public void setUp() {
         cpMan = new ControlPlaneManager();
         cpMan.coreService = new CoreServiceAdapter();
@@ -42,7 +44,7 @@ public class ControlPlaneManagerTest {
     /**
      * Tears down the CPMan application.
      */
-    //@After
+    @After
     public void tearDown() {
         cpMan.deactivate();
     }
