@@ -28,6 +28,7 @@ public class PimInterfaceConfig extends Config<ConnectPoint> {
 
     private static final String INTERFACE_NAME = "interfaceName";
     private static final String ENABLED = "enabled";
+    private static final String HELLO_INTERVAL = "helloInterval";
     private static final String HOLD_TIME = "holdTime";
     private static final String PRIORITY = "priority";
     private static final String PROPAGATION_DELAY = "propagationDelay";
@@ -50,6 +51,18 @@ public class PimInterfaceConfig extends Config<ConnectPoint> {
      */
     public boolean isEnabled() {
         return node.path(ENABLED).asBoolean(false);
+    }
+
+    /**
+     * Gets the hello interval of the interface.
+     *
+     * @return hello interval
+     */
+    public Optional<Integer> getHelloInterval() {
+        if (node.path(HELLO_INTERVAL).isMissingNode()) {
+            return Optional.empty();
+        }
+        return Optional.of(Integer.parseInt(node.path(HELLO_INTERVAL).asText()));
     }
 
     /**

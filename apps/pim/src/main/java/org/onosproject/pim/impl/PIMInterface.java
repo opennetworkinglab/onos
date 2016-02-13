@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -68,6 +69,10 @@ public final class PIMInterface {
     // Neighbor priority
     private int priority   = PIMHelloOption.DEFAULT_PRIORITY;
 
+    private final int helloInterval;
+
+    private long lastHello;
+
     // Our current genid
     private final int generationId;
 
@@ -88,18 +93,22 @@ public final class PIMInterface {
      * @param packetService reference to the packet service
      */
     private PIMInterface(Interface intf,
-                        short holdTime,
-                        int priority,
-                        short propagationDelay,
-                        short overrideInterval,
-                        PacketService packetService) {
+                         int helloInterval,
+                         short holdTime,
+                         int priority,
+                         short propagationDelay,
+                         short overrideInterval,
+                         PacketService packetService) {
 
         onosInterface = intf;
         outputTreatment = createOutputTreatment();
+        this.helloInterval = helloInterval;
         this.holdtime = holdTime;
         this.packetService = packetService;
         IpAddress ourIp = getIpAddress();
         MacAddress mac = intf.mac();
+
+        lastHello = 0;
 
         generationId = new Random().nextInt();
 
@@ -232,6 +241,13 @@ public final class PIMInterface {
      * result of a newly created interface.
      */
     public void sendHello() {
+        if (lastHello + TimeUnit.SECONDS.toMillis(helloInterval) >
+                System.currentTimeMillis()) {
+            return;
+        }
+
+        lastHello = System.currentTimeMillis();
+
         // Create the base PIM Packet and mark it a hello packet
         PIMPacket pimPacket = new PIMPacket(PIM.TYPE_HELLO);
 
@@ -401,6 +417,7 @@ public final class PIMInterface {
     public static class Builder {
         private Interface intf;
         private PacketService packetService;
+        private int helloInterval = PIMInterfaceManager.DEFAULT_HELLO_INTERVAL;
         private short holdtime = PIMHelloOption.DEFAULT_HOLDTIME;
         private int priority   = PIMHelloOption.DEFAULT_PRIORITY;
         private short propagationDelay = PIMHelloOption.DEFAULT_PRUNEDELAY;
@@ -425,6 +442,17 @@ public final class PIMInterface {
          */
         public Builder withPacketService(PacketService packetService) {
             this.packetService = checkNotNull(packetService);
+            return this;
+        }
+
+        /**
+         * Users the specified hello interval.
+         *
+         * @param helloInterval hello interval in seconds
+         * @return this PIM interface builder
+         */
+        public Builder withHelloInterval(int helloInterval) {
+            this.helloInterval = helloInterval;
             return this;
         }
 
@@ -481,8 +509,8 @@ public final class PIMInterface {
             checkArgument(intf != null, "Must provide an interface");
             checkArgument(packetService != null, "Must provide a packet service");
 
-            return new PIMInterface(intf, holdtime, priority, propagationDelay,
-                    overrideInterval, packetService);
+            return new PIMInterface(intf, helloInterval, holdtime, priority,
+                    propagationDelay, overrideInterval, packetService);
         }
 
     }

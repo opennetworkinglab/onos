@@ -59,20 +59,19 @@ public class PIMInterfaceManager implements PIMInterfaceService {
     private static final Class<PimInterfaceConfig> PIM_INTERFACE_CONFIG_CLASS = PimInterfaceConfig.class;
     private static final String PIM_INTERFACE_CONFIG_KEY = "pimInterface";
 
-    private static final int DEFAULT_TIMEOUT_TASK_PERIOD_MS = 250;
+    public static final int DEFAULT_HELLO_INTERVAL = 30; // seconds
+
+    private static final int DEFAULT_TASK_PERIOD_MS = 250;
 
     // Create a Scheduled Executor service for recurring tasks
     private final ScheduledExecutorService scheduledExecutorService =
             Executors.newScheduledThreadPool(1);
 
-    // Wait for a bout 3 seconds before sending the initial hello messages.
-    // TODO: make this tunnable.
-    private final long initialHelloDelay = 3;
+    private final long initialHelloDelay = 1000;
 
-    // Send PIM hello packets: 30 seconds.
-    private final long pimHelloPeriod = 30;
+    private final long pimHelloPeriod = DEFAULT_TASK_PERIOD_MS;
 
-    private final int timeoutTaskPeriod = DEFAULT_TIMEOUT_TASK_PERIOD_MS;
+    private final int timeoutTaskPeriod = DEFAULT_TASK_PERIOD_MS;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
@@ -121,7 +120,7 @@ public class PIMInterfaceManager implements PIMInterfaceService {
         scheduledExecutorService.scheduleAtFixedRate(
                 SafeRecurringTask.wrap(
                         () -> pimInterfaces.values().forEach(PIMInterface::sendHello)),
-                initialHelloDelay, pimHelloPeriod, TimeUnit.SECONDS);
+                initialHelloDelay, pimHelloPeriod, TimeUnit.MILLISECONDS);
 
         // Schedule task to periodically time out expired neighbors
         scheduledExecutorService.scheduleAtFixedRate(
@@ -194,6 +193,9 @@ public class PIMInterfaceManager implements PIMInterfaceService {
                 .withPacketService(packetService)
                 .withInterface(intf);
 
+        if (config.getHelloInterval().isPresent()) {
+            builder.withHelloInterval(config.getHelloInterval().get());
+        }
         if (config.getHoldTime().isPresent()) {
             builder.withHoldTime(config.getHoldTime().get());
         }
