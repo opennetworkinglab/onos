@@ -76,6 +76,7 @@ public class DiscreteResourceTest {
     @Test
     public void testTypeOf() {
         DiscreteResource discrete = Resources.discrete(D1, P1, VLAN1).resource();
+
         assertThat(discrete.isTypeOf(DeviceId.class), is(false));
         assertThat(discrete.isTypeOf(PortNumber.class), is(false));
         assertThat(discrete.isTypeOf(VlanId.class), is(true));
@@ -84,10 +85,18 @@ public class DiscreteResourceTest {
     @Test
     public void testSubTypeOf() {
         DiscreteResource discrete = Resources.discrete(D1, P1, VLAN1).resource();
+
         assertThat(discrete.isSubTypeOf(DeviceId.class), is(true));
         assertThat(discrete.isSubTypeOf(PortNumber.class), is(true));
         assertThat(discrete.isSubTypeOf(VlanId.class), is(true));
         assertThat(discrete.isSubTypeOf(Bandwidth.class), is(false));
+    }
+
+    @Test
+    public void testSubTypeOfObject() {
+        DiscreteResource discrete = Resources.discrete(D1, P1, VLAN1).resource();
+
+        assertThat(discrete.isSubTypeOf(Object.class), is(true));
     }
 
     @Test

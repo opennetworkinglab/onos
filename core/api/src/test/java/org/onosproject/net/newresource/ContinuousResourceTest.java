@@ -52,6 +52,7 @@ public class ContinuousResourceTest {
     public void testTypeOf() {
         ContinuousResource continuous = Resources.continuous(D1, P1, Bandwidth.class)
                 .resource(BW1.bps());
+
         assertThat(continuous.isTypeOf(DeviceId.class), is(false));
         assertThat(continuous.isTypeOf(PortNumber.class), is(false));
         assertThat(continuous.isTypeOf(Bandwidth.class), is(true));
@@ -61,6 +62,7 @@ public class ContinuousResourceTest {
     public void testSubTypeOf() {
         ContinuousResource continuous = Resources.continuous(D1, P1, Bandwidth.class)
                 .resource(BW1.bps());
+
         assertThat(continuous.isSubTypeOf(DeviceId.class), is(true));
         assertThat(continuous.isSubTypeOf(PortNumber.class), is(true));
         assertThat(continuous.isSubTypeOf(Bandwidth.class), is(true));
@@ -68,11 +70,46 @@ public class ContinuousResourceTest {
     }
 
     @Test
-    public void testValueAs() {
+    public void testSubTypeOfObject() {
+        ContinuousResource continuous = Resources.continuous(D1, P1, Bandwidth.class)
+                .resource(BW1.bps());
+
+        assertThat(continuous.isSubTypeOf(Object.class), is(true));
+    }
+
+    @Test
+    public void testValueAsPrimitiveDouble() {
         ContinuousResource resource = Resources.continuous(D1, P1, Bandwidth.class)
                 .resource(BW1.bps());
 
         Optional<Double> volume = resource.valueAs(double.class);
         assertThat(volume.get(), is(BW1.bps()));
+    }
+
+    @Test
+    public void testValueAsDouble() {
+        ContinuousResource resource = Resources.continuous(D1, P1, Bandwidth.class)
+                .resource(BW1.bps());
+
+        Optional<Double> value = resource.valueAs(Double.class);
+        assertThat(value.get(), is(BW1.bps()));
+    }
+
+    @Test
+    public void testValueAsObject() {
+        ContinuousResource resource = Resources.continuous(D1, P1, Bandwidth.class)
+                .resource(BW1.bps());
+
+        Optional<Double> value = resource.valueAs(Double.class);
+        assertThat(value.get(), is(BW1.bps()));
+    }
+
+    @Test
+    public void testValueAsIncompatibleType() {
+        ContinuousResource resource = Resources.continuous(D1, P1, Bandwidth.class)
+                .resource(BW1.bps());
+
+        Optional<VlanId> value = resource.valueAs(VlanId.class);
+        assertThat(value, is(Optional.empty()));
     }
 }

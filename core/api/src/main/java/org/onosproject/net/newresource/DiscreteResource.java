@@ -66,8 +66,7 @@ public final class DiscreteResource implements Resource {
         checkNotNull(ancestor);
 
         return id.components().stream()
-                .map(Object::getClass)
-                .filter(x -> x.equals(ancestor))
+                .filter(x -> ancestor.isAssignableFrom(x.getClass()))
                 .findAny()
                 .isPresent();
     }

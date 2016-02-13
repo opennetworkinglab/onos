@@ -77,8 +77,7 @@ public final class ContinuousResource implements Resource {
         String typeName = (String) id.components().get(id.components().size() - 1);
         boolean foundInLeaf = typeName.equals(ancestor.getCanonicalName());
         boolean foundInAncestor = id.components().subList(0, id.components().size()).stream()
-                .map(Object::getClass)
-                .filter(x -> x.equals(ancestor))
+                .filter(x -> ancestor.isAssignableFrom(x.getClass()))
                 .findAny()
                 .isPresent();
         return foundInAncestor || foundInLeaf;
