@@ -179,15 +179,11 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
     }
 
     private void pass(Objective obj) {
-        if (obj.context().isPresent()) {
-            obj.context().get().onSuccess(obj);
-        }
+        obj.context().ifPresent(context -> context.onSuccess(obj));
     }
 
     private void fail(Objective obj, ObjectiveError error) {
-        if (obj.context().isPresent()) {
-            obj.context().get().onError(obj, error);
-        }
+        obj.context().ifPresent(context -> context.onError(obj, error));
     }
 
     private void initializePipeline() {

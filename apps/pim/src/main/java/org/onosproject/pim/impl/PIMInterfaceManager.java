@@ -193,21 +193,11 @@ public class PIMInterfaceManager implements PIMInterfaceService {
                 .withPacketService(packetService)
                 .withInterface(intf);
 
-        if (config.getHelloInterval().isPresent()) {
-            builder.withHelloInterval(config.getHelloInterval().get());
-        }
-        if (config.getHoldTime().isPresent()) {
-            builder.withHoldTime(config.getHoldTime().get());
-        }
-        if (config.getPriority().isPresent()) {
-            builder.withPriority(config.getPriority().get());
-        }
-        if (config.getPropagationDelay().isPresent()) {
-            builder.withPropagationDelay(config.getPropagationDelay().get());
-        }
-        if (config.getOverrideInterval().isPresent()) {
-            builder.withOverrideInterval(config.getOverrideInterval().get());
-        }
+        config.getHelloInterval().ifPresent(builder::withHelloInterval);
+        config.getHoldTime().ifPresent(builder::withHoldTime);
+        config.getPriority().ifPresent(builder::withPriority);
+        config.getPropagationDelay().ifPresent(builder::withPropagationDelay);
+        config.getOverrideInterval().ifPresent(builder::withOverrideInterval);
 
         return builder.build();
     }

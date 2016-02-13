@@ -998,14 +998,10 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     }
 
     protected static void pass(Objective obj) {
-        if (obj.context().isPresent()) {
-            obj.context().get().onSuccess(obj);
-        }
+        obj.context().ifPresent(context -> context.onSuccess(obj));
     }
 
     protected static void fail(Objective obj, ObjectiveError error) {
-        if (obj.context().isPresent()) {
-            obj.context().get().onError(obj, error);
-        }
+        obj.context().ifPresent(context -> context.onError(obj, error));
     }
 }

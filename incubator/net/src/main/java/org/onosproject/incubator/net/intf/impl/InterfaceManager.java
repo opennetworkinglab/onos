@@ -109,7 +109,7 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
                 .filter(i -> i.name().equals(name))
                 .findAny();
 
-        return intf.isPresent() ? intf.get() : null;
+        return intf.orElse(null);
     }
 
     @Override
@@ -142,11 +142,7 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
                         .anyMatch(intfIp -> intfIp.subnetAddress().contains(ip)))
                 .findFirst();
 
-        if (match.isPresent()) {
-            return match.get();
-        }
-
-        return null;
+        return match.orElse(null);
     }
 
     @Override

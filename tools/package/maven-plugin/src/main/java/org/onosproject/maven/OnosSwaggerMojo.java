@@ -211,7 +211,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
     private JavaAnnotation getPathAnnotation(JavaClass javaClass) {
         Optional<JavaAnnotation> optional = javaClass.getAnnotations()
                 .stream().filter(a -> a.getType().getName().equals(PATH)).findAny();
-        return optional.isPresent() ? optional.get() : null;
+        return optional.orElse(null);
     }
 
     // Checks whether a class's methods are REST methods and then places all the
@@ -375,7 +375,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
             Optional<JavaAnnotation> optional = javaParameter.getAnnotations().stream().filter(
                     annotation -> annotation.getType().getName().equals(PATH_PARAM) ||
                             annotation.getType().getName().equals(QUERY_PARAM)).findAny();
-            JavaAnnotation pathType = optional.isPresent() ? optional.get() : null;
+            JavaAnnotation pathType = optional.orElse(null);
 
             String annotationName = javaParameter.getName();
 

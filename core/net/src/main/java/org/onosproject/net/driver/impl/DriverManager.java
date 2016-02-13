@@ -148,7 +148,7 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
                 .filter(d -> matches(d, mfr, hw, sw)).findFirst();
 
         // If no matching driver is found, return default.
-        return optional.isPresent() ? optional.get() : drivers.get(DEFAULT);
+        return optional.orElse(drivers.get(DEFAULT));
     }
 
     // Matches the given driver using ERE matching against the given criteria.

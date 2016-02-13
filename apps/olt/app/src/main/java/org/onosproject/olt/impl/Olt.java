@@ -256,7 +256,7 @@ public class Olt
         CompletableFuture<ObjectiveError> upFuture = new CompletableFuture();
 
         TrafficSelector upstream = DefaultTrafficSelector.builder()
-                .matchVlanId((defaultVlan.isPresent()) ? defaultVlan.get() : DEFAULT_VLAN)
+                .matchVlanId(defaultVlan.orElse(DEFAULT_VLAN))
                 .matchInPort(subscriberPort)
                 .build();
 
@@ -276,7 +276,7 @@ public class Olt
 
         TrafficTreatment downstreamTreatment = DefaultTrafficTreatment.builder()
                 .popVlan()
-                .setVlanId((defaultVlan.isPresent()) ? defaultVlan.get() : DEFAULT_VLAN)
+                .setVlanId(defaultVlan.orElse(DEFAULT_VLAN))
                 .setOutput(subscriberPort)
                 .build();
 

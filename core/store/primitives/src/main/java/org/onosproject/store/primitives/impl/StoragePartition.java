@@ -121,11 +121,8 @@ public class StoragePartition extends DefaultPartition implements Managed<Storag
     }
 
     private CompletableFuture<Void> closeServer() {
-        if (server.isPresent()) {
-            return server.get().close();
-        } else {
-            return CompletableFuture.completedFuture(null);
-        }
+        return server.map(StoragePartitionServer::close)
+                .orElse(CompletableFuture.completedFuture(null));
     }
 
     private CompletableFuture<Void> closeClient() {

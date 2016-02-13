@@ -129,18 +129,16 @@ public class EdgeManager
 
     @Override
     public void emitPacket(ByteBuffer data, Optional<TrafficTreatment> treatment) {
-        TrafficTreatment.Builder builder = treatment.isPresent() ?
-                DefaultTrafficTreatment.builder(treatment.get()) :
-                DefaultTrafficTreatment.builder();
+        TrafficTreatment.Builder builder = treatment.map(DefaultTrafficTreatment::builder)
+                .orElse(DefaultTrafficTreatment.builder());
         getEdgePoints().forEach(p -> packetService.emit(packet(builder, p, data)));
     }
 
     @Override
     public void emitPacket(DeviceId deviceId, ByteBuffer data,
                            Optional<TrafficTreatment> treatment) {
-        TrafficTreatment.Builder builder = treatment.isPresent() ?
-                DefaultTrafficTreatment.builder(treatment.get()) :
-                DefaultTrafficTreatment.builder();
+        TrafficTreatment.Builder builder = treatment.map(DefaultTrafficTreatment::builder)
+                .orElse(DefaultTrafficTreatment.builder());
         getEdgePoints(deviceId).forEach(p -> packetService.emit(packet(builder, p, data)));
     }
 

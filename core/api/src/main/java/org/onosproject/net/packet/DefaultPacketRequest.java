@@ -105,7 +105,7 @@ public final class DefaultPacketRequest implements PacketRequest {
                 .add("priority", priority)
                 .add("appId", appId)
                 .add("nodeId", nodeId)
-                .add("applies to", deviceId.isPresent() ? deviceId.get() : "all")
+                .add("applies to", deviceId.map(DeviceId::toString).orElse("all"))
                 .toString();
     }
 }

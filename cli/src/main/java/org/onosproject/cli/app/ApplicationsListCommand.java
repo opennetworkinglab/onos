@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.app;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -75,7 +76,7 @@ public class ApplicationsListCommand extends AbstractShellCommand {
                         print(FMT, isActive ? "*" : " ",
                               app.id().id(), app.id().name(), app.version(), app.origin(),
                               app.category(), app.description(), app.features(),
-                              app.featuresRepo().isPresent() ? app.featuresRepo().get().toString() : "",
+                              app.featuresRepo().map(URI::toString).orElse(""),
                               app.requiredApps(), app.permissions(), app.url());
                     }
                 }

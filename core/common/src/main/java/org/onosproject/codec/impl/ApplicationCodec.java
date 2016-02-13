@@ -23,6 +23,8 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.Application;
 
+import java.net.URI;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -52,8 +54,7 @@ public final class ApplicationCodec extends JsonCodec<Application> {
                 .put("readme", StringEscapeUtils.escapeJson(app.readme()))
                 .put("origin", app.origin())
                 .put("url", app.url())
-                .put("featuresRepo", app.featuresRepo().isPresent() ?
-                        app.featuresRepo().get().toString() : "")
+                .put("featuresRepo", app.featuresRepo().map(URI::toString).orElse(""))
                 .put("state", service.getState(app.id()).toString());
 
         result.set("features", features);

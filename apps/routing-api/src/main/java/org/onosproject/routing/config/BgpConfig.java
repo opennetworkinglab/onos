@@ -85,7 +85,7 @@ public class BgpConfig extends Config<ApplicationId> {
      */
     public BgpSpeakerConfig getSpeakerWithName(String name) {
         for (BgpConfig.BgpSpeakerConfig speaker : bgpSpeakers()) {
-            if (speaker.name().isPresent() && speaker.name().get().equals(name)) {
+            if (speaker.name().filter(name::equals).isPresent()) {
                 return speaker;
             }
         }

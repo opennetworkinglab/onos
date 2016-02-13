@@ -156,16 +156,13 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
         flowRuleService.apply(flowBuilder.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                if (objective.context().isPresent()) {
-                    objective.context().get().onSuccess(objective);
-                }
+                objective.context().ifPresent(context -> context.onSuccess(objective));
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                if (objective.context().isPresent()) {
-                    objective.context().get().onError(objective, ObjectiveError.FLOWINSTALLATIONFAILED);
-                }
+                objective.context()
+                        .ifPresent(context -> context.onError(objective, ObjectiveError.FLOWINSTALLATIONFAILED));
             }
         }));
     }
