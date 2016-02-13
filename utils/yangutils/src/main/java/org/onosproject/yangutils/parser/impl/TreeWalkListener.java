@@ -23,6 +23,35 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangListener;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+
+import org.onosproject.yangutils.parser.impl.listeners.KeyListener;
+import org.onosproject.yangutils.parser.impl.listeners.LeafListListener;
+import org.onosproject.yangutils.parser.impl.listeners.LeafListener;
+import org.onosproject.yangutils.parser.impl.listeners.ListListener;
+import org.onosproject.yangutils.parser.impl.listeners.ContainerListener;
+import org.onosproject.yangutils.parser.impl.listeners.ConfigListener;
+import org.onosproject.yangutils.parser.impl.listeners.ContactListener;
+import org.onosproject.yangutils.parser.impl.listeners.BaseFileListener;
+import org.onosproject.yangutils.parser.impl.listeners.BelongsToListener;
+import org.onosproject.yangutils.parser.impl.listeners.DescriptionListener;
+import org.onosproject.yangutils.parser.impl.listeners.ImportListener;
+import org.onosproject.yangutils.parser.impl.listeners.IncludeListener;
+import org.onosproject.yangutils.parser.impl.listeners.MandatoryListener;
+import org.onosproject.yangutils.parser.impl.listeners.MaxElementsListener;
+import org.onosproject.yangutils.parser.impl.listeners.MinElementsListener;
+import org.onosproject.yangutils.parser.impl.listeners.ModuleListener;
+import org.onosproject.yangutils.parser.impl.listeners.NamespaceListener;
+import org.onosproject.yangutils.parser.impl.listeners.OrganizationListener;
+import org.onosproject.yangutils.parser.impl.listeners.PrefixListener;
+import org.onosproject.yangutils.parser.impl.listeners.PresenceListener;
+import org.onosproject.yangutils.parser.impl.listeners.ReferenceListener;
+import org.onosproject.yangutils.parser.impl.listeners.RevisionDateListener;
+import org.onosproject.yangutils.parser.impl.listeners.RevisionListener;
+import org.onosproject.yangutils.parser.impl.listeners.StatusListener;
+import org.onosproject.yangutils.parser.impl.listeners.SubModuleListener;
+import org.onosproject.yangutils.parser.impl.listeners.TypeListener;
+import org.onosproject.yangutils.parser.impl.listeners.UnitsListener;
+import org.onosproject.yangutils.parser.impl.listeners.VersionListener;
 import org.onosproject.yangutils.parser.impl.parserutils.ListenerError;
 
 import java.util.Stack;
@@ -100,22 +129,22 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterYangfile(GeneratedYangParser.YangfileContext ctx) {
-        //TODO: implement the method.
+        BaseFileListener.processYangFileEntry(this, ctx);
     }
 
     @Override
     public void exitYangfile(GeneratedYangParser.YangfileContext ctx) {
-        //TODO: implement the method.
+        BaseFileListener.processYangFileExit(this, ctx);
     }
 
     @Override
     public void enterModuleStatement(GeneratedYangParser.ModuleStatementContext ctx) {
-        //TODO: implement the method.
+        ModuleListener.processModuleEntry(this, ctx);
     }
 
     @Override
     public void exitModuleStatement(GeneratedYangParser.ModuleStatementContext ctx) {
-        //TODO: implement the method.
+        ModuleListener.processModuleExit(this, ctx);
     }
 
     @Override
@@ -180,7 +209,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterYangVersionStatement(GeneratedYangParser.YangVersionStatementContext ctx) {
-        //TODO: implement the method.
+        VersionListener.processVersionEntry(this, ctx);
     }
 
     @Override
@@ -190,7 +219,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterNamespaceStatement(GeneratedYangParser.NamespaceStatementContext ctx) {
-        //TODO: implement the method.
+        NamespaceListener.processNamespaceEntry(this, ctx);
     }
 
     @Override
@@ -200,7 +229,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterPrefixStatement(GeneratedYangParser.PrefixStatementContext ctx) {
-        //TODO: implement the method.
+        PrefixListener.processPrefixEntry(this, ctx);
     }
 
     @Override
@@ -210,12 +239,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterImportStatement(GeneratedYangParser.ImportStatementContext ctx) {
-        //TODO: implement the method.
+        ImportListener.processImportEntry(this, ctx);
     }
 
     @Override
     public void exitImportStatement(GeneratedYangParser.ImportStatementContext ctx) {
-        //TODO: implement the method.
+        ImportListener.processImportExit(this, ctx);
     }
 
     @Override
@@ -230,7 +259,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterRevisionDateStatement(GeneratedYangParser.RevisionDateStatementContext ctx) {
-        //TODO: implement the method.
+        RevisionDateListener.processRevisionDateEntry(this, ctx);
     }
 
     @Override
@@ -240,17 +269,17 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterIncludeStatement(GeneratedYangParser.IncludeStatementContext ctx) {
-        //TODO: implement the method.
+        IncludeListener.processIncludeEntry(this, ctx);
     }
 
     @Override
     public void exitIncludeStatement(GeneratedYangParser.IncludeStatementContext ctx) {
-        //TODO: implement the method.
+        IncludeListener.processIncludeExit(this, ctx);
     }
 
     @Override
     public void enterOrganizationStatement(GeneratedYangParser.OrganizationStatementContext ctx) {
-        //TODO: implement the method.
+        OrganizationListener.processOrganizationEntry(this, ctx);
     }
 
     @Override
@@ -260,7 +289,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterContactStatement(GeneratedYangParser.ContactStatementContext ctx) {
-        //TODO: implement the method.
+        ContactListener.processContactEntry(this, ctx);
     }
 
     @Override
@@ -270,7 +299,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterDescriptionStatement(GeneratedYangParser.DescriptionStatementContext ctx) {
-        //TODO: implement the method.
+        DescriptionListener.processDescriptionEntry(this, ctx);
     }
 
     @Override
@@ -280,7 +309,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterReferenceStatement(GeneratedYangParser.ReferenceStatementContext ctx) {
-        //TODO: implement the method.
+        ReferenceListener.processReferenceEntry(this, ctx);
     }
 
     @Override
@@ -290,12 +319,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterRevisionStatement(GeneratedYangParser.RevisionStatementContext ctx) {
-        //TODO: implement the method.
+        RevisionListener.processRevisionEntry(this, ctx);
     }
 
     @Override
     public void exitRevisionStatement(GeneratedYangParser.RevisionStatementContext ctx) {
-        //TODO: implement the method.
+        RevisionListener.processRevisionExit(this, ctx);
     }
 
     @Override
@@ -310,12 +339,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterSubModuleStatement(GeneratedYangParser.SubModuleStatementContext ctx) {
-        //TODO: implement the method.
+        SubModuleListener.processSubModuleEntry(this, ctx);
     }
 
     @Override
     public void exitSubModuleStatement(GeneratedYangParser.SubModuleStatementContext ctx) {
-        //TODO: implement the method.
+        SubModuleListener.processSubModuleExit(this, ctx);
     }
 
     @Override
@@ -340,12 +369,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterBelongstoStatement(GeneratedYangParser.BelongstoStatementContext ctx) {
-        //TODO: implement the method.
+        BelongsToListener.processBelongsToEntry(this, ctx);
     }
 
     @Override
     public void exitBelongstoStatement(GeneratedYangParser.BelongstoStatementContext ctx) {
-        //TODO: implement the method.
+        BelongsToListener.processBelongsToExit(this, ctx);
     }
 
     @Override
@@ -480,7 +509,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterUnitsStatement(GeneratedYangParser.UnitsStatementContext ctx) {
-        //TODO: implement the method.
+        UnitsListener.processUnitsEntry(this, ctx);
     }
 
     @Override
@@ -500,7 +529,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterTypeStatement(GeneratedYangParser.TypeStatementContext ctx) {
-        //TODO: implement the method.
+        TypeListener.processTypeEntry(this, ctx);
     }
 
     @Override
@@ -720,7 +749,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterStatusStatement(GeneratedYangParser.StatusStatementContext ctx) {
-        //TODO: implement the method.
+        StatusListener.processStatusEntry(this, ctx);
     }
 
     @Override
@@ -730,7 +759,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterConfigStatement(GeneratedYangParser.ConfigStatementContext ctx) {
-        //TODO: implement the method.
+        ConfigListener.processConfigEntry(this, ctx);
     }
 
     @Override
@@ -740,7 +769,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterMandatoryStatement(GeneratedYangParser.MandatoryStatementContext ctx) {
-        //TODO: implement the method.
+        MandatoryListener.processMandatoryEntry(this, ctx);
     }
 
     @Override
@@ -750,7 +779,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterPresenceStatement(GeneratedYangParser.PresenceStatementContext ctx) {
-        //TODO: implement the method.
+        PresenceListener.processPresenceEntry(this, ctx);
     }
 
     @Override
@@ -800,7 +829,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterMinElementsStatement(GeneratedYangParser.MinElementsStatementContext ctx) {
-        //TODO: implement the method.
+        MinElementsListener.processMinElementsEntry(this, ctx);
     }
 
     @Override
@@ -810,7 +839,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterMaxElementsStatement(GeneratedYangParser.MaxElementsStatementContext ctx) {
-        //TODO: implement the method.
+        MaxElementsListener.processMaxElementsEntry(this, ctx);
     }
 
     @Override
@@ -850,47 +879,47 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterContainerStatement(GeneratedYangParser.ContainerStatementContext ctx) {
-        //TODO: implement the method.
+        ContainerListener.processContainerEntry(this, ctx);
     }
 
     @Override
     public void exitContainerStatement(GeneratedYangParser.ContainerStatementContext ctx) {
-        //TODO: implement the method.
+        ContainerListener.processContainerExit(this, ctx);
     }
 
     @Override
     public void enterLeafStatement(GeneratedYangParser.LeafStatementContext ctx) {
-        //TODO: implement the method.
+        LeafListener.processLeafEntry(this, ctx);
     }
 
     @Override
     public void exitLeafStatement(GeneratedYangParser.LeafStatementContext ctx) {
-        //TODO: implement the method.
+        LeafListener.processLeafExit(this, ctx);
     }
 
     @Override
     public void enterLeafListStatement(GeneratedYangParser.LeafListStatementContext ctx) {
-        //TODO: implement the method.
+        LeafListListener.processLeafListEntry(this, ctx);
     }
 
     @Override
     public void exitLeafListStatement(GeneratedYangParser.LeafListStatementContext ctx) {
-        //TODO: implement the method.
+        LeafListListener.processLeafListExit(this, ctx);
     }
 
     @Override
     public void enterListStatement(GeneratedYangParser.ListStatementContext ctx) {
-        //TODO: implement the method.
+        ListListener.processListEntry(this, ctx);
     }
 
     @Override
     public void exitListStatement(GeneratedYangParser.ListStatementContext ctx) {
-        //TODO: implement the method.
+        ListListener.processListExit(this, ctx);
     }
 
     @Override
     public void enterKeyStatement(GeneratedYangParser.KeyStatementContext ctx) {
-        //TODO: implement the method.
+        KeyListener.processKeyEntry(this, ctx);
     }
 
     @Override
