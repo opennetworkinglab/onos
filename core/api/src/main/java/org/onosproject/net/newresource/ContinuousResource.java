@@ -26,9 +26,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Represents a resource path which specifies a resource which can be measured
  * as continuous value. Bandwidth of a link is an example of the resource.
- * <p>
- * Note: This class is exposed to the public, but intended to be used in the resource API
- * implementation only. It is not for resource API user.
  */
 @Beta
 public final class ContinuousResource implements Resource {

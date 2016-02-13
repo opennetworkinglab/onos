@@ -27,10 +27,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Represents a resource path which specifies a resource which can be measured
  * as a discrete unit. A VLAN ID and a MPLS label of a link are examples of the resource.
- * <p>
- * Note: This class is exposed to the public, but intended to be used in the resource API
- * implementation only. It is not for resource API user.
- * </p>
  */
 @Beta
 public final class DiscreteResource implements Resource {

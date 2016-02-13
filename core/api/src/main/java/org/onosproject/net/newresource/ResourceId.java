@@ -22,7 +22,6 @@ import java.util.Optional;
 
 /**
  * Represents identifier of resource.
- * This class is exposed to public, but intended to use only in ResourceStore implementations.
  */
 @Beta
 public abstract class ResourceId {

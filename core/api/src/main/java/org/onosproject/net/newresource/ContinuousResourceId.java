@@ -22,10 +22,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * ResourceId for {@link ContinuousResource}
- *
- * Note: This class is exposed to the public, but intended to be used in the resource API
- * implementation only. It is not for resource API user.
+ * ResourceId for {@link ContinuousResource}.
  */
 @Beta
 public final class ContinuousResourceId extends ResourceId {

@@ -26,9 +26,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * ResourceId for {@link DiscreteResource}.
- *
- * Note: This class is exposed to the public, but intended to be used in the resource API
- * implementation only. It is not for resource API user.
  */
 @Beta
 public final class DiscreteResourceId extends ResourceId {
