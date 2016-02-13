@@ -15,9 +15,20 @@
  */
 
 package org.onosproject.yangutils.parser.impl.listeners;
+import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.parser.Parsable;
 
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -54,6 +65,8 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
  */
 public final class ContainerListener {
 
+    private static ParsableDataType yangConstruct;
+
     /**
      * Creates a new container listener.
      */
@@ -70,7 +83,44 @@ public final class ContainerListener {
      */
     public static void processContainerEntry(TreeWalkListener listener,
                                              GeneratedYangParser.ContainerStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                ParsableDataType.CONTAINER_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+                ListenerErrorLocation.ENTRY);
+
+        boolean result = validateSubStatementsCardinality(ctx);
+        if (!result) {
+            throw new ParserException(ListenerErrorMessageConstruction
+                    .constructListenerErrorMessage(ListenerErrorType.INVALID_CARDINALITY,
+                            yangConstruct, "", ListenerErrorLocation.ENTRY));
+        }
+
+        YangContainer container = new YangContainer();
+        container.setName(ctx.IDENTIFIER().getText());
+
+        Parsable curData = listener.getParsedDataStack().peek();
+
+        if (curData instanceof YangNode) {
+            YangNode curNode = (YangNode) curData;
+            try {
+                curNode.addChild(container);
+            } catch (DataModelException e) {
+                throw new ParserException(ListenerErrorMessageConstruction
+                        .constructExtendedListenerErrorMessage(ListenerErrorType.UNHANDLED_PARSED_DATA,
+                                ParsableDataType.CONTAINER_DATA,
+                                String.valueOf(ctx.IDENTIFIER().getText()),
+                                ListenerErrorLocation.ENTRY,
+                                e.getMessage()));
+            }
+            listener.getParsedDataStack().push(container);
+        } else {
+            throw new ParserException(ListenerErrorMessageConstruction
+                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                            ParsableDataType.CONTAINER_DATA,
+                            String.valueOf(ctx.IDENTIFIER().getText()),
+                            ListenerErrorLocation.ENTRY));
+        }
     }
 
     /**
@@ -82,6 +132,61 @@ public final class ContainerListener {
      */
     public static void processContainerExit(TreeWalkListener listener,
                                             GeneratedYangParser.ContainerStatementContext ctx) {
-        //TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                ParsableDataType.CONTAINER_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+                ListenerErrorLocation.EXIT);
+
+        if (listener.getParsedDataStack().peek() instanceof YangContainer) {
+            listener.getParsedDataStack().pop();
+        } else {
+            throw new ParserException(ListenerErrorMessageConstruction
+                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                            ParsableDataType.CONTAINER_DATA,
+                            String.valueOf(ctx.IDENTIFIER().getText()),
+                            ListenerErrorLocation.EXIT));
+        }
+    }
+
+    /**
+     * Validates the cardinality of container sub-statements as per grammar.
+     *
+     * @param ctx context object of the grammar rule.
+     * @return true/false validation success or failure.
+     */
+    public static boolean validateSubStatementsCardinality(GeneratedYangParser.ContainerStatementContext ctx) {
+
+        if ((!ctx.presenceStatement().isEmpty())
+                && (ctx.presenceStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.PRESENCE_DATA;
+            return false;
+        }
+
+        if ((!ctx.configStatement().isEmpty())
+                && (ctx.configStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.CONFIG_DATA;
+            return false;
+        }
+
+        if ((!ctx.descriptionStatement().isEmpty())
+                && (ctx.descriptionStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.DESCRIPTION_DATA;
+            return false;
+        }
+
+        if ((!ctx.referenceStatement().isEmpty())
+                && (ctx.referenceStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.REFERENCE_DATA;
+            return false;
+        }
+
+        if ((!ctx.statusStatement().isEmpty())
+                && (ctx.statusStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.STATUS_DATA;
+            return false;
+        }
+
+        return true;
     }
 }

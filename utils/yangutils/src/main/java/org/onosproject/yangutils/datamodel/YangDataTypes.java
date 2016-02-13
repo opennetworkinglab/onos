@@ -217,5 +217,21 @@ public enum YangDataTypes {
     /**
      * Derived Data type.
      */
-    DERIVED
+    DERIVED;
+
+    /**
+     * Returns YANG data type for corresponding type name.
+     *
+     * @param name type name from YANG file.
+     * @return YANG data type for corresponding type name.
+     */
+    public static YangDataTypes getType(String name) {
+        name = name.replace("\"", "");
+        for (YangDataTypes yangDataType : values()) {
+            if (yangDataType.name().equalsIgnoreCase(name)) {
+                return yangDataType;
+            }
+        }
+        return YangDataTypes.DERIVED;
+    }
 }

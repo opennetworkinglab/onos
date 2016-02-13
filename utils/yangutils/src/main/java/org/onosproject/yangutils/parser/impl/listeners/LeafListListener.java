@@ -16,8 +16,18 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangLeafList;
+import org.onosproject.yangutils.datamodel.YangLeavesHolder;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -52,6 +62,8 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
  */
 public final class LeafListListener {
 
+    private static ParsableDataType yangConstruct;
+
     /**
      * Creates a new leaf list listener.
      */
@@ -68,7 +80,36 @@ public final class LeafListListener {
      */
     public static void processLeafListEntry(TreeWalkListener listener,
                                             GeneratedYangParser.LeafListStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                ParsableDataType.LEAF_LIST_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+                ListenerErrorLocation.ENTRY);
+
+        boolean result = validateSubStatementsCardinality(ctx);
+        if (!result) {
+            throw new ParserException(ListenerErrorMessageConstruction
+                    .constructListenerErrorMessage(ListenerErrorType.INVALID_CARDINALITY,
+                            yangConstruct, "", ListenerErrorLocation.ENTRY));
+        }
+
+        YangLeafList leafList = new YangLeafList();
+        leafList.setLeafName(ctx.IDENTIFIER().getText());
+
+        Parsable tmpData = listener.getParsedDataStack().peek();
+        YangLeavesHolder leaves;
+
+        if (tmpData instanceof YangLeavesHolder) {
+            leaves = (YangLeavesHolder) tmpData;
+            leaves.addLeafList(leafList);
+        } else {
+            throw new ParserException(ListenerErrorMessageConstruction
+                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                            ParsableDataType.LEAF_LIST_DATA,
+                            String.valueOf(ctx.IDENTIFIER().getText()),
+                            ListenerErrorLocation.ENTRY));
+        }
+        listener.getParsedDataStack().push(leafList);
     }
 
     /**
@@ -80,6 +121,80 @@ public final class LeafListListener {
      */
     public static void processLeafListExit(TreeWalkListener listener,
                                            GeneratedYangParser.LeafListStatementContext ctx) {
-        // TODO method implementation
+
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                ParsableDataType.LEAF_LIST_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+                ListenerErrorLocation.EXIT);
+
+        if (listener.getParsedDataStack().peek() instanceof YangLeafList) {
+            listener.getParsedDataStack().pop();
+        } else {
+            throw new ParserException(ListenerErrorMessageConstruction
+                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                            ParsableDataType.LEAF_LIST_DATA,
+                            String.valueOf(ctx.IDENTIFIER().getText()),
+                            ListenerErrorLocation.EXIT));
+        }
+    }
+
+    /**
+     * Validates the cardinality of leaf-list sub-statements as per grammar.
+     *
+     * @param ctx context object of the grammar rule.
+     * @return true/false validation success or failure.
+     */
+    public static boolean validateSubStatementsCardinality(GeneratedYangParser
+            .LeafListStatementContext ctx) {
+
+        if (ctx.typeStatement().isEmpty()
+                || (ctx.typeStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.TYPE_DATA;
+            return false;
+        }
+
+        if ((!ctx.unitsStatement().isEmpty())
+                && (ctx.unitsStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.UNITS_DATA;
+            return false;
+        }
+
+        if ((!ctx.configStatement().isEmpty())
+                && (ctx.configStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.CONFIG_DATA;
+            return false;
+        }
+
+        if ((!ctx.maxElementsStatement().isEmpty())
+                && (ctx.maxElementsStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.MAX_ELEMENT_DATA;
+            return false;
+        }
+
+        if ((!ctx.minElementsStatement().isEmpty())
+                && (ctx.minElementsStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.MIN_ELEMENT_DATA;
+            return false;
+        }
+
+        if ((!ctx.descriptionStatement().isEmpty())
+                && (ctx.descriptionStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.DESCRIPTION_DATA;
+            return false;
+        }
+
+        if ((!ctx.referenceStatement().isEmpty())
+                && (ctx.referenceStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.REFERENCE_DATA;
+            return false;
+        }
+
+        if ((!ctx.statusStatement().isEmpty())
+                && (ctx.statusStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
+            yangConstruct = ParsableDataType.STATUS_DATA;
+            return false;
+        }
+
+        return true;
     }
 }

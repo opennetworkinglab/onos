@@ -36,6 +36,8 @@ import java.io.IOException;
  */
 public class YangUtilsParserManager implements YangUtilsParser {
 
+    public static final int SUB_STATEMENT_CARDINALITY = 1;
+
     @Override
     public YangNode getDataModel(String yangFile) throws IOException, ParserException {
 

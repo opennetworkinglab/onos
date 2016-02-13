@@ -16,8 +16,17 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangLeafList;
+import org.onosproject.yangutils.datamodel.YangList;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -55,18 +64,28 @@ public final class MinElementsListener {
      */
     public static void processMinElementsEntry(TreeWalkListener listener,
                                                GeneratedYangParser.MinElementsStatementContext ctx) {
-        // TODO method implementation
-    }
 
-    /**
-     * It is called when parser exits from grammar rule (min-elements), it performs
-     * validation and updates the data model tree.
-     *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
-     */
-    public static void processMinElementsExit(TreeWalkListener listener,
-                                              GeneratedYangParser.MinElementsStatementContext ctx) {
-        // TODO method implementation
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                ParsableDataType.MIN_ELEMENT_DATA, String.valueOf(ctx.INTEGER().getText()),
+                ListenerErrorLocation.ENTRY);
+
+        Parsable tmpData = listener.getParsedDataStack().peek();
+        switch (tmpData.getParsableDataType()) {
+            case LEAF_LIST_DATA:
+                YangLeafList leafList = (YangLeafList) tmpData;
+                leafList.setMinElements(Integer.parseInt(ctx.INTEGER().getText()));
+                break;
+            case LIST_DATA:
+                YangList yangList = (YangList) tmpData;
+                yangList.setMinElements(Integer.parseInt(ctx.INTEGER().getText()));
+                break;
+            default:
+                throw new ParserException(ListenerErrorMessageConstruction
+                        .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                                ParsableDataType.MIN_ELEMENT_DATA,
+                                String.valueOf(ctx.INTEGER().getText()),
+                                ListenerErrorLocation.ENTRY));
+        }
     }
 }

@@ -16,8 +16,17 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangStatus;
+import org.onosproject.yangutils.datamodel.YangStatusType;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -56,18 +65,28 @@ public final class StatusListener {
      */
     public static void processStatusEntry(TreeWalkListener listener,
                                           GeneratedYangParser.StatusStatementContext ctx) {
-        // TODO method implementation
-    }
+        YangStatusType status;
 
-    /**
-     * It is called when parser exits from grammar rule (status), it performs
-     * validation and updates the data model tree.
-     *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
-     */
-    public static void processStatusExit(TreeWalkListener listener,
-                                              GeneratedYangParser.StatusStatementContext ctx) {
-        // TODO method implementation
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                ParsableDataType.STATUS_DATA, "", ListenerErrorLocation.ENTRY);
+
+        if (ctx.CURRENT_KEYWORD() != null) {
+            status = YangStatusType.CURRENT.CURRENT;
+        } else if (ctx.DEPRECATED_KEYWORD() != null) {
+            status = YangStatusType.DEPRECATED;
+        } else {
+            status = YangStatusType.OBSOLETE.OBSOLETE;
+        }
+
+        Parsable tmpData = listener.getParsedDataStack().peek();
+        if (tmpData instanceof YangStatus) {
+            YangStatus yangStatus = (YangStatus) tmpData;
+            yangStatus.setStatus(status);
+        } else {
+            throw new ParserException(ListenerErrorMessageConstruction
+                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                            ParsableDataType.STATUS_DATA, "", ListenerErrorLocation.ENTRY));
+        }
     }
 }

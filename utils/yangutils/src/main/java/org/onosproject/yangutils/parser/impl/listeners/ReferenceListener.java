@@ -16,8 +16,16 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangReference;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -51,18 +59,22 @@ public final class ReferenceListener {
      */
     public static void processReferenceEntry(TreeWalkListener listener,
                                              GeneratedYangParser.ReferenceStatementContext ctx) {
-        // TODO method implementation
-    }
 
-    /**
-     * It is called when parser exits from grammar rule (reference), it performs
-     * validation and updates the data model tree.
-     *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
-     */
-    public static void processReferenceExit(TreeWalkListener listener,
-                                            GeneratedYangParser.ReferenceStatementContext ctx) {
-        // TODO method implementation
+        // Check for stack to be non empty.
+        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
+                ParsableDataType.REFERENCE_DATA, String.valueOf(ctx.string().getText()),
+                ListenerErrorLocation.ENTRY);
+
+        Parsable tmpData = listener.getParsedDataStack().peek();
+        if (tmpData instanceof YangReference) {
+            YangReference reference = (YangReference) tmpData;
+            reference.setReference(ctx.string().getText());
+        } else {
+            throw new ParserException(ListenerErrorMessageConstruction
+                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
+                            ParsableDataType.REFERENCE_DATA,
+                            String.valueOf(ctx.string().getText()),
+                            ListenerErrorLocation.ENTRY));
+        }
     }
 }
