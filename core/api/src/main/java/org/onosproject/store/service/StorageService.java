@@ -75,6 +75,13 @@ public interface StorageService {
     <V> AtomicValueBuilder<V> atomicValueBuilder();
 
     /**
+     * Creates a new LeaderElectorBuilder.
+     *
+     * @return leader elector builder
+     */
+    LeaderElectorBuilder leaderElectorBuilder();
+
+    /**
      * Creates a new transaction context builder.
      *
      * @return a builder for a transaction context.

@@ -34,7 +34,7 @@ public class EventuallyConsistentMapAdapter<K, V> implements EventuallyConsisten
     }
 
     @Override
-    public Type type() {
+    public Type primitiveType() {
         return Type.EVENTUALLY_CONSISTENT_MAP;
     }
 

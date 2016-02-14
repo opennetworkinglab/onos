@@ -36,7 +36,7 @@ import org.onosproject.store.primitives.TransactionId;
 public interface TransactionContext extends DistributedPrimitive {
 
     @Override
-    default DistributedPrimitive.Type type() {
+    default DistributedPrimitive.Type primitiveType() {
         return DistributedPrimitive.Type.TRANSACTION_CONTEXT;
     }
 

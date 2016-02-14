@@ -42,7 +42,7 @@ import java.util.function.BiFunction;
 public interface EventuallyConsistentMap<K, V> extends DistributedPrimitive {
 
     @Override
-    default DistributedPrimitive.Type type() {
+    default DistributedPrimitive.Type primitiveType() {
         return DistributedPrimitive.Type.EVENTUALLY_CONSISTENT_MAP;
     }
 

@@ -29,6 +29,7 @@ import org.onlab.util.HexString;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMap;
 import org.onosproject.store.primitives.resources.impl.AtomixCounter;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElector;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicValue;
@@ -133,7 +134,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public AsyncLeaderElector newAsyncLeaderElector(String name) {
-        throw new UnsupportedOperationException();
+        return client.get(name, AtomixLeaderElector.class).join();
     }
 
     @Override

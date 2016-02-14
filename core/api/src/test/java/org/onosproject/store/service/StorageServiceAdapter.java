@@ -53,4 +53,9 @@ public class StorageServiceAdapter implements StorageService {
     public TransactionContextBuilder transactionContextBuilder() {
         return null;
     }
+
+    @Override
+    public LeaderElectorBuilder leaderElectorBuilder() {
+        return null;
+    }
 }

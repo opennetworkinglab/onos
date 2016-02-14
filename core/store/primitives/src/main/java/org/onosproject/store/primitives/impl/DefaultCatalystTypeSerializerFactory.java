@@ -54,29 +54,29 @@ public class DefaultCatalystTypeSerializerFactory implements TypeSerializerFacto
         }
 
         @Override
-        public T read(Class<T> clazz, BufferInput<?> input,
-                      io.atomix.catalyst.serializer.Serializer serializer) {
-            int size = input.readInt();
-            byte[] payload = new byte[size];
-            input.read(payload);
+        public void write(T object, BufferOutput<?> buffer,
+                io.atomix.catalyst.serializer.Serializer serializer) {
             try {
-                return this.serializer.decode(payload);
+                byte[] payload = this.serializer.encode(object);
+                buffer.writeInt(payload.length);
+                buffer.write(payload);
             } catch (Exception e) {
-                log.warn("Failed to deserialize as type {}", clazz, e);
-                Throwables.propagate(e);
-                return null;
+                log.warn("Failed to serialize {}", object, e);
             }
         }
 
         @Override
-        public void write(T object, BufferOutput<?> output,
-                          io.atomix.catalyst.serializer.Serializer serializer) {
+        public T read(Class<T> type, BufferInput<?> buffer,
+                io.atomix.catalyst.serializer.Serializer serializer) {
+            int size = buffer.readInt();
             try {
-                byte[] payload = this.serializer.encode(object);
-                output.writeInt(payload.length);
-                output.write(payload);
+                byte[] payload = new byte[size];
+                buffer.read(payload);
+                return this.serializer.decode(payload);
             } catch (Exception e) {
-                log.warn("Failed to serialize {}", object, e);
+                log.warn("Failed to deserialize as type {}. Payload size: {}", type, size, e);
+                Throwables.propagate(e);
+                return null;
             }
         }
     }

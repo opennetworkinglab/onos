@@ -29,7 +29,7 @@ import org.onosproject.event.Change;
 public interface LeaderElector extends DistributedPrimitive {
 
     @Override
-    default DistributedPrimitive.Type type() {
+    default DistributedPrimitive.Type primitiveType() {
         return DistributedPrimitive.Type.LEADER_ELECTOR;
     }
 

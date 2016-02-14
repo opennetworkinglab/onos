@@ -25,7 +25,7 @@ import org.onosproject.store.primitives.DefaultAtomicCounter;
 public interface AsyncAtomicCounter extends DistributedPrimitive {
 
     @Override
-    default DistributedPrimitive.Type type() {
+    default DistributedPrimitive.Type primitiveType() {
         return DistributedPrimitive.Type.COUNTER;
     }
 

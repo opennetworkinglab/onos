@@ -22,6 +22,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,6 +33,7 @@ import org.onlab.util.Tools;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.cluster.messaging.MessagingService;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 import io.atomix.catalyst.transport.Address;
@@ -71,18 +73,23 @@ public class CopycatTransportServer implements Server {
         messagingService.registerHandler(messageSubject, (sender, payload) -> {
             try (DataInputStream input = new DataInputStream(new ByteArrayInputStream(payload))) {
                 long connectionId = input.readLong();
-                InetAddress senderHost = InetAddress.getByAddress(sender.host().toOctets());
-                int senderPort = sender.port();
-                Address senderAddress = new Address(new InetSocketAddress(senderHost, senderPort));
                 AtomicBoolean newConnection = new AtomicBoolean(false);
                 CopycatTransportConnection connection = connections.computeIfAbsent(connectionId, k -> {
                     newConnection.set(true);
-                    return new CopycatTransportConnection(connectionId,
-                            CopycatTransport.Mode.SERVER,
-                            partitionId,
-                            senderAddress,
-                            messagingService,
-                            getOrCreateContext(context));
+                    try {
+                        InetAddress senderHost = InetAddress.getByAddress(sender.host().toOctets());
+                        int senderPort = sender.port();
+                        Address senderAddress = new Address(new InetSocketAddress(senderHost, senderPort));
+                        return new CopycatTransportConnection(connectionId,
+                                CopycatTransport.Mode.SERVER,
+                                partitionId,
+                                senderAddress,
+                                messagingService,
+                                getOrCreateContext(context));
+                    } catch (UnknownHostException e) {
+                        Throwables.propagate(e);
+                        return null;
+                    }
                 });
                 byte[] request = IOUtils.toByteArray(input);
                 return CompletableFuture.supplyAsync(

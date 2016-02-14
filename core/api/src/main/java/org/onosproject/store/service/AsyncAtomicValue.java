@@ -32,7 +32,7 @@ import org.onosproject.store.primitives.DefaultAtomicValue;
 public interface AsyncAtomicValue<V> extends DistributedPrimitive {
 
     @Override
-    default DistributedPrimitive.Type type() {
+    default DistributedPrimitive.Type primitiveType() {
         return DistributedPrimitive.Type.VALUE;
     }
 

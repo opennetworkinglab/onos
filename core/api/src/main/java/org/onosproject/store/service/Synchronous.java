@@ -37,8 +37,8 @@ public abstract class Synchronous<T extends DistributedPrimitive> implements Dis
     }
 
     @Override
-    public Type type() {
-        return primitive.type();
+    public Type primitiveType() {
+        return primitive.primitiveType();
     }
 
     @Override

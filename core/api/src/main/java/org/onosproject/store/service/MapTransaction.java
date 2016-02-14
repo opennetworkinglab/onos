@@ -21,6 +21,7 @@ import java.util.function.Function;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -56,6 +57,14 @@ public class MapTransaction<K, V> {
      */
     public List<MapUpdate<K, V>> updates() {
         return updates;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("transactionId", transactionId)
+                .add("updates", updates)
+                .toString();
     }
 
     /**

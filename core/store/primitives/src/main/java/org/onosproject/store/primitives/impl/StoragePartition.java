@@ -33,6 +33,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
 import org.onosproject.store.cluster.messaging.MessagingService;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMap;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElector;
 import org.onosproject.store.service.PartitionInfo;
 
 import com.google.common.collect.Collections2;
@@ -51,6 +52,7 @@ public class StoragePartition extends DefaultPartition implements Managed<Storag
     private final File logFolder;
     private static final Collection<ResourceType> RESOURCE_TYPES = ImmutableSet.of(
                                                         new ResourceType(DistributedLong.class),
+                                                        new ResourceType(AtomixLeaderElector.class),
                                                         new ResourceType(AtomixConsistentMap.class));
 
     private NodeId localNodeId;

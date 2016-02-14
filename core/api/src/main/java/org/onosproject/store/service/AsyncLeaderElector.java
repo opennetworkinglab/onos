@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.Change;
+import org.onosproject.store.primitives.DefaultLeaderElector;
 
 /**
  * Distributed mutual exclusion primitive.
@@ -45,7 +46,7 @@ import org.onosproject.event.Change;
 public interface AsyncLeaderElector extends DistributedPrimitive {
 
     @Override
-    default DistributedPrimitive.Type type() {
+    default DistributedPrimitive.Type primitiveType() {
         return DistributedPrimitive.Type.LEADER_ELECTOR;
     }
 
@@ -102,4 +103,23 @@ public interface AsyncLeaderElector extends DistributedPrimitive {
      * @return CompletableFuture that is completed when the operation completes
      */
     CompletableFuture<Void> removeChangeListener(Consumer<Change<Leadership>> consumer);
+
+    /**
+     * Returns a new {@link LeaderElector} that is backed by this instance.
+     *
+     * @param timeoutMillis timeout duration for the returned LeaderElector operations
+     * @return new {@code LeaderElector} instance
+     */
+    default LeaderElector asLeaderElector(long timeoutMillis) {
+        return new DefaultLeaderElector(this, timeoutMillis);
+    }
+
+    /**
+     * Returns a new {@link LeaderElector} that is backed by this instance and with a default operation timeout.
+     *
+     * @return new {@code LeaderElector} instance
+     */
+    default LeaderElector asLeaderElector() {
+        return asLeaderElector(DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+    }
 }

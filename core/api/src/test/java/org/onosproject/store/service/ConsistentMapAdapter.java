@@ -33,7 +33,7 @@ public class ConsistentMapAdapter<K, V> implements ConsistentMap<K, V> {
     }
 
     @Override
-    public DistributedPrimitive.Type type() {
+    public DistributedPrimitive.Type primitiveType() {
         return DistributedPrimitive.Type.CONSISTENT_MAP;
     }
 

@@ -76,6 +76,7 @@ import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.DistributedQueueBuilder;
 import org.onosproject.store.service.DistributedSetBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
+import org.onosproject.store.service.LeaderElectorBuilder;
 import org.onosproject.store.service.MapInfo;
 import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.Serializer;
@@ -357,6 +358,11 @@ public class DatabaseManager implements StorageService, StorageAdminService {
                           .withMeteringDisabled()
                           .withSerializer(Serializer.using(KryoNamespaces.BASIC));
         return new DefaultAtomicValueBuilder<>(mapBuilderSupplier);
+    }
+
+    @Override
+    public LeaderElectorBuilder leaderElectorBuilder() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

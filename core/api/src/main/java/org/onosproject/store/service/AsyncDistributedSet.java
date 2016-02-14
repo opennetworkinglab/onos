@@ -33,7 +33,7 @@ import org.onosproject.store.primitives.DefaultDistributedSet;
 public interface AsyncDistributedSet<E> extends DistributedPrimitive {
 
     @Override
-    default DistributedPrimitive.Type type() {
+    default DistributedPrimitive.Type primitiveType() {
         return DistributedPrimitive.Type.SET;
     }
 

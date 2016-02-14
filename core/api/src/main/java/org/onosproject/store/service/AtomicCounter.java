@@ -21,7 +21,7 @@ package org.onosproject.store.service;
 public interface AtomicCounter extends DistributedPrimitive {
 
     @Override
-    default DistributedPrimitive.Type type() {
+    default DistributedPrimitive.Type primitiveType() {
         return DistributedPrimitive.Type.COUNTER;
     }
 

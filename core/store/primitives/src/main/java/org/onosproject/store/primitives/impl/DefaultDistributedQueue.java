@@ -117,7 +117,7 @@ public class DefaultDistributedQueue<E>  implements DistributedQueue<E> {
     }
 
     @Override
-    public DistributedPrimitive.Type type() {
+    public DistributedPrimitive.Type primitiveType() {
         return DistributedPrimitive.Type.QUEUE;
     }
 

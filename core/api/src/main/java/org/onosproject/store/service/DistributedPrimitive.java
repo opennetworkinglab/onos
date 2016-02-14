@@ -81,7 +81,7 @@ public interface DistributedPrimitive {
      * Returns the type of primitive.
      * @return primitive type
      */
-    Type type();
+    Type primitiveType();
 
     /**
      * Returns the application owning this primitive.

@@ -55,7 +55,7 @@ import org.onosproject.store.primitives.TransactionId;
 public interface AsyncConsistentMap<K, V> extends DistributedPrimitive {
 
     @Override
-    default DistributedPrimitive.Type type() {
+    default DistributedPrimitive.Type primitiveType() {
         return DistributedPrimitive.Type.CONSISTENT_MAP;
     }
 
