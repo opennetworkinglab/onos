@@ -89,6 +89,7 @@
         <module>intentsync</module>
         <module>mappingmanagement</module>
         <module>yang</module>
+        <module>network-troubleshoot</module>
     </modules>
 
     <properties>

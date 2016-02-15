@@ -190,7 +190,8 @@ ONOS_APPS = [
     '//apps/flowspec-api:onos-apps-flowspec-api-oar',
     '//apps/yang:onos-apps-yang-oar',
     '//apps/yang-gui:onos-apps-yang-gui-oar',
-    '//apps/cord-support:onos-apps-cord-support-oar'
+    '//apps/cord-support:onos-apps-cord-support-oar',
+    '//apps/network-troubleshoot:onos-apps-network-troubleshoot-oar'
 ]
 
 APP_JARS = [

@@ -1,0 +1,12 @@
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+]
+
+TEST_DEPS = [
+  '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
+  deps = COMPILE_DEPS,
+  test_deps = TEST_DEPS,
+)
