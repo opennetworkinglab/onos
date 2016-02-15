@@ -175,10 +175,10 @@ public class StateMachineTest {
         stateMachine.authorizeAccess();
 
         stateMachine.start();
-        Assert.assertEquals(stateMachine.state(), StateMachine.STATE_AUTHORIZED);
+        Assert.assertEquals(stateMachine.state(), StateMachine.STATE_STARTED);
 
         stateMachine.requestAccess();
-        Assert.assertEquals(stateMachine.state(), StateMachine.STATE_AUTHORIZED);
+        Assert.assertEquals(stateMachine.state(), StateMachine.STATE_PENDING);
 
         stateMachine.authorizeAccess();
         Assert.assertEquals(stateMachine.state(), StateMachine.STATE_AUTHORIZED);
