@@ -35,6 +35,7 @@ import org.onlab.packet.TCP;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -372,8 +373,8 @@ public class ReactiveForwarding {
                                               String propertyName) {
         Integer value = null;
         try {
-            String s = (String) properties.get(propertyName);
-            value = isNullOrEmpty(s) ? value : Integer.parseInt(s.trim());
+            String s = Tools.get(properties, propertyName);
+            value = isNullOrEmpty(s) ? value : Integer.parseInt(s);
         } catch (NumberFormatException | ClassCastException e) {
             value = null;
         }
@@ -391,10 +392,8 @@ public class ReactiveForwarding {
                                              String propertyName) {
         boolean enabled = false;
         try {
-            String flag = (String) properties.get(propertyName);
-            if (flag != null) {
-                enabled = flag.trim().equals("true");
-            }
+            String flag = Tools.get(properties, propertyName);
+            enabled = isNullOrEmpty(flag) ? enabled : flag.equals("true");
         } catch (ClassCastException e) {
             // No propertyName defined.
             enabled = false;
