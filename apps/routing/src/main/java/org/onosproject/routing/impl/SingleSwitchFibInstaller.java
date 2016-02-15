@@ -422,7 +422,7 @@ public class SingleSwitchFibInstaller {
                 if (deviceService.isAvailable(event.subject().id())) {
                     log.info("Device connected {}", event.subject().id());
                     if (event.subject().id().equals(deviceId)) {
-                        processIntfFilters(true, interfaceService.getInterfaces());
+                        updateDevice();
                     }
                 }
                 break;
