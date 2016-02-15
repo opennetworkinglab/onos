@@ -205,9 +205,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         // Extract Discrete instances from resources
         List<Resource> resources = ids.stream()
                 .filter(x -> x.parent().isPresent())
-                .map(x -> lookup(childTxMap, x))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .flatMap(x -> Tools.stream(lookup(childTxMap, x)))
                 .collect(Collectors.toList());
         // the order is preserved by LinkedHashMap
         Map<DiscreteResourceId, List<Resource>> resourceMap = resources.stream()

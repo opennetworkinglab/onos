@@ -21,7 +21,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -150,9 +149,7 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
     public List<PartitionInfo> partitionInfo() {
         return partitions.values()
                          .stream()
-                         .map(StoragePartition::info)
-                         .filter(Optional::isPresent)
-                         .map(Optional::get)
+                         .flatMap(x -> Tools.stream(x.info()))
                          .collect(Collectors.toList());
     }
 }
