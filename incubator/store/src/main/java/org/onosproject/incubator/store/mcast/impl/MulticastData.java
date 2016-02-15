@@ -16,9 +16,10 @@
 package org.onosproject.incubator.store.mcast.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.onosproject.net.ConnectPoint;
 
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,20 +34,17 @@ public final class MulticastData {
 
     private final AtomicReference<ConnectPoint> source =
             new AtomicReference<>();
-    private final Set<ConnectPoint> sinks;
+    private final Map<ConnectPoint, Boolean> sinks;
     private final AtomicBoolean isEmpty = new AtomicBoolean();
 
     private MulticastData() {
-        // FIXME we have major problems trying to serialize these sets
-        //this.sinks = Sets.newConcurrentHashSet();
-        this.sinks = new HashSet<>();
+        this.sinks = Maps.newConcurrentMap();
         isEmpty.set(true);
     }
 
     public MulticastData(ConnectPoint source) {
         this.source.set(checkNotNull(source, "Multicast source cannot be null."));
-        //this.sinks = Sets.newConcurrentHashSet();
-        this.sinks = new HashSet<>();
+        this.sinks = Maps.newConcurrentMap();
         isEmpty.set(false);
     }
 
@@ -55,7 +53,7 @@ public final class MulticastData {
     }
 
     public Set<ConnectPoint> sinks() {
-        return ImmutableSet.copyOf(sinks);
+        return ImmutableSet.copyOf(sinks.keySet());
     }
 
     public void setSource(ConnectPoint source) {
@@ -65,7 +63,7 @@ public final class MulticastData {
 
     public void appendSink(ConnectPoint sink) {
         checkNotNull(sink);
-        sinks.add(sink);
+        sinks.put(sink, true);
     }
 
     public boolean removeSink(ConnectPoint sink) {
