@@ -17,7 +17,6 @@ package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -27,7 +26,6 @@ import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
-import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -158,9 +156,9 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
     }
 
     private Set<MplsLabel> findMplsLabel(ConnectPoint cp) {
-        return resourceService.getAvailableResources(Resources.discrete(cp.deviceId(), cp.port()).id()).stream()
-                .flatMap(x -> Tools.stream(x.valueAs(MplsLabel.class)))
-                .collect(Collectors.toSet());
+        return resourceService.getAvailableResourceValues(
+                Resources.discrete(cp.deviceId(), cp.port()).id(),
+                MplsLabel.class);
     }
 
     private MplsLabel getMplsLabel(Map<LinkKey, MplsLabel> labels, LinkKey link) {

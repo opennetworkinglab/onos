@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.GuavaCollectors;
+import org.onlab.util.Tools;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.newresource.DiscreteResourceId;
 import org.onosproject.net.newresource.ResourceAdminService;
@@ -146,6 +147,28 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
         return children.stream()
                 // We access store twice in this method, then the store may be updated by others
                 .filter(store::isAvailable)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public <T> Set<Resource> getAvailableResources(DiscreteResourceId parent, Class<T> cls) {
+        checkNotNull(parent);
+        checkNotNull(cls);
+
+        // naive implementation
+        return getAvailableResources(parent).stream()
+                .filter(resource -> resource.isTypeOf(cls))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public <T> Set<T> getAvailableResourceValues(DiscreteResourceId parent, Class<T> cls) {
+        checkNotNull(parent);
+        checkNotNull(cls);
+
+        // naive implementation
+        return getAvailableResources(parent).stream()
+                .flatMap(resource -> Tools.stream(resource.valueAs(cls)))
                 .collect(Collectors.toSet());
     }
 

@@ -24,7 +24,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.util.Frequency;
-import org.onlab.util.Tools;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
@@ -217,9 +216,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                         Resources.discrete(x.src().deviceId(), x.src().port()).id(),
                         Resources.discrete(x.dst().deviceId(), x.dst().port()).id()
                 ))
-                .map(resourceService::getAvailableResources)
-                .map(x -> x.stream()
-                        .flatMap(r -> Tools.stream(r.valueAs(OchSignal.class))).collect(Collectors.toList()))
+                .map(x -> resourceService.getAvailableResourceValues(x, OchSignal.class))
                 .map(x -> (Set<OchSignal>) ImmutableSet.copyOf(x))
                 .reduce(Sets::intersection)
                 .orElse(Collections.emptySet());

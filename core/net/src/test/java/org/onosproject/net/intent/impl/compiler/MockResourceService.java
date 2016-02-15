@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Tools;
 import org.onosproject.net.newresource.ContinuousResourceId;
 import org.onosproject.net.newresource.DiscreteResource;
 import org.onosproject.net.newresource.DiscreteResourceId;
@@ -108,6 +109,21 @@ class MockResourceService implements ResourceService {
         resources.add(Resources.discrete(parent).resource().child(VlanId.vlanId((short) 10)));
         resources.add(Resources.discrete(parent).resource().child(MplsLabel.mplsLabel(10)));
         return ImmutableSet.copyOf(resources);
+    }
+
+    @Override
+    public <T> Set<Resource> getAvailableResources(DiscreteResourceId parent, Class<T> cls) {
+        return getAvailableResources(parent).stream()
+                .filter(x -> x.isTypeOf(cls))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public <T> Set<T> getAvailableResourceValues(DiscreteResourceId parent, Class<T> cls) {
+        return getAvailableResources(parent).stream()
+                .filter(x -> x.isTypeOf(cls))
+                .flatMap(x -> Tools.stream(x.valueAs(cls)))
+                .collect(Collectors.toSet());
     }
 
     @Override

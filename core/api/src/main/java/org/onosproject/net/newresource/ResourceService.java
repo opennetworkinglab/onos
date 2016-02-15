@@ -163,6 +163,27 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
     Set<Resource> getAvailableResources(DiscreteResourceId parent);
 
     /**
+     * Returns available resources which are child resources of the specified parent and
+     * whose type is the specified type.
+     *
+     * @param parent parent resource ID
+     * @param cls class to specify a type of resource
+     * @param <T> type of the resource
+     * @return available resources of the specified type under the specified parent resource
+     */
+    <T> Set<Resource> getAvailableResources(DiscreteResourceId parent, Class<T> cls);
+
+    /**
+     * Returns available resource values which are the values of the child resource of
+     * the specified parent and whose type is the specified type.
+     *
+     * @param parent parent resource ID
+     * @param cls class to specify a type of resource
+     * @param <T> type of the resource
+     * @return available resource value of the specified type under the specified parent resource
+     */
+    <T> Set<T> getAvailableResourceValues(DiscreteResourceId parent, Class<T> cls);
+    /**
      * Returns resources registered under the specified resource.
      *
      * @param parent parent resource ID
