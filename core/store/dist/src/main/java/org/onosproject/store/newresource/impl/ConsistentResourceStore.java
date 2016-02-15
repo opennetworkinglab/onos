@@ -268,21 +268,18 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 tx.getTransactionalMap(CONTINUOUS_CONSUMER_MAP, SERIALIZER);
 
         for (Resource resource: resources) {
-            if (resource instanceof DiscreteResource) {
-                if (!lookup(childTxMap, resource.id()).isPresent()) {
-                    return abortTransaction(tx);
-                }
+            // if the resource is not registered, then abort
+            Optional<Resource> lookedUp = lookup(childTxMap, resource.id());
+            if (!lookedUp.isPresent()) {
+                return abortTransaction(tx);
+            }
 
+            if (resource instanceof DiscreteResource) {
                 ResourceConsumer oldValue = discreteConsumerTxMap.put(((DiscreteResource) resource).id(), consumer);
                 if (oldValue != null) {
                     return abortTransaction(tx);
                 }
             } else if (resource instanceof ContinuousResource) {
-                Optional<Resource> lookedUp = lookup(childTxMap, resource.id());
-                if (!lookedUp.isPresent()) {
-                    return abortTransaction(tx);
-                }
-
                 // Down cast: this must be safe as ContinuousResource is associated with ContinuousResourceId
                 ContinuousResource continuous = (ContinuousResource) lookedUp.get();
                 ContinuousResourceAllocation allocations = continuousConsumerTxMap.get(continuous.id());
