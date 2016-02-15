@@ -15,12 +15,14 @@
  */
 package org.onosproject.openstackswitching;
 
+import com.google.common.collect.Maps;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -38,8 +40,7 @@ public final class OpenstackPort {
 
     private PortStatus status;
     private String name;
-    // FIX_ME
-    private String allowedAddressPairs;
+    private Map<IpAddress, MacAddress> allowedAddressPairs;
     private boolean adminStateUp;
     private String networkId;
     private String tenantId;
@@ -51,13 +52,13 @@ public final class OpenstackPort {
     private Collection<String> securityGroups;
     private String deviceId;
 
-    private OpenstackPort(PortStatus status, String name, boolean adminStateUp,
-                          String networkId, String tenantId, String deviceOwner,
-                          MacAddress macAddress, HashMap fixedIps, String id,
-                          Collection<String> securityGroups, String deviceId) {
-
+    private OpenstackPort(PortStatus status, String name, Map<IpAddress, MacAddress> allowedAddressPairs,
+                          boolean adminStateUp, String networkId, String tenantId,
+                          String deviceOwner, MacAddress macAddress, HashMap fixedIps,
+                          String id, Collection<String> securityGroups, String deviceId) {
         this.status = status;
         this.name = name;
+        this.allowedAddressPairs = checkNotNull(allowedAddressPairs);
         this.adminStateUp = adminStateUp;
         this.networkId = checkNotNull(networkId);
         this.tenantId = checkNotNull(tenantId);
@@ -96,6 +97,15 @@ public final class OpenstackPort {
      */
     public String name() {
         return name;
+    }
+
+    /**
+     * Returns allowed address pairs.
+     *
+     * @return map of ip address and mac address, or empty map
+     */
+    public Map<IpAddress, MacAddress> allowedAddressPairs() {
+        return allowedAddressPairs;
     }
 
     /**
@@ -170,27 +180,6 @@ public final class OpenstackPort {
         return deviceId;
     }
 
-    // TODO : Implement the following functions when necessary
-    //@Override
-    //public void equals(Object that) {
-    //
-    //}
-    //
-    //@Override
-    //public int hashCode() {
-    //
-    //}
-
-    @Override
-    public Object clone() {
-        OpenstackPort op = new OpenstackPort(this.status, this.name, this.adminStateUp,
-                this.networkId, this.tenantId, this.deviceOwner, this.macAddress,
-                (HashMap) this.fixedIps.clone(), this.id,
-                Collections.unmodifiableCollection(this.securityGroups), this.deviceId);
-
-        return op;
-    }
-
     /**
      * OpenstackPort Builder class.
      */
@@ -198,8 +187,7 @@ public final class OpenstackPort {
 
         private PortStatus status;
         private String name;
-        // FIX_ME
-        private String allowedAddressPairs;
+        private Map<IpAddress, MacAddress> allowedAddressPairs;
         private boolean adminStateUp;
         private String networkId;
         private String tenantId;
@@ -212,7 +200,8 @@ public final class OpenstackPort {
         private String deviceId;
 
         Builder() {
-            fixedIps = new HashMap<>();
+            fixedIps = Maps.newHashMap();
+            allowedAddressPairs = Maps.newHashMap();
         }
 
         /**
@@ -236,6 +225,17 @@ public final class OpenstackPort {
         public Builder name(String name) {
             this.name = name;
 
+            return this;
+        }
+
+        /**
+         * Sets allowed address pairs.
+         *
+         * @param addrPairs map of ip address and mac address
+         * @return Builder object
+         */
+        public Builder allowedAddressPairs(Map<IpAddress, MacAddress> addrPairs) {
+            this.allowedAddressPairs.putAll(addrPairs);
             return this;
         }
 
@@ -352,8 +352,9 @@ public final class OpenstackPort {
          * @return OpenstackPort objecet
          */
         public OpenstackPort build() {
-            return new OpenstackPort(status, name, adminStateUp, networkId, networkId,
-                    deviceOwner, macAddress, fixedIps, id, securityGroups, deviceId);
+            return new OpenstackPort(status, name, allowedAddressPairs, adminStateUp,
+                                     networkId, networkId, deviceOwner, macAddress, fixedIps,
+                                     id, securityGroups, deviceId);
         }
     }
 }

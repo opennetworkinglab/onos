@@ -19,7 +19,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
@@ -29,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Encodes and decodes the OpenstackPort.
@@ -54,6 +57,7 @@ public class OpenstackPortCodec extends JsonCodec<OpenstackPort> {
     private static final String ID = "id";
     private static final String SECURITY_GROUPS = "security_groups";
     private static final String DEVICE_ID = "device_id";
+    private static final String NA = "N/A";
 
     @Override
     public OpenstackPort decode(ObjectNode json, CodecContext context) {
@@ -86,9 +90,19 @@ public class OpenstackPortCodec extends JsonCodec<OpenstackPort> {
         securityGroupList.forEach(securityGroup -> securityGroupIdList.add(securityGroup.asText()));
         String deviceId = portInfo.path(DEVICE_ID).asText();
 
+        Map<IpAddress, MacAddress> addressPairs = Maps.newHashMap();
+        for (JsonNode addrPair : (ArrayNode) portInfo.path(ADDRESS_PAIR)) {
+            try {
+                addressPairs.put(IpAddress.valueOf(addrPair.path(IP_ADDRESS).asText()),
+                                 MacAddress.valueOf(addrPair.path(MAC_ADDRESS).asText()));
+            } catch (IllegalArgumentException e) {
+                log.debug("Invalid address pair {}", addrPair.toString());
+            }
+        }
+
         OpenstackPort.Builder openstackPortBuilder = OpenstackPort.builder();
         OpenstackPort.PortStatus portStatus =
-                status.equals("N/A") ? OpenstackPort.PortStatus.NA :
+                status.equals(NA) ? OpenstackPort.PortStatus.NA :
                         OpenstackPort.PortStatus.valueOf(status);
 
         openstackPortBuilder.portStatus(portStatus)
@@ -103,6 +117,9 @@ public class OpenstackPortCodec extends JsonCodec<OpenstackPort> {
                 .deviceId(deviceId)
                 .securityGroup(securityGroupIdList);
 
+        if (!addressPairs.isEmpty()) {
+            openstackPortBuilder.allowedAddressPairs(addressPairs);
+        }
 
         OpenstackPort openstackPort = openstackPortBuilder.build();
 
