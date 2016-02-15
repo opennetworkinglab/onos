@@ -91,7 +91,6 @@ public class FpmSessionHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        handleDisconnect();
     }
 
     private void handleDisconnect() {

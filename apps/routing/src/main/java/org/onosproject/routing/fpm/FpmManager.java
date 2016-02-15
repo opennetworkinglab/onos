@@ -19,6 +19,10 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -32,6 +36,8 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.routing.RouteEntry;
 import org.onosproject.routing.RouteListener;
 import org.onosproject.routing.RouteSourceService;
@@ -43,14 +49,18 @@ import org.onosproject.routing.fpm.protocol.RouteAttributeDst;
 import org.onosproject.routing.fpm.protocol.RouteAttributeGateway;
 import org.onosproject.routing.fpm.protocol.RtNetlink;
 import org.onosproject.routing.fpm.protocol.RtProtocol;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collections;
+import java.util.Dictionary;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
@@ -63,6 +73,11 @@ import static org.onlab.util.Tools.groupedThreads;
 public class FpmManager implements RouteSourceService, FpmInfoService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final int FPM_PORT = 2620;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService componentConfigService;
+
     private ServerBootstrap serverBootstrap;
     private Channel serverChannel;
     private ChannelGroup allChannels = new DefaultChannelGroup();
@@ -73,17 +88,34 @@ public class FpmManager implements RouteSourceService, FpmInfoService {
 
     private RouteListener routeListener;
 
-    private static final int FPM_PORT = 2620;
+    @Property(name = "clearRoutes", boolValue = true,
+            label = "Whether to clear routes when the FPM connection goes down")
+    private boolean clearRoutes = true;
 
     @Activate
-    protected void activate() {
+    protected void activate(ComponentContext context) {
+        componentConfigService.registerProperties(getClass());
+        modified(context);
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         stopServer();
+        componentConfigService.unregisterProperties(getClass(), false);
         log.info("Stopped");
+    }
+
+    @Modified
+    protected void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        if (properties == null) {
+            return;
+        }
+        String strClearRoutes = Tools.get(properties, "clearRoutes");
+        clearRoutes = Boolean.parseBoolean(strClearRoutes);
+
+        log.info("clearRoutes set to {}", clearRoutes);
     }
 
     private void startServer() {
@@ -126,6 +158,10 @@ public class FpmManager implements RouteSourceService, FpmInfoService {
         allChannels.clear();
         if (serverBootstrap != null) {
             serverBootstrap.releaseExternalResources();
+        }
+
+        if (clearRoutes) {
+            clearRoutes();
         }
     }
 
@@ -213,6 +249,15 @@ public class FpmManager implements RouteSourceService, FpmInfoService {
         routeListener.update(Collections.singletonList(routeUpdate));
     }
 
+
+    private void clearRoutes() {
+        log.info("Clearing all routes");
+        List<RouteUpdate> routeUpdates = fpmRoutes.values().stream()
+                .map(routeEntry -> new RouteUpdate(RouteUpdate.Type.DELETE, routeEntry))
+                .collect(Collectors.toList());
+        routeListener.update(routeUpdates);
+    }
+
     @Override
     public Map<SocketAddress, Long> peers() {
         return ImmutableMap.copyOf(peers);
@@ -236,6 +281,12 @@ public class FpmManager implements RouteSourceService, FpmInfoService {
 
         @Override
         public void peerDisconnected(SocketAddress address) {
+            log.info("FPM connection to {} went down", address);
+
+            if (clearRoutes) {
+                clearRoutes();
+            }
+
             peers.remove(address);
         }
     }
