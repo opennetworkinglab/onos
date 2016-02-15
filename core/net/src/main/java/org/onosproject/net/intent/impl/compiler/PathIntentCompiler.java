@@ -38,6 +38,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
@@ -221,16 +222,28 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
                         .matchInPort(prev.port())
                         .matchVlanId(prevVlanId).build();
                 TrafficTreatment.Builder egressTreat = DefaultTrafficTreatment.builder(intent.treatment());
-                if (vlanCriterion.isPresent()) {
-                    egressTreat.setVlanId(vlanCriterion.get().vlanId());
-                } else {
-                    egressTreat.popVlan();
+
+                Optional<L2ModificationInstruction.ModVlanIdInstruction> modVlanIdInstruction = intent.treatment()
+                        .allInstructions().stream().filter(
+                                instruction -> instruction instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                        .map(x -> (L2ModificationInstruction.ModVlanIdInstruction) x).findAny();
+
+                Optional<L2ModificationInstruction.PopVlanInstruction> popVlanInstruction = intent.treatment()
+                        .allInstructions().stream().filter(
+                                instruction -> instruction instanceof L2ModificationInstruction.PopVlanInstruction)
+                        .map(x -> (L2ModificationInstruction.PopVlanInstruction) x).findAny();
+
+                if (!modVlanIdInstruction.isPresent() && !popVlanInstruction.isPresent()) {
+                    if (vlanCriterion.isPresent()) {
+                        egressTreat.setVlanId(vlanCriterion.get().vlanId());
+                    } else {
+                        egressTreat.popVlan();
+                    }
                 }
 
                 rules.add(createFlowRule(egressSelector,
                                          egressTreat.build(), prev, link.src(), intent.priority(), true));
             }
-
         }
         return rules;
 
