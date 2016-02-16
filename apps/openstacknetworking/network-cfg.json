@@ -1,0 +1,51 @@
+{
+    "apps" : {
+      "org.onosproject.openstackswitching" : {
+          "openstackswitching" : {
+                "do_not_push_flows" : "false",
+                "neutron_server" : "http://192.168.56.103:9696/v2.0/",
+                "keystone_server" : "http://192.168.56.103:5000/v2.0/",
+                "user_name" : "admin",
+                "password" : "nova",
+                "physicalRouterMac" : "00:00:00:00:00:20",
+                "nodes" : [
+                  {
+                      "hostname" : "compute-01",
+                                  "ovsdbIp" : "192.168.56.102",
+                                  "ovsdbPort" : "6640",
+                                  "bridgeId" : "of:0000000000000001",
+                                  "openstackNodeType" : "COMPUTENODE"
+                              },
+                              {
+                                  "hostname" : "compute-02",
+                                  "ovsdbIp" : "192.168.56.101",
+                                  "ovsdbPort" : "6640",
+                                  "bridgeId" : "of:0000000000000002",
+                                  "openstackNodeType" : "COMPUTENODE"
+                              },
+                              {
+                                  "hostname" : "network",
+                                  "ovsdbIp" : "192.168.56.106",
+                                  "ovsdbPort" : "6640",
+                                  "bridgeId" : "of:0000000000000003",
+                                  "openstackNodeType" : "GATEWAYNODE",
+                                  "externalIfName" : "eth3",
+                                  "externalIfMacAddress" : "00:00:00:00:00:11"
+                              }
+                ]
+              }
+          }
+    },
+    "devices" : {
+        "of:0000000000000001" : {
+            "basic" : {
+                "driver" : "sona"
+            }
+        },
+        "of:0000000000000002" : {
+            "basic" : {
+                "driver" : "sona"
+            }
+        }
+    }
+}

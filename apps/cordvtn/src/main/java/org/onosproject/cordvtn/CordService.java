@@ -19,8 +19,8 @@ import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.Host;
-import org.onosproject.openstackswitching.OpenstackNetwork;
-import org.onosproject.openstackswitching.OpenstackSubnet;
+import org.onosproject.openstacknetworking.OpenstackNetwork;
+import org.onosproject.openstacknetworking.OpenstackSubnet;
 
 import java.util.Map;
 import java.util.Objects;

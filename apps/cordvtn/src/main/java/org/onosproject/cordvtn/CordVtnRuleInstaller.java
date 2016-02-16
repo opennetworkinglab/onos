@@ -71,8 +71,8 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
-import org.onosproject.openstackswitching.OpenstackNetwork;
-import org.onosproject.openstackswitching.OpenstackSubnet;
+import org.onosproject.openstacknetworking.OpenstackNetwork;
+import org.onosproject.openstacknetworking.OpenstackSubnet;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;

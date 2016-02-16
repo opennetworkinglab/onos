@@ -59,16 +59,15 @@
         <module>igmp</module>
         <module>pim</module>
         <module>mlb</module>
-        <module>openstackswitching</module>
         <module>pathpainter</module>
         <module>drivermatrix</module>
         <module>cpman</module>
         <module>events</module>
         <module>vrouter</module>
-        <module>openstackrouting</module>
         <module>cordmcast</module>
         <module>vpls</module>
         <module>openstacknode</module>
+        <module>openstacknetworking</module>
   </modules>
 
     <properties>
