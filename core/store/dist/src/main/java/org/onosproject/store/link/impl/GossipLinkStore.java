@@ -74,6 +74,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
@@ -106,6 +107,15 @@ public class GossipLinkStore
 
     // Timeout in milliseconds to process links on remote master node
     private static final int REMOTE_MASTER_TIMEOUT = 1000;
+
+    // Default delay for ScheduledExecutorService of anti-entropy(BackgroundExecutor)
+    private static final long DEFAULT_INITIAL_DELAY = 5;
+
+    // Default period for ScheduledExecutorService of anti-entropy(BackgroundExecutor)
+    private static final long DEFAULT_PERIOD = 5;
+
+    private static long initialDelaySec = DEFAULT_INITIAL_DELAY;
+    private static long periodSec = DEFAULT_PERIOD;
 
     private final Logger log = getLogger(getClass());
 
@@ -175,8 +185,6 @@ public class GossipLinkStore
                 GossipLinkStoreMessageSubjects.LINK_INJECTED,
                 new LinkInjectedEventListener(), executor);
 
-        long initialDelaySec = 5;
-        long periodSec = 5;
         // start anti-entropy thread
         backgroundExecutors.scheduleAtFixedRate(new SendAdvertisementTask(),
                     initialDelaySec, periodSec, TimeUnit.SECONDS);
@@ -700,6 +708,28 @@ public class GossipLinkStore
         } catch (IOException e) {
             log.debug("Failed to notify peer {} with message {}", peer, event);
         }
+    }
+
+    /**
+     * sets the time to delay first execution for anti-entropy.
+     * (scheduleAtFixedRate of ScheduledExecutorService)
+     *
+     * @param delay the time to delay first execution for anti-entropy
+     */
+    private void setInitialDelaySec(long delay) {
+        checkArgument(delay >= 0, "Initial delay of scheduleAtFixedRate() must be 0 or more");
+        initialDelaySec = delay;
+    }
+
+    /**
+     * sets the period between successive execution for anti-entropy.
+     * (scheduleAtFixedRate of ScheduledExecutorService)
+     *
+     * @param period the period between successive execution for anti-entropy
+     */
+    private void setPeriodSec(long period) {
+        checkArgument(period > 0, "Period of scheduleAtFixedRate() must be greater than 0");
+        periodSec = period;
     }
 
     private final class SendAdvertisementTask implements Runnable {
