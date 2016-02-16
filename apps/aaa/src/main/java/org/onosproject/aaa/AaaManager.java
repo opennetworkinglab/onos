@@ -15,7 +15,14 @@
  */
 package org.onosproject.aaa;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -48,16 +55,9 @@ import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.xosintegration.VoltTenantService;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.onosproject.net.packet.PacketPriority.CONTROL;
@@ -80,9 +80,6 @@ public class AaaManager {
     // to receive Packet-in events that we'll respond to
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected VoltTenantService voltTenantService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry netCfgService;
@@ -331,7 +328,7 @@ public class AaaManager {
             String sessionId = deviceId.toString() + portNumber.toString();
             StateMachine stateMachine = StateMachine.lookupStateMachineBySessionId(sessionId);
             if (stateMachine == null) {
-                stateMachine = new StateMachine(sessionId, voltTenantService);
+                stateMachine = new StateMachine(sessionId);
             }
 
 

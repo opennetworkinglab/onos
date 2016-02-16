@@ -34,7 +34,7 @@ public class StateMachineTest {
         System.out.println("Set Up.");
         StateMachine.bitSet.clear();
         StateMachine.initializeMaps();
-        stateMachine = new StateMachine("session0", null);
+        stateMachine = new StateMachine("session0");
     }
 
     @After
@@ -233,7 +233,7 @@ public class StateMachineTest {
 
         //create 255 others state machines
         for (int i = 1; i <= 255; i++) {
-                StateMachine sm = new StateMachine("session" + i, null);
+                StateMachine sm = new StateMachine("session" + i);
                 sm.start();
                 byte id = sm.identifier();
                 Assert.assertEquals(i, Byte.toUnsignedInt(id));
@@ -259,13 +259,13 @@ public class StateMachineTest {
         sm3.authorizeAccess();
         sm3.logoff();
 
-        StateMachine otherSM3 = new StateMachine("session3b", null);
+        StateMachine otherSM3 = new StateMachine("session3b");
         otherSM3.start();
         otherSM3.requestAccess();
         byte id3 = otherSM3.identifier();
         Assert.assertEquals(3, Byte.toUnsignedInt(id3));
 
-        StateMachine otherSM247 = new StateMachine("session247b", null);
+        StateMachine otherSM247 = new StateMachine("session247b");
         otherSM247.start();
         otherSM247.requestAccess();
         byte id247 = otherSM247.identifier();
@@ -285,8 +285,8 @@ public class StateMachineTest {
                 StateMachine.lookupStateMachineBySessionId(sessionId2);
         assertNull(machine2ShouldBeNull);
 
-        StateMachine stateMachine1 = new StateMachine(sessionId1, null);
-        StateMachine stateMachine2 = new StateMachine(sessionId2, null);
+        StateMachine stateMachine1 = new StateMachine(sessionId1);
+        StateMachine stateMachine2 = new StateMachine(sessionId2);
 
         assertEquals(stateMachine1,
                      StateMachine.lookupStateMachineBySessionId(sessionId1));
@@ -307,9 +307,9 @@ public class StateMachineTest {
                 StateMachine.lookupStateMachineById((byte) 2);
         assertNull(machine2ShouldBeNull);
 
-        StateMachine stateMachine1 = new StateMachine(sessionId1, null);
+        StateMachine stateMachine1 = new StateMachine(sessionId1);
         stateMachine1.start();
-        StateMachine stateMachine2 = new StateMachine(sessionId2, null);
+        StateMachine stateMachine2 = new StateMachine(sessionId2);
         stateMachine2.start();
 
         assertEquals(stateMachine1,
