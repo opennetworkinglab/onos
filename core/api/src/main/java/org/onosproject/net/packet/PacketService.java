@@ -67,6 +67,7 @@ public interface PacketService {
      * @param selector the traffic selector used to match packets
      * @param priority the priority of the rule
      * @param appId    the application ID of the requester
+     * @deprecated 1.5.0 Falcon Release
      */
     @Deprecated
     void requestPackets(TrafficSelector selector, PacketPriority priority,
@@ -94,6 +95,7 @@ public interface PacketService {
      * @param selector the traffic selector used to match packets
      * @param priority the priority of the rule
      * @param appId    the application ID of the requester
+     * @deprecated 1.5.0 Falcon Release
      */
     @Deprecated
     void cancelPackets(TrafficSelector selector, PacketPriority priority,
@@ -109,6 +111,7 @@ public interface PacketService {
      * @param priority the priority of the rule
      * @param appId    the application ID of the requester
      * @param deviceId an optional deviceId
+     * @deprecated 1.5.0 Falcon Release
      */
     void cancelPackets(TrafficSelector selector, PacketPriority priority,
                        ApplicationId appId, Optional<DeviceId> deviceId);

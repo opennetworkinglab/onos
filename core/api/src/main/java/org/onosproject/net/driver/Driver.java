@@ -40,6 +40,7 @@ public interface Driver extends Annotations {
      * and properties.
      *
      * @return parent driver; null if driver has no parent
+     * @deprecated 1.5.0 Falcon Release
      */
     @Deprecated
     Driver parent();

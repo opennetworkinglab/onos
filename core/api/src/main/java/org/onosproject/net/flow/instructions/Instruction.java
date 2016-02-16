@@ -26,6 +26,7 @@ public interface Instruction {
     enum Type {
         /**
          * Signifies that the traffic should be dropped.
+         * @deprecated 1.4.0 Emu Release
          */
         @Deprecated
         DROP,

@@ -228,6 +228,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchIPDst(ip));
         }
 
+        /**
+         * @deprecated 1.3.0 Drake Release
+         */
         @Deprecated
         @Override
         public Builder matchTcpSrc(short tcpPort) {
@@ -239,6 +242,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchTcpSrc(tcpPort));
         }
 
+        /**
+         * @deprecated 1.3.0 Drake Release
+         */
         @Deprecated
         @Override
         public Builder matchTcpDst(short tcpPort) {
@@ -250,6 +256,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchTcpDst(tcpPort));
         }
 
+        /**
+         * @deprecated 1.3.0 Drake Release
+         */
         @Deprecated
         @Override
         public Builder matchUdpSrc(short udpPort) {
@@ -261,6 +270,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchUdpSrc(udpPort));
         }
 
+        /**
+         * @deprecated 1.3.0 Drake Release
+         */
         @Deprecated
         @Override
         public Builder matchUdpDst(short udpPort) {
@@ -272,6 +284,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchUdpDst(udpPort));
         }
 
+        /**
+         * @deprecated 1.3.0 Drake Release
+         */
         @Deprecated
         @Override
         public Builder matchSctpSrc(short sctpPort) {
@@ -283,6 +298,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchSctpSrc(sctpPort));
         }
 
+        /**
+         * @deprecated 1.3.0 Drake Release
+         */
         @Deprecated
         @Override
         public Builder matchSctpDst(short sctpPort) {

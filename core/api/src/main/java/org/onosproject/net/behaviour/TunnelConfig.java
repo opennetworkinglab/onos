@@ -28,6 +28,7 @@ public interface TunnelConfig extends HandlerBehaviour {
      * Creates a tunnel on this device.
      *
      * @param tunnel tunnel descriptor
+     * @deprecated 1.3.0 Drake Release
      */
     @Deprecated
     void createTunnel(TunnelDescription tunnel);

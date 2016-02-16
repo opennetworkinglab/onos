@@ -377,6 +377,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Deprecated
         @Override
+        /**
+         * @deprecated 1.3.0 Drake Release
+         */
         public Builder setLambda(short lambda) {
             return add(Instructions.modL0Lambda(new IndexedLambda(lambda)));
         }
@@ -446,6 +449,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Deprecated
         @Override
+        /**
+         * @deprecated 1.3.0 Drake Release
+         */
         public TrafficTreatment.Builder setTcpSrc(short port) {
             return setTcpSrc(TpPort.tpPort(port));
         }
@@ -457,6 +463,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Deprecated
         @Override
+        /**
+         * @deprecated 1.3.0 Drake Release
+         */
         public TrafficTreatment.Builder setTcpDst(short port) {
             return setTcpDst(TpPort.tpPort(port));
         }
@@ -468,6 +477,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Deprecated
         @Override
+        /**
+         * @deprecated 1.3.0 Drake Release
+         */
         public TrafficTreatment.Builder setUdpSrc(short port) {
             return setUdpSrc(TpPort.tpPort(port));
         }
@@ -479,6 +491,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Deprecated
         @Override
+        /**
+         * @deprecated 1.3.0 Drake Release
+         */
         public TrafficTreatment.Builder setUdpDst(short port) {
             return setUdpDst(TpPort.tpPort(port));
         }

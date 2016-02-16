@@ -30,6 +30,7 @@ public interface StorageAdminService {
      * Returns information about all partitions in the system.
      *
      * @return list of partition information
+     * @deprecated 1.5.0 Falcon Release
      */
     @Deprecated
     List<PartitionInfo> getPartitionInfo();
@@ -38,6 +39,7 @@ public interface StorageAdminService {
      * Returns information about all the consistent maps in the system.
      *
      * @return list of map information
+     * @deprecated 1.5.0 Falcon Release
      */
     @Deprecated
     List<MapInfo> getMapInfo();
@@ -48,6 +50,7 @@ public interface StorageAdminService {
      * then only one counter from one database is returned.
      *
      * @return mapping from counter name to that counter's next value
+     * @deprecated 1.5.0 Falcon Release
      */
     @Deprecated
     Map<String, Long> getCounters();
@@ -56,6 +59,7 @@ public interface StorageAdminService {
      * Returns information about all the atomic partitioned database counters in the system.
      *
      * @return mapping from counter name to that counter's next value
+     * @deprecated 1.5.0 Falcon Release
      */
     @Deprecated
     Map<String, Long> getPartitionedDatabaseCounters();
@@ -64,6 +68,7 @@ public interface StorageAdminService {
      * Returns information about all the atomic in-memory database counters in the system.
      *
      * @return mapping from counter name to that counter's next value
+     * @deprecated 1.5.0 Falcon Release
      */
     @Deprecated
     Map<String, Long> getInMemoryDatabaseCounters();

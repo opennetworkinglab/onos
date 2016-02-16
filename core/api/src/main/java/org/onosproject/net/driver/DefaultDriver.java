@@ -59,6 +59,7 @@ public class DefaultDriver implements Driver {
      * @param swVersion    device software version
      * @param behaviours   device behaviour classes
      * @param properties   properties for configuration of device behaviour classes
+     * @deprecated 1.5.0 Falcon Release
      */
     @Deprecated
     public DefaultDriver(String name, Driver parent, String manufacturer,

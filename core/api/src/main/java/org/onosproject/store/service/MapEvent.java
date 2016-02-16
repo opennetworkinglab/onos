@@ -103,7 +103,7 @@ public class MapEvent<K, V> {
      * the new value.
      *
      * @return the value
-     * @deprecated use {@link #newValue()} or {@link #oldValue()} instead.
+     * @deprecated 1.5.0 Falcon release. Use {@link #newValue()} or {@link #oldValue()} instead.
      */
     @Deprecated
     public Versioned<V> value() {
