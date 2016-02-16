@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
 import io.atomix.Atomix;
 import io.atomix.AtomixClient;
 import io.atomix.catalyst.transport.Transport;
@@ -38,6 +39,7 @@ import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedQueue;
 import org.onosproject.store.service.Serializer;
+import org.slf4j.Logger;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -47,6 +49,8 @@ import com.google.common.collect.ImmutableSet;
  * StoragePartition client.
  */
 public class StoragePartitionClient implements DistributedPrimitiveCreator, Managed<StoragePartitionClient> {
+
+    private final Logger log = getLogger(getClass());
 
     private final StoragePartition partition;
     private final Transport transport;
@@ -82,7 +86,13 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                                 .withTransport(transport)
                                 .build();
         }
-        return client.open().thenApply(v -> null);
+        return client.open().whenComplete((r, e) -> {
+            if (e == null) {
+                log.info("Successfully started client for partition {}", partition.getId());
+            } else {
+                log.info("Failed to start client for partition {}", partition.getId(), e);
+            }
+        }).thenApply(v -> null);
     }
 
     @Override

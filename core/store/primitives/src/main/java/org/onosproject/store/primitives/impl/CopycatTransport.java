@@ -17,9 +17,20 @@ package org.onosproject.store.primitives.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.Map;
+
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.PartitionId;
+import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.cluster.messaging.MessagingService;
 
+import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
+
+import io.atomix.catalyst.transport.Address;
 import io.atomix.catalyst.transport.Client;
 import io.atomix.catalyst.transport.Server;
 import io.atomix.catalyst.transport.Transport;
@@ -51,6 +62,8 @@ public class CopycatTransport implements Transport {
     private final Mode mode;
     private final PartitionId partitionId;
     private final MessagingService messagingService;
+    private static final Map<Address, Endpoint> EP_LOOKUP_CACHE = Maps.newConcurrentMap();
+    private static final Map<Endpoint, Address> ADDRESS_LOOKUP_CACHE = Maps.newConcurrentMap();
 
     public CopycatTransport(Mode mode, PartitionId partitionId, MessagingService messagingService) {
         this.mode = checkNotNull(mode);
@@ -69,5 +82,43 @@ public class CopycatTransport implements Transport {
     public Server server() {
         return new CopycatTransportServer(partitionId,
                                           messagingService);
+    }
+
+    /**
+     * Maps {@link Address address} to {@link Endpoint endpoint}.
+     * @param address
+     * @return end point
+     */
+    public static Endpoint toEndpoint(Address address) {
+        return EP_LOOKUP_CACHE.computeIfAbsent(address, a -> {
+            try {
+                Endpoint endpoint = new Endpoint(IpAddress.valueOf(InetAddress.getByName(a.host())), a.port());
+                ADDRESS_LOOKUP_CACHE.putIfAbsent(endpoint, address);
+                return endpoint;
+            } catch (UnknownHostException e) {
+                Throwables.propagate(e);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Maps {@link Endpoint endpoint} to {@link Address address}.
+     * @param endpoint end point
+     * @return address
+     */
+    public static Address toAddress(Endpoint endpoint) {
+        return ADDRESS_LOOKUP_CACHE.computeIfAbsent(endpoint, ep -> {
+            try {
+                InetAddress host = InetAddress.getByAddress(endpoint.host().toOctets());
+                int port = endpoint.port();
+                Address address = new Address(new InetSocketAddress(host, port));
+                EP_LOOKUP_CACHE.putIfAbsent(address, endpoint);
+                return address;
+            } catch (UnknownHostException e) {
+                Throwables.propagate(e);
+                return null;
+            }
+        });
     }
 }

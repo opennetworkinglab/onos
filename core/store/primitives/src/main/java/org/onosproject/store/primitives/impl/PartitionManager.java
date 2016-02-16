@@ -57,6 +57,7 @@ import com.google.common.collect.Maps;
 public class PartitionManager extends AbstractListenerManager<PartitionEvent, PartitionEventListener>
     implements PartitionService, PartitionAdminService {
 
+    public static final String HELLO_MESSAGE_SUBJECT = "partition-manager-hello";
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -72,6 +73,8 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
 
     @Activate
     public void activate() {
+        messagingService.registerHandler(HELLO_MESSAGE_SUBJECT,
+                                         (ep, input) -> CompletableFuture.completedFuture(input));
         eventDispatcher.addSink(PartitionEvent.class, listenerRegistry);
 
         metadataService.getClusterMetadata()
@@ -92,6 +95,7 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
     }
 
     public void deactivate() {
+        messagingService.unregisterHandler(HELLO_MESSAGE_SUBJECT);
         eventDispatcher.removeSink(PartitionEvent.class);
 
         CompletableFuture<Void> closeFuture = CompletableFuture.allOf(partitions.values()

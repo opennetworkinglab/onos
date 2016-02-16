@@ -50,18 +50,23 @@ public class CopycatTransportClient implements Client {
     @Override
     public CompletableFuture<Connection> connect(Address remoteAddress) {
         ThreadContext context = ThreadContext.currentContextOrThrow();
-        CopycatTransportConnection connection = new CopycatTransportConnection(
-                nextConnectionId(),
-                CopycatTransport.Mode.CLIENT,
-                partitionId,
-                remoteAddress,
-                messagingService,
-                context);
-        if (mode == CopycatTransport.Mode.CLIENT) {
-            connection.setBidirectional();
-        }
-        connections.add(connection);
-        return CompletableFuture.supplyAsync(() -> connection, context.executor());
+        return messagingService.sendAndReceive(CopycatTransport.toEndpoint(remoteAddress),
+                                               PartitionManager.HELLO_MESSAGE_SUBJECT,
+                                               "hello".getBytes())
+                .thenApplyAsync(r -> {
+                    CopycatTransportConnection connection = new CopycatTransportConnection(
+                            nextConnectionId(),
+                            CopycatTransport.Mode.CLIENT,
+                            partitionId,
+                            remoteAddress,
+                            messagingService,
+                            context);
+                    if (mode == CopycatTransport.Mode.CLIENT) {
+                        connection.setBidirectional();
+                    }
+                    connections.add(connection);
+                    return connection;
+                }, context.executor());
     }
 
     @Override

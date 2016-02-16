@@ -21,8 +21,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -30,10 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.IOUtils;
-import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.PartitionId;
-import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.cluster.messaging.MessagingService;
 
 import com.google.common.base.MoreObjects;
@@ -74,7 +70,6 @@ public class CopycatTransportConnection implements Connection {
     private final AtomicInteger sendFailures = new AtomicInteger(0);
     private final AtomicInteger messagesReceived = new AtomicInteger(0);
     private final AtomicInteger receiveFailures = new AtomicInteger(0);
-    private final Map<Address, Endpoint> endpointLookupCache = Maps.newConcurrentMap();
 
     CopycatTransportConnection(long connectionId,
             CopycatTransport.Mode mode,
@@ -120,7 +115,7 @@ public class CopycatTransportConnection implements Connection {
             if (message instanceof ReferenceCounted) {
                 ((ReferenceCounted<?>) message).release();
             }
-            messagingService.sendAndReceive(toEndpoint(remoteAddress),
+            messagingService.sendAndReceive(CopycatTransport.toEndpoint(remoteAddress),
                                             outboundMessageSubject,
                                             baos.toByteArray(),
                                             context.executor())
@@ -238,17 +233,6 @@ public class CopycatTransportConnection implements Connection {
                 .add("sendFailures", sendFailures.get())
                 .add("receiveFailures", receiveFailures.get())
                 .toString();
-    }
-
-    private Endpoint toEndpoint(Address address) {
-        return endpointLookupCache.computeIfAbsent(address, a -> {
-            try {
-                return new Endpoint(IpAddress.valueOf(InetAddress.getByName(a.host())), a.port());
-            } catch (UnknownHostException e) {
-                Throwables.propagate(e);
-                return null;
-            }
-        });
     }
 
     @SuppressWarnings("rawtypes")
