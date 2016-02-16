@@ -19,13 +19,13 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.key.DeviceKey;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Element;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Port;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.group.Group;
-
 import org.onosproject.net.statistic.TypedFlowEntryWithLoad;
 import org.onosproject.net.topology.TopologyCluster;
 
@@ -118,8 +118,8 @@ public final class Comparators {
         public int compare(ConnectPoint o1, ConnectPoint o2) {
             int compareId = ELEMENT_ID_COMPARATOR.compare(o1.elementId(), o2.elementId());
             return (compareId != 0) ?
-                compareId :
-                Long.signum(o1.port().toLong() - o2.port().toLong());
+                    compareId :
+                    Long.signum(o1.port().toLong() - o2.port().toLong());
         }
     };
 
@@ -130,8 +130,15 @@ public final class Comparators {
             new Comparator<TypedFlowEntryWithLoad>() {
                 @Override
                 public int compare(TypedFlowEntryWithLoad fe1, TypedFlowEntryWithLoad fe2) {
-                    long delta = fe1.load().rate() -  fe2.load().rate();
+                    long delta = fe1.load().rate() - fe2.load().rate();
                     return delta == 0 ? 0 : (delta > 0 ? -1 : +1);
                 }
             };
+
+    public static final Comparator<DeviceKey> DEVICE_KEY_COMPARATOR = new Comparator<DeviceKey>() {
+        @Override
+        public int compare(DeviceKey deviceKey1, DeviceKey deviceKey2) {
+            return deviceKey1.deviceKeyId().id().toString().compareTo(deviceKey2.deviceKeyId().id().toString());
+        }
+    };
 }

@@ -36,6 +36,7 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -68,7 +69,10 @@ public class DistributedDeviceKeyStore
     @Activate
     public void activate() {
         deviceKeys = storageService.<DeviceKeyId, DeviceKey>consistentMapBuilder()
-                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API),
+                                DeviceKey.class,
+                                DeviceKeyId.class,
+                                DeviceKey.Type.class))
                 .withName("onos-device-keys")
                 .withRelaxedReadConsistency()
                 .build();

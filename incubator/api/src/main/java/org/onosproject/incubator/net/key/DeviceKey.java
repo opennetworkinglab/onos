@@ -40,7 +40,7 @@ public class DeviceKey extends AbstractAnnotated {
     /**
      * type of the device key.
      */
-    enum Type {
+    public enum Type {
         COMMUNITY_NAME, USERNAME_PASSWORD, SSL_KEY
     }
 

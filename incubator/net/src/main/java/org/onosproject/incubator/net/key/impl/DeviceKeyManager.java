@@ -17,9 +17,11 @@
 package org.onosproject.incubator.net.key.impl;
 
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.incubator.net.key.DeviceKey;
 import org.onosproject.incubator.net.key.DeviceKeyAdminService;
@@ -42,13 +44,12 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of device key services.
  */
+@Component(immediate = true, enabled = true)
+@Service
 public class DeviceKeyManager extends AbstractListenerManager<DeviceKeyEvent, DeviceKeyListener>
         implements DeviceKeyService, DeviceKeyAdminService {
 
     private final Logger log = getLogger(getClass());
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceKeyService deviceKeyService;
 
     private DeviceKeyStoreDelegate delegate = this::post;
 

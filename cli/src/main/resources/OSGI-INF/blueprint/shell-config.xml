@@ -533,6 +533,17 @@
         <command>
             <action class="org.onosproject.cli.net.TunnelUpdateCommand"/>
         </command>
+        <!-- device key commands -->
+        <command>
+            <action class="org.onosproject.cli.net.DeviceKeyListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.DeviceKeyAddCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.DeviceKeyRemoveCommand"/>
+        </command>
+
     </command-bundle>
 
     <bean id="reviewAppNameCompleter" class="org.onosproject.cli.security.ReviewApplicationNameCompleter"/>
