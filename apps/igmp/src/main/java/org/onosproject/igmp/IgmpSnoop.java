@@ -84,7 +84,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class IgmpSnoop {
 
-
     private final Logger log = getLogger(getClass());
 
     private static final String DEST_MAC = "01:00:5E:00:00:01";
@@ -144,6 +143,9 @@ public class IgmpSnoop {
     private static final Class<AccessDeviceConfig> CONFIG_CLASS =
             AccessDeviceConfig.class;
 
+    private static final Class<IgmpSsmTranslateConfig> SSM_TRANSLATE_CONFIG_CLASS =
+            IgmpSsmTranslateConfig.class;
+
     private ConfigFactory<DeviceId, AccessDeviceConfig> configFactory =
             new ConfigFactory<DeviceId, AccessDeviceConfig>(
                     SubjectFactories.DEVICE_SUBJECT_FACTORY, CONFIG_CLASS, "accessDevice") {
@@ -155,7 +157,7 @@ public class IgmpSnoop {
 
     private ConfigFactory<ApplicationId, IgmpSsmTranslateConfig> ssmTranslateConfigFactory =
             new ConfigFactory<ApplicationId, IgmpSsmTranslateConfig>(
-                    SubjectFactories.APP_SUBJECT_FACTORY, IgmpSsmTranslateConfig.class, "ssmTranslate", true) {
+                    SubjectFactories.APP_SUBJECT_FACTORY, SSM_TRANSLATE_CONFIG_CLASS, "ssmTranslate", true) {
                 @Override
                 public IgmpSsmTranslateConfig createConfig() {
                     return new IgmpSsmTranslateConfig();
@@ -466,9 +468,25 @@ public class IgmpSnoop {
                             provisionDefaultFlows((DeviceId) event.subject());
                         }
                     }
+                    if (event.configClass().equals(SSM_TRANSLATE_CONFIG_CLASS)) {
+                        IgmpSsmTranslateConfig config =
+                                networkConfig.getConfig((ApplicationId) event.subject(),
+                                        SSM_TRANSLATE_CONFIG_CLASS);
+
+                        if (config != null) {
+                            ssmTranslateTable.clear();
+                            config.getSsmTranslations().forEach(
+                                    route -> ssmTranslateTable.put(route.group(), route.source()));
+                        }
+                    }
                     break;
+                case CONFIG_REGISTERED:
                 case CONFIG_UNREGISTERED:
+                    break;
                 case CONFIG_REMOVED:
+                    if (event.configClass().equals(SSM_TRANSLATE_CONFIG_CLASS)) {
+                        ssmTranslateTable.clear();
+                    }
                 default:
                     break;
             }

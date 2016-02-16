@@ -17,6 +17,7 @@
 package org.onosproject.igmp;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.config.Config;
@@ -26,13 +27,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by jono on 2/16/16.
+ * IGMP SSM translate configuration.
  */
 public class IgmpSsmTranslateConfig extends Config<ApplicationId> {
-    private static final String SSM_TRANSLATE = "ssmTranslate";
+
     private static final String SOURCE = "source";
     private static final String GROUP = "group";
 
+    @Override
+    public boolean isValid() {
+        for (JsonNode node : array) {
+            if (!hasOnlyFields((ObjectNode) node, SOURCE, GROUP)) {
+                return false;
+            }
+
+            if (!(isIpAddress((ObjectNode) node, SOURCE, FieldPresence.MANDATORY) &&
+                    isIpAddress((ObjectNode) node, GROUP, FieldPresence.MANDATORY))) {
+                return false;
+            }
+
+        }
+        return true;
+    }
+
+    /**
+     * Gets the list of SSM translations.
+     *
+     * @return SSM translations
+     */
     public List<McastRoute> getSsmTranslations() {
         List<McastRoute> translations = new ArrayList();
         for (JsonNode node : array) {

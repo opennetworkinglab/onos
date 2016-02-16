@@ -393,8 +393,20 @@ public abstract class Config<S> {
      * @return true if all allowedFields are present; false otherwise
      */
     protected boolean hasOnlyFields(String... allowedFields) {
+        return hasOnlyFields(object, allowedFields);
+    }
+
+    /**
+     * Indicates whether only the specified fields are present in a particular
+     * JSON object.
+     *
+     * @param node node whose fields to check
+     * @param allowedFields allowed field names
+     * @return true if all allowedFields are present; false otherwise
+     */
+    protected boolean hasOnlyFields(ObjectNode node, String... allowedFields) {
         Set<String> fields = ImmutableSet.copyOf(allowedFields);
-        return !Iterators.any(object.fieldNames(), f -> !fields.contains(f));
+        return !Iterators.any(node.fieldNames(), f -> !fields.contains(f));
     }
 
     /**
@@ -420,9 +432,23 @@ public abstract class Config<S> {
      * @throws IllegalArgumentException if field is present, but not valid IP
      */
     protected boolean isIpAddress(String field, FieldPresence presence) {
-        JsonNode node = object.path(field);
-        return isValid(node, presence, node.isTextual() &&
-                IpAddress.valueOf(node.asText()) != null);
+        return isIpAddress(object, field, presence);
+    }
+
+    /**
+     * Indicates whether the specified field of a particular node holds a valid
+     * IP address.
+     *
+     * @param node     node from whom to access the field
+     * @param field    JSON field name
+     * @param presence specifies if field is optional or mandatory
+     * @return true if valid; false otherwise
+     * @throws IllegalArgumentException if field is present, but not valid IP
+     */
+    protected boolean isIpAddress(ObjectNode node, String field, FieldPresence presence) {
+        JsonNode innerNode = node.path(field);
+        return isValid(innerNode, presence, innerNode.isTextual() &&
+                IpAddress.valueOf(innerNode.asText()) != null);
     }
 
     /**
