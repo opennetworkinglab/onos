@@ -124,6 +124,10 @@ class StateMachine {
         identifierMap = null;
     }
 
+    public static Map<String, StateMachine> sessionIdMap() {
+        return sessionIdMap;
+    }
+
     public static StateMachine lookupStateMachineById(byte identifier) {
         return identifierMap.get((int) identifier);
     }
