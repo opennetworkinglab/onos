@@ -41,6 +41,14 @@ import org.onosproject.cluster.Leader;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.Change;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands.Anoint;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands.GetAllLeaderships;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands.GetElectedTopics;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands.GetLeadership;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands.Listen;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands.Run;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands.Unlisten;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands.Withdraw;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
@@ -59,7 +67,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
     private final Logger log = getLogger(getClass());
     private Map<String, AtomicLong> termCounters = new HashMap<>();
     private Map<String, ElectionState> elections = new HashMap<>();
-    private final Map<Long, Commit<? extends AtomixLeaderElectorCommands.Listen>> listeners = new LinkedHashMap<>();
+    private final Map<Long, Commit<? extends Listen>> listeners = new LinkedHashMap<>();
     private final Serializer serializer = Serializer.using(Arrays.asList(KryoNamespaces.API),
                                                            ElectionState.class,
                                                            Registration.class);
@@ -67,16 +75,16 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
     @Override
     protected void configure(StateMachineExecutor executor) {
         // Notification
-        executor.register(AtomixLeaderElectorCommands.Listen.class, this::listen);
-        executor.register(AtomixLeaderElectorCommands.Unlisten.class, this::unlisten);
+        executor.register(Listen.class, this::listen);
+        executor.register(Unlisten.class, this::unlisten);
         // Commands
-        executor.register(AtomixLeaderElectorCommands.Run.class, this::run);
-        executor.register(AtomixLeaderElectorCommands.Withdraw.class, this::withdraw);
-        executor.register(AtomixLeaderElectorCommands.Anoint.class, this::anoint);
+        executor.register(Run.class, this::run);
+        executor.register(Withdraw.class, this::withdraw);
+        executor.register(Anoint.class, this::anoint);
         // Queries
-        executor.register(AtomixLeaderElectorCommands.GetLeadership.class, this::leadership);
-        executor.register(AtomixLeaderElectorCommands.GetAllLeaderships.class, this::allLeaderships);
-        executor.register(AtomixLeaderElectorCommands.GetElectedTopics.class, this::electedTopics);
+        executor.register(GetLeadership.class, this::leadership);
+        executor.register(GetAllLeaderships.class, this::allLeaderships);
+        executor.register(GetElectedTopics.class, this::electedTopics);
     }
 
     private void notifyLeadershipChange(Leadership previousLeadership, Leadership newLeadership) {
@@ -96,7 +104,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      *
      * @param commit listen commit
      */
-    public void listen(Commit<? extends AtomixLeaderElectorCommands.Listen> commit) {
+    public void listen(Commit<? extends Listen> commit) {
         if (listeners.putIfAbsent(commit.session().id(), commit) != null) {
             commit.close();
         }
@@ -107,9 +115,9 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      *
      * @param commit unlisten commit
      */
-    public void unlisten(Commit<? extends AtomixLeaderElectorCommands.Unlisten> commit) {
+    public void unlisten(Commit<? extends Unlisten> commit) {
         try {
-            Commit<? extends AtomixLeaderElectorCommands.Listen> listener = listeners.remove(commit.session().id());
+            Commit<? extends Listen> listener = listeners.remove(commit.session().id());
             if (listener != null) {
                 listener.close();
             }
@@ -123,7 +131,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      * @param commit commit entry
      * @return topic leader. If no previous leader existed this is the node that just entered the race.
      */
-    public Leadership run(Commit<? extends AtomixLeaderElectorCommands.Run> commit) {
+    public Leadership run(Commit<? extends Run> commit) {
         try {
             String topic = commit.operation().topic();
             Leadership oldLeadership = leadership(topic);
@@ -154,7 +162,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      * Applies an {@link AtomixLeaderElectorCommands.Withdraw} commit.
      * @param commit withdraw commit
      */
-    public void withdraw(Commit<? extends AtomixLeaderElectorCommands.Withdraw> commit) {
+    public void withdraw(Commit<? extends Withdraw> commit) {
         try {
             String topic = commit.operation().topic();
             Leadership oldLeadership = leadership(topic);
@@ -174,7 +182,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      * @param commit anoint commit
      * @return {@code true} if changes were made and the transfer occurred; {@code false} if it did not.
      */
-    public boolean anoint(Commit<? extends AtomixLeaderElectorCommands.Anoint> commit) {
+    public boolean anoint(Commit<? extends Anoint> commit) {
         try {
             String topic = commit.operation().topic();
             Leadership oldLeadership = leadership(topic);
@@ -197,7 +205,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      * @param commit GetLeadership commit
      * @return leader
      */
-    public Leadership leadership(Commit<? extends AtomixLeaderElectorCommands.GetLeadership> commit) {
+    public Leadership leadership(Commit<? extends GetLeadership> commit) {
         String topic = commit.operation().topic();
         try {
             return leadership(topic);
@@ -211,7 +219,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      * @param commit commit entry
      * @return set of topics for which the node is the leader
      */
-    public Set<String> electedTopics(Commit<? extends AtomixLeaderElectorCommands.GetElectedTopics> commit) {
+    public Set<String> electedTopics(Commit<? extends GetElectedTopics> commit) {
         try {
             NodeId nodeId = commit.operation().nodeId();
             return Maps.filterEntries(elections, e -> {
@@ -228,8 +236,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      * @param commit GetAllLeaderships commit
      * @return topic to leader mapping
      */
-    public Map<String, Leadership> allLeaderships(
-            Commit<? extends AtomixLeaderElectorCommands.GetAllLeaderships> commit) {
+    public Map<String, Leadership> allLeaderships(Commit<? extends GetAllLeaderships> commit) {
         try {
             return Maps.transformEntries(elections, (k, v) -> leadership(k));
         } finally {

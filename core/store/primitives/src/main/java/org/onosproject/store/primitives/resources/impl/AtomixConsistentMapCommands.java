@@ -18,7 +18,9 @@ package org.onosproject.store.primitives.resources.impl;
 import io.atomix.catalyst.buffer.BufferInput;
 import io.atomix.catalyst.buffer.BufferOutput;
 import io.atomix.catalyst.serializer.CatalystSerializable;
+import io.atomix.catalyst.serializer.SerializableTypeResolver;
 import io.atomix.catalyst.serializer.Serializer;
+import io.atomix.catalyst.serializer.SerializerRegistry;
 import io.atomix.catalyst.util.Assert;
 import io.atomix.copycat.client.Command;
 import io.atomix.copycat.client.Query;
@@ -512,6 +514,30 @@ public final class AtomixConsistentMapCommands {
         public String toString() {
             return MoreObjects.toStringHelper(getClass())
                     .toString();
+        }
+    }
+
+    /**
+     * Map command type resolver.
+     */
+    public static class TypeResolver implements SerializableTypeResolver {
+        @Override
+        public void resolve(SerializerRegistry registry) {
+            registry.register(ContainsKey.class, -761);
+            registry.register(ContainsValue.class, -762);
+            registry.register(Get.class, -763);
+            registry.register(EntrySet.class, -764);
+            registry.register(Values.class, -765);
+            registry.register(KeySet.class, -766);
+            registry.register(Clear.class, -767);
+            registry.register(IsEmpty.class, -768);
+            registry.register(Size.class, -769);
+            registry.register(Listen.class, -770);
+            registry.register(Unlisten.class, -771);
+            registry.register(TransactionPrepare.class, -772);
+            registry.register(TransactionCommit.class, -773);
+            registry.register(TransactionRollback.class, -774);
+            registry.register(UpdateAndGet.class, -775);
         }
     }
 }

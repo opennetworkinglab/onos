@@ -21,13 +21,16 @@ import java.util.Set;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.NodeId;
 
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 
 import io.atomix.catalyst.buffer.BufferInput;
 import io.atomix.catalyst.buffer.BufferOutput;
 import io.atomix.catalyst.serializer.CatalystSerializable;
+import io.atomix.catalyst.serializer.SerializableTypeResolver;
 import io.atomix.catalyst.serializer.Serializer;
+import io.atomix.catalyst.serializer.SerializerRegistry;
 import io.atomix.catalyst.util.Assert;
 import io.atomix.copycat.client.Command;
 import io.atomix.copycat.client.Query;
@@ -232,6 +235,18 @@ public final class AtomixLeaderElectorCommands {
                     .add("nodeId", nodeId)
                     .toString();
         }
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+            buffer.writeString(topic);
+            buffer.writeString(nodeId.toString());
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            topic = buffer.readString();
+            nodeId = new NodeId(buffer.readString());
+        }
     }
 
     /**
@@ -262,6 +277,16 @@ public final class AtomixLeaderElectorCommands {
             return MoreObjects.toStringHelper(getClass())
                     .add("topic", topic)
                     .toString();
+        }
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+            buffer.writeString(topic);
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            topic = buffer.readString();
         }
     }
 
@@ -305,6 +330,35 @@ public final class AtomixLeaderElectorCommands {
                     .add("topic", topic)
                     .add("nodeId", nodeId)
                     .toString();
+        }
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+            buffer.writeString(topic);
+            buffer.writeString(nodeId.toString());
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            topic = buffer.readString();
+            nodeId = new NodeId(buffer.readString());
+        }
+    }
+
+    /**
+     * Map command type resolver.
+     */
+    public static class TypeResolver implements SerializableTypeResolver {
+        @Override
+        public void resolve(SerializerRegistry registry) {
+            registry.register(Run.class, -861);
+            registry.register(Withdraw.class, -862);
+            registry.register(Anoint.class, -863);
+            registry.register(GetAllLeaderships.class, -864);
+            registry.register(GetElectedTopics.class, -865);
+            registry.register(GetLeadership.class, -866);
+            registry.register(Listen.class, -867);
+            registry.register(Unlisten.class, -868);
         }
     }
 }

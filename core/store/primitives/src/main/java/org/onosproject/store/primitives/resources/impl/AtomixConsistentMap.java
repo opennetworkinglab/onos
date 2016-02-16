@@ -17,12 +17,12 @@ package org.onosproject.store.primitives.resources.impl;
 
 import io.atomix.catalyst.util.Listener;
 import io.atomix.copycat.client.CopycatClient;
-import io.atomix.resource.Consistency;
 import io.atomix.resource.Resource;
 import io.atomix.resource.ResourceTypeInfo;
 
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -49,7 +49,7 @@ public class AtomixConsistentMap extends Resource<AtomixConsistentMap, Resource.
 
     private final Set<MapEventListener<String, byte[]>> mapEventListeners = Sets.newCopyOnWriteArraySet();
 
-    private static final String CHANGE_SUBJECT = "change";
+    public static final String CHANGE_SUBJECT = "changeEvents";
 
     public AtomixConsistentMap(CopycatClient client, Resource.Options options) {
         super(client, options);
@@ -68,14 +68,8 @@ public class AtomixConsistentMap extends Resource<AtomixConsistentMap, Resource.
         });
     }
 
-    private void handleEvent(MapEvent<String, byte[]> event) {
-        mapEventListeners.forEach(listener -> listener.event(event));
-    }
-
-    @Override
-    public AtomixConsistentMap with(Consistency consistency) {
-        super.with(consistency);
-        return this;
+    private void handleEvent(List<MapEvent<String, byte[]>> events) {
+        events.forEach(event -> mapEventListeners.forEach(listener -> listener.event(event)));
     }
 
     @Override
