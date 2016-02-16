@@ -17,14 +17,16 @@ package org.onosproject.incubator.net.intf;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -38,7 +40,7 @@ public class Interface {
 
     private final String name;
     private final ConnectPoint connectPoint;
-    private final Set<InterfaceIpAddress> ipAddresses;
+    private final List<InterfaceIpAddress> ipAddresses;
     private final MacAddress macAddress;
     private final VlanId vlan;
 
@@ -47,16 +49,38 @@ public class Interface {
      *
      * @param name name of the interface
      * @param connectPoint the connect point this interface maps to
-     * @param ipAddresses Set of IP addresses
+     * @param ipAddresses list of IP addresses
      * @param macAddress MAC address
      * @param vlan VLAN ID
      */
+    public Interface(String name, ConnectPoint connectPoint,
+                     List<InterfaceIpAddress> ipAddresses,
+                     MacAddress macAddress, VlanId vlan) {
+        this.name = name == null ? NO_INTERFACE_NAME : name;
+        this.connectPoint = checkNotNull(connectPoint);
+        this.ipAddresses = ipAddresses == null ? Lists.newArrayList() : ipAddresses;
+        this.macAddress = macAddress == null ? MacAddress.NONE : macAddress;
+        this.vlan = vlan == null ? VlanId.NONE : vlan;
+    }
+
+    /**
+     * Creates new Interface with the provided configuration.
+     *
+     * @param name name of the interface
+     * @param connectPoint the connect point this interface maps to
+     * @param ipAddresses set of IP addresses
+     * @param macAddress MAC address
+     * @param vlan VLAN ID
+     * @deprecated in Falcon release, in favour of ordered list
+     */
+    @Deprecated
     public Interface(String name, ConnectPoint connectPoint,
                      Set<InterfaceIpAddress> ipAddresses,
                      MacAddress macAddress, VlanId vlan) {
         this.name = name == null ? NO_INTERFACE_NAME : name;
         this.connectPoint = checkNotNull(connectPoint);
-        this.ipAddresses = ipAddresses == null ? Sets.newHashSet() : ipAddresses;
+        this.ipAddresses = ipAddresses == null ? Lists.newArrayList() :
+                           ipAddresses.stream().collect(Collectors.toList());
         this.macAddress = macAddress == null ? MacAddress.NONE : macAddress;
         this.vlan = vlan == null ? VlanId.NONE : vlan;
     }
@@ -68,9 +92,27 @@ public class Interface {
      * @param ipAddresses Set of IP addresses
      * @param macAddress MAC address
      * @param vlan VLAN ID
+     * @deprecated in Falcon release - use constructors with names instead
      */
+    @Deprecated
     public Interface(ConnectPoint connectPoint,
                      Set<InterfaceIpAddress> ipAddresses,
+                     MacAddress macAddress, VlanId vlan) {
+        this(NO_INTERFACE_NAME, connectPoint, ipAddresses, macAddress, vlan);
+    }
+
+    /**
+     * Creates new Interface with the provided configuration.
+     *
+     * @param connectPoint the connect point this interface maps to
+     * @param ipAddresses Set of IP addresses
+     * @param macAddress MAC address
+     * @param vlan VLAN ID
+     * @deprecated in Falcon release - use constructors with names instead
+     */
+    @Deprecated
+    public Interface(ConnectPoint connectPoint,
+                     List<InterfaceIpAddress> ipAddresses,
                      MacAddress macAddress, VlanId vlan) {
         this(NO_INTERFACE_NAME, connectPoint, ipAddresses, macAddress, vlan);
     }
@@ -97,8 +139,20 @@ public class Interface {
      * Retrieves the set of IP addresses that are assigned to the interface.
      *
      * @return the set of interface IP addresses
+     * @deprecated in Falcon release in favour of an ordered list
      */
+    @Deprecated
     public Set<InterfaceIpAddress> ipAddresses() {
+        return ipAddresses.stream().collect(Collectors.toSet());
+    }
+
+    /**
+     * Retrieves a list of IP addresses that are assigned to the interface in
+     * the order that they were configured.
+     *
+     * @return list of IP addresses
+     */
+    public List<InterfaceIpAddress> ipAddressesList() {
         return ipAddresses;
     }
 

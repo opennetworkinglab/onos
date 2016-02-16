@@ -16,6 +16,7 @@
 
 package org.onosproject.sdnip;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,6 +54,7 @@ import org.onosproject.routing.config.RoutingConfigurationService;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -151,7 +153,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
      * Sets up InterfaceService.
      */
     private void setUpInterfaceService() {
-        Set<InterfaceIpAddress> interfaceIpAddresses1 = Sets.newHashSet();
+        List<InterfaceIpAddress> interfaceIpAddresses1 = Lists.newArrayList();
         interfaceIpAddresses1.add(new InterfaceIpAddress(
                 IpAddress.valueOf("192.168.10.101"),
                 IpPrefix.valueOf("192.168.10.0/24")));
@@ -160,7 +162,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
                 VlanId.NONE);
         interfaces.add(sw1Eth1);
 
-        Set<InterfaceIpAddress> interfaceIpAddresses2 = Sets.newHashSet();
+        List<InterfaceIpAddress> interfaceIpAddresses2 = Lists.newArrayList();
         interfaceIpAddresses2.add(
                 new InterfaceIpAddress(IpAddress.valueOf("192.168.20.101"),
                         IpPrefix.valueOf("192.168.20.0/24")));
@@ -169,7 +171,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
                 VlanId.NONE);
         interfaces.add(sw2Eth1);
 
-        Set<InterfaceIpAddress> interfaceIpAddresses3 = Sets.newHashSet();
+        List<InterfaceIpAddress> interfaceIpAddresses3 = Lists.newArrayList();
         interfaceIpAddresses3.add(
                 new InterfaceIpAddress(IpAddress.valueOf("192.168.30.101"),
                         IpPrefix.valueOf("192.168.30.0/24")));
@@ -182,7 +184,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
                 new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"),
                         IpPrefix.valueOf("192.168.40.0/24"));
         Interface sw4Eth1 = new Interface(SW4_ETH1,
-                Sets.newHashSet(interfaceIpAddress4),
+                Lists.newArrayList(interfaceIpAddress4),
                 MacAddress.valueOf("00:00:00:00:00:04"),
                 VlanId.vlanId((short) 1));
 

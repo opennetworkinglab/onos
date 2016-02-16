@@ -173,7 +173,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
             new InterfaceIpAddress(IpAddress.valueOf("192.168.10.101"),
                                    IpPrefix.valueOf("192.168.10.0/24"));
         Interface intfsw1eth1 = new Interface(s1Eth1,
-                Collections.singleton(ia1),
+                Collections.singletonList(ia1),
                 MacAddress.valueOf("00:00:00:00:00:01"),
                 VlanId.NONE);
 
@@ -183,7 +183,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
             new InterfaceIpAddress(IpAddress.valueOf("192.168.20.101"),
                                    IpPrefix.valueOf("192.168.20.0/24"));
         Interface intfsw2eth1 = new Interface(s2Eth1,
-                Collections.singleton(ia2),
+                Collections.singletonList(ia2),
                 MacAddress.valueOf("00:00:00:00:00:02"),
                 VlanId.NONE);
         configuredInterfaces.put(interfaceSw2Eth1, intfsw2eth1);
@@ -193,7 +193,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 new InterfaceIpAddress(IpAddress.valueOf("192.168.30.101"),
                         IpPrefix.valueOf("192.168.30.0/24"));
         Interface intfsw2eth1intf2 = new Interface(s2Eth1,
-                Collections.singleton(ia3),
+                Collections.singletonList(ia3),
                 MacAddress.valueOf("00:00:00:00:00:03"),
                 VlanId.NONE);
         configuredInterfaces.put(interfaceSw2Eth1intf2, intfsw2eth1intf2);

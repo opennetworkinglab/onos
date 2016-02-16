@@ -16,6 +16,7 @@
 
 package org.onosproject.incubator.net.intf.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.Before;
@@ -35,6 +36,7 @@ import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.host.InterfaceIpAddress;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -87,7 +89,7 @@ public class InterfaceManagerTest {
         InterfaceIpAddress ia = InterfaceIpAddress.valueOf("192.168." + i + ".1/24");
 
         Interface intf = new Interface(cp,
-                Sets.newHashSet(ia),
+                Collections.singletonList(ia),
                 MacAddress.valueOf(i),
                 VlanId.vlanId((short) i));
 
@@ -150,7 +152,7 @@ public class InterfaceManagerTest {
         VlanId vlanId = VlanId.vlanId((short) 1);
         ConnectPoint cp = ConnectPoint.deviceConnectPoint("of:0000000000000001/2");
         Interface newIntf = new Interface(cp,
-                Collections.emptySet(),
+                Collections.emptyList(),
                 MacAddress.valueOf(100),
                 vlanId);
 
@@ -184,14 +186,14 @@ public class InterfaceManagerTest {
         // Create an interface that is the same as the existing one, but adds a
         // new IP address
         Interface intf = createInterface(1);
-        Set<InterfaceIpAddress> addresses = Sets.newHashSet(intf.ipAddresses());
+        List<InterfaceIpAddress> addresses = Lists.newArrayList(intf.ipAddresses());
         addresses.add(InterfaceIpAddress.valueOf("192.168.100.1/24"));
         intf = new Interface(intf.connectPoint(), addresses, intf.mac(), intf.vlan());
 
         // Create a new interface on the same connect point as the existing one
         InterfaceIpAddress newAddr = InterfaceIpAddress.valueOf("192.168.101.1/24");
         Interface newIntf = new Interface(cp,
-                Collections.singleton(newAddr),
+                Collections.singletonList(newAddr),
                 MacAddress.valueOf(101),
                 VlanId.vlanId((short) 101));
 

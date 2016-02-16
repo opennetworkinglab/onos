@@ -29,12 +29,22 @@ import org.onosproject.incubator.net.intf.InterfaceEvent;
 import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
+
+import org.onosproject.net.Host;
+
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.mcast.McastEvent;
+import org.onosproject.net.mcast.McastListener;
+import org.onosproject.net.mcast.McastRoute;
+import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.routing.RouteEntry;
+import org.onosproject.routing.RoutingService;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -73,6 +83,8 @@ public class PIMInterfaceManager implements PIMInterfaceService {
 
     private final int timeoutTaskPeriod = DEFAULT_TASK_PERIOD_MS;
 
+    private final int joinTaskPeriod = 10000;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
 
@@ -82,13 +94,26 @@ public class PIMInterfaceManager implements PIMInterfaceService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MulticastRouteService multicastRouteService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected RoutingService unicastRoutingService;
+
     // Store PIM Interfaces in a map key'd by ConnectPoint
     private final Map<ConnectPoint, PIMInterface> pimInterfaces = Maps.newConcurrentMap();
+
+    private final Map<McastRoute, PIMInterface> routes = Maps.newConcurrentMap();
 
     private final InternalNetworkConfigListener configListener =
             new InternalNetworkConfigListener();
     private final InternalInterfaceListener interfaceListener =
             new InternalInterfaceListener();
+    private final InternalMulticastListener multicastListener =
+            new InternalMulticastListener();
 
     private final ConfigFactory<ConnectPoint, PimInterfaceConfig> pimConfigFactory
             = new ConfigFactory<ConnectPoint, PimInterfaceConfig>(
@@ -115,6 +140,9 @@ public class PIMInterfaceManager implements PIMInterfaceService {
 
         networkConfig.addListener(configListener);
         interfaceService.addListener(interfaceListener);
+        multicastRouteService.addListener(multicastListener);
+
+        multicastRouteService.getRoutes().forEach(this::addRoute);
 
         // Schedule the periodic hello sender.
         scheduledExecutorService.scheduleAtFixedRate(
@@ -128,6 +156,11 @@ public class PIMInterfaceManager implements PIMInterfaceService {
                         () -> pimInterfaces.values().forEach(PIMInterface::checkNeighborTimeouts)),
                 0, timeoutTaskPeriod, TimeUnit.MILLISECONDS);
 
+        scheduledExecutorService.scheduleAtFixedRate(
+                SafeRecurringTask.wrap(
+                        () -> pimInterfaces.values().forEach(PIMInterface::sendJoins)),
+                0, joinTaskPeriod, TimeUnit.MILLISECONDS);
+
         log.info("Started");
     }
 
@@ -135,6 +168,7 @@ public class PIMInterfaceManager implements PIMInterfaceService {
     public void deactivate() {
         interfaceService.removeListener(interfaceListener);
         networkConfig.removeListener(configListener);
+        multicastRouteService.removeListener(multicastListener);
         networkConfig.unregisterConfigFactory(pimConfigFactory);
 
         // Shutdown the periodic hello task.
@@ -202,6 +236,65 @@ public class PIMInterfaceManager implements PIMInterfaceService {
         return builder.build();
     }
 
+    private void addRoute(McastRoute route) {
+        PIMInterface pimInterface = getSourceInterface(route);
+
+        if (pimInterface == null) {
+            return;
+        }
+
+        routes.put(route, pimInterface);
+    }
+
+    private void removeRoute(McastRoute route) {
+        PIMInterface pimInterface = routes.remove(route);
+
+        if (pimInterface == null) {
+            return;
+        }
+
+        pimInterface.removeRoute(route);
+    }
+
+    private PIMInterface getSourceInterface(McastRoute route) {
+        RouteEntry routeEntry = unicastRoutingService.getLongestMatchableRouteEntry(route.source());
+
+        if (routeEntry == null) {
+            log.warn("No route to source {}", route.source());
+            return null;
+        }
+
+        Interface intf = interfaceService.getMatchingInterface(routeEntry.nextHop());
+
+        if (intf == null) {
+            log.warn("No interface with route to next hop {}", routeEntry.nextHop());
+            return null;
+        }
+
+        PIMInterface pimInterface = pimInterfaces.get(intf.connectPoint());
+
+        if (pimInterface == null) {
+            log.warn("PIM is not enabled on interface {}", intf);
+            return null;
+        }
+
+        Set<Host> hosts = hostService.getHostsByIp(routeEntry.nextHop());
+        Host host = null;
+        for (Host h : hosts) {
+            if (h.vlan().equals(intf.vlan())) {
+                host = h;
+            }
+        }
+        if (host == null) {
+            log.warn("Next hop host entry not found: {}", routeEntry.nextHop());
+            return null;
+        }
+
+        pimInterface.addRoute(route, routeEntry.nextHop(), host.mac());
+
+        return pimInterface;
+    }
+
     /**
      * Listener for network config events.
      */
@@ -258,6 +351,28 @@ public class PIMInterfaceManager implements PIMInterfaceService {
             default:
                 break;
 
+            }
+        }
+    }
+
+    /**
+     * Listener for multicast route events.
+     */
+    private class InternalMulticastListener implements McastListener {
+        @Override
+        public void event(McastEvent event) {
+            switch (event.type()) {
+            case ROUTE_ADDED:
+                addRoute(event.subject().route());
+                break;
+            case ROUTE_REMOVED:
+                removeRoute(event.subject().route());
+                break;
+            case SOURCE_ADDED:
+            case SINK_ADDED:
+            case SINK_REMOVED:
+            default:
+                break;
             }
         }
     }

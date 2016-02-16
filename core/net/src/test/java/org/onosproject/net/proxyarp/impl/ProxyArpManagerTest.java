@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.proxyarp.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
@@ -295,10 +296,10 @@ public class ProxyArpManagerTest {
             InterfaceIpAddress ia4 = new InterfaceIpAddress(addr4, prefix4);
 
             // Setting up interfaces
-            Interface intf1 = new Interface(cp, Sets.newHashSet(ia1, ia3),
+            Interface intf1 = new Interface(cp, Lists.newArrayList(ia1, ia3),
                     MacAddress.valueOf(2 * i - 1),
                     VlanId.vlanId((short) 1));
-            Interface intf2 = new Interface(cp, Sets.newHashSet(ia2, ia4),
+            Interface intf2 = new Interface(cp, Lists.newArrayList(ia2, ia4),
                     MacAddress.valueOf(2 * i),
                     VlanId.NONE);
 
@@ -312,7 +313,7 @@ public class ProxyArpManagerTest {
         }
         for (int i = LAST_CONF_DEVICE_INTF_VLAN_IP + 1; i <= LAST_CONF_DEVICE_INTF_VLAN; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(i), P1);
-            Interface intf1 = new Interface(cp, null,
+            Interface intf1 = new Interface(cp, Collections.emptyList(),
                     MacAddress.NONE,
                     VlanId.vlanId((short) 1));
 
@@ -850,7 +851,7 @@ public class ProxyArpManagerTest {
         expect(hostService.getHostsByIp(theirIp)).andReturn(Collections.emptySet());
         expect(interfaceService.getInterfacesByIp(ourIp))
                 .andReturn(Collections.singleton(new Interface(getLocation(1),
-                        Collections.singleton(new InterfaceIpAddress(ourIp, IpPrefix.valueOf("10.0.1.1/24"))),
+                        Collections.singletonList(new InterfaceIpAddress(ourIp, IpPrefix.valueOf("10.0.1.1/24"))),
                         ourMac, VLAN1)));
         expect(hostService.getHost(HostId.hostId(ourMac, VLAN1))).andReturn(null);
         replay(hostService);
@@ -883,7 +884,7 @@ public class ProxyArpManagerTest {
         expect(hostService.getHostsByIp(theirIp)).andReturn(Collections.emptySet());
         expect(interfaceService.getInterfacesByIp(ourIp))
                 .andReturn(Collections.singleton(new Interface(getLocation(1),
-                        Collections.singleton(new InterfaceIpAddress(
+                        Collections.singletonList(new InterfaceIpAddress(
                                 ourIp,
                                 IpPrefix.valueOf("1000::1/64"))),
                                 ourMac,

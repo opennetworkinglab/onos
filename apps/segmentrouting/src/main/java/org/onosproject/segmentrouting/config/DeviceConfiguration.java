@@ -137,7 +137,7 @@ public class DeviceConfiguration implements DeviceProperties {
                 // skip if there is no corresponding device for this ConenctPoint
                 if (info != null) {
                     // Extract subnet information
-                    Set<InterfaceIpAddress> interfaceAddresses = networkInterface.ipAddresses();
+                    List<InterfaceIpAddress> interfaceAddresses = networkInterface.ipAddressesList();
                     interfaceAddresses.forEach(interfaceAddress -> {
                         // Do not add /0 and /32 to gateway IP list
                         int prefixLength = interfaceAddress.subnetAddress().prefixLength();

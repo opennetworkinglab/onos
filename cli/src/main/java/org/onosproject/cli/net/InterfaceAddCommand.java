@@ -16,7 +16,7 @@
 
 package org.onosproject.cli.net;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -28,7 +28,7 @@ import org.onosproject.incubator.net.intf.InterfaceAdminService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Adds a new interface configuration.
@@ -66,7 +66,7 @@ public class InterfaceAddCommand extends AbstractShellCommand {
     protected void execute() {
         InterfaceAdminService interfaceService = get(InterfaceAdminService.class);
 
-        Set<InterfaceIpAddress> ipAddresses = Sets.newHashSet();
+        List<InterfaceIpAddress> ipAddresses = Lists.newArrayList();
         if (ips != null) {
             for (String strIp : ips) {
                 ipAddresses.add(InterfaceIpAddress.valueOf(strIp));

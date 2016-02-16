@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.Beta;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -29,6 +30,7 @@ import org.onosproject.net.config.Config;
 import org.onosproject.net.host.InterfaceIpAddress;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -61,7 +63,7 @@ public class InterfaceConfig extends Config<ConnectPoint> {
             for (JsonNode intfNode : array) {
                 String name = intfNode.path(NAME).asText(null);
 
-                Set<InterfaceIpAddress> ips = getIps(intfNode);
+                List<InterfaceIpAddress> ips = getIps(intfNode);
 
                 String mac = intfNode.path(MAC).asText();
                 MacAddress macAddr = mac.isEmpty() ? null : MacAddress.valueOf(mac);
@@ -98,7 +100,7 @@ public class InterfaceConfig extends Config<ConnectPoint> {
         }
 
         if (!intf.ipAddresses().isEmpty()) {
-            intfNode.set(IPS, putIps(intf.ipAddresses()));
+            intfNode.set(IPS, putIps(intf.ipAddressesList()));
         }
 
         if (!intf.vlan().equals(VlanId.NONE)) {
@@ -133,8 +135,8 @@ public class InterfaceConfig extends Config<ConnectPoint> {
         return vlan;
     }
 
-    private Set<InterfaceIpAddress> getIps(JsonNode node) {
-        Set<InterfaceIpAddress> ips = Sets.newHashSet();
+    private List<InterfaceIpAddress> getIps(JsonNode node) {
+        List<InterfaceIpAddress> ips = Lists.newArrayList();
 
         JsonNode ipsNode = node.get(IPS);
         if (ipsNode != null) {
@@ -145,7 +147,7 @@ public class InterfaceConfig extends Config<ConnectPoint> {
         return ips;
     }
 
-    private ArrayNode putIps(Set<InterfaceIpAddress> intfIpAddresses) {
+    private ArrayNode putIps(List<InterfaceIpAddress> intfIpAddresses) {
         ArrayNode ipArray = mapper.createArrayNode();
 
         intfIpAddresses.forEach(i -> ipArray.add(i.toString()));

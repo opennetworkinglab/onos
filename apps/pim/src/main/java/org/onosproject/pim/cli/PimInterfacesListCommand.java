@@ -31,6 +31,7 @@ import java.util.Set;
 public class PimInterfacesListCommand extends AbstractShellCommand {
 
     private static final String FORMAT = "interfaceName=%s, holdTime=%s, priority=%s, genId=%s";
+    private static final String ROUTE_FORMAT = "    %s";
 
     @Override
     protected void execute() {
@@ -38,10 +39,13 @@ public class PimInterfacesListCommand extends AbstractShellCommand {
 
         Set<PIMInterface> interfaces = interfaceService.getPimInterfaces();
 
-        interfaces.forEach(
-                pimIntf -> print(FORMAT, pimIntf.getInterface().name(),
-                        pimIntf.getHoldtime(), pimIntf.getPriority(),
-                        pimIntf.getGenerationId()));
+        interfaces.forEach(pimIntf -> {
+            print(FORMAT, pimIntf.getInterface().name(),
+                    pimIntf.getHoldtime(), pimIntf.getPriority(),
+                    pimIntf.getGenerationId());
+
+            pimIntf.getRoutes().forEach(route -> print(ROUTE_FORMAT, route));
+        });
     }
 
 }
