@@ -226,4 +226,18 @@ public final class XmlConfigParser {
         return speed / 1000;
     }
     //TODO implement mor methods for parsing configuration when you need them
+
+    /**
+     * Parses a config reply and returns the result.
+     * @param reply a tree-like source
+     * @return the configuration result
+     */
+    public static boolean configSuccess(HierarchicalConfiguration reply) {
+        if (reply != null) {
+            if (reply.containsKey("ok")) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
