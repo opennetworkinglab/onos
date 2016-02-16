@@ -60,7 +60,7 @@ public class LinkTypeConstraint extends BooleanConstraint {
     @Override
     public boolean isValid(Link link, LinkResourceService resourceService) {
         boolean contains = types.contains(link.type());
-        return isInclusive ? contains : !contains;
+        return isInclusive == contains;
     }
 
     /**
