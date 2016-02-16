@@ -67,6 +67,7 @@
         <module>vrouter</module>
         <module>openstackrouting</module>
         <module>cordmcast</module>
+        <module>vpls</module>
   </modules>
 
     <properties>
