@@ -1,6 +1,5 @@
 package org.onosproject.driver.pipeline;
 
-import com.google.common.base.Objects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
@@ -46,6 +45,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -333,6 +333,7 @@ public class OFDPA2GroupHandler {
         VlanId vlanid = null;
         long portNum = 0;
         boolean setVlan = false, popVlan = false;
+        MacAddress srcMac = MacAddress.ZERO;
         MacAddress dstMac = MacAddress.ZERO;
         for (Instruction ins : treatment.allInstructions()) {
             if (ins.type() == Instruction.Type.L2MODIFICATION) {
@@ -343,7 +344,8 @@ public class OFDPA2GroupHandler {
                         outerTtb.setEthDst(dstMac);
                         break;
                     case ETH_SRC:
-                        outerTtb.setEthSrc(((L2ModificationInstruction.ModEtherInstruction) l2ins).mac());
+                        srcMac = ((L2ModificationInstruction.ModEtherInstruction) l2ins).mac();
+                        outerTtb.setEthSrc(srcMac);
                         break;
                     case VLAN_ID:
                         vlanid = ((L2ModificationInstruction.ModVlanIdInstruction) l2ins).vlanId();
@@ -433,11 +435,10 @@ public class OFDPA2GroupHandler {
                     mplsgroupkey, nextId);
         } else {
             // outer group is L3Unicast
-            int l3groupId = L3_UNICAST_TYPE |
-                    (TYPE_MASK & (int) (dstMac.toLong() & 0xffff) << 6 | (int) portNum);
-            int l3gk = L3_UNICAST_TYPE |
-                    (TYPE_MASK & (deviceId.hashCode() << 22 |
-                            (int) (dstMac.toLong() & 0xffff) << 6 | (int) portNum));
+            int l3GroupIdHash = Objects.hash(srcMac, dstMac, portNum);
+            int l3groupId = L3_UNICAST_TYPE | (TYPE_MASK & l3GroupIdHash);
+            int l3GroupKeyHash = Objects.hash(deviceId, srcMac, dstMac, portNum);
+            int l3gk = L3_UNICAST_TYPE | (TYPE_MASK & l3GroupKeyHash);
             final GroupKey l3groupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l3gk));
             outerTtb.group(new DefaultGroupId(l2groupId));
             // create the l3unicast group description to wait for the
@@ -1059,7 +1060,7 @@ public class OFDPA2GroupHandler {
             DeviceId deviceId, VlanId vlanId, long portNumber) {
         int portLowerBits = (int) portNumber & PORT_LOWER_BITS_MASK;
         long portHigherBits = portNumber & PORT_HIGHER_BITS_MASK;
-        int hash = Objects.hashCode(deviceId, vlanId, portHigherBits);
+        int hash = Objects.hash(deviceId, vlanId, portHigherBits);
         return L2_INTERFACE_TYPE | (TYPE_MASK & hash << 6) | portLowerBits;
     }
 

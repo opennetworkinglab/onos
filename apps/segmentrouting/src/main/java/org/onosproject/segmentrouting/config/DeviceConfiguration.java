@@ -278,6 +278,10 @@ public class DeviceConfiguration implements DeviceProperties {
             PortNumber port = entry.getKey();
             Ip4Prefix subnet = entry.getValue();
 
+            if (subnet.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH) {
+                return;
+            }
+
             if (subnetPortMap.containsKey(subnet)) {
                 subnetPortMap.get(subnet).add(port);
             } else {

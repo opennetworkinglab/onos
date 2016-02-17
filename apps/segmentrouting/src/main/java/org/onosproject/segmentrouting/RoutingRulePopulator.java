@@ -558,12 +558,16 @@ public class RoutingRulePopulator {
      */
     public void populateSubnetBroadcastRule(DeviceId deviceId) {
         config.getSubnets(deviceId).forEach(subnet -> {
+            if (subnet.prefixLength() == 0 ||
+                    subnet.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH) {
+                return;
+            }
             int nextId = srManager.getSubnetNextObjectiveId(deviceId, subnet);
             VlanId vlanId = srManager.getSubnetAssignedVlanId(deviceId, subnet);
 
             if (nextId < 0 || vlanId == null) {
-                log.error("Cannot install subnet broadcast rule in dev:{} due"
-                        + "to vlanId:{} or nextId:{}", vlanId, nextId);
+                log.error("Cannot install subnet {} broadcast rule in dev:{} due"
+                        + "to vlanId:{} or nextId:{}", subnet, deviceId, vlanId, nextId);
                 return;
             }
 
