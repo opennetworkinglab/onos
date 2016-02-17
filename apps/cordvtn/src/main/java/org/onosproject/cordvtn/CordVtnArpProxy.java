@@ -143,7 +143,7 @@ public class CordVtnArpProxy {
 
         Ethernet ethReply = ARP.buildArpReply(
                 targetIp,
-                gatewayMac,
+                macAddr,
                 ethPacket);
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
