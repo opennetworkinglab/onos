@@ -645,6 +645,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         if (fwd.nextId() == null && fwd.treatment() == null) {
             log.error("Forwarding objective {} from {} must contain "
                     + "nextId or Treatment", fwd.selector(), fwd.appId());
+            fail(fwd, ObjectiveError.BADPARAMS);
             return Collections.emptySet();
         }
 
