@@ -28,10 +28,8 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
-import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.codec.CodecService;
 import org.onosproject.core.ApplicationId;
@@ -60,10 +58,13 @@ import org.slf4j.Logger;
 
 import java.util.Dictionary;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.net.MediaType.JSON_UTF_8;
+import static org.onlab.util.Tools.get;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -76,6 +77,10 @@ public class CordMcast {
 
     private static final int DEFAULT_PRIORITY = 1000;
     private static final short DEFAULT_MCAST_VLAN = 4000;
+    private static final String DEFAULT_SYNC_HOST = "10.90.0.8:8181";
+    private static final String DEFAULT_USER = "karaf";
+    private static final String DEFAULT_PASSWORD = "karaf";
+
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -96,10 +101,7 @@ public class CordMcast {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService componentConfigService;
 
-
     protected McastListener listener = new InternalMulticastListener();
-
-
 
     //TODO: move this to a ec map
     private Map<IpAddress, Integer> groups = Maps.newConcurrentMap();
@@ -109,18 +111,21 @@ public class CordMcast {
 
     private ApplicationId appId;
 
-    //TODO: network config this
-    private short mcastVlan = DEFAULT_MCAST_VLAN;
+    @Property(name = "mcastVlan", intValue = DEFAULT_MCAST_VLAN,
+            label = "VLAN for multicast traffic")
+    private int mcastVlan = DEFAULT_MCAST_VLAN;
 
-    // TODO component config this
+    @Property(name = "vlanEnabled", boolValue = false,
+            label = "Use vlan for multicast traffic")
+    private boolean vlanEnabled = false;
+
+    @Property(name = "priority", intValue = DEFAULT_PRIORITY,
+            label = "Priority for multicast rules")
     private int priority = DEFAULT_PRIORITY;
 
-    private static final String DEFAULT_USER = "karaf";
-    private static final String DEFAULT_PASSWORD = "karaf";
-
-    @Property(name = "syncHost", value = "",
+    @Property(name = "syncHost", value = DEFAULT_SYNC_HOST,
             label = "host:port to synchronize routes to")
-    private String syncHost = "10.90.0.8:8181";
+    private String syncHost = DEFAULT_SYNC_HOST;
 
     @Property(name = "username", value = DEFAULT_USER,
             label = "Username for REST password authentication")
@@ -153,10 +158,37 @@ public class CordMcast {
 
     @Modified
     public void modified(ComponentContext context) {
-        Dictionary<?, ?> properties = context.getProperties();
-        user = Tools.get(properties, "username");
-        password = Tools.get(properties, "password");
-        syncHost = Tools.get(properties, "syncHost");
+        Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
+
+
+        try {
+            String s = get(properties, "username");
+            user = isNullOrEmpty(s) ? DEFAULT_USER : s.trim();
+
+            s = get(properties, "password");
+            password = isNullOrEmpty(s) ? DEFAULT_PASSWORD : s.trim();
+
+            s = get(properties, "mcastVlan");
+            mcastVlan = isNullOrEmpty(s) ? DEFAULT_MCAST_VLAN : Short.parseShort(s.trim());
+
+            s = get(properties, "vlanEnabled");
+            vlanEnabled = isNullOrEmpty(s) || Boolean.parseBoolean(s.trim());
+
+            s = get(properties, "priority");
+            priority = isNullOrEmpty(s) ? DEFAULT_PRIORITY : Integer.parseInt(s.trim());
+
+            s = get(properties, syncHost);
+            syncHost = isNullOrEmpty(s) ? DEFAULT_SYNC_HOST : s.trim();
+        } catch (Exception e) {
+            user = DEFAULT_USER;
+            password = DEFAULT_PASSWORD;
+            syncHost = DEFAULT_SYNC_HOST;
+            mcastVlan = DEFAULT_MCAST_VLAN;
+            vlanEnabled = false;
+            priority = DEFAULT_PRIORITY;
+        }
+
+
     }
 
     private class InternalMulticastListener implements McastListener {
@@ -173,11 +205,45 @@ public class CordMcast {
                     provisionGroup(event.subject());
                     break;
                 case SINK_REMOVED:
+                    unprovisionGroup(event.subject());
                     break;
                 default:
                     log.warn("Unknown mcast event {}", event.type());
             }
         }
+    }
+
+    private void unprovisionGroup(McastRouteInfo info) {
+        if (!info.sink().isPresent()) {
+            log.warn("No sink given after sink removed event: {}", info);
+            return;
+        }
+        ConnectPoint loc = info.sink().get();
+
+        NextObjective next = DefaultNextObjective.builder()
+                .fromApp(appId)
+                .addTreatment(DefaultTrafficTreatment.builder().setOutput(loc.port()).build())
+                .withType(NextObjective.Type.BROADCAST)
+                .withId(groups.get(info.route().group()))
+                .removeFromExisting(new ObjectiveContext() {
+                    @Override
+                    public void onSuccess(Objective objective) {
+                        //TODO: change to debug
+                        log.info("Next Objective {} installed", objective.id());
+                    }
+
+                    @Override
+                    public void onError(Objective objective, ObjectiveError error) {
+                        //TODO: change to debug
+                        log.info("Next Objective {} failed, because {}",
+                                 objective.id(),
+                                 error);
+                    }
+                });
+
+        flowObjectiveService.next(loc.deviceId(), next);
+
+
     }
 
     private void provisionGroup(McastRouteInfo info) {
@@ -192,12 +258,37 @@ public class CordMcast {
         Integer nextId = groups.computeIfAbsent(info.route().group(), (g) -> {
             Integer id = allocateId();
 
-            TrafficSelector mcast = DefaultTrafficSelector.builder()
-                    .matchVlanId(VlanId.vlanId(mcastVlan))
+            NextObjective next = DefaultNextObjective.builder()
+                    .fromApp(appId)
+                    .addTreatment(DefaultTrafficTreatment.builder().setOutput(loc.port()).build())
+                    .withType(NextObjective.Type.BROADCAST)
+                    .withId(id)
+                    .add(new ObjectiveContext() {
+                        @Override
+                        public void onSuccess(Objective objective) {
+                            //TODO: change to debug
+                            log.info("Next Objective {} installed", objective.id());
+                        }
+
+                        @Override
+                        public void onError(Objective objective, ObjectiveError error) {
+                            //TODO: change to debug
+                            log.info("Next Objective {} failed, because {}",
+                                     objective.id(),
+                                     error);
+                        }
+                    });
+
+            flowObjectiveService.next(loc.deviceId(), next);
+
+            TrafficSelector.Builder mcast = DefaultTrafficSelector.builder()
                     .matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPProtocol(IPv4.PROTOCOL_IGMP)
-                    .matchIPDst(g.toIpPrefix())
-                    .build();
+                    .matchIPDst(g.toIpPrefix());
+
+
+            if (vlanEnabled) {
+                mcast.matchVlanId(VlanId.vlanId((short) mcastVlan));
+            }
 
 
             ForwardingObjective fwd = DefaultForwardingObjective.builder()
@@ -206,7 +297,7 @@ public class CordMcast {
                     .makePermanent()
                     .withFlag(ForwardingObjective.Flag.VERSATILE)
                     .withPriority(priority)
-                    .withSelector(mcast)
+                    .withSelector(mcast.build())
                     .add(new ObjectiveContext() {
                         @Override
                         public void onSuccess(Objective objective) {
@@ -228,28 +319,30 @@ public class CordMcast {
            return id;
         });
 
-        NextObjective next = DefaultNextObjective.builder()
-                .fromApp(appId)
-                .addTreatment(DefaultTrafficTreatment.builder().setOutput(loc.port()).build())
-                .withType(NextObjective.Type.BROADCAST)
-                .withId(nextId)
-                .addToExisting(new ObjectiveContext() {
-                    @Override
-                    public void onSuccess(Objective objective) {
-                        //TODO: change to debug
-                        log.info("Next Objective {} installed", objective.id());
-                    }
+        if (!sync.get()) {
+            NextObjective next = DefaultNextObjective.builder()
+                    .fromApp(appId)
+                    .addTreatment(DefaultTrafficTreatment.builder().setOutput(loc.port()).build())
+                    .withType(NextObjective.Type.BROADCAST)
+                    .withId(nextId)
+                    .addToExisting(new ObjectiveContext() {
+                        @Override
+                        public void onSuccess(Objective objective) {
+                            //TODO: change to debug
+                            log.info("Next Objective {} installed", objective.id());
+                        }
 
-                    @Override
-                    public void onError(Objective objective, ObjectiveError error) {
-                        //TODO: change to debug
-                        log.info("Next Objective {} failed, because {}",
-                                 objective.id(),
-                                 error);
-                    }
-                });
+                        @Override
+                        public void onError(Objective objective, ObjectiveError error) {
+                            //TODO: change to debug
+                            log.info("Next Objective {} failed, because {}",
+                                     objective.id(),
+                                     error);
+                        }
+                    });
 
-        flowObjectiveService.next(loc.deviceId(), next);
+            flowObjectiveService.next(loc.deviceId(), next);
+        }
 
         if (sync.get()) {
             syncRoute(info);

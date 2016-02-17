@@ -246,7 +246,7 @@ public class IgmpSnoop {
                 .withMeta(DefaultTrafficTreatment.builder()
                                   .setOutput(PortNumber.CONTROLLER).build())
                 .fromApp(appId)
-                .withPriority(1000)
+                .withPriority(10000)
                 .add(new ObjectiveContext() {
                     @Override
                     public void onSuccess(Objective objective) {
@@ -417,6 +417,7 @@ public class IgmpSnoop {
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
+            DeviceId devId = event.subject().id();
             switch (event.type()) {
 
                 case DEVICE_ADDED:
@@ -427,11 +428,15 @@ public class IgmpSnoop {
                 case PORT_STATS_UPDATED:
                     break;
                 case PORT_ADDED:
-                    if (event.port().isEnabled()) {
+                    if (!oltData.get(devId).uplink().equals(event.port().number()) &&
+                            event.port().isEnabled()) {
                         processFilterObjective(event.subject().id(), event.port(), false);
                     }
                     break;
                 case PORT_UPDATED:
+                    if (oltData.get(devId).uplink().equals(event.port().number())) {
+                        break;
+                    }
                     if (event.port().isEnabled()) {
                         processFilterObjective(event.subject().id(), event.port(), false);
                     } else {

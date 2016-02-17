@@ -66,9 +66,9 @@ public final class MulticastData {
         sinks.put(sink, true);
     }
 
-    public boolean removeSink(ConnectPoint sink) {
+    public void removeSink(ConnectPoint sink) {
         checkNotNull(sink);
-        return sinks.remove(sink);
+        sinks.remove(sink);
     }
 
     public boolean isEmpty() {

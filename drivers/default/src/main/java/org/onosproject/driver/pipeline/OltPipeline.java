@@ -25,6 +25,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -47,6 +48,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.IPProtocolCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
@@ -99,6 +101,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private DeviceId deviceId;
     private ApplicationId appId;
+    private IpPrefix mcastPrefix = IpPrefix.valueOf("224.0.0.0/4");
 
     protected FlowObjectiveStore flowObjectiveStore;
 
@@ -253,26 +256,33 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         GroupBucket bucket = DefaultGroupBucket.createAllGroupBucket(treatment);
         GroupKey key = new DefaultGroupKey(appKryo.serialize(nextObjective.id()));
 
-        GroupDescription groupDesc =
-                new DefaultGroupDescription(deviceId,
-                                            GroupDescription.Type.ALL,
-                                            new GroupBuckets(Collections.singletonList(bucket)),
-                                            key,
-                                            null,
-                                            nextObjective.appId());
+
 
         pendingGroups.put(key, nextObjective);
 
         switch (nextObjective.op()) {
             case ADD:
+                GroupDescription groupDesc =
+                        new DefaultGroupDescription(deviceId,
+                                                    GroupDescription.Type.ALL,
+                                                    new GroupBuckets(Collections.singletonList(bucket)),
+                                                    key,
+                                                    null,
+                                                    nextObjective.appId());
                 groupService.addGroup(groupDesc);
                 break;
             case REMOVE:
                 groupService.removeGroup(deviceId, key, nextObjective.appId());
                 break;
             case ADD_TO_EXISTING:
+                groupService.addBucketsToGroup(deviceId, key,
+                                               new GroupBuckets(Collections.singletonList(bucket)),
+                                               key, nextObjective.appId());
+                break;
             case REMOVE_FROM_EXISTING:
-                //TODO: handle addition to group when caller signals it.
+                groupService.removeBucketsFromGroup(deviceId, key,
+                                               new GroupBuckets(Collections.singletonList(bucket)),
+                                               key, nextObjective.appId());
                 break;
             default:
                 log.warn("Unknown next objective operation: {}", nextObjective.op());
@@ -287,14 +297,14 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             fail(fwd, ObjectiveError.BADPARAMS);
         }
 
-        OLTPipelineGroup next = getGroupForNextObjective(fwd.nextId());
+        GroupKey key = getGroupForNextObjective(fwd.nextId());
 
-        if (next == null) {
+        if (key == null) {
             log.error("Group for forwarding objective missing: {}", fwd);
             fail(fwd, ObjectiveError.GROUPMISSING);
         }
 
-        Group group = groupService.getGroup(deviceId, next.key());
+        Group group = groupService.getGroup(deviceId, key);
         TrafficTreatment treatment =
                 buildTreatment(Instructions.createGroup(group.id()));
 
@@ -330,16 +340,20 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private boolean checkForMulticast(ForwardingObjective fwd) {
 
-        VlanIdCriterion vlan = (VlanIdCriterion) filterForCriterion(fwd.selector().criteria(),
-                                                                    Criterion.Type.VLAN_VID);
+        IPCriterion ip = (IPCriterion) filterForCriterion(fwd.selector().criteria(),
+                                                                                Criterion.Type.IPV4_DST);
 
-        return (vlan != null && vlan.vlanId().equals(VlanId.vlanId(MCAST_VLAN)));
+        if (ip == null) {
+            return false;
+        }
+
+        return mcastPrefix.contains(ip.ip());
 
     }
 
-    private OLTPipelineGroup getGroupForNextObjective(Integer nextId) {
+    private GroupKey getGroupForNextObjective(Integer nextId) {
         NextGroup next = flowObjectiveStore.getNextGroup(nextId);
-        return (OLTPipelineGroup) appKryo.deserialize(next.data());
+        return appKryo.deserialize(next.data());
 
     }
 

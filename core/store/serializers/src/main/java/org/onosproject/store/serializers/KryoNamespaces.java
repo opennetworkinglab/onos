@@ -15,13 +15,10 @@
  */
 package org.onosproject.store.serializers;
 
-import com.esotericsoftware.kryo.serializers.JavaSerializer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ip4Address;
@@ -90,8 +87,8 @@ import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DefaultPortStatistics;
 import org.onosproject.net.device.OchPortDescription;
 import org.onosproject.net.device.OduCltPortDescription;
-import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.OmsPortDescription;
+import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -257,12 +254,11 @@ public final class KryoNamespaces {
             .register(HashMap.class)
             .register(ConcurrentHashMap.class)
             .register(CopyOnWriteArraySet.class)
-            .register(new JavaSerializer(), Sets.newConcurrentHashSet().getClass())
             .register(ArrayList.class,
                       LinkedList.class,
                       HashSet.class,
                       LinkedHashSet.class
-                      )
+            )
             .register(Maps.immutableEntry("a", "b").getClass())
             .register(new ArraysAsListSerializer(), Arrays.asList().getClass())
             .register(Collections.singletonList(1).getClass())
@@ -541,5 +537,6 @@ public final class KryoNamespaces {
 
 
     // not to be instantiated
-    private KryoNamespaces() {}
+    private KryoNamespaces() {
+    }
 }
