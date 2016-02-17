@@ -312,6 +312,10 @@ public class DistributedLabelResourceStore
         DeviceId deviceId = request.deviceId();
         long applyNum = request.applyNum();
         Versioned<LabelResourcePool> poolOld = resourcePool.get(deviceId);
+        if (poolOld == null) {
+            log.info("label resource pool not allocated for deviceId {}.", deviceId);
+            return Collections.emptyList();
+        }
         LabelResourcePool pool = poolOld.value();
         Collection<LabelResource> result = new HashSet<LabelResource>();
         long freeNum = this.getFreeNumOfDevicePool(deviceId);
@@ -397,6 +401,10 @@ public class DistributedLabelResourceStore
         DeviceId deviceId = request.deviceId();
         Collection<LabelResource> release = request.releaseCollection();
         Versioned<LabelResourcePool> poolOld = resourcePool.get(deviceId);
+        if (poolOld == null) {
+            log.info("the label resource pool of device id {} not allocated");
+            return false;
+        }
         LabelResourcePool pool = poolOld.value();
         if (pool == null) {
             log.info("the label resource pool of device id {} does not exist");
