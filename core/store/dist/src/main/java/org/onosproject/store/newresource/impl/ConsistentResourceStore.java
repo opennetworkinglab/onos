@@ -202,10 +202,18 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         TransactionalMap<ContinuousResourceId, ContinuousResourceAllocation> continuousConsumerTxMap =
                 tx.getTransactionalMap(CONTINUOUS_CONSUMER_MAP, SERIALIZER);
 
-        // Extract Discrete instances from resources
+        // Look up resources by resource IDs
         List<Resource> resources = ids.stream()
                 .filter(x -> x.parent().isPresent())
-                .flatMap(x -> Tools.stream(lookup(childTxMap, x)))
+                .map(x -> {
+                    // avoid access to consistent map in the case of discrete resource
+                    if (x instanceof DiscreteResourceId) {
+                        return Optional.of(Resources.discrete((DiscreteResourceId) x).resource());
+                    } else {
+                        return lookup(childTxMap, x);
+                    }
+                })
+                .flatMap(Tools::stream)
                 .collect(Collectors.toList());
         // the order is preserved by LinkedHashMap
         Map<DiscreteResourceId, List<Resource>> resourceMap = resources.stream()
