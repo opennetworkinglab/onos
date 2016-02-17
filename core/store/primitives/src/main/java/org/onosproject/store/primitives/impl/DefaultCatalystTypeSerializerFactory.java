@@ -54,7 +54,7 @@ public class DefaultCatalystTypeSerializerFactory implements TypeSerializerFacto
         }
 
         @Override
-        public void write(T object, BufferOutput<?> buffer,
+        public void write(T object, BufferOutput buffer,
                 io.atomix.catalyst.serializer.Serializer serializer) {
             try {
                 byte[] payload = this.serializer.encode(object);
@@ -66,7 +66,7 @@ public class DefaultCatalystTypeSerializerFactory implements TypeSerializerFacto
         }
 
         @Override
-        public T read(Class<T> type, BufferInput<?> buffer,
+        public T read(Class<T> type, BufferInput buffer,
                 io.atomix.catalyst.serializer.Serializer serializer) {
             int size = buffer.readInt();
             try {

@@ -22,6 +22,7 @@ import io.atomix.catalyst.transport.Transport;
 import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.storage.Storage;
 import io.atomix.copycat.server.storage.StorageLevel;
+import io.atomix.manager.ResourceManagerTypeResolver;
 import io.atomix.manager.state.ResourceManagerState;
 import io.atomix.resource.ResourceRegistry;
 import io.atomix.resource.ResourceType;
@@ -107,7 +108,7 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
         ResourceRegistry registry = new ResourceRegistry();
         resourceTypes.forEach(registry::register);
         resourceResolver.resolve(registry);
-        return CopycatServer.builder(localAddress, partition.getMemberAddresses())
+        CopycatServer server = CopycatServer.builder(localAddress, partition.getMemberAddresses())
                 .withName("partition-" + partition.getId())
                 .withSerializer(serializer.clone())
                 .withTransport(transport.get())
@@ -119,6 +120,8 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
                         .withMaxEntriesPerSegment(MAX_ENTRIES_PER_LOG_SEGMENT)
                         .build())
                 .build();
+        server.serializer().resolve(new ResourceManagerTypeResolver(registry));
+        return server;
     }
 
     public Set<NodeId> configuredMembers() {

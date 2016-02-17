@@ -90,7 +90,7 @@ public class StorageManager implements StorageService, StorageAdminService {
     private TransactionCoordinator transactionCoordinator;
 
     @Activate
-    public void actiavte() {
+    public void activate() {
         basePrimitiveCreator = partitionService.getDistributedPrimitiveCreator(PartitionId.from(0));
         Map<PartitionId, DistributedPrimitiveCreator> partitionMap = Maps.newHashMap();
         partitionService.getAllPartitionIds().stream()

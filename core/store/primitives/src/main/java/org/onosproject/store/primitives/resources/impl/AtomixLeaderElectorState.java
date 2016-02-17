@@ -24,6 +24,7 @@ import io.atomix.copycat.server.session.SessionListener;
 import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
 import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
 import io.atomix.resource.ResourceStateMachine;
+import io.atomix.resource.ResourceType;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -71,6 +72,10 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
     private final Serializer serializer = Serializer.using(Arrays.asList(KryoNamespaces.API),
                                                            ElectionState.class,
                                                            Registration.class);
+
+    public AtomixLeaderElectorState() {
+        super(new ResourceType(AtomixLeaderElector.class));
+    }
 
     @Override
     protected void configure(StateMachineExecutor executor) {
@@ -261,7 +266,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
     }
 
     private void onSessionEnd(Session session) {
-        Commit<? extends AtomixLeaderElectorCommands.Listen> listener = listeners.remove(session);
+        Commit<? extends AtomixLeaderElectorCommands.Listen> listener = listeners.remove(session.id());
         if (listener != null) {
             listener.close();
         }

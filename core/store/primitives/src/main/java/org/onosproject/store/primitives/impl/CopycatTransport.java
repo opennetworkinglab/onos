@@ -86,7 +86,7 @@ public class CopycatTransport implements Transport {
 
     /**
      * Maps {@link Address address} to {@link Endpoint endpoint}.
-     * @param address
+     * @param address address
      * @return end point
      */
     public static Endpoint toEndpoint(Address address) {

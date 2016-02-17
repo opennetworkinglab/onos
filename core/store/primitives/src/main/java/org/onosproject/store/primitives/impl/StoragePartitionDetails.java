@@ -19,14 +19,14 @@ import io.atomix.copycat.server.cluster.Member;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.service.PartitionInfo;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 
 /**
  * Operational details for a {@code StoragePartition}.
@@ -98,9 +98,11 @@ public class StoragePartitionDetails {
      * @return partition info
      */
     public PartitionInfo toPartitionInfo() {
+        Function<Member, String> memberToString =
+                m -> m == null ? "none" : String.format("%s:%d", m.address().host(), m.address().port());
         return new PartitionInfo(partitionId.toString(),
                 leaderTerm,
-                Lists.transform(ImmutableList.copyOf(activeMembers), m -> m.address().toString()),
-                leader == null ? "none" : leader.address().toString());
+                activeMembers.stream().map(memberToString).collect(Collectors.toList()),
+                memberToString.apply(leader));
     }
 }

@@ -110,7 +110,6 @@ public abstract class AtomixTestBase {
                 .withStorage(Storage.builder()
                         .withStorageLevel(StorageLevel.DISK)
                         .withDirectory(TEST_DIR + "/" + address.port())
-                        .withSerializer(serializer.clone())
                         .build())
                 .withStateMachine(() -> new ResourceManagerState(resourceRegistry))
                 .withSerializer(serializer.clone())

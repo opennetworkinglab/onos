@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import org.onlab.util.SharedExecutors;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.Change;
@@ -36,8 +35,10 @@ import com.google.common.collect.Sets;
 /**
  * Distributed resource providing the {@link AsyncLeaderElector} primitive.
  */
-@ResourceTypeInfo(id = -152, stateMachine = AtomixLeaderElectorState.class)
-public class AtomixLeaderElector extends Resource<AtomixLeaderElector, Resource.Options>
+@ResourceTypeInfo(id = -152,
+                  stateMachine = AtomixLeaderElectorState.class,
+                  typeResolver = AtomixLeaderElectorCommands.TypeResolver.class)
+public class AtomixLeaderElector extends Resource<AtomixLeaderElector>
     implements AsyncLeaderElector {
     private final Set<Consumer<Change<Leadership>>> leadershipChangeListeners =
             Sets.newConcurrentHashSet();
@@ -62,8 +63,7 @@ public class AtomixLeaderElector extends Resource<AtomixLeaderElector, Resource.
     }
 
     private void handleEvent(Change<Leadership> change) {
-        SharedExecutors.getSingleThreadExecutor().execute(() ->
-            leadershipChangeListeners.forEach(l -> l.accept(change)));
+        leadershipChangeListeners.forEach(l -> l.accept(change));
     }
 
     @Override

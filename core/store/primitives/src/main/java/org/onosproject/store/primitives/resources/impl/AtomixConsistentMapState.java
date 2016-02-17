@@ -26,6 +26,7 @@ import io.atomix.copycat.server.session.SessionListener;
 import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
 import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
 import io.atomix.resource.ResourceStateMachine;
+import io.atomix.resource.ResourceType;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -69,11 +70,16 @@ import static com.google.common.base.Preconditions.checkState;
  * State Machine for {@link AtomixConsistentMap} resource.
  */
 public class AtomixConsistentMapState extends ResourceStateMachine implements SessionListener, Snapshottable {
+
     private final Map<Long, Commit<? extends AtomixConsistentMapCommands.Listen>> listeners = new HashMap<>();
     private final Map<String, MapEntryValue> mapEntries = new HashMap<>();
     private final Set<String> preparedKeys = Sets.newHashSet();
     private final Map<TransactionId, Commit<? extends TransactionPrepare>> pendingTransactions = Maps.newHashMap();
     private AtomicLong versionCounter = new AtomicLong(0);
+
+    public AtomixConsistentMapState() {
+        super(new ResourceType(AtomixConsistentMap.class));
+    }
 
     @Override
     public void snapshot(SnapshotWriter writer) {

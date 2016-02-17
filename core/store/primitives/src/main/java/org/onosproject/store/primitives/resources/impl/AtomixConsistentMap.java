@@ -43,8 +43,10 @@ import com.google.common.collect.Sets;
 /**
  * Distributed resource providing the {@link AsyncConsistentMap} primitive.
  */
-@ResourceTypeInfo(id = -151, stateMachine = AtomixConsistentMapState.class)
-public class AtomixConsistentMap extends Resource<AtomixConsistentMap, Resource.Options>
+@ResourceTypeInfo(id = -151,
+                  stateMachine = AtomixConsistentMapState.class,
+                  typeResolver = AtomixConsistentMapCommands.TypeResolver.class)
+public class AtomixConsistentMap extends Resource<AtomixConsistentMap>
     implements AsyncConsistentMap<String, byte[]> {
 
     private final Set<MapEventListener<String, byte[]>> mapEventListeners = Sets.newCopyOnWriteArraySet();
