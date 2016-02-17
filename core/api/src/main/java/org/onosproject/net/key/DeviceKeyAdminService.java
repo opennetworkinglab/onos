@@ -14,8 +14,29 @@
  * limitations under the License.
  */
 
+package org.onosproject.net.key;
+
+import com.google.common.annotations.Beta;
+
 /**
- * Device key data model and services.
- * This subsystem and its interfaces will change in the upcoming release.
+ * Service for managing device keys.
  */
-package org.onosproject.incubator.net.key;
+@Beta
+public interface DeviceKeyAdminService extends DeviceKeyService {
+
+    /**
+     * Adds a new device key to the store.
+     *
+     * @param deviceKey device key to be stored
+     */
+    void addKey(DeviceKey deviceKey);
+
+    /**
+     * Removes a device key from the store using the device
+     * key identifier.
+     *
+     * @param id device key identifier used to identify the device key
+     */
+    void removeKey(DeviceKeyId id);
+}
+

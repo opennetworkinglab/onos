@@ -20,9 +20,9 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.key.DeviceKey;
-import org.onosproject.incubator.net.key.DeviceKeyAdminService;
-import org.onosproject.incubator.net.key.DeviceKeyId;
+import org.onosproject.net.key.DeviceKey;
+import org.onosproject.net.key.DeviceKeyAdminService;
+import org.onosproject.net.key.DeviceKeyId;
 
 /**
  * Adds a device key.

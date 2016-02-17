@@ -19,8 +19,8 @@ package org.onosproject.cli.net;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.key.DeviceKeyAdminService;
-import org.onosproject.incubator.net.key.DeviceKeyId;
+import org.onosproject.net.key.DeviceKeyAdminService;
+import org.onosproject.net.key.DeviceKeyId;
 
 /**
  * Removes a device key.

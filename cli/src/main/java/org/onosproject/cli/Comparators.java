@@ -19,7 +19,7 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.incubator.net.key.DeviceKey;
+import org.onosproject.net.key.DeviceKey;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Element;
 import org.onosproject.net.ElementId;

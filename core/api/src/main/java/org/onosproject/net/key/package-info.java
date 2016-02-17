@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.key;
-
-import com.google.common.annotations.Beta;
-import org.onosproject.store.StoreDelegate;
-
 /**
- * Device key store delegate abstraction.
+ * Device key data model and services.
+ * This subsystem and its interfaces will change in the upcoming release.
  */
-@Beta
-public interface DeviceKeyStoreDelegate extends StoreDelegate<DeviceKeyEvent> {
-}
+package org.onosproject.net.key;

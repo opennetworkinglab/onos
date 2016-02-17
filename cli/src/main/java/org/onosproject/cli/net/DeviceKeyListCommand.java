@@ -19,8 +19,8 @@ package org.onosproject.cli.net;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.Comparators;
-import org.onosproject.incubator.net.key.DeviceKey;
-import org.onosproject.incubator.net.key.DeviceKeyService;
+import org.onosproject.net.key.DeviceKey;
+import org.onosproject.net.key.DeviceKeyService;
 
 import java.util.Collections;
 import java.util.List;

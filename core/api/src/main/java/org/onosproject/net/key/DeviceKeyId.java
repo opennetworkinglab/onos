@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.key;
+package org.onosproject.net.key;
 
 import java.util.Objects;
 

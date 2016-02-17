@@ -19,8 +19,8 @@ package org.onosproject.incubator.store.key.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.incubator.net.key.DeviceKey;
-import org.onosproject.incubator.net.key.DeviceKeyId;
+import org.onosproject.net.key.DeviceKey;
+import org.onosproject.net.key.DeviceKeyId;
 import org.onosproject.store.service.TestStorageService;
 
 import java.util.Collection;
