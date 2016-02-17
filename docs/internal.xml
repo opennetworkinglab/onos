@@ -74,38 +74,9 @@
                             <packages>@internal-stores</packages>
                         </group>
                         <group>
-                            <title>Incubator for Core Subsystems &amp;
-                                Distributed Stores
+                            <title>Incubator for Core Subsystems &amp; Distributed Stores
                             </title>
                             <packages>@internal-incubator</packages>
-                        </group>
-                        <group>
-                            <title>OpenFlow Providers &amp; Controller</title>
-                            <packages>@internal-openflow</packages>
-                        </group>
-                        <group>
-                            <title>NetConf Providers</title>
-                            <packages>@internal-netconf</packages>
-                        </group>
-                        <group>
-                            <title>OVSDB Providers</title>
-                            <packages>@internal-ovsdb</packages>
-                        </group>
-                        <group>
-                            <title>PCEP Providers</title>
-                            <packages>@internal-pcep</packages>
-                        </group>
-                        <group>
-                            <title>BGP-LS Providers</title>
-                            <packages>@internal-bgpls</packages>
-                        </group>
-                        <group>
-                            <title>Other Providers</title>
-                            <packages>@internal-providers</packages>
-                        </group>
-                        <group>
-                            <title>Built-in Device Drivers</title>
-                            <packages>@internal-drivers</packages>
                         </group>
                         <group>
                             <title>Utilities</title>
@@ -123,6 +94,42 @@
                             <title>Test Instrumentation &amp; Applications
                             </title>
                             <packages>@internal-test-apps</packages>
+                        </group>
+                        <group>
+                            <title>OpenFlow Providers &amp; Controller</title>
+                            <packages>@internal-openflow</packages>
+                        </group>
+                        <group>
+                            <title>NetConf Protocol &amp; Providers</title>
+                            <packages>@internal-netconf</packages>
+                        </group>
+                        <group>
+                            <title>OVSDB Protocol &amp; Providers</title>
+                            <packages>@internal-ovsdb</packages>
+                        </group>
+                        <group>
+                            <title>PCEP Protocol &amp; Providers</title>
+                            <packages>@internal-pcep</packages>
+                        </group>
+                        <group>
+                            <title>BGP-LS Protocol &amp; Providers</title>
+                            <packages>@internal-bgpls</packages>
+                        </group>
+                        <group>
+                            <title>OSPF Protocol &amp; Providers</title>
+                            <packages>@internal-ospf</packages>
+                        </group>
+                        <group>
+                            <title>REST Protocol &amp; Providers</title>
+                            <packages>@internal-restsb</packages>
+                        </group>
+                        <group>
+                            <title>Other Providers</title>
+                            <packages>@internal-providers</packages>
+                        </group>
+                        <group>
+                            <title>Device Drivers</title>
+                            <packages>@internal-drivers</packages>
                         </group>
                     </groups>
                     <tags>

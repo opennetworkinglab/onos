@@ -48,10 +48,10 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <show>package</show>
-                    <excludePackageNames>@external-excludes</excludePackageNames>
                     <sourceFileExcludes>
                         <sourceFileExclude>**/generated-sources/**</sourceFileExclude>
                     </sourceFileExcludes>
+                    <excludePackageNames>@external-excludes</excludePackageNames>
                     <docfilessubdirs>true</docfilessubdirs>
                     <doctitle>ONOS Java API (1.5.0-SNAPSHOT)</doctitle>
                     <groups>
@@ -67,6 +67,10 @@
                         <group>
                             <title>Utilities</title>
                             <packages>@utils</packages>
+                        </group>
+                        <group>
+                            <title>App &amp; Extensions</title>
+                            <packages>@external-apps</packages>
                         </group>
                     </groups>
                     <tags>

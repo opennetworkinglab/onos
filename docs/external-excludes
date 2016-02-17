@@ -1,5 +1,6 @@
 *.impl
 *.impl.*
+protobuf.*
 
 org.onlab.jdvue*
 org.onlab.stc*
@@ -10,7 +11,6 @@ org.onosproject.provider*
 org.onosproject.rest
 org.onosproject.cli*
 org.onosproject.tvue
-org.onosproject.dhcp
 org.onosproject.foo
 org.onosproject.mobility
 org.onosproject.proxyarp
@@ -27,7 +27,6 @@ org.onosproject.store.flow
 org.onosproject.store.serializers*
 org.onosproject.openflow*
 org.onosproject.common*
-org.onosproject.routing*
 org.onosproject.bgprouter
 org.onosproject.intentperf
 org.onosproject.maven
@@ -43,9 +42,25 @@ org.onosproject.demo*
 org.onosproject.xosintegration*
 org.onosproject.app.vtn*
 org.onosproject.ovsdb*
+org.onosproject.bgp*
 org.onosproject.pcep*
 org.onosproject.aaa
 org.onosproject.acl*
+org.onosproject.olt.*
+org.onosproject.cpman.*
+org.onosproject.pathpainter*
+org.onosproject.openstackswitching.*
+org.onosproject.openstackrouting*
+org.onosproject.protocol*
+org.onosproject.sfc*
+org.onosproject.vrouter*
+org.onosproject.vpls*
+org.onosproject.netconf*
+org.onosproject.security.store*
+org.onosproject.faultmanagement*
+org.onosproject.iptopology*
+org.onosproject.igmp*
+org.onosproject.pim*
 org.onosproject.cip*
 org.onosproject.acl*
 org.onosproject.vtn*
@@ -54,4 +69,5 @@ org.onosproject.mfwd*
 org.onosproject.mcast*
 org.onosproject.flowanalyzer
 org.onosproject.grpc*
-protobuf.*
+org.onosproject.yangutils.parser.antlrgencode
+org.onosproject.yangutils.*
