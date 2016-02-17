@@ -107,11 +107,9 @@ public final class Timestamped<T> {
                     .toString();
     }
 
-    // Default constructor for serialization
     /**
-     * @deprecated in Cardinal Release
+     * Constructs an empty object. Required for serialization.
      */
-    @Deprecated
     private Timestamped() {
         this.value = null;
         this.timestamp = null;
