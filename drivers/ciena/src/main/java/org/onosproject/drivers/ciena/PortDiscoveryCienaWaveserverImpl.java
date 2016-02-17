@@ -26,7 +26,6 @@ import org.onosproject.net.CltSignalType;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.PortDescription;
@@ -53,6 +52,8 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
     private static final String EMPTY_STRING = "";
     private static final String NAME = "name";
     private static final String ADMIN_STATE = "admin-state";
+    private static final String LINESIDE_NAME = "lineside";
+    private static final String CLIENTSIDE_NAME = "clientside";
 
     private static final ArrayList<String> LINESIDE_PORT_ID = Lists.newArrayList(
             "4", "48");
@@ -85,9 +86,10 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
         portsConfig.stream().forEach(sub -> {
             String portId = sub.getString(PORT_ID);
             String name = sub.getString(NAME);
-            SparseAnnotations annotations = DefaultAnnotations.builder()
-                    .set(AnnotationKeys.NAME, name).build();
+            DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
+                    .set(AnnotationKeys.NAME, name);
             if (LINESIDE_PORT_ID.contains(portId)) {
+                annotations.set(AnnotationKeys.PORT_NAME, LINESIDE_NAME);
                 String wsportInfoRequest = SPECIFIC_PORT_PATH + portId +
                         SPECIFIC_PORT_CONFIG;
                 ports.add(XmlConfigParser.parseWaveServerCienaOchPorts(
@@ -95,17 +97,17 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
                         toGbps(Long.parseLong(sub.getString(SPEED).replace(GBPS, EMPTY_STRING)
                                                       .replace(" ", EMPTY_STRING))),
                         XmlConfigParser.loadXml(controller.get(deviceId, wsportInfoRequest, XML)),
-                        annotations));
+                        annotations.build()));
                 //adding corresponding opposite side port
                 ports.add(XmlConfigParser.parseWaveServerCienaOchPorts(
                         sub.getLong(PORT_ID) + 1,
                         toGbps(Long.parseLong(sub.getString(SPEED).replace(GBPS, EMPTY_STRING)
                                                       .replace(" ", EMPTY_STRING))),
                         XmlConfigParser.loadXml(controller.get(deviceId, wsportInfoRequest, XML)),
-                        DefaultAnnotations.builder()
-                                .set(AnnotationKeys.NAME, name.replace(".1", ".2"))
+                        annotations.set(AnnotationKeys.NAME, name.replace(".1", ".2"))
                                 .build()));
             } else if (!portId.equals("5") && !portId.equals("49")) {
+                annotations.set(AnnotationKeys.PORT_NAME, CLIENTSIDE_NAME);
                 //FIXME change when all optical types have two way information methods, see jira tickets
                 final int speed100GbpsinMbps = 100000;
                 CltSignalType cltType = toGbps(Long.parseLong(
@@ -114,7 +116,7 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
                         CltSignalType.CLT_100GBE : null;
                 ports.add(new OduCltPortDescription(PortNumber.portNumber(sub.getLong(PORT_ID)),
                                                     sub.getString(ADMIN_STATE).equals(ENABLED),
-                                                    cltType, annotations));
+                                                    cltType, annotations.build()));
             }
         });
         return ports;

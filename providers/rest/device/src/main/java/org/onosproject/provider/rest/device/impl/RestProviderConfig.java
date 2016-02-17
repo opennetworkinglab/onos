@@ -39,7 +39,7 @@ public class RestProviderConfig extends Config<ApplicationId> {
     private static final String IP = "ip";
     private static final int DEFAULT_HTTP_PORT = 80;
     private static final String PORT = "port";
-    private static final String NAME = "name";
+    private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
     private static final String PROTOCOL = "protocol";
     private static final String URL = "url";
@@ -52,11 +52,11 @@ public class RestProviderConfig extends Config<ApplicationId> {
                 String ip = node.path(IP).asText();
                 IpAddress ipAddr = ip.isEmpty() ? null : IpAddress.valueOf(ip);
                 int port = node.path(PORT).asInt(DEFAULT_HTTP_PORT);
-                String name = node.path(NAME).asText();
+                String username = node.path(USERNAME).asText();
                 String password = node.path(PASSWORD).asText();
                 String protocol = node.path(PROTOCOL).asText();
                 String url = node.path(URL).asText();
-                devicesAddresses.add(new DefaultRestSBDevice(ipAddr, port, name,
+                devicesAddresses.add(new DefaultRestSBDevice(ipAddr, port, username,
                                                              password, protocol,
                                                              url, false));
 

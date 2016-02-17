@@ -38,11 +38,11 @@ public interface RestSBDevice {
     int port();
 
     /**
-     * Returns the name of this device.
+     * Returns the username of this device.
      *
-     * @return name
+     * @return username
      */
-    String name();
+    String username();
 
     /**
      * Returns the password of this device.

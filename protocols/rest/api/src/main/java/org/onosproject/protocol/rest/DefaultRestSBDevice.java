@@ -34,7 +34,7 @@ public class DefaultRestSBDevice implements RestSBDevice {
     private static final String COLON = ":";
     private final IpAddress ip;
     private final int port;
-    private final String name;
+    private final String username;
     private final String password;
     private boolean isActive;
     private String protocol;
@@ -47,7 +47,7 @@ public class DefaultRestSBDevice implements RestSBDevice {
         Preconditions.checkNotNull(protocol, "protocol address cannot be null");
         this.ip = ip;
         this.port = port;
-        this.name = name;
+        this.username = name;
         this.password = StringUtils.isEmpty(password) ? null : password;
         this.isActive = isActive;
         this.protocol = protocol;
@@ -65,8 +65,8 @@ public class DefaultRestSBDevice implements RestSBDevice {
     }
 
     @Override
-    public String name() {
-        return name;
+    public String username() {
+        return username;
     }
 
     @Override
@@ -110,7 +110,7 @@ public class DefaultRestSBDevice implements RestSBDevice {
         return MoreObjects.toStringHelper(this)
                 .add("url", url)
                 .add("protocol", protocol)
-                .add("name", name)
+                .add("username", username)
                 .add("port", port)
                 .add("ip", ip)
                 .toString();
@@ -125,7 +125,7 @@ public class DefaultRestSBDevice implements RestSBDevice {
             return false;
         }
         RestSBDevice device = (RestSBDevice) obj;
-        return this.name.equals(device.name()) && this.ip.equals(device.ip()) &&
+        return this.username.equals(device.username()) && this.ip.equals(device.ip()) &&
                 this.port == device.port();
 
     }

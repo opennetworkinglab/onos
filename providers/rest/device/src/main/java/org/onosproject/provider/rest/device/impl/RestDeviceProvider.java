@@ -59,7 +59,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
@@ -102,6 +105,9 @@ public class RestDeviceProvider extends AbstractProvider
     protected static final String ISNOTNULL = "Rest device is not null";
     private static final String UNKNOWN = "unknown";
 
+    private final ExecutorService executor =
+            Executors.newFixedThreadPool(5, groupedThreads("onos/restsbprovider", "device-installer-%d"));
+
     private final ConfigFactory factory =
             new ConfigFactory<ApplicationId, RestProviderConfig>(APP_SUBJECT_FACTORY,
                                                                  RestProviderConfig.class,
@@ -114,6 +120,8 @@ public class RestDeviceProvider extends AbstractProvider
             };
     private final NetworkConfigListener cfgLister = new InternalNetworkConfigListener();
     private ApplicationId appId;
+
+    private Set<DeviceId> addedDevices = new HashSet<>();
 
 
     @Activate
@@ -156,9 +164,9 @@ public class RestDeviceProvider extends AbstractProvider
     public boolean isReachable(DeviceId deviceId) {
         RestSBDevice restDevice = controller.getDevice(deviceId);
         if (restDevice == null) {
-            log.warn("BAD REQUEST: the requested device id: " +
-                             deviceId.toString() +
-                             "  is not associated to any REST Device");
+            log.debug("the requested device id: " +
+                              deviceId.toString() +
+                              "  is not associated to any REST Device");
             return false;
         }
         return restDevice.isActive();
@@ -181,6 +189,7 @@ public class RestDeviceProvider extends AbstractProvider
         providerService.deviceConnected(deviceId, deviceDescription);
         nodeId.setActive(true);
         controller.addDevice(nodeId);
+        addedDevices.add(deviceId);
     }
 
     //when do I call it ?
@@ -212,7 +221,7 @@ public class RestDeviceProvider extends AbstractProvider
             log.error("Configuration error {}", e);
         }
         log.debug("REST Devices {}", controller.getDevices());
-        controller.getDevices().keySet().forEach(deviceId -> {
+        addedDevices.forEach(deviceId -> {
             DriverHandler h = driverService.createHandler(deviceId);
             PortDiscovery portConfig = h.behaviour(PortDiscovery.class);
             if (portConfig != null) {
@@ -221,6 +230,8 @@ public class RestDeviceProvider extends AbstractProvider
                 log.warn("No portGetter behaviour for device {}", deviceId);
             }
         });
+        addedDevices.clear();
+
     }
 
     private boolean testDeviceConnection(RestSBDevice device) {
@@ -240,8 +251,9 @@ public class RestDeviceProvider extends AbstractProvider
             } else {
                 urlConn = (HttpURLConnection) url.openConnection();
             }
-            if (device.password() != null) {
-                String userPassword = device.name() + ":" + device.password();
+            if (device.username() != null) {
+                String pwd = device.password() == null ? "" : ":" + device.password();
+                String userPassword = device.username() + pwd;
                 String basicAuth = Base64.getEncoder()
                         .encodeToString(userPassword.getBytes(StandardCharsets.UTF_8));
                 urlConn.setRequestProperty(AUTHORIZATION_PROPERTY, BASIC_AUTH_PREFIX + basicAuth);
@@ -267,7 +279,7 @@ public class RestDeviceProvider extends AbstractProvider
 
         @Override
         public void event(NetworkConfigEvent event) {
-            connectDevices();
+            executor.submit(RestDeviceProvider.this::connectDevices);
         }
 
         @Override

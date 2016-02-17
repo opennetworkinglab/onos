@@ -182,8 +182,9 @@ public class RestSBControllerImpl implements RestSBController {
         try {
             log.debug("Url request {} ", getUrlString(device, request));
             HttpPatch httprequest = new HttpPatch(getUrlString(device, request));
-            if (deviceMap.get(device).password() != null) {
-                String userPassword = deviceMap.get(device).name() + COLON + deviceMap.get(device).password();
+            if (deviceMap.get(device).username() != null) {
+                String pwd = deviceMap.get(device).password() == null ? "" : COLON + deviceMap.get(device).password();
+                String userPassword = deviceMap.get(device).username() + pwd;
                 String base64string = Base64.getEncoder().encodeToString(userPassword.getBytes(StandardCharsets.UTF_8));
                 httprequest.addHeader(AUTHORIZATION_PROPERTY, BASIC_AUTH_PREFIX + base64string);
             }
@@ -232,9 +233,10 @@ public class RestSBControllerImpl implements RestSBController {
     private WebResource getWebResource(DeviceId device, String request) {
         log.debug("Sending request to URL {} ", getUrlString(device, request));
         WebResource webResource = client.resource(getUrlString(device, request));
-        if (deviceMap.containsKey(device) && deviceMap.get(device).password() != null) {
-            client.addFilter(new HTTPBasicAuthFilter(deviceMap.get(device).name(),
-                                                     deviceMap.get(device).password()));
+        if (deviceMap.containsKey(device) && deviceMap.get(device).username() != null) {
+            client.addFilter(new HTTPBasicAuthFilter(deviceMap.get(device).username(),
+                                                     deviceMap.get(device).password() == null ?
+                                                             "" : deviceMap.get(device).password()));
         }
         return webResource;
     }
