@@ -21,24 +21,13 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.driver.AbstractDriverLoader;
 import org.onosproject.net.driver.DefaultDriverProviderService;
 
-import java.io.InputStream;
-
 /**
- * Loader for default device drivers from specific xml.
+ * Loader for default device drivers.
  */
 @Service
 @Component(immediate = true)
 public class DefaultDriversLoader extends AbstractDriverLoader implements DefaultDriverProviderService {
-
-    private static final String DRIVERS_XML = "/onos-drivers.xml";
-
-    @Override
-    protected InputStream loadXmlDriversStream() {
-       return getClassLoaderInstance().getResourceAsStream(DRIVERS_XML);
-    }
-
-    @Override
-    protected ClassLoader getClassLoaderInstance() {
-        return getClass().getClassLoader();
+    public DefaultDriversLoader() {
+        super("/onos-drivers.xml");
     }
 }

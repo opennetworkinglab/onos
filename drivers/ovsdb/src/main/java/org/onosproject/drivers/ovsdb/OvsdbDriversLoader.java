@@ -19,23 +19,12 @@ package org.onosproject.drivers.ovsdb;
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 
-import java.io.InputStream;
-
 /**
- * Loader for OVSDB device drivers from specific xml.
+ * Loader for OVSDB device drivers.
  */
 @Component(immediate = true)
 public class OvsdbDriversLoader extends AbstractDriverLoader {
-
-    private static final String DRIVERS_XML = "/ovsdb-drivers.xml";
-
-    @Override
-    protected InputStream loadXmlDriversStream() {
-        return getClassLoaderInstance().getResourceAsStream(DRIVERS_XML);
-    }
-
-    @Override
-    protected ClassLoader getClassLoaderInstance() {
-        return getClass().getClassLoader();
+    public OvsdbDriversLoader() {
+        super("/ovsdb-drivers.xml");
     }
 }

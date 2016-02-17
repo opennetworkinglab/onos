@@ -23,31 +23,37 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-
 /**
- * Bootstrap for built in drivers.
+ * Abstract boot-strapper for loading and registering driver definitions.
  */
 @Component
 public abstract class AbstractDriverLoader {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    //private static final String DRIVERS_XML = "/onos-drivers.xml";
-
     private DriverProvider provider;
+    private final String path;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverAdminService driverAdminService;
 
+    /**
+     * Creates a new loader for resource with the specified path.
+     *
+     * @param path drivers definition XML resource path
+     */
+    protected AbstractDriverLoader(String path) {
+        this.path = path;
+    }
+
     @Activate
     protected void activate() {
         try {
-            provider = new XmlDriverLoader(getClassLoaderInstance())
-                    .loadDrivers(loadXmlDriversStream(), driverAdminService);
+            provider = new XmlDriverLoader(getClass().getClassLoader())
+                    .loadDrivers(getClass().getResourceAsStream(path), driverAdminService);
             driverAdminService.registerProvider(provider);
         } catch (Exception e) {
-            log.error("Unable to load default drivers", e);
+            log.error("Unable to load {} driver definitions", path, e);
         }
         log.info("Started");
     }
@@ -57,9 +63,5 @@ public abstract class AbstractDriverLoader {
         driverAdminService.unregisterProvider(provider);
         log.info("Stopped");
     }
-
-    protected abstract InputStream loadXmlDriversStream();
-
-    protected abstract ClassLoader getClassLoaderInstance();
 
 }

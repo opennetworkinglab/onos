@@ -19,23 +19,12 @@ package org.onosproject.drivers.fujitsu;
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 
-import java.io.InputStream;
-
 /**
- * Loader for Fujitsu device drivers from specific xml.
+ * Loader for Fujitsu device drivers.
  */
 @Component(immediate = true)
 public class FujitsuDriversLoader extends AbstractDriverLoader {
-
-    private static final String DRIVERS_XML = "/fujitsu-drivers.xml";
-
-    @Override
-    protected InputStream loadXmlDriversStream() {
-        return getClassLoaderInstance().getResourceAsStream(DRIVERS_XML);
-    }
-
-    @Override
-    protected ClassLoader getClassLoaderInstance() {
-        return getClass().getClassLoader();
+    public FujitsuDriversLoader() {
+        super("/fujitsu-drivers.xml");
     }
 }

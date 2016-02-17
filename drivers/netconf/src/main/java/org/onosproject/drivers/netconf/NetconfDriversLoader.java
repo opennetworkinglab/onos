@@ -19,23 +19,12 @@ package org.onosproject.drivers.netconf;
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 
-import java.io.InputStream;
-
 /**
- * Loader for NETCONF device drivers from specific xml.
+ * Loader for NETCONF device drivers.
  */
 @Component(immediate = true)
 public class NetconfDriversLoader extends AbstractDriverLoader {
-
-    private static final String DRIVERS_XML = "/netconf-drivers.xml";
-
-    @Override
-    protected InputStream loadXmlDriversStream() {
-        return getClassLoaderInstance().getResourceAsStream(DRIVERS_XML);
-    }
-
-    @Override
-    protected ClassLoader getClassLoaderInstance() {
-        return getClass().getClassLoader();
+    public NetconfDriversLoader() {
+        super("/netconf-drivers.xml");
     }
 }
