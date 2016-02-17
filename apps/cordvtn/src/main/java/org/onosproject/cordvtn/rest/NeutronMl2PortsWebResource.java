@@ -17,7 +17,7 @@ package org.onosproject.cordvtn.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cordvtn.CordVtnService;
@@ -36,7 +36,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
-import java.util.Set;
+import java.util.Map;
 
 
 /**
@@ -88,16 +88,17 @@ public class NeutronMl2PortsWebResource extends AbstractWebResource {
 
             // this is allowed address pairs updates
             MacAddress mac = MacAddress.valueOf(jsonNode.path(MAC_ADDRESS).asText());
-            Set<IpAddress> vSgIps = Sets.newHashSet();
+            Map<IpAddress, MacAddress> vSgs = Maps.newHashMap();
             jsonNode.path(ADDRESS_PAIRS).forEach(addrPair -> {
-                IpAddress ip = IpAddress.valueOf(addrPair.path(IP_ADDERSS).asText());
-                vSgIps.add(ip);
+                IpAddress pairIp = IpAddress.valueOf(addrPair.path(IP_ADDERSS).asText());
+                MacAddress pairMac = MacAddress.valueOf(addrPair.path(MAC_ADDRESS).asText());
+                vSgs.put(pairIp, pairMac);
             });
 
             service.updateVirtualSubscriberGateways(
                     HostId.hostId(mac),
                     name.substring(STAG_BEGIN_INDEX),
-                    vSgIps);
+                    vSgs);
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }

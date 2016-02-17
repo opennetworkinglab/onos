@@ -15,7 +15,7 @@
  */
 package org.onosproject.cordvtn;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import org.onlab.packet.ARP;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
@@ -36,10 +36,10 @@ import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -53,7 +53,7 @@ public class CordVtnArpProxy {
     private final PacketService packetService;
     private final HostService hostService;
 
-    private Set<Ip4Address> serviceIPs = Sets.newHashSet();
+    private final Map<Ip4Address, MacAddress> gateways = Maps.newConcurrentMap();
 
     /**
      * Default constructor.
@@ -96,23 +96,25 @@ public class CordVtnArpProxy {
     }
 
     /**
-     * Adds a given service IP address to be served.
+     * Adds a given gateway IP and MAC address to this ARP proxy.
      *
-     * @param serviceIp service ip
+     * @param gatewayIp gateway ip address
+     * @param gatewayMac gateway mac address
      */
-    public void addServiceIp(IpAddress serviceIp) {
-        checkNotNull(serviceIp);
-        serviceIPs.add(serviceIp.getIp4Address());
+    public void addGateway(IpAddress gatewayIp, MacAddress gatewayMac) {
+        checkNotNull(gatewayIp);
+        checkNotNull(gatewayMac);
+        gateways.put(gatewayIp.getIp4Address(), gatewayMac);
     }
 
     /**
      * Removes a given service IP address from this ARP proxy.
      *
-     * @param serviceIp service ip
+     * @param gatewayIp gateway ip address
      */
-    public void removeServiceIp(IpAddress serviceIp) {
-        checkNotNull(serviceIp);
-        serviceIPs.remove(serviceIp.getIp4Address());
+    public void removeGateway(IpAddress gatewayIp) {
+        checkNotNull(gatewayIp);
+        gateways.remove(gatewayIp.getIp4Address());
     }
 
     /**
@@ -123,27 +125,28 @@ public class CordVtnArpProxy {
      *
      * @param context packet context
      * @param ethPacket ethernet packet
-     * @param gatewayMac gateway mac address
      */
-    public void processArpPacket(PacketContext context, Ethernet ethPacket, MacAddress gatewayMac) {
+    public void processArpPacket(PacketContext context, Ethernet ethPacket) {
         ARP arpPacket = (ARP) ethPacket.getPayload();
         if (arpPacket.getOpCode() != ARP.OP_REQUEST) {
            return;
         }
 
         Ip4Address targetIp = Ip4Address.valueOf(arpPacket.getTargetProtocolAddress());
-        MacAddress macAddr = serviceIPs.contains(targetIp) ?
-                gatewayMac : getMacFromHostService(targetIp);
 
-        if (macAddr.equals(MacAddress.NONE)) {
+        MacAddress gatewayMac = gateways.get(targetIp);
+        MacAddress replyMac = gatewayMac != null ? gatewayMac : getMacFromHostService(targetIp);
+
+        if (replyMac.equals(MacAddress.NONE)) {
             log.debug("Failed to find MAC for {}", targetIp.toString());
             context.block();
             return;
         }
 
+        log.trace("Send ARP reply for {} with {}", targetIp.toString(), replyMac.toString());
         Ethernet ethReply = ARP.buildArpReply(
                 targetIp,
-                macAddr,
+                replyMac,
                 ethPacket);
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -161,14 +164,17 @@ public class CordVtnArpProxy {
     /**
      * Emits gratuitous ARP when a gateway mac address has been changed.
      *
-     * @param ip ip address to update MAC
-     * @param mac new mac address
+     * @param gatewayIp gateway ip address to update MAC
      * @param hosts set of hosts to send gratuitous ARP packet
      */
-    public void sendGratuitousArp(IpAddress ip, MacAddress mac, Set<Host> hosts) {
-        checkArgument(!mac.equals(MacAddress.NONE));
+    public void sendGratuitousArpForGateway(IpAddress gatewayIp, Set<Host> hosts) {
+        MacAddress gatewayMac = gateways.get(gatewayIp.getIp4Address());
+        if (gatewayMac == null) {
+            log.debug("Gateway {} is not registered to ARP proxy", gatewayIp.toString());
+            return;
+        }
 
-        Ethernet ethArp = buildGratuitousArp(ip.getIp4Address(), mac);
+        Ethernet ethArp = buildGratuitousArp(gatewayIp.getIp4Address(), gatewayMac);
         hosts.stream().forEach(host -> {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .setOutput(host.location().port())

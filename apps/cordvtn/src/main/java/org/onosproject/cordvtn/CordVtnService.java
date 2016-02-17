@@ -16,10 +16,11 @@
 package org.onosproject.cordvtn;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
 
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Service for provisioning overlay virtual networks on compute nodes.
@@ -67,8 +68,8 @@ public interface CordVtnService {
      *
      * @param vSgHost host id of vSG host
      * @param serviceVlan service vlan id
-     * @param vSgIps set of ip address of vSGs running in this vSG host
+     * @param vSgs map of ip and mac address of vSGs running in this vSG host
      */
     void updateVirtualSubscriberGateways(HostId vSgHost, String serviceVlan,
-                                         Set<IpAddress> vSgIps);
+                                         Map<IpAddress, MacAddress> vSgs);
 }

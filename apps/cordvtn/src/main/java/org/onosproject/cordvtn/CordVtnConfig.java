@@ -16,7 +16,9 @@
 package org.onosproject.cordvtn;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
@@ -24,6 +26,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import org.slf4j.Logger;
 
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -36,6 +39,9 @@ public class CordVtnConfig extends Config<ApplicationId> {
 
     protected final Logger log = getLogger(getClass());
 
+    public static final String PRIVATE_GATEWAY_MAC = "privateGatewayMac";
+    public static final String PUBLIC_GATEWAYS = "publicGateways";
+    public static final String GATEWAY_IP = "gatewayIp";
     public static final String GATEWAY_MAC = "gatewayMac";
     public static final String LOCAL_MANAGEMENT_IP = "localManagementIp";
     public static final String OVSDB_PORT = "ovsdbPort";
@@ -80,12 +86,12 @@ public class CordVtnConfig extends Config<ApplicationId> {
     }
 
     /**
-     * Returns gateway MAC address.
+     * Returns private network gateway MAC address.
      *
      * @return mac address, or null
      */
-    public MacAddress gatewayMac() {
-        JsonNode jsonNode = object.get(GATEWAY_MAC);
+    public MacAddress privateGatewayMac() {
+        JsonNode jsonNode = object.get(PRIVATE_GATEWAY_MAC);
         if (jsonNode == null) {
             return null;
         }
@@ -96,6 +102,31 @@ public class CordVtnConfig extends Config<ApplicationId> {
             log.error("Wrong MAC address format {}", jsonNode.asText());
             return null;
         }
+    }
+
+    /**
+     * Returns public network gateway IP and MAC address pairs.
+     *
+     * @return map of ip and mac address
+     */
+    public Map<IpAddress, MacAddress> publicGateways() {
+        JsonNode jsonNodes = object.get(PUBLIC_GATEWAYS);
+        if (jsonNodes == null) {
+            return null;
+        }
+
+        Map<IpAddress, MacAddress> publicGateways = Maps.newHashMap();
+        jsonNodes.forEach(jsonNode -> {
+            try {
+                publicGateways.put(
+                        IpAddress.valueOf(jsonNode.path(GATEWAY_IP).asText()),
+                        MacAddress.valueOf(jsonNode.path(GATEWAY_MAC).asText()));
+            } catch (IllegalArgumentException | NullPointerException e) {
+                log.error("Wrong address format {}", e.toString());
+            }
+        });
+
+        return publicGateways;
     }
 
     /**
