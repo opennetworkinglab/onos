@@ -64,7 +64,7 @@ public class CopycatTransportServer implements Server {
         this.messagingService = checkNotNull(messagingService);
         this.protocolMessageSubject = String.format("onos-copycat-server-%s", partitionId);
         this.newConnectionMessageSubject = String.format("onos-copycat-server-connection-%s", partitionId);
-        this.executorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(),
+        this.executorService = Executors.newScheduledThreadPool(Math.min(4, Runtime.getRuntime().availableProcessors()),
                 new CatalystThreadFactory("copycat-server-p" + partitionId + "-%d"));
     }
 
