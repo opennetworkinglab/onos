@@ -213,7 +213,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                         return lookup(childTxMap, x);
                     }
                 })
-                .flatMap(Tools::stream)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
         // the order is preserved by LinkedHashMap
         Map<DiscreteResourceId, List<Resource>> resourceMap = resources.stream()
