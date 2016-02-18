@@ -92,9 +92,7 @@ public class CopycatTransport implements Transport {
     public static Endpoint toEndpoint(Address address) {
         return EP_LOOKUP_CACHE.computeIfAbsent(address, a -> {
             try {
-                Endpoint endpoint = new Endpoint(IpAddress.valueOf(InetAddress.getByName(a.host())), a.port());
-                ADDRESS_LOOKUP_CACHE.putIfAbsent(endpoint, address);
-                return endpoint;
+                return new Endpoint(IpAddress.valueOf(InetAddress.getByName(a.host())), a.port());
             } catch (UnknownHostException e) {
                 Throwables.propagate(e);
                 return null;
@@ -112,9 +110,7 @@ public class CopycatTransport implements Transport {
             try {
                 InetAddress host = InetAddress.getByAddress(endpoint.host().toOctets());
                 int port = endpoint.port();
-                Address address = new Address(new InetSocketAddress(host, port));
-                EP_LOOKUP_CACHE.putIfAbsent(address, endpoint);
-                return address;
+                return new Address(new InetSocketAddress(host, port));
             } catch (UnknownHostException e) {
                 Throwables.propagate(e);
                 return null;
