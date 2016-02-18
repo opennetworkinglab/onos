@@ -5,11 +5,18 @@
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
+. $ONOS_ROOT/tools/test/bin/find-node.sh
 
-node="${1:-$OCI}"
+fail="--fail"
+[ "$1" == "-v" ] && shift && fail=""
+
+node=$(find_node $1)
 file="${2:-$ONOS_ROOT/tools/test/topos/oe-linear-3.json}"
 url="${3}"
 
-curl --fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
-    -X POST -H 'Content-Type:application/json' \
+method="POST"
+[ $file == "delete" ] && method="DELETE"
+
+curl $fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
+    -X $method -H 'Content-Type:application/json' \
     http://$node:8181/onos/v1/network/configuration/${url} -d@$file
