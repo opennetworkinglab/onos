@@ -275,9 +275,10 @@ public class IgmpSnoop {
             IGMPMembership membership = (IGMPMembership) group;
 
             // TODO allow pulling source from IGMP packet
-            IpAddress source = IpAddress.valueOf("0.0.0.0");
-            if (ssmTranslateTable.containsKey(group.getGaddr())) {
-                source = ssmTranslateTable.get(group.getGaddr());
+            IpAddress source = ssmTranslateTable.get(group.getGaddr());
+            if (source == null) {
+                log.warn("No source found in SSM translate table for {}", group.getGaddr());
+                return;
             }
 
             McastRoute route = new McastRoute(source,
@@ -287,14 +288,13 @@ public class IgmpSnoop {
             if (membership.getRecordType() == IGMPMembership.MODE_IS_INCLUDE ||
                     membership.getRecordType() == IGMPMembership.CHANGE_TO_INCLUDE_MODE) {
 
+                multicastService.removeSink(route, location);
+                // TODO remove route if all sinks are gone
+            } else if (membership.getRecordType() == IGMPMembership.MODE_IS_EXCLUDE ||
+                    membership.getRecordType() == IGMPMembership.CHANGE_TO_EXCLUDE_MODE) {
 
                 multicastService.add(route);
                 multicastService.addSink(route, location);
-
-            } else if (membership.getRecordType() == IGMPMembership.MODE_IS_EXCLUDE ||
-                    membership.getRecordType() == IGMPMembership.CHANGE_TO_EXCLUDE_MODE) {
-                multicastService.removeSink(route, location);
-                // TODO remove route if all sinks are gone
             }
 
         });

@@ -214,6 +214,10 @@ public class CordMcast {
     }
 
     private void unprovisionGroup(McastRouteInfo info) {
+        if (info.sinks().isEmpty()) {
+            removeSyncedRoute(info);
+        }
+
         if (!info.sink().isPresent()) {
             log.warn("No sink given after sink removed event: {}", info);
             return;
@@ -242,8 +246,6 @@ public class CordMcast {
                 });
 
         flowObjectiveService.next(loc.deviceId(), next);
-
-
     }
 
     private void provisionGroup(McastRouteInfo info) {
@@ -362,6 +364,21 @@ public class CordMcast {
         ObjectNode json = codecService.getCodec(McastRoute.class)
                 .encode(info.route(), new AbstractWebResource());
         builder.post(json.toString());
+    }
+
+    private void removeSyncedRoute(McastRouteInfo info) {
+        if (syncHost == null) {
+            log.warn("No host configured for synchronization; route will be dropped");
+            return;
+        }
+
+        log.debug("Removing route from other ONOS: {}", info.route());
+
+        WebResource.Builder builder = getClientBuilder(fabricOnosUrl);
+
+        ObjectNode json = codecService.getCodec(McastRoute.class)
+                .encode(info.route(), new AbstractWebResource());
+        builder.delete(json.toString());
     }
 
     private Integer allocateId() {
