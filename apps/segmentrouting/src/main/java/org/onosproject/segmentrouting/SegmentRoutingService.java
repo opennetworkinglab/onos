@@ -44,7 +44,7 @@ public interface SegmentRoutingService {
     /**
      * Minimum IP priority.
      *
-     * Should > 0 such that priority of /0 will not conflict with lowest
+     * Should &lt; 0 such that priority of /0 will not conflict with lowest
      * priority default entries.
      */
     int MIN_IP_PRIORITY = 10;

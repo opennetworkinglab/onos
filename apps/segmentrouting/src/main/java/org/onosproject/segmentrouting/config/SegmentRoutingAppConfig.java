@@ -150,7 +150,7 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     /**
      * Sets names of ports that are ignored by SegmentRouting.
      *
-     * @paran excludePorts names of ports that are ignored by SegmentRouting
+     * @param excludePorts names of ports that are ignored by SegmentRouting
      * @return this {@link SegmentRoutingAppConfig}
      */
     public SegmentRoutingAppConfig setExcludePorts(Set<String> excludePorts) {
