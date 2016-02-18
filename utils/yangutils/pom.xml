@@ -152,8 +152,40 @@
                 <configuration>
                     <sourceDirectory>src/main/resources</sourceDirectory>
                     <outputDirectory>target/generated-sources/org/onosproject/yangutils/parser/antlrgencode</outputDirectory>
-                    <visitor>true</visitor>
+                    <visitor>false</visitor>
                     <listener>true</listener>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>Deleting auto-generated listener interfaces</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                    <filesets>
+                        <fileset>
+                            <directory>target</directory>
+                            <followSymlinks>false</followSymlinks>
+                            <useDefaultExcludes>true</useDefaultExcludes>
+                            <excludes>
+                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangLexer.java</exclude>
+                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYang.tokens</exclude>
+                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangParser.java</exclude>
+                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangLexer.tokens</exclude>
+                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/YangLexer.java</exclude>
+                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/YangLexer.tokens</exclude>
+                            </excludes>
+                        </fileset>
+                    </filesets>
+                    <verbose>true</verbose>
                 </configuration>
             </plugin>
             <plugin>
@@ -174,16 +206,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
-                <configuration>
-                    <excludePackageNames>
-                        *.org.onosproject.yangutils.parser.antlrgencode
-                    </excludePackageNames>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
