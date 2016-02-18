@@ -56,14 +56,11 @@ import org.onosproject.net.provider.ProviderId;
 public class BgpTopologyProviderTest {
 
     private static final DeviceId DID1 = DeviceId
-            .deviceId("bgp:bgpls://0:direct:0/&=bgpnodelsidentifier%7bnodedescriptors=nodedescriptors%7bdestype=512,"
-                    + "%20deslength=4,%20subtlvs=[autonomoussystemtlv%7btype=512,%20length=4,%20asnum=100%7d]%7d%7d");
+            .deviceId("bgp:rd=0:proto=direct:id=0:as=100");
     private static final DeviceId DID2 = DeviceId
-            .deviceId("bgp:bgpls://0:direct:0/&=bgpnodelsidentifier%7bnodedescriptors=nodedescriptors%7bdestype=512,"
-                    + "%20deslength=4,%20subtlvs=[autonomoussystemtlv%7btype=512,%20length=4,%20asnum=10%7d]%7d%7d");
+            .deviceId("bgp:rd=0:proto=direct:id=0:as=10");
     private static final DeviceId DID3 = DeviceId
-            .deviceId("bgp:bgpls://direct:0/&=nodedescriptors%7bdestype=512,%20deslength=4,"
-                    + "%20subtlvs=[autonomoussystemtlv%7btype=512,%20length=4,%20asnum=100%7d]%7d");
+            .deviceId("bgp:rd=0:proto=direct:id=0:as=100");
     private final BgpTopologyProvider provider = new BgpTopologyProvider();
     private final TestDeviceRegistry nodeRegistry = new TestDeviceRegistry();
     private final TestController controller = new TestController();
