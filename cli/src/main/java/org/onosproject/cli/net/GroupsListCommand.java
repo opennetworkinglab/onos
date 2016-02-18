@@ -45,6 +45,8 @@ import static com.google.common.collect.Lists.newArrayList;
         description = "Lists all groups in the system")
 public class GroupsListCommand extends AbstractShellCommand {
 
+    public static final String ANY = "any";
+
     private static final String FORMAT =
             "   id=0x%s, state=%s, type=%s, bytes=%s, packets=%s, appId=%s";
     private static final String BUCKET_FORMAT =

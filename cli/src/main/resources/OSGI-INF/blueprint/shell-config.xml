@@ -428,6 +428,11 @@
         </command>
         <command>
             <action class="org.onosproject.cli.net.GroupsListCommand"/>
+            <completers>
+                <ref component-id="groupStatusCompleter"/>
+                <ref component-id="deviceIdCompleter"/>
+                <null/>
+            </completers>
         </command>
 
         <command>
@@ -562,6 +567,7 @@
     <bean id="hostIdCompleter" class="org.onosproject.cli.net.HostIdCompleter"/>
     <bean id="intentKeyCompleter" class="org.onosproject.cli.net.IntentKeyCompleter"/>
     <bean id="flowRuleStatusCompleter" class="org.onosproject.cli.net.FlowRuleStatusCompleter"/>
+    <bean id="groupStatusCompleter" class="org.onosproject.cli.net.GroupStatusCompleter" />
     <bean id="connectPointCompleter" class="org.onosproject.cli.net.ConnectPointCompleter"/>
     <bean id="nullCompleter" class="org.apache.karaf.shell.console.completer.NullCompleter"/>
     <bean id="ethTypeCompleter" class="org.onosproject.cli.net.EthTypeCompleter"/>
