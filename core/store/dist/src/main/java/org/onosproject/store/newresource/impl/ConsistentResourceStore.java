@@ -509,13 +509,21 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             return true;
         }
 
-        if (oldValues.containsAll(values)) {
+        Set<ResourceId> oldIds = oldValues.stream()
+                .map(Resource::id)
+                .collect(Collectors.toSet());
+        // values whose IDs don't match any IDs of oldValues
+        Set<Resource> addedValues = values.stream()
+                .filter(x -> !oldIds.contains(x.id()))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        // no new ID, then no-op
+        if (addedValues.isEmpty()) {
             // don't write to map because all values are already stored
             return true;
         }
 
         LinkedHashSet<Resource> newValues = new LinkedHashSet<>(oldValues);
-        newValues.addAll(values);
+        newValues.addAll(addedValues);
         return map.replace(key, oldValues, newValues);
     }
 
