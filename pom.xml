@@ -330,11 +330,6 @@
             </dependency>
             <dependency>
                 <groupId>org.onosproject</groupId>
-                <artifactId>onlab-nio</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.onosproject</groupId>
                 <artifactId>onlab-osgi</artifactId>
                 <version>${project.version}</version>
             </dependency>

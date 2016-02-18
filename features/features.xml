@@ -46,8 +46,6 @@
         <bundle>mvn:com.esotericsoftware/minlog/1.3.0</bundle>
         <bundle>mvn:org.objenesis/objenesis/2.1</bundle>
 
-        <bundle>mvn:org.onosproject/onlab-nio/@ONOS-VERSION</bundle>
-
         <bundle>mvn:com.fasterxml.jackson.core/jackson-core/2.7.0</bundle>
         <bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/2.7.0</bundle>
         <bundle>mvn:com.fasterxml.jackson.core/jackson-databind/2.7.0</bundle>
@@ -96,7 +94,6 @@
         <bundle>mvn:org.onosproject/onos-core-primitives/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-core-persistence/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-core-serializers/@ONOS-VERSION</bundle>
-        <bundle>mvn:org.onosproject/onlab-netty/@ONOS-VERSION</bundle>
         <bundle>mvn:commons-configuration/commons-configuration/1.10</bundle>
     </feature>
 
