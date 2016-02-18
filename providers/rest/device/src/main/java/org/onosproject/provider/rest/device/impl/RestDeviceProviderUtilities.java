@@ -42,8 +42,8 @@ final class RestDeviceProviderUtilities {
      * connection with any SSL protected device that ONOS has an interaction with.
      * Needs addressing for secutirty purposes.
      *
-     * @throws NoSuchAlgorithmException
-     * @throws KeyManagementException
+     * @throws NoSuchAlgorithmException if algorithm specified is not available
+     * @throws KeyManagementException if unable to use the key
      */
     //FIXME redo for security purposes.
     protected static void enableSslCert() throws NoSuchAlgorithmException, KeyManagementException {

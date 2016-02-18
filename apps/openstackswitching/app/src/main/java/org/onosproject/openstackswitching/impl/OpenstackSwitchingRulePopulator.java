@@ -96,6 +96,7 @@ public class OpenstackSwitchingRulePopulator {
     /**
      * Populates flow rules for the VM created.
      *
+     * @param doNotPushFlow true to suppress push of initial flows
      * @param device device to populate rules to
      * @param port port for the VM created
      */
@@ -271,6 +272,7 @@ public class OpenstackSwitchingRulePopulator {
     /**
      * Remove flows rules for the removed VM.
      *
+     * @param doNotPushFlows true to suppress push of initial flows
      * @param removedPort removedport info
      * @param openstackPortInfoMap openstackPortInfoMap
      */

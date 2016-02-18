@@ -35,7 +35,7 @@ public abstract class ConsistentMapBuilder<K, V>
     /**
      * Clears map contents when the owning application is uninstalled.
      *
-     * return this builder
+     * @return this builder
      */
     public ConsistentMapBuilder<K, V> withPurgeOnUninstall() {
         purgeOnUninstall = true;

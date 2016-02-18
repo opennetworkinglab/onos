@@ -34,7 +34,7 @@ public abstract class DistributedSetBuilder<E> extends DistributedPrimitiveBuild
     /**
      * Enables clearing set contents when the owning application is uninstalled.
      *
-     * return this builder
+     * @return this builder
      */
     public DistributedSetBuilder<E> withPurgeOnUninstall() {
         purgeOnUninstall = true;

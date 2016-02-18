@@ -107,11 +107,11 @@ public class NewAdaptiveFlowStatsCollector {
     /**
      * Creates a new adaptive collector for the given switch and default cal_and_poll frequency.
      *
-     * @param sw           switch to pull
-     * @param pollInterval cal and immediate poll frequency in seconds
+     * @param driverService driver service reference
+     * @param sw            switch to pull
+     * @param pollInterval  cal and immediate poll frequency in seconds
      */
-    NewAdaptiveFlowStatsCollector(
-            DriverService driverService, OpenFlowSwitch sw, int pollInterval) {
+    NewAdaptiveFlowStatsCollector(DriverService driverService, OpenFlowSwitch sw, int pollInterval) {
         this.driverService = driverService;
         this.sw = sw;
         initMemberVars(pollInterval);

@@ -60,6 +60,7 @@ public class CordVtnArpProxy {
      *
      * @param appId application id
      * @param packetService packet service
+     * @param hostService host service reference
      */
     public CordVtnArpProxy(ApplicationId appId, PacketService packetService, HostService hostService) {
         this.appId = appId;

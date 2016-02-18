@@ -76,6 +76,7 @@ final class ResourceDeviceListener implements DeviceListener {
      * Creates an instance with the specified ResourceAdminService and ExecutorService.
      *
      * @param adminService instance invoked to register resources
+     * @param resourceService {@link ResourceService} to be used
      * @param deviceService {@link DeviceService} to be used
      * @param driverService {@link DriverService} to be used
      * @param netcfgService {@link NetworkConfigService} to be used.

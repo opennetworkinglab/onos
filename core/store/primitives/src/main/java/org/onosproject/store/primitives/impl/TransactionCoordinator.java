@@ -36,7 +36,9 @@ public class TransactionCoordinator {
 
     /**
      * Commits a transaction.
-     * @param transactionId transaction
+     *
+     * @param transactionId           transaction
+     * @param transactionParticipants set of transaction participants
      * @return future for commit result
      */
     CompletableFuture<Void> commit(TransactionId transactionId, Set<TransactionParticipant> transactionParticipants) {
