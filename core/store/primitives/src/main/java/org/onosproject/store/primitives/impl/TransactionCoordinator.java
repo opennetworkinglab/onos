@@ -53,7 +53,7 @@ public class TransactionCoordinator {
                            : transactions.put(transactionId, Transaction.State.ROLLINGBACK)
                                          .thenCompose(v -> doRollback(transactionParticipants))
                                          .thenApply(v -> null))
-                    .thenCompose(v -> transactions.remove(transactionId).thenApply(u -> null))
+                    .thenCompose(v -> transactions.remove(transactionId))
                     .thenApply(v -> null);
     }
 
