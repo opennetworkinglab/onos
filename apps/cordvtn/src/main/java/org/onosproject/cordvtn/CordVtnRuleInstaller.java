@@ -213,7 +213,7 @@ public class CordVtnRuleInstaller {
     }
 
     /**
-     * Removes basic rules related to a given flow information.
+     * Removes all rules related to a given service VM host.
      *
      * @param host host to be removed
      */
@@ -235,6 +235,11 @@ public class CordVtnRuleInstaller {
                 if (inPort != null && inPort.equals(port)) {
                     processFlowRule(false, flowRule);
                     continue;
+                }
+
+                PortNumber output = getOutputFromTreatment(flowRule);
+                if (output != null && output.equals(host.location().port())) {
+                    processFlowRule(false, flowRule);
                 }
             }
 
@@ -519,17 +524,7 @@ public class CordVtnRuleInstaller {
         if (!mastershipService.isLocalMaster(host.location().deviceId())) {
             return;
         }
-
-        for (FlowRule flowRule : flowRuleService.getFlowRulesById(appId)) {
-            if (flowRule.deviceId().equals(host.location().deviceId())) {
-                PortNumber port = getOutputFromTreatment(flowRule);
-                if (port != null && port.equals(host.location().port())) {
-                    processFlowRule(false, flowRule);
-                }
-            }
-
-            // TODO remove the other rules if mgmt network is not in use
-        }
+        // TODO remove management network specific rules
     }
 
     /**
@@ -549,11 +544,11 @@ public class CordVtnRuleInstaller {
 
         // for traffics with s-tag, strip the tag and take through the vSG VM
         TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(dpPort)
                 .matchVlanId(serviceVlan)
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .popVlan()
                 .setOutput(vSgHost.location().port())
                 .build();
 
@@ -573,11 +568,10 @@ public class CordVtnRuleInstaller {
         // lower priority to avoid conflict with WAN tag
         selector = DefaultTrafficSelector.builder()
                 .matchInPort(vSgHost.location().port())
+                .matchVlanId(serviceVlan)
                 .build();
 
         treatment = DefaultTrafficTreatment.builder()
-                .pushVlan()
-                .setVlanId(serviceVlan)
                 .setOutput(dpPort)
                 .build();
 
@@ -585,7 +579,7 @@ public class CordVtnRuleInstaller {
                 .fromApp(appId)
                 .withSelector(selector)
                 .withTreatment(treatment)
-                .withPriority(LOW_PRIORITY)
+                .withPriority(DEFAULT_PRIORITY)
                 .forDevice(vSgHost.location().deviceId())
                 .forTable(TABLE_Q_IN_Q)
                 .makePermanent()
