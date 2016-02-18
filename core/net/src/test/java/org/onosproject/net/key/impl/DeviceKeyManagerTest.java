@@ -14,48 +14,65 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.store.key.impl;
+package org.onosproject.net.key.impl;
 
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestTools;
+import org.onlab.junit.TestUtils;
+import org.onosproject.common.event.impl.TestEventDispatcher;
+import org.onosproject.event.Event;
 import org.onosproject.net.key.DeviceKey;
+import org.onosproject.net.key.DeviceKeyEvent;
 import org.onosproject.net.key.DeviceKeyId;
+import org.onosproject.net.key.DeviceKeyListener;
+import org.onosproject.net.key.DeviceKeyService;
+import org.onosproject.store.key.impl.DistributedDeviceKeyStore;
+import org.onosproject.net.NetTestTools;
 import org.onosproject.store.service.TestStorageService;
 
 import java.util.Collection;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
 /**
- * Test class for DistributedDeviceKeyStore.
+ * Tests for DeviceKeyManager.
  */
-public class DistributedDeviceKeyStoreTest {
-    private DistributedDeviceKeyStore deviceKeyStore;
+public class DeviceKeyManagerTest {
 
     final String deviceKeyIdValue = "DeviceKeyId";
     final String deviceKeyLabel = "DeviceKeyLabel";
     final String deviceKeyLabel2 = "DeviceKeyLabel2";
     final String deviceKeySnmpName = "DeviceKeySnmpName";
 
-    /**
-     * Sets up the device key store and the storage service test harness.
-     */
+    private DeviceKeyManager manager;
+    private DeviceKeyService deviceKeyService;
+    private DistributedDeviceKeyStore deviceKeyStore;
+    protected TestListener listener = new TestListener();
+
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         deviceKeyStore = new DistributedDeviceKeyStore();
-        deviceKeyStore.storageService = new TestStorageService();
-        deviceKeyStore.setDelegate(event -> {
-        });
+        TestUtils.setField(deviceKeyStore, "storageService", new TestStorageService());
         deviceKeyStore.activate();
+
+        manager = new DeviceKeyManager();
+        manager.store = deviceKeyStore;
+        manager.addListener(listener);
+        NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
+        manager.activate();
+        deviceKeyService = manager;
     }
 
-    /**
-     * Tears down the device key store.
-     */
     @After
     public void tearDown() {
         deviceKeyStore.deactivate();
+        manager.removeListener(listener);
+        manager.deactivate();
+        NetTestTools.injectEventDispatcher(manager, null);
     }
 
     /**
@@ -63,12 +80,12 @@ public class DistributedDeviceKeyStoreTest {
      */
     @Test(expected = NullPointerException.class)
     public void testAddNullKey() {
-        deviceKeyStore.createOrUpdateDeviceKey(null);
+        manager.addKey(null);
     }
 
     /**
-     * Tests adding a device key to the store. This also tests the device key store
-     * query methods.
+     * Tests adding a device key using the device key manager.
+     * This also tests the device key manager query methods.
      */
     @Test
     public void testAddKey() {
@@ -78,19 +95,23 @@ public class DistributedDeviceKeyStoreTest {
                                                                           deviceKeyLabel, deviceKeySnmpName);
 
         // Test to make sure that the device key store is empty
-        Collection<DeviceKey> deviceKeys = deviceKeyStore.getDeviceKeys();
+        Collection<DeviceKey> deviceKeys = manager.getDeviceKeys();
         assertTrue("The device key set should be empty.", deviceKeys.isEmpty());
 
-        // Add the new device key to the store
-        deviceKeyStore.createOrUpdateDeviceKey(deviceKey);
+        // Add the new device key using the device key manager.
+        manager.addKey(deviceKey);
 
         // Test the getDeviceKeys method to make sure that the new device key exists
-        deviceKeys = deviceKeyStore.getDeviceKeys();
+        deviceKeys = manager.getDeviceKeys();
         assertEquals("There should be one device key in the set.", deviceKeys.size(), 1);
 
         // Test the getDeviceKey method using the device key unique identifier
-        deviceKey = deviceKeyStore.getDeviceKey(deviceKeyId);
+        deviceKey = manager.getDeviceKey(deviceKeyId);
         assertEquals("There should be one device key in the set.", deviceKeys.size(), 1);
+
+        // Validate that only the DEVICE_KEY_ADDED event was received.
+        validateEvents(DeviceKeyEvent.Type.DEVICE_KEY_ADDED);
+
     }
 
     /**
@@ -103,11 +124,11 @@ public class DistributedDeviceKeyStoreTest {
         DeviceKey deviceKey = DeviceKey.createDeviceKeyUsingCommunityName(deviceKeyId,
                                                                           deviceKeyLabel, deviceKeySnmpName);
 
-        // Add the first device key to the store
-        deviceKeyStore.createOrUpdateDeviceKey(deviceKey);
+        // Add the first device key via the device key manager
+        manager.addKey(deviceKey);
 
         // Test the getDeviceKeys method
-        Collection<DeviceKey> deviceKeys = deviceKeyStore.getDeviceKeys();
+        Collection<DeviceKey> deviceKeys = manager.getDeviceKeys();
         assertEquals("There should be one device key in the set.", deviceKeys.size(), 1);
 
         // Now let's create a new device key with the same device key identifier as exists in the store.
@@ -115,16 +136,21 @@ public class DistributedDeviceKeyStoreTest {
                                                                            deviceKeyLabel2, deviceKeySnmpName);
 
         // Replace the new device key in the store
-        deviceKeyStore.createOrUpdateDeviceKey(deviceKey2);
+        manager.addKey(deviceKey2);
 
         // Test the getDeviceKeys method to ensure that only 1 device key exists in the store.
-        deviceKeys = deviceKeyStore.getDeviceKeys();
+        deviceKeys = manager.getDeviceKeys();
         assertEquals("There should be one device key in the set.", deviceKeys.size(), 1);
 
         // Test the getDeviceKey method using the device key unique identifier
-        deviceKey = deviceKeyStore.getDeviceKey(deviceKeyId);
+        deviceKey = manager.getDeviceKey(deviceKeyId);
         assertNotNull("The device key should not be null.", deviceKey);
         assertEquals("The device key label should match.", deviceKeyLabel2, deviceKey.label());
+
+        // Validate that the following events were received in order,
+        // DEVICE_KEY_ADDED, DEVICE_KEY_REMOVED, DEVICE_KEY_ADDED.
+        validateEvents(DeviceKeyEvent.Type.DEVICE_KEY_ADDED, DeviceKeyEvent.Type.DEVICE_KEY_UPDATED);
+
     }
 
     /**
@@ -135,14 +161,50 @@ public class DistributedDeviceKeyStoreTest {
         DeviceKeyId deviceKeyId = DeviceKeyId.deviceKeyId(deviceKeyIdValue);
         DeviceKey deviceKey = DeviceKey.createDeviceKeyUsingCommunityName(deviceKeyId,
                                                                           deviceKeyLabel, deviceKeySnmpName);
-        // Add the new device key to the store
-        deviceKeyStore.createOrUpdateDeviceKey(deviceKey);
+        // Add the new device key using the device key manager
+        manager.addKey(deviceKey);
 
         // Remove the device key from the store
-        deviceKeyStore.deleteDeviceKey(deviceKeyId);
+        manager.removeKey(deviceKeyId);
 
         // Validate that the device key was removed from the store by querying it.
-        deviceKey = deviceKeyStore.getDeviceKey(deviceKeyId);
+        deviceKey = manager.getDeviceKey(deviceKeyId);
         assertNull("The device key set should be empty.", deviceKey);
+
+        // Validate that the following events were received in order,
+        // DEVICE_KEY_ADDED, DEVICE_KEY_REMOVED.
+        validateEvents(DeviceKeyEvent.Type.DEVICE_KEY_ADDED, DeviceKeyEvent.Type.DEVICE_KEY_REMOVED);
+    }
+
+    /**
+     * Method to validate that actual versus expected device key events were
+     * received correctly.
+     *
+     * @param types expected device key events.
+     */
+    private void validateEvents(Enum... types) {
+        TestTools.assertAfter(100, () -> {
+            int i = 0;
+            assertEquals("wrong events received", types.length, listener.events.size());
+            for (Event event : listener.events) {
+                assertEquals("incorrect event type", types[i], event.type());
+                i++;
+            }
+            listener.events.clear();
+        });
+    }
+
+    /**
+     * Test listener class to receive device key events.
+     */
+    private static class TestListener implements DeviceKeyListener {
+
+        protected List<DeviceKeyEvent> events = Lists.newArrayList();
+
+        @Override
+        public void event(DeviceKeyEvent event) {
+            events.add(event);
+        }
+
     }
 }

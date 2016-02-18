@@ -17,4 +17,4 @@
 /**
  * Implementation of device key subsystem.
  */
-package org.onosproject.incubator.net.key.impl;
+package org.onosproject.net.key.impl;

@@ -18,4 +18,4 @@
  * A distributed device key store implementation that stores device key
  * data consistently across the cluster.
  */
-package org.onosproject.incubator.store.key.impl;
+package org.onosproject.store.key.impl;
