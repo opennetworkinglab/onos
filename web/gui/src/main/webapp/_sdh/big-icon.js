@@ -137,12 +137,6 @@
         smiley: smiley
     };
 
-    var gids = [
-        'alarm',
-        'alarms',
-        'smiley'
-    ];
-
     angular.module('showGlyph', ['onosSvg'])
     .controller('OvShowGlyph', ['$log', 'GlyphService',
 
@@ -150,9 +144,16 @@
             var gDiv = d3.select('#showGlyphs'),
                 defs = d3.select('defs');
 
-            gs.registerGlyphSet(glyphData);
-            gs.loadDefs(defs, gids);
+            // register out-of-the-box glyphs
+            gs.init();
 
-            createGlyph(gDiv, 400, 'smiley');
+            // register our custom glyphs
+            gs.registerGlyphSet(glyphData);
+
+            // load all defined glyphs into our <defs> element
+            gs.loadDefs(defs);
+
+            // choose a glyph to render
+            createGlyph(gDiv, 400, 'switch');
         }]);
 }());
