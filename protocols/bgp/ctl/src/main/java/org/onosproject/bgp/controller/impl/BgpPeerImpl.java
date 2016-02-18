@@ -252,8 +252,20 @@ public class BgpPeerImpl implements BgpPeer {
 
         if (operType == FlowSpecOperation.ADD) {
             if (flowSpec.routeDistinguisher() == null) {
+                if (flowSpecRibOut.flowSpecTree().containsKey(prefix)) {
+                    sendFlowSpecUpdateMessageToPeer(FlowSpecOperation.DELETE,
+                                                    flowSpecRibOut.flowSpecTree().get(prefix));
+                }
                 flowSpecRibOut.add(prefix, flowSpec);
             } else {
+                if (vpnFlowSpecRibOut.vpnFlowSpecTree().containsKey(flowSpec.routeDistinguisher())) {
+                    Map<BgpFlowSpecPrefix, BgpFlowSpecDetails> fsTree;
+                    fsTree = vpnFlowSpecRibOut.vpnFlowSpecTree().get(flowSpec.routeDistinguisher());
+                    if (fsTree.containsKey(prefix)) {
+                        sendFlowSpecUpdateMessageToPeer(FlowSpecOperation.DELETE,
+                                                        fsTree.get(prefix));
+                    }
+                }
                 vpnFlowSpecRibOut.add(flowSpec.routeDistinguisher(), prefix, flowSpec);
             }
         } else if (operType == FlowSpecOperation.DELETE) {

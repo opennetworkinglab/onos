@@ -54,21 +54,29 @@ public class BgpFlowSpecDetailsTest {
         operatorValue1.add(new BgpFsOperatorValue((byte) 0x81, port1));
         byte[] port11 = new byte[] {(byte) 0x1 };
         operatorValue1.add(new BgpFsOperatorValue((byte) 0x82, port11));
-        flowSpecDetails1.setFsActionTlv(new BgpFsActionTrafficRate((short) 1, 1));
+
+        List<BgpValueType> fsTlvs1 = new LinkedList<>();
+        fsTlvs1.add(new BgpFsActionTrafficRate((short) 1, 1));
+        flowSpecDetails1.setFsActionTlv(fsTlvs1);
 
         flowSpecComponents.add(portNum);
         byte[] port = new byte[] {(byte) 0x1 };
         operatorValue.add(new BgpFsOperatorValue((byte) 0x81, port));
         byte[] port4 = new byte[] {(byte) 0x1 };
         operatorValue.add(new BgpFsOperatorValue((byte) 0x82, port4));
-        flowSpecDetails.setFsActionTlv(new BgpFsActionTrafficRate((short) 1, 1));
+
+        List<BgpValueType> fsTlvs = new LinkedList<>();
+        fsTlvs.add(new BgpFsActionTrafficRate((short) 1, 1));
 
         flowSpecComponents2.add(portNum2);
         byte[] port2 = new byte[] {(byte) 0x1 };
         operatorValue2.add(new BgpFsOperatorValue((byte) 0x82, port2));
         byte[] port22 = new byte[] {(byte) 0x1 };
         operatorValue2.add(new BgpFsOperatorValue((byte) 0x82, port22));
-        flowSpecDetails2.setFsActionTlv(new BgpFsActionTrafficRate((short) 1, 1));
+
+        List<BgpValueType> fsTlvs2 = new LinkedList<>();
+        fsTlvs2.add(new BgpFsActionTrafficRate((short) 1, 1));
+        flowSpecDetails2.setFsActionTlv(fsTlvs2);
 
         new EqualsTester()
         .addEqualityGroup(flowSpecDetails1, flowSpecDetails)

@@ -23,6 +23,10 @@ import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Objects;
 
 /**
@@ -33,14 +37,14 @@ public class BgpExtendedCommunity implements BgpValueType {
     private static final Logger log = LoggerFactory.getLogger(BgpExtendedCommunity.class);
     public static final short TYPE = Constants.BGP_EXTENDED_COMMUNITY;
     public static final byte FLAGS = (byte) 0xC0;
-    private BgpValueType fsActionTlv;
+    private List<BgpValueType> fsActionTlv;
 
     /**
      * Constructor to initialize the value.
      *
      * @param fsActionTlv flow specification action type
      */
-    public BgpExtendedCommunity(BgpValueType fsActionTlv) {
+    public BgpExtendedCommunity(List<BgpValueType> fsActionTlv) {
         this.fsActionTlv = fsActionTlv;
     }
 
@@ -49,7 +53,7 @@ public class BgpExtendedCommunity implements BgpValueType {
      *
      * @return extended community
      */
-    public BgpValueType fsActionTlv() {
+    public List<BgpValueType> fsActionTlv() {
         return this.fsActionTlv;
     }
 
@@ -64,7 +68,7 @@ public class BgpExtendedCommunity implements BgpValueType {
 
         ChannelBuffer tempCb = cb.copy();
         Validation validation = Validation.parseAttributeHeader(cb);
-        BgpValueType fsActionTlv = null;
+        List<BgpValueType> fsActionTlvs = new LinkedList<>();
 
         if (cb.readableBytes() < validation.getLength()) {
             Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR, BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
@@ -80,27 +84,33 @@ public class BgpExtendedCommunity implements BgpValueType {
 
         ChannelBuffer tempBuf = cb.readBytes(validation.getLength());
         if (tempBuf.readableBytes() > 0) {
+            BgpValueType fsActionTlv = null;
             ChannelBuffer actionBuf = tempBuf.readBytes(validation.getLength());
-            short actionType = actionBuf.readShort();
-            short length = (short) validation.getLength();
-            switch (actionType) {
-                case Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_ACTION:
-                    fsActionTlv = BgpFsActionTrafficAction.read(actionBuf);
-                    break;
-                case Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_MARKING:
-                    fsActionTlv = BgpFsActionTrafficMarking.read(actionBuf);
-                    break;
-                case Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_RATE:
-                    fsActionTlv = BgpFsActionTrafficRate.read(actionBuf);
-                    break;
-                case Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_REDIRECT:
-                    fsActionTlv = BgpFsActionReDirect.read(actionBuf);
-                    break;
-                default: log.debug("Other type Not Supported:" + actionType);
-                    break;
+
+            while (actionBuf.readableBytes() > 0) {
+                short actionType = actionBuf.readShort();
+                switch (actionType) {
+                    case Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_ACTION:
+                        fsActionTlv = BgpFsActionTrafficAction.read(actionBuf);
+                        break;
+                    case Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_MARKING:
+                        fsActionTlv = BgpFsActionTrafficMarking.read(actionBuf);
+                        break;
+                    case Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_RATE:
+                        fsActionTlv = BgpFsActionTrafficRate.read(actionBuf);
+                        break;
+                    case Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_REDIRECT:
+                        fsActionTlv = BgpFsActionReDirect.read(actionBuf);
+                        break;
+                    default: log.debug("Other type Not Supported:" + actionType);
+                        break;
+                }
+            }
+            if (fsActionTlv != null) {
+                fsActionTlvs.add(fsActionTlv);
             }
         }
-        return new BgpExtendedCommunity(fsActionTlv);
+        return new BgpExtendedCommunity(fsActionTlvs);
     }
 
     @Override
@@ -136,24 +146,29 @@ public class BgpExtendedCommunity implements BgpValueType {
     @Override
     public int write(ChannelBuffer cb) {
         int iLenStartIndex = cb.writerIndex();
+        ListIterator<BgpValueType> listIterator = fsActionTlv().listIterator();
+
         cb.writeByte(FLAGS);
         cb.writeByte(getType());
 
         int iActionLenIndex = cb.writerIndex();
         cb.writeByte(0);
 
-        if (fsActionTlv.getType() == Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_ACTION) {
-            BgpFsActionTrafficAction trafficAction = (BgpFsActionTrafficAction) fsActionTlv;
-            trafficAction.write(cb);
-        } else if (fsActionTlv.getType() == Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_MARKING) {
-            BgpFsActionTrafficMarking trafficMarking = (BgpFsActionTrafficMarking) fsActionTlv;
-            trafficMarking.write(cb);
-        } else if (fsActionTlv.getType() == Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_RATE) {
-            BgpFsActionTrafficRate trafficRate = (BgpFsActionTrafficRate) fsActionTlv;
-            trafficRate.write(cb);
-        } else if (fsActionTlv.getType() == Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_REDIRECT) {
-            BgpFsActionReDirect trafficRedirect = (BgpFsActionReDirect) fsActionTlv;
-            trafficRedirect.write(cb);
+        while (listIterator.hasNext()) {
+            BgpValueType fsTlv = listIterator.next();
+            if (fsTlv.getType() == Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_ACTION) {
+                BgpFsActionTrafficAction trafficAction = (BgpFsActionTrafficAction) fsTlv;
+                trafficAction.write(cb);
+            } else if (fsTlv.getType() == Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_MARKING) {
+                BgpFsActionTrafficMarking trafficMarking = (BgpFsActionTrafficMarking) fsTlv;
+                trafficMarking.write(cb);
+            } else if (fsTlv.getType() == Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_RATE) {
+                BgpFsActionTrafficRate trafficRate = (BgpFsActionTrafficRate) fsTlv;
+                trafficRate.write(cb);
+            } else if (fsTlv.getType() == Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_REDIRECT) {
+                BgpFsActionReDirect trafficRedirect = (BgpFsActionReDirect) fsTlv;
+                trafficRedirect.write(cb);
+            }
         }
 
         int fsActionLen = cb.writerIndex() - iActionLenIndex;

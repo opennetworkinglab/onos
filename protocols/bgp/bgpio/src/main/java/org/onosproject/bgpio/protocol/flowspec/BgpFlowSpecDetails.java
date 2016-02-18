@@ -27,7 +27,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpFlowSpecDetails {
     private List<BgpValueType> flowSpecComponents;
-    private BgpValueType fsActionTlv;
+    private List<BgpValueType> fsActionTlv;
     private RouteDistinguisher routeDistinguisher;
 
     /**
@@ -44,7 +44,7 @@ public class BgpFlowSpecDetails {
      *
      * @return flow specification action tlv
      */
-    public BgpValueType fsActionTlv() {
+    public List<BgpValueType> fsActionTlv() {
         return this.fsActionTlv;
     }
 
@@ -53,7 +53,7 @@ public class BgpFlowSpecDetails {
      *
      * @param fsActionTlv flow specification action tlv
      */
-    public void setFsActionTlv(BgpValueType fsActionTlv) {
+    public void setFsActionTlv(List<BgpValueType> fsActionTlv) {
         this.fsActionTlv = fsActionTlv;
     }
 
