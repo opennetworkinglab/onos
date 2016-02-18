@@ -291,17 +291,9 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
     @Override
     public void removeServiceVm(ConnectPoint connectPoint) {
-        Host host = hostService.getConnectedHosts(connectPoint)
+        hostService.getConnectedHosts(connectPoint)
                 .stream()
-                .findFirst()
-                .orElse(null);
-
-        if (host == null) {
-            log.debug("No host is connected on {}", connectPoint.toString());
-            return;
-        }
-
-        hostProvider.hostVanished(host.id());
+                .forEach(host -> hostProvider.hostVanished(host.id()));
     }
 
     @Override
@@ -322,6 +314,14 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                         entry.getValue(),
                         serviceVlan));
 
+        hostService.getConnectedHosts(vSgVm.location()).stream()
+                .filter(host -> !host.mac().equals(vSgVm.mac()))
+                .filter(host -> !vSgs.values().contains(host.mac()))
+                .forEach(host -> {
+                    log.info("Removed vSG {}", host.toString());
+                    hostProvider.hostVanished(host.id());
+                });
+
         ruleInstaller.populateSubscriberGatewayRules(vSgVm, vSgs.keySet());
     }
 
@@ -333,11 +333,12 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param vSgMac vSG mac address
      * @param serviceVlan service vlan
      */
-    public void addVirtualSubscriberGateway(Host vSgHost, IpAddress vSgIp, MacAddress vSgMac, String serviceVlan) {
+    private void addVirtualSubscriberGateway(Host vSgHost, IpAddress vSgIp, MacAddress vSgMac,
+                                             String serviceVlan) {
         HostId hostId = HostId.hostId(vSgMac);
         Host host = hostService.getHost(hostId);
         if (host != null) {
-            log.debug("vSG with {} already exists", vSgMac.toString());
+            log.trace("vSG with {} already exists", vSgMac.toString());
             return;
         }
 
@@ -524,7 +525,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     private void serviceVmAdded(Host host) {
         String vNetId = host.annotations().value(SERVICE_ID);
         if (vNetId == null) {
-            // ignore this host, it not a VM we injected or a vSG
+            // ignore this host, it is not the service VM, or it's a vSG
             return;
         }
 
@@ -583,12 +584,16 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param host host
      */
     private void serviceVmRemoved(Host host) {
-        if (host.annotations().value(OPENSTACK_VM_ID) == null) {
-            // this host was not injected from CordVtn, just return
+        String vNetId = host.annotations().value(SERVICE_ID);
+        if (vNetId == null) {
+            // ignore it, it's not the service VM or it's a vSG
+            String serviceVlan = host.annotations().value(S_TAG);
+            if (serviceVlan != null) {
+                log.info("vSG {} removed", host.id());
+            }
             return;
         }
 
-        String vNetId = host.annotations().value(SERVICE_ID);
         OpenstackNetwork vNet = openstackService.network(vNetId);
         if (vNet == null) {
             log.warn("Failed to get OpenStack network {} for VM {}({}).",

@@ -233,7 +233,7 @@ public class CordVtnArpProxy {
                 .orElse(null);
 
         if (host != null) {
-            log.debug("Found MAC from host service for {}", targetIp.toString());
+            log.trace("Found MAC from host service for {}", targetIp.toString());
             return host.mac();
         } else {
             return MacAddress.NONE;
