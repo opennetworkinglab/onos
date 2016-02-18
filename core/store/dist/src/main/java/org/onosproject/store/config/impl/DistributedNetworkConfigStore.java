@@ -136,13 +136,19 @@ public class DistributedNetworkConfigStore
 
     @SuppressWarnings("unchecked")
     private void validateConfig(ConfigKey key, ConfigFactory configFactory, JsonNode json) {
-        Config config = createConfig(key.subject, configFactory.configClass(), json);
+        Object subject;
+        if (key.subject instanceof String) {
+            subject = configFactory.subjectFactory().createSubject((String) key.subject);
+        } else {
+            subject = key.subject;
+        }
+        Config config = createConfig(subject, configFactory.configClass(), json);
         try {
             checkArgument(config.isValid(), INVALID_CONFIG_JSON);
-            configs.putAndGet(key(key.subject, configFactory.configClass()), json);
+            configs.putAndGet(key(subject, configFactory.configClass()), json);
         } catch (Exception e) {
             log.warn("Failed to validate pending {} configuration for {}: {}",
-                     key.configKey, configFactory.subjectFactory().subjectKey(key.subject), json);
+                     key.configKey, key.subject, json);
         }
     }
 
@@ -156,7 +162,7 @@ public class DistributedNetworkConfigStore
     @Override
     @SuppressWarnings("unchecked")
     public <S, C extends Config<S>> ConfigFactory<S, C> getConfigFactory(Class<C> configClass) {
-        return (ConfigFactory<S, C>) factoriesByConfig.get(configClass.getName());
+        return factoriesByConfig.get(configClass.getName());
     }
 
     @Override
