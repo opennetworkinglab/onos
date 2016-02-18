@@ -34,8 +34,13 @@
     <properties>
         <onos.app.name>org.onosproject.pathpainter</onos.app.name>
         <onos.app.category>default</onos.app.category>
-        <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>Path visualization application.</onos.app.readme>
+        <onos.app.url>https://wiki.onosproject.org/display/ONOS/Path+Painter+Application+GUI</onos.app.url>
+        <onos.app.readme>
+            Path visualization application.
+            Allows the user to visualize different types of paths between
+            network entities such as switches and hosts.
+            Selectable path types are shortest, disjoint and geographical.
+        </onos.app.readme>
     </properties>
 
 </project>
