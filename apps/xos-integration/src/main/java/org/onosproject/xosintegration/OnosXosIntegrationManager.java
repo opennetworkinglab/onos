@@ -340,7 +340,13 @@ public class OnosXosIntegrationManager implements VoltTenantService {
         }
 
         PortNumber onuPort = newTenant.port().port();
-        VlanId subscriberVlan = VlanId.vlanId(portToVlan.get(onuPort.toLong()));
+        VlanId subscriberVlan;
+        try {
+            subscriberVlan = VlanId.vlanId(portToVlan.get(onuPort.toLong()));
+        } catch (NullPointerException npe) {
+            log.error("No matched port in portToVlan map", npe);
+            return newTenant;
+        }
 
         VoltTenant tenantToCreate = VoltTenant.builder()
                 .withProviderService(providerServiceId)
