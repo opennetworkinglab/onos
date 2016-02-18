@@ -22,11 +22,6 @@ import java.util.List;
  */
 public interface SegmentRoutingService {
     /**
-     * Segment Routing App ID.
-     */
-    String SR_APP_ID = "org.onosproject.segmentrouting";
-
-    /**
      * Highest flow priority.
      */
     int HIGHEST_PRIORITY = 0xffff;
@@ -53,8 +48,6 @@ public interface SegmentRoutingService {
      * Subnet flooding flow priority.
      */
     int FLOOD_PRIORITY = 5;
-
-    long OFPP_MAX = 0xffffff00L;
 
     /**
      * Returns all tunnels.

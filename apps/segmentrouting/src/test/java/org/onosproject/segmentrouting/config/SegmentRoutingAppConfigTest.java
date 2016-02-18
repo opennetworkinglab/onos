@@ -27,7 +27,7 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
-import org.onosproject.segmentrouting.SegmentRoutingService;
+import org.onosproject.segmentrouting.SegmentRoutingManager;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
@@ -40,7 +40,7 @@ import static org.junit.Assert.assertFalse;
  */
 public class SegmentRoutingAppConfigTest {
     private static final ApplicationId APP_ID =
-            new TestApplicationId(SegmentRoutingService.SR_APP_ID);
+            new TestApplicationId(SegmentRoutingManager.SR_APP_ID);
 
     private SegmentRoutingAppConfig config;
     private SegmentRoutingAppConfig invalidConfig;
@@ -80,7 +80,7 @@ public class SegmentRoutingAppConfigTest {
     @Before
     public void setUp() throws Exception {
         ApplicationId subject = APP_ID;
-        String key = SegmentRoutingService.SR_APP_ID;
+        String key = SegmentRoutingManager.SR_APP_ID;
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(JSON_STRING);
         JsonNode invalidJsonNode = mapper.readTree(INVALID_JSON_STRING);

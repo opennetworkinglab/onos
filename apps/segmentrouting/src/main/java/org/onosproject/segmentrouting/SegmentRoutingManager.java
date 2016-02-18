@@ -220,7 +220,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private static int numOfHandlerScheduled = 0;
 
     private KryoNamespace.Builder kryoBuilder = null;
-
+    /**
+     * Segment Routing App ID.
+     */
+    public static final String SR_APP_ID = "org.onosproject.segmentrouting";
     /**
      * The starting value of per-subnet VLAN ID assignment.
      */
