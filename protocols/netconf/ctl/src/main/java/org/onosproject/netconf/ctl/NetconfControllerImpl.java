@@ -27,6 +27,8 @@ import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfDeviceFactory;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceListener;
+import org.onosproject.netconf.NetconfDeviceOutputEvent;
+import org.onosproject.netconf.NetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfException;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -48,6 +50,8 @@ public class NetconfControllerImpl implements NetconfController {
             .getLogger(NetconfControllerImpl.class);
 
     private Map<DeviceId, NetconfDevice> netconfDeviceMap = new ConcurrentHashMap<>();
+
+    private final NetconfDeviceOutputEventListener downListener = new DeviceDownEventListener();
 
     protected Set<NetconfDeviceListener> netconfDeviceListeners = new CopyOnWriteArraySet<>();
     protected NetconfDeviceFactory deviceFactory = new DefaultNetconfDeviceFactory();
@@ -97,7 +101,9 @@ public class NetconfControllerImpl implements NetconfController {
             return netconfDeviceMap.get(deviceInfo.getDeviceId());
         } else {
             log.info("Creating NETCONF device {}", deviceInfo);
-            return createDevice(deviceInfo);
+            NetconfDevice device = createDevice(deviceInfo);
+            device.getSession().addDeviceOutputListener(downListener);
+            return device;
         }
     }
 
@@ -138,6 +144,23 @@ public class NetconfControllerImpl implements NetconfController {
         @Override
         public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo) throws NetconfException {
             return new DefaultNetconfDevice(netconfDeviceInfo);
+        }
+    }
+
+    //Listener for closed session with devices, gets triggered whe devices goes down
+    // or sends the endpattern ]]>]]>
+    private class DeviceDownEventListener implements NetconfDeviceOutputEventListener {
+
+        @Override
+        public void event(NetconfDeviceOutputEvent event) {
+            if (event.type().equals(NetconfDeviceOutputEvent.Type.DEVICE_UNREGISTERED)) {
+                removeDevice(event.getDeviceInfo());
+            }
+        }
+
+        @Override
+        public boolean isRelevant(NetconfDeviceOutputEvent event) {
+            return getDevicesMap().containsKey(event.getDeviceInfo().getDeviceId());
         }
     }
 }

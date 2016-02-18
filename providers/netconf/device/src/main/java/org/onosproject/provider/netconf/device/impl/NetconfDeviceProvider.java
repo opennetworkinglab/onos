@@ -136,7 +136,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     public boolean isReachable(DeviceId deviceId) {
         NetconfDevice netconfDevice = controller.getNetconfDevice(deviceId);
         if (netconfDevice == null) {
-            log.warn("BAD REQUEST: the requested device id: "
+            log.debug("Requested device id: "
                              + deviceId.toString()
                              + "  is not associated to any NETCONF Device");
             return false;
