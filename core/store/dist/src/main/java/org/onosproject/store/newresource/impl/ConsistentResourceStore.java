@@ -239,7 +239,9 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             }
 
             if (!removeValues(childTxMap, entry.getKey(), entry.getValue())) {
-                log.warn("Failed to unregister {}: Failed to remove values: {}",
+                log.warn("Failed to unregister {}: Failed to remove {} values.",
+                          entry.getKey(), entry.getValue().size());
+                log.debug("Failed to unregister {}: Failed to remove values: {}",
                          entry.getKey(), entry.getValue());
                 return abortTransaction(tx);
             }
