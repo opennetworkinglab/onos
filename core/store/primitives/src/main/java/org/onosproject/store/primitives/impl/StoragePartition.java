@@ -78,7 +78,7 @@ public class StoragePartition extends DefaultPartition implements Managed<Storag
 
     @Override
     public CompletableFuture<Void> open() {
-        return openServer().thenAccept(s -> server = Optional.of(s))
+        return openServer().thenAccept(s -> server = Optional.ofNullable(s))
                            .thenCompose(v-> openClient())
                            .thenAccept(v -> isOpened.set(true))
                            .thenApply(v -> null);
