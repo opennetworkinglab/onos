@@ -69,7 +69,17 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
 
     @Override
     public boolean isRelevant(NetworkConfigEvent event) {
-        return CONFIG_CLASSES.contains(event.configClass());
+        switch (event.type()) {
+        case CONFIG_ADDED:
+        case CONFIG_REMOVED:
+        case CONFIG_UPDATED:
+            return CONFIG_CLASSES.contains(event.configClass());
+
+        case CONFIG_REGISTERED:
+        case CONFIG_UNREGISTERED:
+        default:
+            return false;
+        }
     }
 
     @Override
