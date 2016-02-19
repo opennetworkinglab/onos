@@ -32,5 +32,4 @@ public interface SnmpDeviceDescriptionProvider {
      */
     @Deprecated
     DeviceDescription populateDescription(ISnmpSession session, DeviceDescription description);
-
 }

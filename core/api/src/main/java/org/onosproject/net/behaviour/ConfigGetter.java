@@ -29,7 +29,7 @@ public interface ConfigGetter extends HandlerBehaviour {
 
     /**
      * Returns the string representation of a device configuration, returns a
-     * failure string if the configuration cannot be retreived.
+     * failure string if the configuration cannot be retrieved.
      * @param type the type of configuration to get (i.e. running).
      * @return string representation of the configuration or an error string.
      */

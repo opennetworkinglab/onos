@@ -15,24 +15,10 @@
  */
 package org.onosproject.provider.of.device.impl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.util.Tools.get;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.Port.Type.COPPER;
-import static org.onosproject.net.Port.Type.FIBER;
-import static org.onosproject.openflow.controller.Dpid.dpid;
-import static org.onosproject.openflow.controller.Dpid.uri;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -82,6 +68,8 @@ import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.RoleState;
 import org.osgi.service.component.ComponentContext;
+import org.projectfloodlight.openflow.protocol.OFCalientPortDescProp;
+import org.projectfloodlight.openflow.protocol.OFCalientPortDescPropOptical;
 import org.projectfloodlight.openflow.protocol.OFCalientPortDescStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFExpPort;
 import org.projectfloodlight.openflow.protocol.OFExpPortDescPropOpticalTransport;
@@ -108,10 +96,23 @@ import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.types.PortSpeed;
 import org.slf4j.Logger;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.Port.Type.COPPER;
+import static org.onosproject.net.Port.Type.FIBER;
+import static org.onosproject.openflow.controller.Dpid.dpid;
+import static org.onosproject.openflow.controller.Dpid.uri;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -691,9 +692,19 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         private PortDescription buildPortDescription(OFCalientPortDescStatsEntry port) {
             PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
 
+            // Use the alias name if it's available
+            String name = port.getName();
+            List<OFCalientPortDescProp> props = port.getProperties();
+            if (props != null && props.size() > 0) {
+                OFCalientPortDescPropOptical propOptical = (OFCalientPortDescPropOptical) props.get(0);
+                if (propOptical != null) {
+                    name = propOptical.getInAlias();
+                }
+            }
+
             // FIXME when Calient OF agent reports port status
             boolean enabled = true;
-            SparseAnnotations annotations = makePortAnnotation(port.getName(), port.getHwAddr().toString());
+            SparseAnnotations annotations = makePortAnnotation(name, port.getHwAddr().toString());
 
             // S160 data sheet
             // Wavelength range: 1260 - 1630 nm, grid is irrelevant for this type of switch

@@ -58,7 +58,7 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
             controllers.addAll(XmlConfigParser.parseStreamControllers(XmlConfigParser.
                     loadXml(new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8)))));
         } catch (IOException e) {
-            log.error("Cannot comunicate to device {} ", ofDeviceId);
+            log.error("Cannot communicate with device {} ", ofDeviceId);
         }
         return controllers;
     }

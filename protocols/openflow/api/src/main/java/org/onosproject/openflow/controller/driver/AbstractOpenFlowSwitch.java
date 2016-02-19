@@ -16,8 +16,6 @@
 
 package org.onosproject.openflow.controller.driver;
 
-import static org.onlab.util.Tools.groupedThreads;
-
 import com.google.common.collect.Lists;
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
@@ -26,23 +24,21 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.onosproject.openflow.controller.RoleState;
-
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
-import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
-import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
-import org.projectfloodlight.openflow.protocol.OFVersion;
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFType;
-import org.projectfloodlight.openflow.protocol.OFFactories;
-import org.projectfloodlight.openflow.protocol.OFPortDesc;
-import org.projectfloodlight.openflow.protocol.OFExperimenter;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
-import org.projectfloodlight.openflow.protocol.OFRoleRequest;
-import org.projectfloodlight.openflow.protocol.OFNiciraControllerRoleRequest;
-import org.projectfloodlight.openflow.protocol.OFPortStatus;
+import org.projectfloodlight.openflow.protocol.OFExperimenter;
+import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
+import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
+import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFNiciraControllerRoleRequest;
+import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
+import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFRoleReply;
-
+import org.projectfloodlight.openflow.protocol.OFRoleRequest;
+import org.projectfloodlight.openflow.protocol.OFType;
+import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +55,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * An abstract representation of an OpenFlow switch. Can be extended by others
@@ -200,7 +198,8 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     }
 
     @Override
-    public final void sendHandshakeMessage(OFMessage message) {
+    public final void
+    sendHandshakeMessage(OFMessage message) {
         if (!this.isDriverHandshakeComplete()) {
             sendMsgsOnChannel(Collections.singletonList(message));
         }

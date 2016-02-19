@@ -32,9 +32,13 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
@@ -120,6 +124,7 @@ public class SnmpDeviceProvider extends AbstractProvider
         //TODO refactor, no hardcoding in provider, device information should be in drivers
         providers.put("1.3.6.1.4.1.18070.2.2", new Bti7000DeviceDescriptionProvider());
         providers.put("1.3.6.1.4.1.20408", new NetSnmpDeviceDescriptionProvider());
+        providers.put("1.3.6.1.4.562.73.6", new LumentumDeviceDescriptionProvider());
     }
 
     @Activate
@@ -341,9 +346,12 @@ public class SnmpDeviceProvider extends AbstractProvider
                 DeviceId did = getDeviceId();
                 ChassisId cid = new ChassisId();
 
+                SparseAnnotations annotations = DefaultAnnotations.builder()
+                        .set(AnnotationKeys.PROTOCOL, SCHEME.toUpperCase())
+                        .build();
 
                 DeviceDescription desc = new DefaultDeviceDescription(
-                        did.uri(), Device.Type.OTHER, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, cid);
+                        did.uri(), Device.Type.OTHER, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, cid, annotations);
 
                 desc = populateDescriptionFromDevice(did, desc);
 
@@ -353,6 +361,18 @@ public class SnmpDeviceProvider extends AbstractProvider
                 providerService.deviceConnected(did, desc);
                 log.info("Done with Device Info Creation on ONOS core. Device Info: "
                         + device.deviceInfo() + " " + did.uri().toString());
+
+                // Do port discovery if driver supports it
+                Device d = deviceService.getDevice(did);
+                if (d.is(PortDiscovery.class)) {
+                    PortDiscovery portConfig = d.as(PortDiscovery.class);
+                    if (portConfig != null) {
+                        providerService.updatePorts(did, portConfig.getPorts());
+                    }
+                } else {
+                    log.warn("No port discovery behaviour for device {}", did);
+                }
+
                 delay(EVENTINTERVAL);
             } catch (URISyntaxException e) {
                 log.error("Syntax Error while creating URI for the device: "
@@ -373,8 +393,8 @@ public class SnmpDeviceProvider extends AbstractProvider
                 String ipAddress = deviceComponents[1];
                 String port = deviceComponents[2];
 
-           ISnmpConfiguration config = new V2cSnmpConfiguration();
-            config.setPort(Integer.parseInt(port));
+                ISnmpConfiguration config = new V2cSnmpConfiguration();
+                config.setPort(Integer.parseInt(port));
 
                 try (ISnmpSession session = sessionFactory.createSession(config, ipAddress)) {
                     // Each session will be auto-closed.

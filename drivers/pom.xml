@@ -39,6 +39,7 @@
         <module>netconf</module>
         <module>ovsdb</module>
         <module>utilities</module>
+        <module>lumentum</module>
     </modules>
 
     <!--<properties>

@@ -19,14 +19,16 @@ import com.btisystems.pronx.ems.core.model.ClassRegistry;
 import com.btisystems.pronx.ems.core.model.IClassRegistry;
 import com.btisystems.pronx.ems.core.model.NetworkDevice;
 import com.btisystems.pronx.ems.core.snmp.ISnmpSession;
-import java.io.IOException;
-import java.util.Arrays;
 import org.apache.commons.lang.StringUtils;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 import org.snmp4j.smi.OID;
+
+import java.io.IOException;
+import java.util.Arrays;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * A agent-specific implementation supporting NET-SNMP agents.
@@ -57,7 +59,7 @@ public class NetSnmpDeviceDescriptionProvider implements SnmpDeviceDescriptionPr
                 // so cut it here until supported in prop displayer
                 String manufacturer = StringUtils.abbreviate(systemTree.getSysContact(), 20);
                 return new DefaultDeviceDescription(description.deviceUri(), description.type(), manufacturer,
-                        UNKNOWN, UNKNOWN, UNKNOWN, description.chassisId());
+                        UNKNOWN, UNKNOWN, UNKNOWN, description.chassisId(), description.annotations());
             }
         } catch (IOException ex) {
             log.error("Error reading details for device {}.", session.getAddress(), ex);
