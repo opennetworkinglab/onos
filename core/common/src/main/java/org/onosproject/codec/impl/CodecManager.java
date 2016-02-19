@@ -53,6 +53,7 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.key.DeviceKey;
 import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.Meter;
@@ -119,6 +120,7 @@ public class CodecManager implements CodecService {
         registerCodec(ForwardingObjective.class, new ForwardingObjectiveCodec());
         registerCodec(NextObjective.class, new NextObjectiveCodec());
         registerCodec(McastRoute.class, new McastRouteCodec());
+        registerCodec(DeviceKey.class, new DeviceKeyCodec());
         log.info("Started");
     }
 
