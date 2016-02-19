@@ -86,6 +86,17 @@ public final class Criteria {
     }
 
     /**
+     * Creates a masked match on ETH_DST field using the specified value and mask.
+     *
+     * @param mac MAC address value
+     * @param mask MAC address masking
+     * @return match criterion
+     */
+    public static Criterion matchEthDstMasked(MacAddress mac, MacAddress mask) {
+        return new EthCriterion(mac, mask, Type.ETH_DST_MASKED);
+    }
+
+    /**
      * Creates a match on ETH_SRC field using the specified value. This value
      * may be a wildcard mask.
      *
@@ -94,6 +105,17 @@ public final class Criteria {
      */
     public static Criterion matchEthSrc(MacAddress mac) {
         return new EthCriterion(mac, Type.ETH_SRC);
+    }
+
+    /**
+     * Creates a masked match on ETH_SRC field using the specified value and mask.
+     *
+     * @param mac MAC address value
+     * @param mask MAC address masking
+     * @return match criterion
+     */
+    public static Criterion matchEthSrcMasked(MacAddress mac, MacAddress mask) {
+        return new EthCriterion(mac, mask, Type.ETH_SRC_MASKED);
     }
 
     /**

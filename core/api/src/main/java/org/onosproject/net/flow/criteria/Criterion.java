@@ -40,8 +40,14 @@ public interface Criterion {
         /** Ethernet destination address. */
         ETH_DST,
 
+        /** Ethernet destination address with masking. */
+        ETH_DST_MASKED,
+
         /** Ethernet source address. */
         ETH_SRC,
+
+        /** Ethernet source address with masking. */
+        ETH_SRC_MASKED,
 
         /** Ethernet frame type. */
         ETH_TYPE,

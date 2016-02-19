@@ -130,6 +130,9 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.ACTSET_OUTPUT, new FormatUnknown());
         formatMap.put(Criterion.Type.PACKET_TYPE, new FormatUnknown());
         formatMap.put(Criterion.Type.EXTENSION, new FormatUnknown());
+        formatMap.put(Criterion.Type.ETH_DST_MASKED, new FormatUnknown());
+        formatMap.put(Criterion.Type.ETH_SRC_MASKED, new FormatUnknown());
+
     }
 
     private interface CriterionTypeFormatter {

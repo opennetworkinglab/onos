@@ -97,12 +97,30 @@ public interface TrafficSelector {
         Builder matchEthDst(MacAddress addr);
 
         /**
+         * Matches a l2 dst address with mask.
+         *
+         * @param addr a l2 address
+         * @param mask a mask for an l2 address
+         * @return a selection builder
+         */
+        Builder matchEthDstMasked(MacAddress addr, MacAddress mask);
+
+        /**
          * Matches a l2 src address.
          *
          * @param addr a l2 address
          * @return a selection builder
          */
         Builder matchEthSrc(MacAddress addr);
+
+        /**
+         * Matches a l2 src address with mask.
+         *
+         * @param addr a l2 address
+         * @param mask a mask for an l2 address
+         * @return a selection builder
+         */
+        Builder matchEthSrcMasked(MacAddress addr, MacAddress mask);
 
         /**
          * Matches the ethernet type.

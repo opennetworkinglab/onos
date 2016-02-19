@@ -219,10 +219,22 @@ public abstract class FlowModBuilder {
                 mBuilder.setExact(MatchField.ETH_DST,
                                   MacAddress.of(ethCriterion.mac().toLong()));
                 break;
+            case ETH_DST_MASKED:
+                ethCriterion = (EthCriterion) c;
+                mBuilder.setMasked(MatchField.ETH_DST,
+                                   MacAddress.of(ethCriterion.mac().toLong()),
+                                   MacAddress.of(ethCriterion.mask().toLong()));
+                break;
             case ETH_SRC:
                 ethCriterion = (EthCriterion) c;
                 mBuilder.setExact(MatchField.ETH_SRC,
                                   MacAddress.of(ethCriterion.mac().toLong()));
+                break;
+            case ETH_SRC_MASKED:
+                ethCriterion = (EthCriterion) c;
+                mBuilder.setMasked(MatchField.ETH_SRC,
+                                   MacAddress.of(ethCriterion.mac().toLong()),
+                                   MacAddress.of(ethCriterion.mask().toLong()));
                 break;
             case ETH_TYPE:
                 EthTypeCriterion ethType = (EthTypeCriterion) c;

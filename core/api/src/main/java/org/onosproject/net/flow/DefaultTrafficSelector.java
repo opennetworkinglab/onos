@@ -174,8 +174,18 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchEthDstMasked(MacAddress addr, MacAddress mask) {
+            return add(Criteria.matchEthDstMasked(addr, mask));
+        }
+
+        @Override
         public Builder matchEthSrc(MacAddress addr) {
             return add(Criteria.matchEthSrc(addr));
+        }
+
+        @Override
+        public Builder matchEthSrcMasked(MacAddress addr, MacAddress mask) {
+            return add(Criteria.matchEthSrcMasked(addr, mask));
         }
 
         @Override

@@ -615,12 +615,26 @@ public class FlowEntryBuilder {
                 builder.matchMetadata(metadata);
                 break;
             case ETH_DST:
-                mac = MacAddress.valueOf(match.get(MatchField.ETH_DST).getLong());
-                builder.matchEthDst(mac);
+                if (match.isPartiallyMasked(MatchField.ETH_DST)) {
+                    Masked<org.projectfloodlight.openflow.types.MacAddress> maskedMac =
+                            match.getMasked(MatchField.ETH_DST);
+                    builder.matchEthDstMasked(MacAddress.valueOf(maskedMac.getValue().getLong()),
+                                              MacAddress.valueOf(maskedMac.getMask().getLong()));
+                } else {
+                    mac = MacAddress.valueOf(match.get(MatchField.ETH_DST).getLong());
+                    builder.matchEthDst(mac);
+                }
                 break;
             case ETH_SRC:
-                mac = MacAddress.valueOf(match.get(MatchField.ETH_SRC).getLong());
-                builder.matchEthSrc(mac);
+                if (match.isPartiallyMasked(MatchField.ETH_SRC)) {
+                    Masked<org.projectfloodlight.openflow.types.MacAddress> maskedMac =
+                            match.getMasked(MatchField.ETH_SRC);
+                    builder.matchEthSrcMasked(MacAddress.valueOf(maskedMac.getValue().getLong()),
+                                              MacAddress.valueOf(maskedMac.getMask().getLong()));
+                } else {
+                    mac = MacAddress.valueOf(match.get(MatchField.ETH_SRC).getLong());
+                    builder.matchEthSrc(mac);
+                }
                 break;
             case ETH_TYPE:
                 int ethType = match.get(MatchField.ETH_TYPE).getValue();
