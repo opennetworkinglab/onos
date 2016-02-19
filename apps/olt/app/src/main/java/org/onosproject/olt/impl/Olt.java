@@ -233,7 +233,6 @@ public class Olt
                                            deviceId,
                                            deviceVlan,
                                            subscriberVlan));
-                processFilteringObjectives(deviceId, subscriberPort, true);
             } else if (downStatus != null) {
                 log.error("Subscriber with vlan {} on device {} " +
                                   "on port {} failed downstream uninstallation: {}",
@@ -336,7 +335,6 @@ public class Olt
                                            deviceVlan,
                                            subscriberVlan));
 
-                processFilteringObjectives(deviceId, subscriberPort, false);
             } else if (downStatus != null) {
                 log.error("Subscriber with vlan {} on device {} " +
                                   "on port {} failed downstream installation: {}",
