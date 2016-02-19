@@ -20,6 +20,5 @@
      features="${project.artifactId}">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-xos-integration/${project.version}</artifact>
     <bundle>mvn:com.sun.jersey/jersey-client/1.19</bundle>
 </app>
