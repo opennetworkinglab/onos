@@ -59,7 +59,12 @@ public class BgpFlowSpecPrefix implements Comparable<Object> {
         if (obj instanceof BgpFlowSpecPrefix) {
              BgpFlowSpecPrefix other = (BgpFlowSpecPrefix) obj;
 
-             if (this.destinationPrefix.equals(other.destinationPrefix)) {
+             if ((this.destinationPrefix != null) && (this.sourcePrefix != null)
+                 && (this.destinationPrefix.equals(other.destinationPrefix))) {
+                 return this.sourcePrefix.equals(other.sourcePrefix);
+             } else if (this.destinationPrefix != null) {
+                 return this.destinationPrefix.equals(other.destinationPrefix);
+             } else if (this.sourcePrefix != null) {
                  return this.sourcePrefix.equals(other.sourcePrefix);
              }
              return false;
@@ -106,33 +111,36 @@ public class BgpFlowSpecPrefix implements Comparable<Object> {
 
         if (o instanceof BgpFlowSpecPrefix) {
             BgpFlowSpecPrefix that = (BgpFlowSpecPrefix) o;
-
-            if (this.destinationPrefix().prefixLength() == that.destinationPrefix().prefixLength()) {
-                ByteBuffer value1 = ByteBuffer.wrap(this.destinationPrefix().address().toOctets());
-                ByteBuffer value2 = ByteBuffer.wrap(that.destinationPrefix().address().toOctets());
-                int cmpVal = value1.compareTo(value2);
-                if (cmpVal != 0) {
-                    return cmpVal;
+            if (this.destinationPrefix() != null) {
+                if (this.destinationPrefix().prefixLength() == that.destinationPrefix().prefixLength()) {
+                    ByteBuffer value1 = ByteBuffer.wrap(this.destinationPrefix().address().toOctets());
+                    ByteBuffer value2 = ByteBuffer.wrap(that.destinationPrefix().address().toOctets());
+                    int cmpVal = value1.compareTo(value2);
+                    if (cmpVal != 0) {
+                        return cmpVal;
+                    }
+                } else {
+                    if (this.destinationPrefix().prefixLength() > that.destinationPrefix().prefixLength()) {
+                        return 1;
+                    } else if (this.destinationPrefix().prefixLength() < that.destinationPrefix().prefixLength()) {
+                        return -1;
+                    }
                 }
-            } else {
-                if (this.destinationPrefix().prefixLength() > that.destinationPrefix().prefixLength()) {
+            }
+            if (this.sourcePrefix() != null) {
+                if (this.sourcePrefix().prefixLength() == that.sourcePrefix().prefixLength()) {
+                    ByteBuffer value1 = ByteBuffer.wrap(this.sourcePrefix().address().toOctets());
+                    ByteBuffer value2 = ByteBuffer.wrap(that.sourcePrefix().address().toOctets());
+                    return value1.compareTo(value2);
+                }
+
+                if (this.sourcePrefix().prefixLength() > that.sourcePrefix().prefixLength()) {
                     return 1;
-                } else if (this.destinationPrefix().prefixLength() < that.destinationPrefix().prefixLength()) {
+                } else if (this.sourcePrefix().prefixLength() < that.sourcePrefix().prefixLength()) {
                     return -1;
                 }
             }
-
-            if (this.sourcePrefix().prefixLength() == that.sourcePrefix().prefixLength()) {
-                ByteBuffer value1 = ByteBuffer.wrap(this.sourcePrefix().address().toOctets());
-                ByteBuffer value2 = ByteBuffer.wrap(that.sourcePrefix().address().toOctets());
-                return value1.compareTo(value2);
-            }
-
-            if (this.sourcePrefix().prefixLength() > that.sourcePrefix().prefixLength()) {
-                return 1;
-            } else if (this.sourcePrefix().prefixLength() < that.sourcePrefix().prefixLength()) {
-                return -1;
-            }
+            return 0;
         }
         return 1;
     }

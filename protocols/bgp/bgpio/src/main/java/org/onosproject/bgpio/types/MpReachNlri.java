@@ -239,7 +239,7 @@ public class MpReachNlri implements BgpValueType {
                             flowSpecComponent = BgpFsIcmpType.read(tempBuf);
                             break;
                         case Constants.BGP_FLOWSPEC_ICMP_CD:
-                            flowSpecComponent = BgpFsIcmpType.read(tempBuf);
+                            flowSpecComponent = BgpFsIcmpCode.read(tempBuf);
                             break;
                         case Constants.BGP_FLOWSPEC_TCP_FLAGS:
                             flowSpecComponent = BgpFsTcpFlags.read(tempBuf);

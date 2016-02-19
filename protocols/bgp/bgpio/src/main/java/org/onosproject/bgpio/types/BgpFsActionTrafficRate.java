@@ -86,10 +86,9 @@ public class BgpFsActionTrafficRate implements BgpValueType {
     public static BgpFsActionTrafficRate read(ChannelBuffer cb) throws BgpParseException {
         short asn;
         float rate;
-        ChannelBuffer tempCb = cb.copy();
 
-        asn = tempCb.readShort();
-        rate = tempCb.readFloat();
+        asn = cb.readShort();
+        rate = cb.readFloat();
         return new BgpFsActionTrafficRate(asn, rate);
     }
 

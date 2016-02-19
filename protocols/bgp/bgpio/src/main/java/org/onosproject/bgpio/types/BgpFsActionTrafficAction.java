@@ -30,6 +30,7 @@ public class BgpFsActionTrafficAction implements BgpValueType {
 
     public static final short TYPE = Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_ACTION;
     private byte[] bitMask;
+    public static final byte BIT_MASK_LEN = 6;
 
     /**
      * Constructor to initialize the value.
@@ -82,9 +83,8 @@ public class BgpFsActionTrafficAction implements BgpValueType {
      */
     public static BgpFsActionTrafficAction read(ChannelBuffer cb) throws BgpParseException {
         byte[] bitMask;
-        ChannelBuffer tempCb = cb.copy();
 
-        bitMask = tempCb.readBytes(tempCb.readableBytes()).array();
+        bitMask = cb.readBytes(BIT_MASK_LEN).array();
         return new BgpFsActionTrafficAction(bitMask);
     }
 

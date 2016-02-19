@@ -30,6 +30,7 @@ public class BgpFsActionReDirect implements BgpValueType {
 
     public static final short TYPE = Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_REDIRECT;
     private byte[] routeTarget;
+    public static final byte ROUTE_TARGET_LEN = 6;
 
     /**
      * Constructor to initialize the value.
@@ -82,9 +83,8 @@ public class BgpFsActionReDirect implements BgpValueType {
      */
     public static BgpFsActionReDirect read(ChannelBuffer cb) throws BgpParseException {
         byte[] routeTarget;
-        ChannelBuffer tempCb = cb.copy();
 
-        routeTarget = tempCb.readBytes(tempCb.readableBytes()).array();
+        routeTarget = cb.readBytes(ROUTE_TARGET_LEN).array();
         return new BgpFsActionReDirect(routeTarget);
     }
 

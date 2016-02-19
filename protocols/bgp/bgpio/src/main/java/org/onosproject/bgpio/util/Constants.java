@@ -59,9 +59,9 @@ public final class Constants {
     public static final byte BGP_FLOWSPEC_ICMP_TP = 0x07;
     public static final byte BGP_FLOWSPEC_ICMP_CD = 0x08;
     public static final byte BGP_FLOWSPEC_TCP_FLAGS = 0x09;
-    public static final byte BGP_FLOWSPEC_PCK_LEN = 0x10;
-    public static final byte BGP_FLOWSPEC_DSCP = 0x11;
-    public static final byte BGP_FLOWSPEC_FRAGMENT = 0x12;
+    public static final byte BGP_FLOWSPEC_PCK_LEN = 0x0a;
+    public static final byte BGP_FLOWSPEC_DSCP = 0x0b;
+    public static final byte BGP_FLOWSPEC_FRAGMENT = 0x0c;
 
     public static final short BGP_FLOWSPEC_ACTION_TRAFFIC_RATE = (short) 0x8006;
     public static final short BGP_FLOWSPEC_ACTION_TRAFFIC_ACTION = (short) 0x8007;

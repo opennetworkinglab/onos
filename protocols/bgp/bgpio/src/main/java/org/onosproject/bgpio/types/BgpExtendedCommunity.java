@@ -105,9 +105,9 @@ public class BgpExtendedCommunity implements BgpValueType {
                     default: log.debug("Other type Not Supported:" + actionType);
                         break;
                 }
-            }
-            if (fsActionTlv != null) {
-                fsActionTlvs.add(fsActionTlv);
+                if (fsActionTlv != null) {
+                    fsActionTlvs.add(fsActionTlv);
+                }
             }
         }
         return new BgpExtendedCommunity(fsActionTlvs);

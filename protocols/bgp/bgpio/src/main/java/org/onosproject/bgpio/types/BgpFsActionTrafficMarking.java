@@ -30,6 +30,7 @@ public class BgpFsActionTrafficMarking implements BgpValueType {
 
     public static final short TYPE = Constants.BGP_FLOWSPEC_ACTION_TRAFFIC_MARKING;
     private byte[] dscpValue;
+    public static final byte DSCP_LEN = 6;
 
     /**
      * Constructor to initialize the value.
@@ -82,9 +83,8 @@ public class BgpFsActionTrafficMarking implements BgpValueType {
      */
     public static BgpFsActionTrafficMarking read(ChannelBuffer cb) throws BgpParseException {
         byte[] dscpValue;
-        ChannelBuffer tempCb = cb.copy();
 
-        dscpValue = tempCb.readBytes(tempCb.readableBytes()).array();
+        dscpValue = cb.readBytes(DSCP_LEN).array();
         return new BgpFsActionTrafficMarking(dscpValue);
     }
 
