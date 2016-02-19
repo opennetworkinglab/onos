@@ -40,16 +40,16 @@ import java.util.Optional;
 import static org.onlab.util.Tools.nullIsIllegal;
 
 /**
- * Collect control plane metrics.
+ * Collect system metrics.
  */
 @Path("collector")
-public class ControlMetricsCollectorWebResource extends AbstractWebResource {
+public class SystemMetricsCollectorWebResource extends AbstractWebResource {
 
-    final ControlPlaneMonitorService service = get(ControlPlaneMonitorService.class);
-    public static final int UPDATE_INTERVAL_IN_MINUTE = 1;
-    public static final String INVALID_SYSTEM_SPECS = "Invalid system specifications";
-    public static final String INVALID_RESOURCE_NAME = "Invalid resource name";
-    public static final String INVALID_REQUEST = "Invalid request";
+    private final ControlPlaneMonitorService service = get(ControlPlaneMonitorService.class);
+    private static final int UPDATE_INTERVAL_IN_MINUTE = 1;
+    private static final String INVALID_SYSTEM_SPECS = "Invalid system specifications";
+    private static final String INVALID_RESOURCE_NAME = "Invalid resource name";
+    private static final String INVALID_REQUEST = "Invalid request";
 
     /**
      * Collects CPU metrics.

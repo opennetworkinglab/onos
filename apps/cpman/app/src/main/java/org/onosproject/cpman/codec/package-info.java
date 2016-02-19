@@ -13,20 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.onosproject.cpman.rest;
-
-import org.onlab.rest.AbstractWebApplication;
-
-import java.util.Set;
-
 /**
- * CPMan REST APIs web application.
+ * Implementations of the codec broker and cpman entity JSON codecs.
  */
-public class CPManWebApplication extends AbstractWebApplication {
-    @Override
-    public Set<Class<?>> getClasses() {
-        return getClasses(SystemMetricsCollectorWebResource.class,
-                          ControlMetricsWebResource.class);
-    }
-}
+package org.onosproject.cpman.codec;
