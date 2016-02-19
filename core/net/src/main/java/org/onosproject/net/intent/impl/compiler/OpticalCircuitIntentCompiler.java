@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -643,10 +644,12 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
      * @return set of TributarySlots available on the connect point
      */
     Set<TributarySlot> findTributarySlotsOnCp(ConnectPoint cp) {
-        return resourceService.getAvailableResources(Resources.discrete(cp.deviceId(), cp.port()).id())
-                .stream()
-                .filter(x -> x.last() instanceof TributarySlot)
-                .map(x -> (TributarySlot) x.last())
-                .collect(Collectors.toSet());
+        return ImmutableSet.of(); // temporary fix for build
+        // FIXME: below changes break the build due to conflicting changes on Resource, which obsoleted Resource#last()
+//        return resourceService.getAvailableResources(Resources.discrete(cp.deviceId(), cp.port()).id())
+//                .stream()
+//                .filter(x -> x.last() instanceof TributarySlot)
+//                .map(x -> (TributarySlot) x.last())
+//                .collect(Collectors.toSet());
     }
 }
