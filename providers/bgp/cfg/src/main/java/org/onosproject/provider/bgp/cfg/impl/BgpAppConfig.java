@@ -47,6 +47,7 @@ public class BgpAppConfig extends Config<ApplicationId> {
     public static final String LS_CAPABILITY = "lsCapability";
     public static final String HOLD_TIME = "holdTime";
     public static final String LARGE_AS_CAPABILITY = "largeAsCapability";
+    public static final String FLOW_SPEC_CAPABILITY = "flowSpecCapability";
 
     public static final String BGP_PEER = "bgpPeer";
     public static final String PEER_IP = "peerIp";
@@ -67,10 +68,11 @@ public class BgpAppConfig extends Config<ApplicationId> {
         bgpConfig = bgpController.getConfig();
 
         fields = hasOnlyFields(ROUTER_ID, LOCAL_AS, MAX_SESSION, LS_CAPABILITY,
-                HOLD_TIME, LARGE_AS_CAPABILITY, BGP_PEER) &&
+                HOLD_TIME, LARGE_AS_CAPABILITY, FLOW_SPEC_CAPABILITY, BGP_PEER) &&
                 isIpAddress(ROUTER_ID, MANDATORY) && isNumber(LOCAL_AS, MANDATORY) &&
                 isNumber(MAX_SESSION, OPTIONAL, 20) && isNumber(HOLD_TIME, OPTIONAL, 180) &&
-                isBoolean(LS_CAPABILITY, OPTIONAL) && isBoolean(LARGE_AS_CAPABILITY, OPTIONAL);
+                isBoolean(LS_CAPABILITY, OPTIONAL) && isBoolean(LARGE_AS_CAPABILITY, OPTIONAL) &&
+                isString(FLOW_SPEC_CAPABILITY, OPTIONAL);
 
         if (!fields) {
             return fields;
@@ -125,12 +127,37 @@ public class BgpAppConfig extends Config<ApplicationId> {
     }
 
     /**
+     * Returns flow specification capability support from the configuration.
+     *
+     * @return flow specification capability
+     */
+    public String flowSpecCapability() {
+        return get(FLOW_SPEC_CAPABILITY, null);
+    }
+
+    /**
      * Returns holdTime of the local node from the configuration.
      *
      * @return holdTime
      */
     public short holdTime() {
         return Short.parseShort(get(HOLD_TIME, null));
+    }
+
+    /**
+     * Validates the flow specification capability.
+     *
+     * @return true if valid else false
+     */
+    public boolean validateFlowSpec() {
+        if (flowSpecCapability() != null) {
+            String flowSpec = flowSpecCapability();
+            if ((flowSpec.equals("IPV4")) || (flowSpec.equals("VPNV4")) || (flowSpec.equals("IPV4_VPNV4"))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -152,6 +179,9 @@ public class BgpAppConfig extends Config<ApplicationId> {
             return false;
         }
 
+        if (!validateFlowSpec()) {
+            return false;
+        }
         return true;
     }
 

@@ -58,24 +58,6 @@ public interface BgpPeerCfg {
         INVALID
     }
 
-    enum FlowSpec {
-
-        /**
-         * Signifies that peer support IPV4 flow specification.
-         */
-        IPV4,
-
-        /**
-         *  Signifies that peer support VPNV4 flow specification.
-         */
-        VPNV4,
-
-        /**
-         * Signifies that peer flow specification support disabled.
-         */
-        NONE
-    }
-
     /**
      * Returns the connection State information of the peer.
      *
@@ -195,18 +177,4 @@ public interface BgpPeerCfg {
      * @return peer connect instance
      */
     BgpConnectPeer connectPeer();
-
-    /**
-     * Gets the flow specification capability.
-     *
-     * @return flow specification status
-     */
-    public FlowSpec flowSpecStatus();
-
-    /**
-     * sets the flow specification capability.
-     *
-     * @param flowSpecStatus flow specification status
-     */
-    public void setFlowSpecStatus(FlowSpec flowSpecStatus);
 }

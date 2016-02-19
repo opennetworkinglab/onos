@@ -44,6 +44,29 @@ public interface BgpCfg {
         IP_AS_CONFIGURED
     }
 
+    enum FlowSpec {
+
+        /**
+         * Signifies that peer support IPV4 flow specification.
+         */
+        IPV4,
+
+        /**
+         *  Signifies that peer support VPNV4 flow specification.
+         */
+        VPNV4,
+
+        /**
+         *  Signifies that peer support IPV4 and VPNV4 flow specification.
+         */
+        IPV4_VPNV4,
+
+        /**
+         * Signifies that peer flow specification capability disabled.
+         */
+        NONE
+    }
+
     /**
      * Returns the status of the configuration based on this state certain operations like connection is handled.
      *
@@ -294,4 +317,18 @@ public interface BgpCfg {
      * @return state information
      */
     BgpPeerCfg.State getPeerConnState(String routerid);
+
+    /**
+     * Gets the flow specification capability.
+     *
+     * @return flow specification capability
+     */
+    FlowSpec flowSpecCapability();
+
+    /**
+     * Sets the flow specification capability.
+     *
+     * @param flowSpec flow specification capability
+     */
+    void setFlowSpecCapability(FlowSpec flowSpec);
 }

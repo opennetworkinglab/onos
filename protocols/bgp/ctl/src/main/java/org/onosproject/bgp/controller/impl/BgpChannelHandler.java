@@ -665,14 +665,18 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
      */
     private void sendHandshakeOpenMessage() throws IOException, BgpParseException {
         int bgpId;
+        BgpCfg.FlowSpec flowSpec = bgpconfig.flowSpecCapability();
         boolean flowSpecStatus = false;
         boolean vpnFlowSpecStatus = false;
 
         bgpId = Ip4Address.valueOf(bgpconfig.getRouterId()).toInt();
-        BgpPeerConfig peerConfig = (BgpPeerConfig) bgpconfig.displayPeers(peerAddr);
-        if (peerConfig.flowSpecStatus() == BgpPeerCfg.FlowSpec.IPV4) {
+
+        if (flowSpec == BgpCfg.FlowSpec.IPV4) {
             flowSpecStatus = true;
-        } else if (peerConfig.flowSpecStatus() == BgpPeerCfg.FlowSpec.VPNV4) {
+        } else if (flowSpec == BgpCfg.FlowSpec.VPNV4) {
+            vpnFlowSpecStatus = true;
+        } else if (flowSpec == BgpCfg.FlowSpec.IPV4_VPNV4) {
+            flowSpecStatus = true;
             vpnFlowSpecStatus = true;
         }
 
@@ -792,9 +796,9 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         boolean isMultiProtocolLsCapability = false;
         boolean isMultiProtocolFlowSpecCapability = false;
         boolean isMultiProtocolVpnFlowSpecCapability = false;
+        BgpCfg.FlowSpec flowSpec = h.bgpconfig.flowSpecCapability();
 
-        BgpPeerConfig peerConfig = (BgpPeerConfig) h.bgpconfig.displayPeers(peerAddr);
-        if (peerConfig.flowSpecStatus() != BgpPeerCfg.FlowSpec.NONE) {
+        if (flowSpec != BgpCfg.FlowSpec.NONE) {
             isFlowSpecCapabilityCfg = true;
         }
 

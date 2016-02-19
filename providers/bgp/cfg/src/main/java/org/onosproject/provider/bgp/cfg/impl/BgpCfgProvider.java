@@ -128,6 +128,16 @@ public class BgpCfgProvider extends AbstractProvider {
         bgpConfig.setMaxSession(config.maxSession());
         bgpConfig.setLargeASCapability(config.largeAsCapability());
 
+        if (config.flowSpecCapability().equals("IPV4")) {
+            bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4);
+        } else if (config.flowSpecCapability().equals("VPNV4")) {
+            bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.VPNV4);
+        } else if (config.flowSpecCapability().equals("IPV4_VPNV4")) {
+            bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4_VPNV4);
+        } else {
+            bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.NONE);
+        }
+
         nodes = config.bgpPeer();
         for (int i = 0; i < nodes.size(); i++) {
             String connectMode = nodes.get(i).connectMode();
@@ -163,6 +173,16 @@ public class BgpCfgProvider extends AbstractProvider {
             bgpConfig.setHoldTime(config.holdTime());
             bgpConfig.setMaxSession(config.maxSession());
             bgpConfig.setLargeASCapability(config.largeAsCapability());
+
+            if (config.flowSpecCapability().equals("IPV4")) {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4);
+            } else if (config.flowSpecCapability().equals("VPNV4")) {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.VPNV4);
+            } else if (config.flowSpecCapability().equals("IPV4_VPNV4")) {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.IPV4_VPNV4);
+            } else {
+                bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.NONE);
+            }
         } else {
             log.info(" Self configuration cannot be modified as there is existing connections ");
         }

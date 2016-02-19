@@ -30,7 +30,6 @@ public class BgpPeerConfig  implements BgpPeerCfg {
     private State state;
     private boolean selfInitiated;
     private BgpConnectPeer connectPeer;
-    private FlowSpec flowSpecStatus = FlowSpec.NONE;
 
     /**
      * Constructor to initialize the values.
@@ -118,15 +117,5 @@ public class BgpPeerConfig  implements BgpPeerCfg {
     @Override
     public void setConnectPeer(BgpConnectPeer connectPeer) {
         this.connectPeer = connectPeer;
-    }
-
-    @Override
-    public FlowSpec flowSpecStatus() {
-        return flowSpecStatus;
-    }
-
-    @Override
-    public void setFlowSpecStatus(FlowSpec flowSpecStatus) {
-        this.flowSpecStatus = flowSpecStatus;
     }
 }

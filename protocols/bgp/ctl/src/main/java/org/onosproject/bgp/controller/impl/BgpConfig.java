@@ -51,7 +51,7 @@ public class BgpConfig implements BgpCfg {
     private boolean largeAs = false;
     private int maxConnRetryTime;
     private int maxConnRetryCount;
-
+    private FlowSpec flowSpec = FlowSpec.NONE;
     private Ip4Address routerId = null;
     private TreeMap<String, BgpPeerCfg> bgpPeerTree = new TreeMap<>();
     private BgpConnectPeer connectPeer;
@@ -116,6 +116,16 @@ public class BgpConfig implements BgpCfg {
     @Override
     public void setLsCapability(boolean lsCapability) {
         this.lsCapability = lsCapability;
+    }
+
+    @Override
+    public FlowSpec flowSpecCapability() {
+        return this.flowSpec;
+    }
+
+    @Override
+    public void setFlowSpecCapability(FlowSpec flowSpec) {
+        this.flowSpec = flowSpec;
     }
 
     @Override
@@ -222,7 +232,7 @@ public class BgpConfig implements BgpCfg {
             if (disconnPeer != null) {
                 // TODO: send notification peer deconfigured
                 disconnPeer.disconnectPeer();
-            } else {
+            } else if (lspeer.connectPeer() != null) {
                 lspeer.connectPeer().disconnectPeer();
             }
             lspeer.setState(BgpPeerCfg.State.IDLE);
