@@ -15,14 +15,14 @@
  */
 package org.onlab.packet;
 
+import org.slf4j.Logger;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -33,7 +33,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Implements IGMP control packet format.
  */
 public class IGMP extends BasePacket {
-    private final Logger log = getLogger(getClass());
+    private static final Logger log = getLogger(IGMP.class);
 
     public static final byte TYPE_IGMPV3_MEMBERSHIP_QUERY = 0x11;
     public static final byte TYPE_IGMPV1_MEMBERSHIP_REPORT = 0x12;
@@ -169,6 +169,8 @@ public class IGMP extends BasePacket {
         // Must calculate checksum
         bb.putShort((short) 0);
 
+
+
         switch (this.igmpType) {
 
             case IGMP.TYPE_IGMPV3_MEMBERSHIP_REPORT:
@@ -191,6 +193,21 @@ public class IGMP extends BasePacket {
         }
 
         int size = bb.position();
+
+        // compute checksum if needed
+        if (this.checksum == 0) {
+            bb.rewind();
+            int accumulation = 0;
+            for (int i = 0; i < size * 2; ++i) {
+                accumulation += 0xffff & bb.getShort();
+            }
+            accumulation = (accumulation >> 16 & 0xffff)
+                    + (accumulation & 0xffff);
+            this.checksum = (short) (~accumulation & 0xffff);
+            bb.putShort(2, this.checksum);
+        }
+
+
         bb.position(0);
         byte[] rdata = new byte[size];
         bb.get(rdata, 0, size);
@@ -238,7 +255,7 @@ public class IGMP extends BasePacket {
             igmp.igmpType = bb.get();
             igmp.resField = bb.get();
             igmp.checksum = bb.getShort();
-            int len = MINIMUM_HEADER_LEN;
+
             String msg;
 
             switch (igmp.igmpType) {

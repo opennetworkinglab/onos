@@ -44,6 +44,11 @@ public final class ConfigProperty {
         STRING,
 
         /**
+         * Indicates the value is a byte.
+         */
+        BYTE,
+
+        /**
          * Indicates the value is an integer.
          */
         INTEGER,
@@ -191,6 +196,16 @@ public final class ConfigProperty {
      */
     public String asString() {
         return value;
+    }
+
+    /**
+     * Returns the property value as a byte.
+     *
+     * @return byte value
+     */
+    public byte asByte() {
+        checkState(type == Type.BYTE, "Value is not a byte");
+        return Byte.parseByte(value);
     }
 
     /**

@@ -138,7 +138,9 @@ public class CordMcast {
     private String fabricOnosUrl;
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        modified(context);
+
         appId = coreService.registerApplication("org.onosproject.cordmcast");
         componentConfigService.registerProperties(getClass());
         mcastService.addListener(listener);
