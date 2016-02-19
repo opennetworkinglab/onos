@@ -19,14 +19,16 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import org.onosproject.yangutils.datamodel.YangBelongsTo;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.BELONGS_TO_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.*;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -52,8 +54,9 @@ import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
  */
 
 /**
- * Implements listener based call back function corresponding to the "belongs to"
- * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
+ * Implements listener based call back function corresponding to the
+ * "belongs to" rule defined in ANTLR grammar file for corresponding ABNF rule
+ * in RFC 6020.
  */
 public final class BelongsToListener {
 
@@ -64,9 +67,8 @@ public final class BelongsToListener {
     }
 
     /**
-     * It is called when parser receives an input matching the grammar
-     * rule (belongsto), perform validations and update the data model
-     * tree.
+     * It is called when parser receives an input matching the grammar rule
+     * (belongsto), perform validations and update the data model tree.
      *
      * @param listener Listener's object.
      * @param ctx context object of the grammar rule.
@@ -75,10 +77,8 @@ public final class BelongsToListener {
                                              GeneratedYangParser.BelongstoStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                                                ParsableDataType.BELONGS_TO_DATA,
-                                                String.valueOf(ctx.IDENTIFIER().getText()),
-                                                ListenerErrorLocation.ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+                             ENTRY);
 
         YangBelongsTo belongstoNode = new YangBelongsTo();
         belongstoNode.setBelongsToModuleName(String.valueOf(ctx.IDENTIFIER().getText()));
@@ -98,20 +98,16 @@ public final class BelongsToListener {
                                             GeneratedYangParser.BelongstoStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                                                ParsableDataType.BELONGS_TO_DATA,
-                                                String.valueOf(ctx.IDENTIFIER().getText()),
-                                                ListenerErrorLocation.EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+                             EXIT);
 
         Parsable tmpBelongstoNode = listener.getParsedDataStack().peek();
         if (tmpBelongstoNode instanceof YangBelongsTo) {
             listener.getParsedDataStack().pop();
 
             // Check for stack to be empty.
-            ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                                                    ParsableDataType.BELONGS_TO_DATA,
-                                                    String.valueOf(ctx.IDENTIFIER().getText()),
-                                                    ListenerErrorLocation.EXIT);
+            checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA,
+                                 String.valueOf(ctx.IDENTIFIER().getText()), EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getParsableDataType()) {
@@ -121,22 +117,13 @@ public final class BelongsToListener {
                 break;
             }
             default:
-                throw new ParserException(
-                                          ListenerErrorMessageConstruction
-                                                  .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                                                                                 ParsableDataType.BELONGS_TO_DATA,
-                                                                                 String.valueOf(ctx.IDENTIFIER()
-                                                                                         .getText()),
-                                                                                 ListenerErrorLocation.EXIT));
+                throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, BELONGS_TO_DATA,
+                                                                        String.valueOf(ctx.IDENTIFIER().getText()),
+                                                                        EXIT));
             }
         } else {
-            throw new ParserException(
-                                      ListenerErrorMessageConstruction
-                                              .constructListenerErrorMessage(ListenerErrorType.MISSING_CURRENT_HOLDER,
-                                                                             ParsableDataType.BELONGS_TO_DATA,
-                                                                             String.valueOf(ctx.IDENTIFIER()
-                                                                                     .getText()),
-                                                                             ListenerErrorLocation.EXIT));
+            throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, BELONGS_TO_DATA,
+                                                                    String.valueOf(ctx.IDENTIFIER().getText()), EXIT));
         }
     }
 }

@@ -17,13 +17,14 @@
 package org.onosproject.yangutils.parser.parseutils;
 
 import org.junit.Test;
-import org.onosproject.yangutils.parser.ParsableDataType;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.onosproject.yangutils.parser.ParsableDataType.CONTACT_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 
 /**
  * Test case for testing listener error message construction util.
@@ -37,9 +38,7 @@ public class ListenerErrorMessageConstructionTest {
     public void checkErrorMsgConstructionWithName() {
 
         // Create an test error message
-        String testErrorMessage = ListenerErrorMessageConstruction
-                .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER, ParsableDataType.CONTACT_DATA,
-                                               "Test Instance", ListenerErrorLocation.ENTRY);
+        String testErrorMessage = constructListenerErrorMessage(INVALID_HOLDER, CONTACT_DATA, "Test Instance", ENTRY);
 
         // Check message.
         assertThat(testErrorMessage, is("Internal parser error detected: Invalid holder for contact "
@@ -53,9 +52,7 @@ public class ListenerErrorMessageConstructionTest {
     public void checkErrorMsgConstructionWithoutName() {
 
         // Create an test error message
-        String testErrorMessage = ListenerErrorMessageConstruction
-                .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER, ParsableDataType.CONTACT_DATA,
-                                               "Test Instance", ListenerErrorLocation.ENTRY);
+        String testErrorMessage = constructListenerErrorMessage(INVALID_HOLDER, CONTACT_DATA, "Test Instance", ENTRY);
 
         // Check message.
         assertThat(testErrorMessage,
@@ -64,16 +61,16 @@ public class ListenerErrorMessageConstructionTest {
     }
 
     /**
-     * Checks for extended error message construction with parsable data type name.
+     * Checks for extended error message construction with parsable data type
+     * name.
      */
     @Test
     public void checkExtendedErrorMsgConstructionWithName() {
 
         // Create an test error message
-        String testErrorMessage = ListenerErrorMessageConstruction
-                .constructExtendedListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                                                       ParsableDataType.CONTACT_DATA, "Test Instance",
-                                                       ListenerErrorLocation.ENTRY, "Extended Information");
+        String testErrorMessage = constructExtendedListenerErrorMessage(INVALID_HOLDER, CONTACT_DATA,
+                                                                        "Test Instance", ENTRY,
+                                                                        "Extended Information");
 
         // Check message.
         assertThat(testErrorMessage,
@@ -82,16 +79,15 @@ public class ListenerErrorMessageConstructionTest {
     }
 
     /**
-     * Checks for extended error message construction without parsable data type name.
+     * Checks for extended error message construction without parsable data type
+     * name.
      */
     @Test
     public void checkExtendedErrorMsgConstructionWithoutName() {
 
         // Create an test error message
-        String testErrorMessage = ListenerErrorMessageConstruction
-                .constructExtendedListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                                                       ParsableDataType.CONTACT_DATA, "",
-                                                       ListenerErrorLocation.ENTRY, "Extended Information");
+        String testErrorMessage = constructExtendedListenerErrorMessage(INVALID_HOLDER, CONTACT_DATA, "", ENTRY,
+                                                                        "Extended Information");
 
         // Check message.
         assertThat(testErrorMessage, is("Internal parser error detected: Invalid holder for contact"

@@ -19,14 +19,16 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.CONTACT_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -81,9 +83,8 @@ public final class ContactListener {
     }
 
     /**
-     * It is called when parser receives an input matching the grammar
-     * rule (contact), perform validations and update the data model
-     * tree.
+     * It is called when parser receives an input matching the grammar rule
+     * (contact), perform validations and update the data model tree.
      *
      * @param listener Listener's object.
      * @param ctx context object of the grammar rule.
@@ -91,9 +92,7 @@ public final class ContactListener {
     public static void processContactEntry(TreeWalkListener listener, GeneratedYangParser.ContactStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                                                ParsableDataType.CONTACT_DATA,
-                                                String.valueOf(ctx.string().getText()), ListenerErrorLocation.ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, CONTACT_DATA, String.valueOf(ctx.string().getText()), ENTRY);
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
@@ -109,12 +108,8 @@ public final class ContactListener {
             break;
         }
         default:
-            throw new ParserException(
-                                      ListenerErrorMessageConstruction
-                                              .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                                                                             ParsableDataType.CONTACT_DATA,
-                                                                             String.valueOf(ctx.string().getText()),
-                                                                             ListenerErrorLocation.ENTRY));
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, CONTACT_DATA,
+                                                                    String.valueOf(ctx.string().getText()), ENTRY));
         }
     }
 }

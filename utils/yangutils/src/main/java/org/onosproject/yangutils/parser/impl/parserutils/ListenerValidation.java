@@ -19,6 +19,7 @@ package org.onosproject.yangutils.parser.impl.parserutils;
 import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 
 /**
  * It's a utility to carry out listener validation.
@@ -37,19 +38,21 @@ public final class ListenerValidation {
      * @param listener Listener's object.
      * @param errorType error type needs to be set in error message.
      * @param parsableDataType type of parsable data in which error occurred.
-     * @param parsableDataTypeName name of parsable data type in which error occurred.
+     * @param parsableDataTypeName name of parsable data type in which error
+     *            occurred.
      * @param errorLocation location where error occurred.
      */
     public static void checkStackIsNotEmpty(TreeWalkListener listener, ListenerErrorType errorType,
-                                               ParsableDataType parsableDataType, String parsableDataTypeName,
-                                               ListenerErrorLocation errorLocation) {
+                                            ParsableDataType parsableDataType, String parsableDataTypeName,
+                                            ListenerErrorLocation errorLocation) {
         if (listener.getParsedDataStack().empty()) {
             /*
-             * If stack is empty it indicates error condition, value of parsableDataTypeName will be null in case there
-             * is no name attached to parsable data type.
+             * If stack is empty it indicates error condition, value of
+             * parsableDataTypeName will be null in case there is no name
+             * attached to parsable data type.
              */
-            String message = ListenerErrorMessageConstruction.constructListenerErrorMessage(errorType, parsableDataType,
-                    parsableDataTypeName, errorLocation);
+            String message = constructListenerErrorMessage(errorType, parsableDataType, parsableDataTypeName,
+                                                           errorLocation);
             throw new ParserException(message);
         }
     }
@@ -60,21 +63,23 @@ public final class ListenerValidation {
      * @param listener Listener's object.
      * @param errorType error type needs to be set in error message.
      * @param parsableDataType type of parsable data in which error occurred.
-     * @param parsableDataTypeName name of parsable data type in which error occurred.
+     * @param parsableDataTypeName name of parsable data type in which error
+     *            occurred.
      * @param errorLocation location where error occurred.
      */
 
     public static void checkStackIsEmpty(TreeWalkListener listener, ListenerErrorType errorType,
-                                            ParsableDataType parsableDataType, String parsableDataTypeName,
-                                            ListenerErrorLocation errorLocation) {
+                                         ParsableDataType parsableDataType, String parsableDataTypeName,
+                                         ListenerErrorLocation errorLocation) {
 
         if (!listener.getParsedDataStack().empty()) {
             /*
-             * If stack is empty it indicates error condition, value of parsableDataTypeName will be null in case there
-             * is no name attached to parsable data type.
+             * If stack is empty it indicates error condition, value of
+             * parsableDataTypeName will be null in case there is no name
+             * attached to parsable data type.
              */
-            String message = ListenerErrorMessageConstruction.constructListenerErrorMessage(errorType, parsableDataType,
-                    parsableDataTypeName, errorLocation);
+            String message = constructListenerErrorMessage(errorType, parsableDataType, parsableDataTypeName,
+                                                           errorLocation);
             throw new ParserException(message);
         }
     }

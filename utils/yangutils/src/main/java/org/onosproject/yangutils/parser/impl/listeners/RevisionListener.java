@@ -20,14 +20,16 @@ import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangRevision;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.REVISION_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.*;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -69,16 +71,21 @@ public final class RevisionListener {
     private RevisionListener() {
     }
 
+    /**
+     * It is called when parser receives an input matching the grammar rule
+     * (revision),perform validations and update the data model tree.
+     *
+     * @param listener Listener's object.
+     * @param ctx context object of the grammar rule.
+     */
     public static void processRevisionEntry(TreeWalkListener listener,
                                             GeneratedYangParser.RevisionStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                                                ParsableDataType.REVISION_DATA,
-                                                String.valueOf(ctx.DATE_ARG().getText()),
-                                                ListenerErrorLocation.ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, String.valueOf(ctx.DATE_ARG().getText()), ENTRY);
 
-        // Validate for reverse chronological order of revision & for revision value.
+        // Validate for reverse chronological order of revision & for revision
+        // value.
         if (!validateRevision(listener, ctx)) {
             return;
             // TODO to be implemented.
@@ -97,23 +104,19 @@ public final class RevisionListener {
      * @param listener Listener's object.
      * @param ctx context object of the grammar rule.
      */
-    public static void processRevisionExit(TreeWalkListener listener,
-                                           GeneratedYangParser.RevisionStatementContext ctx) {
+    public static void processRevisionExit(TreeWalkListener listener, GeneratedYangParser.RevisionStatementContext
+            ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation
-                .checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER, ParsableDataType.REVISION_DATA,
-                                      String.valueOf(ctx.DATE_ARG().getText()), ListenerErrorLocation.EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, String.valueOf(ctx.DATE_ARG().getText()), EXIT);
 
         Parsable tmpRevisionNode = listener.getParsedDataStack().peek();
         if (tmpRevisionNode instanceof YangRevision) {
             listener.getParsedDataStack().pop();
 
             // Check for stack to be non empty.
-            ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                                                    ParsableDataType.REVISION_DATA,
-                                                    String.valueOf(ctx.DATE_ARG().getText()),
-                                                    ListenerErrorLocation.EXIT);
+            checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, String.valueOf(ctx.DATE_ARG().getText()),
+                                 EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getParsableDataType()) {
@@ -128,22 +131,13 @@ public final class RevisionListener {
                 break;
             }
             default:
-                throw new ParserException(
-                                          ListenerErrorMessageConstruction
-                                                  .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                                                                                 ParsableDataType.REVISION_DATA,
-                                                                                 String.valueOf(ctx.DATE_ARG()
-                                                                                         .getText()),
-                                                                                 ListenerErrorLocation.EXIT));
+                throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, REVISION_DATA,
+                                                                        String.valueOf(ctx.DATE_ARG().getText()),
+                                                                        EXIT));
             }
         } else {
-            throw new ParserException(
-                                      ListenerErrorMessageConstruction
-                                              .constructListenerErrorMessage(ListenerErrorType.MISSING_CURRENT_HOLDER,
-                                                                             ParsableDataType.REVISION_DATA, String
-                                                                                     .valueOf(ctx.DATE_ARG()
-                                                                                             .getText()),
-                                                                             ListenerErrorLocation.EXIT));
+            throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, REVISION_DATA,
+                                                                    String.valueOf(ctx.DATE_ARG().getText()), EXIT));
         }
     }
 
