@@ -36,7 +36,7 @@ public class McastDeleteCommand extends AbstractShellCommand {
     String sAddr = null;
 
     @Argument(index = 1, name = "gAddr",
-            description = "IP Address of the multicast group",
+            description = "IP Address of the multicast group. '*' can be used to denote all groups",
             required = true, multiValued = false)
     String gAddr = null;
 
@@ -49,6 +49,12 @@ public class McastDeleteCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         MulticastRouteService mcastRouteManager = get(MulticastRouteService.class);
+
+        if (sAddr.equals("*") && gAddr.equals("*")) {
+            // Clear all routes
+            mcastRouteManager.getRoutes().forEach(mcastRouteManager::remove);
+            return;
+        }
 
         McastRoute mRoute = new McastRoute(IpAddress.valueOf(sAddr),
                 IpAddress.valueOf(gAddr), McastRoute.Type.STATIC);

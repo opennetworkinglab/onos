@@ -179,11 +179,10 @@ public class IgmpSnoop {
 
     @Activate
     public void activate(ComponentContext context) {
+        componentConfigService.registerProperties(getClass());
         modified(context);
 
         appId = coreService.registerApplication("org.onosproject.igmp");
-
-        componentConfigService.registerProperties(getClass());
 
         packetService.addProcessor(processor, PacketProcessor.director(1));
 

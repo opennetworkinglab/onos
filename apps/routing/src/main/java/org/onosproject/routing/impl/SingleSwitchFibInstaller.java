@@ -142,10 +142,10 @@ public class SingleSwitchFibInstaller {
 
     @Activate
     protected void activate(ComponentContext context) {
-        modified(context);
-        routerAppId = coreService.registerApplication(RoutingService.ROUTER_APP_ID);
-
         componentConfigService.registerProperties(getClass());
+        modified(context);
+
+        routerAppId = coreService.registerApplication(RoutingService.ROUTER_APP_ID);
 
         deviceListener = new InternalDeviceListener();
         deviceService.addListener(deviceListener);
