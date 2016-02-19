@@ -17,7 +17,7 @@ package org.onosproject.net.config.basics;
 
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-
+import org.onosproject.net.key.DeviceKeyId;
 /**
  * Basic configuration for network infrastructure devices.
  */
@@ -30,12 +30,13 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
     private static final String HW_VERSION = "hwVersion";
     private static final String SW_VERSION = "swVersion";
     private static final String SERIAL = "serial";
+    private static final String DEVICE_KEY_ID = "deviceKeyId";
 
     @Override
     public boolean isValid() {
         return hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, RACK_ADDRESS, OWNER,
                              TYPE, DRIVER, MANUFACTURER, HW_VERSION, SW_VERSION, SERIAL,
-                             MANAGEMENT_ADDRESS);
+                             MANAGEMENT_ADDRESS, DEVICE_KEY_ID);
     }
 
     /**
@@ -162,13 +163,34 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
     }
 
     /**
-     * Sets the driver name.
+     * Sets the device management ip (ip:port).
      *
      * @param managementAddress new device management address (ip:port); null to clear
      * @return self
      */
     public BasicDeviceConfig managementAddress(String managementAddress) {
         return (BasicDeviceConfig) setOrClear(MANAGEMENT_ADDRESS, managementAddress);
+    }
+
+    /**
+     * Returns the device key id.
+     *
+     * @return device key id or null if not set
+     */
+    public DeviceKeyId deviceKeyId() {
+        String s = get(DEVICE_KEY_ID, null);
+        return s == null ? null : DeviceKeyId.deviceKeyId(s);
+    }
+
+    /**
+     * Sets the device key id.
+     *
+     * @param deviceKeyId new device key id; null to clear
+     * @return self
+     */
+    public BasicDeviceConfig deviceKeyId(DeviceKeyId deviceKeyId) {
+        return (BasicDeviceConfig) setOrClear(DEVICE_KEY_ID,
+                                              deviceKeyId != null ? deviceKeyId.id() : null);
     }
 
     // TODO: device port meta-data to be configured via BasicPortsConfig

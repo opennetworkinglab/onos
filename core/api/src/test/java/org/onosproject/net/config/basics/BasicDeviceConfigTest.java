@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.net.key.DeviceKeyId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.ConfigApplyDelegate;
 
@@ -39,12 +40,14 @@ public class BasicDeviceConfigTest {
     private static final String SW_VERSION = "0.0";
     private static final String SERIAL = "1234";
     private static final String MANAGEMENT_ADDRESS = "12.34.56.78:99";
+    private static final DeviceKeyId DEVICE_KEY_ID = DeviceKeyId.deviceKeyId("fooDeviceKeyId");
     private static final String DRIVER_NEW = "barDriver";
     private static final String MANUFACTURER_NEW = "barManufacturer";
     private static final String HW_VERSION_NEW = "1.1";
     private static final String SW_VERSION_NEW = "1.1";
     private static final String SERIAL_NEW = "5678";
     private static final String MANAGEMENT_ADDRESS_NEW = "99.87.65.43:12";
+    private static final DeviceKeyId DEVICE_KEY_ID_NEW = DeviceKeyId.deviceKeyId("barDeviceKeyId");
 
     private static final String NAME1 = "fooProtocol:fooIP:fooPort";
 
@@ -58,7 +61,8 @@ public class BasicDeviceConfigTest {
     public void setUp() {
         SW_BDC.init(DeviceId.deviceId(NAME1), NAME1, JsonNodeFactory.instance.objectNode(), mapper, delegate);
         SW_BDC.type(SWITCH).manufacturer(MANUFACTURER).hwVersion(HW_VERSION)
-                .swVersion(SW_VERSION).serial(SERIAL).managementAddress(MANAGEMENT_ADDRESS).driver(DRIVER);
+                .swVersion(SW_VERSION).serial(SERIAL).managementAddress(MANAGEMENT_ADDRESS).driver(DRIVER)
+                .deviceKeyId(DEVICE_KEY_ID);
     }
 
     @Test
@@ -71,6 +75,7 @@ public class BasicDeviceConfigTest {
         assertEquals("Incorrect swVersion", SW_VERSION, SW_BDC.swVersion());
         assertEquals("Incorrect serial", SERIAL, SW_BDC.serial());
         assertEquals("Incorrect management Address", MANAGEMENT_ADDRESS, SW_BDC.managementAddress());
+        assertEquals("Incorrect deviceKeyId", DEVICE_KEY_ID, SW_BDC.deviceKeyId());
     }
 
 
@@ -118,5 +123,15 @@ public class BasicDeviceConfigTest {
     public void testSetManagementAddress() {
         SW_BDC.managementAddress(MANAGEMENT_ADDRESS_NEW);
         assertEquals("Incorrect managementAddress", MANAGEMENT_ADDRESS_NEW, SW_BDC.managementAddress());
+    }
+
+    @Test
+    public void testSetDeviceKeyId() {
+        // change device key id
+        SW_BDC.deviceKeyId(DEVICE_KEY_ID_NEW);
+        assertEquals("Incorrect deviceKeyId", DEVICE_KEY_ID_NEW, SW_BDC.deviceKeyId());
+        // clear device key id
+        SW_BDC.deviceKeyId(null);
+        assertEquals("Incorrect deviceKeyId", null, SW_BDC.deviceKeyId());
     }
 }
