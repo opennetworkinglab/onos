@@ -136,6 +136,8 @@ public class Vpls {
                 HashMultimap.create();
 
         interfaceService.getInterfaces()
+                .stream()
+                .filter(intf -> intf.ipAddressesList().isEmpty())
                 .forEach(intf -> confCPointsByVlan.put(intf.vlan(),
                                                        intf.connectPoint()));
         return confCPointsByVlan;
