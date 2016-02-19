@@ -68,25 +68,6 @@ public interface OspfController {
     public void deleteConfig(List<OspfProcess> processes, String attribute);
 
     /**
-     * Gets string representation of area configuration parameters to be displayed after CLI command.
-     *
-     * @param processId process Id
-     * @param areaId    area Id
-     * @return Area Information
-     */
-    public String showAreaParameters(String processId, String areaId);
-
-    /**
-     * Gets string representation of area configuration information for the given area/process.
-     * This method will be called for CLI command.
-     *
-     * @param processId process id to which area belongs
-     * @param areaId    area id
-     * @return string representation of area configuration for CLI display
-     */
-    List<String> showAreaConfigurations(String processId, String areaId);
-
-    /**
      * Gets the list of listeners registered for router events.
      *
      * @return list of listeners
