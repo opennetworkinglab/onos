@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * A representation of a meter id.
- * Uniquely identifies a meter system wide.
+ * Uniquely identifies a meter in the scope of a single device.
  */
 public final class MeterId {
 

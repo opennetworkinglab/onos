@@ -222,7 +222,7 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
                     provider().performMeterOperation(m.deviceId(),
                                                      new MeterOperation(m,
                                                                         MeterOperation.Type.ADD));
-                } else {
+                } else if ((m.state() == MeterState.PENDING_REMOVE)) {
                     store.deleteMeterNow(m);
                 }
             });
