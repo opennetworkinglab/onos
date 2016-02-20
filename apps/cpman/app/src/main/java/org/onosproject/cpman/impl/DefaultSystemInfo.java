@@ -17,14 +17,18 @@ package org.onosproject.cpman.impl;
 
 import org.onosproject.cpman.SystemInfo;
 
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Implementation class of storing system specification.
  */
 public final class DefaultSystemInfo implements SystemInfo {
-    private int numOfCores;
-    private int numOfCpus;
-    private int cpuSpeedMhz;
-    private int totalMemoryMbytes;
+    private final int numOfCores;
+    private final int numOfCpus;
+    private final int cpuSpeedMhz;
+    private final int totalMemoryMbytes;
 
     private DefaultSystemInfo(int numOfCores, int numOfCpus,
                               int cpuSpeedMhz, int totalMemoryMbytes) {
@@ -52,6 +56,37 @@ public final class DefaultSystemInfo implements SystemInfo {
     @Override
     public int totalMemory() {
         return this.totalMemoryMbytes;
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(numOfCores, numOfCpus, cpuSpeedMhz, totalMemoryMbytes);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof DefaultSystemInfo) {
+            final DefaultSystemInfo other = (DefaultSystemInfo) obj;
+            return Objects.equals(this.numOfCores, other.numOfCores) &&
+                    Objects.equals(this.numOfCpus, other.numOfCpus) &&
+                    Objects.equals(this.cpuSpeedMhz, other.cpuSpeedMhz) &&
+                    Objects.equals(this.totalMemoryMbytes, other.totalMemoryMbytes);
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("numOfCores", numOfCores)
+                .add("numOfCpus", numOfCpus)
+                .add("cpuSpeedMhz", cpuSpeedMhz)
+                .add("totalMemoryMbytes", totalMemoryMbytes)
+                .toString();
     }
 
     /**
