@@ -92,24 +92,24 @@ public final class ContactListener {
     public static void processContactEntry(TreeWalkListener listener, GeneratedYangParser.ContactStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, CONTACT_DATA, String.valueOf(ctx.string().getText()), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, CONTACT_DATA, ctx.string().getText(), ENTRY);
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getParsableDataType()) {
         case MODULE_DATA: {
             YangModule module = (YangModule) tmpNode;
-            module.setContact(String.valueOf(ctx.string().getText()));
+            module.setContact(ctx.string().getText());
             break;
         }
         case SUB_MODULE_DATA: {
             YangSubModule subModule = (YangSubModule) tmpNode;
-            subModule.setContact(String.valueOf(ctx.string().getText()));
+            subModule.setContact(ctx.string().getText());
             break;
         }
         default:
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, CONTACT_DATA,
-                                                                    String.valueOf(ctx.string().getText()), ENTRY));
+                                                                    ctx.string().getText(), ENTRY));
         }
     }
 }

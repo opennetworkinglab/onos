@@ -24,6 +24,7 @@ import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangListener;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 
+import org.onosproject.yangutils.parser.impl.listeners.DefaultListener;
 import org.onosproject.yangutils.parser.impl.listeners.KeyListener;
 import org.onosproject.yangutils.parser.impl.listeners.LeafListListener;
 import org.onosproject.yangutils.parser.impl.listeners.LeafListener;
@@ -49,6 +50,7 @@ import org.onosproject.yangutils.parser.impl.listeners.RevisionDateListener;
 import org.onosproject.yangutils.parser.impl.listeners.RevisionListener;
 import org.onosproject.yangutils.parser.impl.listeners.StatusListener;
 import org.onosproject.yangutils.parser.impl.listeners.SubModuleListener;
+import org.onosproject.yangutils.parser.impl.listeners.TypeDefListener;
 import org.onosproject.yangutils.parser.impl.listeners.TypeListener;
 import org.onosproject.yangutils.parser.impl.listeners.UnitsListener;
 import org.onosproject.yangutils.parser.impl.listeners.VersionListener;
@@ -519,12 +521,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterTypedefStatement(GeneratedYangParser.TypedefStatementContext ctx) {
-        //TODO: implement the method.
+        TypeDefListener.processTypeDefEntry(this, ctx);
     }
 
     @Override
     public void exitTypedefStatement(GeneratedYangParser.TypedefStatementContext ctx) {
-        //TODO: implement the method.
+        TypeDefListener.processTypeDefExit(this, ctx);
     }
 
     @Override
@@ -609,7 +611,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterDefaultStatement(GeneratedYangParser.DefaultStatementContext ctx) {
-        //TODO: implement the method.
+        DefaultListener.processDefaultEntry(this, ctx);
     }
 
     @Override

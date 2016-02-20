@@ -80,6 +80,15 @@ public class RevisionDateListenerTest {
     }
 
     /**
+     * Checks if revision date is correct.
+     */
+    @Test(expected = ParserException.class)
+    public void processRevisionDateInvalid() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/RevisionDateInvalid.yang");
+    }
+
+    /**
      * Checks if revision date listener updates the data model tree.
      */
     @Test

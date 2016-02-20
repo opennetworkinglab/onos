@@ -95,7 +95,7 @@ public final class OrganizationListener {
                                                 GeneratedYangParser.OrganizationStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, ORGANIZATION_DATA, String.valueOf(ctx.string().getText()),
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, ORGANIZATION_DATA, ctx.string().getText(),
                              ENTRY);
 
         // Obtain the node of the stack.
@@ -103,17 +103,17 @@ public final class OrganizationListener {
         switch (tmpNode.getParsableDataType()) {
         case MODULE_DATA: {
             YangModule module = (YangModule) tmpNode;
-            module.setOrganization(String.valueOf(ctx.string().getText()));
+            module.setOrganization(ctx.string().getText());
             break;
         }
         case SUB_MODULE_DATA: {
             YangSubModule subModule = (YangSubModule) tmpNode;
-            subModule.setOrganization(String.valueOf(ctx.string().getText()));
+            subModule.setOrganization(ctx.string().getText());
             break;
         }
         default:
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, ORGANIZATION_DATA,
-                                                                    String.valueOf(ctx.string().getText()), ENTRY));
+                                                                    ctx.string().getText(), ENTRY));
         }
     }
 }

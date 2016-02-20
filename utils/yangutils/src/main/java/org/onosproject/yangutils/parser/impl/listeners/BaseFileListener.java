@@ -78,8 +78,8 @@ public final class BaseFileListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, YANGBASE_DATA, "", EXIT);
 
         // Data Model tree root node is set.
-        if (listener.getParsedDataStack().peek() instanceof YangModule
-                || listener.getParsedDataStack().peek() instanceof YangSubModule) {
+        if ((listener.getParsedDataStack().peek() instanceof YangModule)
+                || (listener.getParsedDataStack().peek() instanceof YangSubModule)) {
             listener.setRootNode((YangNode) listener.getParsedDataStack().pop());
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_CHILD, YANGBASE_DATA, "", EXIT));

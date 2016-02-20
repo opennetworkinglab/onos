@@ -77,9 +77,9 @@ public final class NamespaceListener {
                                              GeneratedYangParser.NamespaceStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, NAMESPACE_DATA, String.valueOf(ctx.string().getText()), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, NAMESPACE_DATA, ctx.string().getText(), ENTRY);
 
-        if (!validateUriValue(String.valueOf(ctx.string().getText()))) {
+        if (!validateUriValue(ctx.string().getText())) {
             ParserException parserException = new ParserException("Invalid namespace URI");
             parserException.setLine(ctx.string().STRING(0).getSymbol().getLine());
             parserException.setCharPosition(ctx.string().STRING(0).getSymbol().getCharPositionInLine());
@@ -92,13 +92,13 @@ public final class NamespaceListener {
         case MODULE_DATA: {
             YangModule module = (YangModule) tmpNode;
             YangNameSpace uri = new YangNameSpace();
-            uri.setUri(String.valueOf(ctx.string().getText()));
+            uri.setUri(ctx.string().getText());
             module.setNameSpace(uri);
             break;
         }
         default:
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, NAMESPACE_DATA,
-                                                                    String.valueOf(ctx.string().getText()), ENTRY));
+                                                                    ctx.string().getText(), ENTRY));
         }
     }
 

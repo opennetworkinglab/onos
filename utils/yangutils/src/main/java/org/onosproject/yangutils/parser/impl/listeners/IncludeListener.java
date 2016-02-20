@@ -74,11 +74,11 @@ public final class IncludeListener {
     public static void processIncludeEntry(TreeWalkListener listener, GeneratedYangParser.IncludeStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, ctx.IDENTIFIER().getText(),
                              ENTRY);
 
         YangInclude includeNode = new YangInclude();
-        includeNode.setSubModuleName(String.valueOf(ctx.IDENTIFIER().getText()));
+        includeNode.setSubModuleName(ctx.IDENTIFIER().getText());
 
         listener.getParsedDataStack().push(includeNode);
     }
@@ -93,14 +93,14 @@ public final class IncludeListener {
     public static void processIncludeExit(TreeWalkListener listener, GeneratedYangParser.IncludeStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, String.valueOf(ctx.IDENTIFIER().getText()), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, ctx.IDENTIFIER().getText(), EXIT);
 
         Parsable tmpIncludeNode = listener.getParsedDataStack().peek();
         if (tmpIncludeNode instanceof YangInclude) {
             listener.getParsedDataStack().pop();
 
             // Check for stack to be non empty.
-            checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+            checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, ctx.IDENTIFIER().getText(),
                                  EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
@@ -117,12 +117,12 @@ public final class IncludeListener {
             }
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, INCLUDE_DATA,
-                                                                        String.valueOf(ctx.IDENTIFIER().getText()),
+                                                                        ctx.IDENTIFIER().getText(),
                                                                         EXIT));
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, INCLUDE_DATA,
-                                                                    String.valueOf(ctx.IDENTIFIER().getText()), EXIT));
+                                                                    ctx.IDENTIFIER().getText(), EXIT));
         }
     }
 }

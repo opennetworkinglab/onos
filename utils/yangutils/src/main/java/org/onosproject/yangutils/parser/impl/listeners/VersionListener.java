@@ -85,7 +85,7 @@ public final class VersionListener {
                                            GeneratedYangParser.YangVersionStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, VERSION_DATA, String.valueOf(ctx.INTEGER().getText()), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, VERSION_DATA, ctx.INTEGER().getText(), ENTRY);
 
         Integer version = Integer.valueOf(ctx.INTEGER().getText());
         if (!isVersionValid(version)) {
@@ -110,7 +110,7 @@ public final class VersionListener {
         }
         default:
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, VERSION_DATA,
-                                                                    String.valueOf(ctx.INTEGER().getText()), ENTRY));
+                                                                    ctx.INTEGER().getText(), ENTRY));
         }
     }
 

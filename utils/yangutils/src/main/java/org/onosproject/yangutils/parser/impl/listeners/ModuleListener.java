@@ -69,7 +69,7 @@ public final class ModuleListener {
     public static void processModuleEntry(TreeWalkListener listener, GeneratedYangParser.ModuleStatementContext ctx) {
 
         // Check if stack is empty.
-        checkStackIsEmpty(listener, INVALID_HOLDER, MODULE_DATA, String.valueOf(ctx.IDENTIFIER().getText()), ENTRY);
+        checkStackIsEmpty(listener, INVALID_HOLDER, MODULE_DATA, ctx.IDENTIFIER().getText(), ENTRY);
 
         YangModule yangModule = new YangModule();
         yangModule.setName(ctx.IDENTIFIER().getText());
@@ -87,11 +87,11 @@ public final class ModuleListener {
     public static void processModuleExit(TreeWalkListener listener, GeneratedYangParser.ModuleStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, MODULE_DATA, String.valueOf(ctx.IDENTIFIER().getText()), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, MODULE_DATA, ctx.IDENTIFIER().getText(), EXIT);
 
         if (!(listener.getParsedDataStack().peek() instanceof YangModule)) {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, MODULE_DATA,
-                                                                    String.valueOf(ctx.IDENTIFIER().getText()), EXIT));
+                                                                    ctx.IDENTIFIER().getText(), EXIT));
         }
     }
 }

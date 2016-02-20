@@ -71,7 +71,7 @@ public final class SubModuleListener {
                                              GeneratedYangParser.SubModuleStatementContext ctx) {
 
         // Check if stack is empty.
-        checkStackIsEmpty(listener, INVALID_HOLDER, SUB_MODULE_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+        checkStackIsEmpty(listener, INVALID_HOLDER, SUB_MODULE_DATA, ctx.IDENTIFIER().getText(),
                           ENTRY);
 
         YangSubModule yangSubModule = new YangSubModule();
@@ -91,12 +91,12 @@ public final class SubModuleListener {
                                             GeneratedYangParser.SubModuleStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, SUB_MODULE_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, SUB_MODULE_DATA, ctx.IDENTIFIER().getText(),
                              EXIT);
 
         if (!(listener.getParsedDataStack().peek() instanceof YangSubModule)) {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, SUB_MODULE_DATA,
-                                                                    String.valueOf(ctx.IDENTIFIER().getText()), EXIT));
+                                                                    ctx.IDENTIFIER().getText(), EXIT));
         }
     }
 }

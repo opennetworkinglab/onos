@@ -82,7 +82,7 @@ public final class RevisionListener {
                                             GeneratedYangParser.RevisionStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, String.valueOf(ctx.DATE_ARG().getText()), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, ctx.DATE_ARG().getText(), ENTRY);
 
         // Validate for reverse chronological order of revision & for revision
         // value.
@@ -92,7 +92,7 @@ public final class RevisionListener {
         }
 
         YangRevision revisionNode = new YangRevision();
-        revisionNode.setRevDate(String.valueOf(ctx.DATE_ARG().getText()));
+        revisionNode.setRevDate(ctx.DATE_ARG().getText());
 
         listener.getParsedDataStack().push(revisionNode);
     }
@@ -108,14 +108,14 @@ public final class RevisionListener {
             ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, String.valueOf(ctx.DATE_ARG().getText()), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, ctx.DATE_ARG().getText(), EXIT);
 
         Parsable tmpRevisionNode = listener.getParsedDataStack().peek();
         if (tmpRevisionNode instanceof YangRevision) {
             listener.getParsedDataStack().pop();
 
             // Check for stack to be non empty.
-            checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, String.valueOf(ctx.DATE_ARG().getText()),
+            checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, ctx.DATE_ARG().getText(),
                                  EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
@@ -132,12 +132,12 @@ public final class RevisionListener {
             }
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, REVISION_DATA,
-                                                                        String.valueOf(ctx.DATE_ARG().getText()),
+                                                                        ctx.DATE_ARG().getText(),
                                                                         EXIT));
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, REVISION_DATA,
-                                                                    String.valueOf(ctx.DATE_ARG().getText()), EXIT));
+                                                                    ctx.DATE_ARG().getText(), EXIT));
         }
     }
 

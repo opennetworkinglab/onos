@@ -1220,4 +1220,6 @@ package org.onosproject.yangutils.parser.antlrgencode;
                            defaultStatement? configStatement? mandatoryStatement? minElementsStatement?
                            maxElementsStatement? RIGHT_CURLY_BRACE));
 
-    string : STRING (PLUS STRING)*;
+    string : STRING (PLUS STRING)*
+           | IDENTIFIER
+           | INTEGER;

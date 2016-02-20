@@ -47,7 +47,7 @@ public class ContactListenerTest {
 
         YangNode node = manager.getDataModel("src/test/resources/ContactValidEntry.yang");
 
-        // Checks for the version value in data model tree.
+        // Checks for the contact value in data model tree.
         assertThat(((YangModule) node).getContact(), is("\"WG List:  <mailto:spring@ietf.org>\nEditor:    "
                 + "Stephane Litkowski\n           " + "<mailto:stephane.litkowski@orange.com>\""));
     }
@@ -60,6 +60,18 @@ public class ContactListenerTest {
 
         YangNode node = manager.getDataModel("src/test/resources/ContactDualEntryTest.yang");
 
+    }
+
+    /**
+     * Checks that contact can have a string value without double quotes.
+     */
+    @Test
+    public void processContactWithoutQuotes() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/ContactWithoutQuotes.yang");
+
+        // Checks for the contact value in data model tree.
+        assertThat(((YangModule) node).getContact(), is("WG"));
     }
 
     /**

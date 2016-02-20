@@ -23,6 +23,10 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import static org.onosproject.yangutils.parser.ParsableDataType.REVISION_DATE_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -82,26 +86,57 @@ public final class RevisionDateListener {
                                                 GeneratedYangParser.RevisionDateStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATE_DATA, String.valueOf(ctx.DATE_ARG().getText()),
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATE_DATA, ctx.DATE_ARG().getText(),
                              ENTRY);
+
+        if (!isDateValid(ctx.DATE_ARG().getText())) {
+            ParserException parserException = new ParserException("Input date is not correct");
+            parserException.setLine(ctx.DATE_ARG().getSymbol().getLine());
+            parserException.setCharPosition(ctx.DATE_ARG().getSymbol().getCharPositionInLine());
+            throw parserException;
+        }
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getParsableDataType()) {
         case IMPORT_DATA: {
             YangImport importNode = (YangImport) tmpNode;
-            importNode.setRevision(String.valueOf(ctx.DATE_ARG().getText()));
+            importNode.setRevision(ctx.DATE_ARG().getText());
             break;
         }
         case INCLUDE_DATA: {
             YangInclude includeNode = (YangInclude) tmpNode;
-            includeNode.setRevision(String.valueOf(ctx.DATE_ARG().getText()));
+            includeNode.setRevision(ctx.DATE_ARG().getText());
             break;
         }
         default:
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, REVISION_DATE_DATA,
-                                                                    String.valueOf(ctx.DATE_ARG().getText()), ENTRY));
+                                                                    ctx.DATE_ARG().getText(), ENTRY));
         }
     }
-    // TODO Implement the DATE_ARG validation as per RFC 6020.
+
+    /**
+     * Validates the revision date.
+     *
+     * @param dateToValidate input revision date.
+     * @return validation result, true for success, false for failure.
+     */
+    private static boolean isDateValid(String dateToValidate) {
+
+        if (dateToValidate == null) {
+            return false;
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        sdf.setLenient(false);
+
+        try {
+            //if not valid, it will throw ParseException
+            Date date = sdf.parse(dateToValidate);
+            System.out.println(date);
+        } catch (ParseException e) {
+            return false;
+        }
+        return true;
+    }
 }

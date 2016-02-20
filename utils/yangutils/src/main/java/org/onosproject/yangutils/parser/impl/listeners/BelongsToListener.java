@@ -77,11 +77,11 @@ public final class BelongsToListener {
                                              GeneratedYangParser.BelongstoStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, ctx.IDENTIFIER().getText(),
                              ENTRY);
 
         YangBelongsTo belongstoNode = new YangBelongsTo();
-        belongstoNode.setBelongsToModuleName(String.valueOf(ctx.IDENTIFIER().getText()));
+        belongstoNode.setBelongsToModuleName(ctx.IDENTIFIER().getText());
 
         // Push belongsto into the stack.
         listener.getParsedDataStack().push(belongstoNode);
@@ -98,7 +98,7 @@ public final class BelongsToListener {
                                             GeneratedYangParser.BelongstoStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, ctx.IDENTIFIER().getText(),
                              EXIT);
 
         Parsable tmpBelongstoNode = listener.getParsedDataStack().peek();
@@ -107,7 +107,7 @@ public final class BelongsToListener {
 
             // Check for stack to be empty.
             checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA,
-                                 String.valueOf(ctx.IDENTIFIER().getText()), EXIT);
+                                 ctx.IDENTIFIER().getText(), EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getParsableDataType()) {
@@ -118,12 +118,12 @@ public final class BelongsToListener {
             }
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, BELONGS_TO_DATA,
-                                                                        String.valueOf(ctx.IDENTIFIER().getText()),
+                                                                        ctx.IDENTIFIER().getText(),
                                                                         EXIT));
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, BELONGS_TO_DATA,
-                                                                    String.valueOf(ctx.IDENTIFIER().getText()), EXIT));
+                                                                    ctx.IDENTIFIER().getText(), EXIT));
         }
     }
 }

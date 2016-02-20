@@ -76,7 +76,7 @@ public final class PrefixListener {
     public static void processPrefixEntry(TreeWalkListener listener, GeneratedYangParser.PrefixStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, PREFIX_DATA, String.valueOf(ctx.IDENTIFIER().getText()), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, PREFIX_DATA, ctx.IDENTIFIER().getText(), ENTRY);
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
@@ -98,7 +98,7 @@ public final class PrefixListener {
         }
         default:
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, PREFIX_DATA,
-                                                                    String.valueOf(ctx.IDENTIFIER().getText()), ENTRY));
+                                                                    ctx.IDENTIFIER().getText(), ENTRY));
         }
     }
 }
