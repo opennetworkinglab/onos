@@ -66,8 +66,8 @@ public class StatusListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         // Check whether the status is set correctly.
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
@@ -92,8 +92,8 @@ public class StatusListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         // Check whether the status is set correctly.
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
@@ -118,8 +118,8 @@ public class StatusListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         // Check whether the status is set correctly.
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
@@ -152,10 +152,10 @@ public class StatusListenerTest {
     @Test
     public void processModuleSubStatementStatus() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input 'status' expecting {'augment', 'choice', 'contact', 'container', " +
-                "'description', 'extension', 'deviation', 'feature', 'grouping', 'identity', 'import', 'include'," +
-                " 'leaf', 'leaf-list', 'list', 'namespace', 'notification', 'organization', 'prefix', 'reference', " +
-                "'revision', 'rpc', 'typedef', 'uses', 'yang-version', '}'}");
+        thrown.expectMessage("mismatched input 'status' expecting {'augment', 'choice', 'contact', 'container', "
+                + "'description', 'extension', 'deviation', 'feature', 'grouping', 'identity', 'import', 'include',"
+                + " 'leaf', 'leaf-list', 'list', 'namespace', 'notification', 'organization', 'prefix', 'reference', "
+                + "'revision', 'rpc', 'typedef', 'uses', 'yang-version', '}'}");
         YangNode node = manager.getDataModel("src/test/resources/ModuleSubStatementStatus.yang");
     }
 
@@ -184,8 +184,8 @@ public class StatusListenerTest {
         assertThat(container.getStatus(), is(YangStatusType.OBSOLETE));
 
         // Check whether leaf properties as set correctly.
-        ListIterator<YangLeaf> leafIterator = container.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = container.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
@@ -221,8 +221,8 @@ public class StatusListenerTest {
         assertThat(yangList.getStatus(), is(YangStatusType.CURRENT));
 
         // Check whether leaf properties as set correctly.
-        ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangList.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
@@ -252,8 +252,8 @@ public class StatusListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
-        YangLeafList leafListInfo = leafListIterator.next();
+        ListIterator<YangLeafList<?>> leafListIterator = yangNode.getListOfLeafList().listIterator();
+        YangLeafList<?> leafListInfo = leafListIterator.next();
 
         // Check whether status is set correctly.
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));

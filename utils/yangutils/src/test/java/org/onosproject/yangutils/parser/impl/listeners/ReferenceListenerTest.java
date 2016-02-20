@@ -66,8 +66,8 @@ public class ReferenceListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         // Check whether the reference is set correctly.
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
@@ -174,8 +174,8 @@ public class ReferenceListenerTest {
         assertThat(container.getReference(), is("\"container reference\""));
 
         // Check whether leaf properties as set correctly.
-        ListIterator<YangLeaf> leafIterator = container.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = container.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
@@ -211,8 +211,8 @@ public class ReferenceListenerTest {
         assertThat(yangList.getReference(), is("\"list reference\""));
 
         // Check whether leaf properties as set correctly.
-        ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangList.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
@@ -242,8 +242,8 @@ public class ReferenceListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
-        YangLeafList leafListInfo = leafListIterator.next();
+        ListIterator<YangLeafList<?>> leafListIterator = yangNode.getListOfLeafList().listIterator();
+        YangLeafList<?> leafListInfo = leafListIterator.next();
 
         // Check whether description value is set correctly.
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));

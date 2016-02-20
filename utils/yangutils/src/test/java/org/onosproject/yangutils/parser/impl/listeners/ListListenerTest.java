@@ -159,8 +159,8 @@ public class ListListenerTest {
         assertThat(yangList.getReference(), is("\"list reference\""));
 
         // Check whether leaf properties as set correctly.
-        ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangList.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));

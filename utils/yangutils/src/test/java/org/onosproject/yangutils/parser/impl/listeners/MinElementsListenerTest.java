@@ -62,8 +62,8 @@ public class MinElementsListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
-        YangLeafList leafListInfo = leafListIterator.next();
+        ListIterator<YangLeafList<?>> leafListIterator = yangNode.getListOfLeafList().listIterator();
+        YangLeafList<?> leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafListInfo.getMinElements(), is(3));
@@ -99,9 +99,9 @@ public class MinElementsListenerTest {
     @Test
     public void processMinElementsInvalidKeyword() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("extraneous input 'min-element' expecting {'config', 'description', 'if-feature'," +
-                " 'max-elements', 'min-elements', 'must', 'ordered-by', 'reference', 'status', 'type', 'units'," +
-                " 'when', '}'}");
+        thrown.expectMessage("extraneous input 'min-element' expecting {'config', 'description', 'if-feature',"
+                + " 'max-elements', 'min-elements', 'must', 'ordered-by', 'reference', 'status', 'type', 'units',"
+                + " 'when', '}'}");
         YangNode node = manager.getDataModel("src/test/resources/MinElementsInvalidKeyword.yang");
     }
 
@@ -134,8 +134,8 @@ public class MinElementsListenerTest {
     @Test
     public void processMinElementsInvalidCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Internal parser error detected: Invalid cardinality in" +
-                " min-elements before processing.");
+        thrown.expectMessage(
+                "Internal parser error detected: Invalid cardinality in" + " min-elements before processing.");
         YangNode node = manager.getDataModel("src/test/resources/MinElementsInvalidCardinality.yang");
     }
 }

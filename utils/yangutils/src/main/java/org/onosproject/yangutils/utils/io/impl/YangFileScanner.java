@@ -34,14 +34,39 @@ public final class YangFileScanner {
     }
 
     /**
-     * Returns the list of yang files.
+     * Returns the list of YANG files.
      *
      * @param root specified directory
-     * @return list of yang files.
-     * @throws IOException when files get deleted while performing the operations.
+     * @return list of YANG files.
+     * @throws IOException when files get deleted while performing the
+     *             operations.
      */
     public static List<String> getYangFiles(String root) throws IOException {
+        return getFiles(root, ".yang");
+    }
 
+    /**
+     * Returns the list of java files.
+     *
+     * @param root specified directory
+     * @return list of java files.
+     * @throws IOException when files get deleted while performing the
+     *             operations.
+     */
+    public static List<String> getJavaFiles(String root) throws IOException {
+        return getFiles(root, ".java");
+    }
+
+    /**
+     * Returns the list of required files.
+     *
+     * @param root specified directory
+     * @param extension file extension.
+     * @return list of required files.
+     * @throws IOException when files get deleted while performing the
+     *             operations.
+     */
+    public static List<String> getFiles(String root, String extension) throws IOException {
         List<String> store = new LinkedList<>();
         Stack<String> stack = new Stack<>();
         stack.push(root);
@@ -60,7 +85,7 @@ public final class YangFileScanner {
                         stack.push(current.toString());
                     } else {
                         String yangFile = current.getCanonicalPath();
-                        if (yangFile.endsWith(".yang")) {
+                        if (yangFile.endsWith(extension)) {
                             store.add(yangFile);
                         }
                     }

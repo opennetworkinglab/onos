@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator;
+package org.onosproject.yangutils.translator.tojava;
 
 /**
- * Type of files generated.
+ * Type of method generated.
  */
-public enum GeneratedFileType {
+public enum GeneratedMethodTypes {
     /**
-     * Interface file.
+     * getter method.
      */
-    INTERFACE,
+    GETTER,
 
     /**
-     * Builder class file.
+     * setter method.
      */
-    BUILDER_CLASS,
+    SETTER,
 
     /**
-     * Builder interface file.
+     * Constructor.
      */
-    BUILDER_INTERFACE,
+    CONSTRUCTOR,
 
     /**
-     * Impl class file.
+     * Build.
      */
-    IMPL,
+    BUILD,
 
     /**
-     * interface and class file.
+     * Default Constructor.
      */
-    ALL
+    DEFAULT_CONSTRUCTOR
 }

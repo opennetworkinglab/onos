@@ -33,8 +33,10 @@ import org.slf4j.Logger;
 public final class CopyrightHeader {
 
     private static final Logger log = getLogger(CopyrightHeader.class);
-    private static final int NULL = -1;
+    private static final int EOF = -1;
     private static ClassLoader classLoader = CopyrightHeader.class.getClassLoader();
+
+    private static String copyrightHeader;
 
     /**
      * Default constructor.
@@ -43,21 +45,30 @@ public final class CopyrightHeader {
     }
 
     /**
-     * Returns Copyright file header.
+     * Returns copyright file header.
      *
-     * @return Copyright file header
+     * @return copyright file header
+     * @throws IOException when fails to parse copyright header.
      */
-    public static String getCopyrightHeader() {
-        return parseOnosHeader();
+    public static String getCopyrightHeader() throws IOException {
+        return copyrightHeader;
+    }
+
+    /**
+     * Sets the copyright header.
+     *
+     * @param header copyright header
+     */
+    private static void setCopyrightHeader(String header) {
+        copyrightHeader = header;
     }
 
     /**
      * parse Copyright to the temporary file.
      *
-     * @param file generated file
-     * @param stream input stream
+     * @throws IOException when fails to get the copyright header.
      */
-    private static String parseOnosHeader() {
+    public static void parseCopyrightHeader() throws IOException {
 
         File temp = new File("temp.txt");
 
@@ -65,17 +76,18 @@ public final class CopyrightHeader {
             InputStream stream = classLoader.getResourceAsStream("CopyrightHeader.txt");
             OutputStream out = new FileOutputStream(temp);
             int index;
-            while ((index = stream.read()) != NULL) {
+            while ((index = stream.read()) != EOF) {
                 out.write(index);
             }
             out.close();
-            return convertToString(temp.toString());
+            stream.close();
+            getStringFileContent(temp);
+            setCopyrightHeader(getStringFileContent(temp));
         } catch (IOException e) {
-            log.info("Failed to insert onos header in files.");
+            throw new IOException("failed to parse the Copyright header");
         } finally {
             temp.delete();
         }
-        return "";
     }
 
     /**
@@ -85,7 +97,8 @@ public final class CopyrightHeader {
      * @return string of file.
      * @throws IOException when fails to convert to string
      */
-    private static String convertToString(String toAppend) throws IOException {
+    private static String getStringFileContent(File toAppend) throws IOException {
+
         BufferedReader bufferReader = new BufferedReader(new FileReader(toAppend));
         try {
             StringBuilder stringBuilder = new StringBuilder();

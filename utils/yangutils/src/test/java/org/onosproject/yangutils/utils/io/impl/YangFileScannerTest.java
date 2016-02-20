@@ -31,7 +31,7 @@ public class YangFileScannerTest {
 
     private final Logger log = getLogger(getClass());
 
-    String baseDir = "target/UnitTestCase";
+    private static final String BASEDIR = "target/UnitTestCase";
 
     /**
      * Checks an empty directory.
@@ -39,9 +39,9 @@ public class YangFileScannerTest {
     @Test
     public void testWithSingleEmptyDirectoryInRoot() {
         try {
-            File dir = new File(baseDir);
+            File dir = new File(BASEDIR);
             dir.mkdirs();
-            List<String> list = YangFileScanner.getYangFiles(baseDir.toString());
+            List<String> list = YangFileScanner.getYangFiles(BASEDIR.toString());
         } catch (IOException e) {
             log.info("IO Exception throwed");
         }
@@ -63,7 +63,7 @@ public class YangFileScannerTest {
             File firstpath2 = createDirectory(dir2);
             File firstpath3 = createDirectory(dir3);
             File firstpath4 = createDirectory(dir4);
-            List<String> list = YangFileScanner.getYangFiles(baseDir.toString());
+            List<String> list = YangFileScanner.getYangFiles(BASEDIR.toString());
         } catch (IOException e) {
             log.info("IO Exception throwed");
         }
@@ -79,7 +79,7 @@ public class YangFileScannerTest {
             String firstFileName1 = "secondFile.yang";
             File firstpath1 = createDirectory(dir1);
             createFile(firstpath1, firstFileName1);
-            List<String> list = YangFileScanner.getYangFiles(baseDir.toString());
+            List<String> list = YangFileScanner.getYangFiles(BASEDIR.toString());
         } catch (IOException e) {
             log.info("IO Exception throwed");
         }
@@ -101,7 +101,7 @@ public class YangFileScannerTest {
             createFile(firstpath2, firstFileName3);
             createFile(firstpath2, firstFileName4);
             createFile(firstpath2, firstFileName5);
-            List<String> list = YangFileScanner.getYangFiles(baseDir.toString());
+            List<String> list = YangFileScanner.getYangFiles(BASEDIR.toString());
         } catch (IOException e) {
             log.info("IO Exception throwed");
         }
@@ -143,7 +143,49 @@ public class YangFileScannerTest {
             createFile(dir6, firstFileName3);
             createFile(dir6, firstFileName4);
             createFile(dir6, firstFileName5);
-            List<String> list = YangFileScanner.getYangFiles(baseDir.toString());
+            List<String> list = YangFileScanner.getYangFiles(BASEDIR.toString());
+        } catch (IOException e) {
+            log.info("IO Exception throwed");
+        }
+    }
+
+    /**
+     * Checks multi directories with many .java file.
+     */
+    @Test
+    public void testWithMultiDirectoriesMultiJavaFiles() {
+        try {
+            String dir2 = "newDir1/newDir2/newDir3/newDir4";
+            File dir3 = new File("target/UnitTestCase/newDir1");
+            File dir4 = new File("target/UnitTestCase/newDir1/newDir2");
+            File dir5 = new File("target/UnitTestCase/newDir1/newDir2/newDir3");
+            File dir6 = new File("target/UnitTestCase/newDir1/newDir2/newDir3/newDir4");
+            String firstFileName2 = "thirdFile.java";
+            String firstFileName3 = "fourthFile.java";
+            String firstFileName4 = "fifthFile.java";
+            String firstFileName5 = "sixthFile.java";
+            File firstpath2 = createDirectory(dir2);
+            createFile(firstpath2, firstFileName2);
+            createFile(firstpath2, firstFileName3);
+            createFile(firstpath2, firstFileName4);
+            createFile(dir3, firstFileName5);
+            createFile(dir3, firstFileName2);
+            createFile(dir3, firstFileName3);
+            createFile(dir3, firstFileName4);
+            createFile(dir3, firstFileName5);
+            createFile(dir4, firstFileName2);
+            createFile(dir4, firstFileName3);
+            createFile(dir4, firstFileName4);
+            createFile(dir4, firstFileName5);
+            createFile(dir5, firstFileName2);
+            createFile(dir5, firstFileName3);
+            createFile(dir5, firstFileName4);
+            createFile(dir5, firstFileName5);
+            createFile(dir6, firstFileName2);
+            createFile(dir6, firstFileName3);
+            createFile(dir6, firstFileName4);
+            createFile(dir6, firstFileName5);
+            List<String> list = YangFileScanner.getJavaFiles(BASEDIR.toString());
         } catch (IOException e) {
             log.info("IO Exception throwed");
         }
@@ -156,18 +198,18 @@ public class YangFileScannerTest {
      * @return directory path
      */
     public File createDirectory(String path) {
-        File myDir = new File(baseDir + File.separator + path);
+        File myDir = new File(BASEDIR + File.separator + path);
         myDir.mkdirs();
         return myDir;
     }
 
     /**
-    * Method used for creating file inside the specified directory.
-    *
-    * @param myDir my current dirctory
-    * @param fileName file name
-    * @throws IOException io exception when fails to create a file.
-    */
+     * Method used for creating file inside the specified directory.
+     *
+     * @param myDir my current dirctory
+     * @param fileName file name
+     * @throws IOException io exception when fails to create a file.
+     */
     public void createFile(File myDir, String fileName) throws IOException {
         File file = null;
         try {

@@ -16,13 +16,17 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
-import org.onosproject.yangutils.utils.io.CachedFileHandle;
+import org.onosproject.yangutils.translator.CachedFileHandle;
+import org.onosproject.yangutils.translator.GeneratedFileType;
+import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
+import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
 /*-
  * Reference RFC 6020.
  *
@@ -105,14 +109,12 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * List of leaves contained.
      */
-    @SuppressWarnings("rawtypes")
-    private List<YangLeaf> listOfLeaf;
+    private List<YangLeaf<?>> listOfLeaf;
 
     /**
      * List of leaf-lists contained.
      */
-    @SuppressWarnings("rawtypes")
-    private List<YangLeafList> listOfLeafList;
+    private List<YangLeafList<?>> listOfLeafList;
 
     /**
      * If it is a presence container, then the textual documentation of presence
@@ -186,6 +188,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @return the description.
      */
+    @Override
     public String getDescription() {
         return description;
     }
@@ -195,6 +198,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @param description set the description.
      */
+    @Override
     public void setDescription(String description) {
         this.description = description;
     }
@@ -204,8 +208,8 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @return the list of leaves.
      */
-    @SuppressWarnings("rawtypes")
-    public List<YangLeaf> getListOfLeaf() {
+    @Override
+    public List<YangLeaf<?>> getListOfLeaf() {
         return listOfLeaf;
     }
 
@@ -214,8 +218,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @param leafsList the list of leaf to set.
      */
-    @SuppressWarnings("rawtypes")
-    private void setListOfLeaf(List<YangLeaf> leafsList) {
+    private void setListOfLeaf(List<YangLeaf<?>> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -224,10 +227,10 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @param leaf the leaf to be added.
      */
-    @SuppressWarnings("rawtypes")
+    @Override
     public void addLeaf(YangLeaf<?> leaf) {
         if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf>());
+            setListOfLeaf(new LinkedList<YangLeaf<?>>());
         }
 
         getListOfLeaf().add(leaf);
@@ -238,8 +241,8 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @return the list of leaf-list.
      */
-    @SuppressWarnings("rawtypes")
-    public List<YangLeafList> getListOfLeafList() {
+    @Override
+    public List<YangLeafList<?>> getListOfLeafList() {
         return listOfLeafList;
     }
 
@@ -248,8 +251,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @param listOfLeafList the list of leaf-list to set.
      */
-    @SuppressWarnings("rawtypes")
-    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
+    private void setListOfLeafList(List<YangLeafList<?>> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -258,10 +260,10 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @param leafList the leaf-list to be added.
      */
-    @SuppressWarnings("rawtypes")
+    @Override
     public void addLeafList(YangLeafList<?> leafList) {
         if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList>());
+            setListOfLeafList(new LinkedList<YangLeafList<?>>());
         }
 
         getListOfLeafList().add(leafList);
@@ -290,6 +292,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @return the reference.
      */
+    @Override
     public String getReference() {
         return reference;
     }
@@ -299,6 +302,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @param reference the reference to set.
      */
+    @Override
     public void setReference(String reference) {
         this.reference = reference;
     }
@@ -308,6 +312,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @return the status.
      */
+    @Override
     public YangStatusType getStatus() {
         return status;
     }
@@ -317,6 +322,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @param status the status to set.
      */
+    @Override
     public void setStatus(YangStatusType status) {
         this.status = status;
     }
@@ -344,6 +350,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @return returns CONTAINER_DATA.
      */
+    @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.CONTAINER_DATA;
     }
@@ -353,6 +360,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
@@ -362,6 +370,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
@@ -388,17 +397,62 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
 
     /**
      * Generate the java code corresponding to YANG container.
+     *
+     * @throws IOException when fails to generate the source files.
      */
-    public void generateJavaCodeEntry() {
-        //TODO: autogenerated method stub, to be implemented
-    return;
+    @Override
+    public void generateJavaCodeEntry() throws IOException {
+        YangNode parent = getParent();
+        String modPkg = JavaIdentifierSyntax.getPackageFromParent(parent.getPackage(), getName());
+        setPackage(modPkg);
+
+        CachedFileHandle handle = null;
+        try {
+            FileSystemUtil.createPackage(getPackage(), getName());
+            handle = FileSystemUtil.createSourceFiles(getPackage(), getName(), GeneratedFileType.ALL);
+        } catch (IOException e) {
+            throw new IOException("Failed to create the source files.");
+        }
+        setFileHandle(handle);
+        addLavesAttributes();
+        addLeafListAttributes();
+    }
+
+    /**
+     * Adds leaf attributes in generated files.
+     */
+    private void addLavesAttributes() {
+
+        List<YangLeaf<?>> leaves = getListOfLeaf();
+        if (leaves != null) {
+            for (YangLeaf<?> leaf : leaves) {
+                getFileHandle().addAttributeInfo(leaf.getDataType(), leaf.getLeafName(), false);
+            }
+        }
+    }
+
+    /**
+     * Adds leaf list's attributes in generated files.
+     */
+    private void addLeafListAttributes() {
+        List<YangLeafList<?>> leavesList = getListOfLeafList();
+        if (leavesList != null) {
+            for (YangLeafList<?> leafList : leavesList) {
+                getFileHandle().addAttributeInfo(leafList.getDataType(), leafList.getLeafName(), true);
+            }
+        }
+        return;
+
     }
 
     /**
      * Free resources used to generate code.
+     *
+     * @throws IOException when fails to generate source files.
      */
-    public void generateJavaCodeExit() {
-          //TODO: autogenerated method stub, to be implemented
+    @Override
+    public void generateJavaCodeExit() throws IOException {
+        getFileHandle().close();
         return;
     }
 }

@@ -27,8 +27,7 @@ public interface YangLeavesHolder {
      *
      * @return the list of leaves.
      */
-    @SuppressWarnings("rawtypes")
-    public List<YangLeaf> getListOfLeaf();
+    public List<YangLeaf<?>> getListOfLeaf();
 
     /**
      * Add a leaf in data holder like container / list.
@@ -42,8 +41,7 @@ public interface YangLeavesHolder {
      *
      * @return the list of leaf-list.
      */
-    @SuppressWarnings("rawtypes")
-    List<YangLeafList> getListOfLeafList();
+    List<YangLeafList<?>> getListOfLeafList();
 
     /**
      * Add a leaf-list in data holder like container / list.

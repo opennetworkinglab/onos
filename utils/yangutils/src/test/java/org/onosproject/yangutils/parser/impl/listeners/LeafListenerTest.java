@@ -66,8 +66,8 @@ public class LeafListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
@@ -98,10 +98,10 @@ public class LeafListenerTest {
     @Test
     public void processLeafInvalidStatement() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input 'leafs' expecting {'augment', 'choice', 'contact', 'container'," +
-                " 'description', 'extension', 'deviation', 'feature', 'grouping', 'identity', 'import', 'include'," +
-                " 'leaf', 'leaf-list', 'list', 'namespace', 'notification', 'organization', 'prefix', 'reference'," +
-                " 'revision', 'rpc', 'typedef', 'uses', 'yang-version', '}'}");
+        thrown.expectMessage("mismatched input 'leafs' expecting {'augment', 'choice', 'contact', 'container',"
+                + " 'description', 'extension', 'deviation', 'feature', 'grouping', 'identity', 'import', 'include',"
+                + " 'leaf', 'leaf-list', 'list', 'namespace', 'notification', 'organization', 'prefix', 'reference',"
+                + " 'revision', 'rpc', 'typedef', 'uses', 'yang-version', '}'}");
         YangNode node = manager.getDataModel("src/test/resources/LeafInvalidStatement.yang");
     }
 
@@ -161,8 +161,8 @@ public class LeafListenerTest {
         assertThat(container.getName(), is("valid"));
 
         // Check whether leaf properties as set correctly.
-        ListIterator<YangLeaf> leafIterator = container.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = container.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
@@ -197,8 +197,8 @@ public class LeafListenerTest {
         assertThat(yangList.getName(), is("valid"));
 
         // Check whether leaf properties as set correctly.
-        ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangList.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));

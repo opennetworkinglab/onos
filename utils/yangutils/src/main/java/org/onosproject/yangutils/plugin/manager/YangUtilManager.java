@@ -24,24 +24,26 @@ import java.util.List;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.Component;
-import org.sonatype.plexus.build.incremental.BuildContext;
-
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.YangUtilsParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
+import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
+import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
+import org.onosproject.yangutils.utils.UtilConstants;
+import org.onosproject.yangutils.utils.io.impl.CopyrightHeader;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
+import org.onosproject.yangutils.utils.io.impl.YangIoUtils;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
- * ONOS YANG utility maven plugin.
- * Goal of plugin is yang2java
- * Execution phase in generate-sources
- * requiresDependencyResolution at compile time
+ * ONOS YANG utility maven plugin. Goal of plugin is yang2java Execution phase
+ * in generate-sources requiresDependencyResolution at compile time
  */
 @Mojo(name = "yang2java", defaultPhase = LifecyclePhase.GENERATE_SOURCES,
 requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = true)
@@ -71,24 +73,32 @@ public class YangUtilManager extends AbstractMojo {
     @Component
     private BuildContext context;
 
-    private YangUtilsParser yangUtilsParser;
+    private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
     private String baseDir;
     private String searchDir;
 
     /**
      * Set current project.
      *
-     * @param project maven project.
+     * @param curProject maven project.
      */
-    public void setCurrentProject(final MavenProject project) {
-        this.project = project;
+    public void setCurrentProject(final MavenProject curProject) {
+        project = curProject;
     }
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
         try {
+
+            CopyrightHeader.parseCopyrightHeader();
             baseDir = project.getBasedir().toString();
+
+            /**
+             * For deleting the generated code in previous build.
+             */
+            YangIoUtils.clean(baseDir);
+
             searchDir = baseDir + File.separator + yangFilesDir;
 
             List<String> yangFiles = YangFileScanner.getYangFiles(searchDir);
@@ -97,13 +107,25 @@ public class YangUtilManager extends AbstractMojo {
                 String yangFile = yangFileIterator.next();
                 try {
                     YangNode yangNode = yangUtilsParser.getDataModel(yangFile);
-                    //TODO: send this data model to translator and create the corresponding java files.
+                    JavaCodeGenerator.generateJavaCode(yangNode);
                 } catch (ParserException e) {
-                    getLog().info("Invalid yang file.");
+                    String logInfo = "Error in file: " + e.getFileName();
+                    if (e.getLineNumber() != 0) {
+                        logInfo = logInfo + " at line: " + e.getLineNumber() + " at position: "
+                                + e.getCharPositionInLine();
+
+                    }
+                    if (e.getMessage() != null) {
+                        logInfo = logInfo + "\n" + e.getMessage();
+                    }
+                    getLog().info(logInfo);
                 }
             }
+
+            YangIoUtils.addToSource(baseDir + File.separator + UtilConstants.YANG_GEN_DIR, project, context);
         } catch (final IOException e) {
-            getLog().info("Exception occured");
+            getLog().info("IOException occured");
         }
     }
+
 }

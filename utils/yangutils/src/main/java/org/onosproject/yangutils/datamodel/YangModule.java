@@ -15,14 +15,18 @@
  */
 package org.onosproject.yangutils.datamodel;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.translator.CachedFileHandle;
 import org.onosproject.yangutils.translator.CodeGenerator;
-import org.onosproject.yangutils.utils.io.CachedFileHandle;
+import org.onosproject.yangutils.translator.GeneratedFileType;
+import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
+import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
 
 /*-
  * Reference:RFC 6020.
@@ -67,8 +71,7 @@ import org.onosproject.yangutils.utils.io.CachedFileHandle;
 /**
  * Data model node to maintain information defined in YANG module.
  */
-public class YangModule extends YangNode
-        implements YangLeavesHolder, YangDesc, YangReference, Parsable, CodeGenerator {
+public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, YangReference, Parsable, CodeGenerator {
 
     /**
      * Name of the module.
@@ -109,14 +112,12 @@ public class YangModule extends YangNode
     /**
      * List of leaves at root level in the module.
      */
-    @SuppressWarnings("rawtypes")
-    private List<YangLeaf> listOfLeaf;
+    private List<YangLeaf<?>> listOfLeaf;
 
     /**
      * List of leaf-lists at root level in the module.
      */
-    @SuppressWarnings("rawtypes")
-    private List<YangLeafList> listOfLeafList;
+    private List<YangLeafList<?>> listOfLeafList;
 
     /**
      * Name space of the module.
@@ -209,6 +210,7 @@ public class YangModule extends YangNode
      *
      * @return the description of YANG module.
      */
+    @Override
     public String getDescription() {
         return description;
     }
@@ -218,6 +220,7 @@ public class YangModule extends YangNode
      *
      * @param description set the description of YANG module.
      */
+    @Override
     public void setDescription(String description) {
         this.description = description;
     }
@@ -294,8 +297,8 @@ public class YangModule extends YangNode
      *
      * @return the list of leaves.
      */
-    @SuppressWarnings("rawtypes")
-    public List<YangLeaf> getListOfLeaf() {
+    @Override
+    public List<YangLeaf<?>> getListOfLeaf() {
         return listOfLeaf;
     }
 
@@ -304,8 +307,7 @@ public class YangModule extends YangNode
      *
      * @param leafsList the list of leaf to set.
      */
-    @SuppressWarnings("rawtypes")
-    private void setListOfLeaf(List<YangLeaf> leafsList) {
+    private void setListOfLeaf(List<YangLeaf<?>> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -314,10 +316,10 @@ public class YangModule extends YangNode
      *
      * @param leaf the leaf to be added.
      */
-    @SuppressWarnings("rawtypes")
+    @Override
     public void addLeaf(YangLeaf<?> leaf) {
         if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf>());
+            setListOfLeaf(new LinkedList<YangLeaf<?>>());
         }
 
         getListOfLeaf().add(leaf);
@@ -328,8 +330,8 @@ public class YangModule extends YangNode
      *
      * @return the list of leaf-list.
      */
-    @SuppressWarnings("rawtypes")
-    public List<YangLeafList> getListOfLeafList() {
+    @Override
+    public List<YangLeafList<?>> getListOfLeafList() {
         return listOfLeafList;
     }
 
@@ -338,8 +340,7 @@ public class YangModule extends YangNode
      *
      * @param listOfLeafList the list of leaf-list to set.
      */
-    @SuppressWarnings("rawtypes")
-    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
+    private void setListOfLeafList(List<YangLeafList<?>> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -348,10 +349,10 @@ public class YangModule extends YangNode
      *
      * @param leafList the leaf-list to be added.
      */
-    @SuppressWarnings("rawtypes")
+    @Override
     public void addLeafList(YangLeafList<?> leafList) {
         if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList>());
+            setListOfLeafList(new LinkedList<YangLeafList<?>>());
         }
 
         getListOfLeafList().add(leafList);
@@ -416,6 +417,7 @@ public class YangModule extends YangNode
      *
      * @return the reference.
      */
+    @Override
     public String getReference() {
         return reference;
     }
@@ -425,6 +427,7 @@ public class YangModule extends YangNode
      *
      * @param reference the reference to set.
      */
+    @Override
     public void setReference(String reference) {
         this.reference = reference;
     }
@@ -508,6 +511,7 @@ public class YangModule extends YangNode
      *
      * @return returns MODULE_DATA.
      */
+    @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.MODULE_DATA;
     }
@@ -517,6 +521,7 @@ public class YangModule extends YangNode
      *
      * @throws DataModelException a violation of data model rules
      */
+    @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
@@ -526,24 +531,67 @@ public class YangModule extends YangNode
      *
      * @throws DataModelException a violation of data model rules
      */
+    @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
     /**
      * Generates java code for module.
+     *
+     * @throws IOException when fails to generate the source files.
      */
-    public void generateJavaCodeEntry() {
-        //TODO: autogenerated method stub, to be implemented
+    @Override
+    public void generateJavaCodeEntry() throws IOException {
+        String modPkg = JavaIdentifierSyntax.getRootPackage(getVersion(), getNameSpace().getUri(),
+                getRevision().getRevDate());
+        setPackage(modPkg);
 
-        return;
+        CachedFileHandle handle = null;
+        try {
+            FileSystemUtil.createPackage(getPackage(), getName());
+            handle = FileSystemUtil.createSourceFiles(getPackage(), getName(), GeneratedFileType.ALL);
+        } catch (IOException e) {
+            throw new IOException("Failed to create the source files.");
+        }
+        setFileHandle(handle);
+        addLavesAttributes();
+        addLeafListAttributes();
+    }
+
+    /**
+     * Adds leaf attributes in generated files.
+     */
+    private void addLavesAttributes() {
+
+        List<YangLeaf<?>> leaves = getListOfLeaf();
+        if (leaves != null) {
+            for (YangLeaf<?> leaf : leaves) {
+                getFileHandle().addAttributeInfo(leaf.getDataType(), leaf.getLeafName(), false);
+            }
+        }
+    }
+
+    /**
+     * Adds leaf list's attributes in generated files.
+     */
+    private void addLeafListAttributes() {
+        List<YangLeafList<?>> leavesList = getListOfLeafList();
+        if (leavesList != null) {
+            for (YangLeafList<?> leafList : leavesList) {
+                getFileHandle().addAttributeInfo(leafList.getDataType(), leafList.getLeafName(), true);
+            }
+        }
     }
 
     /**
      * Free resources used to generate code.
+     *
+     * @throws IOException when fails to generate source files.
      */
-    public void generateJavaCodeExit() {
-                //TODO: autogenerated method stub, to be implemented
+    @Override
+    public void generateJavaCodeExit() throws IOException {
+        getFileHandle().close();
         return;
     }
 

@@ -60,8 +60,8 @@ public class MandatoryListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         // Check whether the mandatory value is set correctly.
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
@@ -86,8 +86,8 @@ public class MandatoryListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         // Check whether the mandatory value is set correctly.
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
@@ -112,8 +112,8 @@ public class MandatoryListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf leafInfo = leafIterator.next();
+        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf<?> leafInfo = leafIterator.next();
 
         // Check whether the mandatory value is set correctly.
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
@@ -146,10 +146,10 @@ public class MandatoryListenerTest {
     @Test
     public void processModuleSubStatementMandatory() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input 'mandatory' expecting {'augment', 'choice', 'contact', 'container'," +
-                " 'description', 'extension', 'deviation', 'feature', 'grouping', 'identity', 'import', 'include'," +
-                " 'leaf', 'leaf-list', 'list', 'namespace', 'notification', 'organization', 'prefix', 'reference'," +
-                " 'revision', 'rpc', 'typedef', 'uses', 'yang-version', '}'}");
+        thrown.expectMessage("mismatched input 'mandatory' expecting {'augment', 'choice', 'contact', 'container',"
+                + " 'description', 'extension', 'deviation', 'feature', 'grouping', 'identity', 'import', 'include',"
+                + " 'leaf', 'leaf-list', 'list', 'namespace', 'notification', 'organization', 'prefix', 'reference',"
+                + " 'revision', 'rpc', 'typedef', 'uses', 'yang-version', '}'}");
         YangNode node = manager.getDataModel("src/test/resources/ModuleSubStatementMandatory.yang");
     }
 }

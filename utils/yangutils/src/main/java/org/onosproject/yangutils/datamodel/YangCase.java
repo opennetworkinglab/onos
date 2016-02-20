@@ -88,8 +88,7 @@ import org.onosproject.yangutils.parser.ParsableDataType;
 /**
  * Data model node to maintain information defined in YANG case.
  */
-public class YangCase extends YangNode
-        implements YangLeavesHolder, YangCommonInfo, Parsable {
+public class YangCase extends YangNode implements YangLeavesHolder, YangCommonInfo, Parsable {
 
     /**
      * Case name.
@@ -106,14 +105,12 @@ public class YangCase extends YangNode
     /**
      * List of leaves.
      */
-    @SuppressWarnings("rawtypes")
-    private List<YangLeaf> listOfLeaf;
+    private List<YangLeaf<?>> listOfLeaf;
 
     /**
      * List of leaf lists.
      */
-    @SuppressWarnings("rawtypes")
-    private List<YangLeafList> listOfLeafList;
+    private List<YangLeafList<?>> listOfLeafList;
 
     /**
      * Reference of the module.
@@ -153,6 +150,7 @@ public class YangCase extends YangNode
      *
      * @return the description.
      */
+    @Override
     public String getDescription() {
         return description;
     }
@@ -162,6 +160,7 @@ public class YangCase extends YangNode
      *
      * @param description set the description.
      */
+    @Override
     public void setDescription(String description) {
         this.description = description;
     }
@@ -171,8 +170,8 @@ public class YangCase extends YangNode
      *
      * @return the list of leaves.
      */
-    @SuppressWarnings("rawtypes")
-    public List<YangLeaf> getListOfLeaf() {
+    @Override
+    public List<YangLeaf<?>> getListOfLeaf() {
         return listOfLeaf;
     }
 
@@ -181,8 +180,7 @@ public class YangCase extends YangNode
      *
      * @param leafsList the list of leaf to set.
      */
-    @SuppressWarnings("rawtypes")
-    private void setListOfLeaf(List<YangLeaf> leafsList) {
+    private void setListOfLeaf(List<YangLeaf<?>> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -191,10 +189,10 @@ public class YangCase extends YangNode
      *
      * @param leaf the leaf to be added.
      */
-    @SuppressWarnings("rawtypes")
+    @Override
     public void addLeaf(YangLeaf<?> leaf) {
         if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf>());
+            setListOfLeaf(new LinkedList<YangLeaf<?>>());
         }
 
         getListOfLeaf().add(leaf);
@@ -205,8 +203,8 @@ public class YangCase extends YangNode
      *
      * @return the list of leaf-list.
      */
-    @SuppressWarnings("rawtypes")
-    public List<YangLeafList> getListOfLeafList() {
+    @Override
+    public List<YangLeafList<?>> getListOfLeafList() {
         return listOfLeafList;
     }
 
@@ -215,8 +213,7 @@ public class YangCase extends YangNode
      *
      * @param listOfLeafList the list of leaf-list to set.
      */
-    @SuppressWarnings("rawtypes")
-    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
+    private void setListOfLeafList(List<YangLeafList<?>> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -225,10 +222,10 @@ public class YangCase extends YangNode
      *
      * @param leafList the leaf-list to be added.
      */
-    @SuppressWarnings("rawtypes")
+    @Override
     public void addLeafList(YangLeafList<?> leafList) {
         if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList>());
+            setListOfLeafList(new LinkedList<YangLeafList<?>>());
         }
 
         getListOfLeafList().add(leafList);
@@ -239,6 +236,7 @@ public class YangCase extends YangNode
      *
      * @return the reference.
      */
+    @Override
     public String getReference() {
         return reference;
     }
@@ -248,6 +246,7 @@ public class YangCase extends YangNode
      *
      * @param reference the reference to set.
      */
+    @Override
     public void setReference(String reference) {
         this.reference = reference;
     }
@@ -257,6 +256,7 @@ public class YangCase extends YangNode
      *
      * @return the status.
      */
+    @Override
     public YangStatusType getStatus() {
         return status;
     }
@@ -266,6 +266,7 @@ public class YangCase extends YangNode
      *
      * @param status the status to set.
      */
+    @Override
     public void setStatus(YangStatusType status) {
         this.status = status;
     }
@@ -275,6 +276,7 @@ public class YangCase extends YangNode
      *
      * @return returns CASE_DATA
      */
+    @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.CASE_DATA;
     }
@@ -284,6 +286,7 @@ public class YangCase extends YangNode
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
@@ -293,6 +296,7 @@ public class YangCase extends YangNode
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
@@ -318,6 +322,7 @@ public class YangCase extends YangNode
     /* (non-Javadoc)
      * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeEntry()
      */
+    @Override
     public void generateJavaCodeEntry() {
         // TODO Auto-generated method stub
 
@@ -326,6 +331,7 @@ public class YangCase extends YangNode
     /* (non-Javadoc)
      * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeExit()
      */
+    @Override
     public void generateJavaCodeExit() {
         // TODO Auto-generated method stub
 

@@ -18,23 +18,28 @@ package org.onosproject.yangutils.translator;
 
 import java.io.IOException;
 
+import org.onosproject.yangutils.datamodel.YangType;
+
 /**
- * Abstraction of an entity which provides Code generator functionalities.
+ * Cached java file handle, which supports the addition of member attributes and
+ * methods.
  */
-public interface CodeGenerator {
+public interface CachedFileHandle {
 
     /**
-     * Traverse the schema of application and generate corresponding code.
+     * Add a new attribute to the file(s).
      *
-     * @throws IOException when fails to translate the data model tree.
+     * @param attrType data type of the added attribute.
+     * @param name name of the attribute.
+     * @param isListAttr if the current added attribute needs to be maintained
+     *            in a list.
      */
-    void generateJavaCodeEntry() throws IOException;
+    void addAttributeInfo(YangType<?> attrType, String name, boolean isListAttr);
 
     /**
-     * Traverse the schema of application and generate corresponding code.
+     * Flushes the cached contents to the target file, frees used resources.
      *
-     * @throws IOException when fails to generate java code.
+     * @throws IOException when failes to generated java files.
      */
-    void generateJavaCodeExit() throws IOException;
-
+    void close() throws IOException;
 }
