@@ -18,14 +18,16 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import org.onosproject.yangutils.datamodel.YangDesc;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.DESCRIPTION_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -61,20 +63,15 @@ public final class DescriptionListener {
                                              GeneratedYangParser.DescriptionStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                ParsableDataType.DESCRIPTION_DATA, String.valueOf(ctx.string().getText()),
-                ListenerErrorLocation.ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, DESCRIPTION_DATA, ctx.string().getText(), ENTRY);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
         if (tmpData instanceof YangDesc) {
             YangDesc description = (YangDesc) tmpData;
             description.setDescription(ctx.string().getText());
         } else {
-            throw new ParserException(ListenerErrorMessageConstruction
-                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                            ParsableDataType.DESCRIPTION_DATA,
-                            String.valueOf(ctx.string().getText()),
-                            ListenerErrorLocation.ENTRY));
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, DESCRIPTION_DATA,
+                    ctx.string().getText(), ENTRY));
         }
     }
 }

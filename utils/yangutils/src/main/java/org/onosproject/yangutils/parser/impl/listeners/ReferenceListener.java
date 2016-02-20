@@ -18,14 +18,16 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import org.onosproject.yangutils.datamodel.YangReference;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.REFERENCE_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -61,20 +63,15 @@ public final class ReferenceListener {
                                              GeneratedYangParser.ReferenceStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                ParsableDataType.REFERENCE_DATA, String.valueOf(ctx.string().getText()),
-                ListenerErrorLocation.ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, REFERENCE_DATA, ctx.string().getText(), ENTRY);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
         if (tmpData instanceof YangReference) {
             YangReference reference = (YangReference) tmpData;
             reference.setReference(ctx.string().getText());
         } else {
-            throw new ParserException(ListenerErrorMessageConstruction
-                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                            ParsableDataType.REFERENCE_DATA,
-                            String.valueOf(ctx.string().getText()),
-                            ListenerErrorLocation.ENTRY));
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, REFERENCE_DATA,
+                            ctx.string().getText(), ENTRY));
         }
     }
 }

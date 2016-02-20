@@ -15,20 +15,30 @@
  */
 
 package org.onosproject.yangutils.parser.impl.listeners;
+
 import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangList;
+import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-
 import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.CONTAINER_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_CARDINALITY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -85,15 +95,11 @@ public final class ContainerListener {
                                              GeneratedYangParser.ContainerStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                ParsableDataType.CONTAINER_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
-                ListenerErrorLocation.ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, CONTAINER_DATA, ctx.IDENTIFIER().getText(), ENTRY);
 
         boolean result = validateSubStatementsCardinality(ctx);
         if (!result) {
-            throw new ParserException(ListenerErrorMessageConstruction
-                    .constructListenerErrorMessage(ListenerErrorType.INVALID_CARDINALITY,
-                            yangConstruct, "", ListenerErrorLocation.ENTRY));
+            throw new ParserException(constructListenerErrorMessage(INVALID_CARDINALITY, yangConstruct, "", ENTRY));
         }
 
         YangContainer container = new YangContainer();
@@ -101,25 +107,19 @@ public final class ContainerListener {
 
         Parsable curData = listener.getParsedDataStack().peek();
 
-        if (curData instanceof YangNode) {
+        if ((curData instanceof YangModule) || (curData instanceof YangContainer)
+                || (curData instanceof YangList)) {
             YangNode curNode = (YangNode) curData;
             try {
                 curNode.addChild(container);
             } catch (DataModelException e) {
-                throw new ParserException(ListenerErrorMessageConstruction
-                        .constructExtendedListenerErrorMessage(ListenerErrorType.UNHANDLED_PARSED_DATA,
-                                ParsableDataType.CONTAINER_DATA,
-                                String.valueOf(ctx.IDENTIFIER().getText()),
-                                ListenerErrorLocation.ENTRY,
-                                e.getMessage()));
+                throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
+                                CONTAINER_DATA, ctx.IDENTIFIER().getText(), ENTRY, e.getMessage()));
             }
             listener.getParsedDataStack().push(container);
         } else {
-            throw new ParserException(ListenerErrorMessageConstruction
-                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                            ParsableDataType.CONTAINER_DATA,
-                            String.valueOf(ctx.IDENTIFIER().getText()),
-                            ListenerErrorLocation.ENTRY));
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, CONTAINER_DATA,
+                    ctx.IDENTIFIER().getText(), ENTRY));
         }
     }
 
@@ -134,18 +134,13 @@ public final class ContainerListener {
                                             GeneratedYangParser.ContainerStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                ParsableDataType.CONTAINER_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
-                ListenerErrorLocation.EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, CONTAINER_DATA, ctx.IDENTIFIER().getText(), EXIT);
 
         if (listener.getParsedDataStack().peek() instanceof YangContainer) {
             listener.getParsedDataStack().pop();
         } else {
-            throw new ParserException(ListenerErrorMessageConstruction
-                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                            ParsableDataType.CONTAINER_DATA,
-                            String.valueOf(ctx.IDENTIFIER().getText()),
-                            ListenerErrorLocation.EXIT));
+            throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, CONTAINER_DATA,
+                            ctx.IDENTIFIER().getText(), EXIT));
         }
     }
 
@@ -155,7 +150,7 @@ public final class ContainerListener {
      * @param ctx context object of the grammar rule.
      * @return true/false validation success or failure.
      */
-    public static boolean validateSubStatementsCardinality(GeneratedYangParser.ContainerStatementContext ctx) {
+    private static boolean validateSubStatementsCardinality(GeneratedYangParser.ContainerStatementContext ctx) {
 
         if ((!ctx.presenceStatement().isEmpty())
                 && (ctx.presenceStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {

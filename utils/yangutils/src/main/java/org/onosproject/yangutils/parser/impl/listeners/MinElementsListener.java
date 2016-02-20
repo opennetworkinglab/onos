@@ -19,14 +19,16 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.MIN_ELEMENT_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -66,9 +68,7 @@ public final class MinElementsListener {
                                                GeneratedYangParser.MinElementsStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                ParsableDataType.MIN_ELEMENT_DATA, String.valueOf(ctx.INTEGER().getText()),
-                ListenerErrorLocation.ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, MIN_ELEMENT_DATA, ctx.INTEGER().getText(), ENTRY);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
         switch (tmpData.getParsableDataType()) {
@@ -81,11 +81,8 @@ public final class MinElementsListener {
                 yangList.setMinElements(Integer.parseInt(ctx.INTEGER().getText()));
                 break;
             default:
-                throw new ParserException(ListenerErrorMessageConstruction
-                        .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                                ParsableDataType.MIN_ELEMENT_DATA,
-                                String.valueOf(ctx.INTEGER().getText()),
-                                ListenerErrorLocation.ENTRY));
+                throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, MIN_ELEMENT_DATA,
+                        ctx.INTEGER().getText(), ENTRY));
         }
     }
 }

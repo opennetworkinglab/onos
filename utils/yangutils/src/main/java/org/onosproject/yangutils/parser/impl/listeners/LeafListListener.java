@@ -24,10 +24,16 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.LEAF_LIST_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_CARDINALITY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -82,15 +88,11 @@ public final class LeafListListener {
                                             GeneratedYangParser.LeafListStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                ParsableDataType.LEAF_LIST_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
-                ListenerErrorLocation.ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, LEAF_LIST_DATA, ctx.IDENTIFIER().getText(), ENTRY);
 
         boolean result = validateSubStatementsCardinality(ctx);
         if (!result) {
-            throw new ParserException(ListenerErrorMessageConstruction
-                    .constructListenerErrorMessage(ListenerErrorType.INVALID_CARDINALITY,
-                            yangConstruct, "", ListenerErrorLocation.ENTRY));
+            throw new ParserException(constructListenerErrorMessage(INVALID_CARDINALITY, yangConstruct, "", ENTRY));
         }
 
         YangLeafList leafList = new YangLeafList();
@@ -103,11 +105,8 @@ public final class LeafListListener {
             leaves = (YangLeavesHolder) tmpData;
             leaves.addLeafList(leafList);
         } else {
-            throw new ParserException(ListenerErrorMessageConstruction
-                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                            ParsableDataType.LEAF_LIST_DATA,
-                            String.valueOf(ctx.IDENTIFIER().getText()),
-                            ListenerErrorLocation.ENTRY));
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, LEAF_LIST_DATA,
+                            ctx.IDENTIFIER().getText(), ENTRY));
         }
         listener.getParsedDataStack().push(leafList);
     }
@@ -123,18 +122,13 @@ public final class LeafListListener {
                                            GeneratedYangParser.LeafListStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                ParsableDataType.LEAF_LIST_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
-                ListenerErrorLocation.EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, LEAF_LIST_DATA, ctx.IDENTIFIER().getText(), EXIT);
 
         if (listener.getParsedDataStack().peek() instanceof YangLeafList) {
             listener.getParsedDataStack().pop();
         } else {
-            throw new ParserException(ListenerErrorMessageConstruction
-                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                            ParsableDataType.LEAF_LIST_DATA,
-                            String.valueOf(ctx.IDENTIFIER().getText()),
-                            ListenerErrorLocation.EXIT));
+            throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, LEAF_LIST_DATA,
+                    ctx.IDENTIFIER().getText(), EXIT));
         }
     }
 
@@ -144,7 +138,7 @@ public final class LeafListListener {
      * @param ctx context object of the grammar rule.
      * @return true/false validation success or failure.
      */
-    public static boolean validateSubStatementsCardinality(GeneratedYangParser
+    private static boolean validateSubStatementsCardinality(GeneratedYangParser
             .LeafListStatementContext ctx) {
 
         if (ctx.typeStatement().isEmpty()

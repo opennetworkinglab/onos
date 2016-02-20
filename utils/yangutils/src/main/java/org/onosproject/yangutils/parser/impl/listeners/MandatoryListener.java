@@ -18,14 +18,16 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.MANDATORY_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -67,8 +69,7 @@ public final class MandatoryListener {
                                           GeneratedYangParser.MandatoryStatementContext ctx) {
 
         // Check for stack to be non empty.
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                ParsableDataType.MANDATORY_DATA, "", ListenerErrorLocation.ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, MANDATORY_DATA, "", ENTRY);
 
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getParsableDataType()) {
@@ -83,9 +84,7 @@ public final class MandatoryListener {
             case CHOICE_DATA: // TODO
                 break;
             default:
-                throw new ParserException(ListenerErrorMessageConstruction
-                        .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                                ParsableDataType.MANDATORY_DATA, "", ListenerErrorLocation.ENTRY));
+                throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, MANDATORY_DATA, "", ENTRY));
         }
     }
 }
