@@ -16,21 +16,18 @@
 
 package org.onosproject.net.key;
 
-import java.util.Objects;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.onlab.util.Identifier;
 
 /**
- * Device key Id definition.
+ * Device key identifier backed by a string value.
  */
-public final class DeviceKeyId {
-    private final String identifier;
+public final class DeviceKeyId extends Identifier<String> {
 
     /**
      * Constructor for serialization.
      */
     private DeviceKeyId() {
-        this.identifier = null;
+        super();
     }
 
     /**
@@ -39,63 +36,17 @@ public final class DeviceKeyId {
      * @param value the underlying value of this ID
      */
     private DeviceKeyId(String value) {
-        this.identifier = checkNotNull(value, "Device Key Id cannot be null.");
+        super(value);
     }
 
     /**
-     * Static  method to construct a device key identifier.
+     * Creates a new device key identifier.
      *
-     * @param id for the device key identifier
+     * @param id backing identifier value
      * @return device key identifier
      */
-    public static final DeviceKeyId deviceKeyId(String id) {
+    public static DeviceKeyId deviceKeyId(String id) {
         return new DeviceKeyId(id);
     }
 
-    /**
-     * Returns the identifier of the device key identifier.
-     *
-     * @return identifier
-     */
-    public String id() {
-        return identifier;
-    }
-
-    /**
-     * Returns the hashcode of the identifier.
-     *
-     * @return hashcode
-     */
-    @Override
-    public int hashCode() {
-        return identifier.hashCode();
-    }
-
-    /**
-     * Compares two device key identifiers for equality.
-     *
-     * @param obj to compare against
-     * @return true if the objects are equal, false otherwise.
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof DeviceKeyId) {
-            final DeviceKeyId that = (DeviceKeyId) obj;
-            return this.getClass() == that.getClass() &&
-                    Objects.equals(this.identifier, that.identifier);
-        }
-        return false;
-    }
-
-    /**
-     * Returns a string representation of a DeviceKeyId.
-     *
-     * @return string
-     */
-    public String toString() {
-        return identifier;
-    }
 }

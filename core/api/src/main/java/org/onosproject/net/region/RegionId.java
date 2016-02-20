@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,44 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cluster;
+
+package org.onosproject.net.region;
 
 import org.onlab.util.Identifier;
 
 /**
- * Controller cluster identity.
+ * Region identifier backed by a string value.
  */
-public final class NodeId extends Identifier<String> implements Comparable<NodeId> {
+public final class RegionId extends Identifier<String> {
 
     /**
      * Constructor for serialization.
      */
-    private NodeId() {
-        super("");
+    private RegionId() {
+        super();
     }
 
     /**
-     * Creates a new cluster node identifier from the specified string.
+     * Constructs the ID corresponding to a given string value.
      *
-     * @param id string identifier
+     * @param value the underlying value of this ID
      */
-    public NodeId(String id) {
-        super(id);
+    private RegionId(String value) {
+        super(value);
     }
 
     /**
-     * Creates a new cluster node identifier from the specified string.
+     * Creates a new region identifier.
      *
-     * @param id string identifier
-     * @return node id
+     * @param id backing identifier value
+     * @return region identifier
      */
-    public static NodeId nodeId(String id) {
-        return new NodeId(id);
-    }
-
-    @Override
-    public int compareTo(NodeId that) {
-        return identifier.compareTo(that.identifier);
+    public static RegionId regionId(String id) {
+        return new RegionId(id);
     }
 
 }
