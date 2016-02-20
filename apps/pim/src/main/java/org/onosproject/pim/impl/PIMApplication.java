@@ -109,7 +109,6 @@ public class PIMApplication {
      * they arrived on, then forward them on to be processed by the appropriate entity.
      */
     public class PIMPacketProcessor implements PacketProcessor {
-        private final Logger log = getLogger(getClass());
 
         @Override
         public void process(PacketContext context) {
@@ -131,14 +130,13 @@ public class PIMApplication {
             Ethernet eth = pkt.parsed();
             if (eth == null) {
                 // problem getting the ethernet pkt.  Log it debug to avoid spamming log file
-                log.debug("Could not retrieve ethnernet packet from the parsed packet");
+                log.debug("Could not retrieve ethernet packet from the parsed packet");
                 return;
             }
 
             // Get the PIM Interface the packet was received on.
             PIMInterface pimi = pimInterfaceManager.getPIMInterface(pkt.receivedFrom());
             if (pimi == null) {
-                log.debug("We received PIM packet from a non PIM interface: " + pkt.receivedFrom().toString());
                 return;
             }
 
@@ -148,8 +146,7 @@ public class PIMApplication {
              * TODO: Is it possible that PIM interface processing should move to the
              * PIMInterfaceManager directly?
              */
-            PIMPacketHandler ph = new PIMPacketHandler();
-            ph.processPacket(eth, pimi);
+            pimPacketHandler.processPacket(eth, pimi);
         }
     }
 

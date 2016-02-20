@@ -50,20 +50,20 @@ public class PIMPacketHandler {
 
         // Sanitize the ethernet header to ensure it is IPv4.  IPv6 we'll deal with later
         if (ethPkt.getEtherType() != Ethernet.TYPE_IPV4) {
-            log.debug("Recieved a non IPv4 packet");
             return;
         }
 
         // Get the IP header
         IPv4 ip = (IPv4) ethPkt.getPayload();
         if (ip.getProtocol() != IPv4.PROTOCOL_PIM) {
-            log.debug("Received a non PIM IP packet");
             return;
         }
 
         // Get the address of our the neighbor that sent this packet to us.
         IpAddress nbraddr = IpAddress.valueOf(ip.getDestinationAddress());
-        log.debug("Packet " + nbraddr.toString() + " received on port " + pimi.toString());
+        if (log.isTraceEnabled()) {
+            log.trace("Packet {} received on port {}", nbraddr, pimi);
+        }
 
         // Get the PIM header
         PIM pim = (PIM) ip.getPayload();
@@ -71,19 +71,15 @@ public class PIMPacketHandler {
 
         // Process the pim packet
         switch (pim.getPimMsgType()) {
-
             case PIM.TYPE_HELLO:
                 pimi.processHello(ethPkt);
-                log.debug("Received a PIM hello packet");
                 break;
-
             case PIM.TYPE_JOIN_PRUNE_REQUEST:
                 pimi.processJoinPrune(ethPkt);
                 log.debug("Received a PIM Join/Prune message");
                 break;
-
             default:
-                log.debug("Recieved unsupported PIM type: " + pim.getPimMsgType());
+                log.debug("Received unsupported PIM type: {}", pim.getPimMsgType());
                 break;
         }
     }

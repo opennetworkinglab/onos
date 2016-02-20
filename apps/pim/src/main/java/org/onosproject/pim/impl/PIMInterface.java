@@ -15,6 +15,7 @@
  */
 package org.onosproject.pim.impl;
 
+import com.google.common.collect.ImmutableList;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -38,7 +39,6 @@ import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -87,7 +87,7 @@ public final class PIMInterface {
     private IpAddress drIpaddress;
 
     // A map of all our PIM neighbors keyed on our neighbors IP address
-    private Map<IpAddress, PIMNeighbor> pimNeighbors = new HashMap<>();
+    private Map<IpAddress, PIMNeighbor> pimNeighbors = new ConcurrentHashMap<>();
 
     private Map<McastRoute, RouteData> routes = new ConcurrentHashMap<>();
 
@@ -224,7 +224,7 @@ public final class PIMInterface {
      * @return PIM neighbors
      */
     public Collection<PIMNeighbor> getNeighbors() {
-        return pimNeighbors.values();
+        return ImmutableList.copyOf(pimNeighbors.values());
     }
 
     public Collection<McastRoute> getRoutes() {
@@ -297,6 +297,9 @@ public final class PIMInterface {
      * @param ethPkt the Ethernet packet header
      */
     public void processHello(Ethernet ethPkt) {
+        if (log.isTraceEnabled()) {
+            log.trace("Received a PIM hello packet");
+        }
 
         // We'll need to save our neighbors MAC address
         MacAddress nbrmac = ethPkt.getSourceMAC();
@@ -475,39 +478,6 @@ public final class PIMInterface {
 
         data.timestamp = System.currentTimeMillis();
     }
-
-    /*private void sendPrune(McastRoute route, RouteData data) {
-        PIMJoinPrune jp = new PIMJoinPrune();
-
-        jp.addJoinPrune(route.source().toIpPrefix(), route.group().toIpPrefix(), false);
-        jp.setHoldTime((short) 0);
-        jp.setUpstreamAddr(new PIMAddrUnicast(data.ipAddress.toString()));
-
-        PIM pim = new PIM();
-        pim.setPIMType(PIM.TYPE_JOIN_PRUNE_REQUEST);
-        pim.setPayload(jp);
-
-        IPv4 ipv4 = new IPv4();
-        ipv4.setDestinationAddress(PIM.PIM_ADDRESS.getIp4Address().toInt());
-        ipv4.setSourceAddress(getIpAddress().getIp4Address().toInt());
-        ipv4.setProtocol(IPv4.PROTOCOL_PIM);
-        ipv4.setTtl((byte) 1);
-        ipv4.setDiffServ((byte) 0xc0);
-        ipv4.setPayload(pim);
-
-        Ethernet eth = new Ethernet();
-        eth.setSourceMACAddress(onosInterface.mac());
-        eth.setDestinationMACAddress(MacAddress.valueOf("01:00:5E:00:00:0d"));
-        eth.setEtherType(Ethernet.TYPE_IPV4);
-        eth.setPayload(ipv4);
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(onosInterface.connectPoint().port())
-                .build();
-
-        packetService.emit(new DefaultOutboundPacket(onosInterface.connectPoint().deviceId(),
-                treatment, ByteBuffer.wrap(eth.serialize())));
-    }*/
 
     /**
      * Returns a builder for a PIM interface.

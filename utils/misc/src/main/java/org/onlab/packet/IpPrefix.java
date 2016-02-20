@@ -31,6 +31,8 @@ public class IpPrefix {
     public static final int MAX_INET_MASK_LENGTH = IpAddress.INET_BIT_LENGTH;
     public static final int MAX_INET6_MASK_LENGTH = IpAddress.INET6_BIT_LENGTH;
 
+    public static final IpPrefix MULTICAST_RANGE = IpPrefix.valueOf("224.0.0.0/4");
+
     private final IpAddress address;
     private final short prefixLength;
 

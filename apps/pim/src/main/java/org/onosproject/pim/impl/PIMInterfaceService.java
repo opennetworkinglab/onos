@@ -29,12 +29,12 @@ import java.util.Set;
 public interface PIMInterfaceService {
 
     /**
-     * Return the PIMInterface associated with the given ConnectPoint.
+     * Returns the PIM interface associated with the given connect point.
      *
-     * @param cp The ConnectPoint we want to get the PIMInterface for.
-     * @return the PIMInterface if it exists, NULL if it does not exist.
+     * @param cp the connect point we want to get the PIM interface for
+     * @return the PIM interface if it exists, otherwise null
      */
-    public PIMInterface getPIMInterface(ConnectPoint cp);
+    PIMInterface getPIMInterface(ConnectPoint cp);
 
     /**
      * Retrieves the set of all interfaces running PIM.

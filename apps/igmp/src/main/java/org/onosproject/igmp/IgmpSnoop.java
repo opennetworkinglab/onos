@@ -403,10 +403,8 @@ public class IgmpSnoop {
                 return;
             }
 
-            /*
-             * IPv6 MLD packets are handled by ICMP6. We'll only deal
-             * with IPv4.
-             */
+
+            // IPv6 MLD packets are handled by ICMP6. We'll only deal with IPv4.
             if (ethPkt.getEtherType() != Ethernet.TYPE_IPV4) {
                 return;
             }
@@ -414,29 +412,22 @@ public class IgmpSnoop {
             IPv4 ip = (IPv4) ethPkt.getPayload();
             IpAddress gaddr = IpAddress.valueOf(ip.getDestinationAddress());
             IpAddress saddr = Ip4Address.valueOf(ip.getSourceAddress());
-            log.debug("Packet ({}, {}) -> ingress port: {}", saddr, gaddr,
+            log.trace("Packet ({}, {}) -> ingress port: {}", saddr, gaddr,
                       context.inPacket().receivedFrom());
 
 
-            if (ip.getProtocol() != IPv4.PROTOCOL_IGMP) {
-                log.debug("IGMP Picked up a non IGMP packet.");
+            if (ip.getProtocol() != IPv4.PROTOCOL_IGMP ||
+                    !IpPrefix.MULTICAST_RANGE.contains(gaddr)) {
                 return;
             }
 
-            IpPrefix mcast = IpPrefix.valueOf(DEFAULT_MCAST_ADDR);
-            if (!mcast.contains(gaddr)) {
-                log.debug("IGMP Picked up a non multicast packet.");
-                return;
-            }
-
-            if (mcast.contains(saddr)) {
+            if (IpPrefix.MULTICAST_RANGE.contains(saddr)) {
                 log.debug("IGMP Picked up a packet with a multicast source address.");
                 return;
             }
 
             IGMP igmp = (IGMP) ip.getPayload();
             switch (igmp.getIgmpType()) {
-
                 case IGMP.TYPE_IGMPV3_MEMBERSHIP_REPORT:
                     processMembership(igmp, pkt.receivedFrom());
                     break;
@@ -453,7 +444,7 @@ public class IgmpSnoop {
                               igmp.getIgmpType());
                     break;
                 default:
-                    log.debug("Unknown IGMP message type: {}", igmp.getIgmpType());
+                    log.warn("Unknown IGMP message type: {}", igmp.getIgmpType());
                     break;
             }
         }
@@ -551,6 +542,5 @@ public class IgmpSnoop {
                 .filter(p -> !oltData.get(p.element().id()).uplink().equals(p.number()))
                 .filter(p -> p.isEnabled())
                 .forEach(p -> processFilterObjective((DeviceId) p.element().id(), p, false));
-
     }
 }

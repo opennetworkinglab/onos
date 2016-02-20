@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.apache.felix.scr.annotations.Activate;
@@ -83,6 +84,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class CordMcast {
 
+    private static final int DEFAULT_REST_TIMEOUT_MS = 2000;
     private static final int DEFAULT_PRIORITY = 1000;
     private static final short DEFAULT_MCAST_VLAN = 4000;
     private static final String DEFAULT_SYNC_HOST = "10.90.0.8:8181";
@@ -149,8 +151,6 @@ public class CordMcast {
 
         appId = coreService.registerApplication("org.onosproject.cordmcast");
 
-        fabricOnosUrl = "http://" + syncHost + "/onos/v1/mcast";
-
         clearRemoteRoutes();
 
         mcastService.addListener(listener);
@@ -192,7 +192,7 @@ public class CordMcast {
             s = get(properties, "priority");
             priority = isNullOrEmpty(s) ? DEFAULT_PRIORITY : Integer.parseInt(s.trim());
 
-            s = get(properties, syncHost);
+            s = get(properties, "syncHost");
             syncHost = isNullOrEmpty(s) ? DEFAULT_SYNC_HOST : s.trim();
         } catch (Exception e) {
             user = DEFAULT_USER;
@@ -202,6 +202,11 @@ public class CordMcast {
             vlanEnabled = false;
             priority = DEFAULT_PRIORITY;
         }
+        fabricOnosUrl = createRemoteUrl(syncHost);
+    }
+
+    private static String createRemoteUrl(String remoteHost) {
+        return "http://" + remoteHost + "/onos/v1/mcast";
     }
 
     private class InternalMulticastListener implements McastListener {
@@ -369,13 +374,18 @@ public class CordMcast {
             return;
         }
 
-        log.debug("Sending route to other ONOS: {}", route);
+        log.debug("Sending route {} to other ONOS {}", route, fabricOnosUrl);
 
         WebResource.Builder builder = getClientBuilder(fabricOnosUrl);
 
         ObjectNode json = codecService.getCodec(McastRoute.class)
                 .encode(route, new AbstractWebResource());
-        builder.post(json.toString());
+
+        try {
+            builder.post(json.toString());
+        } catch (ClientHandlerException e) {
+            log.warn("Unable to send route to remote controller: {}", e.getMessage());
+        }
     }
 
     private void removeRemoteRoute(McastRoute route) {
@@ -384,13 +394,17 @@ public class CordMcast {
             return;
         }
 
-        log.debug("Removing route from other ONOS: {}", route);
+        log.debug("Removing route {} from other ONOS {}", route, fabricOnosUrl);
 
         WebResource.Builder builder = getClientBuilder(fabricOnosUrl);
 
         ObjectNode json = codecService.getCodec(McastRoute.class)
                 .encode(route, new AbstractWebResource());
-        builder.delete(json.toString());
+        try {
+            builder.delete(json.toString());
+        } catch (ClientHandlerException e) {
+            log.warn("Unable to delete route from remote controller: {}", e.getMessage());
+        }
     }
 
     private void clearRemoteRoutes() {
@@ -399,23 +413,28 @@ public class CordMcast {
             return;
         }
 
-        log.debug("Clearing remote multicast routes");
+        log.debug("Clearing remote multicast routes from {}", fabricOnosUrl);
 
         WebResource.Builder builder = getClientBuilder(fabricOnosUrl);
-
-        String response = builder
-                .accept(MediaType.APPLICATION_JSON_TYPE)
-                .get(String.class);
-
-        JsonCodec<McastRoute> routeCodec = codecService.getCodec(McastRoute.class);
-        ObjectMapper mapper = new ObjectMapper();
         List<McastRoute> mcastRoutes = Lists.newArrayList();
+
         try {
+            String response = builder
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .get(String.class);
+
+            JsonCodec<McastRoute> routeCodec = codecService.getCodec(McastRoute.class);
+            ObjectMapper mapper = new ObjectMapper();
+
+
             ObjectNode node = (ObjectNode) mapper.readTree(response);
             ArrayNode list = (ArrayNode) node.path("routes");
 
             list.forEach(n -> mcastRoutes.add(
                     routeCodec.decode((ObjectNode) n, new AbstractWebResource())));
+
+        } catch (ClientHandlerException e) {
+            log.warn("Unable to clear routes from remote controller: {}", e.getMessage());
         } catch (IOException e) {
             log.warn("Error clearing remote routes", e);
         }
@@ -429,6 +448,8 @@ public class CordMcast {
 
     private WebResource.Builder getClientBuilder(String uri) {
         Client client = Client.create();
+        client.setConnectTimeout(DEFAULT_REST_TIMEOUT_MS);
+        client.setReadTimeout(DEFAULT_REST_TIMEOUT_MS);
         client.addFilter(new HTTPBasicAuthFilter(user, password));
         WebResource resource = client.resource(uri);
         return resource.accept(JSON_UTF_8.toString())

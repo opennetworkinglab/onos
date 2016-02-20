@@ -177,17 +177,11 @@ public class PIMInterfaceManager implements PIMInterfaceService {
         log.info("Stopped");
     }
 
-    /**
-     * Return the PIMInterface that corresponds to the given ConnectPoint.
-     *
-     * @param cp The ConnectPoint we want to get the PIMInterface for
-     * @return The PIMInterface if it exists, NULL if it does not exist.
-     */
     @Override
     public PIMInterface getPIMInterface(ConnectPoint cp) {
-        PIMInterface pi = pimInterfaces.getOrDefault(cp, null);
-        if (pi == null) {
-            log.warn("We have been asked for an Interface we don't have: " + cp.toString());
+        PIMInterface pi = pimInterfaces.get(cp);
+        if (pi == null && log.isTraceEnabled()) {
+            log.trace("We have been asked for an Interface we don't have: {}", cp);
         }
         return pi;
     }
