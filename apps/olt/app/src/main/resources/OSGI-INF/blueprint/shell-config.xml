@@ -30,6 +30,13 @@
                 <null/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.olt.cli.ShowOltCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+                <null/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>

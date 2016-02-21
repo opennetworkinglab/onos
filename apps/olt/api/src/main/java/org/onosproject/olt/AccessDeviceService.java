@@ -19,6 +19,9 @@ package org.onosproject.olt;
 import org.onlab.packet.VlanId;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+
+import java.util.Map;
 
 /**
  * Service for interacting with an access device (OLT).
@@ -40,5 +43,12 @@ public interface AccessDeviceService
      * @param port subscriber's connection point
      */
     void removeSubscriber(ConnectPoint port);
+
+    /**
+     * Returns the map of configured OLTs.
+     *
+     * @return a map
+     */
+    Map<DeviceId, AccessDeviceData> fetchOlts();
 
 }

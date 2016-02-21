@@ -528,7 +528,10 @@ public class IgmpSnoop {
                 case CONFIG_REMOVED:
                     if (event.configClass().equals(SSM_TRANSLATE_CONFIG_CLASS)) {
                         ssmTranslateTable.clear();
+                    } else if (event.configClass().equals(CONFIG_CLASS)) {
+                        oltData.remove(event.subject());
                     }
+
                 default:
                     break;
             }

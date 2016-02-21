@@ -24,6 +24,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -40,6 +41,12 @@ import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -56,6 +63,8 @@ import org.onosproject.net.mcast.McastListener;
 import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.McastRouteInfo;
 import org.onosproject.net.mcast.MulticastRouteService;
+import org.onosproject.olt.AccessDeviceConfig;
+import org.onosproject.olt.AccessDeviceData;
 import org.onosproject.rest.AbstractWebResource;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -66,7 +75,7 @@ import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -84,12 +93,14 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class CordMcast {
 
+
     private static final int DEFAULT_REST_TIMEOUT_MS = 2000;
-    private static final int DEFAULT_PRIORITY = 1000;
+    private static final int DEFAULT_PRIORITY = 500;
     private static final short DEFAULT_MCAST_VLAN = 4000;
     private static final String DEFAULT_SYNC_HOST = "10.90.0.8:8181";
     private static final String DEFAULT_USER = "karaf";
     private static final String DEFAULT_PASSWORD = "karaf";
+    private static final boolean DEFAULT_VLAN_ENABLED = true;
 
     private final Logger log = getLogger(getClass());
 
@@ -108,7 +119,12 @@ public class CordMcast {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService componentConfigService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry networkConfig;
+
     protected McastListener listener = new InternalMulticastListener();
+    private InternalNetworkConfigListener configListener =
+            new InternalNetworkConfigListener();
 
     //TODO: move this to a ec map
     private Map<IpAddress, Integer> groups = Maps.newConcurrentMap();
@@ -122,9 +138,9 @@ public class CordMcast {
             label = "VLAN for multicast traffic")
     private int mcastVlan = DEFAULT_MCAST_VLAN;
 
-    @Property(name = "vlanEnabled", boolValue = false,
-            label = "Use vlan for multicast traffic")
-    private boolean vlanEnabled = false;
+    @Property(name = "vlanEnabled", boolValue = DEFAULT_VLAN_ENABLED,
+            label = "Use vlan for multicast traffic?")
+    private boolean vlanEnabled = DEFAULT_VLAN_ENABLED;
 
     @Property(name = "priority", intValue = DEFAULT_PRIORITY,
             label = "Priority for multicast rules")
@@ -144,6 +160,20 @@ public class CordMcast {
 
     private String fabricOnosUrl;
 
+    private Map<DeviceId, AccessDeviceData> oltData = new ConcurrentHashMap<>();
+
+    private static final Class<AccessDeviceConfig> CONFIG_CLASS =
+            AccessDeviceConfig.class;
+
+    private ConfigFactory<DeviceId, AccessDeviceConfig> configFactory =
+            new ConfigFactory<DeviceId, AccessDeviceConfig>(
+                    SubjectFactories.DEVICE_SUBJECT_FACTORY, CONFIG_CLASS, "accessDevice") {
+                @Override
+                public AccessDeviceConfig createConfig() {
+                    return new AccessDeviceConfig();
+                }
+            };
+
     @Activate
     public void activate(ComponentContext context) {
         componentConfigService.registerProperties(getClass());
@@ -151,16 +181,30 @@ public class CordMcast {
 
         appId = coreService.registerApplication("org.onosproject.cordmcast");
 
+
         clearRemoteRoutes();
+
+        networkConfig.registerConfigFactory(configFactory);
+        networkConfig.addListener(configListener);
+
+        networkConfig.getSubjects(DeviceId.class, AccessDeviceConfig.class).forEach(
+                subject -> {
+                    AccessDeviceConfig config = networkConfig.getConfig(subject, AccessDeviceConfig.class);
+                    if (config != null) {
+                        AccessDeviceData data = config.getOlt();
+                        oltData.put(data.deviceId(), data);
+                    }
+                }
+        );
+
 
         mcastService.addListener(listener);
 
-        for (McastRoute route : mcastService.getRoutes()) {
-            Set<ConnectPoint> sinks = mcastService.fetchSinks(route);
-            if (!sinks.isEmpty()) {
-                sinks.forEach(s -> provisionGroup(route, s));
-            }
-        }
+        mcastService.getRoutes().stream()
+                .map(r -> new ImmutablePair<>(r, mcastService.fetchSinks(r)))
+                .filter(pair -> pair.getRight() != null && !pair.getRight().isEmpty())
+                .forEach(pair -> pair.getRight().forEach(sink -> provisionGroup(pair.getLeft(),
+                                                                                sink)));
 
         log.info("Started");
     }
@@ -169,6 +213,8 @@ public class CordMcast {
     public void deactivate() {
         componentConfigService.unregisterProperties(getClass(), false);
         mcastService.removeListener(listener);
+        networkConfig.unregisterConfigFactory(configFactory);
+        networkConfig.removeListener(configListener);
         log.info("Stopped");
     }
 
@@ -187,7 +233,7 @@ public class CordMcast {
             mcastVlan = isNullOrEmpty(s) ? DEFAULT_MCAST_VLAN : Short.parseShort(s.trim());
 
             s = get(properties, "vlanEnabled");
-            vlanEnabled = isNullOrEmpty(s) || Boolean.parseBoolean(s.trim());
+            vlanEnabled = isNullOrEmpty(s) ? DEFAULT_VLAN_ENABLED : Boolean.parseBoolean(s.trim());
 
             s = get(properties, "priority");
             priority = isNullOrEmpty(s) ? DEFAULT_PRIORITY : Integer.parseInt(s.trim());
@@ -275,6 +321,13 @@ public class CordMcast {
         checkNotNull(route, "Route cannot be null");
         checkNotNull(sink, "Sink cannot be null");
 
+        AccessDeviceData oltInfo = oltData.get(sink.deviceId());
+
+        if (oltInfo == null) {
+            log.warn("Unknown OLT device : {}", sink.deviceId());
+            return;
+        }
+
         final AtomicBoolean sync = new AtomicBoolean(false);
 
         Integer nextId = groups.computeIfAbsent(route.group(), (g) -> {
@@ -304,6 +357,7 @@ public class CordMcast {
             flowObjectiveService.next(sink.deviceId(), next);
 
             TrafficSelector.Builder mcast = DefaultTrafficSelector.builder()
+                    .matchInPort(oltInfo.uplink())
                     .matchEthType(Ethernet.TYPE_IPV4)
                     .matchIPDst(g.toIpPrefix());
 
@@ -336,7 +390,7 @@ public class CordMcast {
 
             sync.set(true);
 
-           return id;
+            return id;
         });
 
         if (!sync.get()) {
@@ -363,6 +417,7 @@ public class CordMcast {
 
             flowObjectiveService.next(sink.deviceId(), next);
         }
+
 
         addRemoteRoute(route);
     }
@@ -454,6 +509,39 @@ public class CordMcast {
         WebResource resource = client.resource(uri);
         return resource.accept(JSON_UTF_8.toString())
                 .type(JSON_UTF_8.toString());
+    }
+
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+        @Override
+        public void event(NetworkConfigEvent event) {
+            switch (event.type()) {
+
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
+                    AccessDeviceConfig config =
+                            networkConfig.getConfig((DeviceId) event.subject(), CONFIG_CLASS);
+                    if (config != null) {
+                        oltData.put(config.getOlt().deviceId(), config.getOlt());
+                    }
+
+                    break;
+                case CONFIG_REGISTERED:
+                case CONFIG_UNREGISTERED:
+                    break;
+                case CONFIG_REMOVED:
+                    oltData.remove(event.subject());
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            return event.configClass().equals(CONFIG_CLASS);
+        }
+
+
     }
 
 }

@@ -68,5 +68,10 @@
             <artifactId>jersey-client</artifactId>
             <version>1.19</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-olt-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

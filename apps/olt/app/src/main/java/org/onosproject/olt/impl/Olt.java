@@ -20,11 +20,14 @@ import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.EthType;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.AbstractListenerManager;
@@ -58,17 +61,22 @@ import org.onosproject.olt.AccessDeviceData;
 import org.onosproject.olt.AccessDeviceEvent;
 import org.onosproject.olt.AccessDeviceListener;
 import org.onosproject.olt.AccessDeviceService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -80,6 +88,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class Olt
         extends AbstractListenerManager<AccessDeviceEvent, AccessDeviceListener>
         implements AccessDeviceService {
+
+    private static final short DEFAULT_VLAN = 0;
+
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -94,11 +105,17 @@ public class Olt
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry networkConfig;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService componentConfigService;
+
+
+    @Property(name = "defaultVlan", intValue = DEFAULT_VLAN,
+            label = "Default VLAN RG<->ONU traffic")
+    private int defaultVlan = DEFAULT_VLAN;
+
     private final DeviceListener deviceListener = new InternalDeviceListener();
 
     private ApplicationId appId;
-
-    private static final VlanId DEFAULT_VLAN = VlanId.vlanId((short) 0);
 
     private ExecutorService oltInstallers = Executors.newFixedThreadPool(4,
                                                                          groupedThreads("onos/olt-service",
@@ -127,8 +144,10 @@ public class Olt
 
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        modified(context);
         appId = coreService.registerApplication("org.onosproject.olt");
+        componentConfigService.registerProperties(getClass());
 
         eventDispatcher.addSink(AccessDeviceEvent.class, listenerRegistry);
 
@@ -160,13 +179,26 @@ public class Olt
 
     @Deactivate
     public void deactivate() {
+        componentConfigService.unregisterProperties(getClass(), false);
         deviceService.removeListener(deviceListener);
         networkConfig.removeListener(configListener);
         networkConfig.unregisterConfigFactory(configFactory);
         log.info("Stopped");
     }
 
-    @Override
+    @Modified
+    public void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
+
+        try {
+            String s = get(properties, "defaultVlan");
+            defaultVlan = isNullOrEmpty(s) ? DEFAULT_VLAN : Integer.parseInt(s.trim());
+        } catch (Exception e) {
+            defaultVlan = DEFAULT_VLAN;
+        }
+    }
+
+        @Override
     public void provisionSubscriber(ConnectPoint port, VlanId vlan) {
         AccessDeviceData olt = oltData.get(port.deviceId());
 
@@ -190,6 +222,11 @@ public class Olt
 
         unprovisionSubscriber(olt.deviceId(), olt.uplink(), port.port(), olt.vlan());
 
+    }
+
+    @Override
+    public Map<DeviceId, AccessDeviceData> fetchOlts() {
+        return Maps.newHashMap(oltData);
     }
 
     private void unprovisionSubscriber(DeviceId deviceId, PortNumber uplink,
@@ -255,7 +292,7 @@ public class Olt
         CompletableFuture<ObjectiveError> upFuture = new CompletableFuture();
 
         TrafficSelector upstream = DefaultTrafficSelector.builder()
-                .matchVlanId(defaultVlan.orElse(DEFAULT_VLAN))
+                .matchVlanId(defaultVlan.orElse(VlanId.vlanId((short) this.defaultVlan)))
                 .matchInPort(subscriberPort)
                 .build();
 
@@ -275,7 +312,7 @@ public class Olt
 
         TrafficTreatment downstreamTreatment = DefaultTrafficTreatment.builder()
                 .popVlan()
-                .setVlanId(defaultVlan.orElse(DEFAULT_VLAN))
+                .setVlanId(defaultVlan.orElse(VlanId.vlanId((short) this.defaultVlan)))
                 .setOutput(subscriberPort)
                 .build();
 
@@ -417,6 +454,7 @@ public class Olt
                     post(new AccessDeviceEvent(
                             AccessDeviceEvent.Type.DEVICE_CONNECTED, devId,
                             null, null));
+                    provisionDefaultFlows(devId);
                     break;
                 case DEVICE_REMOVED:
                     post(new AccessDeviceEvent(
@@ -450,20 +488,28 @@ public class Olt
 
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:
-                    if (event.configClass().equals(CONFIG_CLASS)) {
-                        AccessDeviceConfig config =
-                                networkConfig.getConfig((DeviceId) event.subject(), CONFIG_CLASS);
-                        if (config != null) {
-                            oltData.put(config.getOlt().deviceId(), config.getOlt());
-                            provisionDefaultFlows((DeviceId) event.subject());
-                        }
+
+                    AccessDeviceConfig config =
+                            networkConfig.getConfig((DeviceId) event.subject(), CONFIG_CLASS);
+                    if (config != null) {
+                        oltData.put(config.getOlt().deviceId(), config.getOlt());
+                        provisionDefaultFlows((DeviceId) event.subject());
                     }
+
                     break;
+                case CONFIG_REGISTERED:
                 case CONFIG_UNREGISTERED:
+                    break;
                 case CONFIG_REMOVED:
+                    oltData.remove(event.subject());
                 default:
                     break;
             }
+        }
+
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            return event.configClass().equals(CONFIG_CLASS);
         }
     }
 
