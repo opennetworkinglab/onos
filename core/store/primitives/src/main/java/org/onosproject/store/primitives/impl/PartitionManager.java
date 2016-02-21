@@ -105,14 +105,16 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
 
     @Override
     public CompletableFuture<Void> leave(PartitionId partitionId) {
-        // TODO: Implement
-        return Tools.exceptionalFuture(new UnsupportedOperationException());
+        return partitions.get(partitionId)
+                         .server()
+                         .map(server -> server.close())
+                         .orElse(CompletableFuture.completedFuture(null));
     }
 
     @Override
     public CompletableFuture<Void> join(PartitionId partitionId) {
-        // TODO: Implement
-        return Tools.exceptionalFuture(new UnsupportedOperationException());
+        return partitions.get(partitionId)
+                         .open();
     }
 
     @Override

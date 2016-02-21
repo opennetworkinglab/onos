@@ -57,7 +57,7 @@ public class AtomixLeaderElector extends Resource<AtomixLeaderElector>
     @Override
     public CompletableFuture<AtomixLeaderElector> open() {
         return super.open().thenApply(result -> {
-            client.session().onEvent("change", this::handleEvent);
+            client.onEvent("change", this::handleEvent);
             return result;
         });
     }

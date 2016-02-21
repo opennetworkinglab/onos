@@ -114,8 +114,7 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
                 .withTransport(transport.get())
                 .withStateMachine(() -> new ResourceManagerState(registry))
                 .withStorage(Storage.builder()
-                         // FIXME: StorageLevel should be DISK
-                        .withStorageLevel(StorageLevel.MEMORY)
+                        .withStorageLevel(StorageLevel.DISK)
                         .withCompactionThreads(1)
                         .withDirectory(dataFolder)
                         .withMaxEntriesPerSegment(MAX_ENTRIES_PER_LOG_SEGMENT)

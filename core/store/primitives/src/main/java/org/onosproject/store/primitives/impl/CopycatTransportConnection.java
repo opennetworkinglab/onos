@@ -31,14 +31,12 @@ import org.apache.commons.io.IOUtils;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.cluster.messaging.MessagingService;
-import org.slf4j.Logger;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 import io.atomix.catalyst.transport.Address;
 import io.atomix.catalyst.transport.Connection;
 import io.atomix.catalyst.transport.MessageHandler;
@@ -54,7 +52,6 @@ import io.atomix.catalyst.util.concurrent.ThreadContext;
  */
 public class CopycatTransportConnection implements Connection {
 
-    private final Logger log = getLogger(getClass());
     private final Listeners<Throwable> exceptionListeners = new Listeners<>();
     private final Listeners<Connection> closeListeners = new Listeners<>();
 
@@ -85,11 +82,11 @@ public class CopycatTransportConnection implements Connection {
         this.remoteAddress = checkNotNull(address);
         this.messagingService = checkNotNull(messagingService);
         if (mode == CopycatTransport.Mode.CLIENT) {
-            this.outboundMessageSubject = String.format("onos-copycat-server-%s", partitionId);
-            this.inboundMessageSubject = String.format("onos-copycat-client-%s-%d", partitionId, connectionId);
+            this.outboundMessageSubject = String.format("onos-copycat-%s", partitionId);
+            this.inboundMessageSubject = String.format("onos-copycat-%s-%d", partitionId, connectionId);
         } else {
-            this.outboundMessageSubject = String.format("onos-copycat-client-%s-%d", partitionId, connectionId);
-            this.inboundMessageSubject = String.format("onos-copycat-server-%s", partitionId);
+            this.outboundMessageSubject = String.format("onos-copycat-%s-%d", partitionId, connectionId);
+            this.inboundMessageSubject = String.format("onos-copycat-%s", partitionId);
         }
         this.context = checkNotNull(context);
     }
@@ -206,7 +203,6 @@ public class CopycatTransportConnection implements Connection {
 
     @Override
     public CompletableFuture<Void> close() {
-        log.debug("Closing connection[id={}, mode={}] to {}", connectionId, mode, remoteAddress);
         closeListeners.forEach(listener -> listener.accept(this));
         if (mode == CopycatTransport.Mode.CLIENT) {
             messagingService.unregisterHandler(inboundMessageSubject);

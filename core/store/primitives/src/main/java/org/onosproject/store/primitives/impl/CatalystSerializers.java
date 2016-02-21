@@ -19,7 +19,7 @@ import java.util.Arrays;
 
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.serializer.TypeSerializerFactory;
-import io.atomix.copycat.client.Query;
+import io.atomix.copycat.Query;
 
 import org.onlab.util.Match;
 import org.onosproject.cluster.Leader;

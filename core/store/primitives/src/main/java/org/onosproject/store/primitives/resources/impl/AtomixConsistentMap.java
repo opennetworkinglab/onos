@@ -65,7 +65,7 @@ public class AtomixConsistentMap extends Resource<AtomixConsistentMap>
     @Override
     public CompletableFuture<AtomixConsistentMap> open() {
         return super.open().thenApply(result -> {
-            client.session().onEvent(CHANGE_SUBJECT, this::handleEvent);
+            client.onEvent(CHANGE_SUBJECT, this::handleEvent);
             return result;
         });
     }

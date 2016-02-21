@@ -72,8 +72,20 @@ public class StoragePartition extends DefaultPartition implements Managed<Storag
         this.logFolder = logFolder;
     }
 
+    /**
+     * Returns the partition client instance.
+     * @return client
+     */
     public StoragePartitionClient client() {
         return client;
+    }
+
+    /**
+     * Returns the optional server instance.
+     * @return server
+     */
+    public Optional<StoragePartitionServer> server() {
+        return server;
     }
 
     @Override

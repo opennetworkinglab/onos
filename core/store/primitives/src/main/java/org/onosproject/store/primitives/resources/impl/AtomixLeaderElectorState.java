@@ -16,7 +16,7 @@
 package org.onosproject.store.primitives.resources.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import io.atomix.copycat.client.session.Session;
+import io.atomix.copycat.server.session.ServerSession;
 import io.atomix.copycat.server.Commit;
 import io.atomix.copycat.server.Snapshottable;
 import io.atomix.copycat.server.StateMachineExecutor;
@@ -265,7 +265,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
         return electionState == null ? new LinkedList<>() : electionState.candidates();
     }
 
-    private void onSessionEnd(Session session) {
+    private void onSessionEnd(ServerSession session) {
         Commit<? extends AtomixLeaderElectorCommands.Listen> listener = listeners.remove(session.id());
         if (listener != null) {
             listener.close();
@@ -337,7 +337,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
             this.termStartTime = termStartTime;
         }
 
-        public ElectionState cleanup(Session session, Supplier<Long> termCounter) {
+        public ElectionState cleanup(ServerSession session, Supplier<Long> termCounter) {
             Optional<Registration> registration =
                     registrations.stream().filter(r -> r.sessionId() == session.id()).findFirst();
             if (registration.isPresent()) {
@@ -409,21 +409,21 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
     }
 
     @Override
-    public void register(Session session) {
+    public void register(ServerSession session) {
     }
 
     @Override
-    public void unregister(Session session) {
+    public void unregister(ServerSession session) {
         onSessionEnd(session);
     }
 
     @Override
-    public void expire(Session session) {
+    public void expire(ServerSession session) {
         onSessionEnd(session);
     }
 
     @Override
-    public void close(Session session) {
+    public void close(ServerSession session) {
         onSessionEnd(session);
     }
 
