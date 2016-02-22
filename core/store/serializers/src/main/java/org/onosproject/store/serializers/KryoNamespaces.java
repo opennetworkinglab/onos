@@ -172,7 +172,6 @@ import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.BooleanConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
@@ -454,7 +453,6 @@ public final class KryoNamespaces {
                     ContinuousResourceId.class,
                     ResourceAllocation.class,
                     // Constraints
-                    LambdaConstraint.class,
                     BandwidthConstraint.class,
                     LinkTypeConstraint.class,
                     LatencyConstraint.class,

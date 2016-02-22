@@ -31,7 +31,6 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentId;
 
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.resource.ResourceRequest;
 import org.onosproject.net.resource.ResourceType;
 
@@ -197,9 +196,7 @@ public final class DefaultLinkResourceRequest implements LinkResourceRequest {
 
         @Override
         public LinkResourceRequest.Builder addConstraint(Constraint constraint) {
-            if (constraint instanceof LambdaConstraint) {
-                return addLambdaRequest();
-            } else if (constraint instanceof BandwidthConstraint) {
+            if (constraint instanceof BandwidthConstraint) {
                 BandwidthConstraint bw = (BandwidthConstraint) constraint;
                 return addBandwidthRequest(bw.bandwidth().bps());
             }

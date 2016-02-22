@@ -21,7 +21,6 @@ import org.onlab.util.Bandwidth;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.flow.TrafficSelector;
@@ -33,7 +32,6 @@ import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.resource.link.LinkResourceService;
 
@@ -266,54 +264,4 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
             assertThat(noPath.getMessage(), containsString("No path"));
         }
     }
-
-    /**
-     * Tests that requests for available lambdas are successful.
-     */
-    @Test
-    public void testLambdaConstrainedIntentSuccess() {
-
-        final List<Constraint> constraints =
-                Collections.singletonList(new LambdaConstraint(new IndexedLambda(1)));
-        final LinkResourceService resourceService =
-                IntentTestsMocks.MockResourceService.makeLambdaResourceService(1);
-
-        final PointToPointIntent intent = makeIntent("s1", "s3", constraints);
-
-        String[] hops = {"s1", "s2", "s3"};
-        final PointToPointIntentCompiler compiler = makeCompiler(hops, resourceService);
-
-        final List<Intent> compiledIntents =
-                compiler.compile(intent, null, null);
-
-        assertThat(compiledIntents, Matchers.notNullValue());
-        assertThat(compiledIntents, hasSize(1));
-    }
-
-    /**
-     * Tests that requests for lambdas when there are no available lambdas
-     * fail.
-     */
-    @Test
-    public void testLambdaConstrainedIntentFailure() {
-
-        final List<Constraint> constraints =
-                Collections.singletonList(new LambdaConstraint(new IndexedLambda(1)));
-        final LinkResourceService resourceService =
-                IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
-        try {
-            final PointToPointIntent intent = makeIntent("s1", "s3", constraints);
-
-            String[] hops = {"s1", "s2", "s3"};
-            final PointToPointIntentCompiler compiler = makeCompiler(hops, resourceService);
-
-            compiler.compile(intent, null, null);
-
-            fail("Point to Point compilation with no available lambda does "
-                    + "not throw exception.");
-        } catch (PathNotFoundException noPath) {
-            assertThat(noPath.getMessage(), containsString("No path"));
-        }
-    }
-
 }

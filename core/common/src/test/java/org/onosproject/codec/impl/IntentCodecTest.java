@@ -59,7 +59,6 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
@@ -180,7 +179,6 @@ public class IntentCodecTest extends AbstractIntentTest {
         final List<Constraint> constraints =
                 ImmutableList.of(
                         new BandwidthConstraint(Bandwidth.bps(1.0)),
-                        new LambdaConstraint(new IndexedLambda(3)),
                         new AnnotationConstraint("key", 33.0),
                         new AsymmetricPathConstraint(),
                         new LatencyConstraint(Duration.ofSeconds(2)),

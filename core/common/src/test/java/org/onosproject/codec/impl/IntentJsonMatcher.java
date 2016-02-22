@@ -35,7 +35,6 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
@@ -142,22 +141,6 @@ public final class IntentJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode>
         return bandwidthJson != null
                 && constraintJson.get("bandwidth").asDouble()
                 == bandwidthConstraint.bandwidth().bps();
-    }
-
-    /**
-     * Matches a lamdba constraint against a JSON representation of the
-     * constraint.
-     *
-     * @param lambdaConstraint constraint object to match
-     * @param constraintJson JSON representation of the constraint
-     * @return true if the constraint and JSON match, false otherwise.
-     */
-    private boolean matchLambdaConstraint(LambdaConstraint lambdaConstraint,
-                                          JsonNode constraintJson) {
-        final JsonNode lambdaJson = constraintJson.get("lambda");
-        return lambdaJson != null
-                && constraintJson.get("lambda").asInt()
-                == lambdaConstraint.lambda().index();
     }
 
     /**
@@ -306,9 +289,6 @@ public final class IntentJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode>
         }
         if (constraint instanceof BandwidthConstraint) {
             return matchBandwidthConstraint((BandwidthConstraint) constraint,
-                    constraintJson);
-        } else if (constraint instanceof LambdaConstraint) {
-            return matchLambdaConstraint((LambdaConstraint) constraint,
                     constraintJson);
         } else if (constraint instanceof LinkTypeConstraint) {
             return matchLinkTypeConstraint((LinkTypeConstraint) constraint,

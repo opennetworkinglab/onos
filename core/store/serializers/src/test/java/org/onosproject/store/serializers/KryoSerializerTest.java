@@ -44,7 +44,6 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.HostLocation;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Link;
 import org.onosproject.net.Link.Type;
 import org.onosproject.net.LinkKey;
@@ -76,7 +75,6 @@ import org.onosproject.net.resource.link.LinkResourceRequest;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
-import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
@@ -419,11 +417,6 @@ public class KryoSerializerTest {
     public void testBandwidth() {
         testSerializedEquals(Bandwidth.mbps(1000));
         testSerializedEquals(Bandwidth.mbps(1000.0));
-    }
-
-    @Test
-    public void testLambdaConstraint() {
-        testSerializable(new LambdaConstraint(new IndexedLambda(1)));
     }
 
     @Test
