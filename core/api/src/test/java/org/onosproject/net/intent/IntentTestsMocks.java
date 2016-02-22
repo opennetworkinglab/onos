@@ -16,7 +16,6 @@
 package org.onosproject.net.intent;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
 import org.onlab.util.Bandwidth;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
@@ -36,20 +35,13 @@ import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.MetadataInstruction;
-import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceRequest;
-import org.onosproject.net.resource.ResourceType;
-import org.onosproject.net.resource.link.BandwidthResource;
-import org.onosproject.net.resource.link.BandwidthResourceRequest;
-import org.onosproject.net.resource.link.LambdaResource;
-import org.onosproject.net.resource.link.LambdaResourceAllocation;
-import org.onosproject.net.resource.link.LambdaResourceRequest;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
-import org.onosproject.net.resource.link.LinkResourceListener;
-import org.onosproject.net.resource.link.LinkResourceRequest;
-import org.onosproject.net.resource.link.LinkResourceService;
-import org.onosproject.net.resource.link.MplsLabel;
-import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
+import org.onosproject.net.newresource.DiscreteResourceId;
+import org.onosproject.net.newresource.Resource;
+import org.onosproject.net.newresource.ResourceAllocation;
+import org.onosproject.net.newresource.ResourceConsumer;
+import org.onosproject.net.newresource.ResourceId;
+import org.onosproject.net.newresource.ResourceListener;
+import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.topology.DefaultTopologyEdge;
 import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.LinkWeight;
@@ -61,9 +53,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -184,145 +176,84 @@ public class IntentTestsMocks {
         }
     }
 
-    public static class MockLinkResourceAllocations implements LinkResourceAllocations {
-        @Override
-        public Set<ResourceAllocation> getResourceAllocation(Link link) {
-            return ImmutableSet.of(
-                    new LambdaResourceAllocation(LambdaResource.valueOf(77)),
-                    new MplsLabelResourceAllocation(MplsLabel.valueOf(10)));
+    public static final class MockResourceService implements ResourceService {
+
+        private final double bandwidth;
+
+        public static ResourceService makeBandwidthResourceService(double bandwidth) {
+            return new MockResourceService(bandwidth);
+        }
+
+        private MockResourceService(double bandwidth) {
+            this.bandwidth = bandwidth;
         }
 
         @Override
-        public IntentId intentId() {
+        public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources) {
             return null;
         }
 
         @Override
-        public Collection<Link> links() {
+        public boolean release(List<ResourceAllocation> allocations) {
+            return false;
+        }
+
+        @Override
+        public boolean release(ResourceConsumer consumer) {
+            return false;
+        }
+
+        @Override
+        public List<ResourceAllocation> getResourceAllocations(ResourceId id) {
             return null;
         }
 
         @Override
-        public Set<ResourceRequest> resources() {
+        public <T> Collection<ResourceAllocation> getResourceAllocations(DiscreteResourceId parent, Class<T> cls) {
             return null;
         }
 
         @Override
-        public ResourceType type() {
+        public Collection<ResourceAllocation> getResourceAllocations(ResourceConsumer consumer) {
             return null;
-        }
-    }
-
-    public static class MockedAllocationFailure extends RuntimeException { }
-
-    public static class MockResourceService implements LinkResourceService {
-
-        double availableBandwidth = -1.0;
-        int availableLambda = -1;
-
-        /**
-         * Allocates a resource service that will allow bandwidth allocations
-         * up to a limit.
-         *
-         * @param bandwidth available bandwidth limit
-         * @return resource manager for bandwidth requests
-         */
-        public static MockResourceService makeBandwidthResourceService(double bandwidth) {
-            final MockResourceService result = new MockResourceService();
-            result.availableBandwidth = bandwidth;
-            return result;
-        }
-
-        /**
-         * Allocates a resource service that will allow lambda allocations.
-         *
-         * @param lambda Lambda to return for allocation requests. Currently unused
-         * @return resource manager for lambda requests
-         */
-        public static MockResourceService makeLambdaResourceService(int lambda) {
-            final MockResourceService result = new MockResourceService();
-            result.availableLambda = lambda;
-            return result;
         }
 
         @Override
-        public LinkResourceAllocations requestResources(LinkResourceRequest req) {
-            int lambda = -1;
-            double bandwidth = -1.0;
+        public Set<Resource> getAvailableResources(DiscreteResourceId parent) {
+            return null;
+        }
 
-            for (ResourceRequest resourceRequest : req.resources()) {
-                if (resourceRequest.type() == ResourceType.BANDWIDTH) {
-                    final BandwidthResourceRequest brr = (BandwidthResourceRequest) resourceRequest;
-                    bandwidth = brr.bandwidth().toDouble();
-                } else if (resourceRequest.type() == ResourceType.LAMBDA) {
-                    lambda = 1;
-                }
+        @Override
+        public <T> Set<Resource> getAvailableResources(DiscreteResourceId parent, Class<T> cls) {
+            return null;
+        }
+
+        @Override
+        public <T> Set<T> getAvailableResourceValues(DiscreteResourceId parent, Class<T> cls) {
+            return null;
+        }
+
+        @Override
+        public Set<Resource> getRegisteredResources(DiscreteResourceId parent) {
+            return null;
+        }
+
+        @Override
+        public boolean isAvailable(Resource resource) {
+            if (!resource.isTypeOf(Bandwidth.class)) {
+                return false;
             }
 
-            if (availableBandwidth < bandwidth) {
-                throw new MockedAllocationFailure();
-            }
-            if (lambda > 0 && availableLambda == 0) {
-                throw new MockedAllocationFailure();
-            }
-
-            return new IntentTestsMocks.MockLinkResourceAllocations();
+            Optional<Double> value = resource.valueAs(Double.class);
+            return value.filter(requested -> requested <= bandwidth).isPresent();
         }
 
         @Override
-        public void releaseResources(LinkResourceAllocations allocations) {
-            // Mock
+        public void addListener(ResourceListener listener) {
         }
 
         @Override
-        public LinkResourceAllocations updateResources(LinkResourceRequest req,
-                                                       LinkResourceAllocations oldAllocations) {
-            return null;
-        }
-
-        @Override
-        public Iterable<LinkResourceAllocations> getAllocations() {
-            return ImmutableSet.of(
-                    new IntentTestsMocks.MockLinkResourceAllocations());
-        }
-
-        @Override
-        public Iterable<LinkResourceAllocations> getAllocations(Link link) {
-            return ImmutableSet.of(
-                    new IntentTestsMocks.MockLinkResourceAllocations());
-        }
-
-        @Override
-        public LinkResourceAllocations getAllocations(IntentId intentId) {
-            return new IntentTestsMocks.MockLinkResourceAllocations();
-        }
-
-        @Override
-        public Iterable<ResourceRequest> getAvailableResources(Link link) {
-            final List<ResourceRequest> result = new LinkedList<>();
-            if (availableBandwidth > 0.0) {
-                result.add(new BandwidthResourceRequest(
-                        new BandwidthResource(Bandwidth.bps(availableBandwidth))));
-            }
-            if (availableLambda > 0) {
-                result.add(new LambdaResourceRequest());
-            }
-            return result;
-        }
-
-        @Override
-        public Iterable<ResourceRequest> getAvailableResources(Link link, LinkResourceAllocations allocations) {
-            return null;
-        }
-
-        @Override
-        public void addListener(LinkResourceListener listener) {
-
-        }
-
-        @Override
-        public void removeListener(LinkResourceListener listener) {
-
+        public void removeListener(ResourceListener listener) {
         }
     }
 

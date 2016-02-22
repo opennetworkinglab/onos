@@ -19,7 +19,7 @@ package org.onosproject.net.intent.constraint;
 
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.intent.ResourceContext;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -42,8 +42,9 @@ public class EncapsulationConstraint extends BooleanConstraint {
     }
 
 
+    // doesn't use LinkResourceService
     @Override
-    public boolean isValid(Link link, LinkResourceService resourceService) {
+    public boolean isValid(Link link, ResourceContext context) {
         //TODO: validate the availability of the resources for each link in the path.
         //e.g., availability of MPLSlabels, VLANID
 

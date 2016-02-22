@@ -26,8 +26,8 @@ import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.intent.ResourceContext;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.link.LinkResourceService;
 
 import java.util.Arrays;
 
@@ -50,7 +50,7 @@ public class ObstacleConstraintTest {
     private static final PortNumber PN4 = PortNumber.portNumber(4);
     private static final ProviderId PROVIDER_ID = new ProviderId("of", "foo");
 
-    private LinkResourceService linkResourceService;
+    private ResourceContext resourceContext;
 
     private Path path;
     private DefaultLink link2;
@@ -60,7 +60,7 @@ public class ObstacleConstraintTest {
 
     @Before
     public void setUp() {
-        linkResourceService = createMock(LinkResourceService.class);
+        resourceContext = createMock(ResourceContext.class);
 
         link1 = DefaultLink.builder()
                 .providerId(PROVIDER_ID)
@@ -97,7 +97,7 @@ public class ObstacleConstraintTest {
     public void testPathNotThroughObstacles() {
         sut = new ObstacleConstraint(DID4);
 
-        assertThat(sut.validate(path, linkResourceService), is(true));
+        assertThat(sut.validate(path, resourceContext), is(true));
     }
 
     /**
@@ -107,6 +107,6 @@ public class ObstacleConstraintTest {
     public void testPathThroughObstacle() {
         sut = new ObstacleConstraint(DID1);
 
-        assertThat(sut.validate(path, linkResourceService), is(false));
+        assertThat(sut.validate(path, resourceContext), is(false));
     }
 }

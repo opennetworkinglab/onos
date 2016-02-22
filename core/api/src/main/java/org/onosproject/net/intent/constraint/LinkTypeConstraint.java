@@ -18,7 +18,7 @@ package org.onosproject.net.intent.constraint;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.intent.ResourceContext;
 
 import java.util.Objects;
 import java.util.Set;
@@ -57,8 +57,14 @@ public class LinkTypeConstraint extends BooleanConstraint {
         this.isInclusive = false;
     }
 
+    // doesn't use LinkResourceService
     @Override
-    public boolean isValid(Link link, LinkResourceService resourceService) {
+    public boolean isValid(Link link, ResourceContext context) {
+        // explicitly call a method not depending on LinkResourceService
+        return isValid(link);
+    }
+
+    private boolean isValid(Link link) {
         boolean contains = types.contains(link.type());
         return isInclusive == contains;
     }

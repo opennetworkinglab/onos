@@ -110,6 +110,7 @@ public class HostToHostIntentCompilerTest extends AbstractIntentTest {
                 new HostToHostIntentCompiler();
         compiler.pathService = new IntentTestsMocks.MockPathService(hops);
         compiler.hostService = mockHostService;
+        compiler.resourceService = new MockResourceService();
         return compiler;
     }
 

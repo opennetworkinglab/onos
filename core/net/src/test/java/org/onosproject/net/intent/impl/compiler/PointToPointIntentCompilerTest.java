@@ -33,7 +33,7 @@ import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.impl.PathNotFoundException;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.newresource.ResourceService;
 
 import java.util.Collections;
 import java.util.List;
@@ -118,7 +118,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
      * @param resourceService service to use for resource allocation requests
      * @return point to point compiler
      */
-    private PointToPointIntentCompiler makeCompiler(String[] hops, LinkResourceService resourceService) {
+    private PointToPointIntentCompiler makeCompiler(String[] hops, ResourceService resourceService) {
         final PointToPointIntentCompiler compiler = new PointToPointIntentCompiler();
         compiler.resourceService = resourceService;
         compiler.pathService = new IntentTestsMocks.MockPathService(hops);
@@ -223,7 +223,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     @Test
     public void testBandwidthConstrainedIntentSuccess() {
 
-        final LinkResourceService resourceService =
+        final ResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(1000.0);
         final List<Constraint> constraints =
                 Collections.singletonList(new BandwidthConstraint(Bandwidth.bps(100.0)));
@@ -245,7 +245,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     @Test
     public void testBandwidthConstrainedIntentFailure() {
 
-        final LinkResourceService resourceService =
+        final ResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
         final List<Constraint> constraints =
                 Collections.singletonList(new BandwidthConstraint(Bandwidth.bps(100.0)));
