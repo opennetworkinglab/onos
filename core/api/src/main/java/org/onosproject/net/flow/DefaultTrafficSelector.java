@@ -238,27 +238,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchIPDst(ip));
         }
 
-        /**
-         * @deprecated 1.3.0 Drake Release
-         */
-        @Deprecated
-        @Override
-        public Builder matchTcpSrc(short tcpPort) {
-            return matchTcpSrc(TpPort.tpPort(tcpPort));
-        }
-
         @Override
         public Builder matchTcpSrc(TpPort tcpPort) {
             return add(Criteria.matchTcpSrc(tcpPort));
-        }
-
-        /**
-         * @deprecated 1.3.0 Drake Release
-         */
-        @Deprecated
-        @Override
-        public Builder matchTcpDst(short tcpPort) {
-            return matchTcpDst(TpPort.tpPort(tcpPort));
         }
 
         @Override
@@ -266,27 +248,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchTcpDst(tcpPort));
         }
 
-        /**
-         * @deprecated 1.3.0 Drake Release
-         */
-        @Deprecated
-        @Override
-        public Builder matchUdpSrc(short udpPort) {
-            return matchUdpSrc(TpPort.tpPort(udpPort));
-        }
-
         @Override
         public Builder matchUdpSrc(TpPort udpPort) {
             return add(Criteria.matchUdpSrc(udpPort));
-        }
-
-        /**
-         * @deprecated 1.3.0 Drake Release
-         */
-        @Deprecated
-        @Override
-        public Builder matchUdpDst(short udpPort) {
-            return matchUdpDst(TpPort.tpPort(udpPort));
         }
 
         @Override
@@ -294,27 +258,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchUdpDst(udpPort));
         }
 
-        /**
-         * @deprecated 1.3.0 Drake Release
-         */
-        @Deprecated
-        @Override
-        public Builder matchSctpSrc(short sctpPort) {
-            return matchSctpSrc(TpPort.tpPort(sctpPort));
-        }
-
         @Override
         public Builder matchSctpSrc(TpPort sctpPort) {
             return add(Criteria.matchSctpSrc(sctpPort));
-        }
-
-        /**
-         * @deprecated 1.3.0 Drake Release
-         */
-        @Deprecated
-        @Override
-        public Builder matchSctpDst(short sctpPort) {
-            return matchSctpDst(TpPort.tpPort(sctpPort));
         }
 
         @Override
