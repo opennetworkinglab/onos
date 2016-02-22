@@ -25,11 +25,8 @@ import org.onlab.util.Tools;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.AbstractListenerManager;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleOperations;
-import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.intent.FlowRuleIntent;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentCompiler;
@@ -61,20 +58,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.intent.IntentState.CORRUPT;
-import static org.onosproject.net.intent.IntentState.FAILED;
-import static org.onosproject.net.intent.IntentState.INSTALLED;
-import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
-import static org.onosproject.net.intent.IntentState.WITHDRAWING;
-import static org.onosproject.net.intent.IntentState.WITHDRAWN;
-import static org.onosproject.net.intent.IntentState.WITHDRAW_REQ;
+import static org.onosproject.net.intent.IntentState.*;
 import static org.onosproject.net.intent.constraint.PartialFailureConstraint.intentAllowsPartialFailure;
 import static org.onosproject.net.intent.impl.phase.IntentProcessPhase.newInitialPhase;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.INTENT_READ;
 import static org.onosproject.security.AppPermission.Type.INTENT_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
-
 
 /**
  * An implementation of intent service.
@@ -110,11 +100,15 @@ public class IntentManager
     protected FlowRuleService flowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveService flowObjectiveService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceService resourceService;
 
     private ExecutorService batchExecutor;
     private ExecutorService workerExecutor;
 
+    private final IntentInstaller intentInstaller = new IntentInstaller();
     private final CompilerRegistry compilerRegistry = new CompilerRegistry();
     private final InternalIntentProcessor processor = new InternalIntentProcessor();
     private final IntentStoreDelegate delegate = new InternalStoreDelegate();
@@ -126,6 +120,7 @@ public class IntentManager
 
     @Activate
     public void activate() {
+        intentInstaller.init(store, trackerService, flowRuleService, flowObjectiveService);
         store.setDelegate(delegate);
         trackerService.setDelegate(topoDelegate);
         eventDispatcher.addSink(IntentEvent.class, listenerRegistry);
@@ -138,6 +133,7 @@ public class IntentManager
 
     @Deactivate
     public void deactivate() {
+        intentInstaller.init(null, null, null, null);
         store.unsetDelegate(delegate);
         trackerService.unsetDelegate(topoDelegate);
         eventDispatcher.removeSink(IntentEvent.class);
@@ -322,8 +318,8 @@ public class IntentManager
 
                 // write multiple data to store in order
                 store.batchWrite(Tools.allOf(futures).join().stream()
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList()));
+                                         .filter(Objects::nonNull)
+                                         .collect(Collectors.toList()));
             }, batchExecutor).exceptionally(e -> {
                 log.error("Error submitting batches:", e);
                 // FIXME incomplete Intents should be cleaned up
@@ -351,120 +347,8 @@ public class IntentManager
 
         @Override
         public void apply(Optional<IntentData> toUninstall, Optional<IntentData> toInstall) {
-            IntentManager.this.apply(toUninstall, toInstall);
+            intentInstaller.apply(toUninstall, toInstall);
         }
-    }
-
-    private enum Direction {
-        ADD,
-        REMOVE
-    }
-
-    private void applyIntentData(Optional<IntentData> intentData,
-                                 FlowRuleOperations.Builder builder,
-                                 Direction direction) {
-        if (!intentData.isPresent()) {
-            return;
-        }
-        IntentData data = intentData.get();
-
-        List<Intent> intentsToApply = data.installables();
-        if (!intentsToApply.stream().allMatch(x -> x instanceof FlowRuleIntent)) {
-            throw new IllegalStateException("installable intents must be FlowRuleIntent");
-        }
-
-        if (direction == Direction.ADD) {
-            trackerService.addTrackedResources(data.key(), data.intent().resources());
-            intentsToApply.forEach(installable ->
-                    trackerService.addTrackedResources(data.key(), installable.resources()));
-        } else {
-            trackerService.removeTrackedResources(data.key(), data.intent().resources());
-            intentsToApply.forEach(installable ->
-                    trackerService.removeTrackedResources(data.intent().key(),
-                            installable.resources()));
-        }
-
-        // FIXME do FlowRuleIntents have stages??? Can we do uninstall work in parallel? I think so.
-        builder.newStage();
-
-        List<Collection<FlowRule>> stages = intentsToApply.stream()
-                .map(x -> (FlowRuleIntent) x)
-                .map(FlowRuleIntent::flowRules)
-                .collect(Collectors.toList());
-
-        for (Collection<FlowRule> rules : stages) {
-            if (direction == Direction.ADD) {
-                rules.forEach(builder::add);
-            } else {
-                rules.forEach(builder::remove);
-            }
-        }
-
-    }
-
-    private void apply(Optional<IntentData> toUninstall, Optional<IntentData> toInstall) {
-        // need to consider if FlowRuleIntent is only one as installable intent or not
-
-        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
-        applyIntentData(toUninstall, builder, Direction.REMOVE);
-        applyIntentData(toInstall, builder, Direction.ADD);
-
-        FlowRuleOperations operations = builder.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                if (toInstall.isPresent()) {
-                    IntentData installData = toInstall.get();
-                    log.debug("Completed installing: {}", installData.key());
-                    installData.setState(INSTALLED);
-                    store.write(installData);
-                } else if (toUninstall.isPresent()) {
-                    IntentData uninstallData = toUninstall.get();
-                    log.debug("Completed withdrawing: {}", uninstallData.key());
-                    switch (uninstallData.request()) {
-                        case INSTALL_REQ:
-                            uninstallData.setState(FAILED);
-                            break;
-                        case WITHDRAW_REQ:
-                        default: //TODO "default" case should not happen
-                            uninstallData.setState(WITHDRAWN);
-                            break;
-                    }
-                    store.write(uninstallData);
-                }
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                // if toInstall was cause of error, then recompile (manage/increment counter, when exceeded -> CORRUPT)
-                if (toInstall.isPresent()) {
-                    IntentData installData = toInstall.get();
-                    log.warn("Failed installation: {} {} on {}",
-                             installData.key(), installData.intent(), ops);
-                    installData.setState(CORRUPT);
-                    installData.incrementErrorCount();
-                    store.write(installData);
-                }
-                // if toUninstall was cause of error, then CORRUPT (another job will clean this up)
-                if (toUninstall.isPresent()) {
-                    IntentData uninstallData = toUninstall.get();
-                    log.warn("Failed withdrawal: {} {} on {}",
-                             uninstallData.key(), uninstallData.intent(), ops);
-                    uninstallData.setState(CORRUPT);
-                    uninstallData.incrementErrorCount();
-                    store.write(uninstallData);
-                }
-            }
-        });
-
-        if (log.isTraceEnabled()) {
-            log.trace("applying intent {} -> {} with {} rules: {}",
-                    toUninstall.map(x -> x.key().toString()).orElse("<empty>"),
-                    toInstall.map(x -> x.key().toString()).orElse("<empty>"),
-                    operations.stages().stream().mapToLong(i -> i.size()).sum(),
-                    operations.stages());
-        }
-
-        flowRuleService.apply(operations);
     }
 
 }

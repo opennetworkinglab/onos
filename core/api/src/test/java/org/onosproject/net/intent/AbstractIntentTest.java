@@ -25,6 +25,7 @@ public abstract class AbstractIntentTest {
 
     @Before
     public void setUp() throws Exception {
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
     }
 
