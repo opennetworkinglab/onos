@@ -231,7 +231,7 @@ public abstract class TopologySimulator {
             ipBytes[3] = (byte) (i + 1);
             HostId id = hostId(MacAddress.valueOf(macBytes), VlanId.NONE);
             IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET, ipBytes);
-            hostProviderService.hostDetected(id, description(id, ip, deviceId, port));
+            hostProviderService.hostDetected(id, description(id, ip, deviceId, port), false);
         }
     }
 

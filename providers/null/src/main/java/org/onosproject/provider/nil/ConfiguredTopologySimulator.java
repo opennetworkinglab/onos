@@ -39,6 +39,6 @@ public class ConfiguredTopologySimulator extends TopologySimulator {
     protected void createHosts() {
         hostService.getHosts()
                 .forEach(host -> hostProviderService
-                        .hostDetected(host.id(), description(host)));
+                        .hostDetected(host.id(), description(host), false));
     }
 }

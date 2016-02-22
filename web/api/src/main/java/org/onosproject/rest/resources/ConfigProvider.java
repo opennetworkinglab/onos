@@ -439,7 +439,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
 
         DefaultHostDescription desc =
                 new DefaultHostDescription(mac, vlanId, location, ips, annotations);
-        hostProviderService.hostDetected(hostId, desc);
+        hostProviderService.hostDetected(hostId, desc, false);
 
         connectPoints.add(location);
     }

@@ -365,7 +365,7 @@ public class HostResourceTest extends ResourceTest {
      */
     @Test
     public void testPost() {
-        mockHostProviderService.hostDetected(anyObject(), anyObject());
+        mockHostProviderService.hostDetected(anyObject(), anyObject(), anyBoolean());
         expectLastCall();
         replay(mockHostProviderService);
 

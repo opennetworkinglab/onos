@@ -209,7 +209,7 @@ public class HostsWebResource extends AbstractWebResource {
 
             HostId hostId = HostId.hostId(mac, vlanId);
             DefaultHostDescription desc = new DefaultHostDescription(mac, vlanId, hostLocation, ips, annotations);
-            hostProviderService.hostDetected(hostId, desc);
+            hostProviderService.hostDetected(hostId, desc, false);
             return hostId;
         }
 

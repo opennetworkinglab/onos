@@ -125,7 +125,7 @@ public class HostManagerTest {
     private void detect(HostId hid, MacAddress mac, VlanId vlan,
                         HostLocation loc, IpAddress ip) {
         HostDescription descr = new DefaultHostDescription(mac, vlan, loc, ip);
-        providerService.hostDetected(hid, descr);
+        providerService.hostDetected(hid, descr, false);
         assertNotNull("host should be found", mgr.getHost(hid));
     }
 

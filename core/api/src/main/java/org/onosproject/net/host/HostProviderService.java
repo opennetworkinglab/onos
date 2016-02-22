@@ -30,19 +30,6 @@ public interface HostProviderService extends ProviderService<HostProvider> {
      *
      * @param hostId          id of the host that been detected
      * @param hostDescription description of host and its location
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    default void hostDetected(HostId hostId, HostDescription hostDescription) {
-        hostDetected(hostId, hostDescription, false);
-    }
-
-    /**
-     * Notifies the core when a host has been detected on a network along with
-     * information that identifies the host location.
-     *
-     * @param hostId          id of the host that been detected
-     * @param hostDescription description of host and its location
      * @param replaceIps      replace IP set if true, merge IP set otherwise
      */
     void hostDetected(HostId hostId, HostDescription hostDescription, boolean replaceIps);

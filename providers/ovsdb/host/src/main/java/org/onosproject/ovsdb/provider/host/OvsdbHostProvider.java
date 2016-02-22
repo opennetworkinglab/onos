@@ -124,7 +124,7 @@ public class OvsdbHostProvider extends AbstractProvider implements HostProvider 
                                                                              VlanId.vlanId(),
                                                                              loaction,
                                                                              annotations);
-                providerService.hostDetected(hostId, hostDescription);
+                providerService.hostDetected(hostId, hostDescription, false);
                 break;
             case PORT_REMOVED:
                 HostId host = HostId.hostId(subject.hwAddress(), VlanId.vlanId());

@@ -585,7 +585,7 @@ public class DhcpManager implements DhcpService {
 
             HostId hostId = HostId.hostId(mac, vlanId);
             DefaultHostDescription desc = new DefaultHostDescription(mac, vlanId, hostLocation, ips);
-            hostProviderService.hostDetected(hostId, desc);
+            hostProviderService.hostDetected(hostId, desc, false);
         }
 
 
