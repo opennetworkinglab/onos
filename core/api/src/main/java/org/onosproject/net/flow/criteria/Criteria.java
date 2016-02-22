@@ -233,33 +233,9 @@ public final class Criteria {
      *
      * @param tcpPort TCP source port
      * @return match criterion
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static Criterion matchTcpSrc(short tcpPort) {
-        return new TcpPortCriterion(TpPort.tpPort(tcpPort), Type.TCP_SRC);
-    }
-
-    /**
-     * Creates a match on TCP source port field using the specified value.
-     *
-     * @param tcpPort TCP source port
-     * @return match criterion
      */
     public static Criterion matchTcpSrc(TpPort tcpPort) {
         return new TcpPortCriterion(tcpPort, Type.TCP_SRC);
-    }
-
-    /**
-     * Creates a match on TCP destination port field using the specified value.
-     *
-     * @param tcpPort TCP destination port
-     * @return match criterion
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static Criterion matchTcpDst(short tcpPort) {
-        return new TcpPortCriterion(TpPort.tpPort(tcpPort), Type.TCP_DST);
     }
 
     /**
@@ -287,33 +263,9 @@ public final class Criteria {
      *
      * @param udpPort UDP source port
      * @return match criterion
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static Criterion matchUdpSrc(short udpPort) {
-        return new UdpPortCriterion(TpPort.tpPort(udpPort), Type.UDP_SRC);
-    }
-
-    /**
-     * Creates a match on UDP source port field using the specified value.
-     *
-     * @param udpPort UDP source port
-     * @return match criterion
      */
     public static Criterion matchUdpSrc(TpPort udpPort) {
         return new UdpPortCriterion(udpPort, Type.UDP_SRC);
-    }
-
-    /**
-     * Creates a match on UDP destination port field using the specified value.
-     *
-     * @param udpPort UDP destination port
-     * @return match criterion
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static Criterion matchUdpDst(short udpPort) {
-        return new UdpPortCriterion(TpPort.tpPort(udpPort), Type.UDP_DST);
     }
 
     /**
@@ -331,34 +283,9 @@ public final class Criteria {
      *
      * @param sctpPort SCTP source port
      * @return match criterion
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static Criterion matchSctpSrc(short sctpPort) {
-        return new SctpPortCriterion(TpPort.tpPort(sctpPort), Type.SCTP_SRC);
-    }
-
-    /**
-     * Creates a match on SCTP source port field using the specified value.
-     *
-     * @param sctpPort SCTP source port
-     * @return match criterion
      */
     public static Criterion matchSctpSrc(TpPort sctpPort) {
         return new SctpPortCriterion(sctpPort, Type.SCTP_SRC);
-    }
-
-    /**
-     * Creates a match on SCTP destination port field using the specified
-     * value.
-     *
-     * @param sctpPort SCTP destination port
-     * @return match criterion
-     * @deprecated in Drake release
-     */
-    @Deprecated
-    public static Criterion matchSctpDst(short sctpPort) {
-        return new SctpPortCriterion(TpPort.tpPort(sctpPort), Type.SCTP_DST);
     }
 
     /**
