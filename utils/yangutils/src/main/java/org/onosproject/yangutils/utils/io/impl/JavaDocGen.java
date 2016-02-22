@@ -226,8 +226,8 @@ public final class JavaDocGen {
      */
     private static String generateForConstructors(String className) {
         return (UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.JAVA_DOC_SETTERS + className + UtilConstants.PERIOD + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.NEW_LINE_ESTRIC
+                + UtilConstants.JAVA_DOC_CONSTRUCTOR + className + UtilConstants.IMPL + UtilConstants.PERIOD
+                + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.NEW_LINE_ESTRIC
                 + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM
                 + (className.substring(0, 1).toLowerCase() + className.substring(1)) + UtilConstants.OBJECT
                 + UtilConstants.SPACE + UtilConstants.BUILDER_OBJECT + UtilConstants.SPACE + className

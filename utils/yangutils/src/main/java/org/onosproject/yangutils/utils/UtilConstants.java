@@ -129,7 +129,7 @@ public final class UtilConstants {
     public static final String STATIC = "static";
     public static final String FINAL = "final";
     public static final String PACKAGE = "package";
-    public static final String IMPORT = "import";
+    public static final String IMPORT = "import ";
     public static final String NULL = "null";
     public static final String RETURN = "return";
     public static final String NEW = "new";
@@ -144,6 +144,7 @@ public final class UtilConstants {
     /**
      * For collections.
      */
+    public static final String COLLECTION_IMPORTS = "import java.util.";
     public static final String ABSTRACT_COLLECTION = "AbstractCollection";
 
     public static final String LIST = "List";

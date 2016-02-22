@@ -133,7 +133,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     private YangStatusType status;
 
     /**
-     * package of the generated java code.
+     * Package of the generated java code.
      */
     private String pkg;
 
@@ -332,6 +332,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @return the fileHandle
      */
+    @Override
     public CachedFileHandle getFileHandle() {
         return fileHandle;
     }
@@ -341,6 +342,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @param handle the fileHandle to set
      */
+    @Override
     public void setFileHandle(CachedFileHandle handle) {
         fileHandle = handle;
     }
@@ -395,11 +397,6 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
         pkg = pcg;
     }
 
-    /**
-     * Generate the java code corresponding to YANG container.
-     *
-     * @throws IOException when fails to generate the source files.
-     */
     @Override
     public void generateJavaCodeEntry() throws IOException {
         YangNode parent = getParent();
@@ -414,14 +411,33 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
             throw new IOException("Failed to create the source files.");
         }
         setFileHandle(handle);
-        addLavesAttributes();
+        addAttributeInParent();
+    }
+
+    /**
+     * Adds current node attribute to parent file.
+     *
+     * @param pkg java file package path
+     */
+    private void addAttributeInParent() {
+        if (getParent() != null) {
+            getParent().getFileHandle().setChildsPackage(getPackage());
+            getParent().getFileHandle().addAttributeInfo(null, getName(), false);
+        }
+    }
+
+    @Override
+    public void generateJavaCodeExit() throws IOException {
+        addLeavesAttributes();
         addLeafListAttributes();
+        getFileHandle().close();
+        return;
     }
 
     /**
      * Adds leaf attributes in generated files.
      */
-    private void addLavesAttributes() {
+    private void addLeavesAttributes() {
 
         List<YangLeaf<?>> leaves = getListOfLeaf();
         if (leaves != null) {
@@ -441,18 +457,6 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
                 getFileHandle().addAttributeInfo(leafList.getDataType(), leafList.getLeafName(), true);
             }
         }
-        return;
-
-    }
-
-    /**
-     * Free resources used to generate code.
-     *
-     * @throws IOException when fails to generate source files.
-     */
-    @Override
-    public void generateJavaCodeExit() throws IOException {
-        getFileHandle().close();
         return;
     }
 }

@@ -18,6 +18,7 @@ package org.onosproject.yangutils.translator.tojava;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
@@ -68,6 +69,11 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     private String pkg;
 
     /**
+     * Java package in which the child class/interface needs to be generated.
+     */
+    private String childsPkg;
+
+    /**
      * Name of the object in YANG file.
      */
     private String yangName;
@@ -76,7 +82,7 @@ public class CachedJavaFileHandle implements CachedFileHandle {
      * Sorted set of import info, to be used to maintain the set of classes to
      * be imported in the generated class.
      */
-    private SortedSet<ImportInfo> importSet;
+    private SortedSet<String> importSet;
 
     /**
      * Cached list of attribute info.
@@ -171,11 +177,30 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     }
 
     /**
+     * Get the java package.
+     *
+     * @return the java package.
+     */
+    public String getChildsPackage() {
+        return childsPkg;
+    }
+
+    /**
+     * Set the java package.
+     *
+     * @param pcg the package to set
+     */
+    @Override
+    public void setChildsPackage(String pcg) {
+        childsPkg = pcg;
+    }
+
+    /**
      * Get the set containing the imported class/interface info.
      *
      * @return the set containing the imported class/interface info.
      */
-    public SortedSet<ImportInfo> getImportSet() {
+    public SortedSet<String> getImportSet() {
         return importSet;
     }
 
@@ -184,7 +209,7 @@ public class CachedJavaFileHandle implements CachedFileHandle {
      *
      * @param importSet the set containing the imported class/interface info.
      */
-    private void setImportSet(SortedSet<ImportInfo> importSet) {
+    private void setImportSet(SortedSet<String> importSet) {
         this.importSet = importSet;
     }
 
@@ -203,9 +228,9 @@ public class CachedJavaFileHandle implements CachedFileHandle {
          * be used in the generated class.
          */
         if (getImportSet() == null) {
-            setImportSet(new TreeSet<ImportInfo>());
+            setImportSet(new TreeSet<String>());
         }
-        return getImportSet().add(importInfo);
+        return getImportSet().add(JavaCodeSnippetGen.getImportText(importInfo));
     }
 
     /**
@@ -253,23 +278,42 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     public void addAttributeInfo(YangType<?> attrType, String name, boolean isListAttr) {
 
         AttributeInfo newAttr = new AttributeInfo();
-        attrType.setDataTypeName(attrType.getDataTypeName().replace("\"", ""));
-        if (attrType.getDataTypeName().equals("string")) {
-            attrType.setDataTypeName(
-                    attrType.getDataTypeName().substring(0, 1).toUpperCase() + attrType.getDataTypeName().substring(1));
+        if (attrType != null) {
+            attrType.setDataTypeName(attrType.getDataTypeName().replace("\"", ""));
+            if (attrType.getDataTypeName().equals("string")) {
+                attrType.setDataTypeName(JavaIdentifierSyntax.getCaptialCase(attrType.getDataTypeName()));
+            }
+            newAttr.setAttributeType(attrType);
+        } else {
+            ImportInfo importInfo = new ImportInfo();
+            importInfo.setPkgInfo(getChildsPackage());
+            importInfo.setClassInfo(JavaIdentifierSyntax.getCaptialCase(name));
+            if (getImportSet() != null) {
+                getImportSet().add(JavaCodeSnippetGen.getImportText(importInfo));
+            } else {
+                SortedSet<String> newImportInfo = new TreeSet<>();
+                newImportInfo.add(JavaCodeSnippetGen.getImportText(importInfo));
+                setImportSet(newImportInfo);
+            }
+
+            newAttr.setQualifiedName(getQualifiedFlag(JavaCodeSnippetGen.getImportText(importInfo)));
         }
-        newAttr.setAttributeType(attrType);
         newAttr.setAttributeName(name);
         newAttr.setListAttr(isListAttr);
 
-        /*
-         * TODO: get the prefix and name of data type from attrType and
-         * initialize in importInfo.
-         */
+        if (isListAttr) {
+            String listImport = UtilConstants.COLLECTION_IMPORTS + UtilConstants.LIST + UtilConstants.SEMI_COLAN
+                    + UtilConstants.NEW_LINE + UtilConstants.NEW_LINE;
+            if (getImportSet() != null) {
+                getImportSet().add(listImport);
+            } else {
+                SortedSet<String> newImportInfo = new TreeSet<>();
+                newImportInfo.add(listImport);
+                setImportSet(newImportInfo);
+            }
 
-        /**
-         * TODO: Handle QualifiedFlag for imports.
-         */
+            newAttr.setQualifiedName(getQualifiedFlag(listImport));
+        }
 
         if (getCachedAttributeList() != null) {
             if (getCachedAttributeList().size() == MAX_CACHABLE_ATTR) {
@@ -281,7 +325,32 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             newAttributeInfo.add(newAttr);
             setCachedAttributeList(newAttributeInfo);
         }
-        name = JavaIdentifierSyntax.getCamelCase(name);
+    }
+
+    /**
+     * Check if the import set does not have a class info same as the new class
+     * info, if so the new class info be added to the import set. Otherwise
+     * check if the corresponding package info is same as the new package info,
+     * if so no need to qualified access, otherwise, it needs qualified access.
+     *
+     * @param newImportInfo new import info to be check for qualified access or
+     *            not and updated in the import set accordingly.
+     * @return if the new attribute needs to be accessed in a qualified manner.
+     */
+    private boolean getQualifiedFlag(String newImportInfo) {
+        for (String curImportInfo : getImportSet()) {
+            if (curImportInfo.equals(newImportInfo)) {
+                /*
+                 * If import is already existing import with same package, we
+                 * don't need qualified access, otherwise it needs to be
+                 * qualified access.
+                 */
+                return !curImportInfo.equals(newImportInfo);
+            }
+        }
+
+        getImportSet().add(newImportInfo);
+        return false;
     }
 
     /**
@@ -291,7 +360,7 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     public void close() throws IOException {
 
         String className = getYangName();
-        className = (className.substring(0, 1).toUpperCase() + className.substring(1));
+        className = JavaIdentifierSyntax.getCaptialCase(className);
         String packagePath = getPackage();
         String filePath = UtilConstants.YANG_GEN_DIR + packagePath.replace(".", "/");
         GeneratedFileType fileType = getGeneratedFileTypes();
@@ -322,52 +391,9 @@ public class CachedJavaFileHandle implements CachedFileHandle {
         String implFileName = className + UtilConstants.IMPL + TEMP_FILE_EXTENSION;
         File implTempFile = new File(filePath + File.separator + implFileName);
 
-        if (fileType.equals(GeneratedFileType.INTERFACE) || fileType.equals(GeneratedFileType.ALL)) {
-
-            try {
-                interfaceFile.createNewFile();
-                appendContents(interfaceFile, className, GeneratedFileType.INTERFACE);
-            } catch (IOException e) {
-                throw new IOException("Failed to create interface file.");
-            }
-        }
-
-        if (fileType.equals(GeneratedFileType.BUILDER_CLASS) || fileType.equals(GeneratedFileType.ALL)) {
-
-            try {
-                builderFile.createNewFile();
-                appendContents(builderFile, className, GeneratedFileType.BUILDER_CLASS);
-            } catch (IOException e) {
-                throw new IOException("Failed to create builder class file.");
-            }
-        }
-
-        if (fileType.equals(GeneratedFileType.IMPL) || fileType.equals(GeneratedFileType.ALL)) {
-
-            try {
-                implTempFile.createNewFile();
-                appendContents(implTempFile, className, GeneratedFileType.IMPL);
-            } catch (IOException e) {
-                throw new IOException("Failed to create impl class file.");
-            }
-        }
-
-        if (fileType.equals(GeneratedFileType.BUILDER_INTERFACE) || fileType.equals(GeneratedFileType.ALL)) {
-
-            try {
-                builderInterfaceFile.createNewFile();
-                appendContents(builderInterfaceFile, className, GeneratedFileType.BUILDER_INTERFACE);
-            } catch (IOException e) {
-                throw new IOException("Failed to create builder interface class file.");
-            }
-        }
         /*
          * TODO: add the file header using
          * JavaCodeSnippetGen.getFileHeaderComment
-         */
-        /*
-         * TODO: get the import list using getImportText and add to the
-         * generated java file using JavaCodeSnippetGen.getImportText
          */
 
         List<String> attributes = new LinkedList<>();
@@ -375,7 +401,8 @@ public class CachedJavaFileHandle implements CachedFileHandle {
         List<String> builderInterfaceMethods = new LinkedList<>();
         List<String> builderClassMethods = new LinkedList<>();
         List<String> implClassMethods = new LinkedList<>();
-        //TODO: Handle imports for the attributes.
+        List<String> imports = new LinkedList<>();
+
         try {
             attributes = SerializedDataStore.getSerializeData(SerializedDataStore.SerializedDataStoreType.ATTRIBUTE);
 
@@ -391,7 +418,7 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             implClassMethods = SerializedDataStore
                     .getSerializeData(SerializedDataStore.SerializedDataStoreType.IMPL_METHODS);
 
-            //TODO:imports = SerializedDataStore.getSerializeData(SerializedDataStore.SerializedDataStoreType.IMPORT);
+            imports = SerializedDataStore.getSerializeData(SerializedDataStore.SerializedDataStoreType.IMPORT);
         } catch (ClassNotFoundException | IOException e) {
             log.info("There is no attribute info of " + className + " YANG file in the serialized files.");
         }
@@ -399,6 +426,14 @@ public class CachedJavaFileHandle implements CachedFileHandle {
         if (getCachedAttributeList() != null) {
             MethodsGenerator.setAttrInfo(getCachedAttributeList());
             for (AttributeInfo attr : getCachedAttributeList()) {
+                if (attr.isListAttr()) {
+                    String listString = JavaCodeSnippetGen.getListAttribute(attr.getAttributeType().getDataTypeName());
+                    @SuppressWarnings("rawtypes")
+                    YangType<?> type = new YangType();
+                    type.setDataTypeName(listString);
+                    attr.setAttributeType(type);
+                }
+
                 attributes.add(getAttributeString(attr));
 
                 interfaceMethods.add(MethodsGenerator.getMethodString(attr, GeneratedFileType.INTERFACE));
@@ -409,6 +444,10 @@ public class CachedJavaFileHandle implements CachedFileHandle {
                 .add(MethodsGenerator.getMethodString(attr, GeneratedFileType.BUILDER_INTERFACE));
 
                 implClassMethods.add(MethodsGenerator.getMethodString(attr, GeneratedFileType.IMPL));
+
+                if (getImportSet() != null) {
+                    imports = new ArrayList<>(getImportSet());
+                }
             }
         }
 
@@ -420,6 +459,25 @@ public class CachedJavaFileHandle implements CachedFileHandle {
         implClassMethods.add(UtilConstants.JAVA_DOC_FIRST_LINE
                 + MethodsGenerator.getDefaultConstructorString(GeneratedFileType.IMPL, className));
         implClassMethods.add(MethodsGenerator.getConstructorString(className));
+
+        /**
+         * Start generation of files.
+         */
+        if (fileType.equals(GeneratedFileType.INTERFACE) || fileType.equals(GeneratedFileType.ALL)) {
+            initiateFile(interfaceFile, className, GeneratedFileType.INTERFACE, imports);
+        }
+
+        if (fileType.equals(GeneratedFileType.BUILDER_CLASS) || fileType.equals(GeneratedFileType.ALL)) {
+            initiateFile(builderFile, className, GeneratedFileType.BUILDER_CLASS, imports);
+        }
+
+        if (fileType.equals(GeneratedFileType.IMPL) || fileType.equals(GeneratedFileType.ALL)) {
+            initiateFile(implTempFile, className, GeneratedFileType.IMPL, imports);
+        }
+
+        if (fileType.equals(GeneratedFileType.BUILDER_INTERFACE) || fileType.equals(GeneratedFileType.ALL)) {
+            initiateFile(builderInterfaceFile, className, GeneratedFileType.BUILDER_INTERFACE, imports);
+        }
 
         /**
          * Add attributes to the file.
@@ -480,6 +538,25 @@ public class CachedJavaFileHandle implements CachedFileHandle {
          */
         clean(implTempFile);
         clean(builderInterfaceFile);
+    }
+
+    /**
+     * Initiate generation of file based on generated file type.
+     *
+     * @param file generated file
+     * @param className generated file class name
+     * @param type generated file type
+     * @param imports imports for the file
+     * @throws IOException when fails to generate a file
+     */
+    private void initiateFile(File file, String className, GeneratedFileType type, List<String> imports)
+            throws IOException {
+        try {
+            file.createNewFile();
+            appendContents(file, className, type, imports);
+        } catch (IOException e) {
+            throw new IOException("Failed to create " + file.getName() + " class file.");
+        }
     }
 
     /**
@@ -584,7 +661,8 @@ public class CachedJavaFileHandle implements CachedFileHandle {
      * @param fileName generated file name
      * @param type generated file type
      */
-    private void appendContents(File file, String fileName, GeneratedFileType type) throws IOException {
+    private void appendContents(File file, String fileName, GeneratedFileType type, List<String> importsList)
+            throws IOException {
 
         if (type.equals(GeneratedFileType.IMPL)) {
 
@@ -599,12 +677,20 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             if (type.equals(GeneratedFileType.INTERFACE)) {
                 insert(file, CopyrightHeader.getCopyrightHeader());
                 insert(file, "package" + UtilConstants.SPACE + getPackage() + UtilConstants.SEMI_COLAN
-                        + UtilConstants.NEW_LINE);
+                        + UtilConstants.NEW_LINE + UtilConstants.NEW_LINE);
+                for (String imports : importsList) {
+                    insert(file, imports);
+                }
+                insert(file, UtilConstants.NEW_LINE);
                 write(file, fileName, type, JavaDocType.INTERFACE);
             } else if (type.equals(GeneratedFileType.BUILDER_CLASS)) {
                 insert(file, CopyrightHeader.getCopyrightHeader());
                 insert(file, "package" + UtilConstants.SPACE + getPackage() + UtilConstants.SEMI_COLAN
-                        + UtilConstants.NEW_LINE);
+                        + UtilConstants.NEW_LINE + UtilConstants.NEW_LINE);
+                for (String imports : importsList) {
+                    insert(file, imports);
+                }
+                insert(file, UtilConstants.NEW_LINE);
                 write(file, fileName, type, JavaDocType.BUILDER_CLASS);
             }
         }

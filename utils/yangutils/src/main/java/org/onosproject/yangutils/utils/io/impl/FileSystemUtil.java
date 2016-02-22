@@ -62,8 +62,7 @@ public final class FileSystemUtil {
     public static void createPackage(String pkg, String pkgInfo) throws IOException {
         if (!doesPackageExist(new File(pkg))) {
             try {
-                File pack = YangIoUtils
-                        .createDirectories(pkg.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
+                File pack = YangIoUtils.createDirectories(pkg.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
                 YangIoUtils.addPackageInfo(pack, pkgInfo, pkg);
             } catch (IOException e) {
                 throw new IOException("failed to create package-info file");

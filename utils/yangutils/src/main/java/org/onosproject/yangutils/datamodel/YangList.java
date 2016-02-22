@@ -22,6 +22,7 @@ import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.translator.CachedFileHandle;
 
 /*-
  *  The "list" statement is used to define an interior data node in the
@@ -456,6 +457,18 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
      */
     @Override
     public void setPackage(String pkg) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public CachedFileHandle getFileHandle() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void setFileHandle(CachedFileHandle fileHandle) {
         // TODO Auto-generated method stub
 
     }

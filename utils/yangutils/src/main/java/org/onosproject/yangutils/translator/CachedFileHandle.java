@@ -42,4 +42,11 @@ public interface CachedFileHandle {
      * @throws IOException when failes to generated java files.
      */
     void close() throws IOException;
+
+    /**
+     * Sets child package path for import.
+     *
+     * @param pkg child's package path
+     */
+    void setChildsPackage(String pkg);
 }

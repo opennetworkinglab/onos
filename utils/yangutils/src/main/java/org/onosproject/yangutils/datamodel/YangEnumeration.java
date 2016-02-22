@@ -22,6 +22,7 @@ import java.util.Set;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.translator.CachedFileHandle;
 
 /*
  * The enumeration built-in type represents values from a set of
@@ -79,6 +80,7 @@ public class YangEnumeration extends YangNode implements Parsable {
      *
      * @return returns ENUMERATION_DATA
      */
+    @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.ENUMERATION_DATA;
     }
@@ -88,6 +90,7 @@ public class YangEnumeration extends YangNode implements Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
@@ -97,6 +100,7 @@ public class YangEnumeration extends YangNode implements Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
@@ -140,6 +144,7 @@ public class YangEnumeration extends YangNode implements Parsable {
     /* (non-Javadoc)
      * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeEntry()
      */
+    @Override
     public void generateJavaCodeEntry() {
         // TODO Auto-generated method stub
 
@@ -148,7 +153,20 @@ public class YangEnumeration extends YangNode implements Parsable {
     /* (non-Javadoc)
      * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeExit()
      */
+    @Override
     public void generateJavaCodeExit() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public CachedFileHandle getFileHandle() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void setFileHandle(CachedFileHandle fileHandle) {
         // TODO Auto-generated method stub
 
     }

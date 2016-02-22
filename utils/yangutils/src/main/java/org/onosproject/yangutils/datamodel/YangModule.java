@@ -155,7 +155,7 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
     private byte version;
 
     /**
-     * package of the generated java code.
+     * Package of the generated java code.
      */
     private String pkg;
 
@@ -493,6 +493,7 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      *
      * @return the fileHandle
      */
+    @Override
     public CachedFileHandle getFileHandle() {
         return fileHandle;
     }
@@ -502,6 +503,7 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      *
      * @param handle the fileHandle to set
      */
+    @Override
     public void setFileHandle(CachedFileHandle handle) {
         fileHandle = handle;
     }
@@ -555,14 +557,20 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
             throw new IOException("Failed to create the source files.");
         }
         setFileHandle(handle);
-        addLavesAttributes();
+    }
+
+    @Override
+    public void generateJavaCodeExit() throws IOException {
+        addLeavesAttributes();
         addLeafListAttributes();
+        getFileHandle().close();
+        return;
     }
 
     /**
      * Adds leaf attributes in generated files.
      */
-    private void addLavesAttributes() {
+    private void addLeavesAttributes() {
 
         List<YangLeaf<?>> leaves = getListOfLeaf();
         if (leaves != null) {
@@ -582,17 +590,6 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
                 getFileHandle().addAttributeInfo(leafList.getDataType(), leafList.getLeafName(), true);
             }
         }
-    }
-
-    /**
-     * Free resources used to generate code.
-     *
-     * @throws IOException when fails to generate source files.
-     */
-    @Override
-    public void generateJavaCodeExit() throws IOException {
-        getFileHandle().close();
-        return;
     }
 
 }

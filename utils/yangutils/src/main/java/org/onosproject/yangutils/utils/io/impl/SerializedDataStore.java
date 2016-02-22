@@ -27,6 +27,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -165,7 +166,6 @@ public final class SerializedDataStore {
      * @throws IOException when fails to read from the file.
      * @throws ClassNotFoundException when file is missing.
      */
-    @SuppressWarnings("unchecked")
     public static List<String> getSerializeData(SerializedDataStoreType type)
             throws IOException, ClassNotFoundException {
 
@@ -191,10 +191,13 @@ public final class SerializedDataStore {
             InputStream buffer = new BufferedInputStream(file);
             ObjectInput input = new ObjectInputStream(buffer);
             try {
-                List<String> recoveredData = (List<String>) input.readObject();
+                String data = (String) input.readObject();
+                List<String> recoveredData = new ArrayList<>();
+                recoveredData.add(data);
                 return recoveredData;
             } finally {
                 input.close();
+                file.close();
             }
         } catch (ClassNotFoundException ex) {
             throw new ClassNotFoundException("failed to fetch the serialized data file.");

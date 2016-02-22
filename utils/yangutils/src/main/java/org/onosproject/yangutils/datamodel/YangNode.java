@@ -16,6 +16,7 @@
 package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.translator.CachedFileHandle;
 import org.onosproject.yangutils.translator.CodeGenerator;
 
 /**
@@ -252,5 +253,19 @@ public abstract class YangNode implements CodeGenerator {
      * @param pkg the package to set
      */
     public abstract void setPackage(String pkg);
+
+    /**
+     * Get the mapped java file handler.
+     *
+     * @return the file handle.
+     */
+    public abstract CachedFileHandle getFileHandle();
+
+    /**
+     * Set the mapped java file handle.
+     *
+     * @param fileHandle the file handle to set of current node.
+     */
+    public abstract void setFileHandle(CachedFileHandle fileHandle);
 
 }

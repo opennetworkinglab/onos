@@ -16,9 +16,6 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
-import java.util.List;
-import java.util.SortedSet;
-
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.translator.GeneratedFileType;
 import org.onosproject.yangutils.translator.tojava.GeneratedMethodTypes;
@@ -50,29 +47,15 @@ public final class JavaCodeSnippetGen {
     }
 
     /**
-     * reorder the import list based on the ONOS import rules.
-     *
-     * @param importInfo the set of classes/interfaces to be imported.
-     * @return string of import info.
-     */
-    public List<ImportInfo> sortImportOrder(SortedSet<ImportInfo> importInfo) {
-        /* TODO: reorder the import list based on the ONOS import rules. */
-        return null;
-    }
-
-    /**
      * Get the textual java code information corresponding to the import list.
      *
-     * @param importInfo sorted list of import info.
+     * @param importInfo import info.
      * @return the textual java code information corresponding to the import
      *         list.
      */
-    public static String getImportText(List<ImportInfo> importInfo) {
-        /*
-         * TODO: get the textual java code information corresponding to the
-         * import list
-         */
-        return null;
+    public static String getImportText(ImportInfo importInfo) {
+        return UtilConstants.IMPORT + importInfo.getPkgInfo() + UtilConstants.PERIOD + importInfo.getClassInfo()
+        + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE;
     }
 
     /**
@@ -101,8 +84,22 @@ public final class JavaCodeSnippetGen {
      */
     public static String getJavaAttributeInfo(GeneratedFileType genFileTypes, String yangName, YangType<?> type) {
         yangName = JavaIdentifierSyntax.getCamelCase(yangName);
-        return UtilConstants.PRIVATE + UtilConstants.SPACE + type.getDataTypeName() + UtilConstants.SPACE + yangName
-                + UtilConstants.SEMI_COLAN;
+        if (type != null) {
+            return UtilConstants.PRIVATE + UtilConstants.SPACE + type.getDataTypeName() + UtilConstants.SPACE + yangName
+                    + UtilConstants.SEMI_COLAN;
+        }
+        return UtilConstants.PRIVATE + UtilConstants.SPACE + JavaIdentifierSyntax.getCaptialCase(yangName)
+        + UtilConstants.SPACE + yangName + UtilConstants.SEMI_COLAN;
+    }
+
+    /**
+     * Returns list attribute string.
+     *
+     * @param type attribute type
+     * @return list attribute string
+     */
+    public static String getListAttribute(String type) {
+        return UtilConstants.LIST + UtilConstants.DIAMOND_OPEN_BRACKET + type + UtilConstants.DIAMOND_CLOSE_BRACKET;
     }
 
     /**

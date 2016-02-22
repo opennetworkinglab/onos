@@ -27,6 +27,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.model.Resource;
 
 import org.onosproject.yangutils.utils.UtilConstants;
+import org.apache.commons.io.FileUtils;
 
 import static org.slf4j.LoggerFactory.getLogger;
 import org.slf4j.Logger;
@@ -102,10 +103,10 @@ public final class YangIoUtils {
                     File currentFile = new File(file);
                     currentFile.delete();
                 }
+                FileUtils.deleteDirectory(generatedDirectory);
             } catch (IOException e) {
                 log.info("Failed to delete the generated files in " + generatedDirectory + " directory");
             }
-            generatedDirectory.delete();
         }
     }
 

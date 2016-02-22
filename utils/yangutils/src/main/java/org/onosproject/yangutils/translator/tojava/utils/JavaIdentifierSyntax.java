@@ -163,4 +163,14 @@ public final class JavaIdentifierSyntax {
         }
         return camelCase;
     }
+
+    /**
+     * Translate the YANG identifier name to java identifier with first letter in caps.
+     *
+     * @param yangIdentifier identifier in YANG file.
+     * @return corresponding java identifier
+     */
+    public static String getCaptialCase(String yangIdentifier) {
+        return yangIdentifier.substring(0, 1).toUpperCase() + yangIdentifier.substring(1);
+    }
 }

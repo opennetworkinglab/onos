@@ -21,6 +21,7 @@ import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.translator.CachedFileHandle;
 
 /*-
  * Reference RFC 6020.
@@ -318,6 +319,18 @@ public class YangGrouping extends YangNode implements YangLeavesHolder, YangComm
      */
     @Override
     public void setPackage(String pkg) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public CachedFileHandle getFileHandle() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void setFileHandle(CachedFileHandle fileHandle) {
         // TODO Auto-generated method stub
 
     }

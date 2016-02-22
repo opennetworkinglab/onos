@@ -18,6 +18,7 @@ package org.onosproject.yangutils.datamodel;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.translator.CachedFileHandle;
 
 /*-
  * Reference RFC 6020.
@@ -138,6 +139,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @return the description.
      */
+    @Override
     public String getDescription() {
         return description;
     }
@@ -147,6 +149,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @param description set the description.
      */
+    @Override
     public void setDescription(String description) {
         this.description = description;
     }
@@ -156,6 +159,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @return the reference.
      */
+    @Override
     public String getReference() {
         return reference;
     }
@@ -165,6 +169,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @param reference the reference to set.
      */
+    @Override
     public void setReference(String reference) {
         this.reference = reference;
     }
@@ -174,6 +179,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @return the status.
      */
+    @Override
     public YangStatusType getStatus() {
         return status;
     }
@@ -183,6 +189,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @param status the status to set.
      */
+    @Override
     public void setStatus(YangStatusType status) {
         this.status = status;
     }
@@ -230,6 +237,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @return returns TYPEDEF_DATA
      */
+    @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.TYPEDEF_DATA;
     }
@@ -239,6 +247,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
@@ -248,6 +257,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
@@ -273,6 +283,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /* (non-Javadoc)
      * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeEntry()
      */
+    @Override
     public void generateJavaCodeEntry() {
         // TODO Auto-generated method stub
 
@@ -281,6 +292,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /* (non-Javadoc)
      * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeExit()
      */
+    @Override
     public void generateJavaCodeExit() {
         // TODO Auto-generated method stub
 
@@ -300,6 +312,18 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      */
     @Override
     public void setPackage(String pkg) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public CachedFileHandle getFileHandle() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void setFileHandle(CachedFileHandle fileHandle) {
         // TODO Auto-generated method stub
 
     }
