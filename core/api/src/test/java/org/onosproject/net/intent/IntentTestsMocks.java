@@ -245,15 +245,6 @@ public class IntentTestsMocks {
             return result;
         }
 
-        public void setAvailableBandwidth(double availableBandwidth) {
-            this.availableBandwidth = availableBandwidth;
-        }
-
-        public void setAvailableLambda(int availableLambda) {
-            this.availableLambda = availableLambda;
-        }
-
-
         @Override
         public LinkResourceAllocations requestResources(LinkResourceRequest req) {
             int lambda = -1;
