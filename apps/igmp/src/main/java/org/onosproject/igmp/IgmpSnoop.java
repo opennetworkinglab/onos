@@ -368,6 +368,8 @@ public class IgmpSnoop {
 
         eth.setPayload(ip);
 
+        eth.setPad(true);
+
         return ByteBuffer.wrap(eth.serialize());
     }
 
