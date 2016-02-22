@@ -6,8 +6,8 @@
     var $log, $scope, fs, wss;
 
     // constants
-    var detailsReq = 'driverMatrixDetailsRequest',
-        detailsResp = 'driverMatrixDetailsResponse',
+    var detailsReq = 'driverDataRequest',
+        detailsResp = 'driverDataResponse',
         pName = 'ov-driver-matrix-item-details-panel',
 
         propOrder = ['id', 'label', 'code'],
@@ -40,8 +40,9 @@
     }
 
     function respDetailsCb(data) {
-        $scope.panelDetails = data.details;
-        $scope.$apply();
+        $log.debug(data);
+        //$scope.panelDetails = data.details;
+        //$scope.$apply();
     }
 
     angular.module('ovDriverMatrix', [])
@@ -62,22 +63,24 @@
                 handlers[detailsResp] = respDetailsCb;
                 wss.bindHandlers(handlers);
 
-                // custom selection callback
-                function selCb($event, row) {
-                    if ($scope.selId) {
-                        wss.sendEvent(detailsReq, { id: row.id });
-                    } else {
-                        $scope.hidePanel();
-                    }
-                    $log.debug('Got a click on:', row);
-                }
+                wss.sendEvent(detailsReq);
 
-                // TableBuilderService creating a table for us
-                tbs.buildTable({
-                    scope: $scope,
-                    tag: 'driverMatrix',
-                    selCb: selCb
-                });
+                //// custom selection callback
+                //function selCb($event, row) {
+                //    if ($scope.selId) {
+                //        wss.sendEvent(detailsReq, { id: row.id });
+                //    } else {
+                //        $scope.hidePanel();
+                //    }
+                //    $log.debug('Got a click on:', row);
+                //}
+
+                //// TableBuilderService creating a table for us
+                //tbs.buildTable({
+                //    scope: $scope,
+                //    tag: 'driverMatrix',
+                //    selCb: selCb
+                //});
 
                 // cleanup
                 $scope.$on('$destroy', function () {

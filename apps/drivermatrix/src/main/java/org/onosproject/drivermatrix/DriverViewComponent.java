@@ -31,10 +31,10 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * Skeletal ONOS UI Table-View application component.
+ * Registers driver matrix view.
  */
 @Component(immediate = true)
-public class DriverMatrixComponent {
+public class DriverViewComponent {
 
     private static final String VIEW_ID = "driverMatrix";
     private static final String VIEW_TEXT = "Driver Matrix";
@@ -46,13 +46,13 @@ public class DriverMatrixComponent {
 
     // List of application views
     private final List<UiView> uiViews = ImmutableList.of(
-            new UiView(UiView.Category.OTHER, VIEW_ID, VIEW_TEXT)
+            new UiView(UiView.Category.PLATFORM, VIEW_ID, VIEW_TEXT)
     );
 
     // Factory for UI message handlers
     private final UiMessageHandlerFactory messageHandlerFactory =
             () -> ImmutableList.of(
-                    new DriverMatrixMessageHandler()
+                    new DriverViewMessageHandler()
             );
 
     // Application UI extension
