@@ -17,6 +17,7 @@ package org.onosproject.provider.of.group.impl;
 
 import com.google.common.collect.Lists;
 
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
@@ -213,7 +214,7 @@ public class GroupBucketEntryBuilder {
                     break;
                 case POP_MPLS:
                     OFActionPopMpls popMpls = (OFActionPopMpls) act;
-                    builder.popMpls((short) popMpls.getEthertype().getValue());
+                    builder.popMpls(new EthType(popMpls.getEthertype().getValue()));
                     break;
                 case PUSH_MPLS:
                     OFActionPushMpls pushMpls = (OFActionPushMpls) act;

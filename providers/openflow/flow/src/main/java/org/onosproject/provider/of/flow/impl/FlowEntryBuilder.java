@@ -16,6 +16,8 @@
 package org.onosproject.provider.of.flow.impl;
 
 import com.google.common.collect.Lists;
+
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
@@ -359,7 +361,7 @@ public class FlowEntryBuilder {
                     break;
                 case POP_MPLS:
                     OFActionPopMpls popMpls = (OFActionPopMpls) act;
-                    builder.popMpls((short) popMpls.getEthertype().getValue());
+                    builder.popMpls(new EthType(popMpls.getEthertype().getValue()));
                     break;
                 case PUSH_MPLS:
                     builder.pushMpls();

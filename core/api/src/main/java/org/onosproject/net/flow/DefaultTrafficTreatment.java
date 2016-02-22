@@ -15,8 +15,6 @@
  */
 package org.onosproject.net.flow;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -28,7 +26,6 @@ import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -38,6 +35,8 @@ import org.onosproject.net.meter.MeterId;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default traffic treatment implementation.
@@ -351,11 +350,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
-        public Builder popMpls(int etherType) {
-            return add(Instructions.popMpls(new EthType(etherType)));
-        }
-
-        @Override
         public Builder popMpls(EthType etherType) {
             return add(Instructions.popMpls(etherType));
         }
@@ -375,14 +369,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return add(Instructions.decMplsTtl());
         }
 
-        @Deprecated
-        @Override
-        /**
-         * @deprecated 1.3.0 Drake Release
-         */
-        public Builder setLambda(short lambda) {
-            return add(Instructions.modL0Lambda(new IndexedLambda(lambda)));
-        }
 
         @Override
         public Builder group(GroupId groupId) {
@@ -447,27 +433,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return add(Instructions.modTunnelId(tunnelId));
         }
 
-        @Deprecated
-        @Override
-        /**
-         * @deprecated 1.3.0 Drake Release
-         */
-        public TrafficTreatment.Builder setTcpSrc(short port) {
-            return setTcpSrc(TpPort.tpPort(port));
-        }
-
         @Override
         public TrafficTreatment.Builder setTcpSrc(TpPort port) {
             return add(Instructions.modTcpSrc(port));
-        }
-
-        @Deprecated
-        @Override
-        /**
-         * @deprecated 1.3.0 Drake Release
-         */
-        public TrafficTreatment.Builder setTcpDst(short port) {
-            return setTcpDst(TpPort.tpPort(port));
         }
 
         @Override
@@ -475,27 +443,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return add(Instructions.modTcpDst(port));
         }
 
-        @Deprecated
-        @Override
-        /**
-         * @deprecated 1.3.0 Drake Release
-         */
-        public TrafficTreatment.Builder setUdpSrc(short port) {
-            return setUdpSrc(TpPort.tpPort(port));
-        }
-
         @Override
         public TrafficTreatment.Builder setUdpSrc(TpPort port) {
             return add(Instructions.modUdpSrc(port));
-        }
-
-        @Deprecated
-        @Override
-        /**
-         * @deprecated 1.3.0 Drake Release
-         */
-        public TrafficTreatment.Builder setUdpDst(short port) {
-            return setUdpDst(TpPort.tpPort(port));
         }
 
         @Override
