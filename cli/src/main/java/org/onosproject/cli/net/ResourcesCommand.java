@@ -114,11 +114,10 @@ public class ResourcesCommand extends AbstractShellCommand {
         if (resource.equals(Resource.ROOT)) {
             print("ROOT");
         } else {
+            String resourceName = resource.simpleTypeName();
             if (resource instanceof ContinuousResource) {
-                String s = resource.simpleTypeName();
-                String simpleName = s.substring(s.lastIndexOf('.') + 1);
                 print("%s%s: %f", Strings.repeat(" ", level),
-                                  simpleName,
+                                  resourceName,
                                   // Note: last() does not return, what we've registered
                                   // following does not work
                                   //((Class<?>) resource.last()).getSimpleName(),
@@ -126,8 +125,6 @@ public class ResourcesCommand extends AbstractShellCommand {
                 // Continuous resource is terminal node, stop here
                 return;
             } else {
-                String resourceName = resource.simpleTypeName();
-
                 String toString = String.valueOf(resource.valueAs(Object.class).orElse(""));
                 if (toString.startsWith(resourceName)) {
                     print("%s%s", Strings.repeat(" ", level),
@@ -161,8 +158,8 @@ public class ResourcesCommand extends AbstractShellCommand {
                 nonAggregatable.add(r);
             } else if (Iterables.any(aggregatableTypes, r::isTypeOf)) {
                 // aggregatable & terminal node
-                String className = r.simpleTypeName();
-                aggregatables.put(className, r);
+                String simpleName = r.simpleTypeName();
+                aggregatables.put(simpleName, r);
             } else {
                 nonAggregatable.add(r);
             }
@@ -214,18 +211,15 @@ public class ResourcesCommand extends AbstractShellCommand {
             return true;
         }
 
-        String resourceName;
-        if (resource instanceof ContinuousResource) {
-            resourceName = resource.simpleTypeName();
-        } else if (resource instanceof DiscreteResource) {
+        String resourceName = resource.simpleTypeName();
+        if (resource instanceof DiscreteResource) {
             // TODO This distributed store access incurs overhead.
             //      This should be merged with the one in printResource()
             if (!resourceService.getRegisteredResources(((DiscreteResource) resource).id()).isEmpty()) {
                 // resource which has children should be printed
                 return true;
             }
-            resourceName = resource.simpleTypeName();
-        } else {
+        } else if (!(resource instanceof ContinuousResource)) {
             log.warn("Unexpected resource class: {}", resource.getClass().getSimpleName());
             return false;
         }
