@@ -18,6 +18,8 @@ package org.onosproject.driver.query;
 import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OduSignalType;
+import org.onosproject.net.OtuPort;
+import org.onosproject.net.OtuSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TributarySlot;
@@ -62,17 +64,38 @@ public class DefaultTributarySlotQuery extends AbstractHandlerBehaviour implemen
         DeviceService deviceService = this.handler().get(DeviceService.class);
         Port p = deviceService.getPort(this.data().deviceId(), port);
 
-        if (!(p instanceof OchPort)) {
-            return Collections.emptySet();
+        switch (p.type()) {
+            case OCH:
+                return queryOchTributarySlots((OchPort) p);
+            case OTU:
+                return queryOtuTributarySlots((OtuPort) p);
+            default:
+                return Collections.emptySet();
         }
-        OduSignalType signalType = ((OchPort) p).signalType();
+    }
+
+    private Set<TributarySlot> queryOchTributarySlots(OchPort ochPort) {
+        OduSignalType signalType = ochPort.signalType();
         switch (signalType) {
             case ODU2:
                 return ENTIRE_ODU2_TRIBUTARY_SLOTS;
             case ODU4:
                 return ENTIRE_ODU4_TRIBUTARY_SLOTS;
             default:
-                log.error("Unsupported signal type {}", signalType);
+                log.error("Unsupported signal type {} for {}", signalType, ochPort);
+                return Collections.emptySet();
+        }
+    }
+
+    private Set<TributarySlot> queryOtuTributarySlots(OtuPort otuPort) {
+        OtuSignalType signalType = otuPort.signalType();
+        switch (signalType) {
+            case OTU2:
+                return ENTIRE_ODU2_TRIBUTARY_SLOTS;
+            case OTU4:
+                return ENTIRE_ODU4_TRIBUTARY_SLOTS;
+            default:
+                log.error("Unsupported signal type {} for {}", signalType, otuPort);
                 return Collections.emptySet();
         }
     }
