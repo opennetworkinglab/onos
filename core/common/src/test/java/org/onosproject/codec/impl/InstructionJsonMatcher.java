@@ -20,7 +20,6 @@ import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.onlab.util.HexString;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.flow.instructions.Instruction;
-import org.onosproject.net.flow.instructions.Instructions.DropInstruction;
 import org.onosproject.net.flow.instructions.Instructions.NoActionInstruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
@@ -452,8 +451,6 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
 
         if (instruction instanceof PushHeaderInstructions) {
             return matchPushHeaderInstruction(jsonInstruction, description);
-        } else if (instruction instanceof DropInstruction) {
-            return true;
         } else if (instruction instanceof OutputInstruction) {
             return matchOutputInstruction(jsonInstruction, description);
         } else if (instruction instanceof ModLambdaInstruction) {

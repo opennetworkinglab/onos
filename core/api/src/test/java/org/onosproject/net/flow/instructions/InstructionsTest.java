@@ -101,7 +101,6 @@ public class InstructionsTest {
      */
     @Test
     public void testImmutabilityOfInstructions() {
-        assertThatClassIsImmutable(Instructions.DropInstruction.class);
         assertThatClassIsImmutable(Instructions.OutputInstruction.class);
         assertThatClassIsImmutable(L0ModificationInstruction.ModLambdaInstruction.class);
         assertThatClassIsImmutable(L0ModificationInstruction.ModOchSignalInstruction.class);
@@ -153,40 +152,6 @@ public class InstructionsTest {
     @Test
     public void testNoActionInstructionHashCode() {
         assertThat(noAction1.hashCode(), is(equalTo(noAction2.hashCode())));
-    }
-
-    //  DropInstruction
-
-    private final Instructions.DropInstruction drop1 = Instructions.createDrop();
-    private final Instructions.DropInstruction drop2 = Instructions.createDrop();
-
-    /**
-     * Test the createDrop method.
-     */
-    @Test
-    public void testCreateDropMethod() {
-        Instructions.DropInstruction instruction = Instructions.createDrop();
-        checkAndConvert(instruction,
-                        Instruction.Type.DROP,
-                        Instructions.DropInstruction.class);
-    }
-
-    /**
-     * Test the equals() method of the DropInstruction class.
-     */
-
-    @Test
-    public void testDropInstructionEquals() throws Exception {
-        assertThat(drop1, is(equalTo(drop2)));
-    }
-
-    /**
-     * Test the hashCode() method of the DropInstruction class.
-     */
-
-    @Test
-    public void testDropInstructionHashCode() {
-        assertThat(drop1.hashCode(), is(equalTo(drop2.hashCode())));
     }
 
     //  OutputInstruction

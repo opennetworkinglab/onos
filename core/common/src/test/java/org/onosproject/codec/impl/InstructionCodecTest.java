@@ -73,18 +73,6 @@ public class InstructionCodecTest {
     }
 
     /**
-     * Tests the encoding of drop instructions.
-     */
-    @Test
-    public void dropInstructionTest() {
-        final Instructions.DropInstruction instruction =
-                Instructions.createDrop();
-        final ObjectNode instructionJson =
-                instructionCodec.encode(instruction, context);
-        assertThat(instructionJson, matchesInstruction(instruction));
-    }
-
-    /**
      * Tests the encoding of output instructions.
      */
     @Test

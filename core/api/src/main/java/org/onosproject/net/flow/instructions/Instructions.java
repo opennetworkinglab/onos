@@ -72,17 +72,6 @@ public final class Instructions {
     }
 
     /**
-     * Creates a drop instruction.
-     *
-     * @return drop instruction
-     * @deprecated 1.4.0 Emu Release
-     */
-    @Deprecated
-    public static DropInstruction createDrop() {
-        return new DropInstruction();
-    }
-
-    /**
      * Creates a no action instruction.
      *
      * @return no action instruction
@@ -481,42 +470,6 @@ public final class Instructions {
         checkNotNull(extension, "Extension instruction cannot be null");
         checkNotNull(deviceId, "Device ID cannot be null");
         return new ExtensionInstructionWrapper(extension, deviceId);
-    }
-
-    /**
-     *  Drop instruction.
-     *  @deprecated 1.4.0 Emu Release
-     */
-    @Deprecated
-    public static final class DropInstruction implements Instruction {
-
-        private DropInstruction() {}
-
-        @Override
-        public Type type() {
-            return Type.DROP;
-        }
-
-        @Override
-        public String toString() {
-            return type().toString();
-        }
-
-        @Override
-        public int hashCode() {
-            return type().ordinal();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj instanceof DropInstruction) {
-                return true;
-            }
-            return false;
-        }
     }
 
     /**

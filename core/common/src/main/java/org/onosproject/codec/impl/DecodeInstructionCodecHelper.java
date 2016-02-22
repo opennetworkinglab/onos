@@ -257,8 +257,8 @@ public final class DecodeInstructionCodecHelper {
                                                            + " is not supported");
             }
             return Instructions.createOutput(portNumber);
-        } else if (type.equals(Instruction.Type.DROP.name())) {
-            return Instructions.createDrop();
+        } else if (type.equals(Instruction.Type.NOACTION.name())) {
+            return Instructions.createNoAction();
         } else if (type.equals(Instruction.Type.L0MODIFICATION.name())) {
             return decodeL0();
         } else if (type.equals(Instruction.Type.L1MODIFICATION.name())) {

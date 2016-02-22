@@ -293,7 +293,7 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
         // MAC table flow rules
         if ((selector.getCriterion(Type.TUNNEL_ID) != null && selector
                 .getCriterion(Type.ETH_DST) != null)
-                || tb.allInstructions().contains(Instructions.createDrop())) {
+                || tb.allInstructions().contains(Instructions.createNoAction())) {
             forTable = MAC_TABLE;
             return reassemblyFlowRule(ruleBuilder, tb, transition, forTable);
         }

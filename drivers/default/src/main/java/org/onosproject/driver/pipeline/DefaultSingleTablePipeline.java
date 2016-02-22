@@ -118,7 +118,7 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
                 (fwd.treatment().tableTransition() == null) &&
                 (!fwd.treatment().clearedDeferred())) {
             TrafficTreatment.Builder flowTreatment = DefaultTrafficTreatment.builder();
-            flowTreatment.add(Instructions.createDrop());
+            flowTreatment.add(Instructions.createNoAction());
             treatment = flowTreatment.build();
         }
 

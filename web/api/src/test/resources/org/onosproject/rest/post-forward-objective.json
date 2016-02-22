@@ -17,7 +17,7 @@
     "instructions":
     [
       {"type":"OUTPUT","port":-3},
-      {"type":"DROP"}
+      {"type":"NOACTION"}
     ]
   }
 }

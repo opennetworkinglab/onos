@@ -382,7 +382,6 @@ public final class KryoNamespaces {
                     Criterion.class,
                     Criterion.Type.class,
                     DefaultTrafficTreatment.class,
-                    Instructions.DropInstruction.class,
                     Instructions.NoActionInstruction.class,
                     Instructions.OutputInstruction.class,
                     Instructions.GroupInstruction.class,
