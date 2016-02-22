@@ -34,6 +34,7 @@ import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedQueue;
 import org.onosproject.store.service.Serializer;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -93,7 +94,15 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
 
     @Override
     public AsyncLeaderElector newAsyncLeaderElector(String name) {
-        return getCreator(name).newAsyncLeaderElector(name);
+        checkNotNull(name);
+        Map<PartitionId, AsyncLeaderElector> leaderElectors =
+                Maps.transformValues(members,
+                                     partition -> partition.newAsyncLeaderElector(name));
+        Hasher<String> hasher = topic -> {
+            long hashCode = HashCode.fromBytes(topic.getBytes(Charsets.UTF_8)).asLong();
+            return sortedMemberPartitionIds.get(Hashing.consistentHash(hashCode, members.size()));
+        };
+        return new PartitionedAsyncLeaderElector(name, leaderElectors, hasher);
     }
 
     @Override
