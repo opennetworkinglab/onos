@@ -124,6 +124,10 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
     @Modified
     public void modified(ComponentContext context) {
+        if (context == null) {
+            return;
+        }
+
         Dictionary properties = context.getProperties();
 
         //TODO for reduction check if the new capacity is smaller than the size of the current mapping
@@ -556,7 +560,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return flowRule;
     }
 
-    private OduSignalId buildOduSignalId(OduSignalType ochPortSignalType, Set<TributarySlot> slots) {
+    protected OduSignalId buildOduSignalId(OduSignalType ochPortSignalType, Set<TributarySlot> slots) {
         int tributaryPortNumber = findFirstTributarySlotIndex(slots);
         int tributarySlotLen = ochPortSignalType.tributarySlots();
         byte[] tributarySlotBitmap = new byte[OduSignalId.TRIBUTARY_SLOT_BITMAP_SIZE];

@@ -17,9 +17,11 @@ package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
+import org.onosproject.net.TributarySlot;
 import org.onosproject.net.newresource.ContinuousResourceId;
 import org.onosproject.net.newresource.DiscreteResource;
 import org.onosproject.net.newresource.DiscreteResourceId;
@@ -108,6 +110,14 @@ class MockResourceService implements ResourceService {
         Collection<Resource> resources = new HashSet<>();
         resources.add(Resources.discrete(parent).resource().child(VlanId.vlanId((short) 10)));
         resources.add(Resources.discrete(parent).resource().child(MplsLabel.mplsLabel(10)));
+        resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(1)));
+        resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(2)));
+        resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(3)));
+        resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(4)));
+        resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(5)));
+        resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(6)));
+        resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(7)));
+        resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(8)));
         return ImmutableSet.copyOf(resources);
     }
 
