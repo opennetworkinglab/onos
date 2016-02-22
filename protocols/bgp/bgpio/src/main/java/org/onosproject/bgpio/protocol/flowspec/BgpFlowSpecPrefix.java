@@ -41,6 +41,14 @@ public class BgpFlowSpecPrefix implements Comparable<Object> {
      * @param sourcePrefix source prefix
      */
     public BgpFlowSpecPrefix(IpPrefix destinationPrefix, IpPrefix sourcePrefix) {
+        if (destinationPrefix == null) {
+            destinationPrefix = IpPrefix.valueOf(0, 0);
+        }
+
+        if (sourcePrefix == null) {
+            sourcePrefix = IpPrefix.valueOf(0, 0);
+        }
+
         this.destinationPrefix = destinationPrefix;
         this.sourcePrefix = sourcePrefix;
     }

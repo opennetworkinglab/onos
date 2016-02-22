@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgp.controller.BgpPeer;
@@ -44,6 +45,8 @@ import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
 import org.onosproject.bgpio.types.AsPath;
 import org.onosproject.bgpio.types.As4Path;
 import org.onosproject.bgpio.types.BgpExtendedCommunity;
+import org.onosproject.bgpio.types.BgpFsDestinationPrefix;
+import org.onosproject.bgpio.types.BgpFsSourcePrefix;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.LocalPref;
 import org.onosproject.bgpio.types.Med;
@@ -83,25 +86,25 @@ public class BgpPeerImpl implements BgpPeer {
     private BgpLocalRib bgplocalRibVpn;
     private AdjRibIn adjRib;
     private VpnAdjRibIn vpnAdjRib;
-    private BgpFlowSpecRibOut flowSpecRibOut;
-    private BgpFlowSpecRibOut vpnFlowSpecRibOut;
+    private BgpFlowSpecRib flowSpecRibOut;
+    private BgpFlowSpecRib flowSpecRibIn;
 
     /**
      * Returns the flowSpec RIB out.
      *
      * @return flow Specification RIB out
      */
-    public BgpFlowSpecRibOut flowSpecRibOut() {
+    public BgpFlowSpecRib flowSpecRibOut() {
         return flowSpecRibOut;
     }
 
     /**
-     * Returns the VPN flowSpec RIB out.
+     * Returns the flowSpec RIB-in.
      *
-     * @return VPN flow Specification RIB out
+     * @return flow Specification RIB-in
      */
-    public BgpFlowSpecRibOut vpnFlowSpecRibOut() {
-        return vpnFlowSpecRibOut;
+    public BgpFlowSpecRib flowSpecRibIn() {
+        return flowSpecRibIn;
     }
 
     /**
@@ -142,8 +145,8 @@ public class BgpPeerImpl implements BgpPeer {
         this.bgplocalRibVpn =  bgpController.bgpLocalRibVpn();
         this.adjRib = new AdjRibIn();
         this.vpnAdjRib = new VpnAdjRibIn();
-        this.flowSpecRibOut = new BgpFlowSpecRibOut();
-        this.vpnFlowSpecRibOut = new BgpFlowSpecRibOut();
+        this.flowSpecRibOut = new BgpFlowSpecRib();
+        this.flowSpecRibIn = new BgpFlowSpecRib();
     }
 
     /**
@@ -258,21 +261,21 @@ public class BgpPeerImpl implements BgpPeer {
                 }
                 flowSpecRibOut.add(prefix, flowSpec);
             } else {
-                if (vpnFlowSpecRibOut.vpnFlowSpecTree().containsKey(flowSpec.routeDistinguisher())) {
+                if (flowSpecRibOut.vpnFlowSpecTree().containsKey(flowSpec.routeDistinguisher())) {
                     Map<BgpFlowSpecPrefix, BgpFlowSpecDetails> fsTree;
-                    fsTree = vpnFlowSpecRibOut.vpnFlowSpecTree().get(flowSpec.routeDistinguisher());
+                    fsTree = flowSpecRibOut.vpnFlowSpecTree().get(flowSpec.routeDistinguisher());
                     if (fsTree.containsKey(prefix)) {
                         sendFlowSpecUpdateMessageToPeer(FlowSpecOperation.DELETE,
                                                         fsTree.get(prefix));
                     }
                 }
-                vpnFlowSpecRibOut.add(flowSpec.routeDistinguisher(), prefix, flowSpec);
+                flowSpecRibOut.add(flowSpec.routeDistinguisher(), prefix, flowSpec);
             }
         } else if (operType == FlowSpecOperation.DELETE) {
             if (flowSpec.routeDistinguisher() == null) {
                 flowSpecRibOut.delete(prefix);
             } else {
-                vpnFlowSpecRibOut.delete(flowSpec.routeDistinguisher(), prefix);
+                flowSpecRibOut.delete(flowSpec.routeDistinguisher(), prefix);
             }
         }
         sendFlowSpecUpdateMessageToPeer(operType, flowSpec);
@@ -290,6 +293,65 @@ public class BgpPeerImpl implements BgpPeer {
             if (attr instanceof MpUnReachNlri) {
                 List<BgpLSNlri> nlri = ((MpUnReachNlri) attr).mpUnReachNlri();
                 callRemove(this, nlri);
+            }
+        }
+    }
+
+    @Override
+    public void buildFlowSpecRib(List<BgpValueType> pathAttr) throws BgpParseException {
+        ListIterator<BgpValueType> iterator = pathAttr.listIterator();
+        BgpFlowSpecDetails bgpFlowSpecDetails = new BgpFlowSpecDetails();
+        FlowSpecOperation operType = FlowSpecOperation.UPDATE;
+
+        while (iterator.hasNext()) {
+            BgpValueType attr = iterator.next();
+            if (attr instanceof MpReachNlri) {
+                MpReachNlri mpReach = (MpReachNlri) attr;
+                bgpFlowSpecDetails.setFlowSpecComponents(mpReach.bgpFlowSpecInfo().flowSpecComponents());
+                bgpFlowSpecDetails.setRouteDistinguiher(mpReach.bgpFlowSpecInfo().routeDistinguisher());
+                operType = FlowSpecOperation.ADD;
+            }
+
+            if (attr instanceof BgpExtendedCommunity) {
+                BgpExtendedCommunity extCommunity = (BgpExtendedCommunity) attr;
+                bgpFlowSpecDetails.setFsActionTlv(extCommunity.fsActionTlv());
+            }
+
+            if (attr instanceof MpUnReachNlri) {
+                MpUnReachNlri mpUnReach = (MpUnReachNlri) attr;
+                bgpFlowSpecDetails.setFlowSpecComponents(mpUnReach.bgpFlowSpecInfo().flowSpecComponents());
+                bgpFlowSpecDetails.setRouteDistinguiher(mpUnReach.bgpFlowSpecInfo().routeDistinguisher());
+                operType = FlowSpecOperation.DELETE;
+            }
+        }
+
+        iterator = bgpFlowSpecDetails.flowSpecComponents().listIterator();
+        IpPrefix destIpPrefix = null;
+        IpPrefix srcIpPrefix = null;
+         while (iterator.hasNext()) {
+            BgpValueType fsAttr = iterator.next();
+            if (fsAttr instanceof BgpFsDestinationPrefix) {
+                BgpFsDestinationPrefix destinationPrefix = (BgpFsDestinationPrefix) fsAttr;
+                destIpPrefix = destinationPrefix.ipPrefix();
+            }
+
+            if (fsAttr instanceof BgpFsSourcePrefix) {
+                BgpFsSourcePrefix sourcePrefix = (BgpFsSourcePrefix) fsAttr;
+                srcIpPrefix = sourcePrefix.ipPrefix();
+            }
+        }
+        BgpFlowSpecPrefix prefix = new BgpFlowSpecPrefix(destIpPrefix, srcIpPrefix);
+        if (operType == FlowSpecOperation.ADD) {
+            if (bgpFlowSpecDetails.routeDistinguisher() == null) {
+                flowSpecRibIn.add(prefix, bgpFlowSpecDetails);
+            } else {
+                flowSpecRibIn.add(bgpFlowSpecDetails.routeDistinguisher(), prefix, bgpFlowSpecDetails);
+            }
+        } else if (operType == FlowSpecOperation.DELETE) {
+            if (bgpFlowSpecDetails.routeDistinguisher() == null) {
+                flowSpecRibIn.delete(prefix);
+            } else {
+                flowSpecRibIn.delete(bgpFlowSpecDetails.routeDistinguisher(), prefix);
             }
         }
     }
@@ -447,13 +509,13 @@ public class BgpPeerImpl implements BgpPeer {
                                                         Constants.AFI_FLOWSPEC_VALUE,
                                                         Constants.VPN_SAFI_FLOWSPEC_VALUE);
         if (isVpnCapabilitySet) {
-            Set<RouteDistinguisher> flowSpecKeys = vpnFlowSpecRibOut.vpnFlowSpecTree().keySet();
+            Set<RouteDistinguisher> flowSpecKeys = flowSpecRibOut.vpnFlowSpecTree().keySet();
             for (RouteDistinguisher key : flowSpecKeys) {
-                Map<BgpFlowSpecPrefix, BgpFlowSpecDetails> fsTree = vpnFlowSpecRibOut.vpnFlowSpecTree().get(key);
+                Map<BgpFlowSpecPrefix, BgpFlowSpecDetails> fsTree = flowSpecRibOut.vpnFlowSpecTree().get(key);
 
                 Set<BgpFlowSpecPrefix> fsKeys = fsTree.keySet();
                 for (BgpFlowSpecPrefix fsKey : fsKeys) {
-                    BgpFlowSpecDetails flowSpecDetails = vpnFlowSpecRibOut.flowSpecTree().get(fsKey);
+                    BgpFlowSpecDetails flowSpecDetails = flowSpecRibOut.flowSpecTree().get(fsKey);
                     sendFlowSpecUpdateMessageToPeer(FlowSpecOperation.DELETE, flowSpecDetails);
                 }
             }

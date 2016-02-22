@@ -40,6 +40,14 @@ public class BgpFlowSpecDetails {
     }
 
     /**
+     * Flow specification details object constructor.
+     *
+     */
+    public BgpFlowSpecDetails() {
+
+    }
+
+    /**
      * Returns flow specification action tlv.
      *
      * @return flow specification action tlv
@@ -82,6 +90,15 @@ public class BgpFlowSpecDetails {
      */
     public List<BgpValueType> flowSpecComponents() {
         return this.flowSpecComponents;
+    }
+
+    /**
+     * Sets flow specification components.
+     *
+     * @param flowSpecComponents flow specification components
+     */
+    public void setFlowSpecComponents(List<BgpValueType> flowSpecComponents) {
+        this.flowSpecComponents = flowSpecComponents;
     }
 
     @Override

@@ -18,7 +18,7 @@ package org.onosproject.controller.impl;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.bgp.controller.impl.BgpFlowSpecRibOut;
+import org.onosproject.bgp.controller.impl.BgpFlowSpecRib;
 import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecDetails;
 import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecPrefix;
 import org.onosproject.bgpio.types.BgpFsOperatorValue;
@@ -36,16 +36,16 @@ import static org.hamcrest.core.Is.is;
 /**
  * Test cases for BGP Selection Algorithm.
  */
-public class BgpFlowSpecRibOutTest {
+public class BgpFlowSpecRibTest {
 
     /**
-     * Add flow specification to rib out.
+     * Add flow specification to rib.
      */
     @Test
-    public void bgpFlowSpecRibOutTests1() {
+    public void bgpFlowSpecRibTests1() {
         List<BgpValueType> flowSpecComponents = new LinkedList<>();
         List<BgpFsOperatorValue> operatorValue = new ArrayList<>();
-        BgpFlowSpecRibOut ribOut = new BgpFlowSpecRibOut();
+        BgpFlowSpecRib rib = new BgpFlowSpecRib();
 
         IpPrefix destinationPrefix = IpPrefix.valueOf(IpAddress.valueOf("10.0.1.1"), 32);
         IpPrefix sourcePrefix = IpPrefix.valueOf(IpAddress.valueOf("10.0.1.2"), 32);
@@ -60,20 +60,20 @@ public class BgpFlowSpecRibOutTest {
 
         BgpFlowSpecDetails flowSpec = new BgpFlowSpecDetails(flowSpecComponents);
 
-        ribOut.add(prefix, flowSpec);
+        rib.add(prefix, flowSpec);
 
-        boolean isPresent = ribOut.flowSpecTree().containsKey(prefix);
+        boolean isPresent = rib.flowSpecTree().containsKey(prefix);
         assertThat(isPresent, is(true));
     }
 
     /**
-     * Add and delete flow specification to rib out.
+     * Add and delete flow specification to rib.
      */
     @Test
-    public void bgpFlowSpecRibOutTest2() {
+    public void bgpFlowSpecRibTest2() {
         List<BgpValueType> flowSpecComponents = new LinkedList<>();
         List<BgpFsOperatorValue> operatorValue = new ArrayList<>();
-        BgpFlowSpecRibOut ribOut = new BgpFlowSpecRibOut();
+        BgpFlowSpecRib rib = new BgpFlowSpecRib();
 
         IpPrefix destinationPrefix = IpPrefix.valueOf(IpAddress.valueOf("10.0.1.1"), 32);
         IpPrefix sourcePrefix = IpPrefix.valueOf(IpAddress.valueOf("10.0.1.2"), 32);
@@ -87,26 +87,26 @@ public class BgpFlowSpecRibOutTest {
 
         BgpFlowSpecDetails flowSpec = new BgpFlowSpecDetails(flowSpecComponents);
 
-        ribOut.add(prefix, flowSpec);
+        rib.add(prefix, flowSpec);
 
-        boolean isPresent = ribOut.flowSpecTree().containsKey(prefix);
+        boolean isPresent = rib.flowSpecTree().containsKey(prefix);
         assertThat(isPresent, is(true));
 
-        ribOut.delete(prefix);
-        isPresent = ribOut.flowSpecTree().containsKey(prefix);
+        rib.delete(prefix);
+        isPresent = rib.flowSpecTree().containsKey(prefix);
         assertThat(isPresent, is(false));
 
     }
 
     /**
-     * Add and delete flow specification with a specific VPN to rib out.
+     * Add and delete flow specification with a specific VPN to rib.
      */
     @Test
-    public void bgpFlowSpecRibOutTest3() {
+    public void bgpFlowSpecRibTest3() {
         List<BgpValueType> flowSpecComponents = new LinkedList<>();
         List<BgpFsOperatorValue> operatorValue = new ArrayList<>();
         RouteDistinguisher routeDistinguisher = new RouteDistinguisher(1);
-        BgpFlowSpecRibOut ribOut = new BgpFlowSpecRibOut();
+        BgpFlowSpecRib rib = new BgpFlowSpecRib();
 
         IpPrefix destinationPrefix = IpPrefix.valueOf(IpAddress.valueOf("10.0.1.1"), 32);
         IpPrefix sourcePrefix = IpPrefix.valueOf(IpAddress.valueOf("10.0.1.2"), 32);
@@ -121,13 +121,13 @@ public class BgpFlowSpecRibOutTest {
 
         BgpFlowSpecDetails flowSpec = new BgpFlowSpecDetails(flowSpecComponents);
 
-        ribOut.add(routeDistinguisher, prefix, flowSpec);
+        rib.add(routeDistinguisher, prefix, flowSpec);
 
-        boolean isPresent = ribOut.vpnFlowSpecTree().containsKey(routeDistinguisher);
+        boolean isPresent = rib.vpnFlowSpecTree().containsKey(routeDistinguisher);
         assertThat(isPresent, is(true));
 
-        ribOut.delete(routeDistinguisher, prefix);
-        isPresent = ribOut.vpnFlowSpecTree().containsKey(routeDistinguisher);
+        rib.delete(routeDistinguisher, prefix);
+        isPresent = rib.vpnFlowSpecTree().containsKey(routeDistinguisher);
         assertThat(isPresent, is(false));
     }
 }

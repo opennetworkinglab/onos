@@ -26,9 +26,9 @@ import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecPrefix;
 import com.google.common.base.MoreObjects;
 
 /**
- * Implementation of BGP flow spec RIB out for each peer.
+ * Implementation of BGP flow specification RIB.
  */
-public class BgpFlowSpecRibOut {
+public class BgpFlowSpecRib {
     private Map<BgpFlowSpecPrefix, BgpFlowSpecDetails> flowSpecTree = new TreeMap<>();
     private Map<RouteDistinguisher, Map<BgpFlowSpecPrefix, BgpFlowSpecDetails>> vpnFlowSpecTree = new TreeMap<>();
 

@@ -124,6 +124,14 @@ public interface BgpPeer {
     void buildAdjRibIn(List<BgpValueType> pathAttr) throws BgpParseException;
 
     /**
+     * Update flow specification RIB for each peer.
+     *
+     * @param pathAttr list of Bgp path attributes
+     * @throws BgpParseException while building flow spec RIB
+     */
+    void buildFlowSpecRib(List<BgpValueType> pathAttr) throws BgpParseException;
+
+    /**
      * Return the BGP session info.
      *
      * @return sessionInfo bgp session info

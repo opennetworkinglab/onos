@@ -189,7 +189,7 @@ public class MpReachNlri implements BgpValueType {
                                                && ((safi == Constants.SAFI_FLOWSPEC_VALUE)
                                                || (safi == Constants.VPN_SAFI_FLOWSPEC_VALUE))) {
                 List<BgpValueType> flowSpecComponents = new LinkedList<>();
-
+                RouteDistinguisher routeDistinguisher = null;
                 if (tempCb.readableBytes() > 0) {
                     BgpValueType flowSpecComponent = null;
 
@@ -203,6 +203,11 @@ public class MpReachNlri implements BgpValueType {
                     }
 
                     byte reserved = tempCb.readByte();
+
+                    if (safi == Constants.VPN_SAFI_FLOWSPEC_VALUE) {
+                        routeDistinguisher = new RouteDistinguisher();
+                        routeDistinguisher = RouteDistinguisher.read(tempCb);
+                    }
                     short totNlriLen = tempCb.getByte(tempCb.readerIndex());
                     if (totNlriLen >= FLOW_SPEC_LEN) {
                         totNlriLen = tempCb.readShort();
@@ -260,7 +265,9 @@ public class MpReachNlri implements BgpValueType {
                         flowSpecComponents.add(flowSpecComponent);
                     }
                 }
-                return new MpReachNlri(new BgpFlowSpecDetails(flowSpecComponents), afi, safi);
+                BgpFlowSpecDetails flowSpecDetails = new BgpFlowSpecDetails(flowSpecComponents);
+                flowSpecDetails.setRouteDistinguiher(routeDistinguisher);
+                return new MpReachNlri(flowSpecDetails, afi, safi);
             } else {
                 throw new BgpParseException("Not Supporting afi " + afi + "safi " + safi);
             }
