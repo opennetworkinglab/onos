@@ -56,19 +56,18 @@ public class OpenstackPnatHandler implements Runnable {
     private final int portNum;
     private final OpenstackPort openstackPort;
     private final Port port;
+    private OpenstackRoutingConfig config;
 
     private static final String DEVICE_OWNER_ROUTER_INTERFACE = "network:router_interface";
-    // TODO: This will be replaced to get the information from openstacknetworkingservice.
-    private static final MacAddress GATEWAYMAC = MacAddress.valueOf("1f:1f:1f:1f:1f:1f");
-    private static final MacAddress EXTERNAL_INTERFACE_MAC = MacAddress.valueOf("00:00:00:00:00:11");
 
     OpenstackPnatHandler(OpenstackRoutingRulePopulator rulePopulator, PacketContext context,
-                         int portNum, OpenstackPort openstackPort, Port port) {
+                         int portNum, OpenstackPort openstackPort, Port port, OpenstackRoutingConfig config) {
         this.rulePopulator = checkNotNull(rulePopulator);
         this.context = checkNotNull(context);
         this.portNum = checkNotNull(portNum);
         this.openstackPort = checkNotNull(openstackPort);
         this.port = checkNotNull(port);
+        this.config = checkNotNull(config);
     }
 
     @Override
@@ -85,7 +84,8 @@ public class OpenstackPnatHandler implements Runnable {
         OpenstackRouter router = getOpenstackRouter(openstackPort);
 
         rulePopulator.populatePnatFlowRules(inboundPacket, openstackPort, portNum,
-                getExternalIp(router), getExternalInterfaceMacAddress(), getExternalRouterMacAddress());
+                getExternalIp(router), MacAddress.valueOf(config.gatewayExternalInterfaceMac()),
+                MacAddress.valueOf(config.physicalRouterMac()));
 
         packetOut((Ethernet) ethernet.clone(), inboundPacket.receivedFrom().deviceId(), portNum, router);
     }
@@ -144,20 +144,14 @@ public class OpenstackPnatHandler implements Runnable {
         iPacket.setSourceAddress(getExternalIp(router).toString());
         iPacket.resetChecksum();
         iPacket.setParent(ethernet);
-        ethernet.setSourceMACAddress(getExternalInterfaceMacAddress())
-                .setDestinationMACAddress(getExternalRouterMacAddress());
+        ethernet.setPayload(iPacket);
+        ethernet.setSourceMACAddress(config.gatewayExternalInterfaceMac())
+                .setDestinationMACAddress(config.physicalRouterMac());
         ethernet.resetChecksum();
 
         treatment.setOutput(port.number());
 
         packetService.emit(new DefaultOutboundPacket(deviceId, treatment.build(),
                 ByteBuffer.wrap(ethernet.serialize())));
-    }
-
-    private MacAddress getExternalInterfaceMacAddress() {
-        return EXTERNAL_INTERFACE_MAC;
-    }
-    private MacAddress getExternalRouterMacAddress() {
-        return GATEWAYMAC;
     }
 }

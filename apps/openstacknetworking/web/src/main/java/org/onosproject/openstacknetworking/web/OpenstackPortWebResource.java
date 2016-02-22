@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.web.OpenstackPortCodec;
+import org.onosproject.openstacknetworking.OpenstackPortInfo;
+import org.onosproject.openstacknetworking.OpenstackRoutingService;
 import org.onosproject.openstacknetworking.OpenstackSwitchingService;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
@@ -42,7 +44,7 @@ import java.io.InputStream;
 public class OpenstackPortWebResource extends AbstractWebResource {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
+    private static final String PORTNAME_PREFIX_VM = "tap";
     private static final OpenstackPortCodec PORT_CODEC = new OpenstackPortCodec();
 
     @POST
@@ -75,7 +77,14 @@ public class OpenstackPortWebResource extends AbstractWebResource {
     public Response deletePorts(@PathParam("portUUID") String id) {
         OpenstackSwitchingService switchingService =
                 getService(OpenstackSwitchingService.class);
+        OpenstackPortInfo portInfo = switchingService.openstackPortInfo()
+                .get(PORTNAME_PREFIX_VM.concat(id.substring(0, 11)));
+        OpenstackRoutingService routingService =
+                getService(OpenstackRoutingService.class);
+        routingService.checkDisassociatedFloatingIp(id, portInfo);
+
         switchingService.removePort(id);
+
         return Response.status(Response.Status.OK).build();
     }
 

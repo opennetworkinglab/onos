@@ -80,5 +80,11 @@ public interface OpenstackRoutingService {
      */
     void removeRouterInterface(OpenstackRouterInterface openstackRouterInterface);
 
-
+    /**
+     * Checks floatingIp deassociation when corresponding deleted vm.
+     *
+     * @param portId Deleted vm
+     * @param portInfo
+     */
+    void checkDisassociatedFloatingIp(String portId, OpenstackPortInfo portInfo);
 }

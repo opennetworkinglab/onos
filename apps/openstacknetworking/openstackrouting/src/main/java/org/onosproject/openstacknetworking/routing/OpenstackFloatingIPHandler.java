@@ -15,20 +15,34 @@
  */
 package org.onosproject.openstacknetworking.routing;
 
-        import org.onosproject.event.AbstractEvent;
+import org.onosproject.openstackinterface.OpenstackFloatingIP;
+import org.onosproject.openstacknetworking.OpenstackPortInfo;
 
 /**
  * Handle FloatingIP Event for Managing Flow Rules In Openstack Nodes.
  */
 public class OpenstackFloatingIPHandler implements Runnable {
 
-    volatile AbstractEvent event;
-    OpenstackFloatingIPHandler(AbstractEvent event) {
-        this.event = event;
+    private final OpenstackFloatingIP floatingIP;
+    private final OpenstackRoutingRulePopulator rulePopulator;
+    private boolean associate;
+    private final OpenstackPortInfo portInfo;
+
+    OpenstackFloatingIPHandler(OpenstackRoutingRulePopulator rulePopulator,
+                               OpenstackFloatingIP openstackFloatingIP, boolean associate, OpenstackPortInfo portInfo) {
+        this.floatingIP = openstackFloatingIP;
+        this.rulePopulator = rulePopulator;
+        this.associate = associate;
+        this.portInfo = portInfo;
     }
 
     @Override
     public void run() {
+        if (associate) {
+            rulePopulator.populateFloatingIpRules(floatingIP);
+        } else {
+            rulePopulator.removeFloatingIpRules(floatingIP, portInfo);
+        }
 
     }
 }
