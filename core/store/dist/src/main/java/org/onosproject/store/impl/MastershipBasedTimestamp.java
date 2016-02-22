@@ -38,6 +38,14 @@ public final class MastershipBasedTimestamp implements Timestamp {
     private final long sequenceNumber;
 
     /**
+     * Default constructor for serialization.
+     */
+    protected MastershipBasedTimestamp() {
+        this.termNumber = -1;
+        this.sequenceNumber = -1;
+    }
+
+    /**
      * Default version tuple.
      *
      * @param termNumber the mastership termNumber
@@ -104,14 +112,4 @@ public final class MastershipBasedTimestamp implements Timestamp {
         return sequenceNumber;
     }
 
-    // Default constructor for serialization
-
-    /**
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
-    protected MastershipBasedTimestamp() {
-        this.termNumber = -1;
-        this.sequenceNumber = -1;
-    }
 }
