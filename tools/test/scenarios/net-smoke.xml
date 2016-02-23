@@ -35,8 +35,11 @@
         <import file="${ONOS_SCENARIOS}/net-create-flows.xml"/>
         <dependency name="Net-Create-Flows" requires="Net-Setup,P2P-Intent-Connectivity,Net-REST"/>
 
+        <import file="${ONOS_SCENARIOS}/net-flow-objectives.xml"/>
+        <dependency name="Net-Flow-Objectives" requires="Net-Setup,P2P-Intent-Connectivity,Net-REST,Net-Create-Flows"/>
+
         <import file="${ONOS_SCENARIOS}/net-topo.xml"/>
-        <dependency name="Net-Topo" requires="Net-Setup,Net-Create-Flows"/>
+        <dependency name="Net-Topo" requires="Net-Setup,Net-Create-Flows,Net-Flow-Objectives"/>
 
         <import file="${ONOS_SCENARIOS}/net-teardown.xml"/>
         <dependency name="Net-Teardown" requires="~Host-Intent-Connectivity,
