@@ -15,13 +15,11 @@
  */
 package org.onosproject.net.resource.link;
 
-import org.onosproject.net.resource.ResourceAllocation;
-
 /**
  * Representation of allocated link resources.
  *
  * @deprecated 1.4.0 Emu Release
  */
 @Deprecated
-public interface LinkResourceAllocations extends ResourceAllocation {
+public interface LinkResourceAllocations {
 }
