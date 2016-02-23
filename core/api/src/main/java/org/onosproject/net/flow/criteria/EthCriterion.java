@@ -77,7 +77,9 @@ public final class EthCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return type().toString() + SEPARATOR + mac + "/" + mask;
+        return (mask != null) ?
+            type().toString() + SEPARATOR + mac + "/" + mask :
+            type().toString() + SEPARATOR + mac;
     }
 
     @Override
