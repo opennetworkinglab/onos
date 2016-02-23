@@ -57,6 +57,7 @@ public final class MulticastData {
     }
 
     public void setSource(ConnectPoint source) {
+        // FIXME: violates immutability
         isEmpty.set(false);
         this.source.set(source);
     }

@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -56,6 +57,7 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
                 .withSerializer(Serializer.using(KryoNamespace.newBuilder()
                                                          .register(KryoNamespaces.API)
                                                          .register(
+                                                                 AtomicReference.class,
                                                                  MulticastData.class,
                                                                  McastRoute.class,
                                                                  McastRoute.Type.class

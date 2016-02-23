@@ -71,6 +71,8 @@ public class DistributedLeadershipStore
 
     protected NodeId localNodeId;
     protected ConsistentMap<String, InternalLeadership> leadershipMap;
+    protected Map<String, Versioned<InternalLeadership>> leadershipCache = Maps.newConcurrentMap();
+
     private final MapEventListener<String, InternalLeadership> leadershipChangeListener =
             event -> {
                 Leadership oldValue = InternalLeadership.toLeadership(Versioned.valueOrNull(event.oldValue()));
@@ -91,6 +93,12 @@ public class DistributedLeadershipStore
                 if (!leaderChanged && candidatesChanged) {
                     eventType = LeadershipEvent.Type.CANDIDATES_CHANGED;
                 }
+                leadershipCache.compute(event.key(), (k, v) -> {
+                    if (v == null || v.version() < event.newValue().version()) {
+                        return event.newValue();
+                    }
+                    return v;
+                });
                 notifyDelegate(new LeadershipEvent(eventType, newValue));
             };
 
@@ -103,6 +111,7 @@ public class DistributedLeadershipStore
                                       .withRelaxedReadConsistency()
                                       .withSerializer(Serializer.using(KryoNamespaces.API, InternalLeadership.class))
                                       .build();
+        leadershipMap.entrySet().forEach(e -> leadershipCache.put(e.getKey(), e.getValue()));
         leadershipMap.addListener(leadershipChangeListener);
         log.info("Started");
     }
@@ -210,16 +219,13 @@ public class DistributedLeadershipStore
 
     @Override
     public Leadership getLeadership(String topic) {
-        return InternalLeadership.toLeadership(Versioned.valueOrNull(leadershipMap.get(topic)));
+        InternalLeadership internalLeadership = Versioned.valueOrNull(leadershipCache.get(topic));
+        return internalLeadership == null ? null : internalLeadership.asLeadership();
     }
 
     @Override
     public Map<String, Leadership> getLeaderships() {
-        Map<String, Leadership> leaderships = Maps.newHashMap();
-        leadershipMap.entrySet().forEach(e -> {
-            leaderships.put(e.getKey(), e.getValue().value().asLeadership());
-        });
-        return ImmutableMap.copyOf(leaderships);
+        return ImmutableMap.copyOf(Maps.transformValues(leadershipCache, v -> v.value().asLeadership()));
     }
 
     private static class InternalLeadership {
