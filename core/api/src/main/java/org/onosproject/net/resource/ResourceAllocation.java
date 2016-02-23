@@ -22,10 +22,4 @@ import com.google.common.annotations.Beta;
  */
 @Beta
 public interface ResourceAllocation {
-    /**
-     * Returns the resource type.
-     *
-     * @return the resource type
-     */
-    ResourceType type();
 }

@@ -22,11 +22,4 @@ import com.google.common.annotations.Beta;
  */
 @Beta
 public interface ResourceRequest {
-    /**
-     * Returns the resource type.
-     *
-     * @return the resource type
-     */
-    ResourceType type();
-
 }
