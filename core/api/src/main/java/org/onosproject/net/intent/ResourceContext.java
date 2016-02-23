@@ -16,7 +16,7 @@
 package org.onosproject.net.intent;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.newresource.Resource;
+import org.onosproject.net.resource.Resource;
 
 /**
  * Class providing resource information to constraints.

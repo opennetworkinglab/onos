@@ -34,11 +34,11 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TributarySlot;
-import org.onosproject.net.newresource.ContinuousResource;
-import org.onosproject.net.newresource.DiscreteResource;
-import org.onosproject.net.newresource.Resource;
-import org.onosproject.net.newresource.Resources;
-import org.onosproject.net.newresource.ResourceService;
+import org.onosproject.net.resource.ContinuousResource;
+import org.onosproject.net.resource.DiscreteResource;
+import org.onosproject.net.resource.Resource;
+import org.onosproject.net.resource.Resources;
+import org.onosproject.net.resource.ResourceService;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;

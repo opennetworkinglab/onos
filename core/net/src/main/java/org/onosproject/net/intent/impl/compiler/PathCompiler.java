@@ -46,10 +46,10 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.impl.IntentCompilationException;
-import org.onosproject.net.newresource.Resource;
-import org.onosproject.net.newresource.ResourceAllocation;
-import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.newresource.Resources;
+import org.onosproject.net.resource.Resource;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.resource.Resources;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;
@@ -112,7 +112,7 @@ public class PathCompiler<T> {
                                 .resource()
                 ))
                 .collect(Collectors.toSet());
-        List<org.onosproject.net.newresource.ResourceAllocation> allocations =
+        List<ResourceAllocation> allocations =
                 creator.resourceService().allocate(intent.id(), ImmutableList.copyOf(resources));
         if (allocations.isEmpty()) {
             Collections.emptyMap();

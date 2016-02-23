@@ -21,7 +21,7 @@ import org.onlab.util.Bandwidth;
 import org.onlab.util.DataRateUnit;
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.ResourceContext;
-import org.onosproject.net.newresource.Resources;
+import org.onosproject.net.resource.Resources;
 
 import java.util.Objects;
 import java.util.stream.Stream;

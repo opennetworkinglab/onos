@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.net.resource;
+
+import com.google.common.annotations.Beta;
 
 /**
- * Implementation of the generic network resource subsystem.
+ * Marker interface representing an entity using resource.
  */
-package org.onosproject.net.resource.impl;
+@Beta
+public interface ResourceConsumer {
+}

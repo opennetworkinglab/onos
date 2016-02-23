@@ -35,7 +35,7 @@ import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.PathIntent;
-import org.onosproject.net.newresource.ResourceService;
+import org.onosproject.net.resource.ResourceService;
 import org.slf4j.Logger;
 
 import java.util.LinkedList;

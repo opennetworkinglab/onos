@@ -33,7 +33,7 @@ import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.impl.PathNotFoundException;
-import org.onosproject.net.newresource.ResourceService;
+import org.onosproject.net.resource.ResourceService;
 
 import java.util.Collections;
 import java.util.List;

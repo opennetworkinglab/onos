@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.net.resource;
+
+import org.onosproject.store.StoreDelegate;
 
 /**
- * Implementation of the generic network resource subsystem.
+ * Resource store delegate abstraction.
  */
-package org.onosproject.net.resource.impl;
+public interface ResourceStoreDelegate extends StoreDelegate<ResourceEvent> {
+}

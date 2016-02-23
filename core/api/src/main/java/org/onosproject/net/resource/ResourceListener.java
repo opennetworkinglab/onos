@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.net.resource;
+
+import com.google.common.annotations.Beta;
+import org.onosproject.event.EventListener;
 
 /**
- * Implementation of the generic network resource subsystem.
+ * Entity capable of receiving resource related events.
  */
-package org.onosproject.net.resource.impl;
+@Beta
+public interface ResourceListener extends EventListener<ResourceEvent> {
+}

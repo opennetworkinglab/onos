@@ -48,9 +48,10 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.MplsPathIntent;
-import org.onosproject.net.newresource.Resource;
-import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.newresource.Resources;
+import org.onosproject.net.resource.Resource;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.resource.Resources;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -134,7 +135,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
                                 .resource()
                 ))
                 .collect(Collectors.toSet());
-        List<org.onosproject.net.newresource.ResourceAllocation> allocations =
+        List<ResourceAllocation> allocations =
                 resourceService.allocate(intent.id(), ImmutableList.copyOf(resources));
         if (allocations.isEmpty()) {
             Collections.emptyMap();

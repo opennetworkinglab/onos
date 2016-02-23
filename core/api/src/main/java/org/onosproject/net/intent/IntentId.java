@@ -17,7 +17,7 @@ package org.onosproject.net.intent;
 
 import com.google.common.annotations.Beta;
 import org.onlab.util.Identifier;
-import org.onosproject.net.newresource.ResourceConsumer;
+import org.onosproject.net.resource.ResourceConsumer;
 
 /**
  * Intent identifier suitable as an external key.

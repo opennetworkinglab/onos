@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -36,13 +37,11 @@ import org.onosproject.net.OchSignal;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.newresource.DiscreteResourceId;
 import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.newresource.ResourceAllocation;
-import org.onosproject.net.newresource.ResourceService;
-
-import com.google.common.base.Strings;
-import org.onosproject.net.newresource.Resources;
+import org.onosproject.net.resource.Resources;
+import org.onosproject.net.resource.DiscreteResourceId;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceService;
 
 /**
  * Lists allocated resources.

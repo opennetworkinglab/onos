@@ -15,6 +15,7 @@
  */
 
 /**
- * Implementation of the generic network resource subsystem.
+ * Generic network resource model and services for resource allocation and
+ * resource tracking.
  */
-package org.onosproject.net.resource.impl;
+package org.onosproject.net.resource;

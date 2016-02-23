@@ -27,11 +27,11 @@ import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.newresource.ResourceAllocation;
-import org.onosproject.net.newresource.ResourceConsumer;
-import org.onosproject.net.newresource.Resource;
-import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.newresource.Resources;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceConsumer;
+import org.onosproject.net.resource.Resource;
+import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.resource.Resources;
 
 /**
  * Test tool to allocate resources.

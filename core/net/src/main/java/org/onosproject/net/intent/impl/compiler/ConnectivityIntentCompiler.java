@@ -27,7 +27,7 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.impl.PathNotFoundException;
-import org.onosproject.net.newresource.ResourceService;
+import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;

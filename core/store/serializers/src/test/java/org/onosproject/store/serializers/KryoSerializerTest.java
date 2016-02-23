@@ -62,7 +62,8 @@ import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.newresource.Resources;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.Resources;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
@@ -366,7 +367,7 @@ public class KryoSerializerTest {
 
     @Test
     public void testResourceAllocation() {
-        testSerializedEquals(new org.onosproject.net.newresource.ResourceAllocation(
+        testSerializedEquals(new ResourceAllocation(
                 Resources.discrete(DID1, P1, VLAN1).resource(),
                 IntentId.valueOf(30)));
     }

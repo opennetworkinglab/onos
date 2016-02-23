@@ -44,8 +44,8 @@ import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
-import org.onosproject.net.newresource.ResourceService;
 import org.osgi.service.component.ComponentContext;
+import org.onosproject.net.resource.ResourceService;
 import org.slf4j.Logger;
 
 import java.util.Collection;

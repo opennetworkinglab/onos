@@ -38,7 +38,7 @@ import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.PathIntent;
-import org.onosproject.net.newresource.ResourceService;
+import org.onosproject.net.resource.ResourceService;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;
