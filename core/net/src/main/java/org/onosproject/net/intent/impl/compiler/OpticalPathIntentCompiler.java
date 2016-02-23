@@ -38,14 +38,12 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalPathIntent;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 @Component(immediate = true)
 public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathIntent> {
@@ -72,8 +70,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
     }
 
     @Override
-    public List<Intent> compile(OpticalPathIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(OpticalPathIntent intent, List<Intent> installable) {
         log.debug("Compiling optical path intent between {} and {}", intent.src(), intent.dst());
 
         // Create rules for forward and reverse path

@@ -136,7 +136,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
         String[] hops = {"d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8"};
         PointToPointIntentCompiler compiler = makeCompiler(hops);
 
-        List<Intent> result = compiler.compile(intent, null, null);
+        List<Intent> result = compiler.compile(intent, null);
         assertThat(result, is(Matchers.notNullValue()));
         assertThat(result, hasSize(1));
         Intent forwardResultIntent = result.get(0);
@@ -167,7 +167,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
         String[] hops = {"d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8"};
         PointToPointIntentCompiler compiler = makeCompiler(hops);
 
-        List<Intent> result = compiler.compile(intent, null, null);
+        List<Intent> result = compiler.compile(intent, null);
         assertThat(result, is(Matchers.notNullValue()));
         assertThat(result, hasSize(1));
         Intent reverseResultIntent = result.get(0);
@@ -204,7 +204,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
         String[] hops = {"1"};
         PointToPointIntentCompiler sut = makeCompiler(hops);
 
-        List<Intent> compiled = sut.compile(intent, null, null);
+        List<Intent> compiled = sut.compile(intent, null);
 
         assertThat(compiled, hasSize(1));
         assertThat(compiled.get(0), is(instanceOf(PathIntent.class)));
@@ -233,7 +233,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
         String[] hops = {"s1", "s2", "s3"};
         final PointToPointIntentCompiler compiler = makeCompiler(hops, resourceService);
 
-        final List<Intent> compiledIntents = compiler.compile(intent, null, null);
+        final List<Intent> compiledIntents = compiler.compile(intent, null);
 
         assertThat(compiledIntents, Matchers.notNullValue());
         assertThat(compiledIntents, hasSize(1));
@@ -256,7 +256,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
             String[] hops = {"s1", "s2", "s3"};
             final PointToPointIntentCompiler compiler = makeCompiler(hops, resourceService);
 
-            compiler.compile(intent, null, null);
+            compiler.compile(intent, null);
 
             fail("Point to Point compilation with insufficient bandwidth does "
                     + "not throw exception.");

@@ -36,12 +36,10 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.slf4j.Logger;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -50,7 +48,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class PathIntentCompiler
         extends PathCompiler<FlowRule>
         implements IntentCompiler<PathIntent>,
-                   PathCompiler.PathCompilerCreateFlow<FlowRule> {
+        PathCompiler.PathCompilerCreateFlow<FlowRule> {
 
     private final Logger log = getLogger(getClass());
 
@@ -77,8 +75,7 @@ public class PathIntentCompiler
     }
 
     @Override
-    public List<Intent> compile(PathIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(PathIntent intent, List<Intent> installable) {
 
         List<FlowRule> rules = new LinkedList<>();
         List<DeviceId> devices = new LinkedList<>();

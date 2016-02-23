@@ -34,7 +34,6 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.topology.PathService;
 
 import java.util.Collections;
@@ -74,8 +73,7 @@ public class MultiPointToSinglePointIntentCompiler
     }
 
     @Override
-    public List<Intent> compile(MultiPointToSinglePointIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(MultiPointToSinglePointIntent intent, List<Intent> installable) {
         Map<DeviceId, Link> links = new HashMap<>();
         ConnectPoint egressPoint = intent.egressPoint();
 

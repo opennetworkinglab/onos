@@ -126,7 +126,7 @@ public class MplsPathIntentCompilerTest {
     public void testCompile() {
         sut.activate();
 
-        List<Intent> compiled = sut.compile(intent, Collections.emptyList(), Collections.emptySet());
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
         assertThat(compiled, hasSize(1));
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();

@@ -22,10 +22,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.TwoWayP2PIntent;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * A intent compiler for {@link org.onosproject.net.intent.TwoWayP2PIntent}.
@@ -45,8 +43,7 @@ public class TwoWayP2PIntentCompiler
     }
 
     @Override
-    public List<Intent> compile(TwoWayP2PIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(TwoWayP2PIntent intent, List<Intent> installable) {
         return Lists.newArrayList(
                 PointToPointIntent.builder()
                         .appId(intent.appId())

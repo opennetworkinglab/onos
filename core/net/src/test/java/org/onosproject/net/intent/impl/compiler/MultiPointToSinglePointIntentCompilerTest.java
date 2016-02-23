@@ -153,7 +153,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
         MultiPointToSinglePointIntentCompiler compiler = makeCompiler(hops);
         assertThat(compiler, is(notNullValue()));
 
-        List<Intent> result = compiler.compile(intent, null, null);
+        List<Intent> result = compiler.compile(intent, null);
         assertThat(result, is(Matchers.notNullValue()));
         assertThat(result, hasSize(1));
         Intent resultIntent = result.get(0);
@@ -188,7 +188,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
         MultiPointToSinglePointIntentCompiler compiler = makeCompiler(hops);
         assertThat(compiler, is(notNullValue()));
 
-        List<Intent> result = compiler.compile(intent, null, null);
+        List<Intent> result = compiler.compile(intent, null);
         assertThat(result, is(notNullValue()));
         assertThat(result, hasSize(1));
         Intent resultIntent = result.get(0);
@@ -221,7 +221,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
         MultiPointToSinglePointIntentCompiler compiler = makeCompiler(hops);
         assertThat(compiler, is(notNullValue()));
 
-        List<Intent> result = compiler.compile(intent, null, null);
+        List<Intent> result = compiler.compile(intent, null);
         assertThat(result, is(notNullValue()));
         assertThat(result, hasSize(1));
         Intent resultIntent = result.get(0);
@@ -254,7 +254,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
         MultiPointToSinglePointIntentCompiler compiler = makeCompiler(hops);
         assertThat(compiler, is(notNullValue()));
 
-        List<Intent> result = compiler.compile(intent, null, null);
+        List<Intent> result = compiler.compile(intent, null);
         assertThat(result, is(notNullValue()));
         assertThat(result, hasSize(1));
         Intent resultIntent = result.get(0);

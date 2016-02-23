@@ -189,7 +189,7 @@ public class PathIntentCompilerTest {
     public void testCompile() {
         sut.activate();
 
-        List<Intent> compiled = sut.compile(intent, Collections.emptyList(), Collections.emptySet());
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
         assertThat(compiled, hasSize(1));
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
@@ -236,7 +236,7 @@ public class PathIntentCompilerTest {
     public void testVlanEncapCompile() {
         sut.activate();
 
-        List<Intent> compiled = sut.compile(constraintVlanIntent, Collections.emptyList(), Collections.emptySet());
+        List<Intent> compiled = sut.compile(constraintVlanIntent, Collections.emptyList());
         assertThat(compiled, hasSize(1));
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
@@ -280,7 +280,7 @@ public class PathIntentCompilerTest {
         sut.activate();
 
         List<Intent> compiled = sut.compile(constrainIngressEgressVlanIntent,
-                Collections.emptyList(), Collections.emptySet());
+                Collections.emptyList());
         assertThat(compiled, hasSize(1));
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
@@ -373,7 +373,7 @@ public class PathIntentCompilerTest {
     public void testMplsEncapCompile() {
         sut.activate();
 
-        List<Intent> compiled = sut.compile(constraintMplsIntent, Collections.emptyList(), Collections.emptySet());
+        List<Intent> compiled = sut.compile(constraintMplsIntent, Collections.emptyList());
         assertThat(compiled, hasSize(1));
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();

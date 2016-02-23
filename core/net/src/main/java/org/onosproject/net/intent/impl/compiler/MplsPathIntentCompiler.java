@@ -51,7 +51,6 @@ import org.onosproject.net.intent.MplsPathIntent;
 import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.newresource.Resources;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -90,8 +89,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
     protected ApplicationId appId;
 
     @Override
-    public List<Intent> compile(MplsPathIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(MplsPathIntent intent, List<Intent> installable) {
         Map<LinkKey, MplsLabel> labels = assignMplsLabel(intent);
         List<FlowRule> rules = generateRules(intent, labels);
 

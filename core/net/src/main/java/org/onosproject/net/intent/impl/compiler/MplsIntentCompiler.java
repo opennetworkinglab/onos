@@ -20,7 +20,6 @@ import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 
 import org.apache.felix.scr.annotations.Activate;
@@ -34,7 +33,6 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.MplsIntent;
 import org.onosproject.net.intent.MplsPathIntent;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 /**
  * @deprecated in Goldeneye Release, in favour of encapsulation
@@ -62,8 +60,7 @@ public class MplsIntentCompiler  extends ConnectivityIntentCompiler<MplsIntent> 
     }
 
     @Override
-    public List<Intent> compile(MplsIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(MplsIntent intent, List<Intent> installable) {
         ConnectPoint ingressPoint = intent.ingressPoint();
         ConnectPoint egressPoint = intent.egressPoint();
 

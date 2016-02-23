@@ -17,7 +17,6 @@ package org.onosproject.net.intent.impl.compiler;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -40,7 +39,6 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;
@@ -78,8 +76,7 @@ public class PathIntentFlowObjectiveCompiler
     }
 
     @Override
-    public List<Intent> compile(PathIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(PathIntent intent, List<Intent> installable) {
 
         List<Objective> objectives = new LinkedList<>();
         List<DeviceId> devices = new LinkedList<>();

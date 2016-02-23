@@ -31,12 +31,10 @@ import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import static org.onosproject.net.flow.DefaultTrafficSelector.builder;
 
@@ -61,8 +59,7 @@ public class HostToHostIntentCompiler
     }
 
     @Override
-    public List<Intent> compile(HostToHostIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(HostToHostIntent intent, List<Intent> installable) {
         boolean isAsymmetric = intent.constraints().contains(new AsymmetricPathConstraint());
         Path pathOne = getPath(intent, intent.one(), intent.two());
         Path pathTwo = isAsymmetric ?

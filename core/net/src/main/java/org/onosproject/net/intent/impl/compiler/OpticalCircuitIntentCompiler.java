@@ -64,7 +64,6 @@ import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.newresource.Resources;
 import org.onosproject.net.intent.IntentSetMultimap;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -169,8 +168,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     }
 
     @Override
-    public List<Intent> compile(OpticalCircuitIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(OpticalCircuitIntent intent, List<Intent> installable) {
         // Check if ports are OduClt ports
         ConnectPoint src = intent.getSrc();
         ConnectPoint dst = intent.getDst();

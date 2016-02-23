@@ -39,7 +39,6 @@ import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.LinkCollectionIntent;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,8 +72,7 @@ public class LinkCollectionIntentFlowObjectivesCompiler implements IntentCompile
     }
 
     @Override
-    public List<Intent> compile(LinkCollectionIntent intent, List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+    public List<Intent> compile(LinkCollectionIntent intent, List<Intent> installable) {
         SetMultimap<DeviceId, PortNumber> inputPorts = HashMultimap.create();
         SetMultimap<DeviceId, PortNumber> outputPorts = HashMultimap.create();
 

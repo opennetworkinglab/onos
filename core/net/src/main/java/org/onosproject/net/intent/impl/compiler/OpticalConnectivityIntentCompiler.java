@@ -47,7 +47,6 @@ import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.newresource.Resources;
-import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
@@ -99,8 +98,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
     @Override
     public List<Intent> compile(OpticalConnectivityIntent intent,
-                                List<Intent> installable,
-                                Set<LinkResourceAllocations> linkResources) {
+                                List<Intent> installable) {
         // Check if source and destination are optical OCh ports
         ConnectPoint src = intent.getSrc();
         ConnectPoint dst = intent.getDst();

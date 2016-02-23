@@ -79,7 +79,7 @@ class CompilerRegistry {
         registerSubclassCompilerIfNeeded(intent);
         // FIXME: get previous resources
         List<Intent> installable = new ArrayList<>();
-        for (Intent compiled : getCompiler(intent).compile(intent, previousInstallables, null)) {
+        for (Intent compiled : getCompiler(intent).compile(intent, previousInstallables)) {
             installable.addAll(compile(compiled, previousInstallables));
         }
         return installable;
