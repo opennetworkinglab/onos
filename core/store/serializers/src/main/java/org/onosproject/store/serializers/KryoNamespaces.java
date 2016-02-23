@@ -188,18 +188,6 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.link.BandwidthResource;
-import org.onosproject.net.resource.link.BandwidthResourceAllocation;
-import org.onosproject.net.resource.link.BandwidthResourceRequest;
-import org.onosproject.net.resource.link.DefaultLinkResourceAllocations;
-import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
-import org.onosproject.net.resource.link.LambdaResource;
-import org.onosproject.net.resource.link.LambdaResourceAllocation;
-import org.onosproject.net.resource.link.LambdaResourceRequest;
-import org.onosproject.net.resource.link.LinkResourceRequest;
-import org.onosproject.net.resource.link.MplsLabel;
-import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
-import org.onosproject.net.resource.link.MplsLabelResourceRequest;
 import org.onosproject.security.Permission;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.primitives.MapUpdate;
@@ -438,15 +426,6 @@ public final class KryoNamespaces {
                     OpticalConnectivityIntent.class,
                     OpticalPathIntent.class,
                     OpticalCircuitIntent.class,
-                    LinkResourceRequest.class,
-                    DefaultLinkResourceRequest.class,
-                    BandwidthResourceRequest.class,
-                    LambdaResourceRequest.class,
-                    LambdaResource.class,
-                    BandwidthResource.class,
-                    DefaultLinkResourceAllocations.class,
-                    BandwidthResourceAllocation.class,
-                    LambdaResourceAllocation.class,
                     DiscreteResource.class,
                     ContinuousResource.class,
                     DiscreteResourceId.class,
@@ -521,9 +500,6 @@ public final class KryoNamespaces {
             .register(
                     MplsIntent.class,
                     MplsPathIntent.class,
-                    MplsLabelResourceAllocation.class,
-                    MplsLabelResourceRequest.class,
-                    MplsLabel.class,
                     org.onlab.packet.MplsLabel.class,
                     org.onlab.packet.MPLS.class
             )

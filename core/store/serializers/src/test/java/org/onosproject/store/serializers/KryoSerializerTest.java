@@ -45,7 +45,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
-import org.onosproject.net.Link.Type;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
@@ -65,14 +64,6 @@ import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.newresource.Resources;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.link.BandwidthResource;
-import org.onosproject.net.resource.link.BandwidthResourceAllocation;
-import org.onosproject.net.resource.link.DefaultLinkResourceAllocations;
-import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
-import org.onosproject.net.resource.link.LambdaResource;
-import org.onosproject.net.resource.link.LambdaResourceAllocation;
-import org.onosproject.net.resource.link.LinkResourceRequest;
-import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
@@ -92,9 +83,6 @@ import org.onlab.util.KryoNamespace;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.time.Duration;
 
 import static java.util.Arrays.asList;
@@ -364,31 +352,6 @@ public class KryoSerializerTest {
         testSerializedEquals(org.onosproject.net.Lambda.ochSignal(
                 GridType.DWDM, ChannelSpacing.CHL_100GHZ, 1, 1
         ));
-    }
-
-    @Test
-    public void testDefaultLinkResourceRequest() {
-        testSerializable(DefaultLinkResourceRequest.builder(IntentId.valueOf(2501), ImmutableList.of())
-                        .addLambdaRequest()
-                        .addBandwidthRequest(32.195)
-                        .build()
-        );
-    }
-
-    @Test
-    public void testDefaultLinkResourceAllocations() {
-        LinkResourceRequest request = DefaultLinkResourceRequest
-                    .builder(IntentId.valueOf(2501), ImmutableList.of())
-                        .addLambdaRequest()
-                        .addBandwidthRequest(32.195)
-                        .build();
-        Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
-        allocations.put(DefaultLink.builder()
-                                .providerId(PID)
-                                .src(CP1).dst(CP2).type(Type.DIRECT).build(),
-                        ImmutableSet.of(new BandwidthResourceAllocation(new BandwidthResource(Bandwidth.bps(10.0))),
-                                        new LambdaResourceAllocation(LambdaResource.valueOf(1))));
-        testSerializable(new DefaultLinkResourceAllocations(request, allocations));
     }
 
     @Test
