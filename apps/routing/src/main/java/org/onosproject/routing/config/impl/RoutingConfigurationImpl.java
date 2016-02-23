@@ -196,11 +196,6 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     }
 
     @Override
-    public Set<Interface> getInterfaces() {
-        return Collections.emptySet();
-    }
-
-    @Override
     public Set<ConnectPoint> getBgpPeerConnectPoints() {
         // TODO perhaps cache this result in future
         ApplicationId routerAppId = coreService.getAppId(Router.ROUTER_APP_ID);
@@ -219,16 +214,6 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
                     .map(intf -> intf.connectPoint())
                     .collect(Collectors.toSet());
         }
-    }
-
-    @Override
-    public Interface getInterface(ConnectPoint connectPoint) {
-        return null;
-    }
-
-    @Override
-    public Interface getInterface(IpAddress ip) {
-        return null;
     }
 
     @Override

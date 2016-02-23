@@ -74,42 +74,12 @@ public interface RoutingConfigurationService {
     boolean isIpPrefixLocal(IpPrefix ipPrefix);
 
     /**
-     * Retrieves the entire set of interfaces in the network.
-     *
-     * @return the set of interfaces
-     * @deprecated in Drake release - use InterfaceService instead
-     */
-    @Deprecated
-    Set<Interface> getInterfaces();
-
-    /**
      * Retrieves the entire set of connect points connected to BGP peers in the
      * network.
      *
      * @return the set of connect points connected to BGP peers
      */
     Set<ConnectPoint> getBgpPeerConnectPoints();
-
-    /**
-     * Retrieves the interface associated with the given connect point.
-     *
-     * @param connectPoint the connect point to retrieve interface information
-     * for
-     * @return the interface
-     * @deprecated in Drake release - use InterfaceService instead
-     */
-    @Deprecated
-    Interface getInterface(ConnectPoint connectPoint);
-
-    /**
-     * Retrieves the interface associated with the given IP address.
-     *
-     * @param ip IP address of the interface
-     * @return the interface
-     * @deprecated in Drake release - use InterfaceService instead
-     */
-    @Deprecated
-    Interface getInterface(IpAddress ip);
 
     /**
      * Retrieves the interface that matches the given IP address. Matching
