@@ -18,7 +18,7 @@
         category="default" url="http://onosproject.org"
         featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
         features="${project.artifactId}"
-        apps="org.onosproject.ovsdb-base,org.onosproject.openstackswitching,org.onosproject.dhcp">
+        apps="org.onosproject.ovsdb-base,org.onosproject.openstacknetworking,org.onosproject.dhcp">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/onos-app-cordvtn/${project.version}</artifact>
 </app>

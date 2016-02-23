@@ -304,9 +304,26 @@ public class OpenstackNetworkingManager implements OpenstackNetworkingService {
 
     @Override
     public OpenstackNetwork network(String networkId) {
-        return getNetworks().stream()
+        Collection<OpenstackSubnet> subnets = getSubnets().stream()
+                .filter(s -> s.networkId().equals(networkId))
+                .collect(Collectors.toList());
+
+        OpenstackNetwork openstackNetwork = getNetworks().stream()
                 .filter(n -> n.id().equals(networkId))
                 .findAny().orElse(null);
+
+        if (openstackNetwork == null) {
+            return null;
+        }
+
+        return OpenstackNetwork.builder()
+                .id(openstackNetwork.id())
+                .name(openstackNetwork.name())
+                .networkType(openstackNetwork.networkType())
+                .segmentId(openstackNetwork.segmentId())
+                .tenantId(openstackNetwork.tenantId())
+                .subnets(subnets)
+                .build();
     }
 
     @Override
