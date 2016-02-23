@@ -1,8 +1,9 @@
 <!-- partial HTML -->
 <div id="ov-driver-matrix">
     <div class="tabular-header">
-        <h2>Items ({{tableData.length}} total)</h2>
+        <h2>Driver Matrix</h2>
         <div class="ctrl-btns">
+            <!-- TODO: fix (or remove) refresh button -->
             <div class="refresh" ng-class="{active: autoRefresh}"
                  icon icon-id="refresh" icon-size="36"
                  tooltip tt-msg="autoRefreshTip"
@@ -10,36 +11,35 @@
         </div>
     </div>
 
-    <div class="summary-list" onos-table-resize>
-
-        <div class="table-header" onos-sortable-header>
-            <table>
+    <!-- TODO: handle resizing / scrolling -->
+    <div class="driver-matrix">
+        <table class="table-header-rotated">
+            <thead>
                 <tr>
-                    <td colId="id" sortable>Item ID </td>
-                    <td colId="label" sortable>Label </td>
-                    <td colId="code" sortable>Code </td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="table-body">
-            <table>
-                <tr ng-if="!tableData.length" class="no-data">
-                    <td colspan="3">
-                        No Items found
-                    </td>
+                    <!-- first column header is not rotated -->
+                    <th></th>
+                    <!-- following headers are rotated -->
+                    <th class="rotate" ng-repeat="beh in behaviours track by $index">
+                        <div><span>{{beh}}</span></div>
+                    </th>
                 </tr>
 
-                <tr ng-repeat="item in tableData track by $index"
-                    ng-click="selectCallback($event, item)"
-                    ng-class="{selected: item.id === selId}">
-                    <td>{{item.id}}</td>
-                    <td>{{item.label}}</td>
-                    <td>{{item.code}}</td>
-                </tr>
-            </table>
-        </div>
+            </thead>
 
+            <tbody>
+            <tr ng-repeat="drv in drivers track by $index">
+                <!--ng-click="selectCallback($event, item)"-->
+                <!--ng-class="{selected: item.id === selId}">-->
+                <th class="row-header">
+                    {{drv}}
+                </th>
+                <td ng-repeat="beh in behaviours track by $index"
+                    ng-class="{'xmark':cellMarked(drv, beh)}">
+                    {{cellValue(drv, beh)}}
+                </td>
+            </tr>
+            </tbody>
+        </table>
     </div>
 
     <ov-driver-matrix-item-details-panel></ov-driver-matrix-item-details-panel>

@@ -1,4 +1,4 @@
-// js for sample app table view
+// js for driver view
 (function () {
     'use strict';
 
@@ -8,8 +8,8 @@
     // constants
     var detailsReq = 'driverDataRequest',
         detailsResp = 'driverDataResponse',
+        // TODO: deal with details panel
         pName = 'ov-driver-matrix-item-details-panel',
-
         propOrder = ['id', 'label', 'code'],
         friendlyProps = ['Item ID', 'Item Label', 'Special Code'];
 
@@ -40,9 +40,11 @@
     }
 
     function respDetailsCb(data) {
-        $log.debug(data);
-        //$scope.panelDetails = data.details;
-        //$scope.$apply();
+        //$log.debug('Matrix Data', data);
+        $scope.behaviours = data.behaviours;
+        $scope.drivers = data.drivers;
+        $scope.matrix = data.matrix;
+        $scope.$apply();
     }
 
     angular.module('ovDriverMatrix', [])
@@ -57,7 +59,9 @@
                 wss = _wss_;
 
                 var handlers = {};
-                $scope.panelDetails = {};
+                $scope.behaviours = [];
+                $scope.drivers = [];
+                $scope.matrix = {};
 
                 // details response handler
                 handlers[detailsResp] = respDetailsCb;
@@ -75,12 +79,17 @@
                 //    $log.debug('Got a click on:', row);
                 //}
 
-                //// TableBuilderService creating a table for us
-                //tbs.buildTable({
-                //    scope: $scope,
-                //    tag: 'driverMatrix',
-                //    selCb: selCb
-                //});
+                function cellHit(d, b) {
+                    var drec = $scope.matrix[d],
+                        brec = drec && drec[b];
+                    return !!brec;
+                }
+
+                $scope.cellMarked = cellHit;
+
+                $scope.cellValue = function(d, b) {
+                    return cellHit(d, b) ? 'x' : '';
+                };
 
                 // cleanup
                 $scope.$on('$destroy', function () {
@@ -91,6 +100,7 @@
                 $log.log('OvDriverMatrixCtrl has been created');
             }])
 
+        // TODO: implement row selection to show details panel
         .directive('ovDriverMatrixItemDetailsPanel', ['PanelService', 'KeyService',
             function (ps, ks) {
             return {

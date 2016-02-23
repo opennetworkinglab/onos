@@ -30,24 +30,24 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
- * Message handler for device view related messages.
+ * Message handler for driver matrix view related messages.
  */
 public class DriverViewMessageHandler extends UiMessageHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final int ONE = 1;
     private static final String DRIVER_DATA_REQUEST = "driverDataRequest";
     private static final String DRIVER_DATA_RESPONSE = "driverDataResponse";
 
     private static final String DRIVERS = "drivers";
     private static final String BEHAVIOURS = "behaviours";
+    private static final String MATRIX = "matrix";
 
     private static final Comparator<? super Class<? extends Behaviour>> BEHAVIOUR_BY_NAME =
             (o1, o2) -> o1.getSimpleName().compareTo(o2.getSimpleName());
@@ -59,11 +59,12 @@ public class DriverViewMessageHandler extends UiMessageHandler {
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new DataRequestHandler()
+                // TODO: for row selection, produce data for detail panel
 //                new DetailRequestHandler()
         );
     }
 
-    // handler for device table requests
+    // handler for driver matrix requests
     private final class DataRequestHandler extends RequestHandler {
 
         private DataRequestHandler() {
@@ -72,54 +73,46 @@ public class DriverViewMessageHandler extends UiMessageHandler {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            // Search for drivers producing two artifacts:
-            // 1) list of abstract behaviours as column listing
-            // 2) sparse matrix of drivers-to-concrete behaviours
-
             DriverService driverService = get(DriverService.class);
 
-            // Collect all behaviours for all drivers
-            Map<Driver, Set<Class<? extends Behaviour>>> driverBehaviours = new HashMap<>();
-            driverService.getDrivers().forEach(d -> driverBehaviours.put(d, d.behaviours()));
-
-            // Order all drivers
-            List<Driver> drivers = orderDrivers(driverBehaviours.keySet());
+            List<Driver> drivers = new ArrayList<>(driverService.getDrivers());
+            drivers = orderDrivers(drivers);
 
             // Produce a union of all behaviours (and order them)
-            List<Class<? extends Behaviour>> behaviours = orderBehaviours(driverBehaviours.values());
+            List<Class<? extends Behaviour>> behaviours = orderBehaviours(drivers);
 
             // Produce a JSON structure and send it
-            sendMessage(DRIVER_DATA_RESPONSE, 0, driversJson(driverBehaviours, drivers, behaviours));
+            sendMessage(DRIVER_DATA_RESPONSE, 0, driversJson(drivers, behaviours));
         }
 
-        private List<Driver> orderDrivers(Set<Driver> drivers) {
+        private List<Driver> orderDrivers(List<Driver> drivers) {
             // For now order by alphanumeric name of the driver
-            List<Driver> ordered = new ArrayList<>(drivers);
-            ordered.sort(DRIVER_BY_NAME);
-            return ordered;
+            drivers.sort(DRIVER_BY_NAME);
+            return drivers;
         }
 
-        private List<Class<? extends Behaviour>>
-        orderBehaviours(Collection<Set<Class<? extends Behaviour>>> behaviours) {
-            // For now order by alphanumeric name of the abstract behaviour simple name
+        private List<Class<? extends Behaviour>> orderBehaviours(List<Driver> drivers) {
+            // first, produce a set-union of all behaviours from all drivers...
             Set<Class<? extends Behaviour>> allBehaviours = new HashSet<>();
-            behaviours.forEach(allBehaviours::addAll);
+            drivers.forEach(d -> allBehaviours.addAll(d.behaviours()));
+
+            // for now, order by alphanumeric name of the abstract behaviour simple name
             List<Class<? extends Behaviour>> ordered = new ArrayList<>(allBehaviours);
             ordered.sort(BEHAVIOUR_BY_NAME);
             return ordered;
         }
 
-        private ObjectNode driversJson(Map<Driver, Set<Class<? extends Behaviour>>> driverBehaviours,
-                                       List<Driver> drivers,
+        private ObjectNode driversJson(List<Driver> drivers,
                                        List<Class<? extends Behaviour>> behaviours) {
             ObjectNode root = objectNode();
             addBehaviours(root, behaviours);
             addDrivers(root, drivers);
-            addRelationships(root, drivers, behaviours, driverBehaviours);
+            addMatrixCells(root, drivers);
             return root;
         }
 
-        private void addBehaviours(ObjectNode root, List<Class<? extends Behaviour>> behaviours) {
+        private void addBehaviours(ObjectNode root,
+                                   List<Class<? extends Behaviour>> behaviours) {
             ArrayNode array = arrayNode();
             root.set(BEHAVIOURS, array);
             behaviours.forEach(b -> array.add(b.getSimpleName()));
@@ -131,9 +124,19 @@ public class DriverViewMessageHandler extends UiMessageHandler {
             drivers.forEach(d -> array.add(d.name()));
         }
 
-        private void addRelationships(ObjectNode root,
-                                      List<Driver> drivers, List<Class<? extends Behaviour>> behaviours,
-                                      Map<Driver, Set<Class<? extends Behaviour>>> driverBehaviours) {
+        private void addMatrixCells(ObjectNode root, List<Driver> drivers) {
+            ObjectNode matrix = objectNode();
+            root.set(MATRIX, matrix);
+
+            drivers.forEach(d -> {
+                ObjectNode dnode = objectNode();
+                matrix.set(d.name(), dnode);
+
+                d.behaviours().forEach(b -> {
+                    // TODO: can put a payload here, rather than a '1' marker
+                    dnode.put(b.getSimpleName(), ONE);
+                });
+            });
         }
     }
 

@@ -1,8 +1,46 @@
-/* css for sample table view */
+/* css for driver matrix view */
 
 #ov-driver-matrix h2 {
     display: inline-block;
 }
+
+#ov-driver-matrix table {
+    margin-left: 20px;
+}
+
+#ov-driver-matrix .table-header-rotated {
+    border-collapse: collapse;
+}
+#ov-driver-matrix .table-header-rotated td {
+    width: 30px;
+}
+#ov-driver-matrix .table-header-rotated td.xmark {
+    background-color: yellow;
+}
+#ov-driver-matrix .table-header-rotated td {
+    text-align: center;
+    padding: 2px 5px;
+    border: 1px solid #ccc;
+}
+#ov-driver-matrix .table-header-rotated th.rotate {
+    height: 140px;
+    white-space: nowrap;
+}
+#ov-driver-matrix .table-header-rotated th.rotate > div {
+    -webkit-transform: translate(25px, 51px) rotate(-45deg);
+    transform: translate(25px, 51px) rotate(-45deg);
+    width: 30px;
+}
+#ov-driver-matrix .table-header-rotated th.rotate > div > span {
+    border-bottom: 1px solid #ccc;
+    padding: 5px 10px;
+}
+#ov-driver-matrix .table-header-rotated th.row-header {
+    padding: 0 10px;
+    border-bottom: 1px solid #ccc;
+    text-align: right;
+}
+
 
 /* Panel Styling */
 #ov-driver-matrix-item-details-panel.floatpanel {
@@ -33,3 +71,4 @@
     font-style: italic;
     opacity: 0.8;
 }
+
