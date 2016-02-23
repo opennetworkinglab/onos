@@ -66,7 +66,8 @@ import org.onosproject.yangutils.translator.CachedFileHandle;
 /**
  * List data represented in YANG.
  */
-public class YangList extends YangNode implements YangLeavesHolder, YangCommonInfo, Parsable {
+public class YangList extends YangNode
+        implements YangLeavesHolder, YangCommonInfo, Parsable {
 
     /**
      * name of the YANG list.
@@ -113,12 +114,12 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
     /**
      * List of leaves.
      */
-    private List<YangLeaf<?>> listOfLeaf;
+    private List<YangLeaf> listOfLeaf;
 
     /**
      * List of leaf-lists.
      */
-    private List<YangLeafList<?>> listOfLeafList;
+    private List<YangLeafList> listOfLeafList;
 
     /**
      * The "max-elements" statement, which is optional, takes as an argument a
@@ -128,7 +129,7 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
      *
      * If no "max-elements" statement is present, it defaults to "unbounded".
      */
-    private int maxElelements;
+    private int maxElelements = Integer.MAX_VALUE;
 
     /**
      * The "min-elements" statement, which is optional, takes as an argument a
@@ -146,7 +147,7 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
      *
      * o Otherwise, it is enforced if the ancestor node exists.
      */
-    private int minElements;
+    private int minElements = 0;
 
     /**
      * reference.
@@ -157,7 +158,12 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
      * Status of the node.
      */
 
-    private YangStatusType status;
+    private YangStatusType status = YangStatusType.CURRENT;
+
+    /**
+     * package of the generated java code.
+     */
+    private String pkg;
 
     /**
      * Constructor.
@@ -168,16 +174,20 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
         super(type);
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getName()
+    /**
+     * Get the YANG list name.
+     *
+     * @return YANG list name.
      */
     @Override
     public String getName() {
         return name;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setName(java.lang.String)
+    /**
+     * Set the YANG list name.
+     *
+     * @param name YANG list name.
      */
     @Override
     public void setName(String name) {
@@ -249,7 +259,6 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
         if (getKeyList() == null) {
             setKeyList(new LinkedList<String>());
         }
-
         getKeyList().add(key);
     }
 
@@ -259,7 +268,7 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
      * @return the list of leaves.
      */
     @Override
-    public List<YangLeaf<?>> getListOfLeaf() {
+    public List<YangLeaf> getListOfLeaf() {
         return listOfLeaf;
     }
 
@@ -268,7 +277,7 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
      *
      * @param leafsList the list of leaf to set.
      */
-    private void setListOfLeaf(List<YangLeaf<?>> leafsList) {
+    private void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -278,9 +287,9 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
      * @param leaf the leaf to be added.
      */
     @Override
-    public void addLeaf(YangLeaf<?> leaf) {
+    public void addLeaf(YangLeaf leaf) {
         if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf<?>>());
+            setListOfLeaf(new LinkedList<YangLeaf>());
         }
 
         getListOfLeaf().add(leaf);
@@ -292,7 +301,7 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
      * @return the list of leaf-list.
      */
     @Override
-    public List<YangLeafList<?>> getListOfLeafList() {
+    public List<YangLeafList> getListOfLeafList() {
         return listOfLeafList;
     }
 
@@ -301,7 +310,7 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
      *
      * @param listOfLeafList the list of leaf-list to set.
      */
-    private void setListOfLeafList(List<YangLeafList<?>> listOfLeafList) {
+    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -311,9 +320,9 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
      * @param leafList the leaf-list to be added.
      */
     @Override
-    public void addLeafList(YangLeafList<?> leafList) {
+    public void addLeafList(YangLeafList leafList) {
         if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList<?>>());
+            setListOfLeafList(new LinkedList<YangLeafList>());
         }
 
         getListOfLeafList().add(leafList);
@@ -434,8 +443,9 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeExit()
+    /**
+     * Free the resources used to generate the java file corresponding to YANG
+     * list info.
      */
     @Override
     public void generateJavaCodeExit() {
@@ -443,21 +453,24 @@ public class YangList extends YangNode implements YangLeavesHolder, YangCommonIn
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getPackage()
+    /**
+     * Get the mapped java package.
+     *
+     * @return the java package
      */
     @Override
     public String getPackage() {
-        // TODO Auto-generated method stub
-        return null;
+        return pkg;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setPackage(java.lang.String)
+    /**
+     * Set the mapped java package.
+     *
+     * @param pakg the package to set
      */
     @Override
-    public void setPackage(String pkg) {
-        // TODO Auto-generated method stub
+    public void setPackage(String pakg) {
+        pkg = pakg;
 
     }
 

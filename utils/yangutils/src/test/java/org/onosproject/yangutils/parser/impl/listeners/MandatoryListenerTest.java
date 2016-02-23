@@ -16,18 +16,18 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.io.IOException;
+import java.util.ListIterator;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
-import org.onosproject.yangutils.datamodel.YangModule;
-import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
-import java.io.IOException;
-import java.util.ListIterator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -60,8 +60,8 @@ public class MandatoryListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf<?> leafInfo = leafIterator.next();
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
 
         // Check whether the mandatory value is set correctly.
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
@@ -86,8 +86,8 @@ public class MandatoryListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf<?> leafInfo = leafIterator.next();
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
 
         // Check whether the mandatory value is set correctly.
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
@@ -112,8 +112,8 @@ public class MandatoryListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf<?> leafInfo = leafIterator.next();
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
 
         // Check whether the mandatory value is set correctly.
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
@@ -131,7 +131,8 @@ public class MandatoryListenerTest {
     }
 
     /**
-     * Checks invalid mandatory statement(without statement end) and expects exception.
+     * Checks invalid mandatory statement(without statement end) and expects
+     * exception.
      */
     @Test
     public void processMandatoryWithoutStatementEnd() throws IOException, ParserException {
@@ -141,7 +142,8 @@ public class MandatoryListenerTest {
     }
 
     /**
-     * Checks mandatory statement as sub-statement of module and expects exception.
+     * Checks mandatory statement as sub-statement of module and expects
+     * exception.
      */
     @Test
     public void processModuleSubStatementMandatory() throws IOException, ParserException {

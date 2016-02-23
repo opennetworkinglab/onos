@@ -27,26 +27,26 @@ public interface YangLeavesHolder {
      *
      * @return the list of leaves.
      */
-    public List<YangLeaf<?>> getListOfLeaf();
+    public List<YangLeaf> getListOfLeaf();
 
     /**
      * Add a leaf in data holder like container / list.
      *
      * @param leaf the leaf to be added.
      */
-    void addLeaf(YangLeaf<?> leaf);
+    void addLeaf(YangLeaf leaf);
 
     /**
      * Get the list of leaf-list from data holder like container / list.
      *
      * @return the list of leaf-list.
      */
-    List<YangLeafList<?>> getListOfLeafList();
+    List<YangLeafList> getListOfLeafList();
 
     /**
      * Add a leaf-list in data holder like container / list.
      *
      * @param leafList the leaf-list to be added.
      */
-    void addLeafList(YangLeafList<?> leafList);
+    void addLeafList(YangLeafList leafList);
 }

@@ -16,23 +16,22 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.io.IOException;
+import java.util.ListIterator;
+
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.junit.rules.ExpectedException;
+import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeafList;
+import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangStatusType;
-import org.onosproject.yangutils.datamodel.YangContainer;
-import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
-import java.io.IOException;
-import java.util.ListIterator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -48,8 +47,7 @@ public class LeafListListenerTest {
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
 
     /**
-     * Checks all the values of leaf-list sub-statements are set
-     * correctly.
+     * Checks all the values of leaf-list sub-statements are set correctly.
      */
     @Test
     public void processLeafListSubStatements() throws IOException, ParserException {
@@ -66,8 +64,8 @@ public class LeafListListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeafList<?>> leafListIterator = yangNode.getListOfLeafList().listIterator();
-        YangLeafList<?> leafListInfo = leafListIterator.next();
+        ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("\"uint16\""));
@@ -81,8 +79,8 @@ public class LeafListListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when leaf-list identifier
-     * starts with digit.
+     * Checks whether exception is thrown when leaf-list identifier starts with
+     * digit.
      */
     @Test
     public void processLeafListInvalidIdentifier() throws IOException, ParserException {
@@ -92,8 +90,7 @@ public class LeafListListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when leaf-list keyword
-     * is incorrect.
+     * Checks whether exception is thrown when leaf-list keyword is incorrect.
      */
     @Test
     public void processLeafListInvalidStatement() throws IOException, ParserException {
@@ -106,8 +103,8 @@ public class LeafListListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when leaf-list keyword
-     * without Left brace as per grammar.
+     * Checks whether exception is thrown when leaf-list keyword without Left
+     * brace as per grammar.
      */
     @Test
     public void processLeafListWithoutLeftBrace() throws IOException, ParserException {
@@ -117,8 +114,8 @@ public class LeafListListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when config statement
-     * cardinality is not as per grammar.
+     * Checks whether exception is thrown when config statement cardinality is
+     * not as per grammar.
      */
     @Test
     public void processLeafListConfigInvalidCardinality() throws IOException, ParserException {
@@ -128,8 +125,8 @@ public class LeafListListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when units statement
-     * cardinality is not as per grammar.
+     * Checks whether exception is thrown when units statement cardinality is
+     * not as per grammar.
      */
     @Test
     public void processLeafListUnitsInvalidCardinality() throws IOException, ParserException {
@@ -161,8 +158,8 @@ public class LeafListListenerTest {
         assertThat(container.getName(), is("valid"));
 
         // Check whether leaf-list properties as set correctly.
-        ListIterator<YangLeafList<?>> leafListIterator = container.getListOfLeafList().listIterator();
-        YangLeafList<?> leafListInfo = leafListIterator.next();
+        ListIterator<YangLeafList> leafListIterator = container.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("\"uint16\""));
@@ -198,8 +195,8 @@ public class LeafListListenerTest {
         assertThat(yangList.getName(), is("valid"));
 
         // Check whether leaf-list properties as set correctly.
-        ListIterator<YangLeafList<?>> leafListIterator = yangList.getListOfLeafList().listIterator();
-        YangLeafList<?> leafListInfo = leafListIterator.next();
+        ListIterator<YangLeafList> leafListIterator = yangList.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("\"uint16\""));

@@ -16,20 +16,19 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.io.IOException;
+import java.util.ListIterator;
+
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.datamodel.YangLeafList;
+import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
-import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
-import java.io.IOException;
-import java.util.ListIterator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -62,8 +61,8 @@ public class MaxElementsListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeafList<?>> leafListIterator = yangNode.getListOfLeafList().listIterator();
-        YangLeafList<?> leafListInfo = leafListIterator.next();
+        ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafListInfo.getMaxElelements(), is(3));
@@ -93,8 +92,8 @@ public class MaxElementsListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when invalid max-elements keyword
-     * is given as input.
+     * Checks whether exception is thrown when invalid max-elements keyword is
+     * given as input.
      */
     @Test
     public void processMaxElementsInvalidStatement() throws IOException, ParserException {
@@ -106,8 +105,8 @@ public class MaxElementsListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when max-elements statement without statement
-     * end is given as input.
+     * Checks whether exception is thrown when max-elements statement without
+     * statement end is given as input.
      */
     @Test
     public void processMaxElementsWithoutStatementEnd() throws IOException, ParserException {
@@ -145,8 +144,8 @@ public class MaxElementsListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeafList<?>> leafListIterator = yangNode.getListOfLeafList().listIterator();
-        YangLeafList<?> leafListInfo = leafListIterator.next();
+        ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafListInfo.getMaxElelements(), is(2147483647));

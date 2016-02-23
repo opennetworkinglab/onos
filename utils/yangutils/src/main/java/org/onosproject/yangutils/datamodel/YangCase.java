@@ -89,7 +89,8 @@ import org.onosproject.yangutils.translator.CachedFileHandle;
 /**
  * Data model node to maintain information defined in YANG case.
  */
-public class YangCase extends YangNode implements YangLeavesHolder, YangCommonInfo, Parsable {
+public class YangCase extends YangNode
+        implements YangLeavesHolder, YangCommonInfo, Parsable {
 
     /**
      * Case name.
@@ -106,12 +107,12 @@ public class YangCase extends YangNode implements YangLeavesHolder, YangCommonIn
     /**
      * List of leaves.
      */
-    private List<YangLeaf<?>> listOfLeaf;
+    private List<YangLeaf> listOfLeaf;
 
     /**
      * List of leaf lists.
      */
-    private List<YangLeafList<?>> listOfLeafList;
+    private List<YangLeafList> listOfLeafList;
 
     /**
      * Reference of the module.
@@ -124,22 +125,31 @@ public class YangCase extends YangNode implements YangLeavesHolder, YangCommonIn
     private YangStatusType status;
 
     /**
+     * package of the generated java code.
+     */
+    private String pkg;
+
+    /**
      * Create a choice node.
      */
     public YangCase() {
         super(YangNodeType.CASE_NODE);
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getName()
+    /**
+     * Get the case name.
+     *
+     * @return case name.
      */
     @Override
     public String getName() {
         return name;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setName(java.lang.String)
+    /**
+     * Set the case name.
+     *
+     * @param name case name.
      */
     @Override
     public void setName(String name) {
@@ -172,7 +182,7 @@ public class YangCase extends YangNode implements YangLeavesHolder, YangCommonIn
      * @return the list of leaves.
      */
     @Override
-    public List<YangLeaf<?>> getListOfLeaf() {
+    public List<YangLeaf> getListOfLeaf() {
         return listOfLeaf;
     }
 
@@ -181,7 +191,7 @@ public class YangCase extends YangNode implements YangLeavesHolder, YangCommonIn
      *
      * @param leafsList the list of leaf to set.
      */
-    private void setListOfLeaf(List<YangLeaf<?>> leafsList) {
+    private void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -191,9 +201,9 @@ public class YangCase extends YangNode implements YangLeavesHolder, YangCommonIn
      * @param leaf the leaf to be added.
      */
     @Override
-    public void addLeaf(YangLeaf<?> leaf) {
+    public void addLeaf(YangLeaf leaf) {
         if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf<?>>());
+            setListOfLeaf(new LinkedList<YangLeaf>());
         }
 
         getListOfLeaf().add(leaf);
@@ -205,7 +215,7 @@ public class YangCase extends YangNode implements YangLeavesHolder, YangCommonIn
      * @return the list of leaf-list.
      */
     @Override
-    public List<YangLeafList<?>> getListOfLeafList() {
+    public List<YangLeafList> getListOfLeafList() {
         return listOfLeafList;
     }
 
@@ -214,7 +224,7 @@ public class YangCase extends YangNode implements YangLeavesHolder, YangCommonIn
      *
      * @param listOfLeafList the list of leaf-list to set.
      */
-    private void setListOfLeafList(List<YangLeafList<?>> listOfLeafList) {
+    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -224,9 +234,9 @@ public class YangCase extends YangNode implements YangLeavesHolder, YangCommonIn
      * @param leafList the leaf-list to be added.
      */
     @Override
-    public void addLeafList(YangLeafList<?> leafList) {
+    public void addLeafList(YangLeafList leafList) {
         if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList<?>>());
+            setListOfLeafList(new LinkedList<YangLeafList>());
         }
 
         getListOfLeafList().add(leafList);
@@ -302,26 +312,29 @@ public class YangCase extends YangNode implements YangLeavesHolder, YangCommonIn
         // TODO auto-generated method stub, to be implemented by parser
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getPackage()
+    /**
+     * Get the mapped java package.
+     *
+     * @return the java package
      */
     @Override
     public String getPackage() {
-        // TODO Auto-generated method stub
-        return null;
+        return pkg;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setPackage(java.lang.String)
+    /**
+     * Set the mapped java package.
+     *
+     * @param pakg the package to set
      */
     @Override
-    public void setPackage(String pkg) {
-        // TODO Auto-generated method stub
+    public void setPackage(String pakg) {
+        pkg = pakg;
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeEntry()
+    /**
+     * Generate the code corresponding to YANG case info.
      */
     @Override
     public void generateJavaCodeEntry() {
@@ -329,8 +342,9 @@ public class YangCase extends YangNode implements YangLeavesHolder, YangCommonIn
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeExit()
+    /**
+     * Free resource used for generating code and generate valid java files
+     * corresponding to YANG case info.
      */
     @Override
     public void generateJavaCodeExit() {

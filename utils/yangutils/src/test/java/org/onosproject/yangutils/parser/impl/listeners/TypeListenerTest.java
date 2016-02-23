@@ -1,17 +1,17 @@
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.io.IOException;
+import java.util.ListIterator;
+
 import org.junit.Test;
+import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
-import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
-import java.io.IOException;
-import java.util.ListIterator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -41,8 +41,8 @@ public class TypeListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf<?> leafInfo = leafIterator.next();
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"hello\""));
@@ -67,8 +67,8 @@ public class TypeListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf<?> leafInfo = leafIterator.next();
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
@@ -93,8 +93,8 @@ public class TypeListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeafList<?>> leafListIterator = yangNode.getListOfLeafList().listIterator();
-        YangLeafList<?> leafListInfo = leafListIterator.next();
+        ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("\"uint16\""));

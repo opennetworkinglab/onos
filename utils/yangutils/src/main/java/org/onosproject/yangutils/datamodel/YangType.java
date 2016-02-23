@@ -61,7 +61,12 @@ public class YangType<T> implements Parsable {
      */
     private YangDataTypes dataType;
 
-    private T dataTypeInfo;
+    /**
+     * Additional information about data type, example restriction info, named
+     * values, etc. The extra information is based on the data type. Based on
+     * the data type, the extended info can vary.
+     */
+    private T dataTypeExtendedInfo;
 
     /**
      * Default constructor.
@@ -110,8 +115,8 @@ public class YangType<T> implements Parsable {
      *
      * @return the data type meta data.
      */
-    public T getDataTypeInfo() {
-        return dataTypeInfo;
+    public T getDataTypeExtendedInfo() {
+        return dataTypeExtendedInfo;
     }
 
     /**
@@ -119,8 +124,8 @@ public class YangType<T> implements Parsable {
      *
      * @param dataTypeInfo the meta data to set
      */
-    public void setDataTypeInfo(T dataTypeInfo) {
-        this.dataTypeInfo = dataTypeInfo;
+    public void setDataTypeExtendedInfo(T dataTypeInfo) {
+        this.dataTypeExtendedInfo = dataTypeInfo;
     }
 
     /**
@@ -128,6 +133,7 @@ public class YangType<T> implements Parsable {
      *
      * @return returns TYPE_DATA.
      */
+    @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.TYPE_DATA;
     }
@@ -137,6 +143,7 @@ public class YangType<T> implements Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
@@ -147,6 +154,7 @@ public class YangType<T> implements Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 

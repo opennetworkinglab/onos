@@ -71,7 +71,8 @@ import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
 /**
  * Data model node to maintain information defined in YANG module.
  */
-public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, YangReference, Parsable, CodeGenerator {
+public class YangModule extends YangNode
+        implements YangLeavesHolder, YangDesc, YangReference, Parsable, CodeGenerator {
 
     /**
      * Name of the module.
@@ -112,12 +113,12 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
     /**
      * List of leaves at root level in the module.
      */
-    private List<YangLeaf<?>> listOfLeaf;
+    private List<YangLeaf> listOfLeaf;
 
     /**
      * List of leaf-lists at root level in the module.
      */
-    private List<YangLeafList<?>> listOfLeafList;
+    private List<YangLeafList> listOfLeafList;
 
     /**
      * Name space of the module.
@@ -298,7 +299,7 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      * @return the list of leaves.
      */
     @Override
-    public List<YangLeaf<?>> getListOfLeaf() {
+    public List<YangLeaf> getListOfLeaf() {
         return listOfLeaf;
     }
 
@@ -307,7 +308,7 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      *
      * @param leafsList the list of leaf to set.
      */
-    private void setListOfLeaf(List<YangLeaf<?>> leafsList) {
+    private void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -317,9 +318,9 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      * @param leaf the leaf to be added.
      */
     @Override
-    public void addLeaf(YangLeaf<?> leaf) {
+    public void addLeaf(YangLeaf leaf) {
         if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf<?>>());
+            setListOfLeaf(new LinkedList<YangLeaf>());
         }
 
         getListOfLeaf().add(leaf);
@@ -331,7 +332,7 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      * @return the list of leaf-list.
      */
     @Override
-    public List<YangLeafList<?>> getListOfLeafList() {
+    public List<YangLeafList> getListOfLeafList() {
         return listOfLeafList;
     }
 
@@ -340,7 +341,7 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      *
      * @param listOfLeafList the list of leaf-list to set.
      */
-    private void setListOfLeafList(List<YangLeafList<?>> listOfLeafList) {
+    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -350,9 +351,9 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      * @param leafList the leaf-list to be added.
      */
     @Override
-    public void addLeafList(YangLeafList<?> leafList) {
+    public void addLeafList(YangLeafList leafList) {
         if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList<?>>());
+            setListOfLeafList(new LinkedList<YangLeafList>());
         }
 
         getListOfLeafList().add(leafList);
@@ -525,7 +526,10 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
-        // TODO auto-generated method stub, to be implemented by parser
+        /*
+         * Module is root in the data model tree, hence there is no entry
+         * validation
+         */
     }
 
     /**
@@ -535,7 +539,10 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
-        // TODO auto-generated method stub, to be implemented by parser
+        /*
+         * TODO: perform symbol linking for the imported or included YANG info.
+         * TODO: perform symbol resolution for referred YANG entities.
+         */
     }
 
     /**
@@ -572,9 +579,9 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      */
     private void addLeavesAttributes() {
 
-        List<YangLeaf<?>> leaves = getListOfLeaf();
+        List<YangLeaf> leaves = getListOfLeaf();
         if (leaves != null) {
-            for (YangLeaf<?> leaf : leaves) {
+            for (YangLeaf leaf : leaves) {
                 getFileHandle().addAttributeInfo(leaf.getDataType(), leaf.getLeafName(), false);
             }
         }
@@ -584,9 +591,9 @@ public class YangModule extends YangNode implements YangLeavesHolder, YangDesc, 
      * Adds leaf list's attributes in generated files.
      */
     private void addLeafListAttributes() {
-        List<YangLeafList<?>> leavesList = getListOfLeafList();
+        List<YangLeafList> leavesList = getListOfLeafList();
         if (leavesList != null) {
-            for (YangLeafList<?> leafList : leavesList) {
+            for (YangLeafList leafList : leavesList) {
                 getFileHandle().addAttributeInfo(leafList.getDataType(), leafList.getLeafName(), true);
             }
         }

@@ -114,6 +114,7 @@ public class YangBelongsTo implements Parsable {
      *
      * @return ParsedDataType returns BELONGS_TO_DATA
      */
+    @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.BELONGS_TO_DATA;
     }
@@ -123,6 +124,7 @@ public class YangBelongsTo implements Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
@@ -132,6 +134,7 @@ public class YangBelongsTo implements Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }

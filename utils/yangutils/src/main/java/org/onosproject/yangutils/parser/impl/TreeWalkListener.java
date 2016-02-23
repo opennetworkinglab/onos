@@ -16,6 +16,8 @@
 
 package org.onosproject.yangutils.parser.impl;
 
+import java.util.Stack;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -23,20 +25,19 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangListener;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
-
+import org.onosproject.yangutils.parser.impl.listeners.BaseFileListener;
+import org.onosproject.yangutils.parser.impl.listeners.BelongsToListener;
+import org.onosproject.yangutils.parser.impl.listeners.ConfigListener;
+import org.onosproject.yangutils.parser.impl.listeners.ContactListener;
+import org.onosproject.yangutils.parser.impl.listeners.ContainerListener;
 import org.onosproject.yangutils.parser.impl.listeners.DefaultListener;
+import org.onosproject.yangutils.parser.impl.listeners.DescriptionListener;
+import org.onosproject.yangutils.parser.impl.listeners.ImportListener;
+import org.onosproject.yangutils.parser.impl.listeners.IncludeListener;
 import org.onosproject.yangutils.parser.impl.listeners.KeyListener;
 import org.onosproject.yangutils.parser.impl.listeners.LeafListListener;
 import org.onosproject.yangutils.parser.impl.listeners.LeafListener;
 import org.onosproject.yangutils.parser.impl.listeners.ListListener;
-import org.onosproject.yangutils.parser.impl.listeners.ContainerListener;
-import org.onosproject.yangutils.parser.impl.listeners.ConfigListener;
-import org.onosproject.yangutils.parser.impl.listeners.ContactListener;
-import org.onosproject.yangutils.parser.impl.listeners.BaseFileListener;
-import org.onosproject.yangutils.parser.impl.listeners.BelongsToListener;
-import org.onosproject.yangutils.parser.impl.listeners.DescriptionListener;
-import org.onosproject.yangutils.parser.impl.listeners.ImportListener;
-import org.onosproject.yangutils.parser.impl.listeners.IncludeListener;
 import org.onosproject.yangutils.parser.impl.listeners.MandatoryListener;
 import org.onosproject.yangutils.parser.impl.listeners.MaxElementsListener;
 import org.onosproject.yangutils.parser.impl.listeners.MinElementsListener;
@@ -54,9 +55,6 @@ import org.onosproject.yangutils.parser.impl.listeners.TypeDefListener;
 import org.onosproject.yangutils.parser.impl.listeners.TypeListener;
 import org.onosproject.yangutils.parser.impl.listeners.UnitsListener;
 import org.onosproject.yangutils.parser.impl.listeners.VersionListener;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerError;
-
-import java.util.Stack;
 
 /**
  * ANTLR generates a parse-tree listener interface that responds to events
@@ -72,9 +70,6 @@ public class TreeWalkListener implements GeneratedYangListener {
     // Parse tree root node
     private YangNode rootNode;
 
-    // Maintains the state of Exception.
-    private ListenerError errorInformation = new ListenerError();
-
     /**
      * Returns stack of parsable data.
      *
@@ -82,15 +77,6 @@ public class TreeWalkListener implements GeneratedYangListener {
      */
     public Stack<Parsable> getParsedDataStack() {
         return parsedDataStack;
-    }
-
-    /**
-     * Returns error information.
-     *
-     * @return error information object having exception flag and message
-     */
-    public ListenerError getErrorInformation() {
-        return errorInformation;
     }
 
     /**
@@ -118,15 +104,6 @@ public class TreeWalkListener implements GeneratedYangListener {
      */
     public void setRootNode(YangNode rootNode) {
         this.rootNode = rootNode;
-    }
-
-    /**
-     * Set listener error information.
-     *
-     * @param errorInformation error occurred during tree walk.
-     */
-    public void setErrorInformation(ListenerError errorInformation) {
-        this.errorInformation = errorInformation;
     }
 
     @Override

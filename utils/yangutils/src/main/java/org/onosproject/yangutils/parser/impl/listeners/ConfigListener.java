@@ -59,15 +59,14 @@ public final class ConfigListener {
     }
 
     /**
-     * It is called when parser receives an input matching the grammar
-     * rule (config), performs validation and updates the data model
-     * tree.
+     * It is called when parser receives an input matching the grammar rule
+     * (config), performs validation and updates the data model tree.
      *
      * @param listener listener's object.
      * @param ctx context object of the grammar rule.
      */
     public static void processConfigEntry(TreeWalkListener listener,
-                                             GeneratedYangParser.ConfigStatementContext ctx) {
+            GeneratedYangParser.ConfigStatementContext ctx) {
         boolean isConfig = false;
 
         // Check for stack to be non empty.

@@ -88,6 +88,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
      *
      * @return the description.
      */
+    @Override
     public String getDescription() {
         return description;
     }
@@ -97,6 +98,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
      *
      * @param description set the description.
      */
+    @Override
     public void setDescription(String description) {
         this.description = description;
     }
@@ -106,6 +108,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
      *
      * @return the reference.
      */
+    @Override
     public String getReference() {
         return reference;
     }
@@ -115,6 +118,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
      *
      * @param reference the reference to set.
      */
+    @Override
     public void setReference(String reference) {
         this.reference = reference;
     }
@@ -124,6 +128,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
      *
      * @return returns REVISION_DATA.
      */
+    @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.REVISION_DATA;
     }
@@ -133,6 +138,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
@@ -143,6 +149,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 

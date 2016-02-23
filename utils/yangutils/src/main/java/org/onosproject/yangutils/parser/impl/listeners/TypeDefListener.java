@@ -56,26 +56,27 @@ import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
-import static org.onosproject.yangutils.parser.ParsableDataType.TYPEDEF_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.UNITS_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.DEFAULT_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.TYPE_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.DESCRIPTION_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.REFERENCE_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.STATUS_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.DEFAULT_DATA;
+import static org.onosproject.yangutils.parser.ParsableDataType.DESCRIPTION_DATA;
+import static org.onosproject.yangutils.parser.ParsableDataType.REFERENCE_DATA;
+import static org.onosproject.yangutils.parser.ParsableDataType.STATUS_DATA;
+import static org.onosproject.yangutils.parser.ParsableDataType.TYPEDEF_DATA;
+import static org.onosproject.yangutils.parser.ParsableDataType.TYPE_DATA;
+import static org.onosproject.yangutils.parser.ParsableDataType.UNITS_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_CARDINALITY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /**
@@ -115,8 +116,8 @@ public final class TypeDefListener {
 
         Parsable curData = listener.getParsedDataStack().peek();
 
-        if (curData instanceof YangModule | curData instanceof YangSubModule | curData instanceof YangContainer
-                | curData instanceof YangList) {
+        if ((curData instanceof YangModule) | (curData instanceof YangSubModule) | (curData instanceof YangContainer)
+                | (curData instanceof YangList)) {
             /*
              * TODO YangGrouping, YangRpc, YangInput, YangOutput, Notification.
              */
@@ -150,7 +151,6 @@ public final class TypeDefListener {
         if (listener.getParsedDataStack().peek() instanceof YangTypeDef) {
             listener.getParsedDataStack().pop();
         } else {
-            listener.getErrorInformation().setErrorFlag(true);
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, TYPEDEF_DATA,
                     ctx.IDENTIFIER().getText(), EXIT));
         }

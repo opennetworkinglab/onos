@@ -109,12 +109,12 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * List of leaves contained.
      */
-    private List<YangLeaf<?>> listOfLeaf;
+    private List<YangLeaf> listOfLeaf;
 
     /**
      * List of leaf-lists contained.
      */
-    private List<YangLeafList<?>> listOfLeafList;
+    private List<YangLeafList> listOfLeafList;
 
     /**
      * If it is a presence container, then the textual documentation of presence
@@ -130,7 +130,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Status of the node.
      */
-    private YangStatusType status;
+    private YangStatusType status = YangStatusType.CURRENT;
 
     /**
      * Package of the generated java code.
@@ -149,16 +149,20 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
         super(YangNodeType.CONTAINER_NODE);
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getName()
+    /**
+     * Get the YANG name of container.
+     *
+     * @return the name of container as defined in YANG file.
      */
     @Override
     public String getName() {
         return name;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setName(java.lang.String)
+    /**
+     * Set the YANG name of container.
+     *
+     * @param name the name of container as defined in YANG file.
      */
     @Override
     public void setName(String name) {
@@ -209,7 +213,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      * @return the list of leaves.
      */
     @Override
-    public List<YangLeaf<?>> getListOfLeaf() {
+    public List<YangLeaf> getListOfLeaf() {
         return listOfLeaf;
     }
 
@@ -218,7 +222,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @param leafsList the list of leaf to set.
      */
-    private void setListOfLeaf(List<YangLeaf<?>> leafsList) {
+    private void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -228,9 +232,9 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      * @param leaf the leaf to be added.
      */
     @Override
-    public void addLeaf(YangLeaf<?> leaf) {
+    public void addLeaf(YangLeaf leaf) {
         if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf<?>>());
+            setListOfLeaf(new LinkedList<YangLeaf>());
         }
 
         getListOfLeaf().add(leaf);
@@ -242,7 +246,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      * @return the list of leaf-list.
      */
     @Override
-    public List<YangLeafList<?>> getListOfLeafList() {
+    public List<YangLeafList> getListOfLeafList() {
         return listOfLeafList;
     }
 
@@ -251,7 +255,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @param listOfLeafList the list of leaf-list to set.
      */
-    private void setListOfLeafList(List<YangLeafList<?>> listOfLeafList) {
+    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -261,9 +265,9 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      * @param leafList the leaf-list to be added.
      */
     @Override
-    public void addLeafList(YangLeafList<?> leafList) {
+    public void addLeafList(YangLeafList leafList) {
         if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList<?>>());
+            setListOfLeafList(new LinkedList<YangLeafList>());
         }
 
         getListOfLeafList().add(leafList);
@@ -397,6 +401,11 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
         pkg = pcg;
     }
 
+    /**
+     * Generate the java code corresponding to YANG container.
+     *
+     * @throws IOException when fails to generate the source files.
+     */
     @Override
     public void generateJavaCodeEntry() throws IOException {
         YangNode parent = getParent();
@@ -416,8 +425,6 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
 
     /**
      * Adds current node attribute to parent file.
-     *
-     * @param pkg java file package path
      */
     private void addAttributeInParent() {
         if (getParent() != null) {
@@ -439,9 +446,9 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      */
     private void addLeavesAttributes() {
 
-        List<YangLeaf<?>> leaves = getListOfLeaf();
+        List<YangLeaf> leaves = getListOfLeaf();
         if (leaves != null) {
-            for (YangLeaf<?> leaf : leaves) {
+            for (YangLeaf leaf : leaves) {
                 getFileHandle().addAttributeInfo(leaf.getDataType(), leaf.getLeafName(), false);
             }
         }
@@ -451,9 +458,9 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      * Adds leaf list's attributes in generated files.
      */
     private void addLeafListAttributes() {
-        List<YangLeafList<?>> leavesList = getListOfLeafList();
+        List<YangLeafList> leavesList = getListOfLeafList();
         if (leavesList != null) {
-            for (YangLeafList<?> leafList : leavesList) {
+            for (YangLeafList leafList : leavesList) {
                 getFileHandle().addAttributeInfo(leafList.getDataType(), leafList.getLeafName(), true);
             }
         }

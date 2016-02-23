@@ -76,6 +76,7 @@ public class YangImport implements Parsable {
 
     /**
      * Reference:RFC 6020.
+     *
      * The import's "revision-date" statement is used to specify the exact
      * version of the module to import. The "revision-date" statement MUST match
      * the most recent "revision" statement in the imported module. organization
@@ -150,6 +151,7 @@ public class YangImport implements Parsable {
      *
      * @return returns IMPORT_DATA
      */
+    @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.IMPORT_DATA;
     }
@@ -159,6 +161,7 @@ public class YangImport implements Parsable {
      *
      * @throws DataModelException a violation of data model rules
      */
+    @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
@@ -169,6 +172,7 @@ public class YangImport implements Parsable {
      *
      * @throws DataModelException a violation of data model rules
      */
+    @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 

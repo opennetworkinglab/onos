@@ -73,7 +73,8 @@ import org.onosproject.yangutils.translator.CachedFileHandle;
 /**
  * Data model node to maintain information defined in YANG sub-module.
  */
-public class YangSubModule extends YangNode implements YangLeavesHolder, YangDesc, YangReference, Parsable {
+public class YangSubModule extends YangNode
+        implements YangLeavesHolder, YangDesc, YangReference, Parsable {
 
     /**
      * Name of sub module.
@@ -114,12 +115,12 @@ public class YangSubModule extends YangNode implements YangLeavesHolder, YangDes
     /**
      * List of leaves at root level in the sub-module.
      */
-    private List<YangLeaf<?>> listOfLeaf;
+    private List<YangLeaf> listOfLeaf;
 
     /**
      * List of leaf-lists at root level in the sub-module.
      */
-    private List<YangLeafList<?>> listOfLeafList;
+    private List<YangLeafList> listOfLeafList;
 
     /**
      * organization owner of the sub-module.
@@ -142,22 +143,31 @@ public class YangSubModule extends YangNode implements YangLeavesHolder, YangDes
     private byte version;
 
     /**
+     * package of the generated java code.
+     */
+    private String pkg;
+
+    /**
      * Create a sub module node.
      */
     public YangSubModule() {
         super(YangNodeType.SUB_MODULE_NODE);
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getName()
+    /**
+     * Get the YANG name of the sub module.
+     *
+     * @return YANG name of the sub module
      */
     @Override
     public String getName() {
         return name;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setName(java.lang.String)
+    /**
+     * Set YANG name of the sub module.
+     *
+     * @param subModuleName YANG name of the sub module
      */
     @Override
     public void setName(String subModuleName) {
@@ -293,7 +303,7 @@ public class YangSubModule extends YangNode implements YangLeavesHolder, YangDes
      * @return the list of leaves.
      */
     @Override
-    public List<YangLeaf<?>> getListOfLeaf() {
+    public List<YangLeaf> getListOfLeaf() {
         return listOfLeaf;
     }
 
@@ -302,7 +312,7 @@ public class YangSubModule extends YangNode implements YangLeavesHolder, YangDes
      *
      * @param leafsList the list of leaf to set.
      */
-    private void setListOfLeaf(List<YangLeaf<?>> leafsList) {
+    private void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -312,9 +322,9 @@ public class YangSubModule extends YangNode implements YangLeavesHolder, YangDes
      * @param leaf the leaf to be added.
      */
     @Override
-    public void addLeaf(YangLeaf<?> leaf) {
+    public void addLeaf(YangLeaf leaf) {
         if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf<?>>());
+            setListOfLeaf(new LinkedList<YangLeaf>());
         }
 
         getListOfLeaf().add(leaf);
@@ -326,7 +336,7 @@ public class YangSubModule extends YangNode implements YangLeavesHolder, YangDes
      * @return the list of leaf-list.
      */
     @Override
-    public List<YangLeafList<?>> getListOfLeafList() {
+    public List<YangLeafList> getListOfLeafList() {
         return listOfLeafList;
     }
 
@@ -335,7 +345,7 @@ public class YangSubModule extends YangNode implements YangLeavesHolder, YangDes
      *
      * @param listOfLeafList the list of leaf-list to set.
      */
-    private void setListOfLeafList(List<YangLeafList<?>> listOfLeafList) {
+    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -345,9 +355,9 @@ public class YangSubModule extends YangNode implements YangLeavesHolder, YangDes
      * @param leafList the leaf-list to be added.
      */
     @Override
-    public void addLeafList(YangLeafList<?> leafList) {
+    public void addLeafList(YangLeafList leafList) {
         if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList<?>>());
+            setListOfLeafList(new LinkedList<YangLeafList>());
         }
 
         getListOfLeafList().add(leafList);
@@ -457,17 +467,16 @@ public class YangSubModule extends YangNode implements YangLeavesHolder, YangDes
         // TODO auto-generated method stub, to be implemented by parser
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeEntry()
+    /**
+     * Generates java code for sub-module.
      */
     @Override
     public void generateJavaCodeEntry() {
         // TODO Auto-generated method stub
-
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeExit()
+    /**
+     * Free resources used to generate code.
      */
     @Override
     public void generateJavaCodeExit() {
@@ -475,22 +484,24 @@ public class YangSubModule extends YangNode implements YangLeavesHolder, YangDes
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getPackage()
+    /**
+     * Get the mapped java package.
+     *
+     * @return the java package
      */
     @Override
     public String getPackage() {
-        // TODO Auto-generated method stub
-        return null;
+        return pkg;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setPackage(java.lang.String)
+    /**
+     * Set the mapped java package.
+     *
+     * @param pakg the package to set
      */
     @Override
-    public void setPackage(String pkg) {
-        // TODO Auto-generated method stub
-
+    public void setPackage(String pakg) {
+        pkg = pakg;
     }
 
     @Override

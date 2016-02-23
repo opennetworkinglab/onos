@@ -22,8 +22,8 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 
 /**
  * ExpectedException framework can use the Hamcrest matcher's to test
- * custom/extended exceptions. This class extends the type safe matcher to define
- * the custom exception matcher.
+ * custom/extended exceptions. This class extends the type safe matcher to
+ * define the custom exception matcher.
  */
 public final class CustomExceptionMatcher extends TypeSafeMatcher<ParserException> {
 

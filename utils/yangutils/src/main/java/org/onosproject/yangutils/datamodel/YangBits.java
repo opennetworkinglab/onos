@@ -77,6 +77,7 @@ public class YangBits implements Parsable {
      *
      * @return ParsedDataType returns BITS_DATA
      */
+    @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.BITS_DATA;
     }
@@ -86,6 +87,7 @@ public class YangBits implements Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
@@ -95,6 +97,7 @@ public class YangBits implements Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }

@@ -81,15 +81,29 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     private YangStatusType status;
 
     /**
-     * Derived data type.
+     * Derived data type. The type will be set when the parser detects the type
+     * parsing. Hence it is of raw type and it not know at the time of creation
+     * of the object. i.e. in entry parse, it will not be know, in the exit
+     * parse we may know the type implicitly based on the restriction. We must
+     * know and validate the base built in type, by the linking phase. It is a
+     * RAW type and it usage needs to be validate in linking phase.
      */
-    @SuppressWarnings("rawtypes")
-    private YangType derivedType;
+    private YangType<?> derivedType;
 
     /**
      * Units of the data type.
      */
     private String units;
+
+    /**
+     * YANG base built in data type.
+     */
+    private YangDataTypes baseBuiltInType;
+
+    /**
+     * package of the generated java code.
+     */
+    private String pkg;
 
     /**
      * Create a typedef node.
@@ -199,8 +213,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @return the referenced type.
      */
-    @SuppressWarnings("rawtypes")
-    public YangType getDerivedType() {
+    public YangType<?> getDerivedType() {
         return derivedType;
     }
 
@@ -209,8 +222,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @param derivedType the referenced type.
      */
-    @SuppressWarnings("rawtypes")
-    public void setDerivedType(YangType derivedType) {
+    public void setDerivedType(YangType<?> derivedType) {
         this.derivedType = derivedType;
     }
 
@@ -230,6 +242,24 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      */
     public void setUnits(String units) {
         this.units = units;
+    }
+
+    /**
+     * Get the base built in YANG data type.
+     *
+     * @return base built in YANG data type.
+     */
+    public YangDataTypes getBaseBuiltInType() {
+        return baseBuiltInType;
+    }
+
+    /**
+     * Set the base built in YANG data type.
+     *
+     * @param baseBuiltInType base built in YANG data type.
+     */
+    public void setBaseBuiltInType(YangDataTypes baseBuiltInType) {
+        this.baseBuiltInType = baseBuiltInType;
     }
 
     /**
@@ -262,17 +292,20 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getName()
+    /**
+     * Get the YANG name of the typedef.
+     *
+     * @return YANG name of the typedef.
      */
     @Override
     public String getName() {
-        // TODO Auto-generated method stub
-        return null;
+        return derivedName;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setName(java.lang.String)
+    /**
+     * Set YANG name of the typedef.
+     *
+     * @param name YANG name of the typedef.
      */
     @Override
     public void setName(String name) {
@@ -280,8 +313,8 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeEntry()
+    /**
+     * Generate java code snippet corresponding to YANG typedef.
      */
     @Override
     public void generateJavaCodeEntry() {
@@ -289,8 +322,8 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeExit()
+    /**
+     * Free resource used for code generation of YANG typedef.
      */
     @Override
     public void generateJavaCodeExit() {
@@ -298,30 +331,43 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getPackage()
+    /**
+     * Get the mapped java package.
+     *
+     * @return the java package
      */
     @Override
     public String getPackage() {
-        // TODO Auto-generated method stub
-        return null;
+        return pkg;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setPackage(java.lang.String)
+    /**
+     * Set the mapped java package.
+     *
+     * @param pakg mapped java package.
      */
     @Override
-    public void setPackage(String pkg) {
-        // TODO Auto-generated method stub
+    public void setPackage(String pakg) {
+        pkg = pakg;
 
     }
 
+    /**
+     * Get the file handle of the cached file used during code generation.
+     *
+     * @return cached file handle.
+     */
     @Override
     public CachedFileHandle getFileHandle() {
         // TODO Auto-generated method stub
         return null;
     }
 
+    /**
+     * Set the file handle to be used used for code generation.
+     *
+     * @param fileHandle cached file handle.
+     */
     @Override
     public void setFileHandle(CachedFileHandle fileHandle) {
         // TODO Auto-generated method stub

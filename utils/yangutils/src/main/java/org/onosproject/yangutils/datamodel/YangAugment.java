@@ -92,12 +92,12 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * List of leaves.
      */
-    private List<YangLeaf<?>> listOfLeaf;
+    private List<YangLeaf> listOfLeaf;
 
     /**
      * List of leaf-lists.
      */
-    private List<YangLeafList<?>> listOfLeafList;
+    private List<YangLeafList> listOfLeafList;
 
     /**
      * reference.
@@ -108,6 +108,11 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
      * Status of the node.
      */
     private YangStatusType status;
+
+    /**
+     * package of the generated java code.
+     */
+    private String pkg;
 
     /**
      * Create a YANG augment node.
@@ -160,7 +165,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
      * @return the list of leaves.
      */
     @Override
-    public List<YangLeaf<?>> getListOfLeaf() {
+    public List<YangLeaf> getListOfLeaf() {
         return listOfLeaf;
     }
 
@@ -169,7 +174,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
      *
      * @param leafsList the list of leaf to set.
      */
-    private void setListOfLeaf(List<YangLeaf<?>> leafsList) {
+    private void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
     }
 
@@ -179,9 +184,9 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
      * @param leaf the leaf to be added.
      */
     @Override
-    public void addLeaf(YangLeaf<?> leaf) {
+    public void addLeaf(YangLeaf leaf) {
         if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf<?>>());
+            setListOfLeaf(new LinkedList<YangLeaf>());
         }
 
         getListOfLeaf().add(leaf);
@@ -193,7 +198,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
      * @return the list of leaf-list.
      */
     @Override
-    public List<YangLeafList<?>> getListOfLeafList() {
+    public List<YangLeafList> getListOfLeafList() {
         return listOfLeafList;
     }
 
@@ -202,7 +207,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
      *
      * @param listOfLeafList the list of leaf-list to set.
      */
-    private void setListOfLeafList(List<YangLeafList<?>> listOfLeafList) {
+    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
     }
 
@@ -212,9 +217,9 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
      * @param leafList the leaf-list to be added.
      */
     @Override
-    public void addLeafList(YangLeafList<?> leafList) {
+    public void addLeafList(YangLeafList leafList) {
         if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList<?>>());
+            setListOfLeafList(new LinkedList<YangLeafList>());
         }
 
         getListOfLeafList().add(leafList);
@@ -290,44 +295,51 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
         // TODO auto-generated method stub, to be implemented by parser
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getName()
+    /**
+     * Get the target nodes name where the augmentation is being done.
+     *
+     * @return target nodes name where the augmentation is being done.
      */
     @Override
     public String getName() {
-        // TODO Auto-generated method stub
-        return null;
+        return targetNode;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setName(java.lang.String)
+    /**
+     * Set the target nodes name where the augmentation is being done.
+     *
+     * @param name target nodes name where the augmentation is being done.
      */
     @Override
     public void setName(String name) {
-        // TODO Auto-generated method stub
+        targetNode = name;
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getPackage()
+    /**
+     * Get the mapped java package.
+     *
+     * @return the java package
      */
     @Override
     public String getPackage() {
-        // TODO Auto-generated method stub
-        return null;
+        return pkg;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setPackage(java.lang.String)
+    /**
+     * Set the mapped java package.
+     *
+     * @param pakg the package to set
      */
     @Override
-    public void setPackage(String pkg) {
-        // TODO Auto-generated method stub
+    public void setPackage(String pakg) {
+        pkg = pakg;
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeEntry()
+    /**
+     * Prepare the information for java code generation corresponding to YANG
+     * grouping info.
      */
     @Override
     public void generateJavaCodeEntry() {
@@ -335,8 +347,8 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeExit()
+    /**
+     * Create a java file using the YANG grouping info.
      */
     @Override
     public void generateJavaCodeExit() {

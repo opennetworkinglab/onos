@@ -113,7 +113,6 @@ public final class MethodsGenerator {
             GeneratedMethodTypes methodTypes, YangType<?> returnType) {
 
         if (returnType == null) {
-            @SuppressWarnings("rawtypes")
             YangType<?> type = new YangType();
             type.setDataTypeName(yangName);
             returnType = type;

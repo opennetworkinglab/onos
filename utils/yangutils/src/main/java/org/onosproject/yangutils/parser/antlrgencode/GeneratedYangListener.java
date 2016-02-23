@@ -909,8 +909,8 @@ public interface GeneratedYangListener extends ParseTreeListener {
      *
      * @param currentContext current context in the parsed tree.
      */
-    void enterInstanceIdentifierSpecification(GeneratedYangParser.InstanceIdentifierSpecificationContext
-                                              currentContext);
+    void enterInstanceIdentifierSpecification(
+            GeneratedYangParser.InstanceIdentifierSpecificationContext currentContext);
 
     /**
      * Exit a parse tree produced by GeneratedYangParser for grammar rule

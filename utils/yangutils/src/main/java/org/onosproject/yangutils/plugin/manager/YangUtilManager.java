@@ -46,7 +46,7 @@ import org.sonatype.plexus.build.incremental.BuildContext;
  * in generate-sources requiresDependencyResolution at compile time
  */
 @Mojo(name = "yang2java", defaultPhase = LifecyclePhase.GENERATE_SOURCES,
-requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = true)
+        requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = true)
 public class YangUtilManager extends AbstractMojo {
 
     /**

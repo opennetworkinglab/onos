@@ -16,23 +16,22 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.io.IOException;
+import java.util.ListIterator;
+
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.junit.rules.ExpectedException;
+import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangStatusType;
-import org.onosproject.yangutils.datamodel.YangContainer;
-import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
-import java.io.IOException;
-import java.util.ListIterator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -48,8 +47,7 @@ public class LeafListenerTest {
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
 
     /**
-     * Checks all the values of leaf sub-statements are set
-     * correctly.
+     * Checks all the values of leaf sub-statements are set correctly.
      */
     @Test
     public void processLeafSubStatements() throws IOException, ParserException {
@@ -66,8 +64,8 @@ public class LeafListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        ListIterator<YangLeaf<?>> leafIterator = yangNode.getListOfLeaf().listIterator();
-        YangLeaf<?> leafInfo = leafIterator.next();
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
@@ -81,8 +79,8 @@ public class LeafListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when leaf identifier
-     * starts with digit.
+     * Checks whether exception is thrown when leaf identifier starts with
+     * digit.
      */
     @Test
     public void processLeafInvalidIdentifier() throws IOException, ParserException {
@@ -92,8 +90,7 @@ public class LeafListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when leaf keyword
-     * is incorrect.
+     * Checks whether exception is thrown when leaf keyword is incorrect.
      */
     @Test
     public void processLeafInvalidStatement() throws IOException, ParserException {
@@ -106,8 +103,8 @@ public class LeafListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when leaf keyword
-     * without Left brace as per grammar.
+     * Checks whether exception is thrown when leaf keyword without Left brace
+     * as per grammar.
      */
     @Test
     public void processLeafWithoutLeftBrace() throws IOException, ParserException {
@@ -117,8 +114,8 @@ public class LeafListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when config statement
-     * cardinality is not as per grammar.
+     * Checks whether exception is thrown when config statement cardinality is
+     * not as per grammar.
      */
     @Test
     public void processLeafConfigInvalidCardinality() throws IOException, ParserException {
@@ -128,8 +125,8 @@ public class LeafListenerTest {
     }
 
     /**
-     * Checks whether exception is thrown when mandatory statement
-     * cardinality is not as per grammar.
+     * Checks whether exception is thrown when mandatory statement cardinality
+     * is not as per grammar.
      */
     @Test
     public void processLeafMandatoryInvalidCardinality() throws IOException, ParserException {
@@ -161,8 +158,8 @@ public class LeafListenerTest {
         assertThat(container.getName(), is("valid"));
 
         // Check whether leaf properties as set correctly.
-        ListIterator<YangLeaf<?>> leafIterator = container.getListOfLeaf().listIterator();
-        YangLeaf<?> leafInfo = leafIterator.next();
+        ListIterator<YangLeaf> leafIterator = container.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
@@ -197,8 +194,8 @@ public class LeafListenerTest {
         assertThat(yangList.getName(), is("valid"));
 
         // Check whether leaf properties as set correctly.
-        ListIterator<YangLeaf<?>> leafIterator = yangList.getListOfLeaf().listIterator();
-        YangLeaf<?> leafInfo = leafIterator.next();
+        ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));

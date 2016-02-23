@@ -65,6 +65,7 @@ public class YangNameSpace implements Parsable {
      *
      * @return returns NAMESPACE_DATA.
      */
+    @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.NAMESPACE_DATA;
     }
@@ -74,6 +75,7 @@ public class YangNameSpace implements Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
@@ -84,6 +86,7 @@ public class YangNameSpace implements Parsable {
      *
      * @throws DataModelException a violation of data model rules.
      */
+    @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
