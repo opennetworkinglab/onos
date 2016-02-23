@@ -26,6 +26,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -45,16 +46,8 @@ public class SegmentRoutingDeviceConfigTest {
 
     @Before
     public void setUp() throws Exception {
-        String jsonString = "{" +
-                "\"name\" : \"Leaf-R1\"," +
-                "\"nodeSid\" : 101," +
-                "\"routerIp\" : \"10.0.1.254\"," +
-                "\"routerMac\" : \"00:00:00:00:01:80\"," +
-                "\"isEdgeRouter\" : true," +
-                "\"adjacencySids\" : [" +
-                "    { \"adjSid\" : 100, \"ports\" : [2, 3] }," +
-                "    { \"adjSid\" : 200, \"ports\" : [4, 5] }" +
-                "]}";
+        InputStream jsonStream = SegmentRoutingDeviceConfigTest.class
+                .getResourceAsStream("/sr-device-config.json");
 
         adjacencySids1 = new HashMap<>();
         Set<Integer> ports1 = new HashSet<>();
@@ -74,7 +67,7 @@ public class SegmentRoutingDeviceConfigTest {
         DeviceId subject = DeviceId.deviceId("of:0000000000000001");
         String key = "segmentrouting";
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree(jsonString);
+        JsonNode jsonNode = mapper.readTree(jsonStream);
         ConfigApplyDelegate delegate = new MockDelegate();
 
         config = new SegmentRoutingDeviceConfig();

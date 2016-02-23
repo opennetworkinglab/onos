@@ -1,0 +1,15 @@
+{
+  "vRouterMacs" : [
+      "00:00:00:00:00:01",
+      "00:00:00:00:00:02"
+  ],
+  "vRouterId" : "of:1",
+  "suppressSubnet" : [
+      "of:1/1",
+      "of:1/2"
+  ],
+  "suppressHost" : [
+      "of:1/1",
+      "of:1/2"
+  ]
+}

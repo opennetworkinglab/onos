@@ -30,6 +30,7 @@ import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 
+import java.io.InputStream;
 import java.util.Optional;
 import java.util.Set;
 
@@ -45,29 +46,7 @@ public class SegmentRoutingAppConfigTest {
 
     private SegmentRoutingAppConfig config;
     private SegmentRoutingAppConfig invalidConfig;
-    private static final String JSON_STRING = "{" +
-            "\"vRouterMacs\" : [" +
-            "    \"00:00:00:00:00:01\"," +
-            "    \"00:00:00:00:00:02\"" +
-            "]," +
-            "\"vRouterId\" : \"of:1\"," +
-            "\"suppressSubnet\" : [" +
-            "    \"of:1/1\"," +
-            "    \"of:1/2\"" +
-            "]," +
-            "\"suppressHost\" : [" +
-            "    \"of:1/1\"," +
-            "    \"of:1/2\"" +
-            "]}";
-    private static final String INVALID_JSON_STRING = "{" +
-            "\"vRouterMacs\" : [" +
-            "    \"00:00:00:00:00:01\"," +
-            "    \"00:00:00:00:00:02\"" +
-            "]," +
-            "\"suppressSubnet\" : [" +
-            "    \"of:1/1\"," +
-            "    \"wrongport\"" +
-            "]}";
+
     private static final MacAddress ROUTER_MAC_1 = MacAddress.valueOf("00:00:00:00:00:01");
     private static final MacAddress ROUTER_MAC_2 = MacAddress.valueOf("00:00:00:00:00:02");
     private static final MacAddress ROUTER_MAC_3 = MacAddress.valueOf("00:00:00:00:00:03");
@@ -84,11 +63,16 @@ public class SegmentRoutingAppConfigTest {
      */
     @Before
     public void setUp() throws Exception {
+        InputStream jsonStream = SegmentRoutingAppConfigTest.class
+                .getResourceAsStream("/sr-app-config.json");
+        InputStream invalidJsonStream = SegmentRoutingAppConfigTest.class
+                .getResourceAsStream("/sr-app-config-invalid.json");
+
         ApplicationId subject = APP_ID;
         String key = SegmentRoutingManager.SR_APP_ID;
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree(JSON_STRING);
-        JsonNode invalidJsonNode = mapper.readTree(INVALID_JSON_STRING);
+        JsonNode jsonNode = mapper.readTree(jsonStream);
+        JsonNode invalidJsonNode = mapper.readTree(invalidJsonStream);
         ConfigApplyDelegate delegate = new MockDelegate();
 
         config = new SegmentRoutingAppConfig();
