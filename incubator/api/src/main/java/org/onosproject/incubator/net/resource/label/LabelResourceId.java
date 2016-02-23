@@ -17,13 +17,12 @@ package org.onosproject.incubator.net.resource.label;
 
 import com.google.common.annotations.Beta;
 import org.onlab.util.Identifier;
-import org.onosproject.net.resource.ResourceId;
 
 /**
  * Representation of a label.
  */
 @Beta
-public final class LabelResourceId extends Identifier<Long> implements ResourceId {
+public final class LabelResourceId extends Identifier<Long> {
 
     /**
      * Creates a new label identifier.
