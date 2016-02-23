@@ -18,6 +18,7 @@ package org.onosproject.maven;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Throwables;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.gson.JsonParser;
@@ -295,7 +296,10 @@ public class OnosSwaggerMojo extends AbstractMojo {
                                                    + param + ".json");
                     definitions.putPOJO(param, jsonParser.parse(new FileReader(config)));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    getLog().error(String.format("Could not process %s in %s@%s: %s",
+                                  tag.getName(), tag.getContext(), tag.getLineNumber(),
+                                  e.getMessage()));
+                    throw Throwables.propagate(e);
                 }
             });
 
