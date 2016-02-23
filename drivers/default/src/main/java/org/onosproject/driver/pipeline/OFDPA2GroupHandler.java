@@ -698,7 +698,7 @@ public class OFDPA2GroupHandler {
                     }
                     if (l2ins.subtype() == L2ModificationInstruction.L2SubType.MPLS_LABEL) {
                         if (innermostLabel == null) {
-                            innermostLabel = ((L2ModificationInstruction.ModMplsLabelInstruction) l2ins).mplsLabel();
+                            innermostLabel = ((L2ModificationInstruction.ModMplsLabelInstruction) l2ins).label();
                         }
                     }
                 }

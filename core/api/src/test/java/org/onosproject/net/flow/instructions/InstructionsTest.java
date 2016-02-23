@@ -636,7 +636,7 @@ public class InstructionsTest {
                 checkAndConvert(instruction,
                         Instruction.Type.L2MODIFICATION,
                         L2ModificationInstruction.ModMplsLabelInstruction.class);
-        assertThat(modMplsLabelInstruction.mplsLabel(), is(equalTo(mplsLabel)));
+        assertThat(modMplsLabelInstruction.label(), is(equalTo(mplsLabel)));
         assertThat(modMplsLabelInstruction.subtype(),
                 is(equalTo(L2ModificationInstruction.L2SubType.MPLS_LABEL)));
     }

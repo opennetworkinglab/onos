@@ -336,7 +336,7 @@ public final class GroupModBuilder {
             case MPLS_LABEL:
                 L2ModificationInstruction.ModMplsLabelInstruction mplsLabel =
                         (L2ModificationInstruction.ModMplsLabelInstruction) l2m;
-                oxm = factory.oxms().mplsLabel(U32.of(mplsLabel.mplsLabel().toInt()));
+                oxm = factory.oxms().mplsLabel(U32.of(mplsLabel.label().toInt()));
                 break;
             case MPLS_BOS:
                 L2ModificationInstruction.ModMplsBosInstruction mplsBos =

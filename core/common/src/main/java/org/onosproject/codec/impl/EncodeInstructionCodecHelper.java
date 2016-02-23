@@ -144,7 +144,7 @@ public final class EncodeInstructionCodecHelper {
             case MPLS_LABEL:
                 final L2ModificationInstruction.ModMplsLabelInstruction modMplsLabelInstruction =
                         (L2ModificationInstruction.ModMplsLabelInstruction) instruction;
-                result.put(InstructionCodec.MPLS_LABEL, modMplsLabelInstruction.mplsLabel().toInt());
+                result.put(InstructionCodec.MPLS_LABEL, modMplsLabelInstruction.label().toInt());
                 break;
 
             case MPLS_PUSH:

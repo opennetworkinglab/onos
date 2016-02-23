@@ -413,7 +413,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             case MPLS_LABEL:
                 ModMplsLabelInstruction mplsLabel =
                         (ModMplsLabelInstruction) l2m;
-                oxm = factory().oxms().mplsLabel(U32.of(mplsLabel.mplsLabel().toInt()));
+                oxm = factory().oxms().mplsLabel(U32.of(mplsLabel.label().toInt()));
                 break;
             case MPLS_BOS:
                 ModMplsBosInstruction mplsBos = (ModMplsBosInstruction) l2m;

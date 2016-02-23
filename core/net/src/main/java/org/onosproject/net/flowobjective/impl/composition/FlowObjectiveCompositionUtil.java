@@ -216,7 +216,7 @@ public final class FlowObjectiveCompositionUtil {
                                 } else {
                                     return null;
                                 }
-                            } 
+                            }
                         default:
                             break;
                     }
@@ -272,7 +272,7 @@ public final class FlowObjectiveCompositionUtil {
                         case MPLS_LABEL:
                             if (criterionMap.containsKey(Criterion.Type.MPLS_LABEL)) {
                                 if (((MplsCriterion) criterionMap.get((Criterion.Type.MPLS_LABEL))).label()
-                                        .equals(((L2ModificationInstruction.ModMplsLabelInstruction) l2).mplsLabel())) {
+                                        .equals(((L2ModificationInstruction.ModMplsLabelInstruction) l2).label())) {
                                     criterionMap.remove(Criterion.Type.ETH_DST);
                                 } else {
                                     return null;

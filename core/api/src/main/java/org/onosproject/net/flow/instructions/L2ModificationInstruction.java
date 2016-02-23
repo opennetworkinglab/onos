@@ -333,20 +333,19 @@ public abstract class L2ModificationInstruction implements Instruction {
             this.mplsLabel = mplsLabel;
         }
 
-        /**
-         * @deprecated in Drake Release.
-         * @return integer value of label
-         */
-        // Consider changing return value to MplsLabel
-        // after deprecation process so that it'll be symmetric to
-        // MplsCriterion#label()
-        @Deprecated
-        public Integer label() {
-            return mplsLabel.toInt();
+        public MplsLabel label() {
+            return mplsLabel;
         }
 
+        /**
+         * Extracts the MPLS label from the instruction.
+         *
+         * @return MPLS label
+         * @deprecated deprecated in 1.5.0 Falcon
+         */
+        @Deprecated
         public MplsLabel mplsLabel() {
-            return mplsLabel;
+            return label();
         }
 
         @Override
