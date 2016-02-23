@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.serializers;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import org.onlab.packet.Ip4Address;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
@@ -45,6 +47,7 @@ public class Ip4AddressSerializer extends Serializer<Ip4Address> {
     @Override
     public Ip4Address read(Kryo kryo, Input input, Class<Ip4Address> type) {
         final int octLen = input.readInt();
+        checkArgument(octLen == Ip4Address.BYTE_LENGTH);
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
         return Ip4Address.valueOf(octs);

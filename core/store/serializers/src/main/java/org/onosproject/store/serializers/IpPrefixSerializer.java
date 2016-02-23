@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.serializers;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 
@@ -49,6 +51,7 @@ public final class IpPrefixSerializer extends Serializer<IpPrefix> {
     public IpPrefix read(Kryo kryo, Input input,
             Class<IpPrefix> type) {
         int octLen = input.readInt();
+        checkArgument(octLen <= IpAddress.INET6_BYTE_LENGTH);
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
         int prefLen = input.readInt();

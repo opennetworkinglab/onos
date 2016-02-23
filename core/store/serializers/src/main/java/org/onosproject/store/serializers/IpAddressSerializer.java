@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.serializers;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import org.onlab.packet.IpAddress;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
@@ -44,6 +46,7 @@ public class IpAddressSerializer extends Serializer<IpAddress> {
     @Override
     public IpAddress read(Kryo kryo, Input input, Class<IpAddress> type) {
         final int octLen = input.readInt();
+        checkArgument(octLen <= IpAddress.INET6_BYTE_LENGTH);
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
         // Use the address size to decide whether it is IPv4 or IPv6 address

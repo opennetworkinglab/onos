@@ -15,8 +15,10 @@
  */
 package org.onosproject.store.serializers;
 
-import org.onlab.packet.Ip6Prefix;
+import static com.google.common.base.Preconditions.checkArgument;
 
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.Ip6Prefix;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
@@ -49,6 +51,7 @@ public final class Ip6PrefixSerializer extends Serializer<Ip6Prefix> {
     public Ip6Prefix read(Kryo kryo, Input input,
             Class<Ip6Prefix> type) {
         int octLen = input.readInt();
+        checkArgument(octLen <= Ip6Address.BYTE_LENGTH);
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
         int prefLen = input.readInt();

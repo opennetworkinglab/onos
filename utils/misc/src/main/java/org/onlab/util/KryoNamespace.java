@@ -15,6 +15,8 @@
  */
 package org.onlab.util;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -22,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
@@ -57,6 +60,8 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
      * Smallest ID free to use for user defined registrations.
      */
     public static final int INITIAL_ID = 11;
+
+    private static final Logger log = getLogger(KryoNamespace.class);
 
 
     private final KryoPool pool = new KryoPool.Builder(this)
@@ -101,6 +106,12 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
          */
         public Builder nextId(final int id) {
             if (!types.isEmpty()) {
+                if (id != FLOATING_ID && id < blockHeadId + types.size()) {
+
+                    log.warn("requested nextId {} could potentially overlap" +
+                             "with existing registrations {}+{} ",
+                             id, blockHeadId, types.size());
+                }
                 blocks.add(new RegistrationBlock(this.blockHeadId, types));
                 types = new ArrayList<>();
             }

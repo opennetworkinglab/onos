@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.serializers;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import org.onlab.packet.Ip6Address;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
@@ -45,6 +47,7 @@ public class Ip6AddressSerializer extends Serializer<Ip6Address> {
     @Override
     public Ip6Address read(Kryo kryo, Input input, Class<Ip6Address> type) {
         final int octLen = input.readInt();
+        checkArgument(octLen == Ip6Address.BYTE_LENGTH);
         byte[] octs = new byte[octLen];
         input.readBytes(octs);
         return Ip6Address.valueOf(octs);
