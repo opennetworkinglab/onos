@@ -21,8 +21,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
+
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -33,23 +36,25 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     private static final String VROUTER_MACS = "vRouterMacs";
     private static final String VROUTER_ID = "vRouterId";
-    private static final String EXCLUDE_PORTS = "excludePorts";
+    private static final String SUPPRESS_SUBNET = "suppressSubnet";
+    private static final String SUPPRESS_HOST = "suppressHost";
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(VROUTER_MACS, VROUTER_ID, EXCLUDE_PORTS) &&
+        return hasOnlyFields(VROUTER_MACS, VROUTER_ID, SUPPRESS_SUBNET, SUPPRESS_HOST) &&
                 vRouterMacs() != null && vRouterId() != null &&
-                excludePorts() != null;
+                suppressSubnet() != null && suppressHost() != null;
     }
 
     /**
      * Gets vRouters from the config.
      *
-     * @return a set of vRouter MAC addresses
+     * @return Set of vRouter MAC addresses, empty is not specified,
+     *         or null if not valid
      */
     public Set<MacAddress> vRouterMacs() {
         if (!object.has(VROUTER_MACS)) {
-            return null;
+            return ImmutableSet.of();
         }
 
         ImmutableSet.Builder<MacAddress> builder = ImmutableSet.builder();
@@ -96,15 +101,16 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     /**
      * Gets vRouter device ID.
      *
-     * @return vRouter device ID, or null if not valid
+     * @return Optional vRouter device ID,
+     *         empty is not specified or null if not valid
      */
-    public DeviceId vRouterId() {
+    public Optional<DeviceId> vRouterId() {
         if (!object.has(VROUTER_ID)) {
-            return null;
+            return Optional.empty();
         }
 
         try {
-            return DeviceId.deviceId(object.path(VROUTER_ID).asText());
+            return Optional.of(DeviceId.deviceId(object.path(VROUTER_ID).asText()));
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -126,42 +132,95 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     }
 
     /**
-     * Gets names of ports that are ignored by SegmentRouting.
+     * Gets names of ports to which SegmentRouting does not push subnet rules.
      *
-     * @return set of port names
+     * @return Set of port names, empty if not specified, or null
+     *         if not valid
      */
-    public Set<String> excludePorts() {
-        if (!object.has(EXCLUDE_PORTS)) {
-            return null;
+    public Set<ConnectPoint> suppressSubnet() {
+        if (!object.has(SUPPRESS_SUBNET)) {
+            return ImmutableSet.of();
         }
 
-        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-        ArrayNode arrayNode = (ArrayNode) object.path(EXCLUDE_PORTS);
+        ImmutableSet.Builder<ConnectPoint> builder = ImmutableSet.builder();
+        ArrayNode arrayNode = (ArrayNode) object.path(SUPPRESS_SUBNET);
         for (JsonNode jsonNode : arrayNode) {
             String portName = jsonNode.asText(null);
             if (portName == null) {
                 return null;
             }
-            builder.add(portName);
+            try {
+                builder.add(ConnectPoint.deviceConnectPoint(portName));
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
         }
         return builder.build();
     }
 
     /**
-     * Sets names of ports that are ignored by SegmentRouting.
+     * Sets names of ports to which SegmentRouting does not push subnet rules.
      *
-     * @param excludePorts names of ports that are ignored by SegmentRouting
+     * @param suppressSubnet names of ports to which SegmentRouting does not push
+     *                     subnet rules
      * @return this {@link SegmentRoutingAppConfig}
      */
-    public SegmentRoutingAppConfig setExcludePorts(Set<String> excludePorts) {
-        if (excludePorts == null) {
-            object.remove(EXCLUDE_PORTS);
+    public SegmentRoutingAppConfig setSuppressSubnet(Set<ConnectPoint> suppressSubnet) {
+        if (suppressSubnet == null) {
+            object.remove(SUPPRESS_SUBNET);
         } else {
             ArrayNode arrayNode = mapper.createArrayNode();
-            excludePorts.forEach(portName -> {
-                arrayNode.add(portName);
+            suppressSubnet.forEach(connectPoint -> {
+                arrayNode.add(connectPoint.deviceId() + "/" + connectPoint.port());
             });
-            object.set(EXCLUDE_PORTS, arrayNode);
+            object.set(SUPPRESS_SUBNET, arrayNode);
+        }
+        return this;
+    }
+
+    /**
+     * Gets names of ports to which SegmentRouting does not push host rules.
+     *
+     * @return Set of port names, empty if not specified, or null
+     *         if not valid
+     */
+    public Set<ConnectPoint> suppressHost() {
+        if (!object.has(SUPPRESS_HOST)) {
+            return ImmutableSet.of();
+        }
+
+        ImmutableSet.Builder<ConnectPoint> builder = ImmutableSet.builder();
+        ArrayNode arrayNode = (ArrayNode) object.path(SUPPRESS_HOST);
+        for (JsonNode jsonNode : arrayNode) {
+            String portName = jsonNode.asText(null);
+            if (portName == null) {
+                return null;
+            }
+            try {
+                builder.add(ConnectPoint.deviceConnectPoint(portName));
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
+        return builder.build();
+    }
+
+    /**
+     * Sets names of ports to which SegmentRouting does not push host rules.
+     *
+     * @param suppressHost names of ports to which SegmentRouting does not push
+     *                     host rules
+     * @return this {@link SegmentRoutingAppConfig}
+     */
+    public SegmentRoutingAppConfig setSuppressHost(Set<ConnectPoint> suppressHost) {
+        if (suppressHost == null) {
+            object.remove(SUPPRESS_HOST);
+        } else {
+            ArrayNode arrayNode = mapper.createArrayNode();
+            suppressHost.forEach(connectPoint -> {
+                arrayNode.add(connectPoint.deviceId() + "/" + connectPoint.port());
+            });
+            object.set(SUPPRESS_HOST, arrayNode);
         }
         return this;
     }
@@ -170,7 +229,9 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     public String toString() {
         return toStringHelper(this)
                 .add("vRouterMacs", vRouterMacs())
-                .add("excludePorts", excludePorts())
+                .add("vRouterId", vRouterId())
+                .add("suppressSubnet", suppressSubnet())
+                .add("suppressHost", suppressHost())
                 .toString();
     }
 }

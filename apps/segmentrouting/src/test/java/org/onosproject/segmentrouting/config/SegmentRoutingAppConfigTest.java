@@ -24,16 +24,17 @@ import org.junit.Test;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.TestApplicationId;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
+
+import java.util.Optional;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 /**
  * Tests for class {@link SegmentRoutingAppConfig}.
@@ -50,25 +51,29 @@ public class SegmentRoutingAppConfigTest {
             "    \"00:00:00:00:00:02\"" +
             "]," +
             "\"vRouterId\" : \"of:1\"," +
-            "\"excludePorts\" : [" +
-            "    \"port1\"," +
-            "    \"port2\"" +
+            "\"suppressSubnet\" : [" +
+            "    \"of:1/1\"," +
+            "    \"of:1/2\"" +
+            "]," +
+            "\"suppressHost\" : [" +
+            "    \"of:1/1\"," +
+            "    \"of:1/2\"" +
             "]}";
     private static final String INVALID_JSON_STRING = "{" +
             "\"vRouterMacs\" : [" +
             "    \"00:00:00:00:00:01\"," +
             "    \"00:00:00:00:00:02\"" +
             "]," +
-            "\"excludePorts\" : [" +
-            "    \"port1\"," +
-            "    \"port2\"" +
+            "\"suppressSubnet\" : [" +
+            "    \"of:1/1\"," +
+            "    \"wrongport\"" +
             "]}";
     private static final MacAddress ROUTER_MAC_1 = MacAddress.valueOf("00:00:00:00:00:01");
     private static final MacAddress ROUTER_MAC_2 = MacAddress.valueOf("00:00:00:00:00:02");
     private static final MacAddress ROUTER_MAC_3 = MacAddress.valueOf("00:00:00:00:00:03");
-    private static final String PORT_NAME_1 = "port1";
-    private static final String PORT_NAME_2 = "port2";
-    private static final String PORT_NAME_3 = "port3";
+    private static final ConnectPoint PORT_1 = ConnectPoint.deviceConnectPoint("of:1/1");
+    private static final ConnectPoint PORT_2 = ConnectPoint.deviceConnectPoint("of:1/2");
+    private static final ConnectPoint PORT_3 = ConnectPoint.deviceConnectPoint("of:1/3");
     private static final DeviceId VROUTER_ID_1 = DeviceId.deviceId("of:1");
     private static final DeviceId VROUTER_ID_2 = DeviceId.deviceId("of:2");
 
@@ -109,11 +114,12 @@ public class SegmentRoutingAppConfigTest {
      * @throws Exception
      */
     @Test
-    public void testVRouters() throws Exception {
-        Set<MacAddress> vRouters = config.vRouterMacs();
-        assertThat(vRouters.size(), is(2));
-        assertTrue(vRouters.contains(ROUTER_MAC_1));
-        assertTrue(vRouters.contains(ROUTER_MAC_2));
+    public void testVRouterMacs() throws Exception {
+        Set<MacAddress> vRouterMacs = config.vRouterMacs();
+        assertNotNull("vRouterMacs should not be null", vRouterMacs);
+        assertThat(vRouterMacs.size(), is(2));
+        assertTrue(vRouterMacs.contains(ROUTER_MAC_1));
+        assertTrue(vRouterMacs.contains(ROUTER_MAC_2));
     }
 
     /**
@@ -122,14 +128,14 @@ public class SegmentRoutingAppConfigTest {
      * @throws Exception
      */
     @Test
-    public void testSetVRouters() throws Exception {
+    public void testSetVRouterMacs() throws Exception {
         ImmutableSet.Builder<MacAddress> builder = ImmutableSet.builder();
         builder.add(ROUTER_MAC_3);
         config.setVRouterMacs(builder.build());
 
-        Set<MacAddress> macs = config.vRouterMacs();
-        assertThat(macs.size(), is(1));
-        assertTrue(macs.contains(ROUTER_MAC_3));
+        Set<MacAddress> vRouterMacs = config.vRouterMacs();
+        assertThat(vRouterMacs.size(), is(1));
+        assertTrue(vRouterMacs.contains(ROUTER_MAC_3));
     }
 
     /**
@@ -139,7 +145,9 @@ public class SegmentRoutingAppConfigTest {
      */
     @Test
     public void testVRouterId() throws Exception {
-        assertThat(config.vRouterId(), is(VROUTER_ID_1));
+        Optional<DeviceId> vRouterId = config.vRouterId();
+        assertTrue(vRouterId.isPresent());
+        assertThat(vRouterId.get(), is(VROUTER_ID_1));
     }
 
     /**
@@ -150,36 +158,72 @@ public class SegmentRoutingAppConfigTest {
     @Test
     public void testSetVRouterId() throws Exception {
         config.setVRouterId(VROUTER_ID_2);
-        assertThat(config.vRouterId(), is(VROUTER_ID_2));
+
+        Optional<DeviceId> vRouterId = config.vRouterId();
+        assertTrue(vRouterId.isPresent());
+        assertThat(vRouterId.get(), is(VROUTER_ID_2));
     }
 
     /**
-     * Tests excludePort getter.
+     * Tests suppressSubnet getter.
      *
      * @throws Exception
      */
     @Test
-    public void testExcludePorts() throws Exception {
-        Set<String> excludePorts = config.excludePorts();
-        assertThat(excludePorts.size(), is(2));
-        assertTrue(excludePorts.contains(PORT_NAME_1));
-        assertTrue(excludePorts.contains(PORT_NAME_2));
+    public void testSuppressSubnet() throws Exception {
+        Set<ConnectPoint> suppressSubnet = config.suppressSubnet();
+        assertNotNull("suppressSubnet should not be null", suppressSubnet);
+        assertThat(suppressSubnet.size(), is(2));
+        assertTrue(suppressSubnet.contains(PORT_1));
+        assertTrue(suppressSubnet.contains(PORT_2));
     }
 
     /**
-     * Tests excludePort setter.
+     * Tests suppressSubnet setter.
      *
      * @throws Exception
      */
     @Test
-    public void testSetExcludePorts() throws Exception {
-        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-        builder.add(PORT_NAME_3);
-        config.setExcludePorts(builder.build());
+    public void testSetSuppressSubnet() throws Exception {
+        ImmutableSet.Builder<ConnectPoint> builder = ImmutableSet.builder();
+        builder.add(PORT_3);
+        config.setSuppressSubnet(builder.build());
 
-        Set<String> excludePorts = config.excludePorts();
-        assertThat(excludePorts.size(), is(1));
-        assertTrue(excludePorts.contains(PORT_NAME_3));
+        Set<ConnectPoint> suppressSubnet = config.suppressSubnet();
+        assertNotNull("suppressSubnet should not be null", suppressSubnet);
+        assertThat(suppressSubnet.size(), is(1));
+        assertTrue(suppressSubnet.contains(PORT_3));
+    }
+
+    /**
+     * Tests suppressHost getter.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testSuppressHost() throws Exception {
+        Set<ConnectPoint> suppressHost = config.suppressHost();
+        assertNotNull("suppressHost should not be null", suppressHost);
+        assertThat(suppressHost.size(), is(2));
+        assertTrue(suppressHost.contains(PORT_1));
+        assertTrue(suppressHost.contains(PORT_2));
+    }
+
+    /**
+     * Tests suppressHost setter.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testSetSuppressHost() throws Exception {
+        ImmutableSet.Builder<ConnectPoint> builder = ImmutableSet.builder();
+        builder.add(PORT_3);
+        config.setSuppressHost(builder.build());
+
+        Set<ConnectPoint> suppressHost = config.suppressHost();
+        assertNotNull("suppressHost should not be null", suppressHost);
+        assertThat(suppressHost.size(), is(1));
+        assertTrue(suppressHost.contains(PORT_3));
     }
 
     private class MockDelegate implements ConfigApplyDelegate {
