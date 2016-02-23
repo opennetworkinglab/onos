@@ -70,6 +70,18 @@ public class PartitionedAsyncLeaderElector implements AsyncLeaderElector {
     }
 
     @Override
+    public CompletableFuture<Boolean> promote(String topic, NodeId nodeId) {
+        return getLeaderElector(topic).promote(topic, nodeId);
+    }
+
+    @Override
+    public CompletableFuture<Void> evict(NodeId nodeId) {
+        return CompletableFuture.allOf(getLeaderElectors().stream()
+                                                          .map(le -> le.evict(nodeId))
+                                                          .toArray(CompletableFuture[]::new));
+    }
+
+    @Override
     public CompletableFuture<Leadership> getLeadership(String topic) {
         return getLeaderElector(topic).getLeadership(topic);
     }

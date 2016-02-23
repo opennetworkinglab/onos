@@ -51,10 +51,10 @@ public class AtomixLeaderElectorTest extends AtomixTestBase {
     public void testRun() throws Throwable {
         leaderElectorRunTests(1);
         clearTests();
-//        leaderElectorRunTests(2);
-//        clearTests();
-//        leaderElectorRunTests(3);
-//        clearTests();
+        leaderElectorRunTests(2);
+        clearTests();
+        leaderElectorRunTests(3);
+        clearTests();
     }
 
     private void leaderElectorRunTests(int numServers) throws Throwable {
@@ -179,6 +179,63 @@ public class AtomixLeaderElectorTest extends AtomixTestBase {
             assertEquals(2, result.newValue().candidates().size());
             assertEquals(node1, result.newValue().candidates().get(0));
             assertEquals(node2, result.newValue().candidates().get(1));
+        }).join();
+    }
+
+    @Test
+    public void testPromote() throws Throwable {
+        leaderElectorPromoteTests(1);
+        clearTests();
+        leaderElectorPromoteTests(2);
+        clearTests();
+        leaderElectorPromoteTests(3);
+        clearTests();
+    }
+
+    private void leaderElectorPromoteTests(int numServers) throws Throwable {
+        createCopycatServers(numServers);
+        Atomix client1 = createAtomixClient();
+        AtomixLeaderElector elector1 = client1.get("test-elector", AtomixLeaderElector.class).join();
+        Atomix client2 = createAtomixClient();
+        AtomixLeaderElector elector2 = client2.get("test-elector", AtomixLeaderElector.class).join();
+        Atomix client3 = createAtomixClient();
+        AtomixLeaderElector elector3 = client3.get("test-elector", AtomixLeaderElector.class).join();
+        elector1.run("foo", node1).join();
+        elector2.run("foo", node2).join();
+
+        LeaderEventListener listener1 = new LeaderEventListener();
+        elector1.addChangeListener(listener1).join();
+        LeaderEventListener listener2 = new LeaderEventListener();
+        elector2.addChangeListener(listener2).join();
+        LeaderEventListener listener3 = new LeaderEventListener();
+        elector3.addChangeListener(listener3).join();
+
+        elector3.promote("foo", node3).thenAccept(result -> {
+            assertFalse(result);
+        }).join();
+
+        assertFalse(listener1.hasEvent());
+        assertFalse(listener2.hasEvent());
+        assertFalse(listener3.hasEvent());
+
+        elector3.run("foo", node3).join();
+
+        listener1.clearEvents();
+        listener2.clearEvents();
+        listener3.clearEvents();
+
+        elector3.promote("foo", node3).thenAccept(result -> {
+            assertTrue(result);
+        }).join();
+
+        listener1.nextEvent().thenAccept(result -> {
+            assertEquals(node3, result.newValue().candidates().get(0));
+        }).join();
+        listener2.nextEvent().thenAccept(result -> {
+            assertEquals(node3, result.newValue().candidates().get(0));
+        }).join();
+        listener3.nextEvent().thenAccept(result -> {
+            assertEquals(node3, result.newValue().candidates().get(0));
         }).join();
     }
 
@@ -323,6 +380,10 @@ public class AtomixLeaderElectorTest extends AtomixTestBase {
 
         public boolean hasEvent() {
             return !eventQueue.isEmpty();
+        }
+
+        public void clearEvents() {
+            eventQueue.clear();
         }
 
         public CompletableFuture<Change<Leadership>> nextEvent() {

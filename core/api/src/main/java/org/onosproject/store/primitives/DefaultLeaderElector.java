@@ -60,6 +60,16 @@ public class DefaultLeaderElector extends Synchronous<AsyncLeaderElector> implem
     }
 
     @Override
+    public boolean promote(String topic, NodeId nodeId) {
+        return complete(asyncElector.promote(topic, nodeId));
+    }
+
+    @Override
+    public void evict(NodeId nodeId) {
+        complete(asyncElector.evict(nodeId));
+    }
+
+    @Override
     public Leadership getLeadership(String topic) {
         return complete(asyncElector.getLeadership(topic));
     }

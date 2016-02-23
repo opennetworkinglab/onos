@@ -346,6 +346,102 @@ public final class AtomixLeaderElectorCommands {
     }
 
     /**
+     * Command for administratively promote a node as top candidate.
+     */
+    @SuppressWarnings("serial")
+    public static class Promote extends ElectionCommand<Boolean> {
+        private String topic;
+        private NodeId nodeId;
+
+        public Promote() {
+        }
+
+        public Promote(String topic, NodeId nodeId) {
+            this.topic = topic;
+            this.nodeId = nodeId;
+        }
+
+        /**
+         * Returns the topic.
+         *
+         * @return The topic
+         */
+        public String topic() {
+            return topic;
+        }
+
+        /**
+         * Returns the nodeId to make top candidate.
+         *
+         * @return The nodeId
+         */
+        public NodeId nodeId() {
+            return nodeId;
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("topic", topic)
+                    .add("nodeId", nodeId)
+                    .toString();
+        }
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+            buffer.writeString(topic);
+            buffer.writeString(nodeId.toString());
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            topic = buffer.readString();
+            nodeId = new NodeId(buffer.readString());
+        }
+    }
+
+    /**
+     * Command for administratively evicting a node from all leadership topics.
+     */
+    @SuppressWarnings("serial")
+    public static class Evict extends ElectionCommand<Void> {
+        private NodeId nodeId;
+
+        public Evict() {
+        }
+
+        public Evict(NodeId nodeId) {
+            this.nodeId = nodeId;
+        }
+
+        /**
+         * Returns the node identifier.
+         *
+         * @return The nodeId
+         */
+        public NodeId nodeId() {
+            return nodeId;
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("nodeId", nodeId)
+                    .toString();
+        }
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+            buffer.writeString(nodeId.toString());
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            nodeId = new NodeId(buffer.readString());
+        }
+    }
+
+    /**
      * Map command type resolver.
      */
     public static class TypeResolver implements SerializableTypeResolver {
@@ -359,6 +455,8 @@ public final class AtomixLeaderElectorCommands {
             registry.register(GetLeadership.class, -866);
             registry.register(Listen.class, -867);
             registry.register(Unlisten.class, -868);
+            registry.register(Promote.class, -869);
+            registry.register(Evict.class, -870);
         }
     }
 }

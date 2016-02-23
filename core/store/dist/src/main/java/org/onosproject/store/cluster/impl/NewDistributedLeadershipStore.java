@@ -128,8 +128,7 @@ public class NewDistributedLeadershipStore
 
     @Override
     public void removeRegistration(NodeId nodeId) {
-        // TODO
-        throw new UnsupportedOperationException();
+        leaderElector.evict(nodeId);
     }
 
     @Override
@@ -139,8 +138,7 @@ public class NewDistributedLeadershipStore
 
     @Override
     public boolean makeTopCandidate(String topic, NodeId nodeId) {
-        // TODO
-        throw new UnsupportedOperationException();
+        return leaderElector.promote(topic, nodeId);
     }
 
     @Override

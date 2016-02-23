@@ -58,6 +58,25 @@ public interface LeaderElector extends DistributedPrimitive {
     boolean anoint(String topic, NodeId nodeId);
 
     /**
+     * Attempts to promote a node to top of candidate list.
+     *
+     * @param topic leadership topic
+     * @param nodeId instance identifier of the new top candidate
+     * @return {@code true} if node is now the top candidate. This operation can fail (i.e. return
+     * {@code false}) if the node is not registered to run for election for the topic.
+     */
+    boolean promote(String topic, NodeId nodeId);
+
+    /**
+     * Attempts to evict a node from all leadership elections it is registered for.
+     * <p>
+     * If the node the current leader for a topic, this call will force the next candidate (if one exists)
+     * to be promoted to leadership.
+     * @param nodeId node instance identifier
+     */
+    void evict(NodeId nodeId);
+
+    /**
      * Returns the {@link Leadership} for the specified topic.
      * @param topic leadership topic
      * @return current Leadership state of the topic

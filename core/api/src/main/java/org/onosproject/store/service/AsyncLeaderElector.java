@@ -76,6 +76,28 @@ public interface AsyncLeaderElector extends DistributedPrimitive {
     CompletableFuture<Boolean> anoint(String topic, NodeId nodeId);
 
     /**
+     * Attempts to evict a node from all leadership elections it is registered for.
+     * <p>
+     * If the node is the current leader for a topic, this call will promote the next top candidate
+     * (if one exists) to leadership.
+     *
+     * @param nodeId node instance identifier
+     * @return CompletableFuture that is completed when the operation is done.
+     */
+    CompletableFuture<Void> evict(NodeId nodeId);
+
+    /**
+     * Attempts to promote a node to top of candidate list without displacing the current leader.
+     *
+     * @param topic leadership topic
+     * @param nodeId instance identifier of the new top candidate
+     * @return CompletableFuture that is completed with a boolean when the operation is done. Boolean is true if
+     * node is now the top candidate. This operation can fail (i.e. return false) if the node
+     * is not registered to run for election for the topic.
+     */
+    CompletableFuture<Boolean> promote(String topic, NodeId nodeId);
+
+    /**
      * Returns the {@link Leadership} for the specified topic.
      * @param topic leadership topic
      * @return CompletableFuture that is completed with the current Leadership state of the topic

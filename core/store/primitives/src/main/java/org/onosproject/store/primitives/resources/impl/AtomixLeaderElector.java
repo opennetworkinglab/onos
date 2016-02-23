@@ -20,6 +20,7 @@ import io.atomix.copycat.client.CopycatClient;
 import io.atomix.resource.Resource;
 import io.atomix.resource.ResourceTypeInfo;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -43,6 +44,7 @@ public class AtomixLeaderElector extends Resource<AtomixLeaderElector>
     private final Set<Consumer<Change<Leadership>>> leadershipChangeListeners =
             Sets.newConcurrentHashSet();
 
+    public static final String CHANGE_SUBJECT = "changeEvents";
     private Listener<Change<Leadership>> listener;
 
     public AtomixLeaderElector(CopycatClient client, Resource.Options options) {
@@ -57,13 +59,13 @@ public class AtomixLeaderElector extends Resource<AtomixLeaderElector>
     @Override
     public CompletableFuture<AtomixLeaderElector> open() {
         return super.open().thenApply(result -> {
-            client.onEvent("change", this::handleEvent);
+            client.onEvent(CHANGE_SUBJECT, this::handleEvent);
             return result;
         });
     }
 
-    private void handleEvent(Change<Leadership> change) {
-        leadershipChangeListeners.forEach(l -> l.accept(change));
+    private void handleEvent(List<Change<Leadership>> changes) {
+        changes.forEach(change -> leadershipChangeListeners.forEach(l -> l.accept(change)));
     }
 
     @Override
@@ -79,6 +81,16 @@ public class AtomixLeaderElector extends Resource<AtomixLeaderElector>
     @Override
     public CompletableFuture<Boolean> anoint(String topic, NodeId nodeId) {
         return submit(new AtomixLeaderElectorCommands.Anoint(topic, nodeId));
+    }
+
+    @Override
+    public CompletableFuture<Boolean> promote(String topic, NodeId nodeId) {
+        return submit(new AtomixLeaderElectorCommands.Promote(topic, nodeId));
+    }
+
+    @Override
+    public CompletableFuture<Void> evict(NodeId nodeId) {
+        return submit(new AtomixLeaderElectorCommands.Evict(nodeId));
     }
 
     @Override
