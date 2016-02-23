@@ -14,11 +14,25 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.cordvtn" origin="ON.Lab" version="${project.version}"
-        category="default" url="http://onosproject.org"
-        featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
-        features="${project.artifactId}"
-        apps="org.onosproject.ovsdb-base,org.onosproject.openstackinterface,org.onosproject.dhcp">
-    <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-app-cordvtn/${project.version}</artifact>
-</app>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.onosproject</groupId>
+        <artifactId>onos-apps</artifactId>
+        <version>1.5.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>onos-app-openstackinterface</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>api</module>
+        <module>app</module>
+    </modules>
+
+</project>
+

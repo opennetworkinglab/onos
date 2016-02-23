@@ -15,6 +15,10 @@
  */
 package org.onosproject.openstacknetworking;
 
+import org.onosproject.openstackinterface.OpenstackNetwork;
+import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstackinterface.OpenstackSubnet;
+
 import java.util.Map;
 
 /**

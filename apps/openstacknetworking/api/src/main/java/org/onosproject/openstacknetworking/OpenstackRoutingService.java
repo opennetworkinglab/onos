@@ -15,6 +15,10 @@
  */
 package org.onosproject.openstacknetworking;
 
+import org.onosproject.openstackinterface.OpenstackFloatingIP;
+import org.onosproject.openstackinterface.OpenstackRouter;
+import org.onosproject.openstackinterface.OpenstackRouterInterface;
+
 /**
  * The Interface of Openstack Routing.
  */

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknetworking;
+package org.onosproject.openstackinterface;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.config.Config;
@@ -23,22 +23,11 @@ import org.onosproject.net.config.basics.BasicElementConfig;
  * Handles configuration for OpenstackSwitching app.
  */
 public class OpenstackNetworkingConfig extends Config<ApplicationId> {
-    public static final String DONOTPUSH = "do_not_push_flows";
     public static final String NEUTRON_SERVER = "neutron_server";
     public static final String KEYSTONE_SERVER = "keystone_server";
     public static final String USER_NAME = "user_name";
     public static final String PASSWORD = "password";
     public static final String PHYSICAL_ROUTER_MAC = "physicalRouterMac";
-
-    /**
-     * Returns the flag whether the app pushes flows or not.
-     *
-     * @return the flag or false if not set
-     */
-    public boolean doNotPushFlows() {
-        String flag = get(DONOTPUSH, "false");
-        return Boolean.valueOf(flag);
-    }
 
     /**
      * Returns the Neutron server IP address.
@@ -83,15 +72,6 @@ public class OpenstackNetworkingConfig extends Config<ApplicationId> {
      */
     public String physicalRouterMac() {
         return get(PHYSICAL_ROUTER_MAC, "");
-    }
-    /**
-     * Sets the flag whether the app pushes flows or not.
-     *
-     * @param flag the flag whether the app pushes flows or not
-     * @return self
-     */
-    public BasicElementConfig doNotPushFlows(boolean flag) {
-        return (BasicElementConfig) setOrClear(DONOTPUSH, flag);
     }
 
     /**

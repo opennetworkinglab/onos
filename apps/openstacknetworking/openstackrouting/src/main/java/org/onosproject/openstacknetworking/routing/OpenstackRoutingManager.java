@@ -39,11 +39,11 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.openstacknetworking.OpenstackFloatingIP;
-import org.onosproject.openstacknetworking.OpenstackNetworkingService;
-import org.onosproject.openstacknetworking.OpenstackPort;
-import org.onosproject.openstacknetworking.OpenstackRouter;
-import org.onosproject.openstacknetworking.OpenstackRouterInterface;
+import org.onosproject.openstackinterface.OpenstackFloatingIP;
+import org.onosproject.openstackinterface.OpenstackInterfaceService;
+import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstackinterface.OpenstackRouter;
+import org.onosproject.openstackinterface.OpenstackRouterInterface;
 import org.onosproject.openstacknetworking.OpenstackRoutingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +77,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackNetworkingService openstackService;
+    protected OpenstackInterfaceService openstackService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;

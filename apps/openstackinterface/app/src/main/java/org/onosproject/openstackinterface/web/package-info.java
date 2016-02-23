@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknetworking.routing;
-
-        import org.onosproject.event.AbstractEvent;
 
 /**
- * Handle FloatingIP Event for Managing Flow Rules In Openstack Nodes.
+ * OpenStack networking implementation.
  */
-public class OpenstackFloatingIPHandler implements Runnable {
-
-    volatile AbstractEvent event;
-    OpenstackFloatingIPHandler(AbstractEvent event) {
-        this.event = event;
-    }
-
-    @Override
-    public void run() {
-
-    }
-}
+package org.onosproject.openstackinterface.web;

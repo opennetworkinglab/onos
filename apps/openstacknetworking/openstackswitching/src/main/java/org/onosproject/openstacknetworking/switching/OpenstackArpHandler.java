@@ -27,8 +27,8 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.openstacknetworking.OpenstackNetworkingService;
-import org.onosproject.openstacknetworking.OpenstackPort;
+import org.onosproject.openstackinterface.OpenstackInterfaceService;
+import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstacknetworking.OpenstackPortInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +46,7 @@ public class OpenstackArpHandler {
             .getLogger(OpenstackArpHandler.class);
     private static final MacAddress GATEWAY_MAC = MacAddress.valueOf("1f:1f:1f:1f:1f:1f");
     private PacketService packetService;
-    private OpenstackNetworkingService openstackService;
+    private OpenstackInterfaceService openstackService;
     private HostService hostService;
 
     /**
@@ -56,7 +56,7 @@ public class OpenstackArpHandler {
      * @param packetService PacketService reference
      * @param hostService host service
      */
-    public OpenstackArpHandler(OpenstackNetworkingService openstackService, PacketService packetService,
+    public OpenstackArpHandler(OpenstackInterfaceService openstackService, PacketService packetService,
                                HostService hostService) {
         this.openstackService = openstackService;
         this.packetService = packetService;

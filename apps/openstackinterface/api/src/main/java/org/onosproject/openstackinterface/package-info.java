@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknetworking.routing;
-
-        import org.onosproject.event.AbstractEvent;
 
 /**
- * Handle FloatingIP Event for Managing Flow Rules In Openstack Nodes.
+ * Application for OpenstackRouting.
  */
-public class OpenstackFloatingIPHandler implements Runnable {
-
-    volatile AbstractEvent event;
-    OpenstackFloatingIPHandler(AbstractEvent event) {
-        this.event = event;
-    }
-
-    @Override
-    public void run() {
-
-    }
-}
+package org.onosproject.openstackinterface;

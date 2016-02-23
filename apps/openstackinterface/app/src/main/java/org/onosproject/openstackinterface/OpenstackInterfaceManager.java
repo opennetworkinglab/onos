@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknetworking.web;
+package org.onosproject.openstackinterface;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
@@ -30,26 +31,30 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Port;
-import org.onosproject.net.driver.DriverService;
-import org.onosproject.openstacknetworking.OpenstackNetwork;
-import org.onosproject.openstacknetworking.OpenstackNetworkingService;
-import org.onosproject.openstacknetworking.OpenstackPort;
-import org.onosproject.openstacknetworking.OpenstackPortInfo;
-import org.onosproject.openstacknetworking.OpenstackRouter;
-import org.onosproject.openstacknetworking.OpenstackSecurityGroup;
-import org.onosproject.openstacknetworking.OpenstackSubnet;
-import org.onosproject.openstacknetworking.OpenstackSwitchingService;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.openstackinterface.web.OpenstackNetworkCodec;
+import org.onosproject.openstackinterface.web.OpenstackPortCodec;
+import org.onosproject.openstackinterface.web.OpenstackRouterCodec;
+import org.onosproject.openstackinterface.web.OpenstackSecurityGroupCodec;
+import org.onosproject.openstackinterface.web.OpenstackSubnetCodec;
 import org.slf4j.Logger;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.net.MediaType.JSON_UTF_8;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -58,7 +63,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Service
 @Component(immediate = true)
-public class OpenstackNetworkingManager implements OpenstackNetworkingService {
+public class OpenstackInterfaceManager implements OpenstackInterfaceService {
 
     private static final String URI_NETWORKS = "networks";
     private static final String URI_PORTS = "ports";
@@ -91,20 +96,39 @@ public class OpenstackNetworkingManager implements OpenstackNetworkingService {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
+    protected NetworkConfigRegistry cfgService;
 
-    protected OpenstackSwitchingService openstackSwitchingService;
+    private InternalConfigListener internalConfigListener = new InternalConfigListener();
+    private ExecutorService networkEventExcutorService =
+            Executors.newSingleThreadExecutor(groupedThreads("onos/openstackinterface", "config-event"));
+
+    private final Set<ConfigFactory> factories = ImmutableSet.of(
+            new ConfigFactory<ApplicationId, OpenstackNetworkingConfig>(APP_SUBJECT_FACTORY,
+                    OpenstackNetworkingConfig.class,
+                    "openstackinterface") {
+                @Override
+                public OpenstackNetworkingConfig createConfig() {
+                    return new OpenstackNetworkingConfig();
+                }
+            }
+    );
+
 
     @Activate
     protected void activate() {
         appId = coreService
-                .registerApplication("org.onosproject.openstacknetworking");
+                .registerApplication("org.onosproject.openstackinterface");
+
+        factories.forEach(cfgService::registerConfigFactory);
+        cfgService.addListener(internalConfigListener);
 
         log.info("started");
     }
 
     @Deactivate
     protected void deactivate() {
+        cfgService.removeListener(internalConfigListener);
+        factories.forEach(cfgService::unregisterConfigFactory);
         log.info("stopped");
     }
 
@@ -355,16 +379,31 @@ public class OpenstackNetworkingManager implements OpenstackNetworkingService {
                 .findAny().orElse(null);
     }
 
-    @Override
-    public Map<String, OpenstackPortInfo> openstackPortInfo() {
-        return openstackSwitchingService.openstackPortInfo();
-    }
+    private class InternalConfigListener implements NetworkConfigListener {
 
-    @Override
-    public void setConfigurations(String neutronUrl, String keystoneUrl, String userName, String pass) {
-        this.neutronUrl = checkNotNull(neutronUrl);
-        this.keystoneUrl = checkNotNull(keystoneUrl);
-        this.userName = checkNotNull(userName);
-        this.pass = checkNotNull(pass);
+        public void configureNetwork() {
+            OpenstackNetworkingConfig cfg =
+                    cfgService.getConfig(appId, OpenstackNetworkingConfig.class);
+            if (cfg == null) {
+                log.error("There is no openstack server information in config.");
+                return;
+            }
+
+            neutronUrl = checkNotNull(cfg.neutronServer());
+            keystoneUrl = checkNotNull(cfg.keystoneServer());
+            userName = checkNotNull(cfg.userName());
+            pass = checkNotNull(cfg.password());
+        }
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            if (((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)) &&
+                    event.configClass().equals(OpenstackNetworkingConfig.class)) {
+
+                log.info("Network configuration changed");
+                networkEventExcutorService.execute(this::configureNetwork);
+            }
+        }
     }
 }

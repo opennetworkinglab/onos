@@ -62,10 +62,10 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.openstacknetworking.OpenstackNetworkingService;
-import org.onosproject.openstacknetworking.OpenstackNetwork;
-import org.onosproject.openstacknetworking.OpenstackPort;
-import org.onosproject.openstacknetworking.OpenstackSubnet;
+import org.onosproject.openstackinterface.OpenstackInterfaceService;
+import org.onosproject.openstackinterface.OpenstackNetwork;
+import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstackinterface.OpenstackSubnet;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -123,7 +123,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     protected GroupService groupService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackNetworkingService openstackService;
+    protected OpenstackInterfaceService openstackService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DhcpService dhcpService;

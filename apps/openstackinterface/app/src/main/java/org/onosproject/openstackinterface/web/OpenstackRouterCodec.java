@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknetworking.web;
+package org.onosproject.openstackinterface.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -22,8 +22,8 @@ import com.google.common.collect.Maps;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.openstacknetworking.OpenstackExternalGateway;
-import org.onosproject.openstacknetworking.OpenstackRouter;
+import org.onosproject.openstackinterface.OpenstackExternalGateway;
+import org.onosproject.openstackinterface.OpenstackRouter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static com.google.common.base.Preconditions.checkNotNull;

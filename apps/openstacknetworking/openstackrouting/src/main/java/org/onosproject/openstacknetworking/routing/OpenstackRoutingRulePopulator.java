@@ -47,11 +47,11 @@ import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.packet.InboundPacket;
-import org.onosproject.openstacknetworking.OpenstackNetworkingService;
-import org.onosproject.openstacknetworking.OpenstackPort;
-import org.onosproject.openstacknetworking.OpenstackRouter;
-import org.onosproject.openstacknetworking.OpenstackRouterInterface;
-import org.onosproject.openstacknetworking.OpenstackSubnet;
+import org.onosproject.openstackinterface.OpenstackInterfaceService;
+import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstackinterface.OpenstackRouter;
+import org.onosproject.openstackinterface.OpenstackRouterInterface;
+import org.onosproject.openstackinterface.OpenstackSubnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +68,7 @@ public class OpenstackRoutingRulePopulator {
 
     private final ApplicationId appId;
     private final FlowObjectiveService flowObjectiveService;
-    private final OpenstackNetworkingService openstackService;
+    private final OpenstackInterfaceService openstackService;
     private final DeviceService deviceService;
     private final DriverService driverService;
 
@@ -105,7 +105,7 @@ public class OpenstackRoutingRulePopulator {
      * @param deviceService DeviceService
      * @param driverService DriverService
      */
-    public OpenstackRoutingRulePopulator(ApplicationId appId, OpenstackNetworkingService openstackService,
+    public OpenstackRoutingRulePopulator(ApplicationId appId, OpenstackInterfaceService openstackService,
                                          FlowObjectiveService flowObjectiveService,
                                          DeviceService deviceService, DriverService driverService) {
         this.appId = appId;

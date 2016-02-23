@@ -103,7 +103,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-openstacknetworking-api</artifactId>
+            <artifactId>onos-app-openstackinterface-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

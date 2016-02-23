@@ -29,10 +29,10 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.openstacknetworking.OpenstackNetwork;
-import org.onosproject.openstacknetworking.OpenstackNetworkingService;
-import org.onosproject.openstacknetworking.OpenstackPort;
-import org.onosproject.openstacknetworking.OpenstackRouter;
+import org.onosproject.openstackinterface.OpenstackInterfaceService;
+import org.onosproject.openstackinterface.OpenstackNetwork;
+import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstackinterface.OpenstackRouter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +91,7 @@ public class OpenstackPnatHandler implements Runnable {
     }
 
     private OpenstackRouter getOpenstackRouter(OpenstackPort openstackPort) {
-        OpenstackNetworkingService networkingService = getService(OpenstackNetworkingService.class);
+        OpenstackInterfaceService networkingService = getService(OpenstackInterfaceService.class);
         OpenstackNetwork network = networkingService.network(openstackPort.networkId());
 
         OpenstackPort port = networkingService.ports()

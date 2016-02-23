@@ -17,7 +17,8 @@ package org.onosproject.openstacknetworking.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.openstacknetworking.OpenstackPort;
+import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstackinterface.web.OpenstackPortCodec;
 import org.onosproject.openstacknetworking.OpenstackSwitchingService;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;

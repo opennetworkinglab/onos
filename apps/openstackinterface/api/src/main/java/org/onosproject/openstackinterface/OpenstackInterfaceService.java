@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknetworking;
+package org.onosproject.openstackinterface;
 
 import org.onosproject.net.Port;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Handles port management REST API from Openstack for VMs.
  */
-public interface OpenstackNetworkingService {
+public interface OpenstackInterfaceService {
 
     /**
      * Returns port information list for the network ID given.
@@ -99,23 +98,6 @@ public interface OpenstackNetworkingService {
      * @return router information
      */
     OpenstackRouter router(String routerId);
-
-    /**
-     * Retruns OpenstackPortInfo map.
-     *
-     * @return OpenstackPortInfo map
-     */
-    Map<String, OpenstackPortInfo> openstackPortInfo();
-
-    /**
-     * Sets configurations specified by net-config.xml file.
-     *
-     * @param neutronUrl neutron server url
-     * @param keystoneUrl keystone server url
-     * @param userName horizon user name
-     * @param pass horizon passowrd
-     */
-    void setConfigurations(String neutronUrl, String keystoneUrl, String userName, String pass);
 
     /**
      * Returns Security Group information of the security groupd id given.

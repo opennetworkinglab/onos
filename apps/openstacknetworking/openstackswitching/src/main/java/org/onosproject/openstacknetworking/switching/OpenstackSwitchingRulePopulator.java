@@ -40,9 +40,9 @@ import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
-import org.onosproject.openstacknetworking.OpenstackNetwork;
-import org.onosproject.openstacknetworking.OpenstackNetworkingService;
-import org.onosproject.openstacknetworking.OpenstackPort;
+import org.onosproject.openstackinterface.OpenstackInterfaceService;
+import org.onosproject.openstackinterface.OpenstackNetwork;
+import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstacknetworking.OpenstackPortInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +80,7 @@ public class OpenstackSwitchingRulePopulator {
     public OpenstackSwitchingRulePopulator(ApplicationId appId,
                                            FlowObjectiveService flowObjectiveService,
                                            DeviceService deviceService,
-                                           OpenstackNetworkingService openstackService,
+                                           OpenstackInterfaceService openstackService,
                                            DriverService driverService) {
         this.flowObjectiveService = flowObjectiveService;
         this.deviceService = deviceService;
@@ -95,14 +95,10 @@ public class OpenstackSwitchingRulePopulator {
     /**
      * Populates flow rules for the VM created.
      *
-     * @param doNotPushFlow true to suppress push of initial flows
      * @param device device to populate rules to
      * @param port port for the VM created
      */
-    public void populateSwitchingRules(boolean doNotPushFlow, Device device, Port port) {
-        if (doNotPushFlow) {
-            return;
-        }
+    public void populateSwitchingRules(Device device, Port port) {
         populateFlowRulesForTunnelTag(device, port);
         populateFlowRulesForTrafficToSameCnode(device, port);
         populateFlowRulesForTrafficToDifferentCnode(device, port);
@@ -271,15 +267,11 @@ public class OpenstackSwitchingRulePopulator {
     /**
      * Remove flows rules for the removed VM.
      *
-     * @param doNotPushFlows true to suppress push of initial flows
      * @param removedPort removedport info
      * @param openstackPortInfoMap openstackPortInfoMap
      */
-    public void removeSwitchingRules(boolean doNotPushFlows, Port removedPort, Map<String,
+    public void removeSwitchingRules(Port removedPort, Map<String,
             OpenstackPortInfo> openstackPortInfoMap) {
-        if (doNotPushFlows) {
-            return;
-        }
         OpenstackPortInfo openstackPortInfo = openstackPortInfoMap
                 .get(removedPort.annotations().value("portName"));
 
