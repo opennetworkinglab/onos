@@ -27,6 +27,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.UDP;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
@@ -112,7 +113,6 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     protected void activate() {
         appId = coreService.registerApplication(APP_ID);
         packetService.addProcessor(internalPacketProcessor, PacketProcessor.director(1));
-        reloadInitL3Rules();
         log.info("onos-openstackrouting started");
     }
 
@@ -210,6 +210,13 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                     case IPv4.PROTOCOL_ICMP:
                         icmpEventExecutorService.execute(new OpenstackIcmpHandler(rulePopulator, context));
                         break;
+                    case IPv4.PROTOCOL_UDP:
+                        // don't process DHCP
+                        UDP udpPacket = (UDP) iPacket.getPayload();
+                        if (udpPacket.getDestinationPort() == UDP.DHCP_SERVER_PORT &&
+                                udpPacket.getSourcePort() == UDP.DHCP_CLIENT_PORT) {
+                            break;
+                        }
                     default:
                         int portNum = getPortNum(ethernet.getSourceMAC(), iPacket.getDestinationAddress());
                         Port port = getExternalPort(pkt.receivedFrom().deviceId(), EXTERNAL_INTERFACE_NAME);
