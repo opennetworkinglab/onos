@@ -48,24 +48,6 @@ public class OvsdbTunnelConfig extends AbstractHandlerBehaviour
     private static final String OPTION_REMOTE_IP = "remote_ip";
 
     @Override
-    public void createTunnel(TunnelDescription tunnel) {
-        DriverHandler handler = handler();
-        OvsdbClientService ovsdbNode = getOvsdbNode(handler);
-        IpTunnelEndPoint ipSrc = IpTunnelEndPoint.ipTunnelPoint(IpAddress
-                .valueOf(DEFAULT_ADDRESS));
-        IpTunnelEndPoint ipDst = IpTunnelEndPoint.ipTunnelPoint(IpAddress
-                .valueOf(DEFAULT_ADDRESS));
-        if (tunnel.src() instanceof IpTunnelEndPoint) {
-            ipSrc = (IpTunnelEndPoint) tunnel.src();
-        }
-        if (tunnel.dst() instanceof IpTunnelEndPoint) {
-            ipDst = (IpTunnelEndPoint) tunnel.dst();
-        }
-        //Even if source point ip or destination point ip equals 0:0:0:0, it is still work-in-progress.
-        ovsdbNode.createTunnel(ipSrc.ip(), ipDst.ip());
-    }
-
-    @Override
     public boolean createTunnelInterface(BridgeName bridgeName, TunnelDescription tunnel) {
         Map<String, String> options = ((DefaultAnnotations) tunnel.annotations()).asMap();
         if (tunnel.src() != null) {
