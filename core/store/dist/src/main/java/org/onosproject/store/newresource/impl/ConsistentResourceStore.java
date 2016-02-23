@@ -19,6 +19,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -507,25 +508,29 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     // computational complexity: O(n) where n is the number of the specified value
     private boolean appendValues(TransactionalMap<DiscreteResourceId, Set<Resource>> map,
                                  DiscreteResourceId key, List<Resource> values) {
-        Set<Resource> oldValues = map.putIfAbsent(key, new LinkedHashSet<>(values));
+        Set<Resource> requested = new LinkedHashSet<>(values);
+        Set<Resource> oldValues = map.putIfAbsent(key, requested);
         if (oldValues == null) {
             return true;
         }
 
-        Set<ResourceId> oldIds = oldValues.stream()
-                .map(Resource::id)
-                .collect(Collectors.toSet());
-        // values whose IDs don't match any IDs of oldValues
-        Set<Resource> addedValues = values.stream()
-                .filter(x -> !oldIds.contains(x.id()))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        // no new ID, then no-op
+        Set<Resource> addedValues = Sets.difference(requested, oldValues);
+        // no new value, then no-op
         if (addedValues.isEmpty()) {
             // don't write to map because all values are already stored
             return true;
         }
 
-        LinkedHashSet<Resource> newValues = new LinkedHashSet<>(oldValues);
+        Set<ResourceId> addedIds = addedValues.stream()
+                .map(Resource::id)
+                .collect(Collectors.toSet());
+        // if the value is not found but the same ID is found
+        // (this happens only when being continuous resource)
+        if (oldValues.stream().anyMatch(x -> addedIds.contains(x.id()))) {
+            // no-op, but indicating failure (reject the request)
+            return false;
+        }
+        Set<Resource> newValues = new LinkedHashSet<>(oldValues);
         newValues.addAll(addedValues);
         return map.replace(key, oldValues, newValues);
     }
