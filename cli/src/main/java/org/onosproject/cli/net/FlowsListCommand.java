@@ -78,6 +78,11 @@ public class FlowsListCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private boolean shortOutput = false;
 
+    @Option(name = "-c", aliases = "--count",
+            description = "Print flow count only",
+            required = false, multiValued = false)
+    private boolean countOnly = false;
+
     private Predicate<FlowEntry> predicate = TRUE_PREDICATE;
 
     @Override
@@ -193,7 +198,7 @@ public class FlowsListCommand extends AbstractShellCommand {
                               CoreService coreService) {
         boolean empty = flows == null || flows.isEmpty();
         print("deviceId=%s, flowRuleCount=%d", d.id(), empty ? 0 : flows.size());
-        if (empty) {
+        if (empty || countOnly) {
             return;
         }
 
