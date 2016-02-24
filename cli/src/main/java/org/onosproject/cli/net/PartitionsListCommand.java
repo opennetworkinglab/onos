@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Ordering;
 
 /**
  * Command to list the database partitions in the system.
@@ -48,7 +49,7 @@ public class PartitionsListCommand extends AbstractShellCommand {
 
         for (PartitionInfo info : partitionInfo) {
             boolean first = true;
-            for (String member : info.members()) {
+            for (String member : Ordering.natural().sortedCopy(info.members())) {
                 if (first) {
                     print(FMT, info.name(), info.term(), member,
                             member.equals(info.leader()) ? "*" : "");

@@ -37,6 +37,7 @@ import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.MapUpdate;
+import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionService;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -57,7 +58,6 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContextBuilder;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 
@@ -81,6 +81,9 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PartitionService partitionService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PartitionAdminService partitionAdminService;
 
     private final Supplier<TransactionId> transactionIdGenerator =
             () -> TransactionId.from(UUID.randomUUID().toString());
@@ -198,7 +201,7 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public List<PartitionInfo> getPartitionInfo() {
-        return Lists.newArrayList();
+        return partitionAdminService.partitionInfo();
     }
 
     @Override
