@@ -16,7 +16,11 @@
 package org.onosproject.provider.nil;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
@@ -26,7 +30,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -57,6 +63,8 @@ class TopologyMutationDriver implements Runnable {
     private LinkService linkService;
     private DeviceService deviceService;
     private LinkProviderService linkProviderService;
+    private DeviceProviderService deviceProviderService;
+    private TopologySimulator simulator;
 
     private List<LinkDescription> activeLinks;
     private List<LinkDescription> inactiveLinks;
@@ -64,21 +72,30 @@ class TopologyMutationDriver implements Runnable {
     private final ExecutorService executor =
             newSingleThreadScheduledExecutor(groupedThreads("onos/null", "topo-mutator"));
 
+    private Map<DeviceId, Set<Link>> savedLinks = Maps.newConcurrentMap();
+
     /**
      * Starts the mutation process.
      *
-     * @param mutationRate        link events per second
-     * @param linkService         link service
-     * @param deviceService       device service
-     * @param linkProviderService link provider service
+     * @param mutationRate          link events per second
+     * @param linkService           link service
+     * @param deviceService         device service
+     * @param linkProviderService   link provider service
+     * @param deviceProviderService device provider service
+     * @param simulator             topology simulator
      */
     void start(double mutationRate,
                LinkService linkService, DeviceService deviceService,
-               LinkProviderService linkProviderService) {
+               LinkProviderService linkProviderService,
+               DeviceProviderService deviceProviderService,
+               TopologySimulator simulator) {
+        savedLinks.clear();
         stopped = false;
         this.linkService = linkService;
         this.deviceService = deviceService;
         this.linkProviderService = linkProviderService;
+        this.deviceProviderService = deviceProviderService;
+        this.simulator = simulator;
         activeLinks = reduceLinks();
         inactiveLinks = Lists.newArrayList();
         adjustRate(mutationRate);
@@ -132,6 +149,41 @@ class TopologyMutationDriver implements Runnable {
         LinkDescription link = new DefaultLinkDescription(one, two, DIRECT);
         linkProviderService.linkDetected(link);
         linkProviderService.linkDetected(reverse(link));
+    }
+
+    /**
+     * Fails the specified device.
+     *
+     * @param deviceId device identifier
+     */
+    void failDevice(DeviceId deviceId) {
+        savedLinks.put(deviceId, linkService.getDeviceLinks(deviceId));
+        deviceProviderService.deviceDisconnected(deviceId);
+    }
+
+    /**
+     * Repairs the specified device.
+     *
+     * @param deviceId device identifier
+     */
+    void repairDevice(DeviceId deviceId) {
+        int chassisId = Integer.parseInt(deviceId.uri().getSchemeSpecificPart());
+        simulator.createDevice(deviceId, chassisId);
+        Set<Link> links = savedLinks.remove(deviceId);
+        if (links != null) {
+            links.forEach(l -> linkProviderService
+                    .linkDetected(new DefaultLinkDescription(l.src(), l.dst(), DIRECT)));
+        }
+    }
+
+    /**
+     * Returns whether the given device is considered reachable or not.
+     *
+     * @param deviceId device identifier
+     * @return true if device is reachable
+     */
+    boolean isReachable(DeviceId deviceId) {
+        return !savedLinks.containsKey(deviceId);
     }
 
     @Override

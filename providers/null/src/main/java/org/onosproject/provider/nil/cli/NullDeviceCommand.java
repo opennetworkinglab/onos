@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.onosproject.provider.nil.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 import org.onosproject.provider.nil.NullProviders;
 
 import static org.onosproject.cli.UpDownCompleter.DOWN;
@@ -27,19 +27,15 @@ import static org.onosproject.cli.UpDownCompleter.UP;
 /**
  * Servers or repairs a simulated link.
  */
-@Command(scope = "onos", name = "null-link",
+@Command(scope = "onos", name = "null-device",
         description = "Severs or repairs a simulated link")
-public class NullLinkCommand extends AbstractShellCommand {
+public class NullDeviceCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "one", description = "One link end-point as device/port",
+    @Argument(index = 0, name = "id", description = "Device identifier",
             required = true, multiValued = false)
-    String one = null;
+    String id = null;
 
-    @Argument(index = 1, name = "two", description = "Another link end-point as device/port",
-            required = true, multiValued = false)
-    String two = null;
-
-    @Argument(index = 2, name = "cmd", description = "up/down",
+    @Argument(index = 1, name = "cmd", description = "up/down",
             required = true, multiValued = false)
     String cmd = null;
 
@@ -47,20 +43,14 @@ public class NullLinkCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         NullProviders service = get(NullProviders.class);
+        DeviceId deviceId = DeviceId.deviceId(id);
 
-        try {
-            ConnectPoint onePoint = ConnectPoint.deviceConnectPoint(one);
-            ConnectPoint twoPoint = ConnectPoint.deviceConnectPoint(two);
-
-            if (cmd.equals(UP)) {
-                service.repairLink(onePoint, twoPoint);
-            } else if (cmd.equals(DOWN)) {
-                service.severLink(onePoint, twoPoint);
-            } else {
-                error("Illegal command %s; must be up or down", cmd);
-            }
-        } catch (NumberFormatException e) {
-            error("Invalid port number specified", e);
+        if (cmd.equals(UP)) {
+            service.repairDevice(deviceId);
+        } else if (cmd.equals(DOWN)) {
+            service.failDevice(deviceId);
+        } else {
+            error("Illegal command %s; must be up or down", cmd);
         }
     }
 

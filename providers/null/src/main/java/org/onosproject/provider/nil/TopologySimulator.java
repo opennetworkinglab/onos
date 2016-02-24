@@ -172,30 +172,30 @@ public abstract class TopologySimulator {
     protected abstract void createHosts();
 
     /**
-     * Creates simulated device.
+     * Creates simulated device and adds its id to the list of devices ids.
      *
      * @param i index of the device id in the list.
      */
     protected void createDevice(int i) {
         DeviceId id = DeviceId.deviceId(SCHEME + ":" + toHex(i));
+        deviceIds.add(id);
+        createDevice(id, i);
+    }
+
+    /**
+     * Creates simulated device.
+     *
+     * @param id device identifier
+     * @param chassisId chassis identifier number
+     */
+    protected void createDevice(DeviceId id, int chassisId) {
         DeviceDescription desc =
                 new DefaultDeviceDescription(id.uri(), Device.Type.SWITCH,
                                              "ON.Lab", "0.1", "0.1", "1234",
-                                             new ChassisId(i));
-        deviceIds.add(id);
+                                             new ChassisId(chassisId));
         deviceProviderService.deviceConnected(id, desc);
         deviceProviderService.updatePorts(id, buildPorts(hostCount + infrastructurePorts));
     }
-
-//    /**
-//     * Creates simulated link between two devices on port 1 and port 2.
-//     *
-//     * @param i  index of one simulated device
-//     * @param j  index of another simulated device
-//     */
-//    protected void createLink(int i, int j) {
-//        createLink(i, j, 1, 2);
-//    }
 
     /**
      * Creates simulated link between two devices.
@@ -208,6 +208,16 @@ public abstract class TopologySimulator {
     protected void createLink(int i, int j, int pi, int pj) {
         ConnectPoint one = new ConnectPoint(deviceIds.get(i), PortNumber.portNumber(pi));
         ConnectPoint two = new ConnectPoint(deviceIds.get(j), PortNumber.portNumber(pj));
+        createLink(one, two);
+    }
+
+    /**
+     * Creates simulated link between two connection points.
+     *
+     * @param one  one connection point
+     * @param two  another connection point
+     */
+    protected void createLink(ConnectPoint one, ConnectPoint two) {
         linkProviderService.linkDetected(new DefaultLinkDescription(one, two, DIRECT));
         linkProviderService.linkDetected(new DefaultLinkDescription(two, one, DIRECT));
     }
@@ -359,7 +369,7 @@ public abstract class TopologySimulator {
     }
 
     /**
-     * Indicates whether or not the simulation knows of this device.
+     * Indicates whether or not the simulation deeps the device as available.
      *
      * @param deviceId device identifier
      * @return true if device is known

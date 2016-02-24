@@ -55,6 +55,7 @@ public class TreeTopologySimulator extends TopologySimulator {
 
     @Override
     protected void createLinks() {
+
         int portOffset = 1;
         for (int t = 1; t < tierOffset.length; t++) {
             int child = tierOffset[t];

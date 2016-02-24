@@ -20,9 +20,7 @@ package org.onosproject.provider.nil;
  */
 public class CentipedeTopologySimulator extends LinearTopologySimulator {
 
-    /**
-     * Creates simulated hosts.
-     */
+    @Override
     protected void createHosts() {
         deviceIds.forEach(id -> createHosts(id, infrastructurePorts));
     }

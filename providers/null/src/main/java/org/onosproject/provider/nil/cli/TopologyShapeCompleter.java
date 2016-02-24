@@ -27,6 +27,6 @@ public class TopologyShapeCompleter extends AbstractChoicesCompleter {
     @Override
     public List<String> choices() {
         return ImmutableList.of("configured", "linear", "reroute", "centipede",
-                                "tree", "spineleaf", "mesh");
+                                "tree", "spineleaf", "mesh", "grid");
     }
 }
