@@ -33,6 +33,7 @@
 
     <modules>
         <module>election</module>
+        <module>loadtest</module>
         <module>intent-perf</module>
         <module>messaging-perf</module>
         <module>demo</module>
