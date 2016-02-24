@@ -369,7 +369,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 ExtensionCriterion extCriterion =
                         (ExtensionCriterion) flowRule.selector().getCriterion(Criterion.Type.EXTENSION);
                 VlanId vlanId = ((OfdpaMatchVlanVid) extCriterion.extensionSelector()).vlanId();
-                if (vlanId.toShort() != (short) 0) {
+                if (!vlanId.equals(VlanId.NONE)) {
                     filteringRules.add(flowRule);
                 } else {
                     assignmentRules.add(flowRule);
@@ -461,7 +461,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         VlanId storeVlan = null;
         if (vidCriterion.vlanId() == VlanId.NONE) {
             // untagged packets are assigned vlans
-            OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(VlanId.vlanId((short) 0));
+            OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(VlanId.NONE);
             selector.extension(ofdpaMatchVlanVid, deviceId);
             OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(assignedVlan);
             treatment.extension(ofdpaSetVlanVid, deviceId);

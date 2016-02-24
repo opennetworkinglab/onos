@@ -51,15 +51,13 @@ public class OfdpaExtensionSelectorInterpreter extends AbstractHandlerBehaviour
         if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.OFDPA_MATCH_VLAN_VID.type())) {
             VlanId vlanId = ((OfdpaMatchVlanVid) extensionSelector).vlanId();
             // Special VLAN 0x0000/0x1FFF required by OFDPA
-            if (vlanId.toShort() == 0x0000) {
-                OFVlanVidMatch vid = OFVlanVidMatch.ofRawVid(vlanId.toShort());
+            if (vlanId.equals(VlanId.NONE)) {
+                OFVlanVidMatch vid = OFVlanVidMatch.ofRawVid((short) 0x0000);
                 OFVlanVidMatch mask = OFVlanVidMatch.ofRawVid((short) 0x1FFF);
                 return factory.oxms().vlanVidMasked(vid, mask);
             // Normal case
             } else if (vlanId.equals(VlanId.ANY)) {
                 return factory.oxms().vlanVidMasked(OFVlanVidMatch.PRESENT, OFVlanVidMatch.PRESENT);
-            } else if (vlanId.equals(VlanId.NONE)) {
-                return factory.oxms().vlanVid(OFVlanVidMatch.NONE);
             } else {
                 return factory.oxms().vlanVid(OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vlanId.toShort())));
             }
@@ -78,7 +76,7 @@ public class OfdpaExtensionSelectorInterpreter extends AbstractHandlerBehaviour
                 OFVlanVidMatch mask = ((OFOxmVlanVidMasked) oxm).getMask();
 
                 if (vid.equals(OFVlanVidMatch.ofRawVid((short) 0))) {
-                    vlanId = VlanId.vlanId((short) 0);
+                    vlanId = VlanId.NONE;
                 } else if (vid.equals(OFVlanVidMatch.PRESENT) &&
                         mask.equals(OFVlanVidMatch.PRESENT)) {
                     vlanId = VlanId.ANY;
