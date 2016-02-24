@@ -146,7 +146,6 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
         }
         for (Instruction i : treatment.immediate()) {
             switch (i.type()) {
-            case DROP:
             case NOACTION:
                 return Collections.emptyList();
             case L2MODIFICATION:

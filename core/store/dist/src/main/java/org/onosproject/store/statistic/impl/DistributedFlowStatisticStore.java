@@ -326,9 +326,6 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
                 Instructions.OutputInstruction out = (Instructions.OutputInstruction) i;
                 return out.port();
             }
-            if (i.type() == Instruction.Type.DROP) {
-                return PortNumber.P0;
-            }
         }
         return null;
     }

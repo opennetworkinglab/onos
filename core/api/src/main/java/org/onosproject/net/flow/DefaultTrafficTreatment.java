@@ -235,7 +235,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         public Builder add(Instruction instruction) {
 
             switch (instruction.type()) {
-                case DROP:
                 case NOACTION:
                 case OUTPUT:
                 case GROUP:

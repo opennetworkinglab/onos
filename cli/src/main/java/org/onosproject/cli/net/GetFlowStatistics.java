@@ -275,9 +275,7 @@ public class GetFlowStatistics extends AbstractShellCommand {
     private Instruction.Type getInstructionType(String instType) {
         String instTypeUC = instType.toUpperCase();
 
-        if (instTypeUC.equals("DROP")) {
-            return Instruction.Type.DROP;
-        } else if (instTypeUC.equals("OUTPUT")) {
+        if (instTypeUC.equals("OUTPUT")) {
             return Instruction.Type.OUTPUT;
         } else if (instTypeUC.equals("GROUP")) {
             return Instruction.Type.GROUP;

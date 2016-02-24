@@ -25,13 +25,6 @@ public interface Instruction {
      */
     enum Type {
         /**
-         * Signifies that the traffic should be dropped.
-         * @deprecated 1.4.0 Emu Release
-         */
-        @Deprecated
-        DROP,
-
-        /**
          * Signifies that the traffic requires no action.
          *
          * In OF10, the behavior of NOACTION is DROP.

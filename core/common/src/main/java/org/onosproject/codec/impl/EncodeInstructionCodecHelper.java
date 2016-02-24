@@ -251,7 +251,6 @@ public final class EncodeInstructionCodecHelper {
                 result.put(InstructionCodec.PORT, outputInstruction.port().toString());
                 break;
 
-            case DROP:
             case NOACTION:
                 break;
 

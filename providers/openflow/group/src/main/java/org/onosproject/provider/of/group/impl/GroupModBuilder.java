@@ -235,9 +235,6 @@ public final class GroupModBuilder {
         List<OFAction> actions = new LinkedList<>();
         for (Instruction i : treatment.allInstructions()) {
             switch (i.type()) {
-                case DROP:
-                    log.warn("Saw drop action; assigning drop action");
-                    return Collections.emptyList();
                 case L0MODIFICATION:
                     actions.add(buildL0Modification(i));
                     break;

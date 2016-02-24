@@ -232,7 +232,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         List<OFAction> actions = new LinkedList<>();
         for (Instruction i : treatments) {
             switch (i.type()) {
-                case DROP:
                 case NOACTION:
                     return Collections.emptyList();
                 case L0MODIFICATION:

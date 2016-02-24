@@ -170,8 +170,6 @@ public final class FlowObjectiveCompositionUtil {
 
         for (Instruction instruction : trafficTreatment.allInstructions()) {
             switch (instruction.type()) {
-                case DROP:
-                    return null;
                 case OUTPUT:
                     break;
                 case GROUP:
