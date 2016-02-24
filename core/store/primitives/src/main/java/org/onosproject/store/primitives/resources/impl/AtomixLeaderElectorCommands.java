@@ -298,6 +298,11 @@ public final class AtomixLeaderElectorCommands {
         private String topic;
         private NodeId nodeId;
 
+        ElectionChangeCommand() {
+            topic = null;
+            nodeId = null;
+        }
+
         public ElectionChangeCommand(String topic, NodeId nodeId) {
             this.topic = topic;
             this.nodeId = nodeId;
@@ -347,6 +352,10 @@ public final class AtomixLeaderElectorCommands {
      */
     @SuppressWarnings("serial")
     public static class Anoint extends ElectionChangeCommand<Boolean> {
+
+        private Anoint() {
+        }
+
         public Anoint(String topic, NodeId nodeId) {
             super(topic, nodeId);
         }
@@ -357,6 +366,10 @@ public final class AtomixLeaderElectorCommands {
      */
     @SuppressWarnings("serial")
     public static class Promote extends ElectionChangeCommand<Boolean> {
+
+        private Promote() {
+        }
+
         public Promote(String topic, NodeId nodeId) {
             super(topic, nodeId);
         }

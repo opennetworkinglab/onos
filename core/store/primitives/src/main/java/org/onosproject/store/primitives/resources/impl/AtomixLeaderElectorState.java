@@ -202,9 +202,10 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
     public boolean anoint(Commit<? extends Anoint> commit) {
         try {
             String topic = commit.operation().topic();
+            NodeId nodeId = commit.operation().nodeId();
             Leadership oldLeadership = leadership(topic);
             ElectionState electionState = elections.computeIfPresent(topic,
-                    (k, v) -> new ElectionState(v).transferLeadership(commit.operation().nodeId(), termCounter(topic)));
+                    (k, v) -> v.transferLeadership(nodeId, termCounter(topic)));
             Leadership newLeadership = leadership(topic);
             if (!Objects.equal(oldLeadership, newLeadership)) {
                 notifyLeadershipChange(oldLeadership, newLeadership);
@@ -230,7 +231,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
             if (oldLeadership == null || !oldLeadership.candidates().contains(nodeId)) {
                 return false;
             }
-            elections.computeIfPresent(topic, (k, v) -> new ElectionState(v).promote(commit.operation().nodeId()));
+            elections.computeIfPresent(topic, (k, v) -> v.promote(nodeId));
             Leadership newLeadership = leadership(topic);
             if (!Objects.equal(oldLeadership, newLeadership)) {
                 notifyLeadershipChange(oldLeadership, newLeadership);
@@ -498,7 +499,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                                                   .filter(r -> r.nodeId().equals(nodeId))
                                                   .findFirst()
                                                   .orElse(null);
-            List<Registration> updatedRegistrations = Lists.newLinkedList();
+            List<Registration> updatedRegistrations = Lists.newArrayList();
             updatedRegistrations.add(registration);
             registrations.stream()
                          .filter(r -> !r.nodeId().equals(nodeId))

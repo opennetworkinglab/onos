@@ -50,6 +50,7 @@ public class StoragePartition extends DefaultPartition implements Managed<Storag
     private final MessagingService messagingService;
     private final ClusterService clusterService;
     private final File logFolder;
+    private CompletableFuture<StoragePartitionServer> serverOpenFuture;
     private static final Collection<ResourceType> RESOURCE_TYPES = ImmutableSet.of(
                                                         new ResourceType(DistributedLong.class),
                                                         new ResourceType(AtomixLeaderElector.class),
@@ -90,9 +91,9 @@ public class StoragePartition extends DefaultPartition implements Managed<Storag
 
     @Override
     public CompletableFuture<Void> open() {
-        return openServer().thenAccept(s -> server = Optional.ofNullable(s))
-                           .thenCompose(v-> openClient())
-                           .thenAccept(v -> isOpened.set(true))
+        serverOpenFuture = openServer();
+        serverOpenFuture.thenAccept(s -> server = Optional.ofNullable(s));
+        return openClient().thenAccept(v -> isOpened.set(true))
                            .thenApply(v -> null);
     }
 

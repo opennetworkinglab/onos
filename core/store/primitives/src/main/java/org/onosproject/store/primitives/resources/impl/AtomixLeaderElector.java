@@ -44,7 +44,7 @@ public class AtomixLeaderElector extends Resource<AtomixLeaderElector>
     private final Set<Consumer<Change<Leadership>>> leadershipChangeListeners =
             Sets.newConcurrentHashSet();
 
-    public static final String CHANGE_SUBJECT = "changeEvents";
+    public static final String CHANGE_SUBJECT = "leadershipChangeEvents";
     private Listener<Change<Leadership>> listener;
 
     public AtomixLeaderElector(CopycatClient client, Resource.Options options) {
