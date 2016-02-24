@@ -40,7 +40,7 @@
         <step name="Balance-Masters" requires="~Check-Summary" if="${OC2}"
               exec="onos ${OC1} balance-masters"/>
 
-        <step name="Check-Flows" requires="~Balance-Masters,~Check-Summary" delay="10"
+        <step name="Check-Flows" requires="~Balance-Masters,~Check-Summary" delay="5"
               exec="onos-check-flows ${OC1}"/>
     </group>
 </scenario>
