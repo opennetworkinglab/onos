@@ -19,6 +19,7 @@ package org.onosproject.yangutils.translator.tojava;
 import java.io.Serializable;
 
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
 
 /**
  * Maintains the attribute info corresponding to class/interface generated.
@@ -71,7 +72,10 @@ public class AttributeInfo implements Serializable {
      * @param type the data type info of attribute.
      */
     public void setAttributeType(YangType<?> type) {
-        attrType = type;
+
+        if (type != null) {
+            attrType = AttributesJavaDataType.getJavaDataType(type);
+        }
     }
 
     /**

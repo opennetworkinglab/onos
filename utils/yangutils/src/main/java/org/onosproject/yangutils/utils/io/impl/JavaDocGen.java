@@ -170,8 +170,8 @@ public final class JavaDocGen {
      * @return javaDocs.
      */
     private static String generateForBuilderClass(String className) {
-        return (UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.BUILDER_CLASS_JAVA_DOC
-                + className + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE);
+        return (UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.BUILDER_CLASS_JAVA_DOC + className
+                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE);
     }
 
     /**
@@ -181,8 +181,8 @@ public final class JavaDocGen {
      * @return javaDocs.
      */
     private static String generateForInterface(String interfaceName) {
-        return (UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.INTERFACE_JAVA_DOC
-                + interfaceName + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE);
+        return (UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.INTERFACE_JAVA_DOC + interfaceName
+                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE);
     }
 
     /**

@@ -33,7 +33,6 @@ public final class YangFileScanner {
     private YangFileScanner() {
     }
 
-
     /**
      * Returns the list of java files.
      *

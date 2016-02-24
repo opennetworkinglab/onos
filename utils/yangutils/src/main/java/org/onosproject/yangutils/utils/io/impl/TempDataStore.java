@@ -18,6 +18,7 @@ package org.onosproject.yangutils.utils.io.impl;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -32,19 +33,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Provides storage for serialized data while traversing data model tree for code generation.
+ * Provides storage for Temp data while traversing data model tree for code generation.
  */
-public final class SerializedDataStore {
+public final class TempDataStore {
 
     /**
      * Data Store types.
      */
-    public static enum SerializedDataStoreType {
+    public static enum TempDataStoreType {
 
         /**
          * Methods.
          */
-        INTERFACE_METHODS,
+        GETTER_METHODS,
 
         /**
          * Methods.
@@ -73,42 +74,42 @@ public final class SerializedDataStore {
     }
 
     /**
-     * File name string for serialized files of methods.
+     * File name string for Temp files of methods.
      */
-    private static final String INTERFACE_METHOD_FILE_NAME = "SerializedInterfaceMethodDataStore";
+    private static final String GETTER_METHOD_FILE_NAME = "TempGetterMethodDataStore";
 
     /**
-     * File name string for serialized files of methods.
+     * File name string for Temp files of methods.
      */
-    private static final String BUILDER_METHOD_FILE_NAME = "SerializedBuilderMethodDataStore";
+    private static final String BUILDER_METHOD_FILE_NAME = "TempBuilderMethodDataStore";
 
     /**
-     * File name string for serialized files of methods.
+     * File name string for Temp files of methods.
      */
-    private static final String BUILDER_INTERFACE_METHOD_FILE_NAME = "SerializedBuilderInterfaceMethodDataStore";
+    private static final String BUILDER_INTERFACE_METHOD_FILE_NAME = "TempBuilderInterfaceMethodDataStore";
 
     /**
-     * File name string for serialized files of methods.
+     * File name string for Temp files of methods.
      */
-    private static final String IMPL_METHOD_FILE_NAME = "SerializedImplMethodDataStore";
+    private static final String IMPL_METHOD_FILE_NAME = "TempImplMethodDataStore";
 
     /**
-     * File name string for serialized files of attributes.
+     * File name string for Temp files of attributes.
      */
-    private static final String ATTRIBUTE_FILE_NAME = "SerializedAttributeDataStore";
+    private static final String ATTRIBUTE_FILE_NAME = "TempAttributeDataStore";
 
     /**
-     * File name string for serialized files of imports.
+     * File name string for Temp files of imports.
      */
-    private static final String IMPORT_FILE_NAME = "SerializedImportDataStore";
+    private static final String IMPORT_FILE_NAME = "TempImportDataStore";
 
     /**
-     * File extension of serialized files.
+     * File extension of Temp files.
      */
-    private static final String SERIALIZE_FILE_EXTENSION = ".ser";
+    private static final String FILE_EXTENSION = ".tmp";
 
     /**
-     * Directory for generating Serialized files.
+     * Directory for generating Temp files.
      */
     private static final String GEN_DIR = "target/";
 
@@ -120,35 +121,38 @@ public final class SerializedDataStore {
     /**
      * Default constructor.
      */
-    private SerializedDataStore() {
+    private TempDataStore() {
     }
 
     /**
-     * Writes specific info to a serialized file.
+     * Writes specific info to a Temp file.
      *
      * @param data data to be stored
-     * @param type type of serialized data store
-     * @throws IOException when fails to create a serialized data file.
+     * @param type type of Temp data store
+     * @param className class name
+     * @throws IOException when fails to create a Temp data file.
      */
-    public static void setSerializeData(String data, SerializedDataStoreType type) throws IOException {
+    public static void setTempData(String data, TempDataStoreType type, String className) throws IOException {
 
         String fileName = "";
-        if (type.equals(SerializedDataStoreType.ATTRIBUTE)) {
+        if (type.equals(TempDataStoreType.ATTRIBUTE)) {
             fileName = ATTRIBUTE_FILE_NAME;
-        } else if (type.equals(SerializedDataStoreType.INTERFACE_METHODS)) {
-            fileName = INTERFACE_METHOD_FILE_NAME;
-        } else if (type.equals(SerializedDataStoreType.BUILDER_INTERFACE_METHODS)) {
+        } else if (type.equals(TempDataStoreType.GETTER_METHODS)) {
+            fileName = GETTER_METHOD_FILE_NAME;
+        } else if (type.equals(TempDataStoreType.BUILDER_INTERFACE_METHODS)) {
             fileName = BUILDER_INTERFACE_METHOD_FILE_NAME;
-        } else if (type.equals(SerializedDataStoreType.BUILDER_METHODS)) {
+        } else if (type.equals(TempDataStoreType.BUILDER_METHODS)) {
             fileName = BUILDER_METHOD_FILE_NAME;
-        } else if (type.equals(SerializedDataStoreType.IMPL_METHODS)) {
+        } else if (type.equals(TempDataStoreType.IMPL_METHODS)) {
             fileName = IMPL_METHOD_FILE_NAME;
         } else {
             fileName = IMPORT_FILE_NAME;
         }
 
+        File dir = new File(GEN_DIR + className + File.separator);
+        dir.mkdirs();
         try {
-            OutputStream file = new FileOutputStream(GEN_DIR + fileName + SERIALIZE_FILE_EXTENSION);
+            OutputStream file = new FileOutputStream(GEN_DIR + className + File.separator + fileName + FILE_EXTENSION);
             OutputStream buffer = new BufferedOutputStream(file, BUFFER_SIZE);
 
             ObjectOutput output = new ObjectOutputStream(buffer);
@@ -163,33 +167,34 @@ public final class SerializedDataStore {
     }
 
     /**
-     * Get the serialized data.
+     * Get the Temp data.
      *
-     * @param type type of serialized data store
+     * @param type type of Temp data store
+     * @param className name of the class.
      * @return list of attribute info.
      * @throws IOException when fails to read from the file.
      * @throws ClassNotFoundException when class is missing.
      * @throws FileNotFoundException when file is missing.
      */
-    public static List<String> getSerializeData(SerializedDataStoreType type)
+    public static List<String> getTempData(TempDataStoreType type, String className)
             throws IOException, FileNotFoundException, ClassNotFoundException {
 
         String fileName = "";
-        if (type.equals(SerializedDataStoreType.ATTRIBUTE)) {
+        if (type.equals(TempDataStoreType.ATTRIBUTE)) {
             fileName = ATTRIBUTE_FILE_NAME;
-        } else if (type.equals(SerializedDataStoreType.INTERFACE_METHODS)) {
-            fileName = INTERFACE_METHOD_FILE_NAME;
-        } else if (type.equals(SerializedDataStoreType.BUILDER_INTERFACE_METHODS)) {
+        } else if (type.equals(TempDataStoreType.GETTER_METHODS)) {
+            fileName = GETTER_METHOD_FILE_NAME;
+        } else if (type.equals(TempDataStoreType.BUILDER_INTERFACE_METHODS)) {
             fileName = BUILDER_INTERFACE_METHOD_FILE_NAME;
-        } else if (type.equals(SerializedDataStoreType.BUILDER_METHODS)) {
+        } else if (type.equals(TempDataStoreType.BUILDER_METHODS)) {
             fileName = BUILDER_METHOD_FILE_NAME;
-        } else if (type.equals(SerializedDataStoreType.IMPL_METHODS)) {
+        } else if (type.equals(TempDataStoreType.IMPL_METHODS)) {
             fileName = IMPL_METHOD_FILE_NAME;
         } else {
             fileName = IMPORT_FILE_NAME;
         }
         try {
-            InputStream file = new FileInputStream(GEN_DIR + fileName + SERIALIZE_FILE_EXTENSION);
+            InputStream file = new FileInputStream(GEN_DIR + className + File.separator + fileName + FILE_EXTENSION);
             InputStream buffer = new BufferedInputStream(file);
             ObjectInput input = new ObjectInputStream(buffer);
             try {
@@ -204,7 +209,7 @@ public final class SerializedDataStore {
         } catch (FileNotFoundException ex) {
             throw new FileNotFoundException("No such file or directory.");
         } catch (ClassNotFoundException ex) {
-            throw new ClassNotFoundException("failed to fetch the serialized data file.");
+            throw new ClassNotFoundException("failed to fetch the Temp data file.");
         }
     }
 }

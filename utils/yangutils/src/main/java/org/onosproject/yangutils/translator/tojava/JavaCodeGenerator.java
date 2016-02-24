@@ -42,21 +42,22 @@ public final class JavaCodeGenerator {
         TraversalType curTraversal = TraversalType.ROOT;
 
         while (!(curNode == null)) {
-            if (curTraversal != TraversalType.PARENT || curTraversal == TraversalType.SIBILING) {
+            if (curTraversal != TraversalType.PARENT) {
                 curNode.generateJavaCodeEntry();
             }
-            if (curTraversal != TraversalType.PARENT && !(curNode.getChild() == null)) {
+            if (curTraversal != TraversalType.PARENT && (curNode.getChild() != null)) {
                 curTraversal = TraversalType.CHILD;
                 curNode = curNode.getChild();
-            } else if (curTraversal == TraversalType.PARENT && !(curNode.getNextSibling() == null)) {
+            } else if ((curNode.getNextSibling() != null)) {
                 curNode.generateJavaCodeExit();
                 curTraversal = TraversalType.SIBILING;
                 curNode = curNode.getNextSibling();
             } else {
-                curNode.generateJavaCodeExit();
                 curTraversal = TraversalType.PARENT;
+                curNode.generateJavaCodeExit();
                 curNode = curNode.getParent();
             }
         }
+
     }
 }

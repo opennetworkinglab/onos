@@ -26,6 +26,7 @@ import org.onosproject.yangutils.translator.CachedFileHandle;
 import org.onosproject.yangutils.translator.CodeGenerator;
 import org.onosproject.yangutils.translator.GeneratedFileType;
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
+import org.onosproject.yangutils.utils.UtilConstants;
 import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
 
 /*-
@@ -558,18 +559,19 @@ public class YangModule extends YangNode
 
         CachedFileHandle handle = null;
         try {
-            FileSystemUtil.createPackage(getPackage(), getName());
+            FileSystemUtil.createPackage(UtilConstants.YANG_GEN_DIR + getPackage(), getName());
             handle = FileSystemUtil.createSourceFiles(getPackage(), getName(), GeneratedFileType.ALL);
+            handle.setFilePath(UtilConstants.YANG_GEN_DIR + getPackage().replace(".", "/"));
         } catch (IOException e) {
             throw new IOException("Failed to create the source files.");
         }
         setFileHandle(handle);
+        addLeavesAttributes();
+        addLeafListAttributes();
     }
 
     @Override
     public void generateJavaCodeExit() throws IOException {
-        addLeavesAttributes();
-        addLeafListAttributes();
         getFileHandle().close();
         return;
     }

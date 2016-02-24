@@ -49,4 +49,11 @@ public interface CachedFileHandle {
      * @param pkg child's package path
      */
     void setChildsPackage(String pkg);
+
+    /**
+     * Sets directory package path for code generation.
+     *
+     * @param filePath directory package path for code generation
+     */
+    void setFilePath(String filePath);
 }

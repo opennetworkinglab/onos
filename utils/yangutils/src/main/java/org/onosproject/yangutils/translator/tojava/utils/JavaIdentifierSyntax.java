@@ -50,7 +50,7 @@ public final class JavaIdentifierSyntax {
         pkg = pkg + UtilConstants.PERIOD;
         pkg = pkg + getYangRevisionStr(revision);
 
-        return pkg;
+        return pkg.toLowerCase();
     }
 
     /**
@@ -126,11 +126,11 @@ public final class JavaIdentifierSyntax {
      * Get the package from parent's package and string.
      *
      * @param parentPkg parent's package.
-     * @param childName child's name.
+     * @param parentName parent's name.
      * @return package string.
      */
-    public static String getPackageFromParent(String parentPkg, String childName) {
-        return parentPkg + UtilConstants.PERIOD + getSubPkgFromName(childName);
+    public static String getPackageFromParent(String parentPkg, String parentName) {
+        return (parentPkg + UtilConstants.PERIOD + getSubPkgFromName(parentName)).toLowerCase();
     }
 
     /**

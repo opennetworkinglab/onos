@@ -109,6 +109,7 @@ public final class MethodsGenerator {
      * @param returnType return type of method
      * @return constructed method impl
      */
+    @SuppressWarnings("rawtypes")
     public static String constructMethodInfo(GeneratedFileType genFileTypes, String yangName,
             GeneratedMethodTypes methodTypes, YangType<?> returnType) {
 
@@ -187,8 +188,7 @@ public final class MethodsGenerator {
                 attr.getAttributeName(), GeneratedMethodTypes.GETTER, attr.getAttributeType());
         String setterString = JavaCodeSnippetGen.getJavaMethodInfo(GeneratedFileType.BUILDER_CLASS,
                 attr.getAttributeName(), GeneratedMethodTypes.SETTER, attr.getAttributeType());
-        return overrideString + getterString + UtilConstants.NEW_LINE + overrideString + setterString
-                + UtilConstants.NEW_LINE;
+        return overrideString + getterString + UtilConstants.NEW_LINE + overrideString + setterString;
     }
 
     /**
@@ -201,8 +201,7 @@ public final class MethodsGenerator {
 
         return UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.OVERRIDE
                 + UtilConstants.NEW_LINE + JavaCodeSnippetGen.getJavaMethodInfo(GeneratedFileType.BUILDER_CLASS,
-                        attr.getAttributeName(), GeneratedMethodTypes.GETTER, attr.getAttributeType())
-                + UtilConstants.NEW_LINE;
+                        attr.getAttributeName(), GeneratedMethodTypes.GETTER, attr.getAttributeType());
     }
 
     /**
@@ -400,8 +399,7 @@ public final class MethodsGenerator {
             }
             getAttrInfo().clear();
         }
-        return constructor + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.CLOSE_CURLY_BRACKET
-                + UtilConstants.NEW_LINE;
+        return constructor + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.CLOSE_CURLY_BRACKET;
     }
 
     /**

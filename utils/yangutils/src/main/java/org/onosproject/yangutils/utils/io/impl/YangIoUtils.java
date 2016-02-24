@@ -69,10 +69,9 @@ public final class YangIoUtils {
     public static void addPackageInfo(File path, String classInfo, String pack) throws IOException {
 
         if (pack.contains(UtilConstants.YANG_GEN_DIR)) {
-           String[] strArray = pack.split(UtilConstants.YANG_GEN_DIR + UtilConstants.SLASH);
-           pack = strArray[1];
-       }
-
+            String[] strArray = pack.split(UtilConstants.YANG_GEN_DIR);
+            pack = strArray[1];
+        }
         try {
 
             File packageInfo = new File(path + File.separator + "package-info.java");

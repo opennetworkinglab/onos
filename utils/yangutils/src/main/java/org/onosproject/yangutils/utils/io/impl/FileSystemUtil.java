@@ -54,7 +54,6 @@ public final class FileSystemUtil {
         return false;
     }
 
-
     /**
      * Create a package structure with package info java file if not present.
      *
