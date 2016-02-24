@@ -62,7 +62,7 @@ import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.newresource.Resources;
-import org.onosproject.net.resource.device.IntentSetMultimap;
+import org.onosproject.net.intent.IntentSetMultimap;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;

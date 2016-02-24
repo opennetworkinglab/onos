@@ -57,7 +57,7 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.device.IntentSetMultimap;
+import org.onosproject.net.intent.IntentSetMultimap;
 import org.onosproject.net.behaviour.TributarySlotQuery;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.Behaviour;

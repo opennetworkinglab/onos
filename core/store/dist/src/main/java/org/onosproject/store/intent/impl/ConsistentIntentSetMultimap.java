@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.resource.impl;
+package org.onosproject.store.intent.impl;
 
 import com.google.common.annotations.Beta;
 import org.apache.felix.scr.annotations.Activate;
@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.resource.device.IntentSetMultimap;
+import org.onosproject.net.intent.IntentSetMultimap;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
