@@ -95,26 +95,6 @@ public class OchSignal implements Lambda {
     }
 
     /**
-     * Create OCh signal from channel number.
-     *
-     * @param channel channel number
-     * @param maxFrequency maximum frequency
-     * @param grid grid spacing frequency
-     *
-     * @deprecated 1.4.0 Emu Release
-     */
-    @Deprecated
-    public OchSignal(int channel, Frequency maxFrequency, Frequency grid) {
-        // Calculate center frequency
-        Frequency centerFrequency = maxFrequency.subtract(grid.multiply(channel - 1));
-
-        this.gridType = DEFAULT_OCH_GRIDTYPE;
-        this.channelSpacing = DEFAULT_CHANNEL_SPACING;
-        this.spacingMultiplier = (int) (centerFrequency.subtract(Spectrum.CENTER_FREQUENCY).asHz() / grid.asHz());
-        this.slotGranularity = (int) Math.round((double) grid.asHz() / ChannelSpacing.CHL_12P5GHZ.frequency().asHz());
-    }
-
-    /**
      * Creates OCh signal.
      *
      * @param centerFrequency frequency

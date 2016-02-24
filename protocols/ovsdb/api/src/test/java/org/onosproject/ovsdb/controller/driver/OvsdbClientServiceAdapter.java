@@ -49,11 +49,6 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     }
 
     @Override
-    public void createTunnel(IpAddress srcIp, IpAddress dstIp) {
-
-    }
-
-    @Override
     public boolean createTunnel(String bridgeName, String portName, String tunnelType, Map<String, String> options) {
         return true;
     }

@@ -44,16 +44,6 @@ public interface OvsdbClientService extends OvsdbRpc {
     OvsdbNodeId nodeId();
 
     /**
-     * Creates the configuration for tunnel.
-     *
-     * @param srcIp source IP address
-     * @param dstIp destination IP address
-     * @deprecated 1.4.0 Emu release
-     */
-    @Deprecated
-    void createTunnel(IpAddress srcIp, IpAddress dstIp);
-
-    /**
      * Creates a tunnel port with given options.
      *
      * @param bridgeName bridge name
