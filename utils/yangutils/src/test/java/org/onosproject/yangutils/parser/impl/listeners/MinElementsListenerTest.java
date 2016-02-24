@@ -137,4 +137,29 @@ public class MinElementsListenerTest {
                 "Internal parser error detected: Invalid cardinality in" + " min-elements before processing.");
         YangNode node = manager.getDataModel("src/test/resources/MinElementsInvalidCardinality.yang");
     }
+
+    /**
+     * Checks min-element's default value.
+     */
+    @Test
+    public void processMinElementsDefaultValue() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/MinElementsDefaultValue.yang");
+
+        // Check whether the data model tree returned is of type module.
+        assertThat((node instanceof YangModule), is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
+
+        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getMinElements(), is(0));
+    }
 }

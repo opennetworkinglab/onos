@@ -259,4 +259,31 @@ public class StatusListenerTest {
         assertThat(leafListInfo.isConfig(), is(true));
         assertThat(leafListInfo.getStatus(), is(YangStatusType.CURRENT));
     }
+
+    /**
+     * Checks default value of status statement.
+     */
+    @Test
+    public void processStatusDefaultValue() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/StatusDefaultValue.yang");
+
+        // Check whether the data model tree returned is of type module.
+        assertThat((node instanceof YangModule), is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
+
+        // Check whether status is set correctly.
+        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.isConfig(), is(true));
+        assertThat(leafListInfo.getStatus(), is(YangStatusType.CURRENT));
+    }
 }
