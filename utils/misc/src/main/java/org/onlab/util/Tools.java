@@ -21,13 +21,9 @@ import com.google.common.primitives.UnsignedLongs;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,7 +31,6 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
@@ -428,31 +423,6 @@ public abstract class Tools {
             Thread.sleep(ms, nanos);
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted", e);
-        }
-    }
-
-    /**
-     * Slurps the contents of a file into a list of strings, one per line.
-     *
-     * @param path file path
-     * @return file contents
-     * @deprecated in Emu release
-     */
-    @Deprecated
-    public static List<String> slurp(File path) {
-        try (
-            BufferedReader br = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8));
-                ) {
-            List<String> lines = new ArrayList<>();
-            String line;
-            while ((line = br.readLine()) != null) {
-                lines.add(line);
-            }
-            return lines;
-
-        } catch (IOException e) {
-            return null;
         }
     }
 
