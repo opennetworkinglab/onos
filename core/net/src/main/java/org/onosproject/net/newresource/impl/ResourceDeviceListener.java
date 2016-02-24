@@ -21,6 +21,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
 import org.onlab.util.ItemNotFoundException;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -67,6 +68,7 @@ final class ResourceDeviceListener implements DeviceListener {
     private final ResourceAdminService adminService;
     private final ResourceService resourceService;
     private final DeviceService deviceService;
+    private final MastershipService mastershipService;
     private final DriverService driverService;
     private final NetworkConfigService netcfgService;
     private final ExecutorService executor;
@@ -78,16 +80,19 @@ final class ResourceDeviceListener implements DeviceListener {
      * @param adminService instance invoked to register resources
      * @param resourceService {@link ResourceService} to be used
      * @param deviceService {@link DeviceService} to be used
+     * @param mastershipService {@link MastershipService} to be used
      * @param driverService {@link DriverService} to be used
      * @param netcfgService {@link NetworkConfigService} to be used.
      * @param executor executor used for processing resource registration
      */
     ResourceDeviceListener(ResourceAdminService adminService, ResourceService resourceService,
-                           DeviceService deviceService, DriverService driverService,
-                           NetworkConfigService netcfgService, ExecutorService executor) {
+                           DeviceService deviceService, MastershipService mastershipService,
+                           DriverService driverService, NetworkConfigService netcfgService,
+                           ExecutorService executor) {
         this.adminService = checkNotNull(adminService);
         this.resourceService = checkNotNull(resourceService);
         this.deviceService = checkNotNull(deviceService);
+        this.mastershipService = checkNotNull(mastershipService);
         this.driverService = checkNotNull(driverService);
         this.netcfgService = checkNotNull(netcfgService);
         this.executor = checkNotNull(executor);
@@ -96,6 +101,11 @@ final class ResourceDeviceListener implements DeviceListener {
     @Override
     public void event(DeviceEvent event) {
         Device device = event.subject();
+        // registration happens only when the caller is the master of the device
+        if (!mastershipService.isLocalMaster(device.id())) {
+            return;
+        }
+
         switch (event.type()) {
             case DEVICE_ADDED:
                 registerDeviceResource(device);
