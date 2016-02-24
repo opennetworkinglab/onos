@@ -17,9 +17,11 @@
 package org.onosproject.net.region.impl;
 
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.DeviceId;
@@ -45,6 +47,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the region service APIs.
  */
+@Component(immediate = true)
+@Service
 public class RegionManager extends AbstractListenerManager<RegionEvent, RegionListener>
         implements RegionAdminService, RegionService {
 
