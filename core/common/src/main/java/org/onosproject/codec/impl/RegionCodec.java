@@ -99,12 +99,12 @@ public class RegionCodec extends JsonCodec<Region> {
 
         if (mastersJson != null) {
             IntStream.range(0, mastersJson.size()).forEach(i -> {
-                ObjectNode setsJson = get(mastersJson, i);
+                JsonNode setsJson = mastersJson.get(i);
                 final Set<NodeId> nodeIds = Sets.newHashSet();
                 if (setsJson != null && setsJson.isArray()) {
                     Set<NodeId> localNodeIds = Sets.newHashSet();
-                    IntStream.range(0, mastersJson.size()).forEach(j -> {
-                        ObjectNode nodeIdJson = get(setsJson, j);
+                    IntStream.range(0, setsJson.size()).forEach(j -> {
+                        JsonNode nodeIdJson = setsJson.get(j);
                         localNodeIds.add(decodeNodeId(nodeIdJson));
                     });
                     nodeIds.addAll(localNodeIds);
@@ -136,7 +136,7 @@ public class RegionCodec extends JsonCodec<Region> {
      * @param json json object
      * @return decoded node id object
      */
-    private NodeId decodeNodeId(ObjectNode json) {
+    private NodeId decodeNodeId(JsonNode json) {
         NodeId nodeId = NodeId.nodeId(nullIsIllegal(json, NODE_ID +
                 MISSING_MEMBER_MESSAGE).asText());
 

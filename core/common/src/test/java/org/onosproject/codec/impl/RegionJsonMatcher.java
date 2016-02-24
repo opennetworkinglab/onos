@@ -16,9 +16,13 @@
 package org.onosproject.codec.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.region.Region;
+
+import java.util.Set;
 
 /**
  * Hamcrest matcher for region.
@@ -64,9 +68,34 @@ public final class RegionJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode>
             return false;
         }
 
-        // TODO: check the content inside masters
+        // check master
+        for (Set<NodeId> set : region.masters()) {
+            boolean masterFound = false;
+            for (int masterIndex = 0; masterIndex < jsonMasters.size(); masterIndex++) {
+                masterFound = checkEquality(jsonMasters.get(masterIndex), set);
+            }
+
+            if (!masterFound) {
+                description.appendText("master not found " + set.toString());
+                return false;
+            }
+        }
 
         return true;
+    }
+
+    private Set<NodeId> jsonToSet(JsonNode nodes) {
+        final Set<NodeId> nodeIds = Sets.newHashSet();
+        nodes.forEach(node -> nodeIds.add(NodeId.nodeId(node.asText())));
+        return nodeIds;
+    }
+
+    private boolean checkEquality(JsonNode nodes, Set<NodeId> nodeIds) {
+        Set<NodeId> jsonSet = jsonToSet(nodes);
+        if (jsonSet.size() == nodes.size()) {
+            return jsonSet.containsAll(nodeIds);
+        }
+        return false;
     }
 
     @Override

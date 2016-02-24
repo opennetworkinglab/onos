@@ -91,6 +91,13 @@ public class RegionCodecTest {
         checkCommonData(region);
 
         assertThat(region.masters().size(), is(2));
+
+        NodeId nodeId1 = NodeId.nodeId("1");
+        NodeId nodeId2 = NodeId.nodeId("2");
+        Set<NodeId> nodeIds1 = region.masters().get(0);
+        Set<NodeId> nodeIds2 = region.masters().get(1);
+        assertThat(nodeIds1.containsAll(ImmutableSet.of(nodeId1)), is(true));
+        assertThat(nodeIds2.containsAll(ImmutableSet.of(nodeId1, nodeId2)), is(true));
     }
 
     /**
