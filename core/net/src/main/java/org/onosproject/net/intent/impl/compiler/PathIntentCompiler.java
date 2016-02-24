@@ -101,11 +101,11 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
         List<Link> links = intent.path().links();
         List<FlowRule> rules = new LinkedList<>();
 
-        Optional<EncapsulationConstraint> enacpConstraint = intent.constraints().stream()
+        Optional<EncapsulationConstraint> encapConstraint = intent.constraints().stream()
                 .filter(constraint -> constraint instanceof EncapsulationConstraint)
                 .map(x -> (EncapsulationConstraint) x).findAny();
         //if no encapsulation or is involved only a single switch use the default behaviour
-        if (!enacpConstraint.isPresent() || links.size() == 1) {
+        if (!encapConstraint.isPresent() || links.size() == 1) {
 
             for (int i = 0; i < links.size() - 1; i++) {
                 ConnectPoint ingress = links.get(i).dst();
@@ -119,9 +119,9 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
             return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources()));
         }
 
-        if (EncapsulationType.VLAN == enacpConstraint.get().encapType()) {
+        if (EncapsulationType.VLAN == encapConstraint.get().encapType()) {
             rules = manageVlanEncap(intent);
-        } else if (EncapsulationType.MPLS == enacpConstraint.get().encapType()) {
+        } else if (EncapsulationType.MPLS == encapConstraint.get().encapType()) {
             //TODO: to be implemented
             rules = Collections.emptyList();
         }
