@@ -34,6 +34,15 @@ public interface InterfaceConfig extends HandlerBehaviour {
     boolean addInterfaceToVlan(DeviceId deviceId, String intf, VlanId vlanId);
 
     /**
+     * Removes an interface from a VLAN.
+     * @param deviceId the device ID
+     * @param intf the name of the interface
+     * @param vlanId the VLAN ID
+     * @return the result of operation
+     */
+    boolean removeInterfaceFromVlan(DeviceId deviceId, String intf, VlanId vlanId);
+
+    /**
      *  Configures an interface as trunk for VLAN.
      * @param deviceId the device ID
      * @param intf the name of the interface
@@ -42,8 +51,19 @@ public interface InterfaceConfig extends HandlerBehaviour {
      */
     boolean addTrunkInterface(DeviceId deviceId, String intf, VlanId vlanId);
 
-    /* TODO Addition of more methods to make the behavior symmetrical.
-    Methods removeVlanFromInterface, getInterfacesForVlan, getVlansForInterface
-    should be added to complete the behavior.
+    /**
+     *  Removes trunk mode configuration for VLAN from an interface.
+     * @param deviceId the device ID
+     * @param intf the name of the interface
+     * @param vlanId the VLAN ID
+     * @return the result of operation
      */
+    boolean removeTrunkInterface(DeviceId deviceId, String intf, VlanId vlanId);
+
+    /**
+     *  TODO Addition of more methods to make the behavior symmetrical.
+     *  Methods getInterfacesForVlan, getVlansForInterface, getTrunkforInterface,
+     *  getInterfacesForTrunk should be added to complete the behavior.
+     */
+
 }

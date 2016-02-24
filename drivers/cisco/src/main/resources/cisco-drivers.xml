@@ -16,8 +16,8 @@
   -->
 <drivers>
     <driver name="cisco-netconf" extends="netconf" manufacturer="Cisco"
-            hwVersion="SM-X" swVersion="IOS 15">
+            hwVersion="" swVersion="IOS">
         <behaviour api="org.onosproject.net.behaviour.InterfaceConfig"
-                   impl="org.onosproject.drivers.cisco.InterfaceConfigCiscoSmXImpl"/>
+                   impl="org.onosproject.drivers.cisco.InterfaceConfigCiscoIosImpl"/>
     </driver>
 </drivers>

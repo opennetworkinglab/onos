@@ -26,21 +26,21 @@ import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 
 /**
- * Configures a device interface.
+ * Removes configured interface from a device.
  */
-@Command(scope = "onos", name = "device-add-interface",
-         description = "Configures a device interface")
-public class DeviceInterfaceAddCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "device-remove-interface",
+         description = "Removes an interface configuration from a device")
+public class DeviceInterfaceRemoveCommand extends AbstractShellCommand {
 
-    private static final String CONFIG_VLAN_SUCCESS =
-            "VLAN %s added on device %s interface %s.";
-    private static final String CONFIG_VLAN_FAILURE =
-            "Failed to add VLAN %s on device %s interface %s.";
+    private static final String REMOVE_VLAN_SUCCESS =
+            "VLAN %s removed from device %s interface %s.";
+    private static final String REMOVE_VLAN_FAILURE =
+            "Failed to remove VLAN %s from device %s interface %s.";
 
-    private static final String CONFIG_TRUNK_SUCCESS =
-            "Trunk mode added for VLAN %s on device %s interface %s.";
-    private static final String CONFIG_TRUNK_FAILURE =
-            "Failed to add trunk mode for VLAN %s on device %s interface %s.";
+    private static final String REMOVE_TRUNK_SUCCESS =
+            "Trunk mode removed for VLAN %s on device %s interface %s.";
+    private static final String REMOVE_TRUNK_FAILURE =
+            "Failed to remove trunk mode for VLAN %s on device %s interface %s.";
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
@@ -57,7 +57,7 @@ public class DeviceInterfaceAddCommand extends AbstractShellCommand {
     private String vlanString = null;
 
     @Option(name = "-t", aliases = "--trunk",
-            description = "Configure interface as trunk for VLAN",
+            description = "Remove trunk mode for VLAN",
             required = false, multiValued = false)
     private boolean trunkMode = false;
 
@@ -71,20 +71,20 @@ public class DeviceInterfaceAddCommand extends AbstractShellCommand {
         VlanId vlanId = VlanId.vlanId(Short.parseShort(vlanString));
 
         if (trunkMode) {
-            // Trunk mode to be enabled for VLAN.
-            if (interfaceConfig.addTrunkInterface(deviceId, portName, vlanId)) {
-                print(CONFIG_TRUNK_SUCCESS, vlanId, deviceId, portName);
+            // Trunk mode for VLAN to be removed.
+            if (interfaceConfig.removeTrunkInterface(deviceId, portName, vlanId)) {
+                print(REMOVE_TRUNK_SUCCESS, vlanId, deviceId, portName);
             } else {
-                print(CONFIG_TRUNK_FAILURE, vlanId, deviceId, portName);
+                print(REMOVE_TRUNK_FAILURE, vlanId, deviceId, portName);
             }
             return;
         }
 
-        // VLAN to be added to interface.
-        if (interfaceConfig.addInterfaceToVlan(deviceId, portName, vlanId)) {
-            print(CONFIG_VLAN_SUCCESS, vlanId, deviceId, portName);
+        // Interface to be removed from VLAN.
+        if (interfaceConfig.removeInterfaceFromVlan(deviceId, portName, vlanId)) {
+            print(REMOVE_VLAN_SUCCESS, vlanId, deviceId, portName);
         } else {
-            print(CONFIG_VLAN_FAILURE, vlanId, deviceId, portName);
+            print(REMOVE_VLAN_FAILURE, vlanId, deviceId, portName);
         }
     }
 
