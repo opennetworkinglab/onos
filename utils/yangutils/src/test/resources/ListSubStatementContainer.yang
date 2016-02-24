@@ -12,5 +12,8 @@ module Test {
                 reference "RFC 6020";
             }
         }
+        leaf process-id {
+            type "string";
+        }
     }
 }

@@ -17,6 +17,8 @@
 package org.onosproject.yangutils.parser.impl.listeners;
 
 import org.onosproject.yangutils.datamodel.YangList;
+import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
@@ -26,10 +28,19 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType;
 import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.LIST_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_CARDINALITY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -89,40 +100,37 @@ public final class ListListener {
 
         YangNode curNode;
 
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                ParsableDataType.LIST_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
-                ListenerErrorLocation.ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, LIST_DATA, ctx.IDENTIFIER().getText(), ENTRY);
 
         boolean result = validateSubStatementsCardinality(ctx);
         if (!result) {
-            throw new ParserException(ListenerErrorMessageConstruction
-                    .constructListenerErrorMessage(ListenerErrorType.INVALID_CARDINALITY,
-                            yangConstruct, "", ListenerErrorLocation.ENTRY));
+            throw new ParserException(constructListenerErrorMessage(INVALID_CARDINALITY, yangConstruct, "", ENTRY));
         }
 
         YangList yangList = new YangList(YangNodeType.LIST_NODE);
         yangList.setName(ctx.IDENTIFIER().getText());
 
+        /* If "config" is not specified, the default is the same as the parent
+           schema node's "config" value. */
+        if (ctx.configStatement().isEmpty()) {
+            boolean parentConfig = ListenerValidation.getParentNodeConfig(listener);
+            yangList.setConfig(parentConfig);
+        }
+
         Parsable curData = listener.getParsedDataStack().peek();
-        if (curData instanceof YangNode) {
+        if ((curData instanceof YangModule) || (curData instanceof YangContainer)
+                || (curData instanceof YangList)) {
             curNode = (YangNode) curData;
             try {
                 curNode.addChild(yangList);
             } catch (DataModelException e) {
-                throw new ParserException(ListenerErrorMessageConstruction
-                        .constructExtendedListenerErrorMessage(ListenerErrorType.UNHANDLED_PARSED_DATA,
-                                ParsableDataType.LIST_DATA,
-                                String.valueOf(ctx.IDENTIFIER().getText()),
-                                ListenerErrorLocation.ENTRY,
-                                e.getMessage()));
+                throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
+                        LIST_DATA, ctx.IDENTIFIER().getText(), ENTRY, e.getMessage()));
             }
             listener.getParsedDataStack().push(yangList);
         } else {
-            throw new ParserException(ListenerErrorMessageConstruction
-                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                            ParsableDataType.LIST_DATA,
-                            String.valueOf(ctx.IDENTIFIER().getText()),
-                            ListenerErrorLocation.ENTRY));
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, LIST_DATA,
+                            ctx.IDENTIFIER().getText(), ENTRY));
         }
     }
 
@@ -136,18 +144,20 @@ public final class ListListener {
     public static void processListExit(TreeWalkListener listener,
                                             GeneratedYangParser.ListStatementContext ctx) {
 
-        ListenerValidation.checkStackIsNotEmpty(listener, ListenerErrorType.MISSING_HOLDER,
-                ParsableDataType.LIST_DATA, String.valueOf(ctx.IDENTIFIER().getText()),
-                ListenerErrorLocation.EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, LIST_DATA, ctx.IDENTIFIER().getText(), EXIT);
 
         if (listener.getParsedDataStack().peek() instanceof YangList) {
+            YangList yangList = (YangList) listener.getParsedDataStack().peek();
+            try {
+                yangList.validateDataOnExit();
+            } catch (DataModelException e) {
+                throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
+                        LIST_DATA, ctx.IDENTIFIER().getText(), EXIT, e.getMessage()));
+            }
             listener.getParsedDataStack().pop();
         } else {
-            throw new ParserException(ListenerErrorMessageConstruction
-                    .constructListenerErrorMessage(ListenerErrorType.INVALID_HOLDER,
-                            ParsableDataType.LIST_DATA,
-                            String.valueOf(ctx.IDENTIFIER().getText()),
-                            ListenerErrorLocation.EXIT));
+            throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, LIST_DATA,
+                            ctx.IDENTIFIER().getText(), EXIT));
         }
     }
 
@@ -157,7 +167,7 @@ public final class ListListener {
      * @param ctx context object of the grammar rule.
      * @return true/false validation success or failure.
      */
-    public static boolean validateSubStatementsCardinality(GeneratedYangParser.ListStatementContext ctx) {
+    private static boolean validateSubStatementsCardinality(GeneratedYangParser.ListStatementContext ctx) {
 
         if ((!ctx.keyStatement().isEmpty())
                 && (ctx.keyStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {

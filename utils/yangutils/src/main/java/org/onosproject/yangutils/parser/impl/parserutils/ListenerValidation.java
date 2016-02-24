@@ -16,6 +16,10 @@
 
 package org.onosproject.yangutils.parser.impl.parserutils;
 
+import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangList;
+import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
@@ -82,5 +86,26 @@ public final class ListenerValidation {
                                                            errorLocation);
             throw new ParserException(message);
         }
+    }
+
+    /**
+     * Returns parent node config value, if top node does not specify a config statement
+     * then default value true is returned.
+     *
+     * @param listener listener's object.
+     * @return true/false parent's config value.
+     */
+    public static boolean getParentNodeConfig(TreeWalkListener listener) {
+        YangNode parentNode;
+        Parsable curData = listener.getParsedDataStack().peek();
+        if (curData instanceof YangNode) {
+            parentNode = ((YangNode) curData).getParent();
+            if (parentNode instanceof YangContainer) {
+                return ((YangContainer) parentNode).isConfig();
+            } else if (parentNode instanceof YangList) {
+                return ((YangList) parentNode).isConfig();
+            }
+        }
+        return true;
     }
 }

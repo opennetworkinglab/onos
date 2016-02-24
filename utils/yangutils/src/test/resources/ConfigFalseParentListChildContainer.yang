@@ -3,6 +3,7 @@ module Test {
     namespace http://huawei.com;
     prefix Ant;
     list valid {
+        config false;
         key "invalid-interval";
         leaf invalid-interval {
             type "uint16";
@@ -10,5 +11,14 @@ module Test {
             status current;
             reference "RFC 6020";
         }
+        container valid { 
+            config true;
+            leaf invalid-interval {
+                type "uint16";
+                units "seconds";
+                status current;
+                reference "RFC 6020";
+            }
+        }        
     }
 }

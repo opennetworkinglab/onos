@@ -2,9 +2,11 @@ module Test {
     yang-version 1;
     namespace http://huawei.com;
     prefix Ant;
-    container ospf {
-        list valid {
+    container valid {
+        config false;
+    	list valid {
             key "invalid-interval";
+            config true;
             leaf invalid-interval {
                 type "uint16";
                 units "seconds";

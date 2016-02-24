@@ -68,7 +68,7 @@ public class ListListenerTest {
         assertThat(yangList.getName(), is("valid"));
 
         ListIterator<String> keyList = yangList.getKeyList().listIterator();
-        assertThat(keyList.next(), is("invalid"));
+        assertThat(keyList.next(), is("invalid-interval"));
     }
 
     /**
@@ -95,7 +95,7 @@ public class ListListenerTest {
         // Check whether the list is child of container
         YangList yangList = (YangList) yangContainer.getChild();
         assertThat(yangList.getName(), is("valid"));
-        assertThat(yangList.getKeyList().contains("invalid"), is(true));
+        assertThat(yangList.getKeyList().contains("invalid-interval"), is(true));
     }
 
     /**
@@ -123,7 +123,7 @@ public class ListListenerTest {
         // Check whether the list is child of list
         YangList yangList = (YangList) yangList1.getChild();
         assertThat(yangList.getName(), is("valid"));
-        assertThat(yangList.getKeyList().contains("invalid"), is(true));
+        assertThat(yangList.getKeyList().contains("invalid-interval"), is(true));
     }
 
     /**
@@ -148,7 +148,7 @@ public class ListListenerTest {
 
         // Check whether list properties as set correctly.
         assertThat(yangList.getName(), is("ospf"));
-        assertThat(yangList.getKeyList().contains("process-id"), is(true));
+        assertThat(yangList.getKeyList().contains("invalid-interval"), is(true));
 
         assertThat(yangList.isConfig(), is(true));
         assertThat(yangList.getMaxElelements(), is(10));

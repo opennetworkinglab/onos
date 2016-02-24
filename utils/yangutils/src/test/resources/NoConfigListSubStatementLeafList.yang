@@ -2,15 +2,9 @@ module Test {
     yang-version 1;
     namespace http://huawei.com;
     prefix Ant;
-    list ospf {
+    list valid {
         key "invalid-interval";
-        config true;
-        max-elements 10;
-        min-elements 3;
-        description "list description";
-        status current;
-        reference "list reference";
-        leaf invalid-interval {
+        leaf-list invalid-interval {
             type "uint16";
             units "seconds";
             status current;

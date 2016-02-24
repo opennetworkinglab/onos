@@ -62,7 +62,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     /**
      * If the leaf-list is a config parameter.
      */
-    private boolean isConfig;
+    private Boolean isConfig;
 
     /**
      * Description of leaf-list.
@@ -150,7 +150,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
      *
      * @return the config flag.
      */
-    public boolean isConfig() {
+    public Boolean isConfig() {
         return isConfig;
     }
 

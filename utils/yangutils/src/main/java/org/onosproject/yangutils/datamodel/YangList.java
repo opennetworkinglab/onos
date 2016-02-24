@@ -77,7 +77,7 @@ public class YangList extends YangNode
     /**
      * If list maintains config data.
      */
-    private boolean isConfig;
+    private Boolean isConfig;
 
     /**
      * Description of list.
@@ -199,7 +199,7 @@ public class YangList extends YangNode
      *
      * @return the isConfig
      */
-    public boolean isConfig() {
+    public Boolean isConfig() {
         return isConfig;
     }
 
@@ -254,11 +254,18 @@ public class YangList extends YangNode
      * Add a key field name.
      *
      * @param key key field name.
+     * @throws DataModelException a violation of data model rules.
      */
-    public void addKey(String key) {
+    public void addKey(String key) throws DataModelException {
         if (getKeyList() == null) {
             setKeyList(new LinkedList<String>());
         }
+
+        if (getKeyList().contains(key)) {
+            throw new DataModelException("A leaf identifier must not appear more than once in the\n" +
+                    "   key");
+        }
+
         getKeyList().add(key);
     }
 
@@ -431,7 +438,167 @@ public class YangList extends YangNode
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
-        // TODO auto-generated method stub, to be implemented by parser
+        List<String> keyList = getKeyList();
+        List<YangLeaf> leaves = getListOfLeaf();
+        List<YangLeafList> leafLists = getListOfLeafList();
+
+        setDefaultConfigValueToChild(leaves, leafLists);
+        validateConfig(leaves, leafLists);
+
+        /* A list must have atleast one key leaf if config is true */
+        if ((isConfig)
+            && ((keyList == null) || (leaves == null && leafLists == null))) {
+                throw new DataModelException("A list must have atleast one key leaf if config is true;");
+        } else if (keyList != null) {
+            if (leaves != null) {
+                validateLeafKey(leaves, keyList);
+            }
+
+            if (leafLists != null) {
+                validateLeafListKey(leafLists, keyList);
+            }
+        }
+    }
+
+    /**
+     * Sets the config's value to all leaf if leaf's config statement is not specified.
+     *
+     * @param leaves list of leaf attributes of YANG list.
+     * @param leafLists list of leaf-list attributes of YANG list.
+     */
+    private void setDefaultConfigValueToChild(List<YangLeaf> leaves, List<YangLeafList> leafLists) {
+
+        /* If "config" is not specified, the default is the same as the parent
+            schema node's "config" value.*/
+        if (leaves != null) {
+            for (YangLeaf leaf : leaves) {
+                if (leaf.isConfig() == null) {
+                    leaf.setConfig(isConfig);
+                }
+            }
+        }
+
+        /* If "config" is not specified, the default is the same as the parent
+           schema node's "config" value.*/
+        if (leafLists != null) {
+            for (YangLeafList leafList : leafLists) {
+                if (leafList.isConfig() == null) {
+                    leafList.setConfig(isConfig);
+                }
+            }
+        }
+    }
+
+    /**
+     * Validates config statement of YANG list.
+     *
+     * @param leaves list of leaf attributes of YANG list.
+     * @param leafLists list of leaf-list attributes of YANG list.
+     * @throws DataModelException a violation of data model rules.
+     */
+    private void validateConfig(List<YangLeaf> leaves, List<YangLeafList> leafLists) throws DataModelException {
+
+        /* If a node has "config" set to "false", no node underneath it can have
+             "config" set to "true".*/
+        if ((!isConfig) && (leaves != null)) {
+            for (YangLeaf leaf : leaves) {
+                if (leaf.isConfig()) {
+                    throw new DataModelException("If a list has \"config\" set to \"false\", no node underneath " +
+                            "it can have \"config\" set to \"true\".");
+                }
+            }
+        }
+
+        if ((!isConfig) && (leafLists != null)) {
+            for (YangLeafList leafList : leafLists) {
+                if (leafList.isConfig()) {
+                    throw new DataModelException("If a list has \"config\" set to \"false\", no node underneath " +
+                            "it can have \"config\" set to \"true\".");
+                }
+            }
+        }
+    }
+
+    /**
+     * Validates key statement of list.
+     *
+     * @param leaves list of leaf attributes of list.
+     * @param keyList list of key attributes of list.
+     * @throws DataModelException a violation of data model rules.
+     */
+    private void validateLeafKey(List<YangLeaf> leaves, List<String> keyList) throws DataModelException {
+        boolean leafFound = false;
+        List<YangLeaf> keyLeaves = new LinkedList<>();
+
+        /* 1. Leaf identifier must refer to a child leaf of the list
+           2.  A leaf that is part of the key must not be the built-in type "empty". */
+        for (String key : keyList) {
+            for (YangLeaf leaf : leaves) {
+                if (key.equals(leaf.getLeafName())) {
+                    if (leaf.getDataType().getDataTypeName().replace("\"", "").equals("empty")) {
+                        throw new DataModelException(" A leaf that is part of the key must not be the built-in " +
+                                "type \"empty\".");
+                    }
+                    leafFound = true;
+                    keyLeaves.add(leaf);
+                    break;
+                }
+            }
+            if (!leafFound) {
+                throw new DataModelException("Leaf identifier must refer to a child leaf of the list");
+            }
+            leafFound = false;
+        }
+
+        /* All key leafs in a list MUST have the same value for their "config"
+           as the list itself. */
+        for (YangLeaf keyLeaf : keyLeaves) {
+            if (isConfig != keyLeaf.isConfig()) {
+                throw new DataModelException("All key leafs in a list must have the same value for their" +
+                        " \"config\" as the list itself.");
+            }
+        }
+    }
+
+    /**
+     * Validates key statement of list.
+     *
+     * @param leafLists list of leaf-list attributes of list.
+     * @param keyList list of key attributes of list.
+     * @throws DataModelException a violation of data model rules.
+     */
+    private void validateLeafListKey(List<YangLeafList> leafLists, List<String> keyList) throws DataModelException {
+        boolean leafFound = false;
+        List<YangLeafList> keyLeafLists = new LinkedList<>();
+
+        /* 1. Leaf identifier must refer to a child leaf of the list
+           2.  A leaf that is part of the key must not be the built-in type "empty". */
+        for (String key : keyList) {
+            for (YangLeafList leafList : leafLists) {
+                if (key.equals(leafList.getLeafName())) {
+                    if (leafList.getDataType().getDataTypeName().replace("\"", "").equals("empty")) {
+                        throw new DataModelException(" A leaf-list that is part of the key must not be the built-in " +
+                                "type \"empty\".");
+                    }
+                    leafFound = true;
+                    keyLeafLists.add(leafList);
+                    break;
+                }
+            }
+            if (!leafFound) {
+                throw new DataModelException("Leaf-list identifier must refer to a child leaf of the list");
+            }
+            leafFound = false;
+        }
+
+        /* All key leafs in a list MUST have the same value for their "config"
+             as the list itself. */
+        for (YangLeafList keyLeafList : keyLeafLists) {
+            if (isConfig() != keyLeafList.isConfig()) {
+                throw new DataModelException("All key leaf-lists in a list must have the same value for their" +
+                        " \"config\" as the list itself.");
+            }
+        }
     }
 
     /* (non-Javadoc)

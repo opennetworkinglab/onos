@@ -240,4 +240,296 @@ public class ConfigListenerTest {
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
         assertThat(leafListInfo.isConfig(), is(true));
     }
+
+    /**
+     * Checks config statement's default Value.
+     */
+    @Test
+    public void processConfigDefaultValue() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/ConfigDefaultValue.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the config value is set correctly.
+        YangContainer container = (YangContainer) yangNode.getChild();
+        assertThat(container.getName(), is("valid"));
+        assertThat(container.isConfig(), is(true));
+
+        // Check whether leaf properties as set correctly.
+        ListIterator<YangLeaf> leafIterator = container.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.isConfig(), is(true));
+    }
+
+    /**
+     * Checks whether exception is throw when node's parent config set to false,
+     * no node underneath it can have config set to true.
+     */
+    @Test
+    public void processConfigFalseParentContainerChildLeafList() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("Internal parser error detected: Unhandled parsed data at container \"valid\" after "
+                + "processing.\nError Information: If a container has \"config\" set to \"false\", no node underneath "
+                + "it can have \"config\" set to \"true\".");
+        YangNode node = manager.getDataModel("src/test/resources/ConfigFalseParentContainerChildLeafList.yang");
+    }
+
+    /**
+     * Checks whether exception is throw when node's parent config set to false,
+     * no node underneath it can have config set to true.
+     */
+    @Test
+    public void processConfigFalseParentContainerChildLeaf() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("Internal parser error detected: Unhandled parsed data at container \"valid\" after "
+                + "processing.\nError Information: If a container has \"config\" set to \"false\", no node underneath "
+                + "it can have \"config\" set to \"true\".");
+        YangNode node = manager.getDataModel("src/test/resources/ConfigFalseParentContainerChildLeaf.yang");
+    }
+
+    /**
+     * Checks whether exception is throw when node's parent config set to false,
+     * no node underneath it can have config set to true.
+     */
+    @Test
+    public void processConfigFalseParentListChildLeafList() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("Internal parser error detected: Unhandled parsed data at list \"valid\" after"
+                + " processing.\nError Information: If a list has \"config\" set to \"false\", no node underneath"
+                + " it can have \"config\" set to \"true\".");
+        YangNode node = manager.getDataModel("src/test/resources/ConfigFalseParentListChildLeafList.yang");
+    }
+
+    /**
+     * Checks whether exception is throw when node's parent config set to false,
+     * no node underneath it can have config set to true.
+     */
+    @Test
+    public void processConfigFalseParentListChildLeaf() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("Internal parser error detected: Unhandled parsed data at list \"valid\" after"
+                + " processing.\nError Information: If a list has \"config\" set to \"false\", no node underneath"
+                + " it can have \"config\" set to \"true\".");
+        YangNode node = manager.getDataModel("src/test/resources/ConfigFalseParentListChildLeaf.yang");
+    }
+
+    /**
+     * Checks when config is not specified, the default is same as the parent's schema node's
+     * config statement's value.
+     */
+    @Test
+    public void processNoConfigContainerSubStatementContainer() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/NoConfigContainerSubStatementContainer.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the config value is set correctly.
+        YangContainer container = (YangContainer) yangNode.getChild();
+        assertThat(container.getName(), is("hello"));
+        assertThat(container.isConfig(), is(true));
+
+        YangNode containerNode = container.getChild();
+        assertThat(containerNode instanceof YangContainer, is(true));
+        YangContainer childContainer = (YangContainer) containerNode;
+        assertThat(childContainer.getName(), is("valid"));
+        assertThat(childContainer.isConfig(), is(true));
+    }
+
+    /**
+     * Checks when config is not specified, the default is same as the parent's schema node's
+     * config statement's value.
+     */
+    @Test
+    public void processNoConfigContainerSubStatementLeafList() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/NoConfigContainerSubStatementLeafList.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the config value is set correctly.
+        YangContainer container = (YangContainer) yangNode.getChild();
+        assertThat(container.getName(), is("valid"));
+        assertThat(container.isConfig(), is(true));
+
+        ListIterator<YangLeafList> leafListIterator = container.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
+
+        // Check whether config value is set correctly.
+        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.isConfig(), is(true));
+
+    }
+
+    /**
+     * Checks when config is not specified, the default is same as the parent's schema node's
+     * config statement's value.
+     */
+    @Test
+    public void processNoConfigContainerSubStatementLeaf() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/NoConfigContainerSubStatementLeaf.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the config value is set correctly.
+        YangContainer container = (YangContainer) yangNode.getChild();
+        assertThat(container.getName(), is("valid"));
+        assertThat(container.isConfig(), is(true));
+
+        // Check whether leaf properties as set correctly.
+        ListIterator<YangLeaf> leafIterator = container.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.isConfig(), is(true));
+    }
+
+    /**
+     * Checks when config is not specified, the default is same as the parent's schema node's
+     * config statement's value.
+     */
+    @Test
+    public void processNoConfigContainerSubStatementList() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/NoConfigContainerSubStatementList.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the config value is set correctly.
+        YangContainer container = (YangContainer) yangNode.getChild();
+        assertThat(container.getName(), is("hello"));
+        assertThat(container.isConfig(), is(true));
+
+        YangNode listNode = container.getChild();
+        assertThat(listNode instanceof YangList, is(true));
+        YangList childList = (YangList) listNode;
+        assertThat(childList.getName(), is("valid"));
+        assertThat(childList.isConfig(), is(true));
+
+    }
+
+    /**
+     * Checks when config is not specified, the default is same as the parent's schema node's
+     * config statement's value.
+     */
+    @Test
+    public void processNoConfigListSubStatementContainer() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/NoConfigListSubStatementContainer.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the config value is set correctly.
+        YangList list1 = (YangList) yangNode.getChild();
+        assertThat(list1.getName(), is("list1"));
+        assertThat(list1.isConfig(), is(true));
+
+        YangNode containerNode = list1.getChild();
+        assertThat(containerNode instanceof YangContainer, is(true));
+        YangContainer childContainer = (YangContainer) containerNode;
+        assertThat(childContainer.getName(), is("container1"));
+        assertThat(childContainer.isConfig(), is(true));
+    }
+
+    /**
+     * Checks when config is not specified, the default is same as the parent's schema node's
+     * config statement's value.
+     */
+    @Test
+    public void processNoConfigListSubStatementLeafList() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/NoConfigListSubStatementLeafList.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the config value is set correctly.
+        YangList list1 = (YangList) yangNode.getChild();
+        assertThat(list1.getName(), is("valid"));
+        assertThat(list1.isConfig(), is(true));
+
+        ListIterator<YangLeafList> leafListIterator = list1.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
+
+        // Check whether config value is set correctly.
+        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.isConfig(), is(true));
+    }
+
+    /**
+     * Checks when config is not specified, the default is same as the parent's schema node's
+     * config statement's value.
+     */
+    @Test
+    public void processNoConfigListSubStatementLeaf() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/NoConfigListSubStatementLeaf.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the config value is set correctly.
+        YangList list1 = (YangList) yangNode.getChild();
+        assertThat(list1.getName(), is("valid"));
+        assertThat(list1.isConfig(), is(true));
+
+        // Check whether leaf properties as set correctly.
+        ListIterator<YangLeaf> leafIterator = list1.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.isConfig(), is(true));
+    }
+
+    /**
+     * Checks when config is not specified, the default is same as the parent's schema node's
+     * config statement's value.
+     */
+    @Test
+    public void processNoConfigListSubStatementList() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/NoConfigListSubStatementList.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the config value is set correctly.
+        YangList list1 = (YangList) yangNode.getChild();
+        assertThat(list1.getName(), is("valid"));
+        assertThat(list1.isConfig(), is(true));
+
+        YangNode listNode = list1.getChild();
+        assertThat(listNode instanceof YangList, is(true));
+        YangList childList = (YangList) listNode;
+        assertThat(childList.getName(), is("list1"));
+        assertThat(childList.isConfig(), is(true));
+    }
 }

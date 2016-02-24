@@ -27,6 +27,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
 import static org.onosproject.yangutils.parser.ParsableDataType.CONTAINER_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
@@ -94,6 +95,7 @@ public final class ContainerListener {
     public static void processContainerEntry(TreeWalkListener listener,
                                              GeneratedYangParser.ContainerStatementContext ctx) {
 
+        YangNode parentNode;
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, CONTAINER_DATA, ctx.IDENTIFIER().getText(), ENTRY);
 
@@ -105,8 +107,14 @@ public final class ContainerListener {
         YangContainer container = new YangContainer();
         container.setName(ctx.IDENTIFIER().getText());
 
-        Parsable curData = listener.getParsedDataStack().peek();
+        /* If "config" is not specified, the default is the same as the parent
+           schema node's "config" value. */
+        if (ctx.configStatement().isEmpty()) {
+            boolean parentConfig = ListenerValidation.getParentNodeConfig(listener);
+            container.setConfig(parentConfig);
+        }
 
+        Parsable curData = listener.getParsedDataStack().peek();
         if ((curData instanceof YangModule) || (curData instanceof YangContainer)
                 || (curData instanceof YangList)) {
             YangNode curNode = (YangNode) curData;
@@ -137,6 +145,13 @@ public final class ContainerListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, CONTAINER_DATA, ctx.IDENTIFIER().getText(), EXIT);
 
         if (listener.getParsedDataStack().peek() instanceof YangContainer) {
+            YangContainer yangContainer = (YangContainer) listener.getParsedDataStack().peek();
+            try {
+                yangContainer.validateDataOnExit();
+            } catch (DataModelException e) {
+                throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
+                        CONTAINER_DATA, ctx.IDENTIFIER().getText(), EXIT, e.getMessage()));
+            }
             listener.getParsedDataStack().pop();
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, CONTAINER_DATA,

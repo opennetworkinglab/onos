@@ -2,9 +2,8 @@ module Test {
     yang-version 1;
     namespace http://huawei.com;
     prefix Ant;
-    list valid {
-        key "invalid-interval";
-        leaf invalid-interval {
+    container valid {
+        leaf-list invalid-interval {
             type "uint16";
             units "seconds";
             status current;

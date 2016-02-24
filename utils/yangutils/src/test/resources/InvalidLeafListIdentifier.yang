@@ -4,8 +4,8 @@ module Test {
     prefix Ant;
     list valid {
         key "invalid-interval";
-        leaf invalid-interval {
-            type "uint16";
+        leaf-list invalid {
+            type "string";
             units "seconds";
             status current;
             reference "RFC 6020";

@@ -67,7 +67,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     /**
      * If the leaf is a config parameter.
      */
-    private boolean isConfig;
+    private Boolean isConfig;
 
     /**
      * description of leaf.
@@ -128,7 +128,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
      *
      * @return if config flag.
      */
-    public boolean isConfig() {
+    public Boolean isConfig() {
         return isConfig;
     }
 

@@ -104,4 +104,141 @@ public class KeyListenerTest {
         thrown.expectMessage("mismatched input 'leaf' expecting {';', '+'}");
         YangNode node = manager.getDataModel("src/test/resources/KeyWithoutStatementEnd.yang");
     }
+
+    /**
+     * Checks key values are set correctly.
+     */
+    @Test
+    public void processConfigFalseNoKey() throws IOException, ParserException {
+        YangNode node = manager.getDataModel("src/test/resources/ConfigFalseNoKey.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the list is child of module
+        YangList yangList = (YangList) yangNode.getChild();
+        assertThat(yangList.getName(), is("valid"));
+    }
+
+    /**
+     * Checks key values are set correctly.
+     */
+    @Test
+    public void processConfigFalseValidKeyValidLeaf() throws IOException, ParserException {
+        YangNode node = manager.getDataModel("src/test/resources/ConfigFalseValidKeyValidLeaf.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the list is child of module
+        YangList yangList = (YangList) yangNode.getChild();
+        assertThat(yangList.getName(), is("valid"));
+
+        ListIterator<String> keyList = yangList.getKeyList().listIterator();
+        assertThat(keyList.next(), is("invalid-interval"));
+    }
+
+    /**
+     * Checks key values are set correctly.
+     */
+    @Test
+    public void processConfigFalseValidKeyValidLeafList() throws IOException, ParserException {
+        YangNode node = manager.getDataModel("src/test/resources/ConfigFalseValidKeyValidLeafList.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the list is child of module
+        YangList yangList = (YangList) yangNode.getChild();
+        assertThat(yangList.getName(), is("valid"));
+
+        ListIterator<String> keyList = yangList.getKeyList().listIterator();
+        assertThat(keyList.next(), is("invalid-interval"));
+    }
+
+    /**
+     * Checks whether exception is thrown when list's config is set to true and there is no key.
+     */
+    @Test
+    public void processConfigTrueNoKey() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("A list must have atleast one key leaf if config is true");
+        YangNode node = manager.getDataModel("src/test/resources/ConfigTrueNoKey.yang");
+    }
+
+    /**
+     * Checks whether exception is thrown when list's config is set to true and there is no leaf.
+     */
+    @Test
+    public void processConfigTrueNoleafNoLeafList() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("A list must have atleast one key leaf if config is true");
+        YangNode node = manager.getDataModel("src/test/resources/ConfigTrueNoleafNoLeafList.yang");
+    }
+
+    /**
+     * Checks key values are set correctly.
+     */
+    @Test
+    public void processConfigTrueValidKeyValidLeaf() throws IOException, ParserException {
+        YangNode node = manager.getDataModel("src/test/resources/ConfigTrueValidKeyValidLeaf.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the list is child of module
+        YangList yangList = (YangList) yangNode.getChild();
+        assertThat(yangList.getName(), is("valid"));
+
+        ListIterator<String> keyList = yangList.getKeyList().listIterator();
+        assertThat(keyList.next(), is("invalid-interval"));
+    }
+
+    /**
+     * Checks whether exception is thrown when key leaf identifier is not found in list.
+     */
+    @Test
+    public void processInvalidLeafIdentifier() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("Leaf identifier must refer to a child leaf of the list");
+        YangNode node = manager.getDataModel("src/test/resources/InvalidLeafIdentifier.yang");
+    }
+
+    /**
+     * Checks whether exception is thrown when key leaf-list identifier is not found in list.
+     */
+    @Test
+    public void processInvalidLeafListIdentifier() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("Leaf-list identifier must refer to a child leaf of the list");
+        YangNode node = manager.getDataModel("src/test/resources/InvalidLeafListIdentifier.yang");
+    }
+
+    /**
+     * Checks whether exception is thrown when key leaf-list is of type empty.
+     */
+    @Test
+    public void processKeyLeafListTypeEmpty() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("A leaf-list that is part of the key must not be the built-in type \"empty\".");
+        YangNode node = manager.getDataModel("src/test/resources/KeyLeafListTypeEmpty.yang");
+    }
+
+    /**
+     * Checks whether exception is thrown when key leaf is of type empty.
+     */
+    @Test
+    public void processKeyLeafTypeEmpty() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("A leaf that is part of the key must not be the built-in type \"empty\".");
+        YangNode node = manager.getDataModel("src/test/resources/KeyLeafTypeEmpty.yang");
+    }
 }

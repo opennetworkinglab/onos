@@ -99,7 +99,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * If container maintains config data.
      */
-    private boolean isConfig;
+    private Boolean isConfig;
 
     /**
      * Description of container.
@@ -174,7 +174,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      *
      * @return the isConfig
      */
-    public boolean isConfig() {
+    public Boolean isConfig() {
         return isConfig;
     }
 
@@ -378,7 +378,70 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
-        // TODO auto-generated method stub, to be implemented by parser
+        List<YangLeaf> leaves = getListOfLeaf();
+        List<YangLeafList> leafLists = getListOfLeafList();
+
+        setDefaultConfigValueToChild(leaves, leafLists);
+        validateConfig(leaves, leafLists);
+    }
+
+    /**
+     * Sets the config's value to all leaf if leaf's config statement is not specified.
+     *
+     * @param leaves list of leaf attributes of container.
+     * @param leafLists list of leaf-list attributes of container.
+     */
+    private void setDefaultConfigValueToChild(List<YangLeaf> leaves, List<YangLeafList> leafLists) {
+
+        /* If "config" is not specified, the default is the same as the parent
+            schema node's "config" value.*/
+        if (leaves != null) {
+            for (YangLeaf leaf : leaves) {
+                if (leaf.isConfig() == null) {
+                    leaf.setConfig(isConfig);
+                }
+            }
+        }
+
+        /* If "config" is not specified, the default is the same as the parent
+           schema node's "config" value.*/
+        if (leafLists != null) {
+            for (YangLeafList leafList : leafLists) {
+                if (leafList.isConfig() == null) {
+                    leafList.setConfig(isConfig);
+                }
+            }
+        }
+    }
+
+    /**
+     * Validates config statement of container.
+     *
+     * @param leaves list of leaf attributes of container.
+     * @param leafLists list of leaf-list attributes of container.
+     * @throws DataModelException a violation of data model rules.
+     */
+    private void validateConfig(List<YangLeaf> leaves, List<YangLeafList> leafLists) throws DataModelException {
+
+        /* If a node has "config" set to "false", no node underneath it can have
+             "config" set to "true".*/
+        if ((!isConfig) && (leaves != null)) {
+            for (YangLeaf leaf : leaves) {
+                if (leaf.isConfig()) {
+                    throw new DataModelException("If a container has \"config\" set to \"false\", no node underneath " +
+                            "it can have \"config\" set to \"true\".");
+                }
+            }
+        }
+
+        if ((!isConfig) && (leafLists != null)) {
+            for (YangLeafList leafList : leafLists) {
+                if (leafList.isConfig()) {
+                    throw new DataModelException("If a container has \"config\" set to \"false\", no node underneath " +
+                            "it can have \"config\" set to \"true\".");
+                }
+            }
+        }
     }
 
     /**
