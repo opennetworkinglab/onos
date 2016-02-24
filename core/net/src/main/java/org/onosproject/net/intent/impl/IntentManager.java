@@ -18,6 +18,8 @@ package org.onosproject.net.intent.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -42,6 +44,7 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
 import org.onosproject.net.newresource.ResourceService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -55,6 +58,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
@@ -86,6 +90,12 @@ public class IntentManager
             = EnumSet.of(INSTALL_REQ, FAILED, WITHDRAW_REQ);
     private static final EnumSet<IntentState> WITHDRAW
             = EnumSet.of(WITHDRAW_REQ, WITHDRAWING, WITHDRAWN);
+    private static final boolean DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL = false;
+
+    @Property(name = "skipReleaseResourcesOnWithdrawal",
+            boolValue = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL,
+            label = "Indicates whether skipping resource releases on withdrawal is enabled or not")
+    private boolean skipReleaseResourcesOnWithdrawal = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -112,6 +122,7 @@ public class IntentManager
     private final CompilerRegistry compilerRegistry = new CompilerRegistry();
     private final InternalIntentProcessor processor = new InternalIntentProcessor();
     private final IntentStoreDelegate delegate = new InternalStoreDelegate();
+    private final IntentStoreDelegate testOnlyDelegate = new TestOnlyIntentStoreDelegate();
     private final TopologyChangeDelegate topoDelegate = new InternalTopoChangeDelegate();
     private final IntentBatchDelegate batchDelegate = new InternalBatchDelegate();
     private IdGenerator idGenerator;
@@ -121,7 +132,11 @@ public class IntentManager
     @Activate
     public void activate() {
         intentInstaller.init(store, trackerService, flowRuleService, flowObjectiveService);
-        store.setDelegate(delegate);
+        if (skipReleaseResourcesOnWithdrawal) {
+            store.setDelegate(testOnlyDelegate);
+        } else {
+            store.setDelegate(delegate);
+        }
         trackerService.setDelegate(topoDelegate);
         eventDispatcher.addSink(IntentEvent.class, listenerRegistry);
         batchExecutor = newSingleThreadExecutor(groupedThreads("onos/intent", "batch"));
@@ -134,13 +149,42 @@ public class IntentManager
     @Deactivate
     public void deactivate() {
         intentInstaller.init(null, null, null, null);
-        store.unsetDelegate(delegate);
+        if (skipReleaseResourcesOnWithdrawal) {
+            store.unsetDelegate(testOnlyDelegate);
+        } else {
+            store.unsetDelegate(delegate);
+        }
         trackerService.unsetDelegate(topoDelegate);
         eventDispatcher.removeSink(IntentEvent.class);
         batchExecutor.shutdown();
         workerExecutor.shutdown();
         Intent.unbindIdGenerator(idGenerator);
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        if (context == null) {
+            skipReleaseResourcesOnWithdrawal = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL;
+            logConfig("Default config");
+            return;
+        }
+
+        String s = Tools.get(context.getProperties(), "skipReleaseResourcesOnWithdrawal");
+        boolean newTestEnabled = isNullOrEmpty(s) ? skipReleaseResourcesOnWithdrawal : Boolean.parseBoolean(s.trim());
+        if (skipReleaseResourcesOnWithdrawal && !newTestEnabled) {
+            store.unsetDelegate(testOnlyDelegate);
+            store.setDelegate(delegate);
+            logConfig("Reconfigured");
+        } else if (!skipReleaseResourcesOnWithdrawal && newTestEnabled) {
+            store.unsetDelegate(delegate);
+            store.setDelegate(testOnlyDelegate);
+            logConfig("Reconfigured");
+        }
+    }
+
+    private void logConfig(String prefix) {
+        log.info("{} with skipReleaseResourcesOnWithdrawal = {}", prefix, skipReleaseResourcesOnWithdrawal);
     }
 
     @Override
@@ -258,6 +302,24 @@ public class IntentManager
         @Override
         public void onUpdate(IntentData intentData) {
             trackerService.trackIntent(intentData);
+        }
+    }
+
+    // Store delegate enabled only when performing intent throughput tests
+    private class TestOnlyIntentStoreDelegate implements IntentStoreDelegate {
+        @Override
+        public void process(IntentData data) {
+            accumulator.add(data);
+        }
+
+        @Override
+        public void onUpdate(IntentData data) {
+            trackerService.trackIntent(data);
+        }
+
+        @Override
+        public void notify(IntentEvent event) {
+            post(event);
         }
     }
 
