@@ -97,7 +97,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
     }
 
     private void notifyLeadershipChange(Leadership previousLeadership, Leadership newLeadership) {
-        notifyLeadershipChanges(Arrays.asList(new Change<>(previousLeadership, newLeadership)));
+        notifyLeadershipChanges(Lists.newArrayList(new Change<>(previousLeadership, newLeadership)));
     }
 
     private void notifyLeadershipChanges(List<Change<Leadership>> changes) {
@@ -247,7 +247,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      */
     public void evict(Commit<? extends Evict> commit) {
         try {
-            List<Change<Leadership>> changes = Lists.newLinkedList();
+            List<Change<Leadership>> changes = Lists.newArrayList();
             NodeId nodeId = commit.operation().nodeId();
             Set<String> topics = Maps.filterValues(elections, e -> e.candidates().contains(nodeId)).keySet();
             topics.forEach(topic -> {
@@ -330,14 +330,16 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
             listener.close();
         }
         Set<String> topics = elections.keySet();
+        List<Change<Leadership>> changes = Lists.newArrayList();
         topics.forEach(topic -> {
             Leadership oldLeadership = leadership(topic);
             elections.compute(topic, (k, v) -> v.cleanup(session, termCounter(topic)::incrementAndGet));
             Leadership newLeadership = leadership(topic);
             if (!Objects.equal(oldLeadership, newLeadership)) {
-                notifyLeadershipChange(oldLeadership, newLeadership);
+                changes.add(new Change<>(oldLeadership, newLeadership));
             }
         });
+        notifyLeadershipChanges(changes);
     }
 
     private static class Registration {

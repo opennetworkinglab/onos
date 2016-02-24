@@ -291,17 +291,14 @@ public final class AtomixLeaderElectorCommands {
     }
 
     /**
-     * Command for administratively anointing a node as leader.
+     * Command for administratively changing the leadership state for a node.
      */
     @SuppressWarnings("serial")
-    public static class Anoint extends ElectionCommand<Boolean> {
+    public abstract static class ElectionChangeCommand<V> extends ElectionCommand<V>  {
         private String topic;
         private NodeId nodeId;
 
-        public Anoint() {
-        }
-
-        public Anoint(String topic, NodeId nodeId) {
+        public ElectionChangeCommand(String topic, NodeId nodeId) {
             this.topic = topic;
             this.nodeId = nodeId;
         }
@@ -346,57 +343,22 @@ public final class AtomixLeaderElectorCommands {
     }
 
     /**
+     * Command for administratively anoint a node as leader.
+     */
+    @SuppressWarnings("serial")
+    public static class Anoint extends ElectionChangeCommand<Boolean> {
+        public Anoint(String topic, NodeId nodeId) {
+            super(topic, nodeId);
+        }
+    }
+
+    /**
      * Command for administratively promote a node as top candidate.
      */
     @SuppressWarnings("serial")
-    public static class Promote extends ElectionCommand<Boolean> {
-        private String topic;
-        private NodeId nodeId;
-
-        public Promote() {
-        }
-
+    public static class Promote extends ElectionChangeCommand<Boolean> {
         public Promote(String topic, NodeId nodeId) {
-            this.topic = topic;
-            this.nodeId = nodeId;
-        }
-
-        /**
-         * Returns the topic.
-         *
-         * @return The topic
-         */
-        public String topic() {
-            return topic;
-        }
-
-        /**
-         * Returns the nodeId to make top candidate.
-         *
-         * @return The nodeId
-         */
-        public NodeId nodeId() {
-            return nodeId;
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(getClass())
-                    .add("topic", topic)
-                    .add("nodeId", nodeId)
-                    .toString();
-        }
-
-        @Override
-        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
-            buffer.writeString(topic);
-            buffer.writeString(nodeId.toString());
-        }
-
-        @Override
-        public void readObject(BufferInput<?> buffer, Serializer serializer) {
-            topic = buffer.readString();
-            nodeId = new NodeId(buffer.readString());
+            super(topic, nodeId);
         }
     }
 
