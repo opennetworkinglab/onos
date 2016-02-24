@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.base.Strings;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -133,8 +134,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         //TODO for reduction check if the new capacity is smaller than the size of the current mapping
         String propertyString = Tools.get(properties, "maxCapacity");
 
-        //Ignore if propertyString is empty
-        if (!propertyString.isEmpty()) {
+        //Ignore if propertyString is empty or null
+        if (!Strings.isNullOrEmpty(propertyString)) {
             try {
                 int temp = Integer.parseInt(propertyString);
                 //Ensure value is non-negative but allow zero as a way to shutdown the link
