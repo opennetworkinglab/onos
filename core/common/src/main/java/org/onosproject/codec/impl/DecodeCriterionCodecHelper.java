@@ -107,12 +107,13 @@ public final class DecodeCriterionCodecHelper {
     private class EthTypeDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
+            JsonNode ethTypeNode = nullIsIllegal(json.get(CriterionCodec.ETH_TYPE),
+                                              CriterionCodec.ETH_TYPE + MISSING_MEMBER_MESSAGE);
             int ethType;
-            if (json.get(CriterionCodec.ETH_TYPE).isInt()) {
-                ethType = nullIsIllegal(json.get(CriterionCodec.ETH_TYPE),
-                                        CriterionCodec.ETH_TYPE + MISSING_MEMBER_MESSAGE).asInt();
+            if (ethTypeNode.isInt()) {
+                ethType = ethTypeNode.asInt();
             } else {
-                ethType = Integer.decode(json.get(CriterionCodec.ETH_TYPE).textValue());
+                ethType = Integer.decode(ethTypeNode.textValue());
             }
             return Criteria.matchEthType(ethType);
         }
