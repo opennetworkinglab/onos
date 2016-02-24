@@ -51,7 +51,6 @@ import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
 import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
-import org.onosproject.net.flow.criteria.IndexedLambdaCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
@@ -387,7 +386,7 @@ public class FlowRuleCodecTest {
 
         checkCommonData(rule);
 
-        assertThat(rule.selector().criteria().size(), is(36));
+        assertThat(rule.selector().criteria().size(), is(35));
 
         rule.selector().criteria()
                 .stream()
@@ -515,10 +514,6 @@ public class FlowRuleCodecTest {
         criterion = getCriterion(Criterion.Type.IPV6_EXTHDR);
         assertThat(((IPv6ExthdrFlagsCriterion) criterion).exthdrFlags(),
                 is(99));
-
-        criterion = getCriterion(Criterion.Type.OCH_SIGID);
-        assertThat(((IndexedLambdaCriterion) criterion).lambda(),
-                is(Lambda.indexedLambda(122)));
 
         criterion = getCriterion(Criterion.Type.TUNNEL_ID);
         assertThat(((TunnelIdCriterion) criterion).tunnelId(),

@@ -28,7 +28,9 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
-import org.onosproject.net.IndexedLambda;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.GridType;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -59,17 +61,14 @@ public class DefaultTrafficSelectorTest {
      */
     @Test
     public void testEquals() {
-        final short one = 1;
-        final short two = 2;
-
         final TrafficSelector selector1 = DefaultTrafficSelector.builder()
-                .add(Criteria.matchLambda(new IndexedLambda(one)))
+                .add(Criteria.matchLambda(new OchSignal(GridType.FLEX, ChannelSpacing.CHL_100GHZ, 1, 1)))
                 .build();
         final TrafficSelector sameAsSelector1 = DefaultTrafficSelector.builder()
-                .add(Criteria.matchLambda(new IndexedLambda(one)))
+                .add(Criteria.matchLambda(new OchSignal(GridType.FLEX, ChannelSpacing.CHL_100GHZ, 1, 1)))
                 .build();
         final TrafficSelector selector2 = DefaultTrafficSelector.builder()
-                .add(Criteria.matchLambda(new IndexedLambda(two)))
+                .add(Criteria.matchLambda(new OchSignal(GridType.FLEX, ChannelSpacing.CHL_50GHZ, 1, 1)))
                 .build();
 
         new EqualsTester()
@@ -265,7 +264,7 @@ public class DefaultTrafficSelectorTest {
         assertThat(selector, hasCriterionWithType(Type.IPV6_EXTHDR));
 
         selector = DefaultTrafficSelector.builder()
-                .add(Criteria.matchLambda(new IndexedLambda(shortValue))).build();
+                .add(Criteria.matchLambda(new OchSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 1, 1))).build();
         assertThat(selector, hasCriterionWithType(Type.OCH_SIGID));
     }
 }

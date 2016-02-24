@@ -24,7 +24,6 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OchSignalType;
@@ -460,9 +459,7 @@ public final class Criteria {
      * @return match criterion
      */
     public static Criterion matchLambda(Lambda lambda) {
-        if (lambda instanceof IndexedLambda) {
-            return new IndexedLambdaCriterion((IndexedLambda) lambda);
-        } else if (lambda instanceof OchSignal) {
+        if (lambda instanceof OchSignal) {
             return new OchSignalCriterion((OchSignal) lambda);
         } else {
             throw new UnsupportedOperationException(String.format("Unsupported type of Lambda: %s", lambda));
