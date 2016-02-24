@@ -86,6 +86,9 @@ import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.device.DeviceEvent.Type.*;
 
 public class HostLocationProviderTest {
+    private static final ProviderId PROVIDER_ID =
+            new ProviderId("of", "org.onosproject.provider.host");
+
     private static final Integer INPORT = 10;
     private static final String DEV1 = "of:1";
     private static final String DEV2 = "of:2";
@@ -105,7 +108,7 @@ public class HostLocationProviderTest {
     private static final HostLocation LOCATION =
             new HostLocation(deviceId(DEV1), portNumber(INPORT), 0L);
     private static final DefaultHost HOST =
-            new DefaultHost(ProviderId.NONE, hostId(MAC), MAC,
+            new DefaultHost(PROVIDER_ID, hostId(MAC), MAC,
                             vlanId(VlanId.UNTAGGED), LOCATION,
                             ImmutableSet.of(IP_ADDRESS));
 
@@ -118,7 +121,7 @@ public class HostLocationProviderTest {
     private static final HostLocation LOCATION2 =
             new HostLocation(deviceId(DEV4), portNumber(INPORT), 0L);
     private static final DefaultHost HOST2 =
-            new DefaultHost(ProviderId.NONE, hostId(MAC2), MAC2,
+            new DefaultHost(PROVIDER_ID, hostId(MAC2), MAC2,
                             vlanId(VlanId.UNTAGGED), LOCATION2,
                             ImmutableSet.of(IP_ADDRESS2));
 
