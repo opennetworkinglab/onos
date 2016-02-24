@@ -219,7 +219,7 @@ public class DistributedLeadershipStore
 
     @Override
     public Leadership getLeadership(String topic) {
-        InternalLeadership internalLeadership = Versioned.valueOrNull(leadershipCache.get(topic));
+        InternalLeadership internalLeadership = Versioned.valueOrNull(leadershipMap.get(topic));
         return internalLeadership == null ? null : internalLeadership.asLeadership();
     }
 
