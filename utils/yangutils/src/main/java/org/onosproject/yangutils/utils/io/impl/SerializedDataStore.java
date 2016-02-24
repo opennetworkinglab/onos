@@ -19,6 +19,7 @@ package org.onosproject.yangutils.utils.io.impl;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -107,6 +108,11 @@ public final class SerializedDataStore {
     private static final String SERIALIZE_FILE_EXTENSION = ".ser";
 
     /**
+     * Directory for generating Serialized files.
+     */
+    private static final String GEN_DIR = "target/";
+
+    /**
      * Buffer size.
      */
     private static final int BUFFER_SIZE = 8 * 1024;
@@ -137,14 +143,12 @@ public final class SerializedDataStore {
             fileName = BUILDER_METHOD_FILE_NAME;
         } else if (type.equals(SerializedDataStoreType.IMPL_METHODS)) {
             fileName = IMPL_METHOD_FILE_NAME;
-        } else if (type.equals(SerializedDataStoreType.IMPORT)) {
-            fileName = IMPORT_FILE_NAME;
         } else {
-            throw new IOException("Unresolved file type.");
+            fileName = IMPORT_FILE_NAME;
         }
 
         try {
-            OutputStream file = new FileOutputStream(fileName + SERIALIZE_FILE_EXTENSION);
+            OutputStream file = new FileOutputStream(GEN_DIR + fileName + SERIALIZE_FILE_EXTENSION);
             OutputStream buffer = new BufferedOutputStream(file, BUFFER_SIZE);
 
             ObjectOutput output = new ObjectOutputStream(buffer);
@@ -164,10 +168,11 @@ public final class SerializedDataStore {
      * @param type type of serialized data store
      * @return list of attribute info.
      * @throws IOException when fails to read from the file.
-     * @throws ClassNotFoundException when file is missing.
+     * @throws ClassNotFoundException when class is missing.
+     * @throws FileNotFoundException when file is missing.
      */
     public static List<String> getSerializeData(SerializedDataStoreType type)
-            throws IOException, ClassNotFoundException {
+            throws IOException, FileNotFoundException, ClassNotFoundException {
 
         String fileName = "";
         if (type.equals(SerializedDataStoreType.ATTRIBUTE)) {
@@ -180,14 +185,11 @@ public final class SerializedDataStore {
             fileName = BUILDER_METHOD_FILE_NAME;
         } else if (type.equals(SerializedDataStoreType.IMPL_METHODS)) {
             fileName = IMPL_METHOD_FILE_NAME;
-        } else if (type.equals(SerializedDataStoreType.IMPORT)) {
-            fileName = IMPORT_FILE_NAME;
         } else {
-            throw new IOException("Unresolved file type.");
+            fileName = IMPORT_FILE_NAME;
         }
-
         try {
-            InputStream file = new FileInputStream(fileName + SERIALIZE_FILE_EXTENSION);
+            InputStream file = new FileInputStream(GEN_DIR + fileName + SERIALIZE_FILE_EXTENSION);
             InputStream buffer = new BufferedInputStream(file);
             ObjectInput input = new ObjectInputStream(buffer);
             try {
@@ -199,6 +201,8 @@ public final class SerializedDataStore {
                 input.close();
                 file.close();
             }
+        } catch (FileNotFoundException ex) {
+            throw new FileNotFoundException("No such file or directory.");
         } catch (ClassNotFoundException ex) {
             throw new ClassNotFoundException("failed to fetch the serialized data file.");
         }

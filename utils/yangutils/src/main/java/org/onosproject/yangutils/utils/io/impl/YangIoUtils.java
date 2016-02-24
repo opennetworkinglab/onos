@@ -53,7 +53,7 @@ public final class YangIoUtils {
      */
     public static File createDirectories(String path) {
 
-        File generatedDir = new File(UtilConstants.YANG_GEN_DIR + File.separator + path);
+        File generatedDir = new File(path);
         generatedDir.mkdirs();
         return generatedDir;
     }
@@ -68,21 +68,23 @@ public final class YangIoUtils {
      */
     public static void addPackageInfo(File path, String classInfo, String pack) throws IOException {
 
+        if (pack.contains(UtilConstants.YANG_GEN_DIR)) {
+           String[] strArray = pack.split(UtilConstants.YANG_GEN_DIR + UtilConstants.SLASH);
+           pack = strArray[1];
+       }
+
         try {
 
             File packageInfo = new File(path + File.separator + "package-info.java");
             packageInfo.createNewFile();
-            if (packageInfo.exists()) {
-
-                FileWriter fileWriter = null;
-                BufferedWriter bufferedWriter = null;
-                fileWriter = new FileWriter(packageInfo);
-                bufferedWriter = new BufferedWriter(fileWriter);
-                bufferedWriter.write(CopyrightHeader.getCopyrightHeader());
-                bufferedWriter.write(JavaDocGen.getJavaDoc(JavaDocGen.JavaDocType.PACKAGE_INFO, classInfo));
-                bufferedWriter.write(UtilConstants.PACKAGE + UtilConstants.SPACE + pack + UtilConstants.SEMI_COLAN);
-                bufferedWriter.close();
-            }
+            FileWriter fileWriter = null;
+            BufferedWriter bufferedWriter = null;
+            fileWriter = new FileWriter(packageInfo);
+            bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(CopyrightHeader.getCopyrightHeader());
+            bufferedWriter.write(JavaDocGen.getJavaDoc(JavaDocGen.JavaDocType.PACKAGE_INFO, classInfo));
+            bufferedWriter.write(UtilConstants.PACKAGE + UtilConstants.SPACE + pack + UtilConstants.SEMI_COLAN);
+            bufferedWriter.close();
         } catch (IOException e) {
             throw new IOException("Exception occured while creating package info file.");
         }

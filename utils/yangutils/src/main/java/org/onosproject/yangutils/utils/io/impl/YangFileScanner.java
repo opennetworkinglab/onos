@@ -33,28 +33,31 @@ public final class YangFileScanner {
     private YangFileScanner() {
     }
 
-    /**
-     * Returns the list of YANG files.
-     *
-     * @param root specified directory
-     * @return list of YANG files.
-     * @throws IOException when files get deleted while performing the
-     *             operations.
-     */
-    public static List<String> getYangFiles(String root) throws IOException {
-        return getFiles(root, ".yang");
-    }
 
     /**
      * Returns the list of java files.
      *
      * @param root specified directory
      * @return list of java files.
+     * @throws NullPointerException when no files are there.
      * @throws IOException when files get deleted while performing the
      *             operations.
      */
-    public static List<String> getJavaFiles(String root) throws IOException {
+    public static List<String> getJavaFiles(String root) throws NullPointerException, IOException {
         return getFiles(root, ".java");
+    }
+
+    /**
+     * Returns the list of YANG files.
+     *
+     * @param root specified directory
+     * @return list of YANG files.
+     * @throws NullPointerException when no files are there.
+     * @throws IOException when files get deleted while performing the
+     *             operations.
+     */
+    public static List<String> getYangFiles(String root) throws NullPointerException, IOException {
+        return getFiles(root, ".yang");
     }
 
     /**
@@ -66,7 +69,7 @@ public final class YangFileScanner {
      * @throws IOException when files get deleted while performing the
      *             operations.
      */
-    public static List<String> getFiles(String root, String extension) throws IOException {
+    public static List<String> getFiles(String root, String extension) throws  NullPointerException, IOException {
         List<String> store = new LinkedList<>();
         Stack<String> stack = new Stack<>();
         stack.push(root);
@@ -77,7 +80,7 @@ public final class YangFileScanner {
                 root = stack.pop();
                 file = new File(root);
                 filelist = file.listFiles();
-                if (filelist == null) {
+                if (filelist.length == 0) {
                     continue;
                 }
                 for (File current : filelist) {
@@ -92,8 +95,8 @@ public final class YangFileScanner {
                 }
             }
             return store;
-        } catch (IOException e) {
-            throw new IOException("IOException occured");
+        } catch (NullPointerException e) {
+            throw new IOException("NullPointerException occured");
         }
     }
 }

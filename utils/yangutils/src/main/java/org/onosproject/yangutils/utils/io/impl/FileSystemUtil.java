@@ -45,12 +45,15 @@ public final class FileSystemUtil {
      * @param pkg Package to check if it is created.
      * @return existence status of package.
      */
-    public static boolean doesPackageExist(File pkg) {
-        if (pkg.exists()) {
+    public static boolean doesPackageExist(String pkg) {
+        File pkgDir = new File(pkg.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
+        File pkgWithFile = new File(pkgDir + File.separator + "package-info.java");
+        if (pkgDir.exists() && pkgWithFile.isFile()) {
             return true;
         }
         return false;
     }
+
 
     /**
      * Create a package structure with package info java file if not present.
@@ -60,7 +63,7 @@ public final class FileSystemUtil {
      * @throws IOException any IO exception
      */
     public static void createPackage(String pkg, String pkgInfo) throws IOException {
-        if (!doesPackageExist(new File(pkg))) {
+        if (!doesPackageExist(pkg)) {
             try {
                 File pack = YangIoUtils
                         .createDirectories(pkg.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
@@ -82,9 +85,6 @@ public final class FileSystemUtil {
      */
     public static CachedFileHandle createSourceFiles(String pkg, String yangName, GeneratedFileType types)
             throws IOException {
-        //if (!doesPackageExist(new File(pkg))) {
-        //    throw new IOException("package does not exist.");
-        //}
         yangName = JavaIdentifierSyntax.getCamelCase(yangName);
         CachedFileHandle handler = new CachedJavaFileHandle(pkg, yangName, types);
 
@@ -104,7 +104,6 @@ public final class FileSystemUtil {
     public static void appendFileContents(File toAppend, File srcFile) throws IOException {
 
         insertStringInFile(srcFile, UtilConstants.NEW_LINE + readAppendFile(toAppend.toString()));
-        //TODO: read the contents from src file and append its contents to append file.
         return;
     }
 

@@ -114,7 +114,7 @@ public final class JavaDocGen {
             javaDoc = generateForDefaultConstructors();
         } else if (type.equals(JavaDocType.BUILD)) {
             javaDoc = generateForBuild(name);
-        } else if (type.equals(JavaDocType.CONSTRUCTOR)) {
+        } else {
             javaDoc = generateForConstructors(name);
         }
         return javaDoc;
