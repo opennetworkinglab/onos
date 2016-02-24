@@ -117,18 +117,16 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
             }
 
             return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources()));
-
-        } else {
-            if (EncapsulationType.VLAN == enacpConstraint.get().encapType()) {
-                rules = manageVlanEncap(intent);
-            }
-            if (EncapsulationType.MPLS == enacpConstraint.get().encapType()) {
-                //TODO: to be implemented
-                rules = Collections.emptyList();
-            }
-
-            return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources()));
         }
+
+        if (EncapsulationType.VLAN == enacpConstraint.get().encapType()) {
+            rules = manageVlanEncap(intent);
+        } else if (EncapsulationType.MPLS == enacpConstraint.get().encapType()) {
+            //TODO: to be implemented
+            rules = Collections.emptyList();
+        }
+
+        return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources()));
     }
 
     private FlowRule createFlowRule(TrafficSelector originalSelector, TrafficTreatment originalTreatment,
