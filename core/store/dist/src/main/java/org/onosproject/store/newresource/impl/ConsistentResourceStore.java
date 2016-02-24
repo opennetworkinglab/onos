@@ -180,11 +180,14 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
 
         boolean success = tx.commit();
         if (success) {
+            log.trace("Transaction commit succeeded on registration: resources={}", resources);
             List<ResourceEvent> events = resources.stream()
                     .filter(x -> x.parent().isPresent())
                     .map(x -> new ResourceEvent(RESOURCE_ADDED, x))
                     .collect(Collectors.toList());
             notifyDelegate(events);
+        } else {
+            log.debug("Transaction commit failed on registration: resources={}", resources);
         }
         return success;
     }
