@@ -37,9 +37,5 @@
         <module>openstackrouting</module>
     </modules>
 
-
-    <description>SONA Openstack Networking XXXX Application</description>
-
-    <dependencies>
-    </dependencies>
+    <description>SONA Openstack Networking Application</description>
 </project>

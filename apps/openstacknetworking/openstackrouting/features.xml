@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright 2015-2016 Open Networking Laboratory
+  ~ Copyright 2016 Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
+        <bundle>mvn:${project.groupId}/onos-app-openstackrouting/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-openstacknetworking-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-openstacknetworking-web/${project.version}</bundle>
-        <bundle>mvn:com.sun.jersey/jersey-client/1.19</bundle>
     </feature>
 </features>
