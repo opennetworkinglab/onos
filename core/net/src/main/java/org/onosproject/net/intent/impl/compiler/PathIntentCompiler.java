@@ -26,7 +26,6 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -118,13 +117,17 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
             return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources()));
         }
 
-        List<FlowRule> rules = Collections.emptyList();
-        if (EncapsulationType.VLAN == encapConstraint.get().encapType()) {
-            rules = manageVlanEncap(intent);
-        } else if (EncapsulationType.MPLS == encapConstraint.get().encapType()) {
-            //TODO: to be implemented
-            rules = Collections.emptyList();
-        }
+        List<FlowRule> rules = encapConstraint.map(EncapsulationConstraint::encapType)
+                .map(type -> {
+                    switch (type) {
+                        case VLAN:
+                            return manageVlanEncap(intent);
+                        // TODO: implement MPLS case here
+                        default:
+                            return Collections.<FlowRule>emptyList();
+                    }
+                })
+                .orElse(Collections.emptyList());
 
         return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources()));
     }
