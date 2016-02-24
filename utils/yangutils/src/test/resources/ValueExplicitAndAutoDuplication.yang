@@ -1,0 +1,16 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    leaf speed {
+        type enumeration {
+          enum 10m {
+	     value 10;
+          }
+          enum 100m;
+          enum auto {
+	     value 11;
+          }
+        }
+    }
+}

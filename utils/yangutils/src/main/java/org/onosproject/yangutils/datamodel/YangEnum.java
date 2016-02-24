@@ -20,6 +20,8 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
 
+import java.util.Objects;
+
 /*-
  * The "ENUM" statement, which is a sub-statement to the "type"
  *  statement, MUST be present if the type is "enumeration".  It is
@@ -186,6 +188,23 @@ public class YangEnum implements YangCommonInfo, Parsable {
     @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.ENUM_DATA;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof YangEnum) {
+            final YangEnum other = (YangEnum) obj;
+            return Objects.equals(this.namedValue, other.namedValue);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.namedValue);
     }
 
     /**

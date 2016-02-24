@@ -215,6 +215,11 @@ public enum ParsableDataType {
     DEFAULT_DATA,
 
     /**
+     * Identifies the YANG value element parsed data.
+     */
+    VALUE_DATA,
+
+    /**
      * Identifies the YANG organization parsed data.
      */
     ORGANIZATION_DATA;
@@ -228,88 +233,90 @@ public enum ParsableDataType {
     public static String getParsableDataType(ParsableDataType parsableDataType) {
 
         switch (parsableDataType) {
-        case MODULE_DATA:
-            return "module";
-        case SUB_MODULE_DATA:
-            return "submodule";
-        case TYPEDEF_DATA:
-            return "typedef";
-        case TYPE_DATA:
-            return "type";
-        case CHOICE_DATA:
-            return "choice";
-        case CASE_DATA:
-            return "case";
-        case ENUMERATION_DATA:
-            return "enumeration";
-        case GROUPING_DATA:
-            return "grouping";
-        case USES_DATA:
-            return "uses";
-        case AUGMENT_DATA:
-            return "augment";
-        case CONTAINER_DATA:
-            return "container";
-        case LIST_DATA:
-            return "list";
-        case BELONGS_TO_DATA:
-            return "belongs-to";
-        case BIT_DATA:
-            return "bit";
-        case BITS_DATA:
-            return "bits";
-        case ENUM_DATA:
-            return "enum";
-        case IMPORT_DATA:
-            return "import";
-        case INCLUDE_DATA:
-            return "include";
-        case LEAF_DATA:
-            return "leaf";
-        case LEAF_LIST_DATA:
-            return "leaf-list";
-        case MUST_DATA:
-            return "must";
-        case REVISION_DATA:
-            return "revision";
-        case REVISION_DATE_DATA:
-            return "revision-date";
-        case NAMESPACE_DATA:
-            return "namespace";
-        case CONTACT_DATA:
-            return "contact";
-        case CONFIG_DATA:
-            return "config";
-        case DESCRIPTION_DATA:
-            return "description";
-        case KEY_DATA:
-            return "key";
-        case MANDATORY_DATA:
-            return "mandatory";
-        case MAX_ELEMENT_DATA:
-            return "max-elements";
-        case MIN_ELEMENT_DATA:
-            return "min-elements";
-        case PRESENCE_DATA:
-            return "presence";
-        case REFERENCE_DATA:
-            return "reference";
-        case STATUS_DATA:
-            return "status";
-        case UNITS_DATA:
-            return "units";
-        case VERSION_DATA:
-            return "version";
-        case YANGBASE_DATA:
-            return "yangbase";
-        case PREFIX_DATA:
-            return "prefix";
-        case ORGANIZATION_DATA:
-            return "organization";
-        case DEFAULT_DATA:
-            return "default";
-        default:
-            return "yang";
+            case MODULE_DATA:
+                return "module";
+            case SUB_MODULE_DATA:
+                return "submodule";
+            case TYPEDEF_DATA:
+                return "typedef";
+            case TYPE_DATA:
+                return "type";
+            case CHOICE_DATA:
+                return "choice";
+            case CASE_DATA:
+                return "case";
+            case ENUMERATION_DATA:
+                return "enumeration";
+            case GROUPING_DATA:
+                return "grouping";
+            case USES_DATA:
+                return "uses";
+            case AUGMENT_DATA:
+                return "augment";
+            case CONTAINER_DATA:
+                return "container";
+            case LIST_DATA:
+                return "list";
+            case BELONGS_TO_DATA:
+                return "belongs-to";
+            case BIT_DATA:
+                return "bit";
+            case BITS_DATA:
+                return "bits";
+            case ENUM_DATA:
+                return "enum";
+            case IMPORT_DATA:
+                return "import";
+            case INCLUDE_DATA:
+                return "include";
+            case LEAF_DATA:
+                return "leaf";
+            case LEAF_LIST_DATA:
+                return "leaf-list";
+            case MUST_DATA:
+                return "must";
+            case REVISION_DATA:
+                return "revision";
+            case REVISION_DATE_DATA:
+                return "revision-date";
+            case NAMESPACE_DATA:
+                return "namespace";
+            case CONTACT_DATA:
+                return "contact";
+            case CONFIG_DATA:
+                return "config";
+            case DESCRIPTION_DATA:
+                return "description";
+            case KEY_DATA:
+                return "key";
+            case MANDATORY_DATA:
+                return "mandatory";
+            case MAX_ELEMENT_DATA:
+                return "max-elements";
+            case MIN_ELEMENT_DATA:
+                return "min-elements";
+            case PRESENCE_DATA:
+                return "presence";
+            case REFERENCE_DATA:
+                return "reference";
+            case STATUS_DATA:
+                return "status";
+            case UNITS_DATA:
+                return "units";
+            case VERSION_DATA:
+                return "version";
+            case YANGBASE_DATA:
+                return "yangbase";
+            case PREFIX_DATA:
+                return "prefix";
+            case ORGANIZATION_DATA:
+                return "organization";
+            case VALUE_DATA:
+                return "value";
+            case DEFAULT_DATA:
+                return "default";
+            default:
+                return "yang";
         }
     }
 }

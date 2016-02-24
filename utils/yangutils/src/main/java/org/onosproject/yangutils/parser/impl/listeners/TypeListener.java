@@ -21,17 +21,17 @@ import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.parser.Parsable;
+import static org.onosproject.yangutils.parser.ParsableDataType.TYPE_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-
-import static org.onosproject.yangutils.parser.ParsableDataType.TYPE_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
-
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -48,8 +48,8 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
  */
 
 /**
- * Implements listener based call back function corresponding to the "type"
- * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
+ * Implements listener based call back function corresponding to the "type" rule
+ * defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class TypeListener {
 
@@ -60,15 +60,14 @@ public final class TypeListener {
     }
 
     /**
-     * It is called when parser receives an input matching the grammar
-     * rule (type), performs validation and updates the data model
-     * tree.
+     * It is called when parser receives an input matching the grammar rule
+     * (type), performs validation and updates the data model tree.
      *
      * @param listener listener's object.
      * @param ctx context object of the grammar rule.
      */
     public static void processTypeEntry(TreeWalkListener listener,
-                                        GeneratedYangParser.TypeStatementContext ctx) {
+            GeneratedYangParser.TypeStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPE_DATA, ctx.string().getText(), ENTRY);
@@ -78,21 +77,46 @@ public final class TypeListener {
         type.setDataTypeName(ctx.string().getText());
         type.setDataType(yangDataTypes);
 
+        listener.getParsedDataStack().push(type);
+    }
+
+    /**
+     * It is called when parser exits from grammar rule (type), it perform
+     * validations and update the data model tree.
+     *
+     * @param listener Listener's object.
+     * @param ctx context object of the grammar rule.
+     */
+    public static void processTypeExit(TreeWalkListener listener,
+            GeneratedYangParser.TypeStatementContext ctx) {
+
+        // Check for stack to be non empty.
+        checkStackIsNotEmpty(listener, MISSING_CURRENT_HOLDER, TYPE_DATA, ctx.string().getText(), EXIT);
+
+        Parsable type = listener.getParsedDataStack().pop();
+        if (!(type instanceof YangType)) {
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, TYPE_DATA,
+                    ctx.string().getText(), EXIT));
+        }
+
+        // Check for stack to be non empty.
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPE_DATA, ctx.string().getText(), EXIT);
+
         Parsable tmpData = listener.getParsedDataStack().peek();
         switch (tmpData.getParsableDataType()) {
             case LEAF_DATA:
                 YangLeaf leaf = (YangLeaf) tmpData;
-                leaf.setDataType(type);
+                leaf.setDataType((YangType) type);
                 break;
             case LEAF_LIST_DATA:
                 YangLeafList leafList = (YangLeafList) tmpData;
-                leafList.setDataType(type);
+                leafList.setDataType((YangType) type);
                 break;
             case TYPEDEF_DATA: //TODO
                 break;
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, TYPE_DATA,
-                        ctx.string().getText(), ENTRY));
+                        ctx.string().getText(), EXIT));
         }
     }
 }
