@@ -444,10 +444,10 @@ public class GroupsResourceTest extends ResourceTest {
 
         assertThat(result.names(), hasSize(1));
         assertThat(result.names().get(0), is("groups"));
-        final JsonArray jsonFlows = result.get("groups").asArray();
-        assertThat(jsonFlows, notNullValue());
-        assertThat(jsonFlows, hasGroup(group5));
-        assertThat(jsonFlows, hasGroup(group6));
+        final JsonArray jsonGroups = result.get("groups").asArray();
+        assertThat(jsonGroups, notNullValue());
+        assertThat(jsonGroups, hasGroup(group5));
+        assertThat(jsonGroups, hasGroup(group6));
     }
 
     /**

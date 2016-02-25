@@ -447,9 +447,9 @@ public class MetersResourceTest extends ResourceTest {
 
         assertThat(result.names(), hasSize(1));
         assertThat(result.names().get(0), is("meters"));
-        final JsonArray jsonFlows = result.get("meters").asArray();
-        assertThat(jsonFlows, notNullValue());
-        assertThat(jsonFlows, hasMeter(meter5));
+        final JsonArray jsonMeters = result.get("meters").asArray();
+        assertThat(jsonMeters, notNullValue());
+        assertThat(jsonMeters, hasMeter(meter5));
     }
 
     /**

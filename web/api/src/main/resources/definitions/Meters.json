@@ -5,7 +5,7 @@
     "meters"
   ],
   "properties": {
-    "groups": {
+    "meters": {
       "type": "array",
       "xml": {
         "name": "meters",
