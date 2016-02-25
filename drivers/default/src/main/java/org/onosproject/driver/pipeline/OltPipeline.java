@@ -80,6 +80,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -102,6 +103,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private DeviceId deviceId;
     private ApplicationId appId;
     private IpPrefix mcastPrefix = IpPrefix.valueOf("224.0.0.0/4");
+    private AtomicLong counter = new AtomicLong(123);
 
     protected FlowObjectiveStore flowObjectiveStore;
 
@@ -257,7 +259,6 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         GroupKey key = new DefaultGroupKey(appKryo.serialize(nextObjective.id()));
 
 
-
         pendingGroups.put(key, nextObjective);
 
         switch (nextObjective.op()) {
@@ -281,8 +282,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 break;
             case REMOVE_FROM_EXISTING:
                 groupService.removeBucketsFromGroup(deviceId, key,
-                                               new GroupBuckets(Collections.singletonList(bucket)),
-                                               key, nextObjective.appId());
+                                                    new GroupBuckets(Collections.singletonList(bucket)),
+                                                    key, nextObjective.appId());
                 break;
             default:
                 log.warn("Unknown next objective operation: {}", nextObjective.op());
@@ -309,9 +310,9 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 buildTreatment(Instructions.createGroup(group.id()));
 
         FlowRule rule = DefaultFlowRule.builder()
+                .withCookie(counter.getAndIncrement())
                 .forDevice(deviceId)
                 .forTable(0)
-                .fromApp(fwd.appId())
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(fwd.selector())
@@ -341,7 +342,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private boolean checkForMulticast(ForwardingObjective fwd) {
 
         IPCriterion ip = (IPCriterion) filterForCriterion(fwd.selector().criteria(),
-                                                                                Criterion.Type.IPV4_DST);
+                                                          Criterion.Type.IPV4_DST);
 
         if (ip == null) {
             return false;
@@ -389,8 +390,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Criterion innerVid = Criteria.matchVlanId(((VlanIdCriterion) innerVlan).vlanId());
 
         FlowRule.Builder outer = DefaultFlowRule.builder()
+                .withCookie(counter.getAndIncrement())
                 .forDevice(deviceId)
-                .fromApp(appId)
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(buildSelector(inport, outerVlan))
@@ -398,8 +399,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                                               Instructions.transition(QQ_TABLE)));
 
         FlowRule.Builder inner = DefaultFlowRule.builder()
+                .withCookie(counter.getAndIncrement())
                 .forDevice(deviceId)
-                .fromApp(appId)
                 .forTable(QQ_TABLE)
                 .makePermanent()
                 .withPriority(fwd.priority())
@@ -431,8 +432,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Pair<Instruction, Instruction> outerPair = vlanOps.remove(0);
 
         FlowRule.Builder inner = DefaultFlowRule.builder()
+                .withCookie(counter.getAndIncrement())
                 .forDevice(deviceId)
-                .fromApp(appId)
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(fwd.selector())
@@ -446,8 +447,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 innerPair.getRight()).vlanId();
 
         FlowRule.Builder outer = DefaultFlowRule.builder()
+                .withCookie(counter.getAndIncrement())
                 .forDevice(deviceId)
-                .fromApp(appId)
                 .forTable(QQ_TABLE)
                 .makePermanent()
                 .withPriority(fwd.priority())
@@ -542,9 +543,9 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private void buildAndApplyRule(FilteringObjective filter, TrafficSelector selector,
                                    TrafficTreatment treatment) {
         FlowRule rule = DefaultFlowRule.builder()
+                .withCookie(counter.getAndIncrement())
                 .forDevice(deviceId)
                 .forTable(0)
-                .fromApp(filter.appId())
                 .makePermanent()
                 .withSelector(selector)
                 .withTreatment(treatment)

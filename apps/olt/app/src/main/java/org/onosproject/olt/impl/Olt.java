@@ -198,7 +198,7 @@ public class Olt
         }
     }
 
-        @Override
+    @Override
     public void provisionSubscriber(ConnectPoint port, VlanId vlan) {
         AccessDeviceData olt = oltData.get(port.deviceId());
 
@@ -339,7 +339,6 @@ public class Olt
         subscribers.put(cp, subscriberVlan);
         objectives.put(cp, Sets.newHashSet(upFwd, downFwd));
 
-
         flowObjectiveService.forward(deviceId, upFwd.add(new ObjectiveContext() {
             @Override
             public void onSuccess(Objective objective) {
@@ -351,7 +350,6 @@ public class Olt
                 upFuture.complete(error);
             }
         }));
-
 
         flowObjectiveService.forward(deviceId, downFwd.add(new ObjectiveContext() {
             @Override
