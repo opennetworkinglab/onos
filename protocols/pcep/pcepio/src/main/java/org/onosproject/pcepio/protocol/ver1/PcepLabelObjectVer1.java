@@ -56,7 +56,7 @@ public class PcepLabelObjectVer1 implements PcepLabelObject {
     protected static final Logger log = LoggerFactory.getLogger(PcepLspObjectVer1.class);
 
     public static final byte LABEL_OBJ_TYPE = 1;
-    public static final byte LABEL_OBJ_CLASS = 35; //TBD : to be defined
+    public static final byte LABEL_OBJ_CLASS = (byte) 225;
     public static final byte LABEL_OBJECT_VERSION = 1;
     public static final byte OBJECT_HEADER_LENGTH = 4;
     public static final boolean DEFAULT_OFLAG = false;

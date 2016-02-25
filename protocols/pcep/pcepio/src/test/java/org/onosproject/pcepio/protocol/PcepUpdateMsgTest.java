@@ -18,6 +18,7 @@ package org.onosproject.pcepio.protocol;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
+import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -29,7 +30,7 @@ public class PcepUpdateMsgTest {
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv), ERO in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest1() throws PcepParseException {
+    public void pcepUpdateMsgTest1() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x30,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -64,7 +65,7 @@ public class PcepUpdateMsgTest {
      * SymbolicPathNameTlv, StatefulLspErrorCodeTlv), ERO, LSPA, Metric-list in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest2() throws PcepParseException {
+    public void pcepUpdateMsgTest2() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x94,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -108,7 +109,7 @@ public class PcepUpdateMsgTest {
      * ERO objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest3() throws PcepParseException {
+    public void pcepUpdateMsgTest3() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x38,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -145,7 +146,7 @@ public class PcepUpdateMsgTest {
      * SymbolicPathNameTlv), ERO objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest4() throws PcepParseException {
+    public void pcepUpdateMsgTest4() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x40,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -183,7 +184,7 @@ public class PcepUpdateMsgTest {
      * SymbolicPathNameTlv), ERO objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest5() throws PcepParseException {
+    public void pcepUpdateMsgTest5() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x40,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -221,7 +222,7 @@ public class PcepUpdateMsgTest {
      * StatefulLspErrorCodeTlv), ERO objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest6() throws PcepParseException {
+    public void pcepUpdateMsgTest6() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x48,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -261,7 +262,7 @@ public class PcepUpdateMsgTest {
      * StatefulLspErrorCodeTlv), ERO objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest7() throws PcepParseException {
+    public void pcepUpdateMsgTest7() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x48,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -299,7 +300,7 @@ public class PcepUpdateMsgTest {
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject) objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest8() throws PcepParseException {
+    public void pcepUpdateMsgTest8() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x50,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -339,7 +340,7 @@ public class PcepUpdateMsgTest {
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject, IPv4SubObject) objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest9() throws PcepParseException {
+    public void pcepUpdateMsgTest9() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x58,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -380,7 +381,7 @@ public class PcepUpdateMsgTest {
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject, IPv4SubObject), LSPA objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest10() throws PcepParseException {
+    public void pcepUpdateMsgTest10() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x6c,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -423,7 +424,7 @@ public class PcepUpdateMsgTest {
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject, IPv4SubObject),LSPA, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest11() throws PcepParseException {
+    public void pcepUpdateMsgTest11() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x78,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -467,7 +468,7 @@ public class PcepUpdateMsgTest {
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject, IPv4SubObject),LSPA, metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest12() throws PcepParseException {
+    public void pcepUpdateMsgTest12() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x70,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -510,7 +511,7 @@ public class PcepUpdateMsgTest {
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject, IPv4SubObject),LSPA, metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest13() throws PcepParseException {
+    public void pcepUpdateMsgTest13() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x70,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -553,7 +554,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject),LSPA, metric Object objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest14() throws PcepParseException {
+    public void pcepUpdateMsgTest14() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -595,7 +596,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject),LSPA, metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest15() throws PcepParseException {
+    public void pcepUpdateMsgTest15() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -637,7 +638,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject),LSPA, metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest16() throws PcepParseException {
+    public void pcepUpdateMsgTest16() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x60,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -678,7 +679,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject),LSPA objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest17() throws PcepParseException {
+    public void pcepUpdateMsgTest17() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -718,7 +719,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject),Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest18() throws PcepParseException {
+    public void pcepUpdateMsgTest18() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x4c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -757,7 +758,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject),Metric-list objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest19() throws PcepParseException {
+    public void pcepUpdateMsgTest19() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x58,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -797,7 +798,7 @@ public class PcepUpdateMsgTest {
      * StatefulLspErrorCodeTlv),ERO (IPv4SubObject, IPv4SubObject),LSPA, Bandwidth, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest20() throws PcepParseException {
+    public void pcepUpdateMsgTest20() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x80,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -842,7 +843,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject), Bandwidth objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest21() throws PcepParseException {
+    public void pcepUpdateMsgTest21() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x48,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -881,7 +882,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest22() throws PcepParseException {
+    public void pcepUpdateMsgTest22() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x5C,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -922,7 +923,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest23() throws PcepParseException {
+    public void pcepUpdateMsgTest23() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -964,7 +965,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest24() throws PcepParseException {
+    public void pcepUpdateMsgTest24() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x70,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -1007,7 +1008,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest25() throws PcepParseException {
+    public void pcepUpdateMsgTest25() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x70,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -1051,7 +1052,7 @@ public class PcepUpdateMsgTest {
      * Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest26() throws PcepParseException {
+    public void pcepUpdateMsgTest26() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x78,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -1095,7 +1096,7 @@ public class PcepUpdateMsgTest {
      * Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest27() throws PcepParseException {
+    public void pcepUpdateMsgTest27() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x78,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -1140,7 +1141,7 @@ public class PcepUpdateMsgTest {
      * LSPA, Bandwidth, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest28() throws PcepParseException {
+    public void pcepUpdateMsgTest28() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x80,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -1185,7 +1186,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest29() throws PcepParseException {
+    public void pcepUpdateMsgTest29() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -1227,7 +1228,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest30() throws PcepParseException {
+    public void pcepUpdateMsgTest30() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -1266,7 +1267,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest31() throws PcepParseException {
+    public void pcepUpdateMsgTest31() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x5c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -1306,7 +1307,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest32() throws PcepParseException {
+    public void pcepUpdateMsgTest32() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -1345,7 +1346,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest33() throws PcepParseException {
+    public void pcepUpdateMsgTest33() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x5c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -1385,7 +1386,7 @@ public class PcepUpdateMsgTest {
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
      */
     @Test
-    public void pcepUpdateMsgTest34() throws PcepParseException {
+    public void pcepUpdateMsgTest34() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x64,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object

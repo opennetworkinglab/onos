@@ -19,7 +19,7 @@ import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
 /**
- * Test of the OSPFareaIDsubTlv.
+ * Test of the OspfAreaIdSubTlv.
  */
 public class OspfAreaIdSubTlvTest {
     private final int rawValue1 = 0x0A;

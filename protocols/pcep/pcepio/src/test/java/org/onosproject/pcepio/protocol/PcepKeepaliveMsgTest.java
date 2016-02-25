@@ -19,6 +19,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Assert;
 import org.junit.Test;
+import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,7 +32,7 @@ public class PcepKeepaliveMsgTest {
      * Common header for keep alive message.
      */
     @Test
-    public void keepaliveMessageTest1() throws PcepParseException {
+    public void keepaliveMessageTest1() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] keepaliveMsg = new byte[] {0x20, 0x02, 0x00, 0x04 };
 

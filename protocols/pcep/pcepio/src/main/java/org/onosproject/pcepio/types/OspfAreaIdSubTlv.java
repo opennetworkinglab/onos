@@ -40,7 +40,7 @@ public class OspfAreaIdSubTlv implements PcepValueType {
 
     protected static final Logger log = LoggerFactory.getLogger(OspfAreaIdSubTlv.class);
 
-    public static final short TYPE = 600; //TODD:change this TBD12
+    public static final short TYPE = 3;
     public static final short LENGTH = 4;
 
     private final int rawValue;

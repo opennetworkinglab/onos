@@ -18,6 +18,7 @@ package org.onosproject.pcepio.protocol;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
+import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -30,7 +31,7 @@ public class PcepCloseMsgTest {
      * Common header, reason to close.
      */
     @Test
-    public void closeMessageTest1() throws PcepParseException {
+    public void closeMessageTest1() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] closeMsg = new byte[] {0x20, 0x07, 0x00, 0x0C, 0x0f, 0x10, 0x00, 0x08, 0x00, 0x00, 0x00, 0x02 };
 

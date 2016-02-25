@@ -21,7 +21,7 @@ package org.onosproject.pcepio.exceptions;
  */
 public class PcepTunnelAttributeException extends Exception {
 
-    private static final long serialVersionUID = 7860981378961458434L;
+    private static final long serialVersionUID = 2L;
 
     /**
      * Default constructor to create a new exception.

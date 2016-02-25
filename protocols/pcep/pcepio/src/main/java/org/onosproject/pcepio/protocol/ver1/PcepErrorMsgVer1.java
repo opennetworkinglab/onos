@@ -16,6 +16,7 @@
 package org.onosproject.pcepio.protocol.ver1;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.exceptions.PcepParseException;
@@ -42,6 +43,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
 
     /*
      * PCE Error message format.
+       Reference: draft-dhodylee-pce-pcep-ls-01, section 8.2.
 
        <PCErr Message>                ::= <Common Header>
                                         ( <error-obj-list> [<Open>] ) | <error>
@@ -49,12 +51,12 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
 
        <error-obj-list>               ::=<PCEP-ERROR>[<error-obj-list>]
 
-       <error>                        ::=[<request-id-list> | <te-id-list>]
+       <error>                        ::=[<request-id-list> | <ls-id-list>]
                                            <error-obj-list>
 
        <request-id-list>              ::=<RP>[<request-id-list>]
 
-       <te-id-list>                   ::=<TE>[<te-id-list>]
+       <ls-id-list>                   ::=<LS>[<ls-id-list>]
 
        <error-list>                   ::=<error>[<error-list>]
      */
@@ -71,7 +73,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
     public static final PcepErrorMsgVer1.Reader READER = new Reader();
 
     /**
-     * constructor to initialize variables.
+     * Constructor to initialize variables.
      */
     public PcepErrorMsgVer1() {
         errObjListWithOpen = null;
@@ -128,7 +130,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
             //parse <PCErr Message>
             parsePCErrMsg(cb);
 
-            // If other than RP or TE or PCEP-ERROR present then it is error.
+            // If other than RP or LS or PCEP-ERROR present then it is error.
             if (0 < cb.readableBytes()) {
                 PcepObjectHeader tempObjHeader = PcepObjectHeader.read(cb);
                 throw new PcepParseException("Unexpected Object found. Object Class : " + tempObjHeader.getObjClass());
@@ -147,10 +149,10 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
         public void parsePCErrMsg(ChannelBuffer cb) throws PcepParseException {
             //If PCEP-ERROR list is followed by OPEN Object then store into ErrorObjListWithOpen.
             //     ( <error-obj-list> [<Open>]
-            //If PCEP-ERROR list is followed by RP or TE Object then store into errInfo. <error> [<error-list>]
+            //If PCEP-ERROR list is followed by RP or LS Object then store into errInfo. <error> [<error-list>]
             //If only PCEP-ERROR list is present then store into ErrorObjListWithOpen.
             PcepObjectHeader tempObjHeader;
-            LinkedList<PcepErrorObject> llErrObjList;
+            List<PcepErrorObject> llErrObjList;
 
             if (0 >= cb.readableBytes()) {
                 throw new PcepParseException("PCEP-ERROR message came with empty objects.");
@@ -171,9 +173,9 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
                 PcepOpenObject pcepOpenObj = PcepOpenObjectVer1.read(cb);
                 this.errObjListWithOpen = new ErrorObjListWithOpen(llErrObjList, pcepOpenObj);
 
-            } else if ((tempObjHeader != null) //check whether RP or TE Object is present.
+            } else if ((tempObjHeader != null) //check whether RP or LS Object is present.
                     && ((tempObjHeader.getObjClass() == PcepRPObjectVer1.RP_OBJ_CLASS)
-                            || (tempObjHeader.getObjClass() == PcepTEObjectVer1.TE_OBJ_CLASS))) {
+                            || (tempObjHeader.getObjClass() == PcepLSObjectVer1.LS_OBJ_CLASS))) {
 
                 this.errInfo = new PcepErrorInfoVer1(null, null, llErrObjList);
                 this.errInfo.read(cb);
@@ -194,7 +196,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
          * @throws PcepParseException if mandatory fields are missing
          * @return error object header
          */
-        public PcepObjectHeader parseErrorObjectList(LinkedList<PcepErrorObject> llErrObjList, ChannelBuffer cb)
+        public PcepObjectHeader parseErrorObjectList(List<PcepErrorObject> llErrObjList, ChannelBuffer cb)
                 throws PcepParseException {
             PcepObjectHeader tempObjHeader = null;
 
@@ -337,8 +339,8 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
      *
      * @return error types list
      */
-    public LinkedList<Integer> getErrorType() {
-        LinkedList<Integer> llErrorType = new LinkedList<>();
+    public List<Integer> getErrorType() {
+        List<Integer> llErrorType = new LinkedList<>();
         if ((errObjListWithOpen != null)
                 && (errObjListWithOpen.isErrorObjListWithOpenPresent())) {
             llErrorType = errObjListWithOpen.getErrorType();
@@ -354,8 +356,8 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
      *
      * @return error value list
      */
-    public LinkedList<Integer> getErrorValue() {
-        LinkedList<Integer> llErrorValue = new LinkedList<>();
+    public List<Integer> getErrorValue() {
+        List<Integer> llErrorValue = new LinkedList<>();
         if ((errObjListWithOpen != null)
                 && (errObjListWithOpen.isErrorObjListWithOpenPresent())) {
             llErrorValue = errObjListWithOpen.getErrorValue();
@@ -368,7 +370,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
 
     @Override
     public String toString() {
-        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
+        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass()).omitNullValues();
 
         if ((errObjListWithOpen != null)
                 && (errObjListWithOpen.isErrorObjListWithOpenPresent())) {

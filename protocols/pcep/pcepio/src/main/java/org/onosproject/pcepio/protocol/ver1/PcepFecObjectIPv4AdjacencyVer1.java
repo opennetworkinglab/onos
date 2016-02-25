@@ -47,12 +47,12 @@ public class PcepFecObjectIPv4AdjacencyVer1 implements PcepFecObjectIPv4Adjacenc
     protected static final Logger log = LoggerFactory.getLogger(PcepFecObjectIPv4AdjacencyVer1.class);
 
     public static final byte FEC_OBJ_TYPE = 3;
-    public static final byte FEC_OBJ_CLASS = 36; //to be defined
+    public static final byte FEC_OBJ_CLASS = (byte) 226;
     public static final byte FEC_OBJECT_VERSION = 1;
     public static final short FEC_OBJ_MINIMUM_LENGTH = 12;
     public static final int MINIMUM_COMMON_HEADER_LENGTH = 4;
 
-    static final PcepObjectHeader DEFAULT_FEC_OBJECT_HEADER = new PcepObjectHeader(FEC_OBJ_CLASS, FEC_OBJ_TYPE,
+    public static final PcepObjectHeader DEFAULT_FEC_OBJECT_HEADER = new PcepObjectHeader(FEC_OBJ_CLASS, FEC_OBJ_TYPE,
             PcepObjectHeader.REQ_OBJ_OPTIONAL_PROCESS, PcepObjectHeader.RSP_OBJ_PROCESSED, FEC_OBJ_MINIMUM_LENGTH);
 
     private PcepObjectHeader fecObjHeader;

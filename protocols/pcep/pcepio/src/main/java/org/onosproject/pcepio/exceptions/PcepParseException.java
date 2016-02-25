@@ -21,7 +21,7 @@ package org.onosproject.pcepio.exceptions;
  */
 public class PcepParseException extends Exception {
 
-    private static final long serialVersionUID = 7960991379951448423L;
+    private static final long serialVersionUID = 1L;
     private byte errType = 0;
     private byte errValue = 0;
 

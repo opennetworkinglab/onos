@@ -22,6 +22,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.frame.FrameDecoder;
+import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.protocol.PcepFactories;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMessageReader;
@@ -49,20 +50,31 @@ public class PcepMessageDecoder extends FrameDecoder {
 
         HexDump.pcepHexDump(buffer);
 
-        // Note that a single call to decode results in reading a single
-        // PcepMessage from the channel buffer, which is passed on to, and processed
-        // by, the controller (in PcepChannelHandler).
-        // This is different from earlier behavior (with the original pcepIO),
-        // where we parsed all the messages in the buffer, before passing on
-        // a list of the parsed messages to the controller.
-        // The performance *may or may not* not be as good as before.
+        // Buffer can contain multiple messages, also may contain out of bound message.
+        // Read the message one by one from buffer and parse it. If it encountered out of bound message,
+        // then mark the reader index and again take the next chunk of messages from the channel
+        // and parse again from the marked reader index.
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
-        List<PcepMessage> msgList = new LinkedList<>();
+        List<PcepMessage> msgList = (List<PcepMessage>) ctx.getAttachment();
 
-        while (buffer.readableBytes() > 0) {
-            PcepMessage message = reader.readFrom(buffer);
-            msgList.add(message);
+        if (msgList == null) {
+            msgList = new LinkedList<>();
         }
-        return msgList;
+
+        try {
+            while (buffer.readableBytes() > 0) {
+                buffer.markReaderIndex();
+                PcepMessage message = reader.readFrom(buffer);
+                msgList.add(message);
+            }
+            ctx.setAttachment(null);
+            return msgList;
+        } catch (PcepOutOfBoundMessageException e) {
+            log.debug("PCEP message decode error");
+            buffer.resetReaderIndex();
+            buffer.discardReadBytes();
+            ctx.setAttachment(msgList);
+        }
+        return null;
     }
 }

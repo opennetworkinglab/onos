@@ -60,25 +60,25 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
             ERROR_OBJ_MINIMUM_LENGTH);
 
     private PcepObjectHeader errorObjHeader;
-    private byte yErrorType;
-    private byte yErrorValue;
-    private LinkedList<PcepValueType> llOptionalTlv; // Optional TLV
+    private byte errorType;
+    private byte errorValue;
+    private LinkedList<PcepValueType> optionalTlv; // Optional TLV
 
     /**
      * Constructor to initialize variables.
      *
      * @param errorObjHeader ERROR Object header
-     * @param yErrorType Error Type
-     * @param yErrorValue Error Value
-     * @param llOptionalTlv list of optional TLV
+     * @param errorType Error Type
+     * @param errorValue Error Value
+     * @param optionalTlv list of optional TLV
      */
 
-    public PcepErrorObjectVer1(PcepObjectHeader errorObjHeader, byte yErrorType, byte yErrorValue,
-            LinkedList<PcepValueType> llOptionalTlv) {
+    public PcepErrorObjectVer1(PcepObjectHeader errorObjHeader, byte errorType, byte errorValue,
+            LinkedList<PcepValueType> optionalTlv) {
         this.errorObjHeader = errorObjHeader;
-        this.yErrorType = yErrorType;
-        this.yErrorValue = yErrorValue;
-        this.llOptionalTlv = llOptionalTlv;
+        this.errorType = errorType;
+        this.errorValue = errorValue;
+        this.optionalTlv = optionalTlv;
     }
 
     /**
@@ -91,13 +91,13 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
     }
 
     @Override
-    public void setErrorType(byte yErrorType) {
-        this.yErrorType = yErrorType;
+    public void setErrorType(byte errorType) {
+        this.errorType = errorType;
     }
 
     @Override
-    public void setErrorValue(byte yErrorValue) {
-        this.yErrorValue = yErrorValue;
+    public void setErrorValue(byte errorValue) {
+        this.errorValue = errorValue;
     }
 
     /**
@@ -111,22 +111,22 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
 
     @Override
     public int getErrorType() {
-        return this.yErrorType;
+        return this.errorType;
     }
 
     @Override
     public byte getErrorValue() {
-        return this.yErrorValue;
+        return this.errorValue;
     }
 
     @Override
     public LinkedList<PcepValueType> getOptionalTlv() {
-        return this.llOptionalTlv;
+        return this.optionalTlv;
     }
 
     @Override
-    public void setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv) {
-        this.llOptionalTlv = llOptionalTlv;
+    public void setOptionalTlv(LinkedList<PcepValueType> optionalTlv) {
+        this.optionalTlv = optionalTlv;
     }
 
     /**
@@ -138,9 +138,9 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
     public static PcepErrorObject read(ChannelBuffer cb) {
 
         PcepObjectHeader errorObjHeader;
-        byte yErrorType;
-        byte yErrorValue;
-        LinkedList<PcepValueType> llOptionalTlv;
+        byte errorType;
+        byte errorValue;
+        LinkedList<PcepValueType> optionalTlv;
 
         errorObjHeader = PcepObjectHeader.read(cb);
 
@@ -148,12 +148,12 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
         ChannelBuffer tempCb = cb.readBytes(errorObjHeader.getObjLen() - OBJECT_HEADER_LENGTH);
         tempCb.readByte(); //ignore Reserved
         tempCb.readByte(); //ignore Flags
-        yErrorType = tempCb.readByte();
-        yErrorValue = tempCb.readByte();
+        errorType = tempCb.readByte();
+        errorValue = tempCb.readByte();
 
-        llOptionalTlv = parseOptionalTlv(tempCb);
+        optionalTlv = parseOptionalTlv(tempCb);
 
-        return new PcepErrorObjectVer1(errorObjHeader, yErrorType, yErrorValue, llOptionalTlv);
+        return new PcepErrorObjectVer1(errorObjHeader, errorType, errorValue, optionalTlv);
     }
 
     /**
@@ -189,8 +189,8 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
         //write Flags
         cb.writeByte(0);
         //write ErrorType and ErrorValue
-        cb.writeByte(this.yErrorType);
-        cb.writeByte(this.yErrorValue);
+        cb.writeByte(this.errorType);
+        cb.writeByte(this.errorValue);
 
         // Add optional TLV
         packOptionalTlv(cb);
@@ -222,7 +222,7 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
      */
     protected int packOptionalTlv(ChannelBuffer cb) {
 
-        ListIterator<PcepValueType> listIterator = llOptionalTlv.listIterator();
+        ListIterator<PcepValueType> listIterator = optionalTlv.listIterator();
         int startIndex = cb.writerIndex();
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
@@ -245,8 +245,8 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
         private boolean bIsHeaderSet = false;
 
         private PcepObjectHeader errorObjHeader;
-        private byte yErrorType;
-        private byte yErrorValue;
+        private byte errorType;
+        private byte errorValue;
 
         private boolean bIsPFlagSet = false;
         private boolean bPFlag;
@@ -254,7 +254,7 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
         private boolean bIsIFlagSet = false;
         private boolean bIFlag;
 
-        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
+        private LinkedList<PcepValueType> optionalTlv = new LinkedList<>();
 
         @Override
         public PcepErrorObject build() {
@@ -269,7 +269,7 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
                 errorObjHeader.setIFlag(bIFlag);
             }
 
-            return new PcepErrorObjectVer1(errorObjHeader, yErrorType, yErrorValue, llOptionalTlv);
+            return new PcepErrorObjectVer1(errorObjHeader, errorType, errorValue, optionalTlv);
         }
 
         @Override
@@ -286,35 +286,35 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
 
         @Override
         public int getErrorType() {
-            return this.yErrorType;
+            return this.errorType;
         }
 
         @Override
         public Builder setErrorType(byte value) {
-            this.yErrorType = value;
+            this.errorType = value;
             return this;
         }
 
         @Override
         public byte getErrorValue() {
-            return this.yErrorValue;
+            return this.errorValue;
         }
 
         @Override
         public Builder setErrorValue(byte value) {
-            this.yErrorValue = value;
+            this.errorValue = value;
             return this;
         }
 
         @Override
-        public Builder setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv) {
-            this.llOptionalTlv = llOptionalTlv;
+        public Builder setOptionalTlv(LinkedList<PcepValueType> optionalTlv) {
+            this.optionalTlv = optionalTlv;
             return this;
         }
 
         @Override
         public LinkedList<PcepValueType> getOptionalTlv() {
-            return this.llOptionalTlv;
+            return this.optionalTlv;
         }
 
         @Override
@@ -335,7 +335,7 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("ObjectHeader", errorObjHeader).add("ErrorType", yErrorType)
-                .add("ErrorValue", yErrorValue).add("OptionalTlv", llOptionalTlv).toString();
+                .add("ObjectHeader", errorObjHeader).add("ErrorType", errorType)
+                .add("ErrorValue", errorValue).add("OptionalTlv", optionalTlv).toString();
     }
 }

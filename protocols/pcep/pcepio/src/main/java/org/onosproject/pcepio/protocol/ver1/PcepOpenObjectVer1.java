@@ -31,7 +31,7 @@ import org.onosproject.pcepio.types.PcepObjectHeader;
 import org.onosproject.pcepio.types.PcepValueType;
 import org.onosproject.pcepio.types.StatefulLspDbVerTlv;
 import org.onosproject.pcepio.types.StatefulPceCapabilityTlv;
-import org.onosproject.pcepio.types.TedCapabilityTlv;
+import org.onosproject.pcepio.types.LsCapabilityTlv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -252,13 +252,13 @@ public class PcepOpenObjectVer1 implements PcepOpenObject {
                 long lValue = cb.readLong();
                 tlv = new StatefulLspDbVerTlv(lValue);
                 break;
-            case TedCapabilityTlv.TYPE:
-                log.debug("TedCapabilityTlv");
-                if (TedCapabilityTlv.LENGTH != hLength) {
-                    throw new PcepParseException("Invalid length received for TedCapabilityTlv.");
+            case LsCapabilityTlv.TYPE:
+                log.debug("LsCapabilityTlv");
+                if (LsCapabilityTlv.LENGTH != hLength) {
+                    throw new PcepParseException("Invalid length received for LsCapabilityTlv.");
                 }
                 iValue = cb.readInt();
-                tlv = new TedCapabilityTlv(iValue);
+                tlv = new LsCapabilityTlv(iValue);
                 break;
             case PcepLabelDbVerTlv.TYPE:
                 log.debug("PcepLabelDbVerTlv");

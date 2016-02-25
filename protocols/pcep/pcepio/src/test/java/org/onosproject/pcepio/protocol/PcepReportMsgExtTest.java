@@ -18,6 +18,7 @@ package org.onosproject.pcepio.protocol;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
+import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,7 +33,7 @@ public class PcepReportMsgExtTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest39() throws PcepParseException {
+    public void reportMessageTest39() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x98,
                 0x21, 0x10, 0x00, 0x0C,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x01, //SRP object
@@ -79,7 +80,7 @@ public class PcepReportMsgExtTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest40() throws PcepParseException {
+    public void reportMessageTest40() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x64,
                 0x21, 0x10, 0x00, 0x0C,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x01, //SRP object
@@ -120,7 +121,7 @@ public class PcepReportMsgExtTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest41() throws PcepParseException {
+    public void reportMessageTest41() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x8c,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP object
@@ -166,7 +167,7 @@ public class PcepReportMsgExtTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest42() throws PcepParseException {
+    public void reportMessageTest42() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0xE8,
                 0x21, 0x10, 0x00, 0x0C,  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x01, //SRP object

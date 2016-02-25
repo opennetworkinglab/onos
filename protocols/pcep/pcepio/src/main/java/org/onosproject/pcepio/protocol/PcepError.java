@@ -15,7 +15,7 @@
  */
 package org.onosproject.pcepio.protocol;
 
-import java.util.LinkedList;
+import java.util.List;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.exceptions.PcepParseException;
@@ -30,42 +30,42 @@ public interface PcepError {
      *
      * @return list of type PcepRPObject
      */
-    LinkedList<PcepRPObject> getRPObjList();
+    List<PcepRPObject> getRPObjList();
 
     /**
      * Sets the RP Objects lists.
      *
-     * @param llRPObjList list of type PcepRPObject
+     * @param rpObjList list of type PcepRPObject
      */
-    void setRPObjList(LinkedList<PcepRPObject> llRPObjList);
+    void setRPObjList(List<PcepRPObject> rpObjList);
 
     /**
-     * Returns the PcepTEObject List.
+     * Returns the PcepLSObject List.
      *
-     * @return list of type PcepTEObject
+     * @return list of type PcepLSObject
      */
-    LinkedList<PcepTEObject> getTEObjList();
+    List<PcepLSObject> getLSObjList();
 
     /**
-     * Sets the TE Objects lists.
+     * Sets the LS Objects lists.
      *
-     * @param llTEObjList list of type PcepTEObject
+     * @param lsObjList list of type PcepLSObject
      */
-    void setTEObjList(LinkedList<PcepTEObject> llTEObjList);
+    void setLSObjList(List<PcepLSObject> lsObjList);
 
     /**
      * Returns the PcepErrorObject.
      *
      * @return list of type PcepErrorObject
      */
-    LinkedList<PcepErrorObject> getErrorObjList();
+    List<PcepErrorObject> getErrorObjList();
 
     /**
      * Sets the Error Objects lists.
      *
-     * @param llErrorObjList list of type PcepErrorObject
+     * @param errorObjList list of type PcepErrorObject
      */
-    void setErrorObjList(LinkedList<PcepErrorObject> llErrorObjList);
+    void setErrorObjList(List<PcepErrorObject> errorObjList);
 
     /**
      * Writes the byte stream of PCEP error to the channel buffer.
@@ -93,44 +93,44 @@ public interface PcepError {
          *
          * @return list of type PcepRPObject
          */
-        LinkedList<PcepRPObject> getRPObjList();
+        List<PcepRPObject> getRPObjList();
 
         /**
          * Sets RP Object lists and returns its builder.
          *
-         * @param llRPObjList list of type PcepRpObject
+         * @param rpObjList list of type PcepRpObject
          * @return builder by setting Linked list of RP Object
          */
-        Builder setRPObjList(LinkedList<PcepRPObject> llRPObjList);
+        Builder setRPObjList(List<PcepRPObject> rpObjList);
 
         /**
-         * Returns the PcepTEObject.
+         * Returns the PcepLSObject.
          *
-         * @return llTEObjList of type PcepTEObject
+         * @return lsObjList of type PcepLSObject
          */
-        LinkedList<PcepTEObject> getTEObjList();
+        List<PcepLSObject> getLSObjList();
 
         /**
-         * Sets TE Object lists and returns its builder.
+         * Sets LS Object lists and returns its builder.
          *
-         * @param llTEObjList list of type PcepTEObject
-         * @return builder by setting list of type PcepTEObject
+         * @param lsObjList list of type PcepLSObject
+         * @return builder by setting list of type PcepLSObject
          */
-        Builder setTEObjList(LinkedList<PcepTEObject> llTEObjList);
+        Builder setLSObjList(List<PcepLSObject> lsObjList);
 
         /**
          * Returns the PcepErrorObject.
          *
          * @return list of type PcepErrorObject
          */
-        LinkedList<PcepErrorObject> getErrorObjList();
+        List<PcepErrorObject> getErrorObjList();
 
         /**
          * Sets Error Object lists and returns its builder.
          *
-         * @param llErrorObjList list of type PcepErrorObject
+         * @param errorObjList list of type PcepErrorObject
          * @return builder by setting list of type PcepErrorObject
          */
-        Builder setErrorObjList(LinkedList<PcepErrorObject> llErrorObjList);
+        Builder setErrorObjList(List<PcepErrorObject> errorObjList);
     }
 }

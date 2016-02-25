@@ -18,6 +18,7 @@ package org.onosproject.pcepio.protocol;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
+import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -30,7 +31,7 @@ public class PcepInitiateMsgTest {
      * This test case checks for srp, lsp, end-point, ERO objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest1() throws PcepParseException {
+    public void initiateMessageTest1() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* srp, lsp, end-point, ERO.
          */
@@ -75,7 +76,7 @@ public class PcepInitiateMsgTest {
      * This test case checks for srp and lsp objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest2() throws PcepParseException {
+    public void initiateMessageTest2() throws PcepParseException, PcepOutOfBoundMessageException {
         /* srp, lsp.
          */
         byte[] initiateDeletionMsg = new byte[]{0x20, 0x0C, 0x00, 0x34,
@@ -115,7 +116,7 @@ public class PcepInitiateMsgTest {
      * in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest3() throws PcepParseException {
+    public void initiateMessageTest3() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
          * StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv), END-POINTS, ERO.
@@ -162,7 +163,7 @@ public class PcepInitiateMsgTest {
      * StatefulLspErrorCodeTlv), END-POINT, ERO objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest4() throws PcepParseException {
+    public void initiateMessageTest4() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
          * StatefulLspErrorCodeTlv), END-POINT, ERO.
@@ -208,7 +209,7 @@ public class PcepInitiateMsgTest {
      * END-POINT, ERO objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest5() throws PcepParseException {
+    public void initiateMessageTest5() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv),
          * END-POINT, ERO.
@@ -255,7 +256,7 @@ public class PcepInitiateMsgTest {
      * END-POINT, ERO objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest6() throws PcepParseException {
+    public void initiateMessageTest6() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv),
          * END-POINT, ERO.
@@ -303,7 +304,7 @@ public class PcepInitiateMsgTest {
      * END-POINT, ERO objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest7() throws PcepParseException {
+    public void initiateMessageTest7() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
          * END-POINT, ERO.
@@ -350,7 +351,7 @@ public class PcepInitiateMsgTest {
      * END-POINT, ERO objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest8() throws PcepParseException {
+    public void initiateMessageTest8() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (StatefulIPv4LspIdentidiersTlv),
          * END-POINT, ERO.
@@ -396,7 +397,7 @@ public class PcepInitiateMsgTest {
      * END-POINT, ERO objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest9() throws PcepParseException {
+    public void initiateMessageTest9() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (StatefulIPv4LspIdentidiersTlv),
          * END-POINT, ERO.
@@ -440,7 +441,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest10() throws PcepParseException {
+    public void initiateMessageTest10() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (StatefulIPv4LspIdentidiersTlv, StatefulRsvpErrorSpecTlv).
          */
@@ -484,7 +485,7 @@ public class PcepInitiateMsgTest {
      * StatefulLspErrorCodeTlv) objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest11() throws PcepParseException {
+    public void initiateMessageTest11() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
            StatefulLspErrorCodeTlv).*/
@@ -528,7 +529,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest12() throws PcepParseException {
+    public void initiateMessageTest12() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv).
          */
@@ -571,7 +572,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest13() throws PcepParseException {
+    public void initiateMessageTest13() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv).
          */
@@ -613,7 +614,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest14() throws PcepParseException {
+    public void initiateMessageTest14() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv).
          */
@@ -655,7 +656,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest15() throws PcepParseException {
+    public void initiateMessageTest15() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /* SRP, LSP (StatefulIPv4LspIdentidiersTlv).
          */
@@ -696,7 +697,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest16() throws PcepParseException {
+    public void initiateMessageTest16() throws PcepParseException, PcepOutOfBoundMessageException {
 
         //srp,lsp (StatefulIPv4LspIdentidiersTlv),end-point,ero,lspa
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x50,
@@ -740,7 +741,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest17() throws PcepParseException {
+    public void initiateMessageTest17() throws PcepParseException, PcepOutOfBoundMessageException {
 
         //srp,lsp (StatefulIPv4LspIdentidiersTlv),end-point,ero,lspa,bandwidth
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x58,
@@ -784,7 +785,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest18() throws PcepParseException {
+    public void initiateMessageTest18() throws PcepParseException, PcepOutOfBoundMessageException {
         //srp,lsp (StatefulIPv4LspIdentidiersTlv),end-point,ero,lspa,bandwidth,metric-list
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x64,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -829,7 +830,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest19() throws PcepParseException {
+    public void initiateMessageTest19() throws PcepParseException, PcepOutOfBoundMessageException {
         //srp,lsp(all tlvs),end-point,ero,lspa,bandwidth,metric-list
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x74,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
@@ -876,7 +877,7 @@ public class PcepInitiateMsgTest {
      * lsp(SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv) objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest20() throws PcepParseException {
+    public void initiateMessageTest20() throws PcepParseException, PcepOutOfBoundMessageException {
         /* srp,lsp (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, srp,
          *  lsp(SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv).
          */
@@ -924,7 +925,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest21() throws PcepParseException {
+    public void initiateMessageTest21() throws PcepParseException, PcepOutOfBoundMessageException {
         /*srp,lsp(StatefulIPv4LspIdentidiersTlv),end-point,ero,
          * srp,lsp(StatefulIPv4LspIdentidiersTlv),end-point,ero
          */
@@ -978,7 +979,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest22() throws PcepParseException {
+    public void initiateMessageTest22() throws PcepParseException, PcepOutOfBoundMessageException {
         /*srp,lsp(StatefulIPv4LspIdentidiersTlv),end-point,ero,
          * srp,lsp(StatefulIPv4LspIdentidiersTlv),end-point,ero,lspa
          */
@@ -1033,7 +1034,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest23() throws PcepParseException {
+    public void initiateMessageTest23() throws PcepParseException, PcepOutOfBoundMessageException {
         /*srp,lsp(StatefulIPv4LspIdentidiersTlv),end-point,ero,
          * srp,lsp(StatefulIPv4LspIdentidiersTlv),end-point,ero,lspa,bandwidth
          */
@@ -1090,7 +1091,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest24() throws PcepParseException {
+    public void initiateMessageTest24() throws PcepParseException, PcepOutOfBoundMessageException {
         /*srp,lsp(StatefulIPv4LspIdentidiersTlv),end-point,ero,
          * srp,lsp(StatefulIPv4LspIdentidiersTlv),end-point,ero,lspa,bandwidth*/
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0xBC,
@@ -1148,7 +1149,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest25() throws PcepParseException {
+    public void initiateMessageTest25() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /*srp,lsp(StatefulIPv4LspIdentidiersTlv),end-point,ero,bandwidth,
          * srp,lsp(StatefulIPv4LspIdentidiersTlv),
@@ -1209,7 +1210,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest26() throws PcepParseException {
+    public void initiateMessageTest26() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /*srp,lsp(StatefulIPv4LspIdentidiersTlv),end-point,ero,bandwidth,metric-list,
          * srp,lsp(StatefulIPv4LspIdentidiersTlv),
@@ -1271,7 +1272,7 @@ public class PcepInitiateMsgTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest27() throws PcepParseException {
+    public void initiateMessageTest27() throws PcepParseException, PcepOutOfBoundMessageException {
 
         /*srp,lsp(StatefulIPv4LspIdentidiersTlv),end-point,ero,lspa,bandwidth,metric-list,
          * srp,lsp(StatefulIPv4LspIdentidiersTlv),

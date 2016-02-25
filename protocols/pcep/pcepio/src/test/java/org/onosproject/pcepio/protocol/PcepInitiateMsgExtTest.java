@@ -18,6 +18,7 @@ package org.onosproject.pcepio.protocol;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
+import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,11 +33,11 @@ public class PcepInitiateMsgExtTest {
      * END-POINTS, ERO, LSPA, BANDWIDTH, METRIC-LIST objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest1() throws PcepParseException {
+    public void initiateMessageTest1() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
-         * StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC-LIST.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
+        // StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC-LIST.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0xA4,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -88,11 +89,11 @@ public class PcepInitiateMsgExtTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest2() throws PcepParseException {
+    public void initiateMessageTest2() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
-         * StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
+        // StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0xA8,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -143,11 +144,11 @@ public class PcepInitiateMsgExtTest {
      * ERO, LSPA, BANDWIDTH objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest3() throws PcepParseException {
+    public void initiateMessageTest3() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
-         * StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv), END-POINTS, ERO, LSPA, BANDWIDTH.
-         */
+        // SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
+        // StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv), END-POINTS, ERO, LSPA, BANDWIDTH.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x8c,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -197,11 +198,11 @@ public class PcepInitiateMsgExtTest {
      * END-POINTS, ERO, LSPA objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest4() throws PcepParseException {
+    public void initiateMessageTest4() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
-         * StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv), END-POINTS, ERO, LSPA.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
+        // StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv), END-POINTS, ERO, LSPA.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x84,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -250,11 +251,11 @@ public class PcepInitiateMsgExtTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest5() throws PcepParseException {
+    public void initiateMessageTest5() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
-         * StatefulLspErrorCodeTlv), END-POINTS, ERO, LSPA.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
+        // StatefulLspErrorCodeTlv), END-POINTS, ERO, LSPA.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x84,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -301,11 +302,11 @@ public class PcepInitiateMsgExtTest {
      * BANDWIDTH OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest6() throws PcepParseException {
+    public void initiateMessageTest6() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
-         * StatefulLspErrorCodeTlv), END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
+        // StatefulLspErrorCodeTlv), END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x8c,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -353,11 +354,11 @@ public class PcepInitiateMsgExtTest {
      * LSPA, BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest7() throws PcepParseException {
+    public void initiateMessageTest7() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
-         * StatefulLspErrorCodeTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv,
+        // StatefulLspErrorCodeTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x98,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -406,11 +407,11 @@ public class PcepInitiateMsgExtTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest8() throws PcepParseException {
+    public void initiateMessageTest8() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv),
-         * END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv),
+        // END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x90,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -458,11 +459,11 @@ public class PcepInitiateMsgExtTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest9() throws PcepParseException {
+    public void initiateMessageTest9() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv),
-         * END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv),
+        // END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x84,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -508,11 +509,11 @@ public class PcepInitiateMsgExtTest {
      * SymbolicPathNameTlv), END-POINTS, ERO, LSPA OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest10() throws PcepParseException {
+    public void initiateMessageTest10() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv),
-         * END-POINTS, ERO, LSPA OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv),
+        // END-POINTS, ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x70,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -556,11 +557,11 @@ public class PcepInitiateMsgExtTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest11() throws PcepParseException {
+    public void initiateMessageTest11() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv),
-         * END-POINTS, ERO, LSPA OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv),
+        // END-POINTS, ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x7C,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -604,11 +605,11 @@ public class PcepInitiateMsgExtTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest12() throws PcepParseException {
+    public void initiateMessageTest12() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv),
-         * END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv),
+        // END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x78,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -653,11 +654,11 @@ public class PcepInitiateMsgExtTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest13() throws PcepParseException {
+    public void initiateMessageTest13() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv),
-         * END-POINTS, ERO, LSPA, BANDWIDTH , METRIC OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv, StatefulLspDbVerTlv),
+        // END-POINTS, ERO, LSPA, BANDWIDTH , METRIC OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x84,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -702,11 +703,11 @@ public class PcepInitiateMsgExtTest {
      * END-POINTS, ERO, LSPA, BANDWIDTH , METRIC OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest14() throws PcepParseException {
+    public void initiateMessageTest14() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
-         * END-POINTS, ERO, LSPA, BANDWIDTH , METRIC OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
+        // END-POINTS, ERO, LSPA, BANDWIDTH , METRIC OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x7c,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -750,11 +751,11 @@ public class PcepInitiateMsgExtTest {
      * END-POINTS, ERO, LSPA, BANDWIDTH OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest15() throws PcepParseException {
+    public void initiateMessageTest15() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
-         * END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
+        // END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x70,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -797,11 +798,11 @@ public class PcepInitiateMsgExtTest {
      * END-POINTS, ERO, LSPA OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest16() throws PcepParseException {
+    public void initiateMessageTest16() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
-         * END-POINTS, ERO, LSPA OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
+        // END-POINTS, ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -843,10 +844,10 @@ public class PcepInitiateMsgExtTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest17() throws PcepParseException {
+    public void initiateMessageTest17() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA OBJECT.
-         */
+        // SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x60,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x1c, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -887,10 +888,10 @@ public class PcepInitiateMsgExtTest {
      * BANDWIDTH OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest18() throws PcepParseException {
+    public void initiateMessageTest18() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
-         */
+        // SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x1c, 0x00, 0x00, 0x10, 0x03,
@@ -933,10 +934,10 @@ public class PcepInitiateMsgExtTest {
      * BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest19() throws PcepParseException {
+    public void initiateMessageTest19() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
-         */
+        // SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x74,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x1c, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -979,10 +980,10 @@ public class PcepInitiateMsgExtTest {
      * BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest20() throws PcepParseException {
+    public void initiateMessageTest20() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
-         */
+        // SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x64,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x1c, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -1024,10 +1025,10 @@ public class PcepInitiateMsgExtTest {
      * BANDWIDTH OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest21() throws PcepParseException {
+    public void initiateMessageTest21() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
-         */
+        // SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x58,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x1c, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -1068,10 +1069,10 @@ public class PcepInitiateMsgExtTest {
      * LSPA OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest22() throws PcepParseException {
+    public void initiateMessageTest22() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA OBJECT.
-         */
+        // SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x50,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x1c, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -1111,10 +1112,10 @@ public class PcepInitiateMsgExtTest {
      * END-POINTS, ERO, LSPA OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest23() throws PcepParseException {
+    public void initiateMessageTest23() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x58,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1155,10 +1156,10 @@ public class PcepInitiateMsgExtTest {
      * END-POINTS, ERO, LSPA BANDWIDTH OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest25() throws PcepParseException {
+    public void initiateMessageTest25() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA BANDWIDTH OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA BANDWIDTH OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x60,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1200,11 +1201,11 @@ public class PcepInitiateMsgExtTest {
      * ERO, LSPA, BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest26() throws PcepParseException {
+    public void initiateMessageTest26() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv), END-POINTS,
-         * ERO, LSPA, BANDWIDTH, METRIC OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv), END-POINTS,
+        // ERO, LSPA, BANDWIDTH, METRIC OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x6C,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1247,10 +1248,10 @@ public class PcepInitiateMsgExtTest {
      * BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest27() throws PcepParseException {
+    public void initiateMessageTest27() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x60,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1291,10 +1292,10 @@ public class PcepInitiateMsgExtTest {
      * LSPA, BANDWIDTH OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest28() throws PcepParseException {
+    public void initiateMessageTest28() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv), END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv), END-POINTS, ERO, LSPA, BANDWIDTH OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1334,10 +1335,10 @@ public class PcepInitiateMsgExtTest {
      * END-POINTS, ERO, LSPA OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest29() throws PcepParseException {
+    public void initiateMessageTest29() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv), END-POINTS, ERO, LSPA OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv), END-POINTS, ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x4C,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1376,10 +1377,10 @@ public class PcepInitiateMsgExtTest {
      * END-POINTS, ERO, LSPA OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest30() throws PcepParseException {
+    public void initiateMessageTest30() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv), END-POINTS, ERO, LSPA OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv), END-POINTS, ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x5C,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1419,10 +1420,10 @@ public class PcepInitiateMsgExtTest {
      * objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest31() throws PcepParseException {
+    public void initiateMessageTest31() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP (SymbolicPathNameTlv), END-POINTS, ERO, LSPA OBJECT.
-         */
+        // SRP, LSP (SymbolicPathNameTlv), END-POINTS, ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -1461,11 +1462,11 @@ public class PcepInitiateMsgExtTest {
      * ERO, LSPA, BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest32() throws PcepParseException {
+    public void initiateMessageTest32() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
-         * ERO, LSPA, BANDWIDTH, METRIC OBJECT.
-         */
+        // SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
+        // ERO, LSPA, BANDWIDTH, METRIC OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x64,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1507,11 +1508,11 @@ public class PcepInitiateMsgExtTest {
      * ERO, LSPA, BANDWIDTH OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest33() throws PcepParseException {
+    public void initiateMessageTest33() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
-         * ERO, LSPA, BANDWIDTH OBJECT.
-         */
+        // SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
+        // ERO, LSPA, BANDWIDTH OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x58,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1552,11 +1553,11 @@ public class PcepInitiateMsgExtTest {
      * ERO, LSPA OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest34() throws PcepParseException {
+    public void initiateMessageTest34() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
-         * ERO, LSPA OBJECT.
-         */
+        // SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
+        // ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x50,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1596,11 +1597,11 @@ public class PcepInitiateMsgExtTest {
      * ERO, LSPA OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest35() throws PcepParseException {
+    public void initiateMessageTest35() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
-         * ERO, LSPA OBJECT.
-         */
+        // SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
+        // ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x60,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1641,11 +1642,11 @@ public class PcepInitiateMsgExtTest {
      * ERO, LSPA OBJECT objects in PcInitiate message.
      */
     @Test
-    public void initiateMessageTest36() throws PcepParseException {
+    public void initiateMessageTest36() throws PcepParseException, PcepOutOfBoundMessageException {
 
-        /* SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
-         * ERO, LSPA OBJECT.
-         */
+        // SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
+        // ERO, LSPA OBJECT.
+        //
         byte[] initiateCreationMsg = new byte[]{0x20, 0x0C, 0x00, (byte) 0x58,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x14, 0x00, 0x00, 0x10, 0x03, //LSP object

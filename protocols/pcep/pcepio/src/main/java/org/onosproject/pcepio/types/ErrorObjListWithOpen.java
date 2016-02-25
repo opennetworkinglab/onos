@@ -16,6 +16,7 @@
 package org.onosproject.pcepio.types;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -32,7 +33,7 @@ import com.google.common.base.MoreObjects;
  */
 public class ErrorObjListWithOpen {
     //errorObjList is mandatory
-    private LinkedList<PcepErrorObject> llerrorObjList;
+    private List<PcepErrorObject> llerrorObjList;
     // openObject is optional
     private PcepOpenObject openObject;
     // flag to check if open object is set or not
@@ -45,7 +46,7 @@ public class ErrorObjListWithOpen {
      * @param errObj ERROR object list
      * @param openObj OPEN object
      */
-    public ErrorObjListWithOpen(LinkedList<PcepErrorObject> errObj, PcepOpenObject openObj) {
+    public ErrorObjListWithOpen(List<PcepErrorObject> errObj, PcepOpenObject openObj) {
         this.llerrorObjList = errObj;
         this.openObject = openObj;
         if (openObj != null) {
@@ -60,7 +61,7 @@ public class ErrorObjListWithOpen {
      *
      * @param errObj ERROR Object list
      */
-    public ErrorObjListWithOpen(LinkedList<PcepErrorObject> errObj) {
+    public ErrorObjListWithOpen(List<PcepErrorObject> errObj) {
         this.llerrorObjList = errObj;
         this.openObject = null;
         isOpenObjectSet = false;
@@ -71,8 +72,8 @@ public class ErrorObjListWithOpen {
      *
      * @return error types list
      */
-    public LinkedList<Integer> getErrorType() {
-        LinkedList<Integer> errorType = new LinkedList<>();
+    public List<Integer> getErrorType() {
+        List<Integer> errorType = new LinkedList<>();
         if (llerrorObjList != null) {
             ListIterator<PcepErrorObject> errObjListIterator = llerrorObjList.listIterator();
             int error;
@@ -91,8 +92,8 @@ public class ErrorObjListWithOpen {
      *
      * @return error values list
      */
-    public LinkedList<Integer> getErrorValue() {
-        LinkedList<Integer> errorValue = new LinkedList<>();
+    public List<Integer> getErrorValue() {
+        List<Integer> errorValue = new LinkedList<>();
         if (llerrorObjList != null) {
             ListIterator<PcepErrorObject> errObjListIterator = llerrorObjList.listIterator();
             int error;

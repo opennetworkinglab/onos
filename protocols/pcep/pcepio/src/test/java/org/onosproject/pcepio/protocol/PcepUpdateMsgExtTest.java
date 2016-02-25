@@ -18,6 +18,7 @@ package org.onosproject.pcepio.protocol;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
+import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,7 +35,7 @@ public class PcepUpdateMsgExtTest {
      * Metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest1() throws PcepParseException {
+    public void pcepUpdateMsgTest1() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x8c,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02,  0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -80,7 +81,7 @@ public class PcepUpdateMsgExtTest {
      * LSPA, Bandwidth object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest2() throws PcepParseException {
+    public void pcepUpdateMsgTest2() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x1C, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -121,7 +122,7 @@ public class PcepUpdateMsgExtTest {
      * Metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest3() throws PcepParseException {
+    public void pcepUpdateMsgTest3() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x08, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -159,7 +160,7 @@ public class PcepUpdateMsgExtTest {
      * Metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest4() throws PcepParseException {
+    public void pcepUpdateMsgTest4() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x5c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -198,7 +199,7 @@ public class PcepUpdateMsgExtTest {
      * Metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest5() throws PcepParseException {
+    public void pcepUpdateMsgTest5() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x60,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x14, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -238,7 +239,7 @@ public class PcepUpdateMsgExtTest {
      * Metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest6() throws PcepParseException {
+    public void pcepUpdateMsgTest6() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x5c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -277,7 +278,7 @@ public class PcepUpdateMsgExtTest {
      * bandwidth object Metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest7() throws PcepParseException {
+    public void pcepUpdateMsgTest7() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x64,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02,  0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -317,7 +318,7 @@ public class PcepUpdateMsgExtTest {
      * bandwidth object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest8() throws PcepParseException {
+    public void pcepUpdateMsgTest8() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x5c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x1C, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -357,7 +358,7 @@ public class PcepUpdateMsgExtTest {
      * bandwidth object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest9() throws PcepParseException {
+    public void pcepUpdateMsgTest9() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x58,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x18, 0x00, 0x00, 0x10, 0x03,
@@ -396,7 +397,7 @@ public class PcepUpdateMsgExtTest {
      * bandwidth object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest10() throws PcepParseException {
+    public void pcepUpdateMsgTest10() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x50,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -434,7 +435,7 @@ public class PcepUpdateMsgExtTest {
      * bandwidth object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest11() throws PcepParseException {
+    public void pcepUpdateMsgTest11() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x14, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -473,7 +474,7 @@ public class PcepUpdateMsgExtTest {
      * bandwidth object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest12() throws PcepParseException {
+    public void pcepUpdateMsgTest12() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x50,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -511,7 +512,7 @@ public class PcepUpdateMsgExtTest {
      * bandwidth object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest13() throws PcepParseException {
+    public void pcepUpdateMsgTest13() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x58,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02,  0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -550,7 +551,7 @@ public class PcepUpdateMsgExtTest {
      * metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest14() throws PcepParseException {
+    public void pcepUpdateMsgTest14() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x60,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x1C, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -590,7 +591,7 @@ public class PcepUpdateMsgExtTest {
      * metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest15() throws PcepParseException {
+    public void pcepUpdateMsgTest15() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x4c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x08, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -627,7 +628,7 @@ public class PcepUpdateMsgExtTest {
      * metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest16() throws PcepParseException {
+    public void pcepUpdateMsgTest16() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -665,7 +666,7 @@ public class PcepUpdateMsgExtTest {
      * metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest17() throws PcepParseException {
+    public void pcepUpdateMsgTest17() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x58,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x14, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -704,7 +705,7 @@ public class PcepUpdateMsgExtTest {
      * metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest18() throws PcepParseException {
+    public void pcepUpdateMsgTest18() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -742,7 +743,7 @@ public class PcepUpdateMsgExtTest {
      * metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest19() throws PcepParseException {
+    public void pcepUpdateMsgTest19() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x5c,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02,  0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -781,7 +782,7 @@ public class PcepUpdateMsgExtTest {
      * Bandwidth , metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest20() throws PcepParseException {
+    public void pcepUpdateMsgTest20() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x1C, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -820,7 +821,7 @@ public class PcepUpdateMsgExtTest {
      * Bandwidth , metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest21() throws PcepParseException {
+    public void pcepUpdateMsgTest21() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x40,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x08, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -856,7 +857,7 @@ public class PcepUpdateMsgExtTest {
      * Bandwidth , metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest22() throws PcepParseException {
+    public void pcepUpdateMsgTest22() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x48,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -893,7 +894,7 @@ public class PcepUpdateMsgExtTest {
      * Bandwidth , metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest23() throws PcepParseException {
+    public void pcepUpdateMsgTest23() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x4c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x14, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -931,7 +932,7 @@ public class PcepUpdateMsgExtTest {
      * Bandwidth , metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest24() throws PcepParseException {
+    public void pcepUpdateMsgTest24() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x48,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -968,7 +969,7 @@ public class PcepUpdateMsgExtTest {
      * Bandwidth , metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest25() throws PcepParseException {
+    public void pcepUpdateMsgTest25() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x50,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02,  0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1006,7 +1007,7 @@ public class PcepUpdateMsgExtTest {
      * LSPA object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest26() throws PcepParseException {
+    public void pcepUpdateMsgTest26() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x1C, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -1045,7 +1046,7 @@ public class PcepUpdateMsgExtTest {
      * bandwidth object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest27() throws PcepParseException {
+    public void pcepUpdateMsgTest27() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x34,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x08, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -1080,7 +1081,7 @@ public class PcepUpdateMsgExtTest {
      * metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest28() throws PcepParseException {
+    public void pcepUpdateMsgTest28() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x40,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP object
@@ -1116,7 +1117,7 @@ public class PcepUpdateMsgExtTest {
      * lspa object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest29() throws PcepParseException {
+    public void pcepUpdateMsgTest29() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x54,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02,  0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1155,7 +1156,7 @@ public class PcepUpdateMsgExtTest {
      * bandwidth object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest30() throws PcepParseException {
+    public void pcepUpdateMsgTest30() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x48,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02,  0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1193,7 +1194,7 @@ public class PcepUpdateMsgExtTest {
      * metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest31() throws PcepParseException {
+    public void pcepUpdateMsgTest31() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x4c,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02,  0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1231,7 +1232,7 @@ public class PcepUpdateMsgExtTest {
      * Metric object in PcepUpdate message.
      */
     @Test
-    public void pcepUpdateMsgTest32() throws PcepParseException {
+    public void pcepUpdateMsgTest32() throws PcepParseException, PcepOutOfBoundMessageException {
         byte[] updateMsg = new byte[] {0x20, 0x0b, 0x00, (byte) 0x64,
                 0x21, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, //SRP object
                 0x00, 0x11, 0x00, 0x02,  0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv

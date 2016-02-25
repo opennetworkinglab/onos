@@ -17,6 +17,7 @@
 package org.onosproject.pcepio.protocol;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.ver1.PcepFactoryVer1;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public final class PcepFactories {
     private static class GenericReader implements PcepMessageReader<PcepMessage> {
 
         @Override
-        public PcepMessage readFrom(ChannelBuffer bb) throws PcepParseException {
+        public PcepMessage readFrom(ChannelBuffer bb) throws PcepParseException, PcepOutOfBoundMessageException {
 
             if (!bb.readable()) {
                 throw new PcepParseException("Empty message received");

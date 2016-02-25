@@ -15,7 +15,7 @@
  */
 package org.onosproject.pcepio.protocol;
 
-import java.util.LinkedList;
+import java.util.List;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.exceptions.PcepParseException;
@@ -54,14 +54,14 @@ public interface PcepErrorInfo {
      *
      * @return list of Error Value in PCEP-ERROR Object
      */
-    LinkedList<Integer> getErrorValue();
+    List<Integer> getErrorValue();
 
     /**
      * Returns Error Type in PCEP-ERROR Object.
      *
      * @return list of Error Type in PCEP-ERROR Object
      */
-    LinkedList<Integer> getErrorType();
+    List<Integer> getErrorType();
 
     /**
      * Builder interface with get and set functions to build ErrorInfo.
@@ -80,7 +80,7 @@ public interface PcepErrorInfo {
          *
          * @return list of PcepError
          */
-        LinkedList<PcepError> getPcepErrorList();
+        List<PcepError> getPcepErrorList();
 
         /**
          * Sets PcepError lists and returns its builder.
@@ -88,6 +88,6 @@ public interface PcepErrorInfo {
          * @param llPcepErrorList list of PcepError
          * @return builder by setting list of PcepError.
          */
-        Builder setPcepErrorList(LinkedList<PcepError> llPcepErrorList);
+        Builder setPcepErrorList(List<PcepError> llPcepErrorList);
     }
 }

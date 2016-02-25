@@ -18,6 +18,7 @@ package org.onosproject.pcepio.protocol;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
+import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,7 +32,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest1() throws PcepParseException {
+    public void reportMessageTest1() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, 0x24,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -66,7 +67,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest2() throws PcepParseException {
+    public void reportMessageTest2() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x7c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -111,7 +112,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest3() throws PcepParseException {
+    public void reportMessageTest3() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x70,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object //LSP Object
@@ -155,7 +156,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest4() throws PcepParseException {
+    public void reportMessageTest4() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x64,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -197,7 +198,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest5() throws PcepParseException {
+    public void reportMessageTest5() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x50,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -237,7 +238,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest6() throws PcepParseException {
+    public void reportMessageTest6() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x6c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -279,7 +280,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest7() throws PcepParseException {
+    public void reportMessageTest7() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x58,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -318,7 +319,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest8() throws PcepParseException {
+    public void reportMessageTest8() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x70,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -361,7 +362,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest9() throws PcepParseException {
+    public void reportMessageTest9() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x44,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object //LSP Object
@@ -399,7 +400,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest10() throws PcepParseException {
+    public void reportMessageTest10() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x74,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -442,7 +443,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest11() throws PcepParseException {
+    public void reportMessageTest11() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -483,7 +484,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest12() throws PcepParseException {
+    public void reportMessageTest12() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x60,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -523,7 +524,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest13() throws PcepParseException {
+    public void reportMessageTest13() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -564,7 +565,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest14() throws PcepParseException {
+    public void reportMessageTest14() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x60,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -604,7 +605,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest15() throws PcepParseException {
+    public void reportMessageTest15() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x7C,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -647,7 +648,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest16() throws PcepParseException {
+    public void reportMessageTest16() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x70,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -689,7 +690,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest17() throws PcepParseException {
+    public void reportMessageTest17() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x74,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -731,7 +732,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest18() throws PcepParseException {
+    public void reportMessageTest18() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -772,7 +773,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest19() throws PcepParseException {
+    public void reportMessageTest19() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x6C,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -813,7 +814,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest20() throws PcepParseException {
+    public void reportMessageTest20() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x88,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -858,7 +859,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest21() throws PcepParseException {
+    public void reportMessageTest21() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0xac,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -908,7 +909,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest22() throws PcepParseException {
+    public void reportMessageTest22() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0xA0,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
@@ -957,7 +958,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest23() throws PcepParseException {
+    public void reportMessageTest23() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x8c,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
@@ -1004,7 +1005,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest24() throws PcepParseException {
+    public void reportMessageTest24() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x84,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
@@ -1050,7 +1051,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest25() throws PcepParseException {
+    public void reportMessageTest25() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x8c,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
@@ -1097,7 +1098,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest26() throws PcepParseException {
+    public void reportMessageTest26() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x58,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
@@ -1138,7 +1139,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest27() throws PcepParseException {
+    public void reportMessageTest27() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x44,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
@@ -1177,7 +1178,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest28() throws PcepParseException {
+    public void reportMessageTest28() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x6c,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
@@ -1219,7 +1220,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest29() throws PcepParseException {
+    public void reportMessageTest29() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x74,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -1262,7 +1263,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest30() throws PcepParseException {
+    public void reportMessageTest30() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0xE4,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -1319,7 +1320,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest31() throws PcepParseException {
+    public void reportMessageTest31() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x01, 0x00,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -1379,7 +1380,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest32() throws PcepParseException {
+    public void reportMessageTest32() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x01, (byte) 0x14,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -1441,7 +1442,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest33() throws PcepParseException {
+    public void reportMessageTest33() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x01, (byte) 0x1c,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -1504,7 +1505,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest34() throws PcepParseException {
+    public void reportMessageTest34() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0xB4,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
@@ -1554,7 +1555,7 @@ public class PcepReportMsgTest {
      * in PcRpt message.
      */
     @Test
-    public void reportMessageTest35() throws PcepParseException {
+    public void reportMessageTest35() throws PcepParseException, PcepOutOfBoundMessageException {
 
         byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x8C,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object

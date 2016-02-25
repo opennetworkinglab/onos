@@ -17,6 +17,7 @@
 package org.onosproject.pcepio.protocol;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 
 /**
@@ -32,5 +33,5 @@ public interface PcepMessageReader<T> {
      * @throws PcepParseException while parsing PCEP message.
      * @throws PcepParseException when received message is empty
      */
-    T readFrom(ChannelBuffer bb) throws PcepParseException;
+    T readFrom(ChannelBuffer bb) throws PcepParseException, PcepOutOfBoundMessageException;
 }

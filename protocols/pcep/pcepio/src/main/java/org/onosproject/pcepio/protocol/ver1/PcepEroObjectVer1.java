@@ -22,7 +22,7 @@ import java.util.ListIterator;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcepEroObject;
-import org.onosproject.pcepio.types.AutonomousSystemTlv;
+import org.onosproject.pcepio.types.AutonomousSystemNumberSubObject;
 import org.onosproject.pcepio.types.IPv4SubObject;
 import org.onosproject.pcepio.types.IPv6SubObject;
 import org.onosproject.pcepio.types.PathKeySubObject;
@@ -147,32 +147,32 @@ public class PcepEroObjectVer1 implements PcepEroObject {
     public static final int LABEL_SUB_OBJ_TYPE = 3;
     public static final int SR_ERO_SUB_OBJ_TYPE = 96;
     public static final int OBJECT_HEADER_LENGTH = 4;
-    public static final int YTYPE_SHIFT_VALUE = 0x7F;
+    public static final int TYPE_SHIFT_VALUE = 0x7F;
 
-    static final PcepObjectHeader DEFAULT_ERO_OBJECT_HEADER = new PcepObjectHeader(ERO_OBJ_CLASS, ERO_OBJ_TYPE,
+    public static final PcepObjectHeader DEFAULT_ERO_OBJECT_HEADER = new PcepObjectHeader(ERO_OBJ_CLASS, ERO_OBJ_TYPE,
             PcepObjectHeader.REQ_OBJ_OPTIONAL_PROCESS, PcepObjectHeader.RSP_OBJ_PROCESSED, ERO_OBJ_MINIMUM_LENGTH);
 
     private PcepObjectHeader eroObjHeader;
-    private LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
+    private LinkedList<PcepValueType> subObjectList = new LinkedList<>();
 
     /**
      * reset variables.
      */
     public PcepEroObjectVer1() {
         this.eroObjHeader = null;
-        this.llSubObjects = null;
+        this.subObjectList = null;
     }
 
     /**
      * Constructor to initialize parameters of ERO object.
      *
      * @param eroObjHeader ERO object header
-     * @param llSubObjects list of sub objects.
+     * @param subObjectList list of sub objects.
      */
-    public PcepEroObjectVer1(PcepObjectHeader eroObjHeader, LinkedList<PcepValueType> llSubObjects) {
+    public PcepEroObjectVer1(PcepObjectHeader eroObjHeader, LinkedList<PcepValueType> subObjectList) {
 
         this.eroObjHeader = eroObjHeader;
-        this.llSubObjects = llSubObjects;
+        this.subObjectList = subObjectList;
     }
 
     /**
@@ -195,12 +195,12 @@ public class PcepEroObjectVer1 implements PcepEroObject {
 
     @Override
     public LinkedList<PcepValueType> getSubObjects() {
-        return this.llSubObjects;
+        return this.subObjectList;
     }
 
     @Override
-    public void setSubObjects(LinkedList<PcepValueType> llSubObjects) {
-        this.llSubObjects = llSubObjects;
+    public void setSubObjects(LinkedList<PcepValueType> subObjectList) {
+        this.subObjectList = subObjectList;
     }
 
     /**
@@ -213,7 +213,7 @@ public class PcepEroObjectVer1 implements PcepEroObject {
     public static PcepEroObject read(ChannelBuffer cb) throws PcepParseException {
 
         PcepObjectHeader eroObjHeader;
-        LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
+        LinkedList<PcepValueType> subObjectList = new LinkedList<>();
 
         eroObjHeader = PcepObjectHeader.read(cb);
 
@@ -225,9 +225,9 @@ public class PcepEroObjectVer1 implements PcepEroObject {
 
         if (eroObjHeader.getObjLen() > OBJECT_HEADER_LENGTH) {
             ChannelBuffer tempCb = cb.readBytes(eroObjHeader.getObjLen() - OBJECT_HEADER_LENGTH);
-            llSubObjects = parseSubObjects(tempCb);
+            subObjectList = parseSubObjects(tempCb);
         }
-        return new PcepEroObjectVer1(eroObjHeader, llSubObjects);
+        return new PcepEroObjectVer1(eroObjHeader, subObjectList);
     }
 
     /**
@@ -239,18 +239,18 @@ public class PcepEroObjectVer1 implements PcepEroObject {
      */
     protected static LinkedList<PcepValueType> parseSubObjects(ChannelBuffer cb) throws PcepParseException {
 
-        LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
+        LinkedList<PcepValueType> subObjectList = new LinkedList<>();
 
         while (0 < cb.readableBytes()) {
 
             //check the Type of the TLV
-            byte yType = cb.readByte();
-            yType = (byte) (yType & (YTYPE_SHIFT_VALUE));
+            short type = cb.readByte();
+            type = (short) (type & (TYPE_SHIFT_VALUE));
             byte hLength = cb.readByte();
 
             PcepValueType subObj;
 
-            switch (yType) {
+            switch (type) {
 
             case IPv4SubObject.TYPE:
                 subObj = IPv4SubObject.read(cb);
@@ -260,8 +260,8 @@ public class PcepEroObjectVer1 implements PcepEroObject {
                 cb.readBytes(ipv6Value, 0, IPv6SubObject.VALUE_LENGTH);
                 subObj = new IPv6SubObject(ipv6Value);
                 break;
-            case AutonomousSystemTlv.TYPE:
-                subObj = AutonomousSystemTlv.read(cb);
+            case AutonomousSystemNumberSubObject.TYPE:
+                subObj = AutonomousSystemNumberSubObject.read(cb);
                 break;
             case PathKeySubObject.TYPE:
                 subObj = PathKeySubObject.read(cb);
@@ -270,7 +270,7 @@ public class PcepEroObjectVer1 implements PcepEroObject {
                 subObj = SrEroSubObject.read(cb);
                 break;
             default:
-                throw new PcepParseException("Unexpected sub object. Type: " + (int) yType);
+                throw new PcepParseException("Unexpected sub object. Type: " + (int) type);
             }
             // Check for the padding
             int pad = hLength % 4;
@@ -281,12 +281,12 @@ public class PcepEroObjectVer1 implements PcepEroObject {
                 }
             }
 
-            llSubObjects.add(subObj);
+            subObjectList.add(subObj);
         }
         if (0 < cb.readableBytes()) {
             throw new PcepParseException("Subobject parsing error. Extra bytes received.");
         }
-        return llSubObjects;
+        return subObjectList;
     }
 
     @Override
@@ -301,7 +301,7 @@ public class PcepEroObjectVer1 implements PcepEroObject {
             throw new PcepParseException("Failed to write ERO object header. Index " + objLenIndex);
         }
 
-        ListIterator<PcepValueType> listIterator = llSubObjects.listIterator();
+        ListIterator<PcepValueType> listIterator = subObjectList.listIterator();
 
         while (listIterator.hasNext()) {
             listIterator.next().write(cb);
@@ -342,7 +342,7 @@ public class PcepEroObjectVer1 implements PcepEroObject {
         private boolean bIFlag;
 
         private PcepObjectHeader eroObjHeader;
-        LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
+        LinkedList<PcepValueType> subObjectList = new LinkedList<>();
 
         @Override
         public PcepEroObject build() {
@@ -357,7 +357,7 @@ public class PcepEroObjectVer1 implements PcepEroObject {
                 eroObjHeader.setIFlag(bIFlag);
             }
 
-            return new PcepEroObjectVer1(eroObjHeader, this.llSubObjects);
+            return new PcepEroObjectVer1(eroObjHeader, this.subObjectList);
         }
 
         @Override
@@ -374,12 +374,12 @@ public class PcepEroObjectVer1 implements PcepEroObject {
 
         @Override
         public LinkedList<PcepValueType> getSubObjects() {
-            return this.llSubObjects;
+            return this.subObjectList;
         }
 
         @Override
-        public Builder setSubObjects(LinkedList<PcepValueType> llSubObjects) {
-            this.llSubObjects = llSubObjects;
+        public Builder setSubObjects(LinkedList<PcepValueType> subObjectList) {
+            this.subObjectList = subObjectList;
             return this;
         }
 
@@ -400,8 +400,9 @@ public class PcepEroObjectVer1 implements PcepEroObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("EroObjHeader", eroObjHeader).add("SubObjects", llSubObjects)
+        return MoreObjects.toStringHelper(getClass()).omitNullValues()
+                .add("EroObjHeader", eroObjHeader)
+                .add("SubObjects", subObjectList)
                 .toString();
     }
 }

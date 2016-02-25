@@ -169,9 +169,9 @@ public class PcepRsvpUserErrorSpec implements PcepRsvpErrorSpec {
             int iValue = 0;
             //short hLength = cb.readShort();
             switch (hType) {
-            case AutonomousSystemTlv.TYPE:
+            case AutonomousSystemSubTlv.TYPE:
                 iValue = cb.readInt();
-                tlv = new AutonomousSystemTlv(iValue);
+                tlv = new AutonomousSystemSubTlv(iValue);
                 break;
             default:
                 throw new PcepParseException("Unsupported Sub TLV type :" + hType);
