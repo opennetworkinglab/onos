@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.AbstractListenerManager;
@@ -115,6 +116,10 @@ public class IntentManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceService resourceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService configService;
+
+
     private ExecutorService batchExecutor;
     private ExecutorService workerExecutor;
 
@@ -131,6 +136,8 @@ public class IntentManager
 
     @Activate
     public void activate() {
+        configService.registerProperties(getClass());
+
         intentInstaller.init(store, trackerService, flowRuleService, flowObjectiveService);
         if (skipReleaseResourcesOnWithdrawal) {
             store.setDelegate(testOnlyDelegate);
@@ -154,6 +161,7 @@ public class IntentManager
         } else {
             store.unsetDelegate(delegate);
         }
+        configService.unregisterProperties(getClass(), false);
         trackerService.unsetDelegate(topoDelegate);
         eventDispatcher.removeSink(IntentEvent.class);
         batchExecutor.shutdown();

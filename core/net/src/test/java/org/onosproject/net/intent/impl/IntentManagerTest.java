@@ -28,6 +28,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.TestApplicationId;
 import org.onosproject.cfg.ComponentConfigAdapter;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.impl.TestCoreManager;
@@ -57,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.easymock.EasyMock.mock;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -231,6 +233,7 @@ public class IntentManagerTest {
         manager.trackerService = new TestIntentTracker();
         manager.flowRuleService = flowRuleService;
         manager.coreService = new TestCoreManager();
+        manager.configService = mock(ComponentConfigService.class);
         service = manager;
         extensionService = manager;
 
