@@ -32,6 +32,12 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
@@ -45,6 +51,7 @@ import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackRouter;
 import org.onosproject.openstackinterface.OpenstackRouterInterface;
 import org.onosproject.openstacknetworking.OpenstackRoutingService;
+import org.onosproject.openstacknetworking.OpenstackSwitchingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,10 +87,21 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     protected OpenstackInterfaceService openstackService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackSwitchingService openstackSwitchingService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService configService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry configRegistry;
+
+
 
     private ApplicationId appId;
     private Map<String, OpenstackRouterInterface> routerInterfaceMap = Maps.newHashMap();
@@ -91,13 +109,22 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     private static final String APP_ID = "org.onosproject.openstackrouting";
     private static final String PORT_NAME = "portName";
     private static final String DEVICE_OWNER_ROUTER_INTERFACE = "network:router_interface";
+    private final ConfigFactory configFactory =
+            new ConfigFactory(SubjectFactories.APP_SUBJECT_FACTORY, OpenstackRoutingConfig.class, "openstackrouting") {
+                @Override
+                public OpenstackRoutingConfig createConfig() {
+                    return new OpenstackRoutingConfig();
+                }
+            };
+    private final NetworkConfigListener configListener = new InternalConfigListener();
 
-    // TODO: This will be replaced to get the information from openstackswitchingservice.
-    private static final String EXTERNAL_INTERFACE_NAME = "veth0";
+    private OpenstackRoutingConfig config;
+    private static final int PNAT_PORT_NUM_START = 1024;
+    private static final int PNAT_PORT_NUM_END = 65535;
 
     private Map<Integer, String> initPortNumMap() {
         Map<Integer, String> map = Maps.newHashMap();
-        for (int i = 1024; i < 65535; i++) {
+        for (int i = PNAT_PORT_NUM_START; i < PNAT_PORT_NUM_END; i++) {
             map.put(i, "");
         }
         return map;
@@ -108,17 +135,30 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
             Executors.newSingleThreadExecutor(groupedThreads("onos/openstackrouting", "L3-event"));
     private ExecutorService icmpEventExecutorService =
             Executors.newSingleThreadExecutor(groupedThreads("onos/openstackrouting", "icmp-event"));
+    private ExecutorService arpEventExecutorService =
+            Executors.newSingleThreadExecutor(groupedThreads("onos/openstackrouting", "arp-event"));
+    private OpenstackIcmpHandler openstackIcmpHandler;
+    private OpenstackRoutingArpHandler openstackArpHandler;
 
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(APP_ID);
         packetService.addProcessor(internalPacketProcessor, PacketProcessor.director(1));
+        configRegistry.registerConfigFactory(configFactory);
+        configService.addListener(configListener);
+
+        readConfiguration();
+
         log.info("onos-openstackrouting started");
     }
 
     @Deactivate
     protected void deactivate() {
         packetService.removeProcessor(internalPacketProcessor);
+        l3EventExecutorService.shutdown();
+        icmpEventExecutorService.shutdown();
+        arpEventExecutorService.shutdown();
+
         log.info("onos-openstackrouting stopped");
     }
 
@@ -155,16 +195,16 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
 
     @Override
     public void updateRouterInterface(OpenstackRouterInterface routerInterface) {
-        routerInterfaceMap.putIfAbsent(routerInterface.portId(), routerInterface);
+        routerInterfaceMap.putIfAbsent(routerInterface.id(), routerInterface);
         List<OpenstackRouterInterface> routerInterfaces = Lists.newArrayList();
         routerInterfaces.add(routerInterface);
-        checkExternalConnection(getOpenstackRouter(routerInterface.portId()), routerInterfaces);
+        checkExternalConnection(getOpenstackRouter(routerInterface.id()), routerInterfaces);
     }
 
     @Override
     public void removeRouterInterface(OpenstackRouterInterface routerInterface) {
         OpenstackRoutingRulePopulator rulePopulator = new OpenstackRoutingRulePopulator(appId,
-                openstackService, flowObjectiveService, deviceService, driverService);
+                openstackService, flowObjectiveService, deviceService, driverService, config);
         rulePopulator.removeExternalRules(routerInterface);
         routerInterfaceMap.remove(routerInterface.portId());
     }
@@ -181,10 +221,10 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
 
     private OpenstackRouterInterface portToRouterInterface(OpenstackPort p) {
         OpenstackRouterInterface.Builder osBuilder = new OpenstackRouterInterface.Builder()
-                .id(checkNotNull(p.id()))
+                .id(checkNotNull(p.deviceId()))
                 .tenantId(checkNotNull(openstackService.network(p.networkId()).tenantId()))
                 .subnetId(checkNotNull(p.fixedIps().keySet().stream().findFirst().orElse(null)).toString())
-                .portId(checkNotNull(p.deviceId()));
+                .portId(checkNotNull(p.id()));
 
         return osBuilder.build();
     }
@@ -196,19 +236,26 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
 
             if (context.isHandled()) {
                 return;
+            } else if (!context.inPacket().receivedFrom().deviceId().toString()
+                    .equals(config.gatewayBridgeId())) {
+                return;
             }
 
             InboundPacket pkt = context.inPacket();
             Ethernet ethernet = pkt.parsed();
 
-            if (ethernet != null && ethernet.getEtherType() == Ethernet.TYPE_IPV4) {
+            //TODO: Considers IPv6 later.
+            if (ethernet == null) {
+                return;
+            } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV4) {
                 IPv4 iPacket = (IPv4) ethernet.getPayload();
                 OpenstackRoutingRulePopulator rulePopulator = new OpenstackRoutingRulePopulator(appId,
-                        openstackService, flowObjectiveService, deviceService,
-                        driverService);
+                        openstackService, flowObjectiveService, deviceService, driverService, config);
                 switch (iPacket.getProtocol()) {
                     case IPv4.PROTOCOL_ICMP:
-                        icmpEventExecutorService.execute(new OpenstackIcmpHandler(rulePopulator, context));
+
+                        icmpEventExecutorService.submit(() ->
+                                openstackIcmpHandler.processIcmpPacket(context, ethernet));
                         break;
                     case IPv4.PROTOCOL_UDP:
                         // don't process DHCP
@@ -219,7 +266,8 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                         }
                     default:
                         int portNum = getPortNum(ethernet.getSourceMAC(), iPacket.getDestinationAddress());
-                        Port port = getExternalPort(pkt.receivedFrom().deviceId(), EXTERNAL_INTERFACE_NAME);
+                        Port port =
+                                getExternalPort(pkt.receivedFrom().deviceId(), config.gatewayExternalInterfaceName());
                         if (port == null) {
                             log.warn("There`s no external interface");
                             break;
@@ -230,7 +278,9 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                                 portNum, openstackPort, port));
                         break;
                 }
-
+            } else if (ethernet.getEtherType() == Ethernet.TYPE_ARP) {
+                arpEventExecutorService.submit(() ->
+                        openstackArpHandler.processArpPacketFromRouter(context, ethernet));
             }
         }
 
@@ -265,9 +315,9 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
 
     private void initiateL3Rule(OpenstackRouter router, OpenstackRouterInterface routerInterface) {
         long vni = Long.parseLong(openstackService.network(openstackService
-                .port(routerInterface.id()).networkId()).segmentId());
+                .port(routerInterface.portId()).networkId()).segmentId());
         OpenstackRoutingRulePopulator rulePopulator = new OpenstackRoutingRulePopulator(appId,
-                openstackService, flowObjectiveService, deviceService, driverService);
+                openstackService, flowObjectiveService, deviceService, driverService, config);
         rulePopulator.populateExternalRules(vni, router, routerInterface);
     }
 
@@ -288,4 +338,50 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                 .equals(ip4Address) ? openstackPort : null;
     }
 
+    private void readConfiguration() {
+        config = configService.getConfig(appId, OpenstackRoutingConfig.class);
+        if (config == null) {
+            log.error("No configuration found");
+            return;
+        }
+
+        checkNotNull(config.physicalRouterMac());
+        checkNotNull(config.gatewayBridgeId());
+        checkNotNull(config.gatewayExternalInterfaceMac());
+        checkNotNull(config.gatewayExternalInterfaceName());
+
+        log.debug("Configured info: {}, {}, {}, {}", config.physicalRouterMac(), config.gatewayBridgeId(),
+                config.gatewayExternalInterfaceMac(), config.gatewayExternalInterfaceName());
+
+        reloadInitL3Rules();
+
+        openstackIcmpHandler = new OpenstackIcmpHandler(packetService, deviceService,
+                openstackService, config, openstackSwitchingService);
+        openstackArpHandler = new OpenstackRoutingArpHandler(packetService, openstackService, config);
+
+        openstackIcmpHandler.requestPacket(appId);
+        openstackArpHandler.requestPacket(appId);
+
+        log.info("OpenstackRouting configured");
+    }
+
+    private class InternalConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            if (!event.configClass().equals(OpenstackRoutingConfig.class)) {
+                return;
+            }
+
+            switch (event.type()) {
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
+                    l3EventExecutorService.execute(OpenstackRoutingManager.this::readConfiguration);
+                    break;
+                default:
+                    log.debug("Unsupported event type {}", event.type().toString());
+                    break;
+            }
+        }
+    }
 }

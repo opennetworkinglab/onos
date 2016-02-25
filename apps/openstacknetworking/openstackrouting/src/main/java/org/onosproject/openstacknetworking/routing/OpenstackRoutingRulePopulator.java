@@ -71,6 +71,7 @@ public class OpenstackRoutingRulePopulator {
     private final OpenstackInterfaceService openstackService;
     private final DeviceService deviceService;
     private final DriverService driverService;
+    private final OpenstackRoutingConfig config;
 
     private static final String PORTNAME_PREFIX_VM = "tap";
     private static final String PORTNAME_PREFIX_ROUTER = "qr";
@@ -93,9 +94,6 @@ public class OpenstackRoutingRulePopulator {
     private OpenstackRouter router;
     private OpenstackRouterInterface routerInterface;
 
-    // TODO: This will be replaced to get the information from openstackswitchingservice.
-    private static final String EXTERNAL_INTERFACE_NAME = "veth0";
-
     /**
      * The constructor of openstackRoutingRulePopulator.
      *
@@ -104,20 +102,23 @@ public class OpenstackRoutingRulePopulator {
      * @param flowObjectiveService FlowObjectiveService
      * @param deviceService DeviceService
      * @param driverService DriverService
+     * @param config OpenstackRoutingConfig
      */
     public OpenstackRoutingRulePopulator(ApplicationId appId, OpenstackInterfaceService openstackService,
-                                         FlowObjectiveService flowObjectiveService,
-                                         DeviceService deviceService, DriverService driverService) {
+                                         FlowObjectiveService flowObjectiveService, DeviceService deviceService,
+                                         DriverService driverService, OpenstackRoutingConfig config) {
         this.appId = appId;
         this.flowObjectiveService = flowObjectiveService;
-        this.openstackService = openstackService;
+        this.openstackService = checkNotNull(openstackService);
         this.deviceService = deviceService;
         this.driverService = driverService;
+        this.config = config;
     }
 
     /**
      * Populates flow rules for Pnat configurations.
-     *  @param inboundPacket Packet-in event packet
+     *
+     * @param inboundPacket Packet-in event packet
      * @param openstackPort Target VM information
      * @param portNum Pnat port number
      * @param externalIp external ip address
@@ -168,6 +169,7 @@ public class OpenstackRoutingRulePopulator {
                 tBuilder.setUdpSrc(TpPort.tpPort(portNum));
                 break;
             default:
+                log.debug("Unsupported IPv4 protocol {}");
                 break;
         }
 
@@ -188,7 +190,7 @@ public class OpenstackRoutingRulePopulator {
 
     private Port getPortNumOfExternalInterface() {
         return deviceService.getPorts(inboundPacket.receivedFrom().deviceId()).stream()
-                .filter(p -> p.annotations().value(PORTNAME).equals(EXTERNAL_INTERFACE_NAME))
+                .filter(p -> p.annotations().value(PORTNAME).equals(config.gatewayExternalInterfaceName()))
                 .findAny().orElse(null);
     }
 
@@ -239,7 +241,15 @@ public class OpenstackRoutingRulePopulator {
         flowObjectiveService.forward(inboundPacket.receivedFrom().deviceId(), fo);
     }
 
-    private ExtensionTreatment buildNiciraExtenstion(DeviceId id, Ip4Address hostIp) {
+    /**
+     * Returns NiciraExtension treatment.
+     *
+     * @param id device id
+     * @param hostIp host ip
+     * @return NiciraExtension treatment
+     */
+
+    public ExtensionTreatment buildNiciraExtenstion(DeviceId id, Ip4Address hostIp) {
         Driver driver = driverService.getDriver(id);
         DriverHandler driverHandler = new DefaultDriverHandler(new DefaultDriverData(driver, id));
         ExtensionTreatmentResolver resolver = driverHandler.behaviour(ExtensionTreatmentResolver.class);
@@ -257,7 +267,13 @@ public class OpenstackRoutingRulePopulator {
         return extensionInstruction;
     }
 
-    private PortNumber getTunnelPort(DeviceId deviceId) {
+    /**
+     * Returns port number of vxlan tunnel.
+     *
+     * @param deviceId device id
+     * @return port number of vxlan tunnel
+     */
+    public PortNumber getTunnelPort(DeviceId deviceId) {
         Port port = deviceService.getPorts(deviceId).stream()
                 .filter(p -> p.annotations().value(PORTNAME).equals(PORTNAME_PREFIX_TUNNEL))
                 .findAny().orElse(null);
@@ -343,16 +359,11 @@ public class OpenstackRoutingRulePopulator {
     }
 
     private Device getGatewayNode() {
-        return checkNotNull(StreamSupport.stream(deviceService.getAvailableDevices().spliterator(), false)
-                .filter(d -> checkGatewayNode(d.id()))
-                .findAny()
-                .orElse(null));
+        return checkNotNull(deviceService.getDevice(DeviceId.deviceId(config.gatewayBridgeId())));
     }
 
     private boolean checkGatewayNode(DeviceId deviceId) {
-        return !deviceService.getPorts(deviceId).stream().anyMatch(port ->
-                port.annotations().value(PORTNAME).startsWith(PORTNAME_PREFIX_ROUTER) ||
-                        port.annotations().value(PORTNAME).startsWith(PORTNAME_PREFIX_VM));
+        return deviceId.toString().equals(config.gatewayBridgeId());
     }
 
     private long getVni(OpenstackPort openstackPort) {

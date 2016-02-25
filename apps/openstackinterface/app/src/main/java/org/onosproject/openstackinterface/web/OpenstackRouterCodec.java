@@ -68,7 +68,6 @@ public class OpenstackRouterCodec extends JsonCodec<OpenstackRouter> {
         String tenantId = checkNotNull(routerInfo.path(TENANT_ID).asText());
         String id = checkNotNull(routerInfo.path(ID).asText());
         String name = checkNotNull(routerInfo.path(NAME).asText());
-        String status = checkNotNull(routerInfo.path(STATUS).asText());
         String adminStateUp = checkNotNull(routerInfo.path(ADMIN_STATE_UP).asText());
 
         OpenstackExternalGateway.Builder osExtBuiler = new OpenstackExternalGateway.Builder();
@@ -98,7 +97,7 @@ public class OpenstackRouterCodec extends JsonCodec<OpenstackRouter> {
                 .tenantId(tenantId)
                 .id(id)
                 .name(name)
-                .status(OpenstackRouter.RouterStatus.valueOf(status))
+                .status(OpenstackRouter.RouterStatus.ACTIVE)
                 .adminStateUp(Boolean.valueOf(adminStateUp))
                 .gatewayExternalInfo(osExtBuiler.build());
 

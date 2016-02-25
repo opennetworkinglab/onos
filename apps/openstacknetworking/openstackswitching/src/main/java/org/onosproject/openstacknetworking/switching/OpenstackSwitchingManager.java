@@ -94,6 +94,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackInterfaceService openstackService;
 
     public static final String PORTNAME_PREFIX_VM = "tap";
@@ -126,6 +127,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         packetService.addProcessor(internalPacketProcessor, PacketProcessor.director(1));
         deviceService.addListener(internalDeviceListener);
         hostService.addListener(internalHostListener);
+        arpHandler = new OpenstackArpHandler(openstackService, packetService, hostService);
 
         arpHandler = new OpenstackArpHandler(openstackService, packetService, hostService);
         sgRulePopulator = new OpenstackSecurityGroupRulePopulator(appId, openstackService, flowObjectiveService);
@@ -204,10 +206,12 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
     @Override
     public void createNetwork(OpenstackNetwork openstackNetwork) {
+        //TODO
     }
 
     @Override
     public void createSubnet(OpenstackSubnet openstackSubnet) {
+        //TODO
     }
 
     @Override
@@ -296,9 +300,17 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
     private void updatePortMap(DeviceId deviceId, String portName, Collection<OpenstackNetwork> networks,
                                Collection<OpenstackSubnet> subnets, OpenstackPort openstackPort) {
-        long vni = Long.parseLong(networks.stream()
+        long vni;
+        OpenstackNetwork openstackNetwork = networks.stream()
                 .filter(n -> n.id().equals(openstackPort.networkId()))
-                .findAny().orElse(null).segmentId());
+                .findAny().orElse(null);
+        if (openstackNetwork != null) {
+            vni = Long.parseLong(openstackNetwork.segmentId());
+        } else {
+            log.debug("updatePortMap failed because there's no OpenstackNetwork matches {}", openstackPort.networkId());
+            return;
+        }
+
 
         OpenstackSubnet openstackSubnet = subnets.stream()
                 .filter(n -> n.networkId().equals(openstackPort.networkId()))
@@ -312,6 +324,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                 .setHostMac(openstackPort.macAddress())
                 .setVni(vni)
                 .setGatewayIP(gatewayIPAddress)
+                .setNetworkId(openstackPort.networkId())
                 .setSecurityGroups(openstackPort.securityGroups());
 
         openstackPortInfoMap.put(portName, portBuilder.build());
@@ -321,7 +334,6 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                 securityGroupMap.put(sgId, openstackService.getSecurityGroup(sgId));
             }
         });
-
     }
 
     private void processHostRemoved(Host host) {
@@ -440,6 +452,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                         processPortRemoved((Device) deviceEvent.subject(), deviceEvent.port());
                         break;
                     default:
+                        log.debug("Unsupported deviceEvent type {}", deviceEvent.type().toString());
                         break;
                 }
             } else if (event instanceof HostEvent) {
@@ -450,6 +463,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                         processHostRemoved((Host) hostEvent.subject());
                         break;
                     default:
+                        log.debug("Unsupported hostEvent type {}", hostEvent.type().toString());
                         break;
                 }
             }

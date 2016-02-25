@@ -27,12 +27,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Contains OpenstackPort Information.
  */
-public class OpenstackPortInfo {
+public final class OpenstackPortInfo {
     private final Ip4Address hostIp;
     private final MacAddress hostMac;
     private final DeviceId deviceId;
     private final long vni;
     private final Ip4Address gatewayIP;
+    private final String networkId;
     private final Collection<String> securityGroups;
 
     /**
@@ -46,12 +47,13 @@ public class OpenstackPortInfo {
      * @param securityGroups security group list
      */
     public OpenstackPortInfo(Ip4Address hostIp, MacAddress hostMac, DeviceId deviceId, long vni,
-                             Ip4Address gatewayIP, Collection<String> securityGroups) {
+                             Ip4Address gatewayIP, String networkId, Collection<String> securityGroups) {
         this.hostIp = hostIp;
         this.hostMac = hostMac;
         this.deviceId = deviceId;
         this.vni = vni;
         this.gatewayIP = gatewayIP;
+        this.networkId = networkId;
         this.securityGroups = securityGroups;
     }
 
@@ -101,6 +103,15 @@ public class OpenstackPortInfo {
     }
 
     /**
+     * Returns network ID.
+     *
+     * @return network ID
+     */
+    public String networkId() {
+        return  networkId;
+    }
+
+    /**
      * Returns Security Group ID list.
      *
      * @return list of Security Group ID
@@ -129,15 +140,27 @@ public class OpenstackPortInfo {
         private long vni;
         private Ip4Address gatewayIP;
         private Collection<String> securityGroups;
+        private String networkId;
 
         /**
          * Sets the IP address of the port.
          *
-         * @param gatewayIP
+         * @param gatewayIP gateway IP
          * @return Builder reference
          */
         public Builder setGatewayIP(Ip4Address gatewayIP) {
             this.gatewayIP = checkNotNull(gatewayIP, "gatewayIP cannot be null");
+            return this;
+        }
+
+        /**
+         * Sets the network ID.
+         *
+         * @param networkId network id
+         * @return Builder reference
+         */
+        public Builder setNetworkId(String networkId) {
+            this.networkId = checkNotNull(networkId, "networkId cannot be null");
             return this;
         }
 
@@ -202,16 +225,7 @@ public class OpenstackPortInfo {
          * @return OpenstackPortInfo reference
          */
         public OpenstackPortInfo build() {
-            return new OpenstackPortInfo(this);
+            return new OpenstackPortInfo(hostIp, hostMac, deviceId, vni, gatewayIP, networkId, securityGroups);
         }
-    }
-
-    private OpenstackPortInfo(Builder builder) {
-        hostIp = builder.hostIp;
-        hostMac = builder.hostMac;
-        deviceId = builder.deviceId;
-        vni = builder.vni;
-        gatewayIP = builder.gatewayIP;
-        securityGroups = builder.securityGroups;
     }
 }

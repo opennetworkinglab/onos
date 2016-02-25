@@ -1,40 +1,50 @@
 {
     "apps" : {
-      "org.onosproject.openstackswitching" : {
-          "openstackswitching" : {
-                "do_not_push_flows" : "false",
-                "neutron_server" : "http://192.168.56.103:9696/v2.0/",
-                "keystone_server" : "http://192.168.56.103:5000/v2.0/",
-                "user_name" : "admin",
-                "password" : "nova",
-                "physicalRouterMac" : "00:00:00:00:00:20",
+        "org.onosproject.openstackrouting" : {
+            "openstackrouting" : {
+                "physicalRouterMac" : "2a:a1:8a:89:dd:a4",
+                "gatewayBridgeId" : "of:0000000000000003",
+                "gatewayExternalInterfaceName" : "veth0",
+                "gatewayExternalInterfaceMac" : "be:15:c6:b0:df:9f"
+            }
+        },
+        "org.onosproject.openstacknode" : {
+            "openstacknode" : {
                 "nodes" : [
-                  {
-                      "hostname" : "compute-01",
-                                  "ovsdbIp" : "192.168.56.102",
-                                  "ovsdbPort" : "6640",
-                                  "bridgeId" : "of:0000000000000001",
-                                  "openstackNodeType" : "COMPUTENODE"
-                              },
-                              {
-                                  "hostname" : "compute-02",
-                                  "ovsdbIp" : "192.168.56.101",
-                                  "ovsdbPort" : "6640",
-                                  "bridgeId" : "of:0000000000000002",
-                                  "openstackNodeType" : "COMPUTENODE"
-                              },
-                              {
-                                  "hostname" : "network",
-                                  "ovsdbIp" : "192.168.56.106",
-                                  "ovsdbPort" : "6640",
-                                  "bridgeId" : "of:0000000000000003",
-                                  "openstackNodeType" : "GATEWAYNODE",
-                                  "externalIfName" : "eth3",
-                                  "externalIfMacAddress" : "00:00:00:00:00:11"
-                              }
+                            {
+                                    "hostname" : "compute-01",
+                                    "ovsdbIp" : "192.168.56.112",
+                                    "ovsdbPort" : "6640",
+                                    "bridgeId" : "of:0000000000000001",
+                                    "openstackNodeType" : "COMPUTENODE"
+                            },
+                            {
+                                    "hostname" : "compute-02",
+                                    "ovsdbIp" : "192.168.56.113",
+                                    "ovsdbPort" : "6640",
+                                    "bridgeId" : "of:0000000000000002",
+                                    "openstackNodeType" : "COMPUTENODE"
+                            },
+                            {
+                                    "hostname" : "network",
+                                    "ovsdbIp" : "192.168.56.114",
+                                    "ovsdbPort" : "6640",
+                                    "bridgeId" : "of:0000000000000003",
+                                    "openstackNodeType" : "GATEWAYNODE",
+                                    "gatewayExternalInterfaceName" : "veth0",
+                                    "gatewayExternalInterfaceMac" : "be:15:c6:b0:df:9f"
+                            }
                 ]
-              }
-          }
+            }
+        },
+        "org.onosproject.openstackinterface" : {
+            "openstackinterface" : {
+                 "neutron_server" : "http://192.168.56.111:9696/v2.0/",
+                 "keystone_server" : "http://192.168.56.111:5000/v2.0/",
+                 "user_name" : "admin",
+                 "password" : "nova"
+             }
+         }
     },
     "devices" : {
         "of:0000000000000001" : {
@@ -49,3 +59,4 @@
         }
     }
 }
+
