@@ -47,28 +47,22 @@ public class RegionCodec extends JsonCodec<Region> {
     private static final String TYPE = "type";
     private static final String MASTERS = "masters";
     private static final String NODE_ID = "nodeId";
-    private static final String REGION_NOT_NULL_MSG = "Region cannot be null";
-    private static final String MISSING_MEMBER_MESSAGE = " member is required in Region";
+
+    private static final String NULL_REGION_MSG = "Region cannot be null";
+    private static final String MISSING_MEMBER_MSG = " member is required in Region";
 
     private static final BiMap<String, Region.Type> REGION_TYPE_MAP = HashBiMap.create();
 
     static {
-        // key is String representation of Region.Type
-        // value is Region.Type
-        REGION_TYPE_MAP.put("CONTINENT", Region.Type.CONTINENT);
-        REGION_TYPE_MAP.put("COUNTRY", Region.Type.COUNTRY);
-        REGION_TYPE_MAP.put("METRO", Region.Type.METRO);
-        REGION_TYPE_MAP.put("CAMPUS", Region.Type.CAMPUS);
-        REGION_TYPE_MAP.put("BUILDING", Region.Type.BUILDING);
-        REGION_TYPE_MAP.put("FLOOR", Region.Type.FLOOR);
-        REGION_TYPE_MAP.put("ROOM", Region.Type.ROOM);
-        REGION_TYPE_MAP.put("RACK", Region.Type.RACK);
-        REGION_TYPE_MAP.put("LOGICAL_GROUP", Region.Type.LOGICAL_GROUP);
+        // key is String representation of Region.Type; value is Region.Type
+        for (Region.Type t : Region.Type.values()) {
+            REGION_TYPE_MAP.put(t.name(), t);
+        }
     }
 
     @Override
     public ObjectNode encode(Region region, CodecContext context) {
-        checkNotNull(region, REGION_NOT_NULL_MSG);
+        checkNotNull(region, NULL_REGION_MSG);
 
         ObjectNode result = context.mapper().createObjectNode()
                 .put(REGION_ID, region.id().toString())
@@ -97,37 +91,29 @@ public class RegionCodec extends JsonCodec<Region> {
         JsonNode mastersJson = json.get(MASTERS);
         checkNotNull(mastersJson);
 
-        if (mastersJson != null) {
-            IntStream.range(0, mastersJson.size()).forEach(i -> {
-                JsonNode setsJson = mastersJson.get(i);
-                final Set<NodeId> nodeIds = Sets.newHashSet();
-                if (setsJson != null && setsJson.isArray()) {
-                    Set<NodeId> localNodeIds = Sets.newHashSet();
-                    IntStream.range(0, setsJson.size()).forEach(j -> {
-                        JsonNode nodeIdJson = setsJson.get(j);
-                        localNodeIds.add(decodeNodeId(nodeIdJson));
-                    });
-                    nodeIds.addAll(localNodeIds);
-                }
-                masters.add(nodeIds);
-            });
-        }
+        IntStream.range(0, mastersJson.size()).forEach(i -> {
+            JsonNode setsJson = mastersJson.get(i);
+            final Set<NodeId> nodeIds = Sets.newHashSet();
+            if (setsJson != null && setsJson.isArray()) {
+                Set<NodeId> localNodeIds = Sets.newHashSet();
+                IntStream.range(0, setsJson.size()).forEach(j -> {
+                    JsonNode nodeIdJson = setsJson.get(j);
+                    localNodeIds.add(decodeNodeId(nodeIdJson));
+                });
+                nodeIds.addAll(localNodeIds);
+            }
+            masters.add(nodeIds);
+        });
 
-        // parse region id
-        RegionId regionId = RegionId.regionId(nullIsIllegal(json.get(REGION_ID),
-                REGION_ID + MISSING_MEMBER_MESSAGE).asText());
-
-        // parse region name
-        String name = nullIsIllegal(json.get(NAME), NAME +
-                MISSING_MEMBER_MESSAGE).asText();
-
-        // parse region type
-        String typeText = nullIsIllegal(json.get(TYPE), TYPE +
-                MISSING_MEMBER_MESSAGE).asText();
-
-        Region.Type type = REGION_TYPE_MAP.get(typeText);
+        RegionId regionId = RegionId.regionId(extractMember(REGION_ID, json));
+        String name = extractMember(NAME, json);
+        Region.Type type = REGION_TYPE_MAP.get(extractMember(TYPE, json));
 
         return new DefaultRegion(regionId, name, type, masters);
+    }
+
+    private String extractMember(String key, ObjectNode json) {
+        return nullIsIllegal(json.get(key), key + MISSING_MEMBER_MSG).asText();
     }
 
     /**
@@ -137,9 +123,7 @@ public class RegionCodec extends JsonCodec<Region> {
      * @return decoded node id object
      */
     private NodeId decodeNodeId(JsonNode json) {
-        NodeId nodeId = NodeId.nodeId(nullIsIllegal(json, NODE_ID +
-                MISSING_MEMBER_MESSAGE).asText());
-
-        return nodeId;
+        return NodeId.nodeId(nullIsIllegal(json, NODE_ID +
+                MISSING_MEMBER_MSG).asText());
     }
 }
