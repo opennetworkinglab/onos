@@ -113,7 +113,7 @@ public final class GroupCodec extends JsonCodec<Group> {
         // parse group id
         int groupIdInt = nullIsIllegal(json.get(GROUP_ID),
                 GROUP_ID + MISSING_MEMBER_MESSAGE).asInt();
-        GroupId groupId = new DefaultGroupId((short) groupIdInt);
+        GroupId groupId = new DefaultGroupId(groupIdInt);
 
         // parse group key (appCookie)
         String groupKeyStr = nullIsIllegal(json.get(APP_COOKIE),
