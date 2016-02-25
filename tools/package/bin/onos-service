@@ -10,20 +10,18 @@
 # Do modify the keystore location/password and truststore location/password accordingly
 #export JAVA_OPTS="${JAVA_OPTS:--DenableNettyTLS=true -Djavax.net.ssl.keyStore=/home/ubuntu/onos.jks -Djavax.net.ssl.keyStorePassword=222222 -Djavax.net.ssl.trustStore=/home/ubuntu/onos.jks -Djavax.net.ssl.trustStorePassword=222222}"
 
-ONOS_HOME=/opt/onos
+set -e  # exit on error
+set -u  # exit on undefined variable
+
+# If ONOS_HOME is set, respect its value.
+# If ONOS_HOME is not set (e.g. in the init or service environment),
+# set it based on this script's path.
+ONOS_HOME=${ONOS_HOME:-$(readlink -e `dirname $0`/..)}
 KARAF_ARGS=
 SYS_APPS=drivers
-CURRENT_ONOS_HOME="`( cd $(dirname $0)/.. && pwd )`"
+ONOS_APPS=${ONOS_APPS:-}  # Empty means don't activate any new apps
 
-# check whether executable onos binary is located under /opt/onos
-# if not try to reconfigure ONOS_HOME with current path
-if [ $CURRENT_ONOS_HOME != $ONOS_HOME ]; then
-    ONOS_HOME=$CURRENT_ONOS_HOME
-fi
-
-echo $ONOS_HOME
-
-[ -d $ONOS_HOME ] && cd $ONOS_HOME || ONOS_HOME=$(dirname $0)/..
+cd $ONOS_HOME
 
 # Parse out arguments destinted for karaf invocation v. arguments that
 # will be processed in line
