@@ -77,7 +77,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -128,9 +127,6 @@ public class CordMcast {
 
     //TODO: move this to a ec map
     private Map<IpAddress, Integer> groups = Maps.newConcurrentMap();
-
-    //TODO: move this to distributed atomic long
-    private AtomicInteger channels = new AtomicInteger(0);
 
     private ApplicationId appId;
 
@@ -331,7 +327,7 @@ public class CordMcast {
         final AtomicBoolean sync = new AtomicBoolean(false);
 
         Integer nextId = groups.computeIfAbsent(route.group(), (g) -> {
-            Integer id = allocateId();
+            Integer id = flowObjectiveService.allocateNextId();
 
             NextObjective next = DefaultNextObjective.builder()
                     .fromApp(appId)
@@ -495,10 +491,6 @@ public class CordMcast {
         }
 
         mcastRoutes.forEach(this::removeRemoteRoute);
-    }
-
-    private Integer allocateId() {
-        return channels.getAndIncrement();
     }
 
     private WebResource.Builder getClientBuilder(String uri) {
