@@ -347,24 +347,32 @@
 
 
     function setUpMap($loc) {
-        var s1 = $loc.search().mapid,
-            s2 = ps.getPrefs('topo_mapid'),
-            mapId = s1 || (s2 && s2.id) || 'usa',
+        var qp = $loc.search(),
+            pr = ps.getPrefs('topo_mapid'),
+            mi1 = qp.mapid,
+            mi2 = pr && pr.id,
+            mapId = mi1 || mi2 || 'usa',
+            ms1 = qp.mapscale,
+            ms2 = pr && pr.scale,
+            mapScale = ms1 || ms2 || 1,
             promise,
-            cfilter,
-            opts;
+            cfilter;
 
         mapG = zoomLayer.append('g').attr('id', 'topo-map');
         if (mapId === 'usa') {
             promise = ms.loadMapInto(mapG, '*continental_us');
         } else if (mapId === 'bayarea') {
-            promise = ms.loadMapInto(mapG, '*bayarea', {objectTag: 'bayareaGEO'});
+            // TODO: be consistent about propagating options to other cases
+            promise = ms.loadMapInto(mapG, '*bayarea', {
+                objectTag: 'bayareaGEO',
+                adjustScale: mapScale,
+                fill: 'aliceblue'
+            });
         } else {
             cfilter = countryFilters[mapId] || countryFilters.world;
-            opts = { countryFilter: cfilter };
-            promise = ms.loadMapRegionInto(mapG, opts);
+            promise = ms.loadMapRegionInto(mapG, { countryFilter: cfilter });
         }
-        ps.setPrefs('topo_mapid', {id:mapId});
+        ps.setPrefs('topo_mapid', { id: mapId, scale: mapScale });
         return promise;
     }
 

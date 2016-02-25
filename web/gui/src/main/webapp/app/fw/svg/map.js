@@ -56,11 +56,13 @@
 
             deferredProjection.resolve(gen.settings.projection);
 
-            mapLayer.selectAll('path')
+            var path = mapLayer.selectAll('path')
                 .data(gen.geodata.features)
                 .enter()
                 .append('path')
                 .attr('d', gen.pathgen);
+
+            opts.fill && path.style('fill', opts.fill);
         });
         return deferredProjection.promise;
     }
