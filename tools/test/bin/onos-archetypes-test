@@ -18,7 +18,7 @@ _EOF_
 
 set -e
 
-export AROOT=/tmp/foo
+export AROOT=${ONOS_STAGE_ROOT:-/tmp}/foo
 export ARCHETYPE_OPTS="-DarchetypeGroupId=org.onosproject -DarchetypeVersion=1.5.0-SNAPSHOT"
 
 mkdir -p $AROOT
