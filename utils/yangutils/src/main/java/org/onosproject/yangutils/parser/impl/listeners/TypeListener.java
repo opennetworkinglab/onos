@@ -17,14 +17,17 @@
 package org.onosproject.yangutils.parser.impl.listeners;
 
 import org.onosproject.yangutils.datamodel.YangDataTypes;
+import org.onosproject.yangutils.datamodel.YangDerivedType;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.parser.ParsableDataType.TYPE_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+
+import static org.onosproject.yangutils.parser.ParsableDataType.TYPE_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -72,8 +75,9 @@ public final class TypeListener {
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPE_DATA, ctx.string().getText(), ENTRY);
 
-        YangType type = new YangType();
         YangDataTypes yangDataTypes = YangDataTypes.getType(ctx.string().getText());
+        YangType<?> type = new YangType();
+
         type.setDataTypeName(ctx.string().getText());
         type.setDataType(yangDataTypes);
 
@@ -112,8 +116,32 @@ public final class TypeListener {
                 YangLeafList leafList = (YangLeafList) tmpData;
                 leafList.setDataType((YangType) type);
                 break;
-            case TYPEDEF_DATA: //TODO
+            case TYPEDEF_DATA:
+
+                /* Prepare the base type info and set in derived type */
+                YangTypeDef typeDef = (YangTypeDef) tmpData;
+                YangType<YangDerivedType> derivedType = typeDef.getDerivedType();
+                if (derivedType == null) {
+                    //TODO: set the error info correctly, to depict missing info
+                    throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, TYPE_DATA,
+                            ctx.string().getText(), ENTRY));
+                }
+
+                YangDerivedType derivedTypeInfo = new YangDerivedType();
+                if (((YangType) type).getDataType() != YangDataTypes.DERIVED) {
+                    derivedTypeInfo.setEffectiveYangBuiltInType(((YangType) type).getDataType());
+                } else {
+                    /*
+                     * It will be resolved in the validate data model at exit.
+                     * Nothing needs to be done.
+                     */
+                }
+                derivedTypeInfo.setBaseType((YangType) type);
+                derivedType.setDataTypeExtendedInfo(derivedTypeInfo);
+
                 break;
+            //TODO: union, deviate replacement statement.case TYPEDEF_DATA: //TODO
+
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, TYPE_DATA,
                         ctx.string().getText(), EXIT));

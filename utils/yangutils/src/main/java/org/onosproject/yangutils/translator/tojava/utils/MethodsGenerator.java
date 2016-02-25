@@ -109,7 +109,6 @@ public final class MethodsGenerator {
      * @param returnType return type of method
      * @return constructed method impl
      */
-    @SuppressWarnings("rawtypes")
     public static String constructMethodInfo(GeneratedFileType genFileTypes, String yangName,
             GeneratedMethodTypes methodTypes, YangType<?> returnType) {
 

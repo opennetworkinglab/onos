@@ -215,7 +215,7 @@ public enum YangDataTypes {
     INSTANCE_IDENTIFIER,
 
     /**
-     * Derived Data type.
+     * Derived data type.
      */
     DERIVED;
 

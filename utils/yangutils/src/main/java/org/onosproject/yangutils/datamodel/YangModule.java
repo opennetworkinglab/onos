@@ -166,6 +166,43 @@ public class YangModule extends YangNode
      */
     private CachedFileHandle fileHandle;
 
+    /*-
+     * Nested typedefs and groupings.
+     * Typedefs and groupings may appear nested under many YANG statements,
+     * allowing these to be lexically scoped by the hierarchy under which
+     * they appear.  This allows types and groupings to be defined near
+     * where they are used, rather than placing them at the top level of the
+     * hierarchy.  The close proximity increases readability.
+     *
+     * Scoping also allows types to be defined without concern for naming
+     * conflicts between types in different submodules.  Type names can be
+     * specified without adding leading strings designed to prevent name
+     * collisions within large modules.
+     *
+     * Finally, scoping allows the module author to keep types and groupings
+     * private to their module or submodule, preventing their reuse.  Since
+     * only top-level types and groupings (i.e., those appearing as
+     * sub-statements to a module or submodule statement) can be used outside
+     * the module or submodule, the developer has more control over what
+     * pieces of their module are presented to the outside world, supporting
+     * the need to hide internal information and maintaining a boundary
+     * between what is shared with the outside world and what is kept
+     * private.
+     *
+     * Scoped definitions MUST NOT shadow definitions at a higher scope.  A
+     * type or grouping cannot be defined if a higher level in the schema
+     * hierarchy has a definition with a matching identifier.
+     *
+     * A reference to an unprefixed type or grouping, or one which uses the
+     * prefix of the current module, is resolved by locating the closest
+     * matching "typedef" or "grouping" statement among the immediate
+     * sub-statements of each ancestor statement.
+     */
+    /**
+     * List of nodes which require nested reference resolution.
+     */
+    private List<YangNode> nestedReferenceResoulutionList;
+
     /**
      * Create a YANG node of module type.
      */
@@ -173,16 +210,20 @@ public class YangModule extends YangNode
         super(YangNodeType.MODULE_NODE);
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getName()
+    /**
+     * Get name of the module.
+     *
+     * @return module name.
      */
     @Override
     public String getName() {
         return name;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setName(java.lang.String)
+    /**
+     * Set module name.
+     *
+     * @param moduleName module name.
      */
     @Override
     public void setName(String moduleName) {
@@ -511,6 +552,37 @@ public class YangModule extends YangNode
     }
 
     /**
+     * Get the list of nested reference's which required resolution.
+     *
+     * @return list of nested reference's which required resolution.
+     */
+    public List<YangNode> getNestedReferenceResoulutionList() {
+        return nestedReferenceResoulutionList;
+    }
+
+    /**
+     * Set list of nested reference's which requires resolution.
+     *
+     * @param nestedReferenceResoulutionList list of nested reference's which
+     *            requires resolution.
+     */
+    private void setNestedReferenceResoulutionList(List<YangNode> nestedReferenceResoulutionList) {
+        this.nestedReferenceResoulutionList = nestedReferenceResoulutionList;
+    }
+
+    /**
+     * Set list of nested reference's which requires resolution.
+     *
+     * @param nestedReference nested reference which requires resolution.
+     */
+    public void addToNestedReferenceResoulutionList(YangNode nestedReference) {
+        if (getNestedReferenceResoulutionList() == null) {
+            setNestedReferenceResoulutionList(new LinkedList<YangNode>());
+        }
+        getNestedReferenceResoulutionList().add(nestedReference);
+    }
+
+    /**
      * Returns the type of the parsed data.
      *
      * @return returns MODULE_DATA.
@@ -601,4 +673,28 @@ public class YangModule extends YangNode
         }
     }
 
+    /**
+     * Add a type to resolve the nested references.
+     *
+     * @param node grouping or typedef node which needs to be resolved.
+     * @throws DataModelException data model exception.
+     */
+    public static void addToResolveList(YangNode node) throws DataModelException {
+        /* get the module node to add maintain the list of nested reference */
+        YangModule module;
+        YangNode curNode = node;
+        while (curNode.getNodeType() != YangNodeType.MODULE_NODE) {
+            curNode = curNode.getParent();
+            if (curNode == null) {
+                break;
+            }
+        }
+        if (curNode == null) {
+            throw new DataModelException("Datamodel tree is not correct");
+        }
+
+        module = (YangModule) curNode;
+        module.addToNestedReferenceResoulutionList(node);
+        return;
+    }
 }

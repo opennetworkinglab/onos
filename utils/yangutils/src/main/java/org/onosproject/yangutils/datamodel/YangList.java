@@ -438,7 +438,7 @@ public class YangList extends YangNode
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
-        List<String> keyList = getKeyList();
+        List<String> keys = getKeyList();
         List<YangLeaf> leaves = getListOfLeaf();
         List<YangLeafList> leafLists = getListOfLeafList();
 
@@ -447,29 +447,32 @@ public class YangList extends YangNode
 
         /* A list must have atleast one key leaf if config is true */
         if ((isConfig)
-            && ((keyList == null) || (leaves == null && leafLists == null))) {
-                throw new DataModelException("A list must have atleast one key leaf if config is true;");
-        } else if (keyList != null) {
+                && ((keys == null) || ((leaves == null) && (leafLists == null)))) {
+            throw new DataModelException("A list must have atleast one key leaf if config is true;");
+        } else if (keys != null) {
             if (leaves != null) {
-                validateLeafKey(leaves, keyList);
+                validateLeafKey(leaves, keys);
             }
 
             if (leafLists != null) {
-                validateLeafListKey(leafLists, keyList);
+                validateLeafListKey(leafLists, keys);
             }
         }
     }
 
     /**
-     * Sets the config's value to all leaf if leaf's config statement is not specified.
+     * Sets the config's value to all leaf if leaf's config statement is not
+     * specified.
      *
      * @param leaves list of leaf attributes of YANG list.
      * @param leafLists list of leaf-list attributes of YANG list.
      */
     private void setDefaultConfigValueToChild(List<YangLeaf> leaves, List<YangLeafList> leafLists) {
 
-        /* If "config" is not specified, the default is the same as the parent
-            schema node's "config" value.*/
+        /*
+         * If "config" is not specified, the default is the same as the parent
+         * schema node's "config" value.
+         */
         if (leaves != null) {
             for (YangLeaf leaf : leaves) {
                 if (leaf.isConfig() == null) {
@@ -478,8 +481,10 @@ public class YangList extends YangNode
             }
         }
 
-        /* If "config" is not specified, the default is the same as the parent
-           schema node's "config" value.*/
+        /*
+         * If "config" is not specified, the default is the same as the parent
+         * schema node's "config" value.
+         */
         if (leafLists != null) {
             for (YangLeafList leafList : leafLists) {
                 if (leafList.isConfig() == null) {
@@ -498,8 +503,10 @@ public class YangList extends YangNode
      */
     private void validateConfig(List<YangLeaf> leaves, List<YangLeafList> leafLists) throws DataModelException {
 
-        /* If a node has "config" set to "false", no node underneath it can have
-             "config" set to "true".*/
+        /*
+         * If a node has "config" set to "false", no node underneath it can have
+         * "config" set to "true".
+         */
         if ((!isConfig) && (leaves != null)) {
             for (YangLeaf leaf : leaves) {
                 if (leaf.isConfig()) {
@@ -523,19 +530,21 @@ public class YangList extends YangNode
      * Validates key statement of list.
      *
      * @param leaves list of leaf attributes of list.
-     * @param keyList list of key attributes of list.
+     * @param keys list of key attributes of list.
      * @throws DataModelException a violation of data model rules.
      */
-    private void validateLeafKey(List<YangLeaf> leaves, List<String> keyList) throws DataModelException {
+    private void validateLeafKey(List<YangLeaf> leaves, List<String> keys) throws DataModelException {
         boolean leafFound = false;
         List<YangLeaf> keyLeaves = new LinkedList<>();
 
-        /* 1. Leaf identifier must refer to a child leaf of the list
-           2.  A leaf that is part of the key must not be the built-in type "empty". */
-        for (String key : keyList) {
+        /*
+         * 1. Leaf identifier must refer to a child leaf of the list 2. A leaf
+         * that is part of the key must not be the built-in type "empty".
+         */
+        for (String key : keys) {
             for (YangLeaf leaf : leaves) {
                 if (key.equals(leaf.getLeafName())) {
-                    if (leaf.getDataType().getDataTypeName().replace("\"", "").equals("empty")) {
+                    if (leaf.getDataType().getDataType() == YangDataTypes.EMPTY) {
                         throw new DataModelException(" A leaf that is part of the key must not be the built-in " +
                                 "type \"empty\".");
                     }
@@ -550,8 +559,10 @@ public class YangList extends YangNode
             leafFound = false;
         }
 
-        /* All key leafs in a list MUST have the same value for their "config"
-           as the list itself. */
+        /*
+         * All key leafs in a list MUST have the same value for their "config"
+         * as the list itself.
+         */
         for (YangLeaf keyLeaf : keyLeaves) {
             if (isConfig != keyLeaf.isConfig()) {
                 throw new DataModelException("All key leafs in a list must have the same value for their" +
@@ -564,19 +575,21 @@ public class YangList extends YangNode
      * Validates key statement of list.
      *
      * @param leafLists list of leaf-list attributes of list.
-     * @param keyList list of key attributes of list.
+     * @param keys list of key attributes of list.
      * @throws DataModelException a violation of data model rules.
      */
-    private void validateLeafListKey(List<YangLeafList> leafLists, List<String> keyList) throws DataModelException {
+    private void validateLeafListKey(List<YangLeafList> leafLists, List<String> keys) throws DataModelException {
         boolean leafFound = false;
         List<YangLeafList> keyLeafLists = new LinkedList<>();
 
-        /* 1. Leaf identifier must refer to a child leaf of the list
-           2.  A leaf that is part of the key must not be the built-in type "empty". */
-        for (String key : keyList) {
+        /*
+         * 1. Leaf identifier must refer to a child leaf of the list 2. A leaf
+         * that is part of the key must not be the built-in type "empty".
+         */
+        for (String key : keys) {
             for (YangLeafList leafList : leafLists) {
                 if (key.equals(leafList.getLeafName())) {
-                    if (leafList.getDataType().getDataTypeName().replace("\"", "").equals("empty")) {
+                    if (leafList.getDataType().getDataType() == YangDataTypes.EMPTY) {
                         throw new DataModelException(" A leaf-list that is part of the key must not be the built-in " +
                                 "type \"empty\".");
                     }
@@ -591,8 +604,10 @@ public class YangList extends YangNode
             leafFound = false;
         }
 
-        /* All key leafs in a list MUST have the same value for their "config"
-             as the list itself. */
+        /*
+         * All key leafs in a list MUST have the same value for their "config"
+         * as the list itself.
+         */
         for (YangLeafList keyLeafList : keyLeafLists) {
             if (isConfig() != keyLeafList.isConfig()) {
                 throw new DataModelException("All key leaf-lists in a list must have the same value for their" +
@@ -601,8 +616,9 @@ public class YangList extends YangNode
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeEntry()
+    /**
+     * Populate the cached handle with information about the list attributes to
+     * generate java code.
      */
     @Override
     public void generateJavaCodeEntry() {

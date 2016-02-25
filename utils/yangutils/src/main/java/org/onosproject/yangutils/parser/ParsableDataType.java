@@ -222,7 +222,12 @@ public enum ParsableDataType {
     /**
      * Identifies the YANG organization parsed data.
      */
-    ORGANIZATION_DATA;
+    ORGANIZATION_DATA,
+
+    /**
+     * Identifies the derived data type.
+     */
+    DERIVED;
 
     /**
      * Returns the YANG construct keyword corresponding to enum values.
@@ -315,6 +320,8 @@ public enum ParsableDataType {
                 return "value";
             case DEFAULT_DATA:
                 return "default";
+            case DERIVED:
+                return "derived";
             default:
                 return "yang";
         }

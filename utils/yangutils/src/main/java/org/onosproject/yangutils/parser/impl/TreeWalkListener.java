@@ -16,6 +16,8 @@
 
 package org.onosproject.yangutils.parser.impl;
 
+import java.util.Stack;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -56,8 +58,6 @@ import org.onosproject.yangutils.parser.impl.listeners.TypeListener;
 import org.onosproject.yangutils.parser.impl.listeners.UnitsListener;
 import org.onosproject.yangutils.parser.impl.listeners.ValueListener;
 import org.onosproject.yangutils.parser.impl.listeners.VersionListener;
-
-import java.util.Stack;
 
 /**
  * ANTLR generates a parse-tree listener interface that responds to events

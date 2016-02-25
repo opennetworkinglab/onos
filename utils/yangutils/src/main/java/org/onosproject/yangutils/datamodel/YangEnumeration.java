@@ -16,12 +16,12 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /*
  * The enumeration built-in type represents values from a set of

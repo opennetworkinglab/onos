@@ -54,10 +54,6 @@ import org.onosproject.yangutils.translator.CachedFileHandle;
  */
 public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
 
-    /**
-     * Name of derived data type.
-     */
-    private String derivedName;
 
     /**
      * Default value in string, needs to be converted to the target object,
@@ -81,24 +77,14 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     private YangStatusType status;
 
     /**
-     * Derived data type. The type will be set when the parser detects the type
-     * parsing. Hence it is of raw type and it not know at the time of creation
-     * of the object. i.e. in entry parse, it will not be know, in the exit
-     * parse we may know the type implicitly based on the restriction. We must
-     * know and validate the base built in type, by the linking phase. It is a
-     * RAW type and it usage needs to be validate in linking phase.
+     * Maintain the derived type information.
      */
-    private YangType<?> derivedType;
+    private YangType<YangDerivedType> derivedType;
 
     /**
      * Units of the data type.
      */
     private String units;
-
-    /**
-     * YANG base built in data type.
-     */
-    private YangDataTypes baseBuiltInType;
 
     /**
      * package of the generated java code.
@@ -112,23 +98,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
         super(YangNodeType.TYPEDEF_NODE);
     }
 
-    /**
-     * Get the data type name.
-     *
-     * @return the data type name.
-     */
-    public String getDerivedName() {
-        return derivedName;
-    }
 
-    /**
-     * Set the data type name.
-     *
-     * @param derrivedName data type name.
-     */
-    public void setDerivedName(String derrivedName) {
-        derivedName = derrivedName;
-    }
 
     /**
      * Get the default value.
@@ -209,20 +179,20 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the referenced type.
+     * Get the derived type.
      *
-     * @return the referenced type.
+     * @return the derived type.
      */
-    public YangType<?> getDerivedType() {
+    public YangType<YangDerivedType> getDerivedType() {
         return derivedType;
     }
 
     /**
-     * Get the referenced type.
+     * Set the derived type.
      *
-     * @param derivedType the referenced type.
+     * @param derivedType the derived type.
      */
-    public void setDerivedType(YangType<?> derivedType) {
+    public void setDerivedType(YangType<YangDerivedType> derivedType) {
         this.derivedType = derivedType;
     }
 
@@ -242,24 +212,6 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      */
     public void setUnits(String units) {
         this.units = units;
-    }
-
-    /**
-     * Get the base built in YANG data type.
-     *
-     * @return base built in YANG data type.
-     */
-    public YangDataTypes getBaseBuiltInType() {
-        return baseBuiltInType;
-    }
-
-    /**
-     * Set the base built in YANG data type.
-     *
-     * @param baseBuiltInType base built in YANG data type.
-     */
-    public void setBaseBuiltInType(YangDataTypes baseBuiltInType) {
-        this.baseBuiltInType = baseBuiltInType;
     }
 
     /**
@@ -289,7 +241,34 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
-        // TODO auto-generated method stub, to be implemented by parser
+        YangType<YangDerivedType> type = getDerivedType();
+        if (type == null) {
+            throw new DataModelException("Typedef does not have type info.");
+        }
+        if ((type.getDataType() != YangDataTypes.DERIVED)
+                || (type.getDataTypeName() == null)) {
+            throw new DataModelException("Typedef type is not derived.");
+        }
+
+        YangDerivedType derivedTypeInfo = type.getDataTypeExtendedInfo();
+        if (derivedTypeInfo == null) {
+            throw new DataModelException("derrived type does not have derived info.");
+        }
+
+        YangType<?> baseType = derivedTypeInfo.getBaseType();
+        if (baseType == null) {
+            throw new DataModelException("Base type of a derived type is missing.");
+        }
+
+        if (derivedTypeInfo.getEffectiveYangBuiltInType() == null) {
+            /* resolve the effective type from the data tree. */
+            /*
+             * TODO: try to resolve the nested reference, if possible in the
+             * partial tree, otherwise we need to resolve finally when the
+             * complete module is created.
+             */
+            YangModule.addToResolveList(this);
+        }
     }
 
     /**
@@ -299,7 +278,10 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      */
     @Override
     public String getName() {
-        return derivedName;
+        if (getDerivedType() != null) {
+            return getDerivedType().getDataTypeName();
+        }
+        return null;
     }
 
     /**
@@ -309,8 +291,12 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      */
     @Override
     public void setName(String name) {
-        // TODO Auto-generated method stub
-
+        if (getDerivedType() == null) {
+            throw new RuntimeException(
+                    "Derrived Type info needs to be set in parser when the typedef listner is processed");
+        }
+        getDerivedType().setDataTypeName(name);
+        getDerivedType().setDataType(YangDataTypes.DERIVED);
     }
 
     /**

@@ -16,6 +16,9 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
+import java.util.List;
+import java.util.SortedSet;
+
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.translator.GeneratedFileType;
 import org.onosproject.yangutils.translator.tojava.GeneratedMethodTypes;
@@ -43,6 +46,17 @@ public final class JavaCodeSnippetGen {
         /**
          * TODO return the file header.
          */
+        return null;
+    }
+
+    /**
+     * reorder the import list based on the ONOS import rules.
+     *
+     * @param importInfo the set of classes/interfaces to be imported.
+     * @return string of import info.
+     */
+    public List<ImportInfo> sortImportOrder(SortedSet<ImportInfo> importInfo) {
+        /* TODO: reorder the import list based on the ONOS import rules. */
         return null;
     }
 

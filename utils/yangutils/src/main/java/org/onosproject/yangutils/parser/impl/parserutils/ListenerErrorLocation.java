@@ -39,12 +39,12 @@ public enum ListenerErrorLocation {
     public static String getErrorLocationMessage(ListenerErrorLocation errorLocation) {
 
         switch (errorLocation) {
-        case ENTRY:
-            return "before";
-        case EXIT:
-            return "after";
-        default:
-            return "during";
+            case ENTRY:
+                return "before";
+            case EXIT:
+                return "after";
+            default:
+                return "during";
         }
     }
 }

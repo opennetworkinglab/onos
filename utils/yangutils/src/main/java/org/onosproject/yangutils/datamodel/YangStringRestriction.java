@@ -109,7 +109,19 @@ public class YangStringRestriction {
      *
      * @param patternRestriction pattern restriction for the type.
      */
-    public void setPatternRestriction(YangPatternRestriction patternRestriction) {
+    private void setPatternRestriction(YangPatternRestriction patternRestriction) {
         this.patternRestriction = patternRestriction;
+    }
+
+    /**
+     * Add a new pattern restriction for the type.
+     *
+     * @param newPattern new pattern restriction for the type.
+     */
+    public void addPattern(String newPattern) {
+        if (getPatternRestriction() == null) {
+            setPatternRestriction(new YangPatternRestriction());
+        }
+        getPatternRestriction().addPattern(newPattern);
     }
 }

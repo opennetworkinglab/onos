@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 package org.onosproject.yangutils.datamodel;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /*-
@@ -51,7 +52,7 @@ public class YangPatternRestriction {
     /**
      * Pattern restriction defined for the current type.
      */
-    private List<String> pattern;
+    private List<String> patternList;
 
     /**
      * Effective pattern restriction that needs inherited from base type.
@@ -62,6 +63,7 @@ public class YangPatternRestriction {
      * Default constructor.
      */
     public YangPatternRestriction() {
+        setPatternList(new LinkedList<String>());
     }
 
     /**
@@ -69,8 +71,8 @@ public class YangPatternRestriction {
      *
      * @return pattern restriction defined for the current type.
      */
-    public List<String> getPattern() {
-        return pattern;
+    public List<String> getPatternList() {
+        return patternList;
     }
 
     /**
@@ -78,8 +80,17 @@ public class YangPatternRestriction {
      *
      * @param pattern pattern restriction defined for the current type..
      */
-    public void setPattern(List<String> pattern) {
-        this.pattern = pattern;
+    private void setPatternList(List<String> pattern) {
+        patternList = pattern;
+    }
+
+    /**
+     * Add a new pattern to the list of pattern restriction.
+     *
+     * @param newPattern pattern restriction.
+     */
+    public void addPattern(String newPattern) {
+        getPatternList().add(newPattern);
     }
 
     /**

@@ -24,14 +24,13 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 /**
  * By default, ANTLR sends all errors to standard error, this is changed by
  * providing this new implementation of interface ANTLRErrorListener. The
- * interface has a syntaxError() method that applies to both lexer and
- * parser.
+ * interface has a syntaxError() method that applies to both lexer and parser.
  */
 public class ParseTreeErrorListener extends BaseErrorListener {
 
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
-                            String msg, RecognitionException e) {
+            String msg, RecognitionException e) {
 
         ParserException parserException = new ParserException(msg);
         parserException.setLine(line);

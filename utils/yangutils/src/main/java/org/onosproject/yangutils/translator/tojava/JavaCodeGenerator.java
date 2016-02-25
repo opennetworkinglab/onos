@@ -53,11 +53,10 @@ public final class JavaCodeGenerator {
                 curTraversal = TraversalType.SIBILING;
                 curNode = curNode.getNextSibling();
             } else {
-                curTraversal = TraversalType.PARENT;
                 curNode.generateJavaCodeExit();
+                curTraversal = TraversalType.PARENT;
                 curNode = curNode.getParent();
             }
         }
-
     }
 }

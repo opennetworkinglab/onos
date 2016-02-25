@@ -143,7 +143,7 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
      * @param newInterval restricted length interval.
      * @throws DataModelException data model exception for range restriction.
      */
-    public void addLenghtRestrictionInterval(YangRangeInterval<T> newInterval) throws DataModelException {
+    public void addRangeRestrictionInterval(YangRangeInterval<T> newInterval) throws DataModelException {
 
         checkNotNull(newInterval);
         checkNotNull(newInterval.getStartValue());

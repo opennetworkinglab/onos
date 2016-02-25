@@ -48,10 +48,13 @@ package org.onosproject.yangutils.parser.impl.listeners;
  */
 
 import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangDataTypes;
+import org.onosproject.yangutils.datamodel.YangDerivedType;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
@@ -111,8 +114,16 @@ public final class TypeDefListener {
             throw new ParserException(constructListenerErrorMessage(INVALID_CARDINALITY, yangConstruct, "", ENTRY));
         }
 
+        /*
+         * Create a derived type information, the base type must be set in type
+         * listener.
+         */
+        YangType<YangDerivedType> derivedType = new YangType<YangDerivedType>();
+        derivedType.setDataType(YangDataTypes.DERIVED);
+        derivedType.setDataTypeName(ctx.IDENTIFIER().getText());
+
         YangTypeDef typeDefNode = new YangTypeDef();
-        typeDefNode.setDerivedName(ctx.IDENTIFIER().getText());
+        typeDefNode.setDerivedType(derivedType);
 
         Parsable curData = listener.getParsedDataStack().peek();
 
@@ -149,6 +160,14 @@ public final class TypeDefListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPEDEF_DATA, ctx.IDENTIFIER().getText(), EXIT);
 
         if (listener.getParsedDataStack().peek() instanceof YangTypeDef) {
+            YangTypeDef typeDefNode = (YangTypeDef) listener.getParsedDataStack().peek();
+            try {
+                typeDefNode.validateDataOnExit();
+            } catch (DataModelException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
             listener.getParsedDataStack().pop();
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, TYPEDEF_DATA,
