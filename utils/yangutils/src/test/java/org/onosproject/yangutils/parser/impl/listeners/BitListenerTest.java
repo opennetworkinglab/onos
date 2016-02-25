@@ -19,9 +19,9 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import org.junit.Test;
+import org.onosproject.yangutils.datamodel.YangBit;
+import org.onosproject.yangutils.datamodel.YangBits;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
-import org.onosproject.yangutils.datamodel.YangEnum;
-import org.onosproject.yangutils.datamodel.YangEnumeration;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
@@ -34,19 +34,19 @@ import java.util.ListIterator;
 import java.util.Set;
 
 /**
- * Test cases for enum listener.
+ * Test cases for bit listener.
  */
-public class EnumListenerTest {
+public class BitListenerTest {
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
 
     /**
-     * Checks enum statement without value.
+     * Checks bit statement without position.
      */
     @Test
-    public void processEnumTypeStatement() throws IOException, ParserException {
+    public void processBitTypeStatement() throws IOException, ParserException {
 
-        YangNode node = manager.getDataModel("src/test/resources/EnumTypeStatement.yang");
+        YangNode node = manager.getDataModel("src/test/resources/BitTypeStatement.yang");
 
         // Check whether the data model tree returned is of type module.
         assertThat((node instanceof YangModule), is(true));
@@ -61,20 +61,20 @@ public class EnumListenerTest {
         ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("speed"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("enumeration"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.ENUMERATION));
-        assertThat(((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getEnumerationName(),
-                is("speed"));
+        assertThat(leafInfo.getLeafName(), is("mybits"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("bits"));
+        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.BITS));
+        assertThat(((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitsName(),
+                is("mybits"));
 
-        Set<YangEnum> enumSet = ((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getEnumSet();
-        for (YangEnum tmp : enumSet) {
-            if (tmp.getNamedValue().equals("10m")) {
-                assertThat(tmp.getValue(), is(0));
-            } else if (tmp.getNamedValue().equals("100m")) {
-                assertThat(tmp.getValue(), is(1));
-            } else if (tmp.getNamedValue().equals("auto")) {
-                assertThat(tmp.getValue(), is(2));
+        Set<YangBit> bitSet = ((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitSet();
+        for (YangBit tmp : bitSet) {
+            if (tmp.getBitName().equals("disable-nagle")) {
+                assertThat(tmp.getPosition(), is(0));
+            } else if (tmp.getBitName().equals("auto-sense-speed")) {
+                assertThat(tmp.getPosition(), is(1));
+            } else if (tmp.getBitName().equals("Ten-Mb-only")) {
+                assertThat(tmp.getPosition(), is(2));
             }
         }
     }
@@ -83,8 +83,8 @@ public class EnumListenerTest {
      * Checks if enum with same name is not allowed.
      */
     @Test(expected = ParserException.class)
-    public void processEnumWithDuplicateName() throws IOException, ParserException {
+    public void processBitWithDuplicateName() throws IOException, ParserException {
 
-        YangNode node = manager.getDataModel("src/test/resources/EnumWithDuplicateName.yang");
+        YangNode node = manager.getDataModel("src/test/resources/BitWithDuplicateName.yang");
     }
 }

@@ -225,6 +225,11 @@ public enum ParsableDataType {
     ORGANIZATION_DATA,
 
     /**
+     * Identifies the YANG position element parsed data.
+     */
+    POSITION_DATA,
+
+    /**
      * Identifies the derived data type.
      */
     DERIVED;
@@ -318,6 +323,8 @@ public enum ParsableDataType {
                 return "organization";
             case VALUE_DATA:
                 return "value";
+            case POSITION_DATA:
+                return "position";
             case DEFAULT_DATA:
                 return "default";
             case DERIVED:

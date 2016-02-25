@@ -55,6 +55,11 @@ public enum ListenerErrorType {
     DUPLICATE_ENTRY(),
 
     /**
+     * Represents that the content is invalid.
+     */
+    INVALID_CONTENT(),
+
+    /**
      * Represents that some of earlier parsed data is not handled correctly.
      */
     UNHANDLED_PARSED_DATA();
@@ -80,6 +85,8 @@ public enum ListenerErrorType {
                 return "Invalid cardinality in";
             case DUPLICATE_ENTRY:
                 return "Duplicate";
+            case INVALID_CONTENT:
+                return "Invalid content in";
             case UNHANDLED_PARSED_DATA:
                 return "Unhandled parsed data at";
             default:

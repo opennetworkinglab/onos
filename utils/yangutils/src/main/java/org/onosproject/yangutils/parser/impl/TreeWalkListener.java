@@ -27,6 +27,8 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangListener;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.impl.listeners.BaseFileListener;
 import org.onosproject.yangutils.parser.impl.listeners.BelongsToListener;
+import org.onosproject.yangutils.parser.impl.listeners.BitListener;
+import org.onosproject.yangutils.parser.impl.listeners.BitsListener;
 import org.onosproject.yangutils.parser.impl.listeners.ConfigListener;
 import org.onosproject.yangutils.parser.impl.listeners.ContactListener;
 import org.onosproject.yangutils.parser.impl.listeners.ContainerListener;
@@ -46,6 +48,7 @@ import org.onosproject.yangutils.parser.impl.listeners.MinElementsListener;
 import org.onosproject.yangutils.parser.impl.listeners.ModuleListener;
 import org.onosproject.yangutils.parser.impl.listeners.NamespaceListener;
 import org.onosproject.yangutils.parser.impl.listeners.OrganizationListener;
+import org.onosproject.yangutils.parser.impl.listeners.PositionListener;
 import org.onosproject.yangutils.parser.impl.listeners.PrefixListener;
 import org.onosproject.yangutils.parser.impl.listeners.PresenceListener;
 import org.onosproject.yangutils.parser.impl.listeners.ReferenceListener;
@@ -691,22 +694,22 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterBitsSpecification(GeneratedYangParser.BitsSpecificationContext ctx) {
-        // TODO: implement the method.
+        BitsListener.processBitsEntry(this, ctx);
     }
 
     @Override
     public void exitBitsSpecification(GeneratedYangParser.BitsSpecificationContext ctx) {
-        // TODO: implement the method.
+        BitsListener.processBitsExit(this, ctx);
     }
 
     @Override
     public void enterBitStatement(GeneratedYangParser.BitStatementContext ctx) {
-        // TODO: implement the method.
+        BitListener.processBitEntry(this, ctx);
     }
 
     @Override
     public void exitBitStatement(GeneratedYangParser.BitStatementContext ctx) {
-        // TODO: implement the method.
+        BitListener.processBitExit(this, ctx);
     }
 
     @Override
@@ -721,7 +724,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterPositionStatement(GeneratedYangParser.PositionStatementContext ctx) {
-        // TODO: implement the method.
+        PositionListener.processPositionEntry(this, ctx);
     }
 
     @Override

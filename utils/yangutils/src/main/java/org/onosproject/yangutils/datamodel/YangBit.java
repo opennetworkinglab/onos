@@ -20,6 +20,8 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.ParsableDataType;
 
+import java.util.Objects;
+
 /*-
  *  The "bit" statement, which is a sub-statement to the "type" statement,
  *  MUST be present if the type is "bits".  It is repeatedly used to
@@ -57,7 +59,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     private String description;
 
     /**
-     * reference info of the bit field.
+     * Reference info of the bit field.
      */
     private String reference;
 
@@ -67,7 +69,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     private YangStatusType status;
 
     /**
-     * position of the bit whose name bit is described.
+     * Position of the bit whose name bit is described.
      */
     private int position;
 
@@ -79,7 +81,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the bit name.
+     * Returns bit name.
      *
      * @return the bit name.
      */
@@ -97,7 +99,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the description.
+     * Returns description.
      *
      * @return the description.
      */
@@ -117,7 +119,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the textual reference.
+     * Returns textual reference.
      *
      * @return the reference.
      */
@@ -137,7 +139,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the status.
+     * Returns status.
      *
      * @return the status.
      */
@@ -157,7 +159,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the bit position.
+     * Returns bit position.
      *
      * @return the position
      */
@@ -182,6 +184,23 @@ public class YangBit implements YangCommonInfo, Parsable {
     @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.BIT_DATA;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof YangBit) {
+            final YangBit other = (YangBit) obj;
+            return Objects.equals(this.bitName, other.bitName);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.bitName);
     }
 
     /**

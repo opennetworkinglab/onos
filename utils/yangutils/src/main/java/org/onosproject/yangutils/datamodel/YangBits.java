@@ -36,7 +36,11 @@ import org.onosproject.yangutils.parser.ParsableDataType;
  */
 public class YangBits implements Parsable {
 
+    // Bits information set.
     private Set<YangBit> bitSet;
+
+    // BITS name.
+    private String bitsName;
 
     /**
      * Create a YANG bits type object.
@@ -46,7 +50,7 @@ public class YangBits implements Parsable {
     }
 
     /**
-     * Get the bit set.
+     * Returns the bit set.
      *
      * @return the bit set
      */
@@ -55,7 +59,7 @@ public class YangBits implements Parsable {
     }
 
     /**
-     * set the bit set.
+     * Set the bit set.
      *
      * @param bitSet the bit set
      */
@@ -66,10 +70,13 @@ public class YangBits implements Parsable {
     /**
      * Add bit info.
      *
-     * @param bitInfo the bit Info to add.
+     * @param bitInfo the bit information to be added.
+     * @throws DataModelException due to violation in data model rules.
      */
-    public void addBitInfo(YangBit bitInfo) {
-        getBitSet().add(bitInfo);
+    public void addBitInfo(YangBit bitInfo) throws DataModelException {
+        if (!getBitSet().add(bitInfo)) {
+            throw new DataModelException("YANG Bit already exists");
+        }
     }
 
     /**
@@ -80,6 +87,24 @@ public class YangBits implements Parsable {
     @Override
     public ParsableDataType getParsableDataType() {
         return ParsableDataType.BITS_DATA;
+    }
+
+    /**
+     * Returns the bits name.
+     *
+     * @return name of the bits.
+     */
+    public String getBitsName() {
+        return bitsName;
+    }
+
+    /**
+     * Set bits name.
+     *
+     * @param bitsName bit name to be set.
+     */
+    public void setBitsName(String bitsName) {
+        this.bitsName = bitsName;
     }
 
     /**

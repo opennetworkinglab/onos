@@ -20,16 +20,23 @@ package org.onosproject.yangutils.parser.impl.listeners;
  * Reference: RFC6020 and YANG ANTLR Grammar
  *
  * ABNF grammar as per RFC6020
- * value-stmt = value-keyword sep integer-value stmtend
+ * position-stmt       = position-keyword sep
+ *                       position-value-arg-str stmtend
+ * position-value-arg-str = < a string that matches the rule
+ *                            position-value-arg >
+ * position-value-arg  = non-negative-integer-value
+ * non-negative-integer-value = "0" / positive-integer-value
+ * positive-integer-value = (non-zero-digit *DIGIT)
+ * zero-integer-value  = 1*DIGIT
  *
  * ANTLR grammar rule
- * valueStatement : VALUE_KEYWORD ((MINUS INTEGER) | INTEGER) STMTEND;
+ * positionStatement : POSITION_KEYWORD INTEGER STMTEND;
  */
 
-import org.onosproject.yangutils.datamodel.YangEnum;
-import org.onosproject.yangutils.datamodel.YangEnumeration;
+import org.onosproject.yangutils.datamodel.YangBit;
+import org.onosproject.yangutils.datamodel.YangBits;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.parser.ParsableDataType.VALUE_DATA;
+import static org.onosproject.yangutils.parser.ParsableDataType.POSITION_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
@@ -40,79 +47,91 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /**
- * Implements listener based call back function corresponding to the "value"
+ * Implements listener based call back function corresponding to the "position"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
-public final class ValueListener {
+public final class PositionListener {
+
+    // Exact message in case position is invalid.
+    private static String errMsg;
 
     /**
-     * Creates a new value listener.
+     * Creates a new position listener.
      */
-    private ValueListener() {
+    private PositionListener() {
     }
 
     /**
      * It is called when parser receives an input matching the grammar rule
-     * (value), perform validations and update the data model tree.
+     * (position), perform validations and update the data model tree.
      *
      * @param listener Listener's object.
      * @param ctx context object of the grammar rule.
      */
-    public static void processValueEntry(TreeWalkListener listener, GeneratedYangParser.ValueStatementContext ctx) {
+    public static void processPositionEntry(TreeWalkListener listener,
+                                            GeneratedYangParser.PositionStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, VALUE_DATA, ctx.INTEGER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, POSITION_DATA, ctx.INTEGER().getText(), ENTRY);
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getParsableDataType()) {
-            case ENUM_DATA: {
-                YangEnum enumNode = (YangEnum) tmpNode;
-                if (!isEnumValueValid(listener, ctx)) {
-                    ParserException parserException = new ParserException("Duplicate Value Entry");
+            case BIT_DATA: {
+                YangBit bitNode = (YangBit) tmpNode;
+                if (!isBitPositionValid(listener, ctx)) {
+                    ParserException parserException = new ParserException(errMsg);
                     parserException.setLine(ctx.INTEGER().getSymbol().getLine());
                     parserException.setCharPosition(ctx.INTEGER().getSymbol().getCharPositionInLine());
                     throw parserException;
                 }
-                enumNode.setValue(Integer.valueOf(ctx.INTEGER().getText()));
+                bitNode.setPosition(Integer.valueOf(ctx.INTEGER().getText()));
                 break;
             }
             default:
                 throw new ParserException(
-                        constructListenerErrorMessage(INVALID_HOLDER, VALUE_DATA, ctx.INTEGER().getText(), ENTRY));
+                        constructListenerErrorMessage(INVALID_HOLDER, POSITION_DATA, ctx.INTEGER().getText(), ENTRY));
         }
     }
 
     /**
-     * Validates ENUM value uniqueness.
+     * Validates BITS position value correctness and uniqueness.
      *
      * @param listener Listener's object.
      * @param ctx context object of the grammar rule.
      * @return validation result
      */
-    private static boolean isEnumValueValid(TreeWalkListener listener, GeneratedYangParser.ValueStatementContext ctx) {
-        Parsable enumNode = listener.getParsedDataStack().pop();
+    private static boolean isBitPositionValid(TreeWalkListener listener,
+                                           GeneratedYangParser.PositionStatementContext ctx) {
+        Parsable bitNode = listener.getParsedDataStack().pop();
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, VALUE_DATA, ctx.INTEGER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, POSITION_DATA, ctx.INTEGER().getText(), ENTRY);
+
+        if (Integer.valueOf(ctx.INTEGER().getText()) < 0) {
+            errMsg = "Negative value of position is invalid";
+            listener.getParsedDataStack().push(bitNode);
+            return false;
+        }
 
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getParsableDataType()) {
-            case ENUMERATION_DATA: {
-                YangEnumeration yangEnumeration = (YangEnumeration) tmpNode;
-                for (YangEnum curEnum : yangEnumeration.getEnumSet()) {
-                    if (Integer.valueOf(ctx.INTEGER().getText()) == curEnum.getValue()) {
-                        listener.getParsedDataStack().push(enumNode);
+            case BITS_DATA: {
+                YangBits yangBits = (YangBits) tmpNode;
+                for (YangBit curBit : yangBits.getBitSet()) {
+                    if (Integer.valueOf(ctx.INTEGER().getText()) == curBit.getPosition()) {
+                        errMsg = "Duplicate value of position is invalid";
+                        listener.getParsedDataStack().push(bitNode);
                         return false;
                     }
                 }
-                listener.getParsedDataStack().push(enumNode);
+                listener.getParsedDataStack().push(bitNode);
                 return true;
             }
             default:
-                listener.getParsedDataStack().push(enumNode);
+                listener.getParsedDataStack().push(bitNode);
                 throw new ParserException(
-                        constructListenerErrorMessage(INVALID_HOLDER, VALUE_DATA, ctx.INTEGER().getText(), ENTRY));
+                        constructListenerErrorMessage(INVALID_HOLDER, POSITION_DATA, ctx.INTEGER().getText(), ENTRY));
         }
     }
 }
