@@ -3,7 +3,7 @@
 #set( $format = $dummy.getClass().forName("java.text.SimpleDateFormat").newInstance() )
 #set( $pattern = $format.applyPattern("yyyy") )
 #set( $year = $format.format($date) )
-?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright ${year} Open Networking Laboratory
   ~
