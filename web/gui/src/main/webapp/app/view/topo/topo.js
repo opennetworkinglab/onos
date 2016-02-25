@@ -357,12 +357,14 @@
         mapG = zoomLayer.append('g').attr('id', 'topo-map');
         if (mapId === 'usa') {
             promise = ms.loadMapInto(mapG, '*continental_us');
+        } else if (mapId === 'bayarea') {
+            promise = ms.loadMapInto(mapG, '*bayarea', {objectTag: 'bayareaGEO'});
         } else {
-            ps.setPrefs('topo_mapid', {id:mapId});
             cfilter = countryFilters[mapId] || countryFilters.world;
             opts = { countryFilter: cfilter };
             promise = ms.loadMapRegionInto(mapG, opts);
         }
+        ps.setPrefs('topo_mapid', {id:mapId});
         return promise;
     }
 
