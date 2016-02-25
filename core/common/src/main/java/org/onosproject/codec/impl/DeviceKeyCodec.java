@@ -41,21 +41,20 @@ public class DeviceKeyCodec extends AnnotatedCodec<DeviceKey> {
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
 
-
     @Override
     public ObjectNode encode(DeviceKey deviceKey, CodecContext context) {
         checkNotNull(deviceKey, "Device key cannot be null");
         DeviceKeyService service = context.getService(DeviceKeyService.class);
         ObjectNode result = context.mapper().createObjectNode()
-                .put(ID, deviceKey.deviceKeyId().id().toString())
+                .put(ID, deviceKey.deviceKeyId().id())
                 .put(TYPE, deviceKey.type().toString())
-                .put(LABEL, deviceKey.label().toString());
+                .put(LABEL, deviceKey.label());
 
         if (deviceKey.type().equals(DeviceKey.Type.COMMUNITY_NAME)) {
             result.put(COMMUNITY_NAME, deviceKey.asCommunityName().name());
         } else if (deviceKey.type().equals(DeviceKey.Type.USERNAME_PASSWORD)) {
-            result.put(USERNAME, deviceKey.asUsernamePassword().username().toString());
-            result.put(PASSWORD, deviceKey.asUsernamePassword().password().toString());
+            result.put(USERNAME, deviceKey.asUsernamePassword().username());
+            result.put(PASSWORD, deviceKey.asUsernamePassword().password());
         }
 
         return annotate(result, deviceKey, context);
@@ -70,18 +69,29 @@ public class DeviceKeyCodec extends AnnotatedCodec<DeviceKey> {
         DeviceKeyId id = DeviceKeyId.deviceKeyId(json.get(ID).asText());
 
         DeviceKey.Type type = DeviceKey.Type.valueOf(json.get(TYPE).asText());
-        String label = json.get(LABEL).asText();
+        String label = extract(json, LABEL);
 
         if (type.equals(DeviceKey.Type.COMMUNITY_NAME)) {
-            String communityName = json.get(COMMUNITY_NAME).asText();
+            String communityName = extract(json, COMMUNITY_NAME);
             return DeviceKey.createDeviceKeyUsingCommunityName(id, label, communityName);
         } else if (type.equals(DeviceKey.Type.USERNAME_PASSWORD)) {
-            String username = json.get(USERNAME).asText();
-            String password = json.get(PASSWORD).asText();
+            String username = extract(json, USERNAME);
+            String password = extract(json, PASSWORD);
             return DeviceKey.createDeviceKeyUsingUsernamePassword(id, label, username, password);
         } else {
             log.error("Unknown device key type: ", type);
             return null;
         }
+    }
+
+    /**
+     * Extract the key from the json node.
+     *
+     * @param json json object
+     * @param key key to use extract the value from the json object
+     * @return extracted value from the json object
+     */
+    private String extract(ObjectNode json, String key) {
+        return json.get(key) == null ? null : json.get(key).asText();
     }
 }

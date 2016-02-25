@@ -25,7 +25,6 @@ import com.sun.jersey.api.client.WebResource;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
@@ -67,6 +66,7 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
     private final String deviceKeyId1 = "DeviceKeyId1";
     private final String deviceKeyId2 = "DeviceKeyId2";
     private final String deviceKeyId3 = "DeviceKeyId3";
+    private final String deviceKeyId4 = "DeviceKeyId4";
     private final String deviceKeyLabel = "DeviceKeyLabel";
     private final String deviceKeyCommunityName = "DeviceKeyCommunityName";
     private final String deviceKeyUsername = "DeviceKeyUsername";
@@ -75,7 +75,11 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
     private final DeviceKey deviceKey1 = DeviceKey.createDeviceKeyUsingCommunityName(
             DeviceKeyId.deviceKeyId(deviceKeyId1), deviceKeyLabel, deviceKeyCommunityName);
     private final DeviceKey deviceKey2 = DeviceKey.createDeviceKeyUsingUsernamePassword(
-            DeviceKeyId.deviceKeyId(deviceKeyId2), deviceKeyLabel, deviceKeyUsername, deviceKeyPassword);
+            DeviceKeyId.deviceKeyId(deviceKeyId2), null, deviceKeyUsername, deviceKeyPassword);
+    private final DeviceKey deviceKey3 = DeviceKey.createDeviceKeyUsingUsernamePassword(
+            DeviceKeyId.deviceKeyId(deviceKeyId3), null, null, null);
+    private final DeviceKey deviceKey4 = DeviceKey.createDeviceKeyUsingCommunityName(
+            DeviceKeyId.deviceKeyId(deviceKeyId4), null, null);
 
     /**
      * Initializes test mocks and environment.
@@ -94,15 +98,6 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
                         .add(CodecService.class, codecService);
 
         BaseResource.setServiceDirectory(testDirectory);
-    }
-
-    /**
-     * Verifies test mocks.
-     */
-    @After
-    public void tearDownMocks() {
-        verify(mockDeviceKeyService);
-        verify(mockDeviceKeyAdminService);
     }
 
     /**
@@ -127,10 +122,12 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
             }
 
             // Check the device key label
-            final String jsonLabel = jsonHost.get(LABEL).asString();
-            if (!jsonLabel.equals(deviceKey.label().toString())) {
-                reason = LABEL + " " + deviceKey.label().toString();
-                return false;
+            final String jsonLabel = (jsonHost.get(LABEL).isNull()) ? null : jsonHost.get(LABEL).asString();
+            if (deviceKey.label() != null) {
+                if ((jsonLabel == null) || !jsonLabel.equals(deviceKey.label())) {
+                    reason = LABEL + " " + deviceKey.label();
+                    return false;
+                }
             }
 
             // Check the device key type
@@ -142,24 +139,33 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
 
             if (jsonType.equals(DeviceKey.Type.COMMUNITY_NAME.toString())) {
                 // Check the device key community name
-                final String jsonCommunityName = jsonHost.get(COMMUNITY_NAME).asString();
-                if (!jsonCommunityName.equals(deviceKey.asCommunityName().name().toString())) {
-                    reason = COMMUNITY_NAME + " " + deviceKey.asCommunityName().name().toString();
-                    return false;
+                final String jsonCommunityName = jsonHost.get(COMMUNITY_NAME).isNull() ?
+                        null : jsonHost.get(COMMUNITY_NAME).asString();
+                if (deviceKey.asCommunityName().name() != null) {
+                    if (!jsonCommunityName.equals(deviceKey.asCommunityName().name().toString())) {
+                        reason = COMMUNITY_NAME + " " + deviceKey.asCommunityName().name().toString();
+                        return false;
+                    }
                 }
             } else if (jsonType.equals(DeviceKey.Type.USERNAME_PASSWORD.toString())) {
                 // Check the device key username
-                final String jsonUsername = jsonHost.get(USERNAME).asString();
-                if (!jsonUsername.equals(deviceKey.asUsernamePassword().username().toString())) {
-                    reason = USERNAME + " " + deviceKey.asUsernamePassword().username().toString();
-                    return false;
+                final String jsonUsername = jsonHost.get(USERNAME).isNull() ?
+                        null : jsonHost.get(USERNAME).asString();
+                if (deviceKey.asUsernamePassword().username() != null) {
+                    if (!jsonUsername.equals(deviceKey.asUsernamePassword().username().toString())) {
+                        reason = USERNAME + " " + deviceKey.asUsernamePassword().username().toString();
+                        return false;
+                    }
                 }
 
                 // Check the device key password
-                final String jsonPassword = jsonHost.get(PASSWORD).asString();
-                if (!jsonPassword.equals(deviceKey.asUsernamePassword().password().toString())) {
-                    reason = PASSWORD + " " + deviceKey.asUsernamePassword().password().toString();
-                    return false;
+                final String jsonPassword = jsonHost.get(PASSWORD).isNull() ?
+                        null : jsonHost.get(PASSWORD).asString();
+                if (deviceKey.asUsernamePassword().password() != null) {
+                    if (!jsonPassword.equals(deviceKey.asUsernamePassword().password().toString())) {
+                        reason = PASSWORD + " " + deviceKey.asUsernamePassword().password().toString();
+                        return false;
+                    }
                 }
             } else {
                 reason = "Unknown " + TYPE + " " + deviceKey.type().toString();
@@ -251,11 +257,12 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
     @Test
     public void testGetDeviceKeysEmptyArray() {
         replay(mockDeviceKeyService);
-        replay(mockDeviceKeyAdminService);
 
         WebResource rs = resource();
         String response = rs.path("keys").get(String.class);
         assertThat(response, is("{\"keys\":[]}"));
+
+        verify(mockDeviceKeyService);
     }
 
     /**
@@ -264,9 +271,10 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
     @Test
     public void testGetDeviceKeysArray() {
         replay(mockDeviceKeyService);
-        replay(mockDeviceKeyAdminService);
         deviceKeySet.add(deviceKey1);
         deviceKeySet.add(deviceKey2);
+        deviceKeySet.add(deviceKey3);
+        deviceKeySet.add(deviceKey4);
 
         WebResource rs = resource();
         String response = rs.path("keys").get(String.class);
@@ -280,10 +288,14 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
 
         final JsonArray deviceKeys = result.get("keys").asArray();
         assertThat(deviceKeys, notNullValue());
-        assertEquals("Device keys array is not the correct size.", 2, deviceKeys.size());
+        assertEquals("Device keys array is not the correct size.", 4, deviceKeys.size());
 
         assertThat(deviceKeys, hasDeviceKey(deviceKey1));
         assertThat(deviceKeys, hasDeviceKey(deviceKey2));
+        assertThat(deviceKeys, hasDeviceKey(deviceKey3));
+        assertThat(deviceKeys, hasDeviceKey(deviceKey4));
+
+        verify(mockDeviceKeyService);
     }
 
     /**
@@ -297,7 +309,6 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
                 .andReturn(deviceKey1)
                 .anyTimes();
         replay(mockDeviceKeyService);
-        replay(mockDeviceKeyAdminService);
 
         WebResource rs = resource();
         String response = rs.path("keys/" + deviceKeyId1).get(String.class);
@@ -305,6 +316,8 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
         assertThat(result, notNullValue());
 
         assertThat(result, matchesDeviceKey(deviceKey1));
+
+        verify(mockDeviceKeyService);
     }
 
     /**
@@ -317,7 +330,6 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
                 .andReturn(null)
                 .anyTimes();
         replay(mockDeviceKeyService);
-        replay(mockDeviceKeyAdminService);
 
         WebResource rs = resource();
         try {
@@ -327,6 +339,8 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
             assertThat(ex.getMessage(),
                        containsString("returned a response status of"));
         }
+
+        verify(mockDeviceKeyService);
     }
 
     /**
@@ -338,7 +352,6 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
         mockDeviceKeyAdminService.addKey(anyObject());
         expectLastCall();
 
-        replay(mockDeviceKeyService);
         replay(mockDeviceKeyAdminService);
 
         WebResource rs = resource();
@@ -352,6 +365,8 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
 
         String location = response.getLocation().getPath();
         assertThat(location, Matchers.startsWith("/keys/" + deviceKeyId3));
+
+        verify(mockDeviceKeyAdminService);
     }
 
     /**
@@ -360,7 +375,6 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
     @Test
     public void testPostNullDeviceKey() {
 
-        replay(mockDeviceKeyService);
         replay(mockDeviceKeyAdminService);
 
         WebResource rs = resource();
@@ -373,6 +387,8 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
             assertThat(ex.getMessage(),
                        containsString("returned a response status of"));
         }
+
+        verify(mockDeviceKeyAdminService);
     }
 
     /**
@@ -395,6 +411,9 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .delete(ClientResponse.class);
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
+
+        verify(mockDeviceKeyService);
+        verify(mockDeviceKeyAdminService);
     }
 
     /**
@@ -421,5 +440,8 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
             assertThat(ex.getMessage(),
                        containsString("returned a response status of"));
         }
+
+        verify(mockDeviceKeyService);
+        verify(mockDeviceKeyAdminService);
     }
 }

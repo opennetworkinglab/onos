@@ -56,9 +56,8 @@ public class DeviceKeyWebResource extends AbstractWebResource {
      * Returns array of all device keys.
      *
      * @return 200 OK
+     * @onos.rsModel Devicekeys
      */
-// FIXME DeviceKeysGet.json not found
-//   * @onos.rsModel DeviceKeysGet
     @GET
     public Response getDeviceKeys() {
         Iterable<DeviceKey> deviceKeys = get(DeviceKeyService.class).getDeviceKeys();
@@ -69,11 +68,10 @@ public class DeviceKeyWebResource extends AbstractWebResource {
      * Get a single device key by device key unique identifier.
      * Returns the specified device key.
      *
-     * @param id device identifier
-     * @return 200 OK
+     * @param id device key identifier
+     * @return 200 OK, 404 not found
+     * @onos.rsModel Devicekey
      */
-// FIXME DeviceKeyGet.json not found
-//   * @onos.rsModel DeviceKeyGet
     @GET
     @Path("{id}")
     public Response getDeviceKey(@PathParam("id") String id) {
@@ -83,14 +81,13 @@ public class DeviceKeyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Adds a new device key from the JSON request.
+     * Adds a new device key from the JSON input stream.
      *
-     * @param stream input JSON
+     * @param stream device key JSON stream
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
+     * @onos.rsModel Devicekey
      */
-// FIXME wrong schema definition?
-//   * @onos.rsModel IntentHost
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -117,8 +114,8 @@ public class DeviceKeyWebResource extends AbstractWebResource {
     /**
      * Removes a device key by device key identifier.
      *
-     * @param id device identifier
-     * @return 200 OK
+     * @param id device key identifier
+     * @return 200 OK, 404 not found
      */
     @DELETE
     @Path("{id}")
