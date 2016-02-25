@@ -555,6 +555,49 @@
             <action class="org.onosproject.cli.net.DeviceKeyRemoveCommand"/>
         </command>
 
+        <!--region commands -->
+        <command>
+            <action class="org.onosproject.cli.net.RegionListCommand"/>
+            <completers>
+                <ref component-id="regionIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.RegionAddCommand"/>
+            <completers>
+                <null/>
+                <null/>
+                <ref component-id="regionTypeCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.RegionUpdateCommand"/>
+            <completers>
+                <ref component-id="regionIdCompleter"/>
+                <null/>
+                <ref component-id="regionTypeCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.RegionRemoveCommand"/>
+            <completers>
+                <ref component-id="regionIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.RegionAddDevicesCommand"/>
+            <completers>
+                <ref component-id="regionIdCompleter"/>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.RegionRemoveDevicesCommand"/>
+            <completers>
+                <ref component-id="regionIdCompleter"/>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="reviewAppNameCompleter" class="org.onosproject.cli.security.ReviewApplicationNameCompleter"/>
@@ -594,4 +637,6 @@
     <bean id="subjectKeyCompleter" class="org.onosproject.cli.cfg.SubjectKeyCompleter"/>
     <bean id="configKeyCompleter" class="org.onosproject.cli.cfg.ConfigKeyCompleter"/>
 
+    <bean id="regionIdCompleter" class="org.onosproject.cli.net.RegionIdCompleter"/>
+    <bean id="regionTypeCompleter" class="org.onosproject.cli.net.RegionTypeCompleter"/>
 </blueprint>

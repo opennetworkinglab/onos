@@ -26,6 +26,7 @@ import org.onosproject.net.ElementId;
 import org.onosproject.net.Port;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.group.Group;
+import org.onosproject.net.region.Region;
 import org.onosproject.net.statistic.TypedFlowEntryWithLoad;
 import org.onosproject.net.topology.TopologyCluster;
 
@@ -139,6 +140,13 @@ public final class Comparators {
         @Override
         public int compare(DeviceKey deviceKey1, DeviceKey deviceKey2) {
             return deviceKey1.deviceKeyId().id().toString().compareTo(deviceKey2.deviceKeyId().id().toString());
+        }
+    };
+
+    public static final Comparator<Region> REGION_COMPARATOR = new Comparator<Region>() {
+        @Override
+        public int compare(Region region1, Region region2) {
+            return region1.id().toString().compareTo(region2.id().toString());
         }
     };
 }
