@@ -92,7 +92,7 @@ public final class ResourceRegistrar {
     public void activate() {
         factories.forEach(cfgRegistry::registerConfigFactory);
 
-        cfgListener = new ResourceNetworkConfigListener(adminService, cfgRegistry, executor);
+        cfgListener = new ResourceNetworkConfigListener(adminService, cfgRegistry, mastershipService, executor);
         cfgRegistry.addListener(cfgListener);
 
         deviceListener = new ResourceDeviceListener(adminService, resourceService,

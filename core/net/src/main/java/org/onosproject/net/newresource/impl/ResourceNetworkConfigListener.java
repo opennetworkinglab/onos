@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import org.onlab.util.Bandwidth;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -51,6 +52,7 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
 
     private final ResourceAdminService adminService;
     private final NetworkConfigService cfgService;
+    private final MastershipService mastershipService;
     private final ExecutorService executor;
 
     /**
@@ -61,9 +63,10 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
      * @param executor Executor to use.
      */
     ResourceNetworkConfigListener(ResourceAdminService adminService, NetworkConfigService cfgService,
-                                         ExecutorService executor) {
+                                  MastershipService mastershipService, ExecutorService executor) {
         this.adminService = checkNotNull(adminService);
         this.cfgService = checkNotNull(cfgService);
+        this.mastershipService = checkNotNull(mastershipService);
         this.executor = checkNotNull(executor);
     }
 
@@ -99,6 +102,10 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
         checkArgument(event.configClass() == BandwidthCapacity.class);
 
         ConnectPoint cp = (ConnectPoint) event.subject();
+        if (!mastershipService.isLocalMaster(cp.deviceId())) {
+            return;
+        }
+
         BandwidthCapacity bwCapacity = cfgService.getConfig(cp, BandwidthCapacity.class);
 
         switch (event.type()) {
