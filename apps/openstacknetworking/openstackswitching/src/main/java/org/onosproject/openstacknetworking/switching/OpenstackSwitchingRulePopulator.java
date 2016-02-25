@@ -58,7 +58,6 @@ public class OpenstackSwitchingRulePopulator {
     private static Logger log = LoggerFactory
             .getLogger(OpenstackSwitchingRulePopulator.class);
     private static final int SWITCHING_RULE_PRIORITY = 30000;
-    private static final int EAST_WEST_ROUTING_RULE_PRIORITY = 29000;
     private static final int TUNNELTAG_RULE_PRIORITY = 30000;
 
     private FlowObjectiveService flowObjectiveService;
@@ -490,4 +489,5 @@ public class OpenstackSwitchingRulePopulator {
         }
         return port.number();
     }
+
 }

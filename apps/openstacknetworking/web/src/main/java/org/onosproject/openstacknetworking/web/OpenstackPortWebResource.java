@@ -84,6 +84,23 @@ public class OpenstackPortWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updatePorts(InputStream input) {
-        return Response.status(Response.Status.OK).build();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode portNode = (ObjectNode) mapper.readTree(input);
+
+            OpenstackPort openstackPort = PORT_CODEC.decode(portNode, this);
+            OpenstackSwitchingService switchingService =
+                    getService(OpenstackSwitchingService.class);
+            switchingService.updatePort(openstackPort);
+
+            log.debug("REST API update port is called with {}", portNode.toString());
+            return Response.status(Response.Status.OK).build();
+
+        } catch (Exception e) {
+            log.error("Update Port failed because of exception {}",
+                    e.toString());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString())
+                    .build();
+        }
     }
 }

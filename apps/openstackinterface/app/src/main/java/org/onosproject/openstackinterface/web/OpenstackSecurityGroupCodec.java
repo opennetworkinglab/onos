@@ -48,7 +48,7 @@ public class OpenstackSecurityGroupCodec extends JsonCodec<OpenstackSecurityGrou
     private static final String REMOTE_GROUP_ID = "remote_group_id";
     private static final String REMOTE_IP_PREFIX = "remote_ip_prefix";
     private static final String SECURITY_GROUP_ID = "security_group_id";
-    private static final String TENAN_ID = "tenant_id";
+    private static final String TENANT_ID = "tenant_id";
 
     @Override
     public OpenstackSecurityGroup decode(ObjectNode json, CodecContext context) {
@@ -75,12 +75,12 @@ public class OpenstackSecurityGroupCodec extends JsonCodec<OpenstackSecurityGrou
                         .remoteGroupId(ruleInfo.path(REMOTE_GROUP_ID).asText())
                         .remoteIpPrefix(ruleInfo.path(REMOTE_IP_PREFIX).asText())
                         .securityGroupId(ruleInfo.path(SECURITY_GROUP_ID).asText())
-                        .tenantId(ruleInfo.path(TENAN_ID).asText())
+                        .tenantId(ruleInfo.path(TENANT_ID).asText())
                         .build();
 
             rules.add(openstackSecurityGroupRule);
         }
-        String tenantId = securityGroupNode.path(TENAN_ID).asText();
+        String tenantId = securityGroupNode.path(TENANT_ID).asText();
 
         OpenstackSecurityGroup openstackSecurityGroup = OpenstackSecurityGroup.builder()
                 .description(description)

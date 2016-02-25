@@ -64,6 +64,7 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
 
     protected static final int VNI_TABLE = 0;
     protected static final int FORWARDING_TABLE = 1;
+    protected static final int ACL_TABLE = 2;
 
     private static final int DROP_PRIORITY = 0;
     private static final int TIME_OUT = 0;
@@ -136,6 +137,7 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
     private void initializePipeline() {
         processVniTable(true);
         processForwardingTable(true);
+        processAclTable(true);
     }
 
     private void processVniTable(boolean install) {
@@ -171,6 +173,26 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
                 .fromApp(appId)
                 .makePermanent()
                 .forTable(FORWARDING_TABLE)
+                .build();
+
+        applyRules(install, flowRule);
+    }
+
+    private void processAclTable(boolean install) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+
+        treatment.wipeDeferred();
+        treatment.drop();
+
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DROP_PRIORITY)
+                .fromApp(appId)
+                .makePermanent()
+                .forTable(ACL_TABLE)
                 .build();
 
         applyRules(install, flowRule);
@@ -264,8 +286,15 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
             tBuilder.transition(FORWARDING_TABLE);
             ruleBuilder.withTreatment(tBuilder.build());
             ruleBuilder.forTable(VNI_TABLE);
-        } else {
+        } else if (forwardingObjective.selector().getCriterion(Criterion.Type.TUNNEL_ID) != null) {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+            tBuilder.deferred();
+            forwardingObjective.treatment().allInstructions().forEach(tBuilder::add);
+            tBuilder.transition(ACL_TABLE);
+            ruleBuilder.withTreatment(tBuilder.build());
             ruleBuilder.forTable(FORWARDING_TABLE);
+        } else {
+            ruleBuilder.forTable(ACL_TABLE);
         }
 
         return Collections.singletonList(ruleBuilder.build());

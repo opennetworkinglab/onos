@@ -104,7 +104,9 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     public static final String DEVICE_OWNER_GATEWAY = "network:router_gateway";
 
     private ApplicationId appId;
-    private OpenstackArpHandler arpHandler = new OpenstackArpHandler(openstackService, packetService, hostService);
+
+    private OpenstackArpHandler arpHandler;
+    private OpenstackSecurityGroupRulePopulator sgRulePopulator;
 
     private ExecutorService deviceEventExcutorService =
             Executors.newSingleThreadExecutor(groupedThreads("onos/openstackswitching", "device-event"));
@@ -114,6 +116,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     private InternalHostListener internalHostListener = new InternalHostListener();
 
     private Map<String, OpenstackPortInfo> openstackPortInfoMap = Maps.newHashMap();
+    private Map<String, OpenstackSecurityGroup> securityGroupMap = Maps.newConcurrentMap();
 
     @Activate
     protected void activate() {
@@ -123,6 +126,9 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         packetService.addProcessor(internalPacketProcessor, PacketProcessor.director(1));
         deviceService.addListener(internalDeviceListener);
         hostService.addListener(internalHostListener);
+
+        arpHandler = new OpenstackArpHandler(openstackService, packetService, hostService);
+        sgRulePopulator = new OpenstackSecurityGroupRulePopulator(appId, openstackService, flowObjectiveService);
 
         initializeFlowRules();
 
@@ -147,13 +153,6 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
             if (!openstackPort.fixedIps().isEmpty()) {
                 registerDhcpInfo(openstackPort);
             }
-        }
-
-        if (!openstackPort.securityGroups().isEmpty()) {
-            openstackPort.securityGroups().forEach(sgId -> {
-                OpenstackSecurityGroup sg = openstackService.getSecurityGroup(sgId);
-                log.debug("SecurityGroup : {}", sg.toString());
-            });
         }
     }
 
@@ -185,6 +184,22 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
     @Override
     public void updatePort(OpenstackPort openstackPort) {
+        if (openstackPort.status().equals(OpenstackPort.PortStatus.ACTIVE)) {
+            String portName = PORTNAME_PREFIX_VM + openstackPort.id().substring(0, 11);
+            OpenstackPortInfo osPortInfo = openstackPortInfoMap.get(portName);
+            if (osPortInfo != null) {
+                // Remove all security group rules based on the ones stored in security group map.
+                osPortInfo.securityGroups().stream().forEach(
+                        sgId -> sgRulePopulator.removeSecurityGroupRules(osPortInfo.deviceId(), sgId,
+                                osPortInfo.ip(), openstackPortInfoMap, securityGroupMap));
+                // Add all security group rules based on the updated security group.
+                openstackPort.securityGroups().stream().forEach(
+                        sgId -> sgRulePopulator.populateSecurityGroupRules(osPortInfo.deviceId(), sgId,
+                                osPortInfo.ip(), openstackPortInfoMap));
+                updatePortMap(osPortInfo.deviceId(), portName, openstackService.networks(),
+                        openstackService.subnets(), openstackPort);
+            }
+        }
     }
 
     @Override
@@ -205,26 +220,37 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     }
 
     private void processPortUpdated(Device device, Port port) {
-        if (!port.annotations().value(PORTNAME).equals(PORTNAME_PREFIX_TUNNEL)) {
-            if (port.isEnabled() || port.annotations().value(PORTNAME).startsWith(PORTNAME_PREFIX_ROUTER)) {
-                OpenstackSwitchingRulePopulator rulePopulator =
-                        new OpenstackSwitchingRulePopulator(appId, flowObjectiveService,
-                                deviceService, openstackService, driverService);
+        String portName = port.annotations().value(PORTNAME);
+        synchronized (openstackPortInfoMap) {
+            if (portName.startsWith(PORTNAME_PREFIX_VM)) {
+                if (port.isEnabled()) {
+                    OpenstackSwitchingRulePopulator rulePopulator =
+                            new OpenstackSwitchingRulePopulator(appId, flowObjectiveService,
+                                    deviceService, openstackService, driverService);
 
-                rulePopulator.populateSwitchingRules(device, port);
-                updatePortMap(device.id(), port, openstackService.networks(), openstackService.subnets(),
-                        rulePopulator.openstackPort(port));
+                    rulePopulator.populateSwitchingRules(device, port);
+                    OpenstackPort openstackPort = rulePopulator.openstackPort(port);
+                    Ip4Address vmIp = (Ip4Address) openstackPort.fixedIps().values().stream()
+                            .findAny().orElseGet(null);
+                    openstackPort.securityGroups().stream().forEach(
+                            sgId -> sgRulePopulator.populateSecurityGroupRules(device.id(), sgId, vmIp,
+                                    openstackPortInfoMap));
+                    updatePortMap(device.id(), port.annotations().value(PORTNAME),
+                            openstackService.networks(), openstackService.subnets(), openstackPort);
 
-                //In case portupdate event is driven by vm shutoff from openstack
-            } else if (!port.isEnabled() && openstackPortInfoMap.containsKey(port.annotations().value(PORTNAME))) {
-                log.debug("Flowrules according to the port {} were removed", port.number().toString());
-                OpenstackSwitchingRulePopulator rulePopulator =
-                        new OpenstackSwitchingRulePopulator(appId, flowObjectiveService,
-                                deviceService, openstackService, driverService);
-
-                rulePopulator.removeSwitchingRules(port, openstackPortInfoMap);
-                dhcpService.removeStaticMapping(openstackPortInfoMap.get(port.annotations().value(PORTNAME)).mac());
-                openstackPortInfoMap.remove(port.annotations().value(PORTNAME));
+                    //In case portupdate event is driven by vm shutoff from openstack
+                } else if (!port.isEnabled() && openstackPortInfoMap.containsKey(portName)) {
+                    log.debug("Flowrules according to the port {} were removed", port.number().toString());
+                    OpenstackSwitchingRulePopulator rulePopulator =
+                            new OpenstackSwitchingRulePopulator(appId, flowObjectiveService,
+                                    deviceService, openstackService, driverService);
+                    rulePopulator.removeSwitchingRules(port, openstackPortInfoMap);
+                    openstackPortInfoMap.get(portName).securityGroups().stream().forEach(
+                            sgId -> sgRulePopulator.removeSecurityGroupRules(device.id(), sgId,
+                                    openstackPortInfoMap.get(portName).ip(), openstackPortInfoMap, securityGroupMap));
+                    dhcpService.removeStaticMapping(openstackPortInfoMap.get(port.annotations().value(PORTNAME)).mac());
+                    openstackPortInfoMap.remove(port.annotations().value(PORTNAME));
+                }
             }
         }
     }
@@ -242,27 +268,33 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         Collection<OpenstackSubnet> subnets = openstackService.subnets();
 
         deviceService.getDevices().forEach(device -> {
-                    log.debug("device {} num of ports {} ", device.id(),
-                            deviceService.getPorts(device.id()).size());
-                    deviceService.getPorts(device.id()).stream()
-                            .filter(port -> port.annotations().value(PORTNAME).startsWith(PORTNAME_PREFIX_VM) ||
-                                    port.annotations().value(PORTNAME).startsWith(PORTNAME_PREFIX_ROUTER))
-                            .forEach(vmPort -> {
-                                        OpenstackPort osPort = rulePopulator.openstackPort(vmPort);
-                                        if (osPort != null && !osPort.deviceOwner().equals(DEVICE_OWNER_GATEWAY)) {
-                                            rulePopulator.populateSwitchingRules(device, vmPort);
-                                            updatePortMap(device.id(), vmPort, networks, subnets, osPort);
-                                            registerDhcpInfo(osPort);
-                                        } else {
-                                            log.warn("No openstackPort information for port {}", vmPort);
-                                        }
-                                    }
-                            );
+                log.debug("device {} num of ports {} ", device.id(),
+                        deviceService.getPorts(device.id()).size());
+                deviceService.getPorts(device.id()).stream()
+                        .filter(port -> port.annotations().value(PORTNAME).startsWith(PORTNAME_PREFIX_VM) ||
+                                port.annotations().value(PORTNAME).startsWith(PORTNAME_PREFIX_ROUTER))
+                        .forEach(vmPort -> {
+                                OpenstackPort osPort = rulePopulator.openstackPort(vmPort);
+                                if (osPort != null && !osPort.deviceOwner().equals(DEVICE_OWNER_GATEWAY)) {
+                                    rulePopulator.populateSwitchingRules(device, vmPort);
+                                    Ip4Address vmIp = (Ip4Address) osPort.fixedIps().values().stream()
+                                            .findAny().orElseGet(null);
+                                    osPort.securityGroups().stream().forEach(
+                                            sgId -> sgRulePopulator.populateSecurityGroupRules(device.id(),
+                                                    sgId, vmIp, openstackPortInfoMap));
+                                    updatePortMap(device.id(), vmPort.annotations().value(PORTNAME), networks,
+                                            subnets, osPort);
+                                    registerDhcpInfo(osPort);
+                                } else {
+                                    log.warn("No openstackPort information for port {}", vmPort);
+                                }
+                            }
+                        );
                 }
         );
     }
 
-    private void updatePortMap(DeviceId deviceId, Port port, Collection<OpenstackNetwork> networks,
+    private void updatePortMap(DeviceId deviceId, String portName, Collection<OpenstackNetwork> networks,
                                Collection<OpenstackSubnet> subnets, OpenstackPort openstackPort) {
         long vni = Long.parseLong(networks.stream()
                 .filter(n -> n.id().equals(openstackPort.networkId()))
@@ -279,10 +311,17 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                 .setHostIp((Ip4Address) openstackPort.fixedIps().values().stream().findFirst().orElse(null))
                 .setHostMac(openstackPort.macAddress())
                 .setVni(vni)
-                .setGatewayIP(gatewayIPAddress);
+                .setGatewayIP(gatewayIPAddress)
+                .setSecurityGroups(openstackPort.securityGroups());
 
-        openstackPortInfoMap.putIfAbsent(port.annotations().value(PORTNAME),
-                portBuilder.build());
+        openstackPortInfoMap.put(portName, portBuilder.build());
+
+        openstackPort.securityGroups().stream().forEach(sgId -> {
+            if (!securityGroupMap.containsKey(sgId)) {
+                securityGroupMap.put(sgId, openstackService.getSecurityGroup(sgId));
+            }
+        });
+
     }
 
     private void processHostRemoved(Host host) {

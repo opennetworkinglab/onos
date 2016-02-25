@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstackinterface;
 
+import org.onlab.packet.IpPrefix;
+
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -24,25 +26,34 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class OpenstackSecurityGroupRule {
 
-    private final String direction;
+    private final Direction direction;
     private final String ethertype;
     private final String id;
-    private final String portRangeMax;
-    private final String portRangeMin;
+    private final int portRangeMax;
+    private final int portRangeMin;
     private final String protocol;
     private final String remoteGroupId;
-    private final String remoteIpPrefix;
+    private final IpPrefix remoteIpPrefix;
     private final String secuityGroupId;
     private final String tenantId;
 
-    private OpenstackSecurityGroupRule(String direction,
+    /**
+     * Direction of the Security Group.
+     *
+     */
+    public enum Direction {
+        INGRESS,
+        EGRESS
+    }
+
+    private OpenstackSecurityGroupRule(Direction direction,
                                        String ethertype,
                                        String id,
-                                       String portRangeMax,
-                                       String portRangeMin,
+                                       int portRangeMax,
+                                       int portRangeMin,
                                        String protocol,
                                        String remoteGroupId,
-                                       String remoteIpPrefix,
+                                       IpPrefix remoteIpPrefix,
                                        String securityGroupId,
                                        String tenantId) {
         this.direction = direction;
@@ -55,6 +66,105 @@ public final class OpenstackSecurityGroupRule {
         this.remoteIpPrefix = remoteIpPrefix;
         this.secuityGroupId = securityGroupId;
         this.tenantId = tenantId;
+    }
+
+    /**
+     * Returns the builder object for the OpenstackSecurityGroupRule.
+     *
+     * @return OpenstackSecurityGroupRule builder object
+     */
+    public static OpenstackSecurityGroupRule.Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Returns the direction.
+     *
+     * @return direction
+     */
+    public Direction direction() {
+        return direction;
+    }
+
+    /**
+     * Returns the Ethernet type.
+     *
+     * @return Ethernet type
+     */
+    public String ethertype() {
+        return ethertype;
+    }
+
+    /**
+     * Returns the Security Group ID.
+     *
+     * @return Security Group ID
+     */
+    public String id() {
+        return id;
+    }
+
+    /**
+     * Returns the max of the port range.
+     *
+     * @return max of the port range
+     */
+    public int portRangeMax() {
+        return portRangeMax;
+    }
+
+    /**
+     * Returns the min of the port range.
+     *
+     * @return min of the port range
+     */
+    public int portRangeMin() {
+        return portRangeMin;
+    }
+
+    /**
+     * Returns the IP protocol.
+     *
+     * @return IP protocol
+     */
+    public String protocol() {
+        return protocol;
+    }
+
+    /**
+     * Returns the remote group ID.
+     *
+     * @return remote group ID
+     */
+    public String remoteGroupId() {
+        return remoteGroupId;
+    }
+
+    /**
+     * Returns the remote IP address.
+     *
+     * @return remote IP address
+     */
+    public IpPrefix remoteIpPrefix() {
+        return this.remoteIpPrefix;
+    }
+
+    /**
+     * Returns the Security Group ID.
+     *
+     * @return security group ID
+     */
+    public String secuityGroupId() {
+        return secuityGroupId;
+    }
+
+    /**
+     * Returns the tenant ID.
+     *
+     * @return tenant ID
+     */
+    public String tenantId() {
+        return tenantId;
     }
 
     @Override
@@ -84,8 +194,8 @@ public final class OpenstackSecurityGroupRule {
             return this.direction.equals(that.direction) &&
                     this.ethertype.equals(that.direction) &&
                     this.id.equals(that.id) &&
-                    this.portRangeMax.equals(that.portRangeMax) &&
-                    this.portRangeMin.equals(that.portRangeMin) &&
+                    this.portRangeMax == that.portRangeMax &&
+                    this.portRangeMin == that.portRangeMin &&
                     this.protocol.equals(that.protocol) &&
                     this.remoteGroupId.equals(that.remoteGroupId) &&
                     this.secuityGroupId.equals(that.secuityGroupId) &&
@@ -235,8 +345,16 @@ public final class OpenstackSecurityGroupRule {
          * @return OpenstackSecurityGroupRule object
          */
         public OpenstackSecurityGroupRule build() {
-            return new OpenstackSecurityGroupRule(direction, etherType, id, portRangeMax,
-                    portRangeMin, protocol, remoteGroupId, remoteIpPrefix, secuityGroupId, tenantId);
+
+            int portRangeMinInt = (portRangeMin == null || portRangeMin.equals("null")) ?
+                    -1 : Integer.parseInt(portRangeMax);
+            int portRangeMaxInt = (portRangeMax == null || portRangeMax.equals("null")) ?
+                    -1 : Integer.parseInt(portRangeMax);
+            IpPrefix ipPrefix = (remoteIpPrefix == null || remoteIpPrefix.equals("null")) ?
+                    null : IpPrefix.valueOf(remoteIpPrefix);
+
+            return new OpenstackSecurityGroupRule(Direction.valueOf(direction.toUpperCase()), etherType, id,
+                    portRangeMaxInt, portRangeMinInt, protocol, remoteGroupId, ipPrefix, secuityGroupId, tenantId);
         }
     }
 }
