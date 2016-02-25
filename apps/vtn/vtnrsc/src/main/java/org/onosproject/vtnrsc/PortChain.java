@@ -113,6 +113,13 @@ public interface PortChain {
     List<PortPairId> getLoadBalancePath(FiveTuple fiveTuple);
 
     /**
+     * Get the no of load balance paths created.
+     *
+     * @return size of load balanced paths
+     */
+    int getLoadBalancePathSize();
+
+    /**
      * Match the given path with existing load balanced paths.
      *
      * @param path load balanced path

@@ -142,6 +142,14 @@ public final class DefaultPortChain implements PortChain {
     }
 
     @Override
+    public int getLoadBalancePathSize() {
+        if (sfcLoadBalanceIdMap.isEmpty()) {
+            return 0;
+        }
+        return sfcLoadBalanceIdMap.size();
+    }
+
+    @Override
     public Optional<LoadBalanceId> matchPath(List<PortPairId> path) {
 
         LoadBalanceId id = null;

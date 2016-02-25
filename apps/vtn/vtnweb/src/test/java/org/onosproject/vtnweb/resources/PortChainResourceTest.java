@@ -142,37 +142,36 @@ public class PortChainResourceTest extends VtnResourceTest {
 
         @Override
         public void addLoadBalancePath(FiveTuple fiveTuple, LoadBalanceId id, List<PortPairId> path) {
-            // TODO Auto-generated method stub
         }
 
         @Override
         public LoadBalanceId getLoadBalanceId(FiveTuple fiveTuple) {
-            // TODO Auto-generated method stub
             return null;
         }
 
         @Override
         public Set<FiveTuple> getLoadBalanceIdMapKeys() {
-            // TODO Auto-generated method stub
             return null;
         }
 
         @Override
         public List<PortPairId> getLoadBalancePath(LoadBalanceId id) {
-            // TODO Auto-generated method stub
             return null;
         }
 
         @Override
         public List<PortPairId> getLoadBalancePath(FiveTuple fiveTuple) {
-            // TODO Auto-generated method stub
             return null;
         }
 
         @Override
         public Optional<LoadBalanceId> matchPath(List<PortPairId> path) {
-            // TODO Auto-generated method stub
             return null;
+        }
+
+        @Override
+        public int getLoadBalancePathSize() {
+            return 0;
         }
     }
 
