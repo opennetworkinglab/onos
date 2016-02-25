@@ -27,7 +27,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipEvent;
@@ -37,7 +36,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.event.Change;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.service.LeaderElector;
-import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
@@ -65,9 +63,6 @@ public class NewDistributedLeadershipStore
     private NodeId localNodeId;
     private LeaderElector leaderElector;
     private final Map<String, Leadership> leaderBoard = Maps.newConcurrentMap();
-
-    private static final int MAX_RETRIES = 10;
-    private static final int MAX_DELAY_MILLIS_BETWEEN_RETRIES = 100;
 
     private final Consumer<Change<Leadership>> leadershipChangeListener =
             change -> {
@@ -109,21 +104,12 @@ public class NewDistributedLeadershipStore
 
     @Override
     public Leadership addRegistration(String topic) {
-        return Tools.retryable(() -> leaderElector.run(topic, localNodeId),
-                               StorageException.class,
-                               MAX_RETRIES,
-                               MAX_DELAY_MILLIS_BETWEEN_RETRIES).get();
+        return leaderElector.run(topic, localNodeId);
     }
 
     @Override
     public void removeRegistration(String topic) {
-        Tools.retryable(() -> {
-                            leaderElector.withdraw(topic);
-                            return null;
-                        },
-                        StorageException.class,
-                        MAX_RETRIES,
-                        MAX_DELAY_MILLIS_BETWEEN_RETRIES).get();
+        leaderElector.withdraw(topic);
     }
 
     @Override
