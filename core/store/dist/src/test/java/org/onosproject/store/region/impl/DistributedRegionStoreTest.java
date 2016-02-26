@@ -137,6 +137,15 @@ public class DistributedRegionStoreTest {
         deviceIds = store.getRegionDevices(RID1);
         assertEquals("incorrect device count", 3, deviceIds.size());
 
+        // Test adding DID3 to RID2 but it is already in RID1.
+        // DID3 will be removed from RID1 and added to RID2.
+        Region r2 = store.createRegion(RID2, "R2", CAMPUS, MASTERS);
+        store.addDevices(RID2, ImmutableSet.of(DID3));
+        deviceIds = store.getRegionDevices(RID1);
+        assertEquals("incorrect device count", 2, deviceIds.size());
+        deviceIds = store.getRegionDevices(RID2);
+        assertEquals("incorrect device count", 1, deviceIds.size());
+
         store.removeDevices(RID1, ImmutableSet.of(DID2, DID3));
         deviceIds = store.getRegionDevices(RID1);
         assertEquals("incorrect device count", 1, deviceIds.size());

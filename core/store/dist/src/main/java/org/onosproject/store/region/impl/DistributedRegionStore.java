@@ -169,6 +169,16 @@ public class DistributedRegionStore
 
     @Override
     public void addDevices(RegionId regionId, Collection<DeviceId> deviceIds) {
+        // Devices can only be a member in one region.  Remove the device if it belongs to
+        // a different region than the region for which we are attempting to add it.
+        for (DeviceId deviceId : deviceIds) {
+            Region region = getRegionForDevice(deviceId);
+            if ((region != null) && (!regionId.id().equals(region.id().id()))) {
+                Set<DeviceId> deviceIdSet1 = ImmutableSet.of(deviceId);
+                removeDevices(region.id(), deviceIdSet1);
+            }
+        }
+
         membershipRepo.compute(regionId, (id, existingDevices) -> {
             if (existingDevices == null) {
                 return ImmutableSet.copyOf(deviceIds);
