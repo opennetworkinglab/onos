@@ -37,7 +37,7 @@ processPom external.xml
 mvn -f aux-external.xml javadoc:aggregate "$@"
 
 cd target && mv site/apidocs $apidocs
-tar zcf $apidocs.tar.gz $apidocs && cp $apidocs.tar.gz /tmp
+tar zcf $apidocs.tar.gz $apidocs && cp $apidocs.tar.gz $ONOS_STAGE_ROOT
 
 cd $ONOS_ROOT/docs
 processPom internal.xml
