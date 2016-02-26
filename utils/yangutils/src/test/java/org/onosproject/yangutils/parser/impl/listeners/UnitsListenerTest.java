@@ -157,7 +157,7 @@ public class UnitsListenerTest {
     @Test
     public void processUnitsStatementCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Internal parser error detected: Invalid cardinality in units before processing.");
+        thrown.expectMessage("YANG file error: Invalid cardinality of units in leaf \"invalid-interval\".");
         YangNode node = manager.getDataModel("src/test/resources/UnitsStatementCardinality.yang");
     }
 

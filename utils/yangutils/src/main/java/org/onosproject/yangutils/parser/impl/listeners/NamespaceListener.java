@@ -25,7 +25,7 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 import java.net.URI;
 
-import static org.onosproject.yangutils.parser.ParsableDataType.NAMESPACE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.NAMESPACE_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
@@ -70,8 +70,8 @@ public final class NamespaceListener {
      * It is called when parser receives an input matching the grammar rule
      * (namespace), perform validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processNamespaceEntry(TreeWalkListener listener,
                                              GeneratedYangParser.NamespaceStatementContext ctx) {
@@ -80,7 +80,7 @@ public final class NamespaceListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, NAMESPACE_DATA, ctx.string().getText(), ENTRY);
 
         if (!validateUriValue(ctx.string().getText())) {
-            ParserException parserException = new ParserException("Invalid namespace URI");
+            ParserException parserException = new ParserException("YANG file error: Invalid namespace URI");
             parserException.setLine(ctx.string().STRING(0).getSymbol().getLine());
             parserException.setCharPosition(ctx.string().STRING(0).getSymbol().getCharPositionInLine());
             throw parserException;
@@ -88,7 +88,7 @@ public final class NamespaceListener {
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
-        switch (tmpNode.getParsableDataType()) {
+        switch (tmpNode.getYangConstructType()) {
         case MODULE_DATA: {
             YangModule module = (YangModule) tmpNode;
             YangNameSpace uri = new YangNameSpace();

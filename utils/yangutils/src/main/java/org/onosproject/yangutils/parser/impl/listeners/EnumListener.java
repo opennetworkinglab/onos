@@ -64,7 +64,7 @@ import org.onosproject.yangutils.datamodel.YangEnum;
 import org.onosproject.yangutils.datamodel.YangEnumeration;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.parser.ParsableDataType.ENUM_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.ENUM_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
@@ -94,8 +94,8 @@ public final class EnumListener {
      * It is called when parser enters grammar rule (enum), it perform
      * validations and updates the data model tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processEnumEntry(TreeWalkListener listener, GeneratedYangParser.EnumStatementContext ctx) {
 
@@ -111,8 +111,8 @@ public final class EnumListener {
      * It is called when parser exits from grammar rule (enum), it perform
      * validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processEnumExit(TreeWalkListener listener, GeneratedYangParser.EnumStatementContext ctx) {
 
@@ -127,7 +127,7 @@ public final class EnumListener {
             checkStackIsNotEmpty(listener, MISSING_HOLDER, ENUM_DATA, ctx.string().getText(), EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
-            switch (tmpNode.getParsableDataType()) {
+            switch (tmpNode.getYangConstructType()) {
                 case ENUMERATION_DATA: {
                     YangEnumeration yangEnumeration = (YangEnumeration) tmpNode;
                     if ((ctx.enumStatementBody() == null) || (ctx.enumStatementBody().valueStatement() == null)) {

@@ -65,7 +65,7 @@ import org.onosproject.yangutils.datamodel.YangBit;
 import org.onosproject.yangutils.datamodel.YangBits;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.parser.ParsableDataType.BIT_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.BIT_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
@@ -95,8 +95,8 @@ public final class BitListener {
      * It is called when parser enters grammar rule (bit), it perform
      * validations and updates the data model tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processBitEntry(TreeWalkListener listener,
                                         GeneratedYangParser.BitStatementContext ctx) {
@@ -113,8 +113,8 @@ public final class BitListener {
      * It is called when parser exits from grammar rule (bit), it perform
      * validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx      context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processBitExit(TreeWalkListener listener,
                                        GeneratedYangParser.BitStatementContext ctx) {
@@ -130,7 +130,7 @@ public final class BitListener {
             checkStackIsNotEmpty(listener, MISSING_HOLDER, BIT_DATA, ctx.IDENTIFIER().getText(), EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
-            switch (tmpNode.getParsableDataType()) {
+            switch (tmpNode.getYangConstructType()) {
                 case BITS_DATA: {
                     YangBits yangBits = (YangBits) tmpNode;
                     if ((ctx.bitBodyStatement() == null) || (ctx.bitBodyStatement().positionStatement() == null)) {

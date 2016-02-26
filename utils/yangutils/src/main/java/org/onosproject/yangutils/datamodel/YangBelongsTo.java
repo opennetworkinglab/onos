@@ -17,7 +17,7 @@ package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 /*-
  *   Reference 6020.
@@ -94,7 +94,7 @@ public class YangBelongsTo implements Parsable {
     /**
      * Get the prefix.
      *
-     * @return the prefix.
+     * @return the prefix
      */
     public String getPrefix() {
         return prefix;
@@ -115,14 +115,14 @@ public class YangBelongsTo implements Parsable {
      * @return ParsedDataType returns BELONGS_TO_DATA
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.BELONGS_TO_DATA;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.BELONGS_TO_DATA;
     }
 
     /**
      * Validate the data on entering the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
@@ -132,7 +132,7 @@ public class YangBelongsTo implements Parsable {
     /**
      * Validate the data on exiting the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnExit() throws DataModelException {

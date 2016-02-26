@@ -33,8 +33,8 @@ public enum ListenerErrorLocation {
     /**
      * Returns the message corresponding to listener error location.
      *
-     * @param errorLocation enum value for type of error.
-     * @return message corresponding to listener error location.
+     * @param errorLocation enum value for type of error
+     * @return message corresponding to listener error location
      */
     public static String getErrorLocationMessage(ListenerErrorLocation errorLocation) {
 

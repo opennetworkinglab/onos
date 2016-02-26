@@ -88,7 +88,7 @@ public class TreeWalkListener implements GeneratedYangListener {
     /**
      * Returns root node.
      *
-     * @return rootNode of data model tree.
+     * @return rootNode of data model tree
      */
     public YangNode getRootNode() {
         return rootNode;
@@ -97,7 +97,7 @@ public class TreeWalkListener implements GeneratedYangListener {
     /**
      * Set parsed data stack.
      *
-     * @param parsedDataStack stack of parsable data objects.
+     * @param parsedDataStack stack of parsable data objects
      */
     public void setParsedDataStack(Stack<Parsable> parsedDataStack) {
         this.parsedDataStack = parsedDataStack;
@@ -106,7 +106,7 @@ public class TreeWalkListener implements GeneratedYangListener {
     /**
      * Set root node.
      *
-     * @param rootNode root node of data model tree.
+     * @param rootNode root node of data model tree
      */
     public void setRootNode(YangNode rootNode) {
         this.rootNode = rootNode;

@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.parser;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 /**
  * Abstraction of an entity which process the data of lexer's parse tree.
@@ -24,11 +25,11 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 public interface Parsable {
 
     /**
-     * Get the type of parsable data.
+     * Get the type of YANG construct data.
      *
-     * @return the type of parsable data
+     * @return the type of YANG construct data.
      */
-    ParsableDataType getParsableDataType();
+    YangConstructType getYangConstructType();
 
     /**
      * Check if the node is valid as per YANG grammar's syntax and semantics.

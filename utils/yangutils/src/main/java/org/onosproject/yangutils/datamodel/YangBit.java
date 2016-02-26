@@ -18,7 +18,7 @@ package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 import java.util.Objects;
 
@@ -83,7 +83,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     /**
      * Returns bit name.
      *
-     * @return the bit name.
+     * @return the bit name
      */
     public String getBitName() {
         return bitName;
@@ -92,7 +92,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     /**
      * Set the bit name.
      *
-     * @param bitName the bit name to set.
+     * @param bitName the bit name to set
      */
     public void setBitName(String bitName) {
         this.bitName = bitName;
@@ -101,7 +101,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     /**
      * Returns description.
      *
-     * @return the description.
+     * @return the description
      */
     @Override
     public String getDescription() {
@@ -111,7 +111,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     /**
      * Set the description.
      *
-     * @param description set the description.
+     * @param description set the description
      */
     @Override
     public void setDescription(String description) {
@@ -121,7 +121,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     /**
      * Returns textual reference.
      *
-     * @return the reference.
+     * @return the reference
      */
     @Override
     public String getReference() {
@@ -131,7 +131,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     /**
      * Set the textual reference.
      *
-     * @param reference the reference to set.
+     * @param reference the reference to set
      */
     @Override
     public void setReference(String reference) {
@@ -141,7 +141,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     /**
      * Returns status.
      *
-     * @return the status.
+     * @return the status
      */
     @Override
     public YangStatusType getStatus() {
@@ -151,7 +151,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     /**
      * Set the status.
      *
-     * @param status the status to set.
+     * @param status the status to set
      */
     @Override
     public void setStatus(YangStatusType status) {
@@ -170,7 +170,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     /**
      * Set the bit position.
      *
-     * @param position the position to set.
+     * @param position the position to set
      */
     public void setPosition(int position) {
         this.position = position;
@@ -182,8 +182,8 @@ public class YangBit implements YangCommonInfo, Parsable {
      * @return ParsedDataType returns BIT_DATA
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.BIT_DATA;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.BIT_DATA;
     }
 
     @Override
@@ -206,7 +206,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     /**
      * Validate the data on entering the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
@@ -216,7 +216,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     /**
      * Validate the data on exiting the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnExit() throws DataModelException {

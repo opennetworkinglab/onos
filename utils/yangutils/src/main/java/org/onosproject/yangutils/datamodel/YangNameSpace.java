@@ -18,7 +18,7 @@ package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 /*
  *  Reference:RFC 6020.
@@ -45,7 +45,7 @@ public class YangNameSpace implements Parsable {
     /**
      * Get the name space URI.
      *
-     * @return the URI.
+     * @return the URI
      */
     public String getUri() {
         return uri;
@@ -63,17 +63,17 @@ public class YangNameSpace implements Parsable {
     /**
      * Returns the type of the parsed data.
      *
-     * @return returns NAMESPACE_DATA.
+     * @return returns NAMESPACE_DATA
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.NAMESPACE_DATA;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.NAMESPACE_DATA;
     }
 
     /**
      * Validate the data on entering the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
@@ -84,7 +84,7 @@ public class YangNameSpace implements Parsable {
     /**
      * Validate the data on exiting the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnExit() throws DataModelException {

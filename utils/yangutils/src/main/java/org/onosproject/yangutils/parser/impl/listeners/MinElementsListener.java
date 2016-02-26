@@ -23,7 +23,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.parser.ParsableDataType.MIN_ELEMENT_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.MIN_ELEMENT_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
@@ -61,8 +61,8 @@ public final class MinElementsListener {
      * rule (min-elements), performs validation and updates the data model
      * tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processMinElementsEntry(TreeWalkListener listener,
                                                GeneratedYangParser.MinElementsStatementContext ctx) {
@@ -71,7 +71,7 @@ public final class MinElementsListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, MIN_ELEMENT_DATA, ctx.INTEGER().getText(), ENTRY);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
-        switch (tmpData.getParsableDataType()) {
+        switch (tmpData.getYangConstructType()) {
             case LEAF_LIST_DATA:
                 YangLeafList leafList = (YangLeafList) tmpData;
                 leafList.setMinElements(Integer.parseInt(ctx.INTEGER().getText()));

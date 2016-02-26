@@ -60,6 +60,11 @@ public enum ListenerErrorType {
     INVALID_CONTENT(),
 
     /**
+     * Represents that the identifier collision is detected.
+     */
+    IDENTIFIER_COLLISION(),
+
+    /**
      * Represents that some of earlier parsed data is not handled correctly.
      */
     UNHANDLED_PARSED_DATA();
@@ -67,8 +72,8 @@ public enum ListenerErrorType {
     /**
      * Returns the message corresponding to listener error type.
      *
-     * @param errorType enum value for type of error.
-     * @return message corresponding to listener error type.
+     * @param errorType enum value for type of error
+     * @return message corresponding to listener error type
      */
     public static String getErrorType(ListenerErrorType errorType) {
 
@@ -87,6 +92,8 @@ public enum ListenerErrorType {
                 return "Duplicate";
             case INVALID_CONTENT:
                 return "Invalid content in";
+            case IDENTIFIER_COLLISION:
+                return "Identifier collision detected for";
             case UNHANDLED_PARSED_DATA:
                 return "Unhandled parsed data at";
             default:

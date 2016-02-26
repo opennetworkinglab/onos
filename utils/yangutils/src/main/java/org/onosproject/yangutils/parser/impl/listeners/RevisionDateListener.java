@@ -27,7 +27,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static org.onosproject.yangutils.parser.ParsableDataType.REVISION_DATE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.REVISION_DATE_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
@@ -79,8 +79,8 @@ public final class RevisionDateListener {
      * It is called when parser receives an input matching the grammar rule
      * (revision date),perform validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processRevisionDateEntry(TreeWalkListener listener,
                                                 GeneratedYangParser.RevisionDateStatementContext ctx) {
@@ -90,7 +90,7 @@ public final class RevisionDateListener {
                              ENTRY);
 
         if (!isDateValid(ctx.DATE_ARG().getText())) {
-            ParserException parserException = new ParserException("Input date is not correct");
+            ParserException parserException = new ParserException("YANG file error: Input date is not correct");
             parserException.setLine(ctx.DATE_ARG().getSymbol().getLine());
             parserException.setCharPosition(ctx.DATE_ARG().getSymbol().getCharPositionInLine());
             throw parserException;
@@ -98,7 +98,7 @@ public final class RevisionDateListener {
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
-        switch (tmpNode.getParsableDataType()) {
+        switch (tmpNode.getYangConstructType()) {
         case IMPORT_DATA: {
             YangImport importNode = (YangImport) tmpNode;
             importNode.setRevision(ctx.DATE_ARG().getText());
@@ -118,8 +118,8 @@ public final class RevisionDateListener {
     /**
      * Validates the revision date.
      *
-     * @param dateToValidate input revision date.
-     * @return validation result, true for success, false for failure.
+     * @param dateToValidate input revision date
+     * @return validation result, true for success, false for failure
      */
     private static boolean isDateValid(String dateToValidate) {
 

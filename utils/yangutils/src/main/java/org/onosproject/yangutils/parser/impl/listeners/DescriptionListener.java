@@ -22,7 +22,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.parser.ParsableDataType.DESCRIPTION_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
@@ -56,8 +56,8 @@ public final class DescriptionListener {
      * rule (description), perform validations and updates the data model
      * tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processDescriptionEntry(TreeWalkListener listener,
                                              GeneratedYangParser.DescriptionStatementContext ctx) {

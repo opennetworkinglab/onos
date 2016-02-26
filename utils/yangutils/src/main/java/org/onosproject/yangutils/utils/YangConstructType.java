@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.yangutils.parser;
+package org.onosproject.yangutils.utils;
 
 /**
  * ENUM to represent the type of data in parse tree.
  */
-public enum ParsableDataType {
+public enum YangConstructType {
     /**
      * Identifies the module parsed data.
      */
@@ -230,6 +230,11 @@ public enum ParsableDataType {
     POSITION_DATA,
 
     /**
+     * Identifies the YANG data definition statements.
+     */
+    DATA_DEF_DATA,
+
+    /**
      * Identifies the derived data type.
      */
     DERIVED;
@@ -237,12 +242,12 @@ public enum ParsableDataType {
     /**
      * Returns the YANG construct keyword corresponding to enum values.
      *
-     * @param parsableDataType enum value for parsable data type.
-     * @return YANG construct keyword.
+     * @param yangConstructType enum value for parsable data type
+     * @return YANG construct keyword
      */
-    public static String getParsableDataType(ParsableDataType parsableDataType) {
+    public static String getYangConstructType(YangConstructType yangConstructType) {
 
-        switch (parsableDataType) {
+        switch (yangConstructType) {
             case MODULE_DATA:
                 return "module";
             case SUB_MODULE_DATA:
@@ -327,6 +332,8 @@ public enum ParsableDataType {
                 return "position";
             case DEFAULT_DATA:
                 return "default";
+            case DATA_DEF_DATA:
+                return "data-def-substatements";
             case DERIVED:
                 return "derived";
             default:

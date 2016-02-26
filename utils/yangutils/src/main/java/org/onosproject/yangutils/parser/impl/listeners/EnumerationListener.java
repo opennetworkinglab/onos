@@ -46,8 +46,8 @@ import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.parser.ParsableDataType.ENUMERATION_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.TYPE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.ENUMERATION_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
@@ -76,8 +76,8 @@ public final class EnumerationListener {
      * It is called when parser enters grammar rule (enumeration), it perform
      * validations and updates the data model tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processEnumerationEntry(TreeWalkListener listener,
             GeneratedYangParser.EnumSpecificationContext ctx) {
@@ -94,7 +94,7 @@ public final class EnumerationListener {
 
             Parsable tmpData = listener.getParsedDataStack().peek();
 
-            switch (tmpData.getParsableDataType()) {
+            switch (tmpData.getYangConstructType()) {
                 case LEAF_DATA:
                     enumerationNode.setEnumerationName(((YangLeaf) tmpData).getLeafName());
                     break;
@@ -117,8 +117,8 @@ public final class EnumerationListener {
      * It is called when parser exits from grammar rule (enumeration), it
      * perform validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processEnumerationExit(TreeWalkListener listener,
             GeneratedYangParser.EnumSpecificationContext ctx) {
@@ -134,7 +134,7 @@ public final class EnumerationListener {
             checkStackIsNotEmpty(listener, MISSING_HOLDER, ENUMERATION_DATA, "", EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
-            switch (tmpNode.getParsableDataType()) {
+            switch (tmpNode.getYangConstructType()) {
                 case TYPE_DATA: {
                     YangType typeNode = (YangType) tmpNode;
                     typeNode.setDataTypeExtendedInfo((YangEnumeration) tmpEnumerationNode);

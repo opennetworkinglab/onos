@@ -21,8 +21,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.translator.CachedFileHandle;
 import org.onosproject.yangutils.translator.GeneratedFileType;
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
@@ -90,7 +91,7 @@ import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
 /**
  * Data model node to maintain information defined in YANG container.
  */
-public class YangContainer extends YangNode implements YangLeavesHolder, YangCommonInfo, Parsable {
+public class YangContainer extends YangNode implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
 
     /**
      * Name of the container.
@@ -153,7 +154,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Get the YANG name of container.
      *
-     * @return the name of container as defined in YANG file.
+     * @return the name of container as defined in YANG file
      */
     @Override
     public String getName() {
@@ -163,7 +164,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Set the YANG name of container.
      *
-     * @param name the name of container as defined in YANG file.
+     * @param name the name of container as defined in YANG file
      */
     @Override
     public void setName(String name) {
@@ -182,7 +183,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Set the config flag.
      *
-     * @param isCfg the config flag.
+     * @param isCfg the config flag
      */
     public void setConfig(boolean isCfg) {
         isConfig = isCfg;
@@ -191,7 +192,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Get the description.
      *
-     * @return the description.
+     * @return the description
      */
     @Override
     public String getDescription() {
@@ -201,7 +202,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Set the description.
      *
-     * @param description set the description.
+     * @param description set the description
      */
     @Override
     public void setDescription(String description) {
@@ -211,7 +212,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Get the list of leaves.
      *
-     * @return the list of leaves.
+     * @return the list of leaves
      */
     @Override
     public List<YangLeaf> getListOfLeaf() {
@@ -221,7 +222,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Set the list of leaves.
      *
-     * @param leafsList the list of leaf to set.
+     * @param leafsList the list of leaf to set
      */
     private void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
@@ -230,7 +231,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Add a leaf.
      *
-     * @param leaf the leaf to be added.
+     * @param leaf the leaf to be added
      */
     @Override
     public void addLeaf(YangLeaf leaf) {
@@ -244,7 +245,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Get the list of leaf-list.
      *
-     * @return the list of leaf-list.
+     * @return the list of leaf-list
      */
     @Override
     public List<YangLeafList> getListOfLeafList() {
@@ -254,7 +255,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Set the list of leaf-list.
      *
-     * @param listOfLeafList the list of leaf-list to set.
+     * @param listOfLeafList the list of leaf-list to set
      */
     private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
@@ -263,7 +264,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Add a leaf-list.
      *
-     * @param leafList the leaf-list to be added.
+     * @param leafList the leaf-list to be added
      */
     @Override
     public void addLeafList(YangLeafList leafList) {
@@ -277,7 +278,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Get the presence string if present.
      *
-     * @return the isPressence.
+     * @return the presence
      */
     public String getPresence() {
         return presence;
@@ -295,7 +296,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Get the textual reference.
      *
-     * @return the reference.
+     * @return the reference
      */
     @Override
     public String getReference() {
@@ -305,7 +306,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Set the textual reference.
      *
-     * @param reference the reference to set.
+     * @param reference the reference to set
      */
     @Override
     public void setReference(String reference) {
@@ -315,7 +316,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Get the status.
      *
-     * @return the status.
+     * @return the status
      */
     @Override
     public YangStatusType getStatus() {
@@ -325,7 +326,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Set the status.
      *
-     * @param status the status to set.
+     * @param status the status to set
      */
     @Override
     public void setStatus(YangStatusType status) {
@@ -355,17 +356,17 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Returns the type of the data.
      *
-     * @return returns CONTAINER_DATA.
+     * @return returns CONTAINER_DATA
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.CONTAINER_DATA;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.CONTAINER_DATA;
     }
 
     /**
      * Validate the data on entering the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
@@ -375,7 +376,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Validate the data on exiting the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
@@ -387,15 +388,18 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Sets the config's value to all leaf if leaf's config statement is not specified.
+     * Sets the config's value to all leaf if leaf's config statement is not
+     * specified.
      *
-     * @param leaves list of leaf attributes of container.
-     * @param leafLists list of leaf-list attributes of container.
+     * @param leaves list of leaf attributes of container
+     * @param leafLists list of leaf-list attributes of container
      */
     private void setDefaultConfigValueToChild(List<YangLeaf> leaves, List<YangLeafList> leafLists) {
 
-        /* If "config" is not specified, the default is the same as the parent
-            schema node's "config" value.*/
+        /*
+         * If "config" is not specified, the default is the same as the parent
+         * schema node's "config" value.
+         */
         if (leaves != null) {
             for (YangLeaf leaf : leaves) {
                 if (leaf.isConfig() == null) {
@@ -404,8 +408,10 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
             }
         }
 
-        /* If "config" is not specified, the default is the same as the parent
-           schema node's "config" value.*/
+        /*
+         * If "config" is not specified, the default is the same as the parent
+         * schema node's "config" value.
+         */
         if (leafLists != null) {
             for (YangLeafList leafList : leafLists) {
                 if (leafList.isConfig() == null) {
@@ -418,14 +424,16 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Validates config statement of container.
      *
-     * @param leaves list of leaf attributes of container.
-     * @param leafLists list of leaf-list attributes of container.
-     * @throws DataModelException a violation of data model rules.
+     * @param leaves list of leaf attributes of container
+     * @param leafLists list of leaf-list attributes of container
+     * @throws DataModelException a violation of data model rules
      */
     private void validateConfig(List<YangLeaf> leaves, List<YangLeafList> leafLists) throws DataModelException {
 
-        /* If a node has "config" set to "false", no node underneath it can have
-             "config" set to "true".*/
+        /*
+         * If a node has "config" set to "false", no node underneath it can have
+         * "config" set to "true".
+         */
         if ((!isConfig) && (leaves != null)) {
             for (YangLeaf leaf : leaves) {
                 if (leaf.isConfig()) {
@@ -468,7 +476,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Generate the java code corresponding to YANG container.
      *
-     * @throws IOException when fails to generate the source files.
+     * @throws IOException when fails to generate the source files
      */
     @Override
     public void generateJavaCodeEntry() throws IOException {
@@ -531,5 +539,19 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
             }
         }
         return;
+    }
+
+    @Override
+    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+        // Asks helper to detect colliding child.
+        detectCollidingChildUtil(identifierName, dataType, this);
+    }
+
+    @Override
+    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+        if (this.getName().equals(identifierName)) {
+            throw new DataModelException("YANG file error: Duplicate input identifier detected, same as container \""
+                    + this.getName() + "\"");
+        }
     }
 }

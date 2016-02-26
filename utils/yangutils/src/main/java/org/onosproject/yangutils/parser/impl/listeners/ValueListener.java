@@ -29,7 +29,7 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import org.onosproject.yangutils.datamodel.YangEnum;
 import org.onosproject.yangutils.datamodel.YangEnumeration;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.parser.ParsableDataType.VALUE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.VALUE_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
@@ -55,8 +55,8 @@ public final class ValueListener {
      * It is called when parser receives an input matching the grammar rule
      * (value), perform validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processValueEntry(TreeWalkListener listener, GeneratedYangParser.ValueStatementContext ctx) {
 
@@ -65,7 +65,7 @@ public final class ValueListener {
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
-        switch (tmpNode.getParsableDataType()) {
+        switch (tmpNode.getYangConstructType()) {
             case ENUM_DATA: {
                 YangEnum enumNode = (YangEnum) tmpNode;
                 if (!isEnumValueValid(listener, ctx)) {
@@ -86,8 +86,8 @@ public final class ValueListener {
     /**
      * Validates ENUM value uniqueness.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      * @return validation result
      */
     private static boolean isEnumValueValid(TreeWalkListener listener, GeneratedYangParser.ValueStatementContext ctx) {
@@ -97,7 +97,7 @@ public final class ValueListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, VALUE_DATA, ctx.INTEGER().getText(), ENTRY);
 
         Parsable tmpNode = listener.getParsedDataStack().peek();
-        switch (tmpNode.getParsableDataType()) {
+        switch (tmpNode.getYangConstructType()) {
             case ENUMERATION_DATA: {
                 YangEnumeration yangEnumeration = (YangEnumeration) tmpNode;
                 for (YangEnum curEnum : yangEnumeration.getEnumSet()) {

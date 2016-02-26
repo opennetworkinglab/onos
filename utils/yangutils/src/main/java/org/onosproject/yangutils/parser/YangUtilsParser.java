@@ -29,10 +29,10 @@ public interface YangUtilsParser {
     /**
      * It is an entry function to initiate the YANG file parsing.
      *
-     * @param file input YANG file.
-     * @return YangNode root node of the data model tree.
-     * @throws ParserException when fails to get the data model.
-     * @throws IOException when there is an exception in IO operation.
+     * @param file input YANG file
+     * @return YangNode root node of the data model tree
+     * @throws ParserException when fails to get the data model
+     * @throws IOException when there is an exception in IO operation
      */
     YangNode getDataModel(String file) throws IOException, ParserException;
 }

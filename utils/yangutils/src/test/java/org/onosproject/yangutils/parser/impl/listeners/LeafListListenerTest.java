@@ -120,7 +120,7 @@ public class LeafListListenerTest {
     @Test
     public void processLeafListConfigInvalidCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Internal parser error detected: Invalid cardinality in config before processing.");
+        thrown.expectMessage("YANG file error: Invalid cardinality of config in leaf-list \"invalid-interval\".");
         YangNode node = manager.getDataModel("src/test/resources/LeafListConfigInvalidCardinality.yang");
     }
 
@@ -131,7 +131,7 @@ public class LeafListListenerTest {
     @Test
     public void processLeafListUnitsInvalidCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Internal parser error detected: Invalid cardinality in units before processing.");
+        thrown.expectMessage("YANG file error: Invalid cardinality of units in leaf-list \"invalid-interval\".");
         YangNode node = manager.getDataModel("src/test/resources/LeafListUnitsInvalidCardinality.yang");
     }
 

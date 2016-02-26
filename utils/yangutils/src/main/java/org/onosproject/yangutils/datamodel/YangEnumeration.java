@@ -21,7 +21,7 @@ import java.util.Set;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 /*
  * The enumeration built-in type represents values from a set of
@@ -67,8 +67,8 @@ public class YangEnumeration implements Parsable {
     /**
      * Add ENUM information.
      *
-     * @param enumInfo the ENUM information to be added.
-     * @throws DataModelException due to violation in data model rules.
+     * @param enumInfo the ENUM information to be added
+     * @throws DataModelException due to violation in data model rules
      */
     public void addEnumInfo(YangEnum enumInfo) throws DataModelException {
         if (!getEnumSet().add(enumInfo)) {
@@ -100,14 +100,14 @@ public class YangEnumeration implements Parsable {
      * @return returns ENUMERATION_DATA
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.ENUMERATION_DATA;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.ENUMERATION_DATA;
     }
 
     /**
      * Validate the data on entering the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
@@ -117,7 +117,7 @@ public class YangEnumeration implements Parsable {
     /**
      * Validate the data on exiting the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnExit() throws DataModelException {

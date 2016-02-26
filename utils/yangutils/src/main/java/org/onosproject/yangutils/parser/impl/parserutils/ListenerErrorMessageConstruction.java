@@ -16,9 +16,9 @@
 
 package org.onosproject.yangutils.parser.impl.parserutils;
 
-import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.utils.YangConstructType;
 
-import static org.onosproject.yangutils.parser.ParsableDataType.getParsableDataType;
+import static org.onosproject.yangutils.utils.YangConstructType.getYangConstructType;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.getErrorLocationMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.getErrorType;
 
@@ -37,21 +37,21 @@ public final class ListenerErrorMessageConstruction {
      * Constructs message for error with extended information and returns the
      * same.
      *
-     * @param errorType error type needs to be set in error message.
-     * @param parsableDataType type of parsable data in which error occurred.
+     * @param errorType error type needs to be set in error message
+     * @param yangConstructType type of parsable data in which error occurred
      * @param parsableDataTypeName identifier/string of parsable data type in
-     *            which error occurred.
-     * @param errorLocation location where error occurred.
-     * @param extendedErrorInformation extended error information.
-     * @return constructed error message.
+     *            which error occurred
+     * @param errorLocation location where error occurred
+     * @param extendedErrorInformation extended error information
+     * @return constructed error message
      */
     public static String constructExtendedListenerErrorMessage(ListenerErrorType errorType,
-                                                               ParsableDataType parsableDataType,
+                                                               YangConstructType yangConstructType,
                                                                String parsableDataTypeName,
                                                                ListenerErrorLocation errorLocation,
                                                                String extendedErrorInformation) {
         String newErrorMessage;
-        newErrorMessage = constructListenerErrorMessage(errorType, parsableDataType, parsableDataTypeName,
+        newErrorMessage = constructListenerErrorMessage(errorType, yangConstructType, parsableDataTypeName,
                                                         errorLocation)
                 + "\n"
                 + "Error Information: "
@@ -63,22 +63,22 @@ public final class ListenerErrorMessageConstruction {
      * Constructs message for error during listener based tree walk and returns
      * the same.
      *
-     * @param errorType error type needs to be set in error message.
-     * @param parsableDataType type of parsable data in which error occurred.
+     * @param errorType error type needs to be set in error message
+     * @param yangConstructType type of parsable data in which error occurred
      * @param parsableDataTypeName identifier/string of parsable data type in
-     *            which error occurred.
-     * @param errorLocation location where error occurred.
-     * @return constructed error message.
+     *            which error occurred
+     * @param errorLocation location where error occurred
+     * @return constructed error message
      */
     public static String constructListenerErrorMessage(ListenerErrorType errorType,
-                                                       ParsableDataType parsableDataType,
+                                                       YangConstructType yangConstructType,
                                                        String parsableDataTypeName,
                                                        ListenerErrorLocation errorLocation) {
 
         String errorMessage;
 
         errorMessage = "Internal parser error detected: " + getErrorType(errorType) + " "
-                + getParsableDataType(parsableDataType);
+                + getYangConstructType(yangConstructType);
 
         if (!parsableDataTypeName.isEmpty()) {
             errorMessage = errorMessage + " \"" + parsableDataTypeName + "\" ";

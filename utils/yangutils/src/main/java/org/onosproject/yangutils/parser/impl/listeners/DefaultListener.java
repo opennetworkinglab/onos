@@ -45,7 +45,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.parser.ParsableDataType.DEFAULT_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.DEFAULT_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
@@ -64,8 +64,8 @@ public final class DefaultListener {
      * It is called when parser enters grammar rule (default), it perform
      * validations and updates the data model tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processDefaultEntry(TreeWalkListener listener,
             GeneratedYangParser.DefaultStatementContext ctx) {
@@ -74,7 +74,7 @@ public final class DefaultListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, DEFAULT_DATA, ctx.string().getText(), ENTRY);
 
         Parsable tmpNode = listener.getParsedDataStack().peek();
-        switch (tmpNode.getParsableDataType()) {
+        switch (tmpNode.getYangConstructType()) {
             case TYPEDEF_DATA: {
                 YangTypeDef typeDef = (YangTypeDef) tmpNode;
                 typeDef.setDefaultValueInString(ctx.string().getText());

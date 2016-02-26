@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.translator.CachedFileHandle;
 
 /*-
@@ -110,7 +110,7 @@ public class YangGrouping extends YangNode
     private YangStatusType status;
 
     /**
-     * package of the generated java code.
+     * Package of the generated java code.
      */
     private String pkg;
 
@@ -124,7 +124,7 @@ public class YangGrouping extends YangNode
     /**
      * Get YANG grouping name.
      *
-     * @return YANG grouping name.
+     * @return YANG grouping name
      */
     @Override
     public String getName() {
@@ -134,7 +134,7 @@ public class YangGrouping extends YangNode
     /**
      * Set YANG grouping name.
      *
-     * @param name YANG grouping name.
+     * @param name YANG grouping name
      */
     @Override
     public void setName(String name) {
@@ -144,7 +144,7 @@ public class YangGrouping extends YangNode
     /**
      * Get the description.
      *
-     * @return the description.
+     * @return the description
      */
     @Override
     public String getDescription() {
@@ -154,7 +154,7 @@ public class YangGrouping extends YangNode
     /**
      * Set the description.
      *
-     * @param description set the description.
+     * @param description set the description
      */
     @Override
     public void setDescription(String description) {
@@ -164,7 +164,7 @@ public class YangGrouping extends YangNode
     /**
      * Get the list of leaves.
      *
-     * @return the list of leaves.
+     * @return the list of leaves
      */
     @Override
     public List<YangLeaf> getListOfLeaf() {
@@ -174,7 +174,7 @@ public class YangGrouping extends YangNode
     /**
      * Set the list of leaves.
      *
-     * @param leafsList the list of leaf to set.
+     * @param leafsList the list of leaf to set
      */
     private void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
@@ -183,7 +183,7 @@ public class YangGrouping extends YangNode
     /**
      * Add a leaf.
      *
-     * @param leaf the leaf to be added.
+     * @param leaf the leaf to be added
      */
     @Override
     public void addLeaf(YangLeaf leaf) {
@@ -197,7 +197,7 @@ public class YangGrouping extends YangNode
     /**
      * Get the list of leaf-list.
      *
-     * @return the list of leaf-list.
+     * @return the list of leaf-list
      */
     @Override
     public List<YangLeafList> getListOfLeafList() {
@@ -207,7 +207,7 @@ public class YangGrouping extends YangNode
     /**
      * Set the list of leaf-list.
      *
-     * @param listOfLeafList the list of leaf-list to set.
+     * @param listOfLeafList the list of leaf-list to set
      */
     private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
@@ -216,7 +216,7 @@ public class YangGrouping extends YangNode
     /**
      * Add a leaf-list.
      *
-     * @param leafList the leaf-list to be added.
+     * @param leafList the leaf-list to be added
      */
     @Override
     public void addLeafList(YangLeafList leafList) {
@@ -230,7 +230,7 @@ public class YangGrouping extends YangNode
     /**
      * Get the textual reference.
      *
-     * @return the reference.
+     * @return the reference
      */
     @Override
     public String getReference() {
@@ -240,7 +240,7 @@ public class YangGrouping extends YangNode
     /**
      * Set the textual reference.
      *
-     * @param reference the reference to set.
+     * @param reference the reference to set
      */
     @Override
     public void setReference(String reference) {
@@ -250,7 +250,7 @@ public class YangGrouping extends YangNode
     /**
      * Get the status.
      *
-     * @return the status.
+     * @return the status
      */
     @Override
     public YangStatusType getStatus() {
@@ -260,7 +260,7 @@ public class YangGrouping extends YangNode
     /**
      * Set the status.
      *
-     * @param status the status to set.
+     * @param status the status to set
      */
     @Override
     public void setStatus(YangStatusType status) {
@@ -270,17 +270,17 @@ public class YangGrouping extends YangNode
     /**
      * Returns the type of the data.
      *
-     * @return returns GROUPING_DATA.
+     * @return returns GROUPING_DATA
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.GROUPING_DATA;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.GROUPING_DATA;
     }
 
     /**
      * Validate the data on entering the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
@@ -290,7 +290,7 @@ public class YangGrouping extends YangNode
     /**
      * Validate the data on exiting the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnExit() throws DataModelException {

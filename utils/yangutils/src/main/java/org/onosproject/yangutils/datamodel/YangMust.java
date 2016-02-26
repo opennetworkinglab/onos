@@ -17,7 +17,7 @@ package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 /*-
  * The "must" statement, which is optional, takes as an argument a string that
@@ -59,7 +59,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     private String description;
 
     /**
-     * reference string.
+     * Reference string.
      */
     private String reference;
 
@@ -72,7 +72,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     /**
      * Get the constraint.
      *
-     * @return the constraint.
+     * @return the constraint
      */
     public String getConstratint() {
         return constratint;
@@ -90,7 +90,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     /**
      * Get the description.
      *
-     * @return the description.
+     * @return the description
      */
     @Override
     public String getDescription() {
@@ -100,7 +100,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     /**
      * Set the description.
      *
-     * @param description set the description.
+     * @param description set the description
      */
     @Override
     public void setDescription(String description) {
@@ -110,7 +110,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     /**
      * Get the textual reference.
      *
-     * @return the reference.
+     * @return the reference
      */
     @Override
     public String getReference() {
@@ -120,7 +120,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     /**
      * Set the textual reference.
      *
-     * @param reference the reference to set.
+     * @param reference the reference to set
      */
     @Override
     public void setReference(String reference) {
@@ -133,14 +133,14 @@ public class YangMust implements YangDesc, YangReference, Parsable {
      * @return returns MUST_DATA
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.MUST_DATA;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.MUST_DATA;
     }
 
     /**
      * Validate the data on entering the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
@@ -150,7 +150,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     /**
      * Validate the data on exiting the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnExit() throws DataModelException {

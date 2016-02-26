@@ -36,7 +36,7 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import org.onosproject.yangutils.datamodel.YangBit;
 import org.onosproject.yangutils.datamodel.YangBits;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.parser.ParsableDataType.POSITION_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.POSITION_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
@@ -65,8 +65,8 @@ public final class PositionListener {
      * It is called when parser receives an input matching the grammar rule
      * (position), perform validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processPositionEntry(TreeWalkListener listener,
                                             GeneratedYangParser.PositionStatementContext ctx) {
@@ -76,7 +76,7 @@ public final class PositionListener {
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
-        switch (tmpNode.getParsableDataType()) {
+        switch (tmpNode.getYangConstructType()) {
             case BIT_DATA: {
                 YangBit bitNode = (YangBit) tmpNode;
                 if (!isBitPositionValid(listener, ctx)) {
@@ -97,8 +97,8 @@ public final class PositionListener {
     /**
      * Validates BITS position value correctness and uniqueness.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      * @return validation result
      */
     private static boolean isBitPositionValid(TreeWalkListener listener,
@@ -109,18 +109,18 @@ public final class PositionListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, POSITION_DATA, ctx.INTEGER().getText(), ENTRY);
 
         if (Integer.valueOf(ctx.INTEGER().getText()) < 0) {
-            errMsg = "Negative value of position is invalid";
+            errMsg = "YANG file error: Negative value of position is invalid.";
             listener.getParsedDataStack().push(bitNode);
             return false;
         }
 
         Parsable tmpNode = listener.getParsedDataStack().peek();
-        switch (tmpNode.getParsableDataType()) {
+        switch (tmpNode.getYangConstructType()) {
             case BITS_DATA: {
                 YangBits yangBits = (YangBits) tmpNode;
                 for (YangBit curBit : yangBits.getBitSet()) {
                     if (Integer.valueOf(ctx.INTEGER().getText()) == curBit.getPosition()) {
-                        errMsg = "Duplicate value of position is invalid";
+                        errMsg = "YANG file error: Duplicate value of position is invalid.";
                         listener.getParsedDataStack().push(bitNode);
                         return false;
                     }

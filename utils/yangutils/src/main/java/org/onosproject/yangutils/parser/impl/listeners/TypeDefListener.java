@@ -58,24 +58,23 @@ import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinality;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityEqualsOne;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
-import static org.onosproject.yangutils.parser.ParsableDataType.DEFAULT_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.DESCRIPTION_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.REFERENCE_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.STATUS_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.TYPEDEF_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.TYPE_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.UNITS_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.DEFAULT_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.REFERENCE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.TYPEDEF_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.UNITS_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_CARDINALITY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
@@ -88,8 +87,6 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
  */
 public final class TypeDefListener {
 
-    private static ParsableDataType yangConstruct;
-
     /**
      * Creates a new typedef listener.
      */
@@ -100,8 +97,8 @@ public final class TypeDefListener {
      * It is called when parser enters grammar rule (typedef), it perform
      * validations and updates the data model tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processTypeDefEntry(TreeWalkListener listener,
             GeneratedYangParser.TypedefStatementContext ctx) {
@@ -109,10 +106,8 @@ public final class TypeDefListener {
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPEDEF_DATA, ctx.IDENTIFIER().getText(), ENTRY);
 
-        boolean result = validateSubStatementsCardinality(ctx);
-        if (!result) {
-            throw new ParserException(constructListenerErrorMessage(INVALID_CARDINALITY, yangConstruct, "", ENTRY));
-        }
+        // Validate sub statement cardinality.
+        validateSubStatementsCardinality(ctx);
 
         /*
          * Create a derived type information, the base type must be set in type
@@ -150,8 +145,8 @@ public final class TypeDefListener {
      * It is called when parser exits from grammar rule (typedef), it perform
      * validations and updates the data model tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processTypeDefExit(TreeWalkListener listener,
             GeneratedYangParser.TypedefStatementContext ctx) {
@@ -178,45 +173,15 @@ public final class TypeDefListener {
     /**
      * Validates the cardinality of typedef sub-statements as per grammar.
      *
-     * @param ctx context object of the grammar rule.
-     * @return true/false validation success or failure.
+     * @param ctx context object of the grammar rule
      */
-    private static boolean validateSubStatementsCardinality(GeneratedYangParser.TypedefStatementContext ctx) {
+    private static void validateSubStatementsCardinality(GeneratedYangParser.TypedefStatementContext ctx) {
 
-        if ((!ctx.unitsStatement().isEmpty())
-                && (ctx.unitsStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
-            yangConstruct = UNITS_DATA;
-            return false;
-        }
-
-        if ((!ctx.defaultStatement().isEmpty())
-                && (ctx.defaultStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
-            yangConstruct = DEFAULT_DATA;
-            return false;
-        }
-
-        if (ctx.typeStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY) {
-            yangConstruct = TYPE_DATA;
-            return false;
-        }
-
-        if ((!ctx.descriptionStatement().isEmpty())
-                && (ctx.descriptionStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
-            yangConstruct = DESCRIPTION_DATA;
-            return false;
-        }
-
-        if ((!ctx.referenceStatement().isEmpty())
-                && (ctx.referenceStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
-            yangConstruct = REFERENCE_DATA;
-            return false;
-        }
-
-        if ((!ctx.statusStatement().isEmpty())
-                && (ctx.statusStatement().size() != YangUtilsParserManager.SUB_STATEMENT_CARDINALITY)) {
-            yangConstruct = STATUS_DATA;
-            return false;
-        }
-        return true;
+        validateCardinality(ctx.unitsStatement(), UNITS_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
+        validateCardinality(ctx.defaultStatement(), DEFAULT_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
+        validateCardinalityEqualsOne(ctx.typeStatement(), TYPE_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
+        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
+        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
+        validateCardinality(ctx.statusStatement(), STATUS_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
     }
 }

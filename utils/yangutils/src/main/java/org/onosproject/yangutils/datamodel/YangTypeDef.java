@@ -17,7 +17,7 @@ package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.translator.CachedFileHandle;
 
 /*-
@@ -103,7 +103,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Get the default value.
      *
-     * @return the default value.
+     * @return the default value
      */
     public String getDefaultValueInString() {
         return defaultValueInString;
@@ -112,7 +112,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Set the default value.
      *
-     * @param defaultValueInString the default value.
+     * @param defaultValueInString the default value
      */
     public void setDefaultValueInString(String defaultValueInString) {
         this.defaultValueInString = defaultValueInString;
@@ -121,7 +121,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Get the description.
      *
-     * @return the description.
+     * @return the description
      */
     @Override
     public String getDescription() {
@@ -131,7 +131,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Set the description.
      *
-     * @param description set the description.
+     * @param description set the description
      */
     @Override
     public void setDescription(String description) {
@@ -141,7 +141,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Get the textual reference.
      *
-     * @return the reference.
+     * @return the reference
      */
     @Override
     public String getReference() {
@@ -151,7 +151,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Set the textual reference.
      *
-     * @param reference the reference to set.
+     * @param reference the reference to set
      */
     @Override
     public void setReference(String reference) {
@@ -161,7 +161,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Get the status.
      *
-     * @return the status.
+     * @return the status
      */
     @Override
     public YangStatusType getStatus() {
@@ -171,7 +171,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Set the status.
      *
-     * @param status the status to set.
+     * @param status the status to set
      */
     @Override
     public void setStatus(YangStatusType status) {
@@ -181,7 +181,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Get the derived type.
      *
-     * @return the derived type.
+     * @return the derived type
      */
     public YangType<YangDerivedType> getDerivedType() {
         return derivedType;
@@ -190,7 +190,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Set the derived type.
      *
-     * @param derivedType the derived type.
+     * @param derivedType the derived type
      */
     public void setDerivedType(YangType<YangDerivedType> derivedType) {
         this.derivedType = derivedType;
@@ -220,14 +220,14 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      * @return returns TYPEDEF_DATA
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.TYPEDEF_DATA;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.TYPEDEF_DATA;
     }
 
     /**
      * Validate the data on entering the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
@@ -237,7 +237,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Validate the data on exiting the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
@@ -274,7 +274,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Get the YANG name of the typedef.
      *
-     * @return YANG name of the typedef.
+     * @return YANG name of the typedef
      */
     @Override
     public String getName() {
@@ -287,7 +287,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Set YANG name of the typedef.
      *
-     * @param name YANG name of the typedef.
+     * @param name YANG name of the typedef
      */
     @Override
     public void setName(String name) {
@@ -330,7 +330,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Set the mapped java package.
      *
-     * @param pakg mapped java package.
+     * @param pakg mapped java package
      */
     @Override
     public void setPackage(String pakg) {
@@ -341,7 +341,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Get the file handle of the cached file used during code generation.
      *
-     * @return cached file handle.
+     * @return cached file handle
      */
     @Override
     public CachedFileHandle getFileHandle() {
@@ -352,7 +352,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     /**
      * Set the file handle to be used used for code generation.
      *
-     * @param fileHandle cached file handle.
+     * @param fileHandle cached file handle
      */
     @Override
     public void setFileHandle(CachedFileHandle fileHandle) {

@@ -23,7 +23,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.parser.ParsableDataType.MAX_ELEMENT_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.MAX_ELEMENT_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
@@ -60,8 +60,8 @@ public final class MaxElementsListener {
      * rule (max-elements), performs validation and updates the data model
      * tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processMaxElementsEntry(TreeWalkListener listener,
                                              GeneratedYangParser.MaxElementsStatementContext ctx) {
@@ -77,7 +77,7 @@ public final class MaxElementsListener {
         }
 
         Parsable tmpData = listener.getParsedDataStack().peek();
-        switch (tmpData.getParsableDataType()) {
+        switch (tmpData.getYangConstructType()) {
             case LEAF_LIST_DATA:
                 YangLeafList leafList = (YangLeafList) tmpData;
                 leafList.setMaxElelements(maxElementsValue);

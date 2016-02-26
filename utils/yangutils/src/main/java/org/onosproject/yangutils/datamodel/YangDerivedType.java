@@ -15,7 +15,7 @@ package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 /*-
  * The typedef Statement
@@ -60,7 +60,7 @@ public class YangDerivedType implements Parsable {
     /**
      * Get the effective YANG built-in type of the derived data type.
      *
-     * @return effective YANG built-in type of the derived data type.
+     * @return effective YANG built-in type of the derived data type
      */
     public YangDataTypes getEffectiveYangBuiltInType() {
         return effectiveYangBuiltInType;
@@ -69,7 +69,7 @@ public class YangDerivedType implements Parsable {
     /**
      * Set the effective YANG built-in type of the derived data type.
      *
-     * @param builtInType effective YANG built-in type of the derived data type.
+     * @param builtInType effective YANG built-in type of the derived data type
      */
     public void setEffectiveYangBuiltInType(YangDataTypes builtInType) {
         effectiveYangBuiltInType = builtInType;
@@ -78,7 +78,7 @@ public class YangDerivedType implements Parsable {
     /**
      * Get the base type information.
      *
-     * @return base type information.
+     * @return base type information
      */
     public YangType<?> getBaseType() {
         return baseType;
@@ -87,7 +87,7 @@ public class YangDerivedType implements Parsable {
     /**
      * Get the base type information.
      *
-     * @param baseType base type information.
+     * @param baseType base type information
      */
     public void setBaseType(YangType<?> baseType) {
         this.baseType = baseType;
@@ -97,8 +97,8 @@ public class YangDerivedType implements Parsable {
      * Get the parsable type.
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.DERIVED;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.DERIVED;
     }
 
     /**

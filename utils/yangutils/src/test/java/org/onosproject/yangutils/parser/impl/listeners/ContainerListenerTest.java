@@ -69,6 +69,42 @@ public class ContainerListenerTest {
     }
 
     /**
+     * Checks if container identifier in module is duplicate.
+     */
+    @Test(expected = ParserException.class)
+    public void processModuleDuplicateContainer() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/ModuleDuplicateContainer.yang");
+    }
+
+    /**
+     * Checks if container identifier in container is duplicate.
+     */
+    @Test(expected = ParserException.class)
+    public void processContainerDuplicateContainer() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/ContainerDuplicateContainer.yang");
+    }
+
+    /**
+     * Checks if container identifier in list is duplicate.
+     */
+    @Test(expected = ParserException.class)
+    public void processListDuplicateContainer() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/ListDuplicateContainer.yang");
+    }
+
+    /**
+     * Checks if container identifier collides with list at same level.
+     */
+    @Test(expected = ParserException.class)
+    public void processDuplicateContainerAndList() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/DuplicateContainerAndList.yang");
+    }
+
+    /**
      * Checks container statement as sub-statement of container.
      */
     @Test
@@ -170,7 +206,7 @@ public class ContainerListenerTest {
     @Test
     public void processContainerSubStatementCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Internal parser error detected: Invalid cardinality in reference before processing.");
+        thrown.expectMessage("YANG file error: Invalid cardinality of reference in container \"valid\".");
         YangNode node = manager.getDataModel("src/test/resources/ContainerSubStatementCardinality.yang");
     }
 

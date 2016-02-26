@@ -120,7 +120,7 @@ public class LeafListenerTest {
     @Test
     public void processLeafConfigInvalidCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Internal parser error detected: Invalid cardinality in config before processing.");
+        thrown.expectMessage("YANG file error: Invalid cardinality of config in leaf \"invalid-interval\".");
         YangNode node = manager.getDataModel("src/test/resources/LeafConfigInvalidCardinality.yang");
     }
 
@@ -131,7 +131,7 @@ public class LeafListenerTest {
     @Test
     public void processLeafMandatoryInvalidCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Internal parser error detected: Invalid cardinality in mandatory before processing.");
+        thrown.expectMessage("YANG file error: Invalid cardinality of mandatory in leaf \"invalid-interval\".");
         YangNode node = manager.getDataModel("src/test/resources/LeafMandatoryInvalidCardinality.yang");
     }
 
@@ -170,6 +170,33 @@ public class LeafListenerTest {
         assertThat(leafInfo.isMandatory(), is(true));
         assertThat(leafInfo.getStatus(), is(YangStatusType.CURRENT));
         assertThat(leafInfo.getReference(), is("\"RFC 6020\""));
+    }
+
+    /**
+     * Checks duplicate leaf statement as sub-statement of module.
+     */
+    @Test(expected = ParserException.class)
+    public void processModuleWithDuplicateLeaf() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/ModuleWithDuplicateLeaf.yang");
+    }
+
+    /**
+     * Checks duplicate leaf statement as sub-statement of container.
+     */
+    @Test(expected = ParserException.class)
+    public void processContainerWithDuplicateLeaf() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/ContainerWithDuplicateLeaf.yang");
+    }
+
+    /**
+     * Checks duplicate leaf statement as sub-statement of list.
+     */
+    @Test(expected = ParserException.class)
+    public void processListWithDuplicateLeaf() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/ListWithDuplicateLeaf.yang");
     }
 
     /**

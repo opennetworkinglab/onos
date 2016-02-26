@@ -23,7 +23,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.parser.ParsableDataType.UNITS_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.UNITS_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
@@ -57,8 +57,8 @@ public final class UnitsListener {
      * rule (units), performs validation and updates the data model
      * tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processUnitsEntry(TreeWalkListener listener,
                                            GeneratedYangParser.UnitsStatementContext ctx) {
@@ -67,7 +67,7 @@ public final class UnitsListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, UNITS_DATA, ctx.string().getText(), ENTRY);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
-        switch (tmpData.getParsableDataType()) {
+        switch (tmpData.getYangConstructType()) {
             case LEAF_DATA:
                 YangLeaf leaf = (YangLeaf) tmpData;
                 leaf.setUnits(ctx.string().getText());

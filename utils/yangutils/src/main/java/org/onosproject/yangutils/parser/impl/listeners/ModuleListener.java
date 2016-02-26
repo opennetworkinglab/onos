@@ -20,14 +20,15 @@ import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-
-import static org.onosproject.yangutils.parser.ParsableDataType.MODULE_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.*;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.utils.YangConstructType.MODULE_DATA;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -63,8 +64,8 @@ public final class ModuleListener {
      * It is called when parser receives an input matching the grammar rule
      * (module), perform validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processModuleEntry(TreeWalkListener listener, GeneratedYangParser.ModuleStatementContext ctx) {
 
@@ -74,6 +75,10 @@ public final class ModuleListener {
         YangModule yangModule = new YangModule();
         yangModule.setName(ctx.IDENTIFIER().getText());
 
+        if (ctx.moduleBody(0).moduleHeaderStatement().yangVersionStatement() == null) {
+            yangModule.setVersion((byte) 1);
+        }
+
         listener.getParsedDataStack().push(yangModule);
     }
 
@@ -81,8 +86,8 @@ public final class ModuleListener {
      * It is called when parser exits from grammar rule (module), it perform
      * validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processModuleExit(TreeWalkListener listener, GeneratedYangParser.ModuleStatementContext ctx) {
 

@@ -15,19 +15,20 @@
  */
 package org.onosproject.yangutils.datamodel;
 
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
 import org.onosproject.yangutils.translator.CachedFileHandle;
 import org.onosproject.yangutils.translator.CodeGenerator;
 import org.onosproject.yangutils.translator.GeneratedFileType;
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
 import org.onosproject.yangutils.utils.UtilConstants;
+import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
+
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 /*-
  * Reference:RFC 6020.
@@ -73,7 +74,7 @@ import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
  * Data model node to maintain information defined in YANG module.
  */
 public class YangModule extends YangNode
-        implements YangLeavesHolder, YangDesc, YangReference, Parsable, CodeGenerator {
+        implements YangLeavesHolder, YangDesc, YangReference, Parsable, CodeGenerator, CollisionDetector {
 
     /**
      * Name of the module.
@@ -588,8 +589,8 @@ public class YangModule extends YangNode
      * @return returns MODULE_DATA.
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.MODULE_DATA;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.MODULE_DATA;
     }
 
     /**
@@ -696,5 +697,16 @@ public class YangModule extends YangNode
         module = (YangModule) curNode;
         module.addToNestedReferenceResoulutionList(node);
         return;
+    }
+
+    @Override
+    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+        // Asks helper to detect colliding child.
+        detectCollidingChildUtil(identifierName, dataType, this);
+    }
+
+    @Override
+    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+        // Not required as module doesn't have any parent.
     }
 }

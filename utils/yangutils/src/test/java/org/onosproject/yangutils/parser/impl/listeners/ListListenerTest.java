@@ -175,7 +175,7 @@ public class ListListenerTest {
     @Test
     public void processListSubStatementsCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Internal parser error detected: Invalid cardinality in reference before processing.");
+        thrown.expectMessage("YANG file error: Invalid cardinality of reference in list \"valid\".");
         YangNode node = manager.getDataModel("src/test/resources/ListSubStatementsCardinality.yang");
     }
 
@@ -185,7 +185,7 @@ public class ListListenerTest {
     @Test
     public void processListStatementWithoutChild() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Internal parser error detected: Invalid cardinality in list before processing.");
+        thrown.expectMessage("YANG file error: Invalid cardinality of data-def-substatements in list \"valid\".");
         YangNode node = manager.getDataModel("src/test/resources/ListStatementWithoutChild.yang");
     }
 

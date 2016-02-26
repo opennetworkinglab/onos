@@ -64,7 +64,7 @@ public class VersionListenerTest {
         YangNode node = manager.getDataModel("src/test/resources/VersionNotPresent.yang");
 
         // Checks for the version value in data model tree.
-        assertThat(((YangModule) node).getVersion(), is((byte) 0));
+        assertThat(((YangModule) node).getVersion(), is((byte) 1));
     }
 
     /**

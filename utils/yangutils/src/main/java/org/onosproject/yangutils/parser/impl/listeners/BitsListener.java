@@ -46,8 +46,8 @@ import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.parser.ParsableDataType.BITS_DATA;
-import static org.onosproject.yangutils.parser.ParsableDataType.TYPE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.BITS_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
@@ -75,8 +75,8 @@ public final class BitsListener {
      * It is called when parser enters grammar rule (bits), it perform
      * validations and updates the data model tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processBitsEntry(TreeWalkListener listener,
                                                GeneratedYangParser.BitsSpecificationContext ctx) {
@@ -93,7 +93,7 @@ public final class BitsListener {
 
             Parsable tmpData = listener.getParsedDataStack().peek();
 
-            switch (tmpData.getParsableDataType()) {
+            switch (tmpData.getYangConstructType()) {
                 case LEAF_DATA:
                     bitsNode.setBitsName(((YangLeaf) tmpData).getLeafName());
                     break;
@@ -116,8 +116,8 @@ public final class BitsListener {
      * It is called when parser exits from grammar rule (bits), it perform
      * validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx      context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processBitsExit(TreeWalkListener listener,
                                               GeneratedYangParser.BitsSpecificationContext ctx) {
@@ -133,7 +133,7 @@ public final class BitsListener {
             checkStackIsNotEmpty(listener, MISSING_HOLDER, BITS_DATA, "", EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
-            switch (tmpNode.getParsableDataType()) {
+            switch (tmpNode.getYangConstructType()) {
                 case TYPE_DATA: {
                     YangType typeNode = (YangType) tmpNode;
                     typeNode.setDataTypeExtendedInfo((YangBits) tmpBitsNode);

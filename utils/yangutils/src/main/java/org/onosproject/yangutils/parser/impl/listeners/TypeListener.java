@@ -27,7 +27,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.parser.ParsableDataType.TYPE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -66,8 +66,8 @@ public final class TypeListener {
      * It is called when parser receives an input matching the grammar rule
      * (type), performs validation and updates the data model tree.
      *
-     * @param listener listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processTypeEntry(TreeWalkListener listener,
             GeneratedYangParser.TypeStatementContext ctx) {
@@ -88,8 +88,8 @@ public final class TypeListener {
      * It is called when parser exits from grammar rule (type), it perform
      * validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processTypeExit(TreeWalkListener listener,
             GeneratedYangParser.TypeStatementContext ctx) {
@@ -107,7 +107,7 @@ public final class TypeListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPE_DATA, ctx.string().getText(), EXIT);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
-        switch (tmpData.getParsableDataType()) {
+        switch (tmpData.getYangConstructType()) {
             case LEAF_DATA:
                 YangLeaf leaf = (YangLeaf) tmpData;
                 leaf.setDataType((YangType) type);

@@ -133,8 +133,7 @@ public class MinElementsListenerTest {
     @Test
     public void processMinElementsInvalidCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage(
-                "Internal parser error detected: Invalid cardinality in" + " min-elements before processing.");
+        thrown.expectMessage("YANG file error: Invalid cardinality of min-elements in leaf-list \"invalid-interval\".");
         YangNode node = manager.getDataModel("src/test/resources/MinElementsInvalidCardinality.yang");
     }
 

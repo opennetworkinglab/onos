@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
+import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.translator.CachedFileHandle;
 
 /*-
@@ -85,7 +85,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     private String targetNode;
 
     /**
-     * description of augment.
+     * Description of augment.
      */
     private String description;
 
@@ -100,7 +100,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     private List<YangLeafList> listOfLeafList;
 
     /**
-     * reference.
+     * Reference of the YANG augment.
      */
     private String reference;
 
@@ -110,7 +110,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     private YangStatusType status;
 
     /**
-     * package of the generated java code.
+     * Package of the generated java code.
      */
     private String pkg;
 
@@ -124,7 +124,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Get the augmented node.
      *
-     * @return the augmented node.
+     * @return the augmented node
      */
     public String getTargetNode() {
         return targetNode;
@@ -133,7 +133,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Set the augmented node.
      *
-     * @param targetNode the augmented node.
+     * @param targetNode the augmented node
      */
     public void setTargetNode(String targetNode) {
         this.targetNode = targetNode;
@@ -142,7 +142,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Get the description.
      *
-     * @return the description.
+     * @return the description
      */
     @Override
     public String getDescription() {
@@ -152,7 +152,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Set the description.
      *
-     * @param description set the description.
+     * @param description set the description
      */
     @Override
     public void setDescription(String description) {
@@ -162,7 +162,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Get the list of leaves.
      *
-     * @return the list of leaves.
+     * @return the list of leaves
      */
     @Override
     public List<YangLeaf> getListOfLeaf() {
@@ -172,7 +172,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Set the list of leaves.
      *
-     * @param leafsList the list of leaf to set.
+     * @param leafsList the list of leaf to set
      */
     private void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
@@ -181,7 +181,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Add a leaf.
      *
-     * @param leaf the leaf to be added.
+     * @param leaf the leaf to be added
      */
     @Override
     public void addLeaf(YangLeaf leaf) {
@@ -195,7 +195,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Get the list of leaf-list.
      *
-     * @return the list of leaf-list.
+     * @return the list of leaf-list
      */
     @Override
     public List<YangLeafList> getListOfLeafList() {
@@ -205,7 +205,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Set the list of leaf-list.
      *
-     * @param listOfLeafList the list of leaf-list to set.
+     * @param listOfLeafList the list of leaf-list to set
      */
     private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
@@ -214,7 +214,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Add a leaf-list.
      *
-     * @param leafList the leaf-list to be added.
+     * @param leafList the leaf-list to be added
      */
     @Override
     public void addLeafList(YangLeafList leafList) {
@@ -228,7 +228,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Get the textual reference.
      *
-     * @return the reference.
+     * @return the reference
      */
     @Override
     public String getReference() {
@@ -238,7 +238,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Set the textual reference.
      *
-     * @param reference the reference to set.
+     * @param reference the reference to set
      */
     @Override
     public void setReference(String reference) {
@@ -248,7 +248,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Get the status.
      *
-     * @return the status.
+     * @return the status
      */
     @Override
     public YangStatusType getStatus() {
@@ -258,7 +258,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Set the status.
      *
-     * @param status the status to set.
+     * @param status the status to set
      */
     @Override
     public void setStatus(YangStatusType status) {
@@ -268,17 +268,17 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Returns the type of the data as belongs-to.
      *
-     * @return returns AUGMENT_DATA.
+     * @return returns AUGMENT_DATA
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.AUGMENT_DATA;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.AUGMENT_DATA;
     }
 
     /**
      * Validate the data on entering the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
@@ -288,7 +288,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Validate the data on exiting the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
@@ -298,7 +298,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Get the target nodes name where the augmentation is being done.
      *
-     * @return target nodes name where the augmentation is being done.
+     * @return target nodes name where the augmentation is being done
      */
     @Override
     public String getName() {
@@ -308,7 +308,7 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Set the target nodes name where the augmentation is being done.
      *
-     * @param name target nodes name where the augmentation is being done.
+     * @param name target nodes name where the augmentation is being done
      */
     @Override
     public void setName(String name) {

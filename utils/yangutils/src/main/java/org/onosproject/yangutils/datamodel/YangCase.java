@@ -15,13 +15,15 @@
  */
 package org.onosproject.yangutils.datamodel;
 
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.translator.CachedFileHandle;
+import org.onosproject.yangutils.utils.YangConstructType;
+import static org.onosproject.yangutils.utils.YangConstructType.CASE_DATA;
+
 import java.util.LinkedList;
 import java.util.List;
-
-import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.parser.ParsableDataType;
-import org.onosproject.yangutils.translator.CachedFileHandle;
 
 /*-
  * Reference RFC 6020.
@@ -90,7 +92,7 @@ import org.onosproject.yangutils.translator.CachedFileHandle;
  * Data model node to maintain information defined in YANG case.
  */
 public class YangCase extends YangNode
-        implements YangLeavesHolder, YangCommonInfo, Parsable {
+        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
 
     /**
      * Case name.
@@ -100,7 +102,7 @@ public class YangCase extends YangNode
     // TODO: default field identification for the case
 
     /**
-     * Description of container.
+     * Description of case.
      */
     private String description;
 
@@ -125,7 +127,7 @@ public class YangCase extends YangNode
     private YangStatusType status;
 
     /**
-     * package of the generated java code.
+     * Package of the generated java code.
      */
     private String pkg;
 
@@ -139,7 +141,7 @@ public class YangCase extends YangNode
     /**
      * Get the case name.
      *
-     * @return case name.
+     * @return case name
      */
     @Override
     public String getName() {
@@ -149,7 +151,7 @@ public class YangCase extends YangNode
     /**
      * Set the case name.
      *
-     * @param name case name.
+     * @param name case name
      */
     @Override
     public void setName(String name) {
@@ -159,7 +161,7 @@ public class YangCase extends YangNode
     /**
      * Get the description.
      *
-     * @return the description.
+     * @return the description
      */
     @Override
     public String getDescription() {
@@ -169,7 +171,7 @@ public class YangCase extends YangNode
     /**
      * Set the description.
      *
-     * @param description set the description.
+     * @param description set the description
      */
     @Override
     public void setDescription(String description) {
@@ -179,7 +181,7 @@ public class YangCase extends YangNode
     /**
      * Get the list of leaves.
      *
-     * @return the list of leaves.
+     * @return the list of leaves
      */
     @Override
     public List<YangLeaf> getListOfLeaf() {
@@ -189,7 +191,7 @@ public class YangCase extends YangNode
     /**
      * Set the list of leaves.
      *
-     * @param leafsList the list of leaf to set.
+     * @param leafsList the list of leaf to set
      */
     private void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
@@ -198,7 +200,7 @@ public class YangCase extends YangNode
     /**
      * Add a leaf.
      *
-     * @param leaf the leaf to be added.
+     * @param leaf the leaf to be added
      */
     @Override
     public void addLeaf(YangLeaf leaf) {
@@ -212,7 +214,7 @@ public class YangCase extends YangNode
     /**
      * Get the list of leaf-list.
      *
-     * @return the list of leaf-list.
+     * @return the list of leaf-list
      */
     @Override
     public List<YangLeafList> getListOfLeafList() {
@@ -222,7 +224,7 @@ public class YangCase extends YangNode
     /**
      * Set the list of leaf-list.
      *
-     * @param listOfLeafList the list of leaf-list to set.
+     * @param listOfLeafList the list of leaf-list to set
      */
     private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
@@ -231,7 +233,7 @@ public class YangCase extends YangNode
     /**
      * Add a leaf-list.
      *
-     * @param leafList the leaf-list to be added.
+     * @param leafList the leaf-list to be added
      */
     @Override
     public void addLeafList(YangLeafList leafList) {
@@ -245,7 +247,7 @@ public class YangCase extends YangNode
     /**
      * Get the textual reference.
      *
-     * @return the reference.
+     * @return the reference
      */
     @Override
     public String getReference() {
@@ -255,7 +257,7 @@ public class YangCase extends YangNode
     /**
      * Set the textual reference.
      *
-     * @param reference the reference to set.
+     * @param reference the reference to set
      */
     @Override
     public void setReference(String reference) {
@@ -265,7 +267,7 @@ public class YangCase extends YangNode
     /**
      * Get the status.
      *
-     * @return the status.
+     * @return the status
      */
     @Override
     public YangStatusType getStatus() {
@@ -275,7 +277,7 @@ public class YangCase extends YangNode
     /**
      * Set the status.
      *
-     * @param status the status to set.
+     * @param status the status to set
      */
     @Override
     public void setStatus(YangStatusType status) {
@@ -288,14 +290,14 @@ public class YangCase extends YangNode
      * @return returns CASE_DATA
      */
     @Override
-    public ParsableDataType getParsableDataType() {
-        return ParsableDataType.CASE_DATA;
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.CASE_DATA;
     }
 
     /**
      * Validate the data on entering the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
@@ -305,7 +307,7 @@ public class YangCase extends YangNode
     /**
      * Validate the data on exiting the corresponding parse tree node.
      *
-     * @throws DataModelException a violation of data model rules.
+     * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
@@ -361,6 +363,30 @@ public class YangCase extends YangNode
     @Override
     public void setFileHandle(CachedFileHandle fileHandle) {
         // TODO Auto-generated method stub
+    }
 
+    @Override
+    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+        if ((this.getParent() == null) || (!(this.getParent() instanceof YangChoice))) {
+            throw new DataModelException("Internal Data Model Tree Error: Invalid/Missing holder in case " +
+                    this.getName());
+        }
+        // Traverse up in tree to ask parent choice start collision detection.
+        ((CollisionDetector) this.getParent()).detectCollidingChild(identifierName, dataType);
+    }
+
+    @Override
+    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+
+        if (dataType == CASE_DATA) {
+            if (this.getName().equals(identifierName)) {
+                throw new DataModelException("YANG File Error: Identifier collision detected in case \"" +
+                        this.getName() + "\"");
+            }
+            return;
+        }
+
+        // Asks helper to detect colliding child.
+        detectCollidingChildUtil(identifierName, dataType, this);
     }
 }

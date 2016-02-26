@@ -20,14 +20,15 @@ import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-
-import static org.onosproject.yangutils.parser.ParsableDataType.SUB_MODULE_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.*;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.utils.YangConstructType.SUB_MODULE_DATA;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -64,8 +65,8 @@ public final class SubModuleListener {
      * It is called when parser receives an input matching the grammar rule (sub
      * module), perform validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processSubModuleEntry(TreeWalkListener listener,
                                              GeneratedYangParser.SubModuleStatementContext ctx) {
@@ -77,6 +78,10 @@ public final class SubModuleListener {
         YangSubModule yangSubModule = new YangSubModule();
         yangSubModule.setName(ctx.IDENTIFIER().getText());
 
+        if (ctx.submoduleBody(0).submoduleHeaderStatement().yangVersionStatement() == null) {
+            yangSubModule.setVersion((byte) 1);
+        }
+
         listener.getParsedDataStack().push(yangSubModule);
     }
 
@@ -84,8 +89,8 @@ public final class SubModuleListener {
      * It is called when parser exits from grammar rule (submodule), it perform
      * validations and update the data model tree.
      *
-     * @param listener Listener's object.
-     * @param ctx context object of the grammar rule.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
      */
     public static void processSubModuleExit(TreeWalkListener listener,
                                             GeneratedYangParser.SubModuleStatementContext ctx) {
