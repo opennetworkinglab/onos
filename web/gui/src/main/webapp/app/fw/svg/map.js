@@ -56,13 +56,13 @@
 
             deferredProjection.resolve(gen.settings.projection);
 
-            var path = mapLayer.selectAll('path')
+            mapLayer.selectAll('path')
                 .data(gen.geodata.features)
                 .enter()
                 .append('path')
                 .attr('d', gen.pathgen);
 
-            opts.fill && path.style('fill', opts.fill);
+            reshade(opts.shading);
         });
         return deferredProjection.promise;
     }
@@ -78,7 +78,7 @@
     //         }
     //     });
 
-    function loadMapRegionInto(mapLayer, filterOpts) {
+    function loadMapRegionInto(mapLayer, opts) {
         var promise = gds.fetchTopoData("*countries"),
             deferredProjection = $q.defer();
 
@@ -94,14 +94,14 @@
                 pathGen = d3.geo.path().projection(proj),
                 data = promise.topodata,
                 features = topojson.feature(data, data.objects.countries).features,
-                country = features.filter(filterOpts.countryFilter),
+                country = features.filter(opts.countryFilter),
                 countryFeature = {
                     type: 'FeatureCollection',
                     features: country
                 },
                 path = d3.geo.path().projection(proj);
 
-            gds.rescaleProjection(proj, 0.95, 1000, path, countryFeature);
+            gds.rescaleProjection(proj, 0.95, 1000, path, countryFeature, opts.adjustScale);
 
             deferredProjection.resolve(proj);
 
@@ -110,8 +110,29 @@
                 .enter()
                 .append('path').classed('country', true)
                 .attr('d', pathGen);
+
+            reshade(opts.shading);
         });
         return deferredProjection.promise;
+    }
+
+    function reshade(sh) {
+        var p = sh && sh.palette,
+            svg, paths, stroke, fill, bg;
+        if (sh) {
+            stroke = p.outline;
+            fill = sh.flip ? p.sea : p.land;
+            bg = sh.flip ? p.land : p.sea;
+
+            svg = d3.select('#ov-topo').select('svg');
+            paths = d3.select('#topo-map').selectAll('path');
+
+            svg.style('background-color', bg);
+            paths.attr({
+                stroke: stroke,
+                fill: fill
+            });
+        }
     }
 
     angular.module('onosSvg')
@@ -124,7 +145,8 @@
 
             return {
                 loadMapRegionInto: loadMapRegionInto,
-                loadMapInto: loadMapInto
+                loadMapInto: loadMapInto,
+                reshade: reshade
             };
         }]);
 
