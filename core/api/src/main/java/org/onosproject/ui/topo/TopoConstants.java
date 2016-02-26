@@ -30,25 +30,35 @@ public final class TopoConstants {
      * Defines constants for standard glyph identifiers.
      */
     public static final class Glyphs {
-        public static final String UNKNOWN = "unknown";
         public static final String BIRD = "bird";
+
+        public static final String UNKNOWN = "unknown";
         public static final String QUERY = "query";
         public static final String NODE = "node";
+
         public static final String SWITCH = "switch";
-        public static final String ROADM = "roadm";
-        public static final String ENDSTATION = "endstation";
         public static final String ROUTER = "router";
-        public static final String BGP_SPEAKER = "bgpSpeaker";
+        public static final String ROADM = "roadm";
+        public static final String OTN = "otn";
+        public static final String ROADM_OTN = "roadm_otn";
+        public static final String FIBER_SWITCH = "fiber_switch";
         public static final String MICROWAVE = "microwave";
+
+        public static final String ENDSTATION = "endstation";
+        public static final String BGP_SPEAKER = "bgpSpeaker";
+
         public static final String CHAIN = "chain";
         public static final String CROWN = "crown";
         public static final String LOCK = "lock";
         public static final String TOPO = "topo";
         public static final String REFRESH = "refresh";
         public static final String GARBAGE = "garbage";
+
         public static final String FLOW_TABLE = "flowTable";
         public static final String PORT_TABLE = "portTable";
         public static final String GROUP_TABLE = "groupTable";
+        public static final String METER_TABLE = "meterTable";
+
         public static final String SUMMARY = "summary";
         public static final String DETAILS = "details";
         public static final String PORTS = "ports";
@@ -64,6 +74,7 @@ public final class TopoConstants {
         public static final String ALL_TRAFFIC = "allTraffic";
         public static final String FLOWS = "flows";
         public static final String EQ_MASTER = "eqMaster";
+
         public static final String UI_ATTACHED = "uiAttached";
         public static final String CHECK_MARK = "checkMark";
         public static final String X_MARK = "xMark";
@@ -73,6 +84,7 @@ public final class TopoConstants {
         public static final String MINUS = "minus";
         public static final String PLAY = "play";
         public static final String STOP = "stop";
+
         public static final String CLOUD = "cloud";
     }
 
