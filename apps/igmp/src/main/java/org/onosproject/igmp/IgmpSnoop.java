@@ -419,11 +419,11 @@ public class IgmpSnoop {
 
 
             if (ip.getProtocol() != IPv4.PROTOCOL_IGMP ||
-                    !IpPrefix.MULTICAST_RANGE.contains(gaddr)) {
+                    !IpPrefix.IPV4_MULTICAST_RANGE.contains(gaddr)) {
                 return;
             }
 
-            if (IpPrefix.MULTICAST_RANGE.contains(saddr)) {
+            if (IpPrefix.IPV4_MULTICAST_RANGE.contains(saddr)) {
                 log.debug("IGMP Picked up a packet with a multicast source address.");
                 return;
             }

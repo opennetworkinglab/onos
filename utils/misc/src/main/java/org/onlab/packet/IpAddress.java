@@ -314,6 +314,17 @@ public class IpAddress implements Comparable<IpAddress> {
         return isIp4() && octets[0] == (byte) 169;
     }
 
+    /**
+     * Check if this IP address is a multicast address.
+     *
+     * @return true if this address a multicast address
+     */
+    public boolean isMulticast() {
+        return isIp4() ?
+                Ip4Prefix.IPV4_MULTICAST_RANGE.contains(this.getIp4Address()) :
+                Ip6Prefix.IPV6_MULTICAST_RANGE.contains(this.getIp6Address());
+    }
+
     @Override
     public int compareTo(IpAddress o) {
         // Compare first the version

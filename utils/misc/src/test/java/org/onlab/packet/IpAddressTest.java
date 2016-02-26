@@ -769,6 +769,21 @@ public class IpAddressTest {
     }
 
     /**
+     * Tests if the address is a multicast address.
+     */
+    @Test
+    public void testIsMulticast() {
+        IpAddress v4Unicast = IpAddress.valueOf("10.0.0.1");
+        IpAddress v4Multicast = IpAddress.valueOf("224.0.0.1");
+        IpAddress v6Unicast = IpAddress.valueOf("1000::1");
+        IpAddress v6Multicast = IpAddress.valueOf("ff02::1");
+        assertFalse(v4Unicast.isMulticast());
+        assertTrue(v4Multicast.isMulticast());
+        assertFalse(v6Unicast.isMulticast());
+        assertTrue(v6Multicast.isMulticast());
+    }
+
+    /**
      * Tests comparison of {@link IpAddress} for IPv4.
      */
     @Test

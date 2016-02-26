@@ -27,11 +27,27 @@ import java.util.Objects;
  * </p>
  */
 public class IpPrefix {
-    // Maximum network mask length
+    /**
+     * Longest IPv4 network prefix.
+     */
     public static final int MAX_INET_MASK_LENGTH = IpAddress.INET_BIT_LENGTH;
+    /**
+     * Longest IPv6 network prefix.
+     */
     public static final int MAX_INET6_MASK_LENGTH = IpAddress.INET6_BIT_LENGTH;
-
+    /**
+     * An IpPrefix that contains all IPv4 multicast addresses.
+     */
+    @Deprecated
     public static final IpPrefix MULTICAST_RANGE = IpPrefix.valueOf("224.0.0.0/4");
+    /**
+     * An IpPrefix that contains all IPv4 multicast addresses.
+     */
+    public static final IpPrefix IPV4_MULTICAST_RANGE = IpPrefix.valueOf("224.0.0.0/4");
+    /**
+     * An IpPrefix that contains all IPv6 multicast addresses.
+     */
+    public static final IpPrefix IPV6_MULTICAST_RANGE = IpPrefix.valueOf("ff00::/8");
 
     private final IpAddress address;
     private final short prefixLength;
