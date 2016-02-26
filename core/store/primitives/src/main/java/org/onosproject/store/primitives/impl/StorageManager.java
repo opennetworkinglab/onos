@@ -24,7 +24,6 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.ListUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -58,6 +57,7 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContextBuilder;
 import org.slf4j.Logger;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 
@@ -87,14 +87,12 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     private final Supplier<TransactionId> transactionIdGenerator =
             () -> TransactionId.from(UUID.randomUUID().toString());
-    private DistributedPrimitiveCreator basePrimitiveCreator;
     private DistributedPrimitiveCreator federatedPrimitiveCreator;
     private AsyncConsistentMap<TransactionId, Transaction.State> transactions;
     private TransactionCoordinator transactionCoordinator;
 
     @Activate
     public void activate() {
-        basePrimitiveCreator = partitionService.getDistributedPrimitiveCreator(PartitionId.from(0));
         Map<PartitionId, DistributedPrimitiveCreator> partitionMap = Maps.newHashMap();
         partitionService.getAllPartitionIds().stream()
             .filter(id -> !id.equals(PartitionId.from(0)))
@@ -126,7 +124,7 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
-        return new NewDefaultConsistentMapBuilder<>(basePrimitiveCreator, federatedPrimitiveCreator);
+        return new NewDefaultConsistentMapBuilder<>(federatedPrimitiveCreator);
     }
 
     @Override
@@ -142,7 +140,7 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
-        return new NewDefaultAtomicCounterBuilder(basePrimitiveCreator, federatedPrimitiveCreator);
+        return new NewDefaultAtomicCounterBuilder(federatedPrimitiveCreator);
     }
 
     @Override
@@ -150,7 +148,6 @@ public class StorageManager implements StorageService, StorageAdminService {
         Supplier<ConsistentMapBuilder<String, byte[]>> mapBuilderSupplier =
                 () -> this.<String, byte[]>consistentMapBuilder()
                           .withName("onos-atomic-values")
-                          .withMeteringDisabled()
                           .withSerializer(Serializer.using(KryoNamespaces.BASIC));
         return new DefaultAtomicValueBuilder<>(mapBuilderSupplier);
     }
@@ -158,20 +155,18 @@ public class StorageManager implements StorageService, StorageAdminService {
     @Override
     public TransactionContextBuilder transactionContextBuilder() {
         return new NewDefaultTransactionContextBuilder(transactionIdGenerator.get(),
-                basePrimitiveCreator,
                 federatedPrimitiveCreator,
                 transactionCoordinator);
     }
 
     @Override
     public LeaderElectorBuilder leaderElectorBuilder() {
-        return new DefaultLeaderElectorBuilder(basePrimitiveCreator,
-                federatedPrimitiveCreator);
+        return new DefaultLeaderElectorBuilder(federatedPrimitiveCreator);
     }
 
     @Override
     public List<MapInfo> getMapInfo() {
-        return ListUtils.union(listMapInfo(basePrimitiveCreator), listMapInfo(federatedPrimitiveCreator));
+        return listMapInfo(federatedPrimitiveCreator);
     }
 
     @Override
@@ -184,7 +179,7 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public Map<String, Long> getInMemoryDatabaseCounters() {
-        return getCounters(basePrimitiveCreator);
+        return ImmutableMap.of();
     }
 
     @Override

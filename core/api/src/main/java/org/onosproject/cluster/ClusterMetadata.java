@@ -48,6 +48,7 @@ public final class ClusterMetadata implements Provided {
     private final Set<ControllerNode> nodes;
     private final Set<Partition> partitions;
 
+    @SuppressWarnings("unused")
     private ClusterMetadata() {
         providerId = null;
         name = null;

@@ -25,24 +25,21 @@ import org.onosproject.store.service.TransactionContextBuilder;
 public class NewDefaultTransactionContextBuilder extends TransactionContextBuilder {
 
     private final TransactionId transactionId;
-    private final DistributedPrimitiveCreator base;
-    private final DistributedPrimitiveCreator federated;
+    private final DistributedPrimitiveCreator primitiveCreator;
     private final TransactionCoordinator transactionCoordinator;
 
     public NewDefaultTransactionContextBuilder(TransactionId transactionId,
-            DistributedPrimitiveCreator base,
-            DistributedPrimitiveCreator federated,
+            DistributedPrimitiveCreator primitiveCreator,
             TransactionCoordinator transactionCoordinator) {
         this.transactionId = transactionId;
-        this.base = base;
-        this.federated = federated;
+        this.primitiveCreator = primitiveCreator;
         this.transactionCoordinator = transactionCoordinator;
     }
 
     @Override
     public TransactionContext build() {
         return new NewDefaultTransactionContext(transactionId,
-                this.partitionsDisabled() ? base : federated,
+                primitiveCreator,
                 transactionCoordinator);
     }
 }

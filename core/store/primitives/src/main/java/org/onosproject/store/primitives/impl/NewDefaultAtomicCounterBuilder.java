@@ -24,17 +24,14 @@ import org.onosproject.store.service.AtomicCounterBuilder;
  */
 public class NewDefaultAtomicCounterBuilder extends AtomicCounterBuilder {
 
-    private final DistributedPrimitiveCreator base;
-    private final DistributedPrimitiveCreator federated;
+    private final DistributedPrimitiveCreator primitiveCreator;
 
-    public NewDefaultAtomicCounterBuilder(DistributedPrimitiveCreator base, DistributedPrimitiveCreator federated) {
-        this.base = base;
-        this.federated = federated;
+    public NewDefaultAtomicCounterBuilder(DistributedPrimitiveCreator primitiveCreator) {
+        this.primitiveCreator = primitiveCreator;
     }
 
     @Override
     public AsyncAtomicCounter build() {
-        DistributedPrimitiveCreator creator = partitionsDisabled() ? base : federated;
-        return creator.newAsyncCounter(name());
+        return primitiveCreator.newAsyncCounter(name());
     }
 }

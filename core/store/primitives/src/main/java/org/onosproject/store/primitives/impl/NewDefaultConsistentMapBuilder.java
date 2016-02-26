@@ -28,12 +28,10 @@ import org.onosproject.store.service.ConsistentMapBuilder;
  */
 public class NewDefaultConsistentMapBuilder<K, V> extends ConsistentMapBuilder<K, V> {
 
-    private final DistributedPrimitiveCreator base;
-    private final DistributedPrimitiveCreator federated;
+    private final DistributedPrimitiveCreator primitiveCreator;
 
-    public NewDefaultConsistentMapBuilder(DistributedPrimitiveCreator base, DistributedPrimitiveCreator federated) {
-        this.base = base;
-        this.federated = federated;
+    public NewDefaultConsistentMapBuilder(DistributedPrimitiveCreator primitiveCreator) {
+        this.primitiveCreator = primitiveCreator;
     }
 
     @Override
@@ -43,8 +41,7 @@ public class NewDefaultConsistentMapBuilder<K, V> extends ConsistentMapBuilder<K
 
     @Override
     public AsyncConsistentMap<K, V> buildAsyncMap() {
-        DistributedPrimitiveCreator creator = partitionsDisabled() ? base : federated;
-        AsyncConsistentMap<K, V> map = creator.newAsyncConsistentMap(name(), serializer());
+        AsyncConsistentMap<K, V> map = primitiveCreator.newAsyncConsistentMap(name(), serializer());
         map = relaxedReadConsistency() ? DistributedPrimitives.newCachingMap(map) : map;
         map = readOnly() ? DistributedPrimitives.newUnmodifiableMap(map) : map;
         return meteringEnabled() ? DistributedPrimitives.newMeteredMap(map) : map;

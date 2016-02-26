@@ -24,17 +24,14 @@ import org.onosproject.store.service.LeaderElectorBuilder;
  */
 public class DefaultLeaderElectorBuilder extends LeaderElectorBuilder {
 
-    private final DistributedPrimitiveCreator base;
-    private final DistributedPrimitiveCreator federated;
+    private final DistributedPrimitiveCreator primitiveCreator;
 
-    public DefaultLeaderElectorBuilder(DistributedPrimitiveCreator base, DistributedPrimitiveCreator federated) {
-        this.base = base;
-        this.federated = federated;
+    public DefaultLeaderElectorBuilder(DistributedPrimitiveCreator primitiveCreator) {
+        this.primitiveCreator = primitiveCreator;
     }
 
     @Override
     public AsyncLeaderElector build() {
-        DistributedPrimitiveCreator creator = partitionsDisabled() ? base : federated;
-        return creator.newAsyncLeaderElector(name());
+        return primitiveCreator.newAsyncLeaderElector(name());
     }
 }
