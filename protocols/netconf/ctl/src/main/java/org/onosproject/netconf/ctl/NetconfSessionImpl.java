@@ -101,7 +101,7 @@ public class NetconfSessionImpl implements NetconfSession {
                             deviceInfo.password());
                 } else {
                     log.debug("Authenticating to device {} with username {}",
-                              deviceInfo.getDeviceId(), deviceInfo.name(), deviceInfo.password());
+                              deviceInfo.getDeviceId(), deviceInfo.name());
                     isAuthenticated = netconfConnection.authenticateWithPassword(
                             deviceInfo.name(), deviceInfo.password());
                 }
@@ -117,8 +117,7 @@ public class NetconfSessionImpl implements NetconfSession {
             Preconditions.checkArgument(isAuthenticated,
                                         "Authentication to device {} with username " +
                                                 "{} Failed",
-                                        deviceInfo.getDeviceId(), deviceInfo.name(),
-                                        deviceInfo.password());
+                                        deviceInfo.getDeviceId(), deviceInfo.name());
             startSshSession();
         }
     }
@@ -170,7 +169,7 @@ public class NetconfSessionImpl implements NetconfSession {
                 try {
                     startConnection();
                 } catch (IOException e2) {
-                    log.error("No connection {} for device, exception {}", netconfConnection, e2);
+                    log.error("No connection {} for device", netconfConnection, e2);
                     throw new NetconfException("Cannot re-open the connection with device" + deviceInfo, e);
                 }
             }
@@ -206,7 +205,7 @@ public class NetconfSessionImpl implements NetconfSession {
             throw new NetconfException("No matching reply for request " + request, e);
         }
         log.debug("Result {} from request {} to device {}", rp, request, deviceInfo);
-        return rp;
+        return rp.trim();
     }
 
     private String formatRequestMessageId(String request) {
@@ -284,19 +283,20 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append(messageIdInteger.get());
         rpc.append("\"  ");
         rpc.append("xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
-        rpc.append("<edit-config>");
+        rpc.append("<edit-config>\n");
         rpc.append("<target>");
         rpc.append("<").append(targetConfiguration).append("/>");
-        rpc.append("</target>");
+        rpc.append("</target>\n");
         rpc.append("<default-operation>");
         rpc.append(mode);
-        rpc.append("</default-operation>");
-        rpc.append("<config>");
+        rpc.append("</default-operation>\n");
+        rpc.append("<config>\n");
         rpc.append(newConfiguration);
-        rpc.append("</config>");
-        rpc.append("</edit-config>");
+        rpc.append("</config>\n");
+        rpc.append("</edit-config>\n");
         rpc.append("</rpc>");
         rpc.append(ENDPATTERN);
+        log.info(rpc.toString());
         return checkReply(sendRequest(rpc.toString()));
     }
 

@@ -32,7 +32,7 @@ import java.io.IOException;
 public class DefaultNetconfDevice implements NetconfDevice {
 
     public static final Logger log = LoggerFactory
-            .getLogger(NetconfSessionImpl.class);
+            .getLogger(DefaultNetconfDevice.class);
 
     private NetconfDeviceInfo netconfDeviceInfo;
     private boolean deviceState = false;
@@ -75,7 +75,7 @@ public class DefaultNetconfDevice implements NetconfDevice {
         try {
             netconfSession.close();
         } catch (IOException e) {
-            log.warn("Cannot communicate with the device {} ", netconfDeviceInfo);
+            log.warn("Cannot communicate with the device {} session already closed", netconfDeviceInfo);
         }
     }
 
