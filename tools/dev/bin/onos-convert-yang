@@ -1,0 +1,33 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# ONOS YANG to XML skeleton convert via pyang
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+aux=/tmp/pyangversion
+pyang -v $cmd > $aux
+errorstring="Pyang no installed, please download and intall from https://github.com/mbj4668/pyang"
+cat $aux
+grep -q "pyang: command not found" $aux && echo $errorString && exit 1
+
+grep -q "pyang 1" $aux
+
+if ! [ -e "$1" ]; then
+  echo "$1 input directory not found" >&2
+  exit 1
+fi
+if ! [ -d "$1" ]; then
+  echo "$1 not a directory for output" >&2
+  exit 1
+fi
+cd $1
+find . -name '*.yang' | while read file; do f=$(basename $file ".yang"); \
+directory=$ONOS_ROOT/drivers/utilities/src/main/resources/${PWD##*/}; \
+if [ ! -d "$directory" ]; then
+  mkdir $directory; \
+fi
+echo $directory/$f.xml
+pyang -f sample-xml-skeleton $f.yang > $directory/$f.xml; done
+exit 0

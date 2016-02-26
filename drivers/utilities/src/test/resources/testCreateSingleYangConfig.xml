@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+<capable-switch xmlns="urn:onf:config:yang">
+<id>openvswitch</id>
+<logical-switches>
+<switch>
+<id>ofc-bridge</id>
+<controllers>
+<controller>
+<id>tcp:1.1.1.1:1</id>
+<ip-address>1.1.1.1</ip-address>
+</controller>
+</controllers>
+</switch>
+</logical-switches>
+</capable-switch>
+</configuration>
