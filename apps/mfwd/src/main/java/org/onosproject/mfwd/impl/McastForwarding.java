@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class McastForwarding {
 
     private final Logger log = getLogger(getClass());
-    private final IpPrefix mcast = IpPrefix.valueOf("224.0.0.0/4");
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
@@ -101,7 +100,7 @@ public class McastForwarding {
         // Build a traffic selector for all multicast traffic
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);
-        selector.matchIPDst(mcast);
+        selector.matchIPDst(IpPrefix.IPV4_MULTICAST_PREFIX);
 
         packetService.requestPackets(selector.build(), PacketPriority.REACTIVE, appId);
 

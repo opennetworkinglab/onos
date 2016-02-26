@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -321,8 +321,8 @@ public class IpAddress implements Comparable<IpAddress> {
      */
     public boolean isMulticast() {
         return isIp4() ?
-                Ip4Prefix.IPV4_MULTICAST_RANGE.contains(this.getIp4Address()) :
-                Ip6Prefix.IPV6_MULTICAST_RANGE.contains(this.getIp6Address());
+                Ip4Prefix.IPV4_MULTICAST_PREFIX.contains(this.getIp4Address()) :
+                Ip6Prefix.IPV6_MULTICAST_PREFIX.contains(this.getIp6Address());
     }
 
     @Override

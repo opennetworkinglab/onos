@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,11 +97,10 @@ public class IgmpSnoop {
 
     private static final int DEFAULT_QUERY_PERIOD_SECS = 60;
     private static final byte DEFAULT_IGMP_RESP_CODE = 100;
-    private static final String DEFAULT_MCAST_ADDR = "224.0.0.0/4";
 
     @Property(name = "multicastAddress",
             label = "Define the multicast base range to listen to")
-    private String multicastAddress = DEFAULT_MCAST_ADDR;
+    private String multicastAddress = IpPrefix.IPV4_MULTICAST_PREFIX.toString();
 
     @Property(name = "queryPeriod", intValue = DEFAULT_QUERY_PERIOD_SECS,
             label = "Delay in seconds between successive query runs")
@@ -243,6 +242,7 @@ public class IgmpSnoop {
     protected void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
 
+        // TODO read multicastAddress from config
         String strQueryPeriod = Tools.get(properties, "queryPeriod");
         String strResponseCode = Tools.get(properties, "maxRespCode");
         try {
@@ -419,11 +419,11 @@ public class IgmpSnoop {
 
 
             if (ip.getProtocol() != IPv4.PROTOCOL_IGMP ||
-                    !IpPrefix.IPV4_MULTICAST_RANGE.contains(gaddr)) {
+                    !IpPrefix.IPV4_MULTICAST_PREFIX.contains(gaddr)) {
                 return;
             }
 
-            if (IpPrefix.IPV4_MULTICAST_RANGE.contains(saddr)) {
+            if (IpPrefix.IPV4_MULTICAST_PREFIX.contains(saddr)) {
                 log.debug("IGMP Picked up a packet with a multicast source address.");
                 return;
             }

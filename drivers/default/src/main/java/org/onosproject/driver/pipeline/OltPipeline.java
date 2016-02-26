@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IPv4;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -102,7 +101,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private DeviceId deviceId;
     private ApplicationId appId;
-    private IpPrefix mcastPrefix = IpPrefix.valueOf("224.0.0.0/4");
+    // NOTE: OLT currently has some issue with cookie 0. Pick something larger
+    //       to avoid collision
     private AtomicLong counter = new AtomicLong(123);
 
     protected FlowObjectiveStore flowObjectiveStore;
@@ -348,7 +348,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             return false;
         }
 
-        return mcastPrefix.contains(ip.ip());
+        return ip.ip().isMulticast();
 
     }
 
