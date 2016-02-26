@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2014-2016 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>onos-protocols</artifactId>
+        <groupId>org.onosproject</groupId>
+        <version>1.6.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>onos-bmv2-protocol</artifactId>
+    <version>1.6.0-SNAPSHOT</version>
+
+    <packaging>bundle</packaging>
+
+    <description>BMv2 protocol subsystem</description>
+
+    <properties>
+        <!-- BMv2 Commit ID and Thrift version -->
+        <bmv2.commit>a012ee4124c1892a91a359660824d311d5d7fe88</bmv2.commit>
+        <bmv2.thrift.version>0.9.3</bmv2.thrift.version>
+        <!-- Do not change below -->
+        <bmv2.baseurl>
+            https://raw.githubusercontent.com/p4lang/behavioral-model/${bmv2.commit}
+        </bmv2.baseurl>
+        <bmv2.thrift.srcdir>${project.basedir}/src/main/thrift</bmv2.thrift.srcdir>
+        <thrift.path>${project.build.directory}/thrift-compiler/</thrift.path>
+        <thrift.filename>thrift-${os.detected.classifier}.exe</thrift.filename>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>${bmv2.thrift.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <!-- Needed for thrift-compiler, which is hosted on GitHub -->
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.4.0.Final</version>
+            </extension>
+        </extensions>
+
+        <plugins>
+            <!-- Download Thrift source files from BMv2 Github repo -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>wagon-maven-plugin</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <id>download-bmv2-thrift-standard</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>download-single</goal>
+                        </goals>
+                        <configuration>
+                            <url>${bmv2.baseurl}</url>
+                            <fromFile>thrift_src/standard.thrift</fromFile>
+                            <toDir>${bmv2.thrift.srcdir}</toDir>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>download-bmv2-thrift-simple_pre</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>download-single</goal>
+                        </goals>
+                        <configuration>
+                            <url>${bmv2.baseurl}</url>
+                            <fromFile>thrift_src/simple_pre.thrift</fromFile>
+                            <toDir>${bmv2.thrift.srcdir}</toDir>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>download-bmv2-thrift-simple_pre_lag</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>download-single</goal>
+                        </goals>
+                        <configuration>
+                            <url>${bmv2.baseurl}</url>
+                            <fromFile>thrift_src/simple_pre_lag.thrift
+                            </fromFile>
+                            <toDir>${bmv2.thrift.srcdir}</toDir>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>download-bmv2-thrift-simple_switch</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>download-single</goal>
+                        </goals>
+                        <configuration>
+                            <url>${bmv2.baseurl}</url>
+                            <fromFile>
+                                targets/simple_switch/thrift/simple_switch.thrift
+                            </fromFile>
+                            <toDir>${bmv2.thrift.srcdir}</toDir>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Extract Thrift compiler -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.github.ccascone</groupId>
+                                    <artifactId>mvn-thrift-compiler</artifactId>
+                                    <version>1.1_${bmv2.thrift.version}</version>
+                                    <type>jar</type>
+                                    <includes>${thrift.filename}</includes>
+                                    <outputDirectory>${project.build.directory}/thrift-compiler</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Add missing java namespace to Thrift files -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.4.0</version>
+                <executions>
+                    <execution>
+                        <id>add-bmv2-thrift-java-namespace</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${bmv2.thrift.srcdir}/patch.sh
+                            </executable>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>set-thrift-compiler-permissions</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>chmod</executable>
+                            <arguments>
+                                <argument>+x</argument>
+                                <argument>${thrift.path}/${thrift.filename}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Compile Thrift files -->
+            <plugin>
+                <groupId>org.apache.thrift.tools</groupId>
+                <artifactId>maven-thrift-plugin</artifactId>
+                <version>0.1.11</version>
+                <configuration>
+                    <thriftExecutable>${thrift.path}/${thrift.filename}</thriftExecutable>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>thrift-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Make generated sources visible -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <id>add-thrift-sources-to-path</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>
+                                    ${project.build.directory}/target/generated-sources/thrift
+                                </source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

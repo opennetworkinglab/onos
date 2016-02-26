@@ -41,6 +41,7 @@
         <module>utilities</module>
         <module>lumentum</module>
         <module>bti</module>
+        <module>bmv2</module>
     </modules>
 
     <!--<properties>

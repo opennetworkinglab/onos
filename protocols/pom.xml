@@ -41,6 +41,7 @@
         <module>ospf</module>
         <module>isis</module>
         <module>snmp</module>
+        <module>bmv2</module>
     </modules>
 
     <dependencies>

@@ -1,0 +1,335 @@
+/*
+ * Copyright 2014-2016 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.onosproject.bmv2.ctl;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TMultiplexedProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
+import org.onosproject.bmv2.api.Bmv2Action;
+import org.onosproject.bmv2.api.Bmv2Exception;
+import org.onosproject.bmv2.api.Bmv2PortInfo;
+import org.onosproject.bmv2.api.Bmv2TableEntry;
+import org.onosproject.net.DeviceId;
+import org.p4.bmv2.thrift.BmAddEntryOptions;
+import org.p4.bmv2.thrift.DevMgrPortInfo;
+import org.p4.bmv2.thrift.Standard;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * Implementation of a Thrift client to control the Bmv2 switch.
+ */
+public final class Bmv2ThriftClient {
+    /*
+    FIXME: derive context_id from device id
+    Using different context id values should serve to control different
+    switches responding to the same IP address and port
+    */
+    private static final int CONTEXT_ID = 0;
+    /*
+    Static transport/client cache:
+        - avoids opening a new transport session when there's one already open
+        - close the connection after a predefined timeout of 5 seconds
+     */
+    private static LoadingCache<DeviceId, Pair<TTransport, Standard.Iface>>
+            clientCache = CacheBuilder.newBuilder()
+            .expireAfterAccess(5, TimeUnit.SECONDS)
+            .removalListener(new ClientRemovalListener())
+            .build(new ClientLoader());
+    private final Standard.Iface stdClient;
+
+    // ban constructor
+    private Bmv2ThriftClient(Standard.Iface stdClient) {
+        this.stdClient = stdClient;
+    }
+
+    /**
+     * Returns a client object to control the passed device.
+     *
+     * @param deviceId device id
+     * @return bmv2 client object
+     * @throws Bmv2Exception if a connection to the device cannot be established
+     */
+    public static Bmv2ThriftClient of(DeviceId deviceId) throws Bmv2Exception {
+        try {
+            checkNotNull(deviceId, "deviceId cannot be null");
+            return new Bmv2ThriftClient(clientCache.get(deviceId).getValue());
+        } catch (ExecutionException e) {
+            throw new Bmv2Exception(e.getMessage(), e.getCause());
+        }
+    }
+
+    /**
+     * Pings the device. Returns true if the device is reachable,
+     * false otherwise.
+     *
+     * @param deviceId device id
+     * @return true if reachable, false otherwise
+     */
+    public static boolean ping(DeviceId deviceId) {
+        // poll ports status as workaround to assess device reachability
+        try {
+            of(deviceId).stdClient.bm_dev_mgr_show_ports();
+            return true;
+        } catch (TException | Bmv2Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Parse device ID into host and port.
+     *
+     * @param did device ID
+     * @return a pair of host and port
+     */
+    private static Pair<String, Integer> parseDeviceId(DeviceId did) {
+        String[] info = did.toString().split(":");
+        if (info.length == 3) {
+            String host = info[1];
+            int port = Integer.parseInt(info[2]);
+            return ImmutablePair.of(host, port);
+        } else {
+            throw new IllegalArgumentException(
+                    "Unable to parse BMv2 device ID "
+                            + did.toString()
+                            + ", expected format is scheme:host:port");
+        }
+    }
+
+    /**
+     * Adds a new table entry.
+     *
+     * @param entry a table entry value
+     * @return table-specific entry ID
+     * @throws Bmv2Exception if any error occurs
+     */
+    public final long addTableEntry(Bmv2TableEntry entry) throws Bmv2Exception {
+
+        long entryId = -1;
+
+        try {
+            BmAddEntryOptions options = new BmAddEntryOptions();
+
+            if (entry.hasPriority()) {
+                options.setPriority(entry.priority());
+            }
+
+            entryId = stdClient.bm_mt_add_entry(
+                    CONTEXT_ID,
+                    entry.tableName(),
+                    entry.matchKey().bmMatchParams(),
+                    entry.action().name(),
+                    entry.action().parameters(),
+                    options);
+
+            if (entry.hasTimeout()) {
+                /* bmv2 accepts timeouts in milliseconds */
+                int msTimeout = (int) Math.round(entry.timeout() * 1_000);
+                stdClient.bm_mt_set_entry_ttl(
+                        CONTEXT_ID, entry.tableName(), entryId, msTimeout);
+            }
+
+            return entryId;
+
+        } catch (TException e) {
+            if (entryId != -1) {
+                try {
+                    stdClient.bm_mt_delete_entry(
+                            CONTEXT_ID, entry.tableName(), entryId);
+                } catch (TException e1) {
+                    // this should never happen as we know the entry is there
+                    throw new Bmv2Exception(e1.getMessage(), e1);
+                }
+            }
+            throw new Bmv2Exception(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Modifies a currently installed entry by updating its action.
+     *
+     * @param tableName string value of table name
+     * @param entryId   long value of entry ID
+     * @param action    an action value
+     * @throws Bmv2Exception if any error occurs
+     */
+    public final void modifyTableEntry(String tableName,
+                                       long entryId, Bmv2Action action)
+            throws Bmv2Exception {
+
+        try {
+            stdClient.bm_mt_modify_entry(
+                    CONTEXT_ID,
+                    tableName,
+                    entryId,
+                    action.name(),
+                    action.parameters()
+            );
+        } catch (TException e) {
+            throw new Bmv2Exception(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Deletes currently installed entry.
+     *
+     * @param tableName string value of table name
+     * @param entryId   long value of entry ID
+     * @throws Bmv2Exception if any error occurs
+     */
+    public final void deleteTableEntry(String tableName,
+                                       long entryId) throws Bmv2Exception {
+
+        try {
+            stdClient.bm_mt_delete_entry(CONTEXT_ID, tableName, entryId);
+        } catch (TException e) {
+            throw new Bmv2Exception(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Sets table default action.
+     *
+     * @param tableName string value of table name
+     * @param action    an action value
+     * @throws Bmv2Exception if any error occurs
+     */
+    public final void setTableDefaultAction(String tableName, Bmv2Action action)
+            throws Bmv2Exception {
+
+        try {
+            stdClient.bm_mt_set_default_action(
+                    CONTEXT_ID,
+                    tableName,
+                    action.name(),
+                    action.parameters());
+        } catch (TException e) {
+            throw new Bmv2Exception(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Returns information of the ports currently configured in the switch.
+     *
+     * @return collection of port information
+     * @throws Bmv2Exception if any error occurs
+     */
+    public Collection<Bmv2PortInfo> getPortsInfo() throws Bmv2Exception {
+
+        try {
+            List<DevMgrPortInfo> portInfos = stdClient.bm_dev_mgr_show_ports();
+
+            Collection<Bmv2PortInfo> bmv2PortInfos = Lists.newArrayList();
+
+            bmv2PortInfos.addAll(
+                    portInfos.stream()
+                            .map(Bmv2PortInfo::new)
+                            .collect(Collectors.toList()));
+
+            return bmv2PortInfos;
+
+        } catch (TException e) {
+            throw new Bmv2Exception(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Return a string representation of a table content.
+     *
+     * @param tableName string value of table name
+     * @return table string dump
+     * @throws Bmv2Exception if any error occurs
+     */
+    public String dumpTable(String tableName) throws Bmv2Exception {
+
+        try {
+            return stdClient.bm_dump_table(CONTEXT_ID, tableName);
+        } catch (TException e) {
+            throw new Bmv2Exception(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Reset the state of the switch (e.g. delete all entries, etc.).
+     *
+     * @throws Bmv2Exception if any error occurs
+     */
+    public void resetState() throws Bmv2Exception {
+
+        try {
+            stdClient.bm_reset_state();
+        } catch (TException e) {
+            throw new Bmv2Exception(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Transport/client cache loader.
+     */
+    private static class ClientLoader
+            extends CacheLoader<DeviceId, Pair<TTransport, Standard.Iface>> {
+
+        @Override
+        public Pair<TTransport, Standard.Iface> load(DeviceId deviceId)
+                throws TTransportException {
+            Pair<String, Integer> info = parseDeviceId(deviceId);
+            //make the expensive call
+            TTransport transport = new TSocket(
+                    info.getLeft(), info.getRight());
+            TProtocol protocol = new TBinaryProtocol(transport);
+            Standard.Iface stdClient = new Standard.Client(
+                    new TMultiplexedProtocol(protocol, "standard"));
+
+            transport.open();
+
+            return ImmutablePair.of(transport, stdClient);
+        }
+    }
+
+    /**
+     * Client cache removal listener. Close the connection on cache removal.
+     */
+    private static class ClientRemovalListener implements
+            RemovalListener<DeviceId, Pair<TTransport, Standard.Iface>> {
+
+        @Override
+        public void onRemoval(
+                RemovalNotification<DeviceId, Pair<TTransport, Standard.Iface>>
+                        notification) {
+            // close the transport connection
+            notification.getValue().getKey().close();
+        }
+    }
+}

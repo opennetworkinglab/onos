@@ -45,7 +45,8 @@ public final class ExtensionTreatmentType {
         NICIRA_SET_NSH_CH2(35),
         NICIRA_SET_NSH_CH3(36),
         NICIRA_SET_NSH_CH4(37),
-        OFDPA_SET_VLAN_ID(64);
+        OFDPA_SET_VLAN_ID(64),
+        P4_BMV2_ACTION(128);
 
         private ExtensionTreatmentType type;
 
