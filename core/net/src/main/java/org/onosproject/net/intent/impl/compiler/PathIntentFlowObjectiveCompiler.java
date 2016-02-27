@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,14 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.intent.FlowRuleIntent;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
@@ -48,10 +49,10 @@ import com.google.common.collect.ImmutableList;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true)
-public class PathIntentCompiler
-        extends PathCompiler<FlowRule>
+public class PathIntentFlowObjectiveCompiler
+        extends PathCompiler<Objective>
         implements IntentCompiler<PathIntent>,
-                   PathCompiler.PathCompilerCreateFlow<FlowRule> {
+                   PathCompiler.PathCompilerCreateFlow<Objective> {
 
     private final Logger log = getLogger(getClass());
 
@@ -69,23 +70,23 @@ public class PathIntentCompiler
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.net.intent");
-        intentManager.registerCompiler(PathIntent.class, this);
+        //intentManager.registerCompiler(PathIntent.class, this);
     }
 
     @Deactivate
     public void deactivate() {
-        intentManager.unregisterCompiler(PathIntent.class);
+        //intentManager.unregisterCompiler(PathIntent.class);
     }
 
     @Override
     public List<Intent> compile(PathIntent intent, List<Intent> installable,
                                 Set<LinkResourceAllocations> resources) {
 
-        List<FlowRule> rules = new LinkedList<>();
+        List<Objective> objectives = new LinkedList<>();
         List<DeviceId> devices = new LinkedList<>();
-        compile(this, intent, rules, devices);
+        compile(this, intent, objectives, devices);
 
-        return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources()));
+        return ImmutableList.of(new FlowObjectiveIntent(appId, devices, objectives, intent.resources()));
     }
 
     @Override
@@ -100,10 +101,10 @@ public class PathIntentCompiler
 
     @Override
     public void createFlow(TrafficSelector originalSelector, TrafficTreatment originalTreatment,
-                           ConnectPoint ingress, ConnectPoint egress,
-                           int priority, boolean applyTreatment,
-                           List<FlowRule> rules,
-                           List<DeviceId> devices) {
+                                          ConnectPoint ingress, ConnectPoint egress,
+                                          int priority, boolean applyTreatment,
+                                          List<Objective> objectives,
+                                          List<DeviceId> devices) {
         TrafficSelector selector = DefaultTrafficSelector.builder(originalSelector)
                 .matchInPort(ingress.port())
                 .build();
@@ -116,13 +117,14 @@ public class PathIntentCompiler
         }
         TrafficTreatment treatment = treatmentBuilder.setOutput(egress.port()).build();
 
-        rules.add(DefaultFlowRule.builder()
-                .forDevice(ingress.deviceId())
-                .withSelector(selector)
-                .withTreatment(treatment)
-                .withPriority(priority)
-                .fromApp(appId)
-                .makePermanent()
-                .build());
+        objectives.add(DefaultForwardingObjective.builder()
+                  .withSelector(selector)
+                  .withTreatment(treatment)
+                  .withPriority(priority)
+                  .fromApp(appId)
+                  .makePermanent()
+                  .withFlag(ForwardingObjective.Flag.SPECIFIC)
+                  .add());
+        devices.add(ingress.deviceId());
     }
 }

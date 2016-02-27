@@ -16,11 +16,13 @@
 
 package org.onosproject.net.intent;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.testing.EqualsTester;
+import java.util.Collection;
+import java.util.List;
+
 import org.junit.Test;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -30,7 +32,9 @@ import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
 
-import java.util.Collection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.testing.EqualsTester;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -52,8 +56,9 @@ public class FlowObjectiveIntentTest extends IntentTest {
             .withSelector(DefaultTrafficSelector.builder().matchEthType((short) 123).build())
             .withTreatment(DefaultTrafficTreatment.emptyTreatment())
             .withFlag(ForwardingObjective.Flag.VERSATILE).add();
-    private static final Collection<Objective> OBJECTIVES = ImmutableSet.of(FO1, FO2);
+    private static final List<Objective> OBJECTIVES = ImmutableList.of(FO1, FO2);
     private static final Collection<NetworkResource> RESOURCES = ImmutableSet.of();
+    private static final List<DeviceId> DEVICE = ImmutableList.of(DeviceId.NONE, DeviceId.NONE);
 
     /**
      * Tests basics of construction and getters.
@@ -61,7 +66,7 @@ public class FlowObjectiveIntentTest extends IntentTest {
     @Test
     public void basics() {
         FlowObjectiveIntent intent =
-                new FlowObjectiveIntent(APP_ID, KEY, OBJECTIVES, RESOURCES);
+                new FlowObjectiveIntent(APP_ID, KEY, DEVICE, OBJECTIVES, RESOURCES);
         assertEquals("incorrect app id", APP_ID, intent.appId());
         assertEquals("incorrect key", KEY, intent.key());
         assertEquals("incorrect objectives", OBJECTIVES, intent.objectives());
@@ -89,11 +94,11 @@ public class FlowObjectiveIntentTest extends IntentTest {
 
     @Override
     protected Intent createOne() {
-        return new FlowObjectiveIntent(APP_ID, OBJECTIVES, RESOURCES);
+        return new FlowObjectiveIntent(APP_ID, DEVICE, OBJECTIVES, RESOURCES);
     }
 
     @Override
     protected Intent createAnother() {
-        return new FlowObjectiveIntent(APP_ID, OBJECTIVES, RESOURCES);
+        return new FlowObjectiveIntent(APP_ID, DEVICE, OBJECTIVES, RESOURCES);
     }
 }
