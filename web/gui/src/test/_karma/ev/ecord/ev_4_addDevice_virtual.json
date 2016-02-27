@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000000000003333",
+    "type": "virtual",
+    "online": true,
+    "master": "foo",
+    "labels": [
+      "",
+      "cord",
+      "of:0000000000003333"
+    ],
+    "metaUi": {
+      "x": 200,
+      "y": 400
+    }
+  }
+}

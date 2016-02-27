@@ -68,6 +68,17 @@
         e: 'badgeError'
     };
 
+    // NOTE: this type of hack should go away once we have implemented
+    //       the server-side UiModel code.
+    // {virtual -> cord} is for the E-CORD demo at ONS 2016
+    var remappedDeviceTypes = {
+        virtual: 'cord'
+    };
+
+    function mapDeviceTypeToGlyph(type) {
+        return remappedDeviceTypes[type] || type || 'unknown';
+    }
+
     function badgeStatus(badge) {
         return status[badge.status] || status.i;
     }
@@ -311,9 +322,8 @@
 
     function deviceEnter(d) {
         var node = d3.select(this),
-            glyphId = d.type || 'unknown',
+            glyphId = mapDeviceTypeToGlyph(d.type),
             label = trimLabel(deviceLabel(d)),
-            //devCfg = deviceIconConfig,
             noLabel = !label,
             box, dx, dy, icon;
 

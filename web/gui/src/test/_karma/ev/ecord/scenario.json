@@ -1,0 +1,9 @@
+{
+  "title": "Show E-CORD Topology",
+  "params": {
+    "lastAuto": 8
+  },
+  "description": [
+    "Show E-CORD topology, including a couple of 'virtual' devices."
+  ]
+}
