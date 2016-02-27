@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -123,6 +124,22 @@ public final class DefaultNextObjective implements NextObjective {
                     && Objects.equals(this.meta, other.meta);
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("id", id())
+                .add("type", type())
+                .add("op", op())
+                .add("priority", priority())
+                .add("next", next())
+                .add("meta", meta())
+                .add("appId", appId())
+                .add("permanent", permanent())
+                .add("timeout", timeout())
+                .add("context", context())
+                .toString();
     }
 
     /**
