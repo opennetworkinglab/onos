@@ -241,27 +241,31 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             intentService.submit(connIntent);
         }
 
-        // Create optical circuit intent
-        List<FlowRule> rules = new LinkedList<>();
-        // at the source: ODUCLT port mapping to OCH port
-        rules.add(connectPorts(src, connIntent.getSrc(), intent.priority(), slots));
-        // at the destination: OCH port mapping to ODUCLT port
-        rules.add(connectPorts(connIntent.getDst(), dst, intent.priority(), slots));
-
-        // Create flow rules for reverse path
-        if (intent.isBidirectional()) {
-           // at the destination: OCH port mapping to ODUCLT port
-            rules.add(connectPorts(connIntent.getSrc(), src, intent.priority(), slots));
-            // at the source: ODUCLT port mapping to OCH port
-            rules.add(connectPorts(dst, connIntent.getDst(), intent.priority(), slots));
-        }
-
-        FlowRuleIntent circuitIntent = new FlowRuleIntent(appId, rules, intent.resources());
-
         // Save circuit to connectivity intent mapping
         intentSetMultimap.allocateMapping(connIntent.id(), intent.id());
 
+        FlowRuleIntent circuitIntent = createFlowRule(intent, connIntent, slots);
         return ImmutableList.of(circuitIntent);
+    }
+
+    private FlowRuleIntent createFlowRule(OpticalCircuitIntent higherIntent,
+                                          OpticalConnectivityIntent lowerIntent, Set<TributarySlot> slots) {
+        // Create optical circuit intent
+        List<FlowRule> rules = new LinkedList<>();
+        // at the source: ODUCLT port mapping to OCH port
+        rules.add(connectPorts(higherIntent.getSrc(), lowerIntent.getSrc(), higherIntent.priority(), slots));
+        // at the destination: OCH port mapping to ODUCLT port
+        rules.add(connectPorts(lowerIntent.getDst(), higherIntent.getDst(), higherIntent.priority(), slots));
+
+        // Create flow rules for reverse path
+        if (higherIntent.isBidirectional()) {
+           // at the destination: OCH port mapping to ODUCLT port
+            rules.add(connectPorts(lowerIntent.getSrc(), higherIntent.getSrc(), higherIntent.priority(), slots));
+            // at the source: ODUCLT port mapping to OCH port
+            rules.add(connectPorts(higherIntent.getDst(), lowerIntent.getDst(), higherIntent.priority(), slots));
+        }
+
+        return new FlowRuleIntent(appId, rules, higherIntent.resources());
     }
 
     /**
