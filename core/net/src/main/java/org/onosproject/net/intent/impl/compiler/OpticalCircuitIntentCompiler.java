@@ -196,7 +196,6 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         // Check if both devices support multiplexing (usage of TributarySlots)
         boolean multiplexingSupported = isMultiplexingSupported(intent);
 
-        LinkedList<Intent> intents = new LinkedList<>();
         // slots are used only for devices supporting multiplexing
         Set<TributarySlot> slots = Collections.emptySet();
 
@@ -261,9 +260,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
         // Save circuit to connectivity intent mapping
         intentSetMultimap.allocateMapping(connIntent.id(), intent.id());
-        intents.add(circuitIntent);
 
-        return intents;
+        return ImmutableList.of(circuitIntent);
     }
 
     /**
