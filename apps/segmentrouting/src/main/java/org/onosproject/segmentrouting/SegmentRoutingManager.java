@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,6 +99,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkState;
 
 @Service
 @Component(immediate = true)
@@ -321,15 +323,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
-        cfgService.addListener(cfgListener);
-        cfgService.registerConfigFactory(cfgDeviceFactory);
-        cfgService.registerConfigFactory(cfgAppFactory);
-
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();
         deviceListener = new InternalDeviceListener();
         netcfgHandler = new NetworkConfigEventHandler(this);
 
+        cfgService.addListener(cfgListener);
+        cfgService.registerConfigFactory(cfgDeviceFactory);
+        cfgService.registerConfigFactory(cfgAppFactory);
         hostService.addListener(hostListener);
         packetService.addProcessor(processor, PacketProcessor.director(2));
         linkService.addListener(linkListener);
@@ -891,6 +892,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         break;
                 }
             } else if (event.configClass().equals(SegmentRoutingAppConfig.class)) {
+                checkState(netcfgHandler != null, "NetworkConfigEventHandler is not initialized");
                 switch (event.type()) {
                     case CONFIG_ADDED:
                         netcfgHandler.processVRouterConfigAdded(event);
