@@ -109,9 +109,14 @@
 
             createHandlerMap();
 
-            function start() {
-                openListener = wss.addOpenListener(wsOpen);
+            function bindHandlers() {
                 wss.bindHandlers(handlerMap);
+                $log.debug('topo event handlers bound');
+            }
+
+            function start() {
+                // in case we fail over to a new server, listen for wsock-open
+                openListener = wss.addOpenListener(wsOpen);
                 wss.sendEvent('topoStart');
                 scheduleHeartbeat();
                 $log.debug('topo comms started');
@@ -127,6 +132,7 @@
             }
 
             return {
+                bindHandlers: bindHandlers,
                 start: start,
                 stop: stop
             };

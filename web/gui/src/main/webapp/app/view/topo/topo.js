@@ -28,9 +28,9 @@
         'onosRemote'
     ];
 
-    // references to injected services etc.
+    // references to injected services
     var $scope, $log, $cookies, fs, ks, zs, gs, ms, sus, flash, wss, ps, th,
-        tds, tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, ttip, tov;
+        tds, tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, tspr, ttip, tov;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
@@ -507,7 +507,7 @@
                   _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _th_,
                   _tds_, _tes_,
                   _tfs_, _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_,
-                  _ttbs_, tspr, _ttip_, _tov_) {
+                  _ttbs_, _tspr_, _ttip_, _tov_) {
             var params = $loc.search(),
                 projection,
                 dim,
@@ -548,6 +548,7 @@
             tos = _tos_;
             fltr = _fltr_;
             ttbs = _ttbs_;
+            tspr = _tspr_;
             ttip = _ttip_;
             tov = _tov_;
 
@@ -609,6 +610,7 @@
                     restoreSummaryFromPrefs();
                 }
             );
+            tes.bindHandlers();
             setUpSprites($loc, tspr);
 
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
