@@ -15,28 +15,28 @@
  */
 package org.onosproject.pcep.controller;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import org.onlab.packet.IpAddress;
+import org.onlab.util.Identifier;
+
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Objects;
 
-import org.onlab.packet.IpAddress;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * The class representing a network client pc ip.
  * This class is immutable.
  */
-public final class PccId {
+public final class PccId extends Identifier<IpAddress> {
 
     private static final String SCHEME = "pcep";
     private static final long UNKNOWN = 0;
-    private final IpAddress ipAddress;
 
     /**
      * Private constructor.
      */
     private PccId(IpAddress ipAddress) {
-        this.ipAddress = ipAddress;
+        super(ipAddress);
     }
 
     /**
@@ -55,32 +55,7 @@ public final class PccId {
      * @return ipAddress
      */
     public IpAddress ipAddress() {
-        return ipAddress;
-    }
-
-    /**
-     * Convert the PccId value to a ':' separated hexadecimal string.
-     *
-     * @return the PccId value as a ':' separated hexadecimal string.
-     */
-    @Override
-    public String toString() {
-        return ipAddress.toString();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof PccId)) {
-            return false;
-        }
-
-        PccId otherPccid = (PccId) other;
-        return Objects.equals(ipAddress, otherPccid.ipAddress);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(ipAddress);
+        return identifier;
     }
 
     /**

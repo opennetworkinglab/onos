@@ -15,25 +15,22 @@
  */
 package org.onosproject.ovsdb.controller;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
+import org.onlab.util.Identifier;
+
 import static com.google.common.base.Preconditions.checkNotNull;
-import java.util.Objects;
 
 /**
  * The class representing an ifaceid.
  * This class is immutable.
  */
-public class OvsdbIfaceId {
-    private final String value;
-
+public class OvsdbIfaceId extends Identifier<String> {
     /**
      * Constructor from a String.
      *
      * @param value the ifaceid to use
      */
     public OvsdbIfaceId(String value) {
-        checkNotNull(value, "value is not null");
-        this.value = value;
+        super(checkNotNull(value, "value is not null"));
     }
 
     /**
@@ -42,28 +39,6 @@ public class OvsdbIfaceId {
      * @return the value of ifaceid
      */
     public String value() {
-        return value;
-    }
-
-    @Override
-    public int hashCode() {
-        return value.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof OvsdbIfaceId) {
-            final OvsdbIfaceId otherIfaceId = (OvsdbIfaceId) obj;
-            return Objects.equals(this.value, otherIfaceId.value);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this).add("value", value).toString();
+        return identifier;
     }
 }

@@ -15,13 +15,12 @@
  */
 package org.onlab.packet;
 
+import org.onlab.util.Identifier;
+
 /**
  * Representation of a VLAN ID.
  */
-public class VlanId {
-
-    private final short value;
-
+public class VlanId extends Identifier<Short> {
     // Based on convention used elsewhere? Check and change if needed
     public static final short UNTAGGED = (short) 0xffff;
 
@@ -37,11 +36,11 @@ public class VlanId {
     public static final short MAX_VLAN = 4095;
 
     protected VlanId() {
-        this.value = UNTAGGED;
+        super(UNTAGGED);
     }
 
     protected VlanId(short value) {
-        this.value = value;
+        super(value);
     }
 
     public static VlanId vlanId() {
@@ -65,38 +64,15 @@ public class VlanId {
     }
 
     public short toShort() {
-        return this.value;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-
-        if (obj instanceof VlanId) {
-
-            VlanId other = (VlanId) obj;
-
-             if (this.value == other.value) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return this.value;
+        return this.identifier;
     }
 
     @Override
     public String toString() {
-        if (this.value == ANY_VALUE) {
+        if (this.identifier == ANY_VALUE) {
             return "Any";
         }
-        return String.valueOf(this.value);
+        return String.valueOf(this.identifier);
     }
 }
 

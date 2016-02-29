@@ -17,9 +17,10 @@
 package org.onosproject.bgp.controller;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.util.Identifier;
+
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -27,11 +28,10 @@ import static com.google.common.base.Preconditions.checkArgument;
  * The class representing a network peer bgp ip.
  * This class is immutable.
  */
-public final class BgpId {
+public final class BgpId extends Identifier<IpAddress> {
 
     private static final String SCHEME = "bgp";
     private static final long UNKNOWN = 0;
-    private final IpAddress ipAddress;
 
     /**
      * Constructor to initialize ipAddress.
@@ -39,7 +39,7 @@ public final class BgpId {
      * @param ipAddress Ip address
      */
     public BgpId(IpAddress ipAddress) {
-        this.ipAddress = ipAddress;
+        super(ipAddress);
     }
 
     /**
@@ -58,32 +58,7 @@ public final class BgpId {
      * @return ipAddress
      */
     public IpAddress ipAddress() {
-        return ipAddress;
-    }
-
-    /**
-     * Convert the BGPId value to a ':' separated hexadecimal string.
-     *
-     * @return the BGPId value as a ':' separated hexadecimal string.
-     */
-    @Override
-    public String toString() {
-        return ipAddress.toString();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof BgpId)) {
-            return false;
-        }
-
-        BgpId otherBGPid = (BgpId) other;
-        return Objects.equals(ipAddress, otherBGPid.ipAddress);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(ipAddress);
+        return identifier;
     }
 
     /**

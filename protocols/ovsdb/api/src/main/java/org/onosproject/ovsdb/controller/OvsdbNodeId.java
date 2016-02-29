@@ -15,19 +15,17 @@
  */
 package org.onosproject.ovsdb.controller;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Objects;
-
 import org.onlab.packet.IpAddress;
+import org.onlab.util.Identifier;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * The class representing a nodeId of node which using ovsdb connection.
  * This class is immutable.
  */
-public final class OvsdbNodeId {
+public final class OvsdbNodeId extends Identifier<String> {
     private static final String SCHEME = "ovsdb";
-    private final String nodeId;
     private final String ipAddress;
 
     /**
@@ -37,30 +35,14 @@ public final class OvsdbNodeId {
      * @param port node port
      */
     public OvsdbNodeId(IpAddress ipAddress, long port) {
-        checkNotNull(ipAddress, "ipAddress is not null");
+        // TODO: port is currently not in use, need to remove it later
+        super(checkNotNull(ipAddress, "ipAddress is not null").toString());
         this.ipAddress = ipAddress.toString();
-        this.nodeId = ipAddress.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        return nodeId.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof OvsdbNodeId)) {
-            return false;
-        }
-
-        OvsdbNodeId otherNodeId = (OvsdbNodeId) other;
-
-        return Objects.equals(otherNodeId.nodeId, this.nodeId);
     }
 
     @Override
     public String toString() {
-        return SCHEME + ":" + nodeId;
+        return SCHEME + ":" + identifier;
     }
 
     /**
@@ -69,7 +51,7 @@ public final class OvsdbNodeId {
      * @return the value of the NodeId.
      */
     public String nodeId() {
-        return SCHEME + ":" + nodeId;
+        return SCHEME + ":" + identifier;
     }
 
     /**

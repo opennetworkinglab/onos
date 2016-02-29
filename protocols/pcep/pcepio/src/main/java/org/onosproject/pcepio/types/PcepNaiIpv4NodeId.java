@@ -16,21 +16,16 @@
 
 package org.onosproject.pcepio.types;
 
-import java.util.Objects;
-
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.onlab.util.Identifier;
 import org.onosproject.pcepio.protocol.PcepNai;
-
-import com.google.common.base.MoreObjects;
 
 /**
  * Provides Pcep Nai Ipv4 Node Id.
  */
-public class PcepNaiIpv4NodeId implements PcepNai {
+public class PcepNaiIpv4NodeId extends Identifier<Integer> implements PcepNai {
 
     public static final byte ST_TYPE = 0x01;
-
-    private final int ipv4NodeId;
 
     /**
      * Constructor to initialize ipv4NodeId.
@@ -38,7 +33,7 @@ public class PcepNaiIpv4NodeId implements PcepNai {
      * @param value ipv4 node id
      */
     public PcepNaiIpv4NodeId(int value) {
-        this.ipv4NodeId = value;
+        super(value);
     }
 
     /**
@@ -59,7 +54,7 @@ public class PcepNaiIpv4NodeId implements PcepNai {
     @Override
     public int write(ChannelBuffer bb) {
         int iLenStartIndex = bb.writerIndex();
-        bb.writeInt(ipv4NodeId);
+        bb.writeInt(identifier);
         return bb.writerIndex() - iLenStartIndex;
     }
 
@@ -71,29 +66,5 @@ public class PcepNaiIpv4NodeId implements PcepNai {
      */
     public static PcepNaiIpv4NodeId read(ChannelBuffer bb) {
         return new PcepNaiIpv4NodeId(bb.readInt());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(ipv4NodeId);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof PcepNaiIpv4NodeId) {
-            PcepNaiIpv4NodeId other = (PcepNaiIpv4NodeId) obj;
-            return Objects.equals(this.ipv4NodeId, other.ipv4NodeId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("IPv4NodeId", ipv4NodeId)
-                .toString();
     }
 }

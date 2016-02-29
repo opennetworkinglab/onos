@@ -15,25 +15,22 @@
  */
 package org.onosproject.ovsdb.controller;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
+import org.onlab.util.Identifier;
+
 import static com.google.common.base.Preconditions.checkNotNull;
-import java.util.Objects;
 
 /**
  * The class representing a datapathid.
  * This class is immutable.
  */
-public final class OvsdbDatapathId {
-    private final String value;
-
+public final class OvsdbDatapathId extends Identifier<String> {
     /**
      * Constructor from a String.
      *
      * @param value the datapathid to use
      */
     public OvsdbDatapathId(String value) {
-        checkNotNull(value, "value is not null");
-        this.value = value;
+        super(checkNotNull(value, "value is not null"));
     }
 
     /**
@@ -42,28 +39,6 @@ public final class OvsdbDatapathId {
      * @return the value of datapathid
      */
     public String value() {
-        return value;
-    }
-
-    @Override
-    public int hashCode() {
-        return value.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof OvsdbDatapathId) {
-            final OvsdbDatapathId otherDatapathId = (OvsdbDatapathId) obj;
-            return Objects.equals(this.value, otherDatapathId.value);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this).add("value", value).toString();
+        return identifier;
     }
 }
