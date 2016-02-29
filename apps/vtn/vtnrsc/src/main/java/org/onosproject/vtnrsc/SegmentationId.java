@@ -15,21 +15,17 @@
  */
 package org.onosproject.vtnrsc;
 
-import java.util.Objects;
+import org.onlab.util.Identifier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Immutable representation of a Segmentation identifier.
  */
-public final class SegmentationId {
-
-    private final String segmentationId;
-
+public final class SegmentationId extends Identifier<String> {
     // Public construction is prohibited
     private SegmentationId(String segmentationId) {
-        checkNotNull(segmentationId, "SegmentationId cannot be null");
-        this.segmentationId = segmentationId;
+        super(checkNotNull(segmentationId, "SegmentationId cannot be null"));
     }
 
     /**
@@ -48,30 +44,6 @@ public final class SegmentationId {
      * @return segmentationId
      */
     public String segmentationId() {
-        return segmentationId;
+        return identifier;
     }
-
-    @Override
-    public int hashCode() {
-        return segmentationId.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof SegmentationId) {
-            final SegmentationId that = (SegmentationId) obj;
-            return this.getClass() == that.getClass()
-                    && Objects.equals(this.segmentationId, that.segmentationId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return segmentationId;
-    }
-
 }

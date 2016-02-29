@@ -15,26 +15,21 @@
  */
 package org.onosproject.cordvtn;
 
-import com.google.common.base.MoreObjects;
-
-import java.util.Objects;
+import org.onlab.util.Identifier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Representation of service identifier.
  */
-public final class CordServiceId {
-
-    private final String id;
-
+public final class CordServiceId extends Identifier<String> {
     /**
      * Default constructor.
      *
      * @param id service identifier
      */
     private CordServiceId(String id) {
-        this.id = id;
+        super(id);
     }
 
     /**
@@ -46,38 +41,5 @@ public final class CordServiceId {
     public static CordServiceId of(String id) {
         checkNotNull(id);
         return new CordServiceId(id);
-    }
-
-    /**
-     * Returns service identifier.
-     *
-     * @return service id
-     */
-    public String id() {
-        return id;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!(obj instanceof CordServiceId)) {
-            return false;
-        }
-        final CordServiceId other = (CordServiceId) obj;
-        return Objects.equals(this.id, other.id);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("id", id)
-                .toString();
     }
 }

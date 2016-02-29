@@ -15,22 +15,17 @@
  */
 package org.onosproject.vtnrsc;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.onlab.util.Identifier;
 
-import java.util.Objects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Immutable representation of a router identifier.
  */
-public final class RouterId {
-
-    private final String routerId;
-
+public final class RouterId extends Identifier<String> {
     // Public construction is prohibited
     private RouterId(String routerId) {
-        checkNotNull(routerId, "routerId cannot be null");
-        this.routerId = routerId;
+        super(checkNotNull(routerId, "routerId cannot be null"));
     }
 
     /**
@@ -49,29 +44,7 @@ public final class RouterId {
      * @return the router identifier
      */
     public String routerId() {
-        return routerId;
-    }
-
-    @Override
-    public int hashCode() {
-        return routerId.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof RouterId) {
-            final RouterId that = (RouterId) obj;
-            return Objects.equals(this.routerId, that.routerId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this).add("routerId", routerId).toString();
+        return identifier;
     }
 }
 

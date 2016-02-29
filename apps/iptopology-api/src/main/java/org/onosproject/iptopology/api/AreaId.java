@@ -15,23 +15,19 @@
  */
 package org.onosproject.iptopology.api;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-import java.util.Objects;
+import org.onlab.util.Identifier;
 
 /**
  * Area identifier class (32 Bit Area-ID).
  */
-public class AreaId {
-    private final int areaId;
-
+public class AreaId extends Identifier<Integer> {
     /**
      * Constructor to set area identifier.
      *
      * @param areaId area id
      */
     public AreaId(int areaId) {
-        this.areaId = areaId;
+        super(areaId);
     }
 
     /**
@@ -40,31 +36,6 @@ public class AreaId {
      * @return area identifier
      */
     public int areaId() {
-        return areaId;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(areaId);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-
-        if (obj instanceof AreaId) {
-            AreaId other = (AreaId) obj;
-            return Objects.equals(areaId, other.areaId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this)
-                .add("areaId", areaId)
-                .toString();
+        return identifier;
     }
 }

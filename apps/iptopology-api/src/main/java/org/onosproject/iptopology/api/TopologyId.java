@@ -15,23 +15,19 @@
  */
 package org.onosproject.iptopology.api;
 
-import java.util.Objects;
-
-import com.google.common.base.MoreObjects;
+import org.onlab.util.Identifier;
 
 /**
  * Represents Multi-Topology IDs for a network link, node or prefix.
  */
-public class TopologyId {
-    private final short topologyId;
-
+public class TopologyId extends Identifier<Short> {
     /**
      * Constructor to initialize its parameter.
      *
      * @param topologyId topology id for node/link/prefix
      */
     public TopologyId(short topologyId) {
-        this.topologyId = topologyId;
+        super(topologyId);
     }
 
     /**
@@ -40,31 +36,6 @@ public class TopologyId {
      * @return  topology ID
      */
     public short topologyId() {
-        return topologyId;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(topologyId);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-
-        if (obj instanceof TopologyId) {
-            TopologyId other = (TopologyId) obj;
-            return Objects.equals(topologyId, other.topologyId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("topologyId", topologyId)
-                .toString();
+        return identifier;
     }
 }

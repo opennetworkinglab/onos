@@ -15,17 +15,14 @@
  */
 package org.onosproject.vtnrsc;
 
+import org.onlab.util.Identifier;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Objects;
-
-public final class BindingHostId {
-    private final String bindingHostId;
-
+public final class BindingHostId extends Identifier<String> {
     // Public construction is prohibited
     private BindingHostId(String bindingHostId) {
-        checkNotNull(bindingHostId, "BindingHosttId cannot be null");
-        this.bindingHostId = bindingHostId;
+        super(checkNotNull(bindingHostId, "BindingHosttId cannot be null"));
     }
 
     /**
@@ -44,29 +41,6 @@ public final class BindingHostId {
      * @return the bindingHostId identifier
      */
     public String bindingHostId() {
-        return bindingHostId;
-    }
-
-    @Override
-    public int hashCode() {
-        return bindingHostId.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof BindingHostId) {
-            final BindingHostId that = (BindingHostId) obj;
-            return this.getClass() == that.getClass()
-                    && Objects.equals(this.bindingHostId, that.bindingHostId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return bindingHostId;
+        return identifier;
     }
 }

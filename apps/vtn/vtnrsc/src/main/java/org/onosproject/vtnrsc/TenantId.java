@@ -15,20 +15,17 @@
  */
 package org.onosproject.vtnrsc;
 
-import java.util.Objects;
+import org.onlab.util.Identifier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Immutable representation of a tenant identifier.
  */
-public final class TenantId {
-
-    private final String tenantId;
-
+public final class TenantId extends Identifier<String> {
     // Public construction is prohibited
     private TenantId(String tenantId) {
-        this.tenantId = tenantId;
+        super(tenantId);
     }
 
     /**
@@ -38,7 +35,7 @@ public final class TenantId {
      * @return TenantId
      */
     public static TenantId tenantId(String tenantid) {
-        checkNotNull(tenantid, "Tenantid can not be null");
+        checkNotNull(tenantid, "Tenant id can not be null");
         return new TenantId(tenantid);
     }
 
@@ -48,30 +45,6 @@ public final class TenantId {
      * @return the tenant identifier
      */
     public String tenantId() {
-        return tenantId;
+        return identifier;
     }
-
-    @Override
-    public int hashCode() {
-        return tenantId.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof TenantId) {
-            final TenantId that = (TenantId) obj;
-            return this.getClass() == that.getClass()
-                    && Objects.equals(this.tenantId, that.tenantId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return tenantId;
-    }
-
 }

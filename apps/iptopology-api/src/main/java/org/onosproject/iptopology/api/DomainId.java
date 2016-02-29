@@ -16,23 +16,19 @@
 
 package org.onosproject.iptopology.api;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-import java.util.Objects;
+import org.onlab.util.Identifier;
 
 /**
  * Domain Identifier(32 Bit).
  */
-public class DomainId {
-    private final int domainIdentifier;
-
+public class DomainId extends Identifier<Integer> {
     /**
      * Constructor to initialize domain identifier.
      *
      * @param domainIdentifier domain identifier
      */
     public DomainId(int domainIdentifier) {
-        this.domainIdentifier = domainIdentifier;
+        super(domainIdentifier);
     }
 
     /**
@@ -41,31 +37,6 @@ public class DomainId {
      * @return domain identifier
      */
     public int domainIdentifier() {
-        return domainIdentifier;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(domainIdentifier);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-
-        if (obj instanceof DomainId) {
-            DomainId other = (DomainId) obj;
-            return Objects.equals(domainIdentifier, other.domainIdentifier);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this)
-                .add("domainIdentifier", domainIdentifier)
-                .toString();
+        return identifier;
     }
 }

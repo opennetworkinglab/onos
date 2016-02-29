@@ -15,19 +15,16 @@
  */
 package org.onosproject.vtnrsc;
 
+import org.onlab.util.Identifier;
+
 import static com.google.common.base.Preconditions.checkArgument;
-
-import java.util.Objects;
-
-import com.google.common.base.MoreObjects;
 
 /*
  * Representation of 5 bit load balance identifier for a service function
  */
-public final class LoadBalanceId {
+public final class LoadBalanceId extends Identifier<Byte> {
 
     private static final byte MAX_ID = 0x1F;
-    private final byte loadBalanceId;
 
     /**
      * Default constructor.
@@ -35,8 +32,8 @@ public final class LoadBalanceId {
      * @param loadBalanceId service function chain path's load balance identifier
      */
     private LoadBalanceId(byte loadBalanceId) {
+        super(loadBalanceId);
         checkArgument(loadBalanceId <= MAX_ID, "Load balance id should not be more than 5 bit identifier");
-        this.loadBalanceId = (loadBalanceId);
     }
 
     /**
@@ -56,31 +53,6 @@ public final class LoadBalanceId {
      * @return loadBalanceId
      */
     public byte loadBalanceId() {
-        return loadBalanceId;
-    }
-
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(loadBalanceId);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!(obj instanceof LoadBalanceId)) {
-            return false;
-        }
-        final LoadBalanceId other = (LoadBalanceId) obj;
-        return   Objects.equals(this.loadBalanceId, other.loadBalanceId);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("loadBalanceId", loadBalanceId)
-                .toString();
+        return identifier;
     }
 }

@@ -15,19 +15,17 @@
  */
 package org.onosproject.vtnrsc;
 
-import java.util.Objects;
+import org.onlab.util.Identifier;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Immutable representation of a tenantNetwork identity.
  */
-public final class TenantNetworkId {
-
-    private final String networkId;
-
+public final class TenantNetworkId extends Identifier<String> {
     // Public construction is prohibited
     private TenantNetworkId(String networkId) {
-        this.networkId = networkId;
+        super(networkId);
     }
 
     /**
@@ -47,30 +45,6 @@ public final class TenantNetworkId {
      * @return the tenantNetwork identifier
      */
     public String networkId() {
-        return networkId;
+        return identifier;
     }
-
-    @Override
-    public int hashCode() {
-        return networkId.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof TenantNetworkId) {
-            final TenantNetworkId that = (TenantNetworkId) obj;
-            return this.getClass() == that.getClass()
-                    && Objects.equals(this.networkId, that.networkId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return networkId;
-    }
-
 }

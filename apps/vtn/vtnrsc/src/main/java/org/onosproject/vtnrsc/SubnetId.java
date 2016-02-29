@@ -15,21 +15,17 @@
  */
 package org.onosproject.vtnrsc;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.onlab.util.Identifier;
 
-import java.util.Objects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Immutable representation of a subnet identifier.
  */
-public final class SubnetId {
-
-    private final String subnetId;
-
+public final class SubnetId extends Identifier<String> {
     // Public construction is prohibited
     private SubnetId(String subnetId) {
-        checkNotNull(subnetId, "SubnetId cannot be null");
-        this.subnetId = subnetId;
+        super(checkNotNull(subnetId, "SubnetId cannot be null"));
     }
 
     /**
@@ -48,29 +44,6 @@ public final class SubnetId {
      * @return the subnet identifier
      */
     public String subnetId() {
-        return subnetId;
-    }
-
-    @Override
-    public int hashCode() {
-        return subnetId.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof SubnetId) {
-            final SubnetId that = (SubnetId) obj;
-            return this.getClass() == that.getClass()
-                    && Objects.equals(this.subnetId, that.subnetId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return subnetId;
+        return identifier;
     }
 }

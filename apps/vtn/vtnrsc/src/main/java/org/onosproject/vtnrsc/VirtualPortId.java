@@ -15,23 +15,21 @@
  */
 package org.onosproject.vtnrsc;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.onlab.util.Identifier;
 
-import java.util.Objects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Immutable representation of a virtual port identifier.
  */
-public final class VirtualPortId {
-    private final String portId;
+public final class VirtualPortId extends Identifier<String> {
     // Public construction is prohibited
     private VirtualPortId(String virtualPortId) {
-        checkNotNull(virtualPortId, "VirtualPortId cannot be null");
-        this.portId = virtualPortId;
+        super(checkNotNull(virtualPortId, "VirtualPortId cannot be null"));
     }
 
     public String portId() {
-        return portId;
+        return identifier;
     }
 
     /**
@@ -43,28 +41,4 @@ public final class VirtualPortId {
     public static VirtualPortId portId(String portId) {
         return new VirtualPortId(portId);
     }
-
-    @Override
-    public int hashCode() {
-        return portId.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof VirtualPortId) {
-            final VirtualPortId that = (VirtualPortId) obj;
-            return this.getClass() == that.getClass()
-                    && Objects.equals(this.portId, that.portId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return portId;
-    }
-
 }

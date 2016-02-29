@@ -19,13 +19,13 @@
  */
 package org.onosproject.acl;
 
+import org.onlab.util.Identifier;
+
 /**
  * ACL rule identifier suitable as an external key.
  * <p>This class is immutable.</p>
  */
-public final class RuleId {
-    private final long value;
-
+public final class RuleId extends Identifier<Long> {
     /**
      * Creates an ACL rule identifier from the specified long value.
      *
@@ -40,7 +40,7 @@ public final class RuleId {
      * Constructor for serializer.
      */
     RuleId() {
-        this.value = 0;
+        super(0L);
     }
 
     /**
@@ -49,7 +49,7 @@ public final class RuleId {
      * @param value the underlying value of this ID
      */
     RuleId(long value) {
-        this.value = value;
+        super(value);
     }
 
     /**
@@ -58,28 +58,11 @@ public final class RuleId {
      * @return the value
      */
     public long fingerprint() {
-        return value;
-    }
-
-    @Override
-    public int hashCode() {
-        return Long.hashCode(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof RuleId)) {
-            return false;
-        }
-        RuleId that = (RuleId) obj;
-        return this.value == that.value;
+        return identifier;
     }
 
     @Override
     public String toString() {
-        return "0x" + Long.toHexString(value);
+        return "0x" + Long.toHexString(identifier);
     }
 }

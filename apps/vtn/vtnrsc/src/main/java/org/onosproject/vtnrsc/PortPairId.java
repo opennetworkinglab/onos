@@ -15,27 +15,23 @@
  */
 package org.onosproject.vtnrsc;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.onlab.util.Identifier;
 
 import java.util.UUID;
-import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Representation of a Port Pair ID.
  */
-public final class PortPairId {
-
-    private final UUID portPairId;
-
+public final class PortPairId extends Identifier<UUID> {
     /**
      * Private constructor for port pair id.
      *
      * @param id UUID id of port pair
      */
     private PortPairId(UUID id) {
-        checkNotNull(id, "Port chain id can not be null");
-        this.portPairId = id;
+        super(checkNotNull(id, "Port chain id can not be null"));
     }
 
     /**
@@ -64,30 +60,6 @@ public final class PortPairId {
      * @return port pair id
      */
     public UUID value() {
-        return portPairId;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof PortPairId) {
-            final PortPairId other = (PortPairId) obj;
-            return Objects.equals(this.portPairId, other.portPairId);
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(this.portPairId);
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this)
-                .add("portPairId", portPairId)
-                .toString();
+        return identifier;
     }
 }

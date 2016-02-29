@@ -15,28 +15,23 @@
  */
 package org.onosproject.vtnrsc;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import com.google.common.base.MoreObjects;
+import org.onlab.util.Identifier;
 
 import java.util.UUID;
-import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Flow classification identifier.
  */
-public final class FlowClassifierId {
-
-    private final UUID flowClassifierId;
-
+public final class FlowClassifierId extends Identifier<UUID> {
     /**
      * Constructor to create flow classifier id.
      *
      * @param flowClassifierId flow classifier id.
      */
     private FlowClassifierId(final UUID flowClassifierId) {
-        checkNotNull(flowClassifierId, "Flow classifier id can not be null");
-        this.flowClassifierId = flowClassifierId;
+        super(checkNotNull(flowClassifierId, "Flow classifier id can not be null"));
     }
 
     /**
@@ -65,30 +60,6 @@ public final class FlowClassifierId {
      * @return flow classifier id.
      */
     public UUID value() {
-        return flowClassifierId;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(this.flowClassifierId);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof FlowClassifierId) {
-            final FlowClassifierId other = (FlowClassifierId) obj;
-            return Objects.equals(this.flowClassifierId, other.flowClassifierId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("FlowClassifierId", flowClassifierId)
-                .toString();
+        return identifier;
     }
 }

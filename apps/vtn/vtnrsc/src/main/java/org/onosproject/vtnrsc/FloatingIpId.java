@@ -15,21 +15,19 @@
  */
 package org.onosproject.vtnrsc;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.onlab.util.Identifier;
 
-import java.util.Objects;
 import java.util.UUID;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Immutable representation of a floating IP identifier.
  */
-public final class FloatingIpId {
-    private final UUID floatingIpId;
-
+public final class FloatingIpId extends Identifier<UUID> {
     // Public construction is prohibited
     private FloatingIpId(UUID floatingIpId) {
-        this.floatingIpId = checkNotNull(floatingIpId, "floatingIpId cannot be null");
+        super(checkNotNull(floatingIpId, "floatingIpId cannot be null"));
     }
 
     /**
@@ -58,28 +56,6 @@ public final class FloatingIpId {
      * @return the floating IP identifier
      */
     public UUID floatingIpId() {
-        return floatingIpId;
-    }
-
-    @Override
-    public int hashCode() {
-        return floatingIpId.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof FloatingIpId) {
-            final FloatingIpId that = (FloatingIpId) obj;
-            return Objects.equals(this.floatingIpId, that.floatingIpId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this).add("floatingIpId", floatingIpId).toString();
+        return identifier;
     }
 }
