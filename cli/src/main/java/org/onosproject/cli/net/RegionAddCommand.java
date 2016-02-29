@@ -18,6 +18,7 @@ package org.onosproject.cli.net;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
@@ -28,7 +29,6 @@ import org.onosproject.net.region.RegionId;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Add a new region.
@@ -53,22 +53,33 @@ public class RegionAddCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     String name = null;
 
-    @Argument(index = 2, name = "type", description = "Region Type",
+    @Argument(index = 2, name = "type", description = "Region Type (CONTINENT|" +
+            "COUNTRY|METRO|CAMPUS|BUILDING|FLOOR|ROOM|RACK|LOGICAL_GROUP)",
             required = true, multiValued = false)
     String type = null;
 
-    @Argument(index = 3, name = "masters", description = "Region Master",
+    @Argument(index = 3, name = "masters", description = "Region Master, a set " +
+            "of nodeIds should be split with '/' delimiter (e.g., 1 2 3 / 4 5 6)",
             required = true, multiValued = true)
-    List<String> masters = null;
+    List<String> masterArgs = null;
 
     @Override
     protected void execute() {
         RegionAdminService service = get(RegionAdminService.class);
         RegionId regionId = RegionId.regionId(id);
-        Set<NodeId> nodeIds =
-                masters.stream().map(s -> NodeId.nodeId(s)).collect(Collectors.toSet());
+
         List<Set<NodeId>> masters = Lists.newArrayList();
+        Set<NodeId> nodeIds = Sets.newHashSet();
+        for (String masterArg : masterArgs) {
+            if (masterArg.equals("/")) {
+                masters.add(nodeIds);
+                nodeIds = Sets.newHashSet();
+            } else {
+                nodeIds.add(NodeId.nodeId(masterArg));
+            }
+        }
         masters.add(nodeIds);
+
         service.createRegion(regionId, name, REGION_TYPE_MAP.get(type), masters);
         print("Region successfully added.");
     }

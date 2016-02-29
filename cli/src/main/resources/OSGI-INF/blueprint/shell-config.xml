@@ -568,6 +568,7 @@
                 <null/>
                 <null/>
                 <ref component-id="regionTypeCompleter"/>
+                <ref component-id="nodeIdCompleter"/>
             </completers>
         </command>
         <command>
@@ -576,6 +577,7 @@
                 <ref component-id="regionIdCompleter"/>
                 <null/>
                 <ref component-id="regionTypeCompleter"/>
+                <ref component-id="nodeIdCompleter"/>
             </completers>
         </command>
         <command>
