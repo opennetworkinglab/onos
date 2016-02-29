@@ -343,7 +343,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             }
 
             if (multiplexingSupported) {
-                if (!isAvailableTributarySlots(connIntent, oduSignalType.tributarySlots())) {
+                if (!isAvailableTributarySlots(connIntent.getSrc(), connIntent.getDst(),
+                        oduSignalType.tributarySlots())) {
                     continue;
                 }
             }
@@ -354,8 +355,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return null;
     }
 
-    private boolean isAvailableTributarySlots(OpticalConnectivityIntent connIntent, int requestedTsNum) {
-        Set<TributarySlot> common = findCommonTributarySlotsOnCps(connIntent.getSrc(), connIntent.getDst());
+    private boolean isAvailableTributarySlots(ConnectPoint src, ConnectPoint dst, int requestedTsNum) {
+        Set<TributarySlot> common = findCommonTributarySlotsOnCps(src, dst);
         if (common.isEmpty()) {
             log.debug("No available TributarySlots");
             return false;
