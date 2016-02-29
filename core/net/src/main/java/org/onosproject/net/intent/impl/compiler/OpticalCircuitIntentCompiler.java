@@ -329,7 +329,11 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                 continue;
             }
 
-            if (!(isAllowed(src, connIntent.getSrc()) && isAllowed(dst, connIntent.getDst()))) {
+            if (!isAllowed(src, connIntent.getSrc())) {
+                continue;
+            }
+
+            if (!isAllowed(dst, connIntent.getDst())) {
                 continue;
             }
 
