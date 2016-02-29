@@ -180,6 +180,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                     } else {
                         pipeliner.filter((FilteringObjective) objective);
                     }
+                    //Attempts to check if pipeliner is null for retry attempts
                 } else if (numAttempts < INSTALL_RETRY_ATTEMPTS) {
                     Thread.sleep(INSTALL_RETRY_INTERVAL);
                     executorService.submit(new ObjectiveInstaller(deviceId, objective, numAttempts + 1));
@@ -187,8 +188,9 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                     // Otherwise we've tried a few times and failed, report an
                     // error back to the user.
                     objective.context().ifPresent(
-                            c -> c.onError(objective, ObjectiveError.DEVICEMISSING));
+                            c -> c.onError(objective, ObjectiveError.NOPIPELINER));
                 }
+                //Excpetion thrown
             } catch (Exception e) {
                 log.warn("Exception while installing flow objective", e);
             }

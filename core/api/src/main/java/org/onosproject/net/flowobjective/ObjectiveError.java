@@ -54,6 +54,11 @@ public enum ObjectiveError {
     BADPARAMS,
 
     /**
+     * The device has no pipeline driver to install objectives.
+     */
+    NOPIPELINER,
+
+    /**
      * An unknown error occurred.
      */
     UNKNOWN

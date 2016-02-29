@@ -206,7 +206,7 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
                     // Otherwise we've tried a few times and failed, report an
                     // error back to the user.
                     objective.context().ifPresent(
-                            c -> c.onError(objective, ObjectiveError.DEVICEMISSING));
+                            c -> c.onError(objective, ObjectiveError.NOPIPELINER));
                 }
             } catch (Exception e) {
                 log.warn("Exception while installing flow objective", e);
