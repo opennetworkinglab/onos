@@ -633,13 +633,13 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     /**
      * Finds the common TributarySlots available on the two connect points.
      *
-     * @param srcCp source connect point
-     * @param dstCp dest connect point
+     * @param src source connect point
+     * @param dst dest connect point
      * @return set of common TributarySlots on both connect points
      */
-    Set<TributarySlot> findCommonTributarySlotsOnCps(ConnectPoint srcCp, ConnectPoint dstCp) {
-        Set<TributarySlot> forward = findTributarySlotsOnCp(srcCp);
-        Set<TributarySlot> backward = findTributarySlotsOnCp(dstCp);
+    Set<TributarySlot> findCommonTributarySlotsOnCps(ConnectPoint src, ConnectPoint dst) {
+        Set<TributarySlot> forward = findTributarySlotsOnCp(src);
+        Set<TributarySlot> backward = findTributarySlotsOnCp(dst);
         return Sets.intersection(forward, backward);
     }
 
