@@ -18,23 +18,18 @@ package org.onosproject.security;
 
 import java.security.AccessController;
 import java.security.AccessControlContext;
-import java.security.PrivilegedAction;
-import java.security.ProtectionDomain;
-
 import com.google.common.annotations.Beta;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-
-import java.lang.reflect.Field;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Aids SM-ONOS to perform API-level permission checking.
  */
 @Beta
 public final class AppGuard {
     private AppGuard() {
+
     }
 
     /**
@@ -43,45 +38,18 @@ public final class AppGuard {
      * @param permission permission to be checked
      */
     public static void checkPermission(AppPermission.Type permission) {
-
         SecurityManager sm = System.getSecurityManager();
         if (sm == null) {
             return;
         }
-
-        Object result = AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
-            int contextHash = 0;
-            AccessControlContext context = AccessController.getContext();
-            Field f = null;
-            try {
-                f = context.getClass().getDeclaredField("context");
-
-                f.setAccessible(true);
-                ProtectionDomain[] domain = (ProtectionDomain[]) f.get(context);
-                for (ProtectionDomain pd : domain) {
-                    if (pd.getCodeSource() != null) {
-                        contextHash = contextHash ^ pd.getCodeSource().getLocation().hashCode();
-                    } else {
-                        return null;
-                    }
-                }
-                return contextHash;
-            } catch (NoSuchFieldException e) {
-                return null;
-            } catch (IllegalAccessException e) {
-                return null;
-            }
-        });
-
-        if (result == null) {
-            sm.checkPermission(new AppPermission(permission));
+        AccessControlContext context = AccessController.getContext();
+        if (context == null) {
+            sm.checkPermission(new AppPermission((permission)));
         } else {
-            AppPermission perm = new AppPermission(permission);
-            int hash = ((int) result) ^ perm.hashCode();
-            PermissionCheckCache.getInstance().checkCache(hash, perm);
+            int contextHash = context.hashCode() ^ permission.hashCode();
+            PermissionCheckCache.getInstance().checkCache(contextHash, new AppPermission(permission));
         }
     }
-
 
     private static final class PermissionCheckCache {
 
@@ -112,6 +80,4 @@ public final class AppGuard {
             }
         }
     }
-
 }
-
