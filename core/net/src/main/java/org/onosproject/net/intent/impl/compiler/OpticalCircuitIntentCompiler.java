@@ -290,20 +290,24 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     }
 
     private boolean isAllowed(OpticalCircuitIntent circuitIntent, OpticalConnectivityIntent connIntent) {
-        ConnectPoint srcStaticPort = staticPort(circuitIntent.getSrc());
+        if (!isAllowed(circuitIntent.getSrc(), connIntent.getSrc())) {
+            return false;
+        }
+
+        if (!isAllowed(circuitIntent.getDst(), connIntent.getDst())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean isAllowed(ConnectPoint circuitCp, ConnectPoint connectivityCp) {
+        ConnectPoint srcStaticPort = staticPort(circuitCp);
         if (srcStaticPort != null) {
-            if (!srcStaticPort.equals(connIntent.getSrc())) {
+            if (!srcStaticPort.equals(connectivityCp)) {
                 return false;
             }
         }
-
-        ConnectPoint dstStaticPort = staticPort(circuitIntent.getDst());
-        if (dstStaticPort != null) {
-            if (!dstStaticPort.equals(connIntent.getDst())) {
-                return false;
-            }
-        }
-
         return true;
     }
 
