@@ -289,18 +289,6 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return mapping.size() < maxCapacity;
     }
 
-    private boolean isAllowed(OpticalCircuitIntent circuitIntent, OpticalConnectivityIntent connIntent) {
-        if (!isAllowed(circuitIntent.getSrc(), connIntent.getSrc())) {
-            return false;
-        }
-
-        if (!isAllowed(circuitIntent.getDst(), connIntent.getDst())) {
-            return false;
-        }
-
-        return true;
-    }
-
     private boolean isAllowed(ConnectPoint circuitCp, ConnectPoint connectivityCp) {
         ConnectPoint srcStaticPort = staticPort(circuitCp);
         if (srcStaticPort != null) {
@@ -338,7 +326,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                 continue;
             }
 
-            if (!isAllowed(circuitIntent, connIntent)) {
+            if (!(isAllowed(circuitIntent.getSrc(), connIntent.getSrc()) &&
+                    isAllowed(circuitIntent.getDst(), connIntent.getDst()))) {
                 continue;
             }
 
