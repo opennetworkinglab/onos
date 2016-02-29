@@ -41,6 +41,8 @@ import org.slf4j.Logger;
 
 import java.util.Set;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -119,21 +121,25 @@ public class SimpleClusterStore
 
     @Override
     public boolean isMine(Key intentKey) {
+        checkPermission(INTENT_READ);
         return true;
     }
 
     @Override
     public NodeId getLeader(Key intentKey) {
+        checkPermission(INTENT_READ);
         return instance.id();
     }
 
     @Override
     public void addListener(IntentPartitionEventListener listener) {
+        checkPermission(INTENT_EVENT);
         listenerRegistry.addListener(listener);
     }
 
     @Override
     public void removeListener(IntentPartitionEventListener listener) {
+        checkPermission(INTENT_EVENT);
         listenerRegistry.removeListener(listener);
     }
 }

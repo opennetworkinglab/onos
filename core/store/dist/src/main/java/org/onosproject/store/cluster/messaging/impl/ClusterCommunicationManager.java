@@ -50,6 +50,8 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 
 @Component(immediate = true)
 @Service
@@ -94,6 +96,7 @@ public class ClusterCommunicationManager
     public <M> void broadcast(M message,
                               MessageSubject subject,
                               Function<M, byte[]> encoder) {
+        checkPermission(CLUSTER_WRITE);
         multicast(message,
                   subject,
                   encoder,
@@ -108,6 +111,7 @@ public class ClusterCommunicationManager
     public <M> void broadcastIncludeSelf(M message,
                                          MessageSubject subject,
                                          Function<M, byte[]> encoder) {
+        checkPermission(CLUSTER_WRITE);
         multicast(message,
                   subject,
                   encoder,
@@ -122,6 +126,7 @@ public class ClusterCommunicationManager
                                                MessageSubject subject,
                                                Function<M, byte[]> encoder,
                                                NodeId toNodeId) {
+        checkPermission(CLUSTER_WRITE);
         try {
             byte[] payload = new ClusterMessage(
                     localNodeId,
@@ -139,6 +144,7 @@ public class ClusterCommunicationManager
                               MessageSubject subject,
                               Function<M, byte[]> encoder,
                               Set<NodeId> nodes) {
+        checkPermission(CLUSTER_WRITE);
         byte[] payload = new ClusterMessage(
                 localNodeId,
                 subject,
@@ -153,6 +159,7 @@ public class ClusterCommunicationManager
                                                       Function<M, byte[]> encoder,
                                                       Function<byte[], R> decoder,
                                                       NodeId toNodeId) {
+        checkPermission(CLUSTER_WRITE);
         try {
             ClusterMessage envelope = new ClusterMessage(
                     clusterService.getLocalNode().id(),
@@ -193,6 +200,7 @@ public class ClusterCommunicationManager
     public void addSubscriber(MessageSubject subject,
                               ClusterMessageHandler subscriber,
                               ExecutorService executor) {
+        checkPermission(CLUSTER_WRITE);
         messagingService.registerHandler(subject.value(),
                 new InternalClusterMessageHandler(subscriber),
                 executor);
@@ -200,6 +208,7 @@ public class ClusterCommunicationManager
 
     @Override
     public void removeSubscriber(MessageSubject subject) {
+        checkPermission(CLUSTER_WRITE);
         messagingService.unregisterHandler(subject.value());
     }
 
@@ -209,6 +218,7 @@ public class ClusterCommunicationManager
             Function<M, R> handler,
             Function<R, byte[]> encoder,
             Executor executor) {
+        checkPermission(CLUSTER_WRITE);
         messagingService.registerHandler(subject.value(),
                 new InternalMessageResponder<M, R>(decoder, encoder, m -> {
                     CompletableFuture<R> responseFuture = new CompletableFuture<>();
@@ -228,6 +238,7 @@ public class ClusterCommunicationManager
             Function<byte[], M> decoder,
             Function<M, CompletableFuture<R>> handler,
             Function<R, byte[]> encoder) {
+        checkPermission(CLUSTER_WRITE);
         messagingService.registerHandler(subject.value(),
                 new InternalMessageResponder<>(decoder, encoder, handler));
     }
@@ -237,6 +248,7 @@ public class ClusterCommunicationManager
             Function<byte[], M> decoder,
             Consumer<M> handler,
             Executor executor) {
+        checkPermission(CLUSTER_WRITE);
         messagingService.registerHandler(subject.value(),
                 new InternalMessageConsumer<>(decoder, handler),
                 executor);

@@ -50,8 +50,7 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.APP_READ;
-
+import static org.onosproject.security.AppPermission.Type.*;
 
 
 /**
@@ -149,12 +148,14 @@ public class CoreManager implements CoreService {
 
     @Override
     public ApplicationId registerApplication(String name) {
+        checkPermission(APP_WRITE);
         checkNotNull(name, "Application ID cannot be null");
         return applicationIdStore.registerApplication(name);
     }
 
     @Override
     public ApplicationId registerApplication(String name, Runnable preDeactivate) {
+        checkPermission(APP_WRITE);
         ApplicationId id = registerApplication(name);
         appService.registerDeactivateHook(id, preDeactivate);
         return id;
@@ -162,6 +163,7 @@ public class CoreManager implements CoreService {
 
     @Override
     public IdGenerator getIdGenerator(String topic) {
+        checkPermission(APP_READ);
         IdBlockAllocator allocator = new StoreBasedIdBlockAllocator(topic, idBlockStore);
         return new BlockAllocatorBasedIdGenerator(allocator);
     }

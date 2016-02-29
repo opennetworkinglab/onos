@@ -61,6 +61,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.*;
+
 /**
  * Implementation for {@code StorageService} and {@code StorageAdminService}.
  */
@@ -117,6 +120,7 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public <K, V> EventuallyConsistentMapBuilder<K, V> eventuallyConsistentMapBuilder() {
+        checkPermission(STORAGE_WRITE);
         return new EventuallyConsistentMapBuilderImpl<>(clusterService,
                 clusterCommunicator,
                 persistenceService);
@@ -124,27 +128,32 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
+        checkPermission(STORAGE_WRITE);
         return new NewDefaultConsistentMapBuilder<>(federatedPrimitiveCreator);
     }
 
     @Override
     public <E> DistributedSetBuilder<E> setBuilder() {
+        checkPermission(STORAGE_WRITE);
         return new DefaultDistributedSetBuilder<>(() -> this.<E, Boolean>consistentMapBuilder());
     }
 
     @Override
     public <E> DistributedQueueBuilder<E> queueBuilder() {
+        checkPermission(STORAGE_WRITE);
         // TODO: implement
         throw new UnsupportedOperationException();
     }
 
     @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
+        checkPermission(STORAGE_WRITE);
         return new NewDefaultAtomicCounterBuilder(federatedPrimitiveCreator);
     }
 
     @Override
     public <V> AtomicValueBuilder<V> atomicValueBuilder() {
+        checkPermission(STORAGE_WRITE);
         Supplier<ConsistentMapBuilder<String, byte[]>> mapBuilderSupplier =
                 () -> this.<String, byte[]>consistentMapBuilder()
                           .withName("onos-atomic-values")
@@ -154,6 +163,7 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public TransactionContextBuilder transactionContextBuilder() {
+        checkPermission(STORAGE_WRITE);
         return new NewDefaultTransactionContextBuilder(transactionIdGenerator.get(),
                 federatedPrimitiveCreator,
                 transactionCoordinator);
@@ -161,6 +171,7 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public LeaderElectorBuilder leaderElectorBuilder() {
+        checkPermission(STORAGE_WRITE);
         return new DefaultLeaderElectorBuilder(federatedPrimitiveCreator);
     }
 

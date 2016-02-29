@@ -166,6 +166,7 @@ public class TopologyManager
 
     @Override
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst) {
+        checkPermission(TOPOLOGY_READ);
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
@@ -175,6 +176,7 @@ public class TopologyManager
     @Override
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
                                               DeviceId dst, LinkWeight weight) {
+        checkPermission(TOPOLOGY_READ);
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
@@ -185,6 +187,7 @@ public class TopologyManager
     @Override
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
                                               Map<Link, Object> riskProfile) {
+        checkPermission(TOPOLOGY_READ);
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
@@ -195,6 +198,7 @@ public class TopologyManager
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
                                               DeviceId dst, LinkWeight weight,
                                               Map<Link, Object> riskProfile) {
+        checkPermission(TOPOLOGY_READ);
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);

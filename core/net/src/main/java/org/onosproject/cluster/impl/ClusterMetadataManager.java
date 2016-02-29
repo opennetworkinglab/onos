@@ -15,17 +15,6 @@
  */
 package org.onosproject.cluster.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.URL;
-import java.util.Collection;
-import java.util.Enumeration;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -46,6 +35,19 @@ import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
+
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.URL;
+import java.util.Collection;
+import java.util.Enumeration;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.CLUSTER_READ;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of ClusterMetadataService.
@@ -77,6 +79,7 @@ public class ClusterMetadataManager
 
     @Override
     public ClusterMetadata getClusterMetadata() {
+        checkPermission(CLUSTER_READ);
         Versioned<ClusterMetadata> metadata = getProvider().getClusterMetadata();
         return metadata.value();
     }
@@ -85,11 +88,13 @@ public class ClusterMetadataManager
     @Override
     protected ClusterMetadataProviderService createProviderService(
             ClusterMetadataProvider provider) {
+        checkPermission(CLUSTER_READ);
         return new InternalClusterMetadataProviderService(provider);
     }
 
     @Override
     public ControllerNode getLocalNode() {
+        checkPermission(CLUSTER_READ);
         if (localNode == null) {
             establishSelfIdentity();
         }

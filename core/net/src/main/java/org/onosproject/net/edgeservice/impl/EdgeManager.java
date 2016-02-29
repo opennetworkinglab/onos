@@ -56,6 +56,8 @@ import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.onosproject.net.edge.EdgePortEvent.Type.EDGE_PORT_ADDED;
 import static org.onosproject.net.edge.EdgePortEvent.Type.EDGE_PORT_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.*;
 
 /**
  * This is an implementation of the edge net service.
@@ -107,11 +109,13 @@ public class EdgeManager
 
     @Override
     public boolean isEdgePoint(ConnectPoint point) {
+        checkPermission(TOPOLOGY_READ);
         return !topologyService.isInfrastructure(topologyService.currentTopology(), point);
     }
 
     @Override
     public Iterable<ConnectPoint> getEdgePoints() {
+        checkPermission(TOPOLOGY_READ);
         ImmutableSet.Builder<ConnectPoint> builder = ImmutableSet.builder();
         connectionPoints.forEach((k, v) -> v.forEach(builder::add));
         return builder.build();
@@ -119,6 +123,7 @@ public class EdgeManager
 
     @Override
     public Iterable<ConnectPoint> getEdgePoints(DeviceId deviceId) {
+        checkPermission(TOPOLOGY_READ);
         ImmutableSet.Builder<ConnectPoint> builder = ImmutableSet.builder();
         Set<ConnectPoint> set = connectionPoints.get(deviceId);
         if (set != null) {
@@ -129,6 +134,7 @@ public class EdgeManager
 
     @Override
     public void emitPacket(ByteBuffer data, Optional<TrafficTreatment> treatment) {
+        checkPermission(PACKET_WRITE);
         TrafficTreatment.Builder builder = treatment.map(DefaultTrafficTreatment::builder)
                 .orElse(DefaultTrafficTreatment.builder());
         getEdgePoints().forEach(p -> packetService.emit(packet(builder, p, data)));

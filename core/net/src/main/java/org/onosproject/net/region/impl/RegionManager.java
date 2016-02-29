@@ -43,6 +43,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.of;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.REGION_READ;
 
 /**
  * Provides implementation of the region service APIs.
@@ -122,23 +124,27 @@ public class RegionManager extends AbstractListenerManager<RegionEvent, RegionLi
 
     @Override
     public Set<Region> getRegions() {
+        checkPermission(REGION_READ);
         return store.getRegions();
     }
 
     @Override
     public Region getRegion(RegionId regionId) {
+        checkPermission(REGION_READ);
         checkNotNull(regionId, REGION_ID_NULL);
         return store.getRegion(regionId);
     }
 
     @Override
     public Region getRegionForDevice(DeviceId deviceId) {
+        checkPermission(REGION_READ);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getRegionForDevice(deviceId);
     }
 
     @Override
     public Set<DeviceId> getRegionDevices(RegionId regionId) {
+        checkPermission(REGION_READ);
         checkNotNull(regionId, REGION_ID_NULL);
         return store.getRegionDevices(regionId);
     }

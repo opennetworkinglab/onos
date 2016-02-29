@@ -69,6 +69,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.*;
+
 /**
  * Implementation of the JSON codec brokering service.
  */
@@ -134,22 +137,26 @@ public class CodecManager implements CodecService {
 
     @Override
     public Set<Class<?>> getCodecs() {
+        checkPermission(CODEC_READ);
         return ImmutableSet.copyOf(codecs.keySet());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> JsonCodec<T> getCodec(Class<T> entityClass) {
+        checkPermission(CODEC_READ);
         return codecs.get(entityClass);
     }
 
     @Override
     public <T> void registerCodec(Class<T> entityClass, JsonCodec<T> codec) {
+        checkPermission(CODEC_WRITE);
         codecs.putIfAbsent(entityClass, codec);
     }
 
     @Override
     public void unregisterCodec(Class<?> entityClass) {
+        checkPermission(CODEC_WRITE);
         codecs.remove(entityClass);
     }
 

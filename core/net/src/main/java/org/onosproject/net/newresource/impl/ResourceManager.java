@@ -45,6 +45,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.RESOURCE_WRITE;
+import static org.onosproject.security.AppPermission.Type.RESOURCE_READ;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -82,6 +85,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     @Override
     public List<ResourceAllocation> allocate(ResourceConsumer consumer,
                                              List<Resource> resources) {
+        checkPermission(RESOURCE_WRITE);
         checkNotNull(consumer);
         checkNotNull(resources);
 
@@ -97,6 +101,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public boolean release(List<ResourceAllocation> allocations) {
+        checkPermission(RESOURCE_WRITE);
         checkNotNull(allocations);
 
         return store.release(allocations);
@@ -112,6 +117,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public List<ResourceAllocation> getResourceAllocations(ResourceId id) {
+        checkPermission(RESOURCE_READ);
         checkNotNull(id);
 
         return store.getResourceAllocations(id);
@@ -119,6 +125,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public <T> Collection<ResourceAllocation> getResourceAllocations(DiscreteResourceId parent, Class<T> cls) {
+        checkPermission(RESOURCE_READ);
         checkNotNull(parent);
         checkNotNull(cls);
 
@@ -131,6 +138,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public Collection<ResourceAllocation> getResourceAllocations(ResourceConsumer consumer) {
+        checkPermission(RESOURCE_READ);
         checkNotNull(consumer);
 
         Collection<Resource> resources = store.getResources(consumer);
@@ -141,6 +149,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public Set<Resource> getAvailableResources(DiscreteResourceId parent) {
+        checkPermission(RESOURCE_READ);
         checkNotNull(parent);
 
         Set<Resource> children = store.getChildResources(parent);
@@ -152,6 +161,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public <T> Set<Resource> getAvailableResources(DiscreteResourceId parent, Class<T> cls) {
+        checkPermission(RESOURCE_READ);
         checkNotNull(parent);
         checkNotNull(cls);
 
@@ -163,6 +173,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public <T> Set<T> getAvailableResourceValues(DiscreteResourceId parent, Class<T> cls) {
+        checkPermission(RESOURCE_READ);
         checkNotNull(parent);
         checkNotNull(cls);
 
@@ -174,6 +185,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public Set<Resource> getRegisteredResources(DiscreteResourceId parent) {
+        checkPermission(RESOURCE_READ);
         checkNotNull(parent);
 
         return store.getChildResources(parent);
@@ -181,6 +193,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public boolean isAvailable(Resource resource) {
+        checkPermission(RESOURCE_READ);
         checkNotNull(resource);
 
         return store.isAvailable(resource);

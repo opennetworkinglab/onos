@@ -36,6 +36,8 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.PERSISTENCE_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -122,10 +124,12 @@ public class PersistenceManager implements PersistenceService {
     }
 
     public <K, V> PersistentMapBuilder<K, V> persistentMapBuilder() {
+        checkPermission(PERSISTENCE_WRITE);
         return new DefaultPersistentMapBuilder<>(localDB);
     }
 
     public <E> PersistentSetBuilder<E> persistentSetBuilder() {
+        checkPermission(PERSISTENCE_WRITE);
         return new DefaultPersistentSetBuilder<>(localDB);
     }
 

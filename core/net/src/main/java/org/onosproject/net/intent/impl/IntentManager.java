@@ -282,16 +282,19 @@ public class IntentManager
 
     @Override
     public <T extends Intent> void registerCompiler(Class<T> cls, IntentCompiler<T> compiler) {
+        checkPermission(INTENT_WRITE);
         compilerRegistry.registerCompiler(cls, compiler);
     }
 
     @Override
     public <T extends Intent> void unregisterCompiler(Class<T> cls) {
+        checkPermission(INTENT_WRITE);
         compilerRegistry.unregisterCompiler(cls);
     }
 
     @Override
     public Map<Class<? extends Intent>, IntentCompiler<? extends Intent>> getCompilers() {
+        checkPermission(INTENT_READ);
         return compilerRegistry.getCompilers();
     }
 

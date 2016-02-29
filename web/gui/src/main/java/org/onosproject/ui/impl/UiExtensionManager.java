@@ -45,6 +45,10 @@ import static java.util.stream.Collectors.toSet;
 import static org.onosproject.ui.UiView.Category.NETWORK;
 import static org.onosproject.ui.UiView.Category.PLATFORM;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.UI_READ;
+import static org.onosproject.security.AppPermission.Type.UI_WRITE;
+
 /**
  * Manages the user interface extensions.
  */
@@ -136,6 +140,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
 
     @Override
     public synchronized void register(UiExtension extension) {
+        checkPermission(UI_WRITE);
         if (!extensions.contains(extension)) {
             extensions.add(extension);
             for (UiView view : extension.views()) {
@@ -146,6 +151,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
 
     @Override
     public synchronized void unregister(UiExtension extension) {
+        checkPermission(UI_WRITE);
         extensions.remove(extension);
         extension.views().stream()
                 .map(UiView::id).collect(toSet()).forEach(views::remove);
@@ -153,11 +159,13 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
 
     @Override
     public synchronized List<UiExtension> getExtensions() {
+        checkPermission(UI_READ);
         return ImmutableList.copyOf(extensions);
     }
 
     @Override
     public synchronized UiExtension getViewExtension(String viewId) {
+        checkPermission(UI_READ);
         return views.get(viewId);
     }
 

@@ -38,6 +38,8 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.*;
 /**
  * Simple implementation of an event dispatching service.
  */
@@ -96,6 +98,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
 
     @Override
     public void setDispatchTimeLimit(long millis) {
+        checkPermission(EVENT_WRITE);
         checkArgument(millis >= WATCHDOG_MS,
                       "Time limit must be greater than %s", WATCHDOG_MS);
         maxProcessMillis = millis;
@@ -103,6 +106,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
 
     @Override
     public long getDispatchTimeLimit() {
+        checkPermission(EVENT_READ);
         return maxProcessMillis;
     }
 

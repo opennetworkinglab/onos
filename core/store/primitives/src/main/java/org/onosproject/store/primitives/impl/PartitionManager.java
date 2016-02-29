@@ -55,6 +55,9 @@ import org.slf4j.Logger;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.PARTITION_READ;
+
 /**
  * Implementation of {@code PartitionService} and {@code PartitionAdminService}.
  */
@@ -116,27 +119,32 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
 
     @Override
     public int getNumberOfPartitions() {
+        checkPermission(PARTITION_READ);
         return partitions.size();
     }
 
     @Override
     public Set<PartitionId> getAllPartitionIds() {
+        checkPermission(PARTITION_READ);
         return partitions.keySet();
     }
 
     @Override
     public DistributedPrimitiveCreator getDistributedPrimitiveCreator(PartitionId partitionId) {
+        checkPermission(PARTITION_READ);
         return partitions.get(partitionId).client();
     }
 
     @Override
     public Set<NodeId> getConfiguredMembers(PartitionId partitionId) {
+        checkPermission(PARTITION_READ);
         StoragePartition partition = partitions.get(partitionId);
         return ImmutableSet.copyOf(partition.getMembers());
     }
 
     @Override
     public Set<NodeId> getActiveMembersMembers(PartitionId partitionId) {
+        checkPermission(PARTITION_READ);
         // TODO: This needs to query metadata to determine currently active
         // members of partition
         return getConfiguredMembers(partitionId);

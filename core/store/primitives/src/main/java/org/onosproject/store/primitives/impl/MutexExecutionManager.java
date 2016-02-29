@@ -50,7 +50,8 @@ import org.slf4j.Logger;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.MUTEX_WRITE;
 /**
  * Implementation of a MutexExecutionService.
  */
@@ -103,6 +104,7 @@ public class MutexExecutionManager implements MutexExecutionService {
 
     @Override
     public CompletableFuture<Void> execute(MutexTask task, String exclusionPath, Executor executor) {
+        checkPermission(MUTEX_WRITE);
         return lock(exclusionPath)
                     .thenApply(state -> activeTasks.computeIfAbsent(exclusionPath,
                                                                     k -> new InnerMutexTask(exclusionPath,

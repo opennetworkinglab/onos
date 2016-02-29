@@ -134,11 +134,13 @@ public class PathManager implements PathService {
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst) {
+        checkPermission(TOPOLOGY_READ);
         return getDisjointPaths(src, dst, (LinkWeight) null);
     }
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight) {
+        checkPermission(TOPOLOGY_READ);
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
 
@@ -173,12 +175,14 @@ public class PathManager implements PathService {
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
                                               Map<Link, Object> riskProfile) {
+        checkPermission(TOPOLOGY_READ);
         return getDisjointPaths(src, dst, null, riskProfile);
     }
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
                                               Map<Link, Object> riskProfile) {
+        checkPermission(TOPOLOGY_READ);
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
 

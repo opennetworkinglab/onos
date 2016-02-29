@@ -272,6 +272,7 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
 
     @Override
     public void initPolicy(String policy) {
+        checkPermission(FLOWRULE_WRITE);
         this.policy = policy;
         deviceService.getDevices().forEach(device ->
                 this.deviceCompositionTreeMap.put(device.id(), FlowObjectiveCompositionUtil.parsePolicyString(policy)));

@@ -187,6 +187,7 @@ public class MastershipManager
 
     @Override
     public MastershipTerm getMastershipTerm(DeviceId deviceId) {
+        checkPermission(CLUSTER_READ);
         return store.getTermFor(deviceId);
     }
 

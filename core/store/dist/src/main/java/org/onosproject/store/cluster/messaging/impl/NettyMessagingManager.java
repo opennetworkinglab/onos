@@ -82,6 +82,9 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
+
 /**
  * Netty based MessagingService.
  */
@@ -213,6 +216,7 @@ public class NettyMessagingManager implements MessagingService {
 
     @Override
     public CompletableFuture<Void> sendAsync(Endpoint ep, String type, byte[] payload) {
+        checkPermission(CLUSTER_WRITE);
         InternalMessage message = new InternalMessage(messageIdGenerator.incrementAndGet(),
                                                       localEp,
                                                       type,
@@ -221,6 +225,7 @@ public class NettyMessagingManager implements MessagingService {
     }
 
     protected CompletableFuture<Void> sendAsync(Endpoint ep, InternalMessage message) {
+        checkPermission(CLUSTER_WRITE);
         if (ep.equals(localEp)) {
             try {
                 dispatchLocally(message);
@@ -247,11 +252,13 @@ public class NettyMessagingManager implements MessagingService {
 
     @Override
     public CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload) {
+        checkPermission(CLUSTER_WRITE);
         return sendAndReceive(ep, type, payload, MoreExecutors.directExecutor());
     }
 
     @Override
     public CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload, Executor executor) {
+        checkPermission(CLUSTER_WRITE);
         CompletableFuture<byte[]> response = new CompletableFuture<>();
         Callback callback = new Callback(response, executor);
         Long messageId = messageIdGenerator.incrementAndGet();
@@ -266,11 +273,13 @@ public class NettyMessagingManager implements MessagingService {
 
     @Override
     public void registerHandler(String type, BiConsumer<Endpoint, byte[]> handler, Executor executor) {
+        checkPermission(CLUSTER_WRITE);
         handlers.put(type, message -> executor.execute(() -> handler.accept(message.sender(), message.payload())));
     }
 
     @Override
     public void registerHandler(String type, BiFunction<Endpoint, byte[], byte[]> handler, Executor executor) {
+        checkPermission(CLUSTER_WRITE);
         handlers.put(type, message -> executor.execute(() -> {
             byte[] responsePayload = null;
             Status status = Status.OK;
@@ -285,6 +294,7 @@ public class NettyMessagingManager implements MessagingService {
 
     @Override
     public void registerHandler(String type, BiFunction<Endpoint, byte[], CompletableFuture<byte[]>> handler) {
+        checkPermission(CLUSTER_WRITE);
         handlers.put(type, message -> {
             handler.apply(message.sender(), message.payload()).whenComplete((result, error) -> {
                 Status status = error == null ? Status.OK : Status.ERROR_HANDLER_EXCEPTION;
@@ -295,6 +305,7 @@ public class NettyMessagingManager implements MessagingService {
 
     @Override
     public void unregisterHandler(String type) {
+        checkPermission(CLUSTER_WRITE);
         handlers.remove(type);
     }
 

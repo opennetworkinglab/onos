@@ -30,6 +30,9 @@ import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.CLOCK_WRITE;
+
 /**
  * LogicalClockService implementation based on a AtomicCounter.
  */
@@ -62,6 +65,7 @@ public class LogicalClockManager implements LogicalClockService {
 
     @Override
     public Timestamp getTimestamp() {
+        checkPermission(CLOCK_WRITE);
         return new LogicalTimestamp(atomicCounter.incrementAndGet());
     }
 }

@@ -42,6 +42,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.*;
 
 /**
  * Implementation of the network configuration subsystem.
@@ -142,6 +144,7 @@ public class NetworkConfigManager
 
     @Override
     public Set<Class> getSubjectClasses() {
+        checkPermission(CONFIG_READ);
         ImmutableSet.Builder<Class> builder = ImmutableSet.builder();
         factories.forEach((k, v) -> builder.add(k.subjectClass));
         return builder.build();
@@ -149,16 +152,19 @@ public class NetworkConfigManager
 
     @Override
     public SubjectFactory getSubjectFactory(String subjectClassKey) {
+        checkPermission(CONFIG_READ);
         return subjectClasses.get(subjectClassKey);
     }
 
     @Override
     public SubjectFactory getSubjectFactory(Class subjectClass) {
+        checkPermission(CONFIG_READ);
         return subjectClassKeys.get(subjectClass);
     }
 
     @Override
     public Class<? extends Config> getConfigClass(String subjectClassKey, String configKey) {
+        checkPermission(CONFIG_READ);
         checkNotNull(subjectClassKey, NULL_SCKEY_MSG);
         checkNotNull(configKey, NULL_CKEY_MSG);
         return configClasses.get(new ConfigIdentifier(subjectClassKey, configKey));
@@ -166,12 +172,14 @@ public class NetworkConfigManager
 
     @Override
     public <S> Set<S> getSubjects(Class<S> subjectClass) {
+        checkPermission(CONFIG_READ);
         checkNotNull(subjectClass, NULL_SCLASS_MSG);
         return store.getSubjects(subjectClass);
     }
 
     @Override
     public <S, C extends Config<S>> Set<S> getSubjects(Class<S> subjectClass, Class<C> configClass) {
+        checkPermission(CONFIG_READ);
         checkNotNull(subjectClass, NULL_SCLASS_MSG);
         checkNotNull(configClass, NULL_CCLASS_MSG);
         return store.getSubjects(subjectClass, configClass);
@@ -179,6 +187,7 @@ public class NetworkConfigManager
 
     @Override
     public <S> Set<Config<S>> getConfigs(S subject) {
+        checkPermission(CONFIG_READ);
         checkNotNull(subject, NULL_SUBJECT_MSG);
         Set<Class<? extends Config<S>>> configClasses = store.getConfigClasses(subject);
         ImmutableSet.Builder<Config<S>> cfg = ImmutableSet.builder();
@@ -188,6 +197,7 @@ public class NetworkConfigManager
 
     @Override
     public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
+        checkPermission(CONFIG_READ);
         checkNotNull(subject, NULL_SUBJECT_MSG);
         checkNotNull(configClass, NULL_CCLASS_MSG);
         return store.getConfig(subject, configClass);
@@ -196,6 +206,7 @@ public class NetworkConfigManager
 
     @Override
     public <S, C extends Config<S>> C addConfig(S subject, Class<C> configClass) {
+        checkPermission(CONFIG_WRITE);
         checkNotNull(subject, NULL_SUBJECT_MSG);
         checkNotNull(configClass, NULL_CCLASS_MSG);
         return store.createConfig(subject, configClass);
@@ -203,6 +214,7 @@ public class NetworkConfigManager
 
     @Override
     public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, JsonNode json) {
+        checkPermission(CONFIG_WRITE);
         checkNotNull(subject, NULL_SUBJECT_MSG);
         checkNotNull(configClass, NULL_CCLASS_MSG);
         checkNotNull(json, NULL_JSON_MSG);
@@ -213,6 +225,7 @@ public class NetworkConfigManager
     @SuppressWarnings("unchecked")
     public <S, C extends Config<S>> C applyConfig(String subjectClassKey, S subject,
                                                   String configKey, JsonNode json) {
+        checkPermission(CONFIG_WRITE);
         checkNotNull(subjectClassKey, NULL_SCKEY_MSG);
         checkNotNull(subject, NULL_SUBJECT_MSG);
         checkNotNull(configKey, NULL_CKEY_MSG);
@@ -229,6 +242,7 @@ public class NetworkConfigManager
 
     @Override
     public <S, C extends Config<S>> void removeConfig(S subject, Class<C> configClass) {
+        checkPermission(CONFIG_WRITE);
         checkNotNull(subject, NULL_SUBJECT_MSG);
         checkNotNull(configClass, NULL_CCLASS_MSG);
         store.clearConfig(subject, configClass);

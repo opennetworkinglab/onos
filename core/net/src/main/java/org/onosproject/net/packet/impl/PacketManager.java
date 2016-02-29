@@ -175,6 +175,7 @@ public class PacketManager
 
     @Override
     public List<PacketProcessorEntry> getProcessors() {
+        checkPermission(PACKET_READ);
         return ImmutableList.copyOf(processors);
     }
 
@@ -233,6 +234,7 @@ public class PacketManager
 
     @Override
     public List<PacketRequest> getRequests() {
+        checkPermission(PACKET_READ);
         return store.existingRequests();
     }
 
