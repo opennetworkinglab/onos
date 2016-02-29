@@ -539,7 +539,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return flowRule;
     }
 
-    protected OduSignalId buildOduSignalId(OduSignalType ochPortSignalType, Set<TributarySlot> slots) {
+    OduSignalId buildOduSignalId(OduSignalType ochPortSignalType, Set<TributarySlot> slots) {
         int tributaryPortNumber = findFirstTributarySlotIndex(slots);
         int tributarySlotLen = ochPortSignalType.tributarySlots();
         byte[] tributarySlotBitmap = new byte[OduSignalId.TRIBUTARY_SLOT_BITMAP_SIZE];
