@@ -199,7 +199,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         // slots are used only for devices supporting multiplexing
         Set<TributarySlot> slots = Collections.emptySet();
 
-        OpticalConnectivityIntent connIntent = findOpticalConnectivityIntent(intent, multiplexingSupported);
+        OpticalConnectivityIntent connIntent = findOpticalConnectivityIntent(intent.getSrc(), intent.getDst(),
+                intent.getSignalType(), multiplexingSupported);
         if ((connIntent != null) && multiplexingSupported) {
             // Allocate TributarySlots on existing OCH ports
             slots = assignTributarySlots(intent, Pair.of(connIntent.getSrc(), connIntent.getDst()));
@@ -302,14 +303,18 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     /**
      * Returns existing and available optical connectivity intent that matches the given circuit intent.
      *
-     * @param circuitIntent optical circuit intent
+     * @param src source connect point of optical circuit intent
+     * @param dst destination connect point of optical circuit intent
+     * @param signalType signal type of optical circuit intent
      * @param multiplexingSupported indicates whether ODU multiplexing is supported
      * @return existing optical connectivity intent, null otherwise.
      */
-    private OpticalConnectivityIntent findOpticalConnectivityIntent(OpticalCircuitIntent circuitIntent,
-            boolean multiplexingSupported) {
+    private OpticalConnectivityIntent findOpticalConnectivityIntent(ConnectPoint src,
+                                                                    ConnectPoint dst,
+                                                                    CltSignalType signalType,
+                                                                    boolean multiplexingSupported) {
 
-        OduSignalType oduSignalType = mappingCltSignalTypeToOduSignalType(circuitIntent.getSignalType());
+        OduSignalType oduSignalType = mappingCltSignalTypeToOduSignalType(signalType);
 
         for (Intent intent : intentService.getIntents()) {
             if (!(intent instanceof OpticalConnectivityIntent)) {
@@ -318,16 +323,13 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
             OpticalConnectivityIntent connIntent = (OpticalConnectivityIntent) intent;
 
-            ConnectPoint src = circuitIntent.getSrc();
-            ConnectPoint dst = circuitIntent.getDst();
             // Ignore if the intents don't have identical src and dst devices
             if (!src.deviceId().equals(connIntent.getSrc().deviceId()) ||
                     !dst.deviceId().equals(connIntent.getDst().deviceId())) {
                 continue;
             }
 
-            if (!(isAllowed(circuitIntent.getSrc(), connIntent.getSrc()) &&
-                    isAllowed(circuitIntent.getDst(), connIntent.getDst()))) {
+            if (!(isAllowed(src, connIntent.getSrc()) && isAllowed(dst, connIntent.getDst()))) {
                 continue;
             }
 
