@@ -208,7 +208,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         // Create optical connectivity intent if needed - no optical intent or not enough slots available
         if (connIntent == null || (multiplexingSupported && slots.isEmpty())) {
             // Find OCh ports with available resources
-            Pair<OchPort, OchPort> ochPorts = findPorts(intent);
+            Pair<OchPort, OchPort> ochPorts = findPorts(intent.getSrc(), intent.getDst(), intent.getSignalType());
 
             if (ochPorts == null) {
                 // Release port allocations if unsuccessful
@@ -469,20 +469,20 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return null;
     }
 
-    private Pair<OchPort, OchPort> findPorts(OpticalCircuitIntent intent) {
+    private Pair<OchPort, OchPort> findPorts(ConnectPoint src, ConnectPoint dst, CltSignalType signalType) {
         Pair<OchPort, OchPort> ochPorts = null;
         // According to the OpticalCircuitIntent's signalType find OCH ports with available TributarySlots resources
-        switch (intent.getSignalType()) {
+        switch (signalType) {
             case CLT_1GBE:
             case CLT_10GBE:
                 // First search for OCH ports with OduSignalType of ODU2. If not found - search for those with ODU4
-                ochPorts = findPorts(intent, OduSignalType.ODU2);
+                ochPorts = findPorts(src, dst, OduSignalType.ODU2);
                 if (ochPorts == null) {
-                    ochPorts = findPorts(intent, OduSignalType.ODU4);
+                    ochPorts = findPorts(src, dst, OduSignalType.ODU4);
                 }
                 break;
             case CLT_100GBE:
-                ochPorts = findPorts(intent, OduSignalType.ODU4);
+                ochPorts = findPorts(src, dst, OduSignalType.ODU4);
                 break;
             case CLT_40GBE:
             default:
@@ -491,13 +491,13 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return ochPorts;
     }
 
-    private Pair<OchPort, OchPort> findPorts(OpticalCircuitIntent intent, OduSignalType ochPortSignalType) {
-        OchPort srcPort = findAvailableOchPort(intent.getSrc(), ochPortSignalType);
+    private Pair<OchPort, OchPort> findPorts(ConnectPoint src, ConnectPoint dst, OduSignalType ochPortSignalType) {
+        OchPort srcPort = findAvailableOchPort(src, ochPortSignalType);
         if (srcPort == null) {
             return null;
         }
 
-        OchPort dstPort = findAvailableOchPort(intent.getDst(), ochPortSignalType);
+        OchPort dstPort = findAvailableOchPort(dst, ochPortSignalType);
         if (dstPort == null) {
             return null;
         }
