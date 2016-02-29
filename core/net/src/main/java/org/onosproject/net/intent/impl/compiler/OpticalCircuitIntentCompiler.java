@@ -31,7 +31,6 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalId;
@@ -553,13 +552,11 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return (int) tributarySlots.stream().findFirst().get().index();
     }
 
-    private boolean isTributarySlotBehaviourSupported(DeviceId deviceId) {
-        Driver driver = driverService.getDriver(deviceId);
-        return (driver != null && driver.hasBehaviour(TributarySlotQuery.class));
-    }
-
     private boolean isMultiplexingSupported(ConnectPoint cp) {
-        return isTributarySlotBehaviourSupported(cp.deviceId()) && staticPort(cp) == null;
+        Driver driver = driverService.getDriver(cp.deviceId());
+        return driver != null
+                && driver.hasBehaviour(TributarySlotQuery.class)
+                && staticPort(cp) == null;
     }
 
     /**
