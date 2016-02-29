@@ -582,25 +582,19 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
      * @return OduSignalType the result of mapping CltSignalType to OduSignalType
      */
     OduSignalType mappingCltSignalTypeToOduSignalType(CltSignalType cltSignalType) {
-        OduSignalType oduSignalType = OduSignalType.ODU0;
         switch (cltSignalType) {
             case CLT_1GBE:
-                oduSignalType = OduSignalType.ODU0;
-                break;
+                return OduSignalType.ODU0;
             case CLT_10GBE:
-                oduSignalType = OduSignalType.ODU2;
-                break;
+                return OduSignalType.ODU2;
             case CLT_40GBE:
-                oduSignalType = OduSignalType.ODU3;
-                break;
+                return OduSignalType.ODU3;
             case CLT_100GBE:
-                oduSignalType = OduSignalType.ODU4;
-                break;
+                return OduSignalType.ODU4;
             default:
                 log.error("Unsupported CltSignalType {}", cltSignalType);
-                break;
+                return OduSignalType.ODU0;
         }
-        return oduSignalType;
     }
 
     /**
