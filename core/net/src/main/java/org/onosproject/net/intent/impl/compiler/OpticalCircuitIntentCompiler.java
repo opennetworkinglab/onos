@@ -558,17 +558,19 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     }
 
     private boolean isMultiplexingSupported(ConnectPoint src, ConnectPoint dst) {
-        if (!isTributarySlotBehaviourSupported(src.deviceId()) ||
-                !isTributarySlotBehaviourSupported(dst.deviceId())) {
+        if (!isTributarySlotBehaviourSupported(src.deviceId())) {
             return false;
         }
 
-        ConnectPoint srcStaticPort = staticPort(src);
-        if (srcStaticPort != null) {
+        if (!isTributarySlotBehaviourSupported(dst.deviceId())) {
             return false;
         }
-        ConnectPoint dstStaticPort = staticPort(dst);
-        if (dstStaticPort != null) {
+
+        if (staticPort(src) != null) {
+            return false;
+        }
+
+        if (staticPort(dst) != null) {
             return false;
         }
 
