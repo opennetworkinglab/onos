@@ -17,14 +17,13 @@
 package org.onosproject.incubator.net.tunnel;
 
 import com.google.common.annotations.Beta;
+import org.onlab.util.Identifier;
 
 /**
  * Representation of a Network Tunnel Id.
  */
 @Beta
-public final class NetworkTunnelId {
-    private final long value;
-
+public final class NetworkTunnelId extends Identifier<Long> {
     /**
      * Creates an tunnel identifier from the specified tunnel.
      *
@@ -43,7 +42,7 @@ public final class NetworkTunnelId {
      * Constructor for serializer.
      */
     NetworkTunnelId() {
-        this.value = 0;
+        super(0L);
     }
 
     /**
@@ -52,38 +51,11 @@ public final class NetworkTunnelId {
      * @param value the underlying value of this ID
      */
     public NetworkTunnelId(long value) {
-        this.value = value;
-    }
-
-    /**
-     * Returns the backing value.
-     *
-     * @return the value
-     */
-    public long id() {
-        return value;
-    }
-
-    @Override
-    public int hashCode() {
-        return Long.hashCode(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof NetworkTunnelId)) {
-            return false;
-        }
-        NetworkTunnelId that = (NetworkTunnelId) obj;
-        return this.value == that.value;
+        super(value);
     }
 
     @Override
     public String toString() {
-        return "0x" + Long.toHexString(value);
+        return "0x" + Long.toHexString(identifier);
     }
-
 }

@@ -16,8 +16,8 @@
 package org.onosproject.incubator.net.faultmanagement.alarm;
 
 import com.google.common.annotations.Beta;
-import java.util.Objects;
-import static com.google.common.base.MoreObjects.toStringHelper;
+import org.onlab.util.Identifier;
+
 import static com.google.common.base.Preconditions.checkArgument;
 /**
  * Alarm identifier suitable as an external key.
@@ -25,9 +25,8 @@ import static com.google.common.base.Preconditions.checkArgument;
  * This class is immutable.</p>
  */
 @Beta
-public final class AlarmId {
+public final class AlarmId extends Identifier<Long> {
 
-    private final long id;
     public static final AlarmId NONE = new AlarmId();
 
     /**
@@ -36,12 +35,12 @@ public final class AlarmId {
      * @param id the id
      */
     private AlarmId(long id) {
+        super(id);
         checkArgument(id != 0L, "id must be non-zero");
-        this.id = id;
     }
 
     private AlarmId() {
-        this.id = 0L;
+        super(0L);
     }
 
     /**
@@ -60,29 +59,6 @@ public final class AlarmId {
      * @return backing integer index
      */
     public long fingerprint() {
-        return id;
+        return identifier;
     }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof AlarmId) {
-            AlarmId other = (AlarmId) obj;
-            return Objects.equals(this.id, other.id);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this).add("id", id).toString();
-    }
-
 }

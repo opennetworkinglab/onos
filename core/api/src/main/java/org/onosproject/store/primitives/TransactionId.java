@@ -15,42 +15,24 @@
  */
 package org.onosproject.store.primitives;
 
-import com.google.common.base.Objects;
+import org.onlab.util.Identifier;
 
 /**
  * Transaction identifier.
  */
-public final class TransactionId {
+public final class TransactionId extends Identifier<String> {
 
+    /**
+     * Creates a new transaction identifier.
+     *
+     * @param id backing identifier value
+     * @return transaction identifier
+     */
     public static TransactionId from(String id) {
         return new TransactionId(id);
     }
 
-    private final String id;
-
     private TransactionId(String id) {
-        this.id = id;
-    }
-
-    @Override
-    public String toString() {
-        return id;
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        if (other instanceof TransactionId) {
-            TransactionId that = (TransactionId) other;
-            return Objects.equal(this.id, that.id);
-        }
-        return false;
+        super(id);
     }
 }

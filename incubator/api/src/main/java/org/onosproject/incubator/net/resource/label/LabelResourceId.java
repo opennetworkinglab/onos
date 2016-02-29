@@ -16,48 +16,36 @@
 package org.onosproject.incubator.net.resource.label;
 
 import com.google.common.annotations.Beta;
+import org.onlab.util.Identifier;
 import org.onosproject.net.resource.ResourceId;
-
-import java.util.Objects;
 
 /**
  * Representation of a label.
  */
 @Beta
-public final class LabelResourceId implements ResourceId {
+public final class LabelResourceId extends Identifier<Long> implements ResourceId {
 
-    private long labelId;
-
+    /**
+     * Creates a new label identifier.
+     *
+     * @param labelResourceId backing identifier value
+     * @return label identifier
+     */
     public static LabelResourceId labelResourceId(long labelResourceId) {
         return new LabelResourceId(labelResourceId);
     }
 
     // Public construction is prohibited
     private LabelResourceId(long labelId) {
-        this.labelId = labelId;
+        super(labelId);
     }
 
+    /**
+     * Returns label identifier.
+     *
+     * @return label identifier
+     */
     public long labelId() {
-        return labelId;
+        return identifier;
     }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(labelId);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof LabelResourceId) {
-            LabelResourceId that = (LabelResourceId) obj;
-            return Objects.equals(this.labelId, that.labelId);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return String.valueOf(this.labelId);
-    }
-
 }

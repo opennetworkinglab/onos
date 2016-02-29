@@ -15,16 +15,14 @@
  */
 package org.onosproject.cluster;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import org.onlab.util.Identifier;
 
-import java.util.Objects;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * {@link Partition} identifier.
  */
-public class PartitionId implements Comparable<PartitionId> {
-
-    private final int id;
+public class PartitionId extends Identifier<Integer> implements Comparable<PartitionId> {
 
     /**
      * Creates a partition identifier from an integer.
@@ -32,8 +30,8 @@ public class PartitionId implements Comparable<PartitionId> {
      * @param id input integer
      */
     public PartitionId(int id) {
+        super(id);
         checkArgument(id >= 0, "partition id must be non-negative");
-        this.id = id;
     }
 
     /**
@@ -51,33 +49,11 @@ public class PartitionId implements Comparable<PartitionId> {
      * @return number
      */
     public int asInt() {
-        return id;
-    }
-
-    @Override
-    public int hashCode() {
-        return id;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof PartitionId) {
-            final PartitionId other = (PartitionId) obj;
-            return Objects.equals(this.id, other.id);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return String.valueOf(id);
+        return id();
     }
 
     @Override
     public int compareTo(PartitionId that) {
-        return Integer.compare(this.id, that.id);
+        return Integer.compare(this.identifier, that.identifier);
     }
 }

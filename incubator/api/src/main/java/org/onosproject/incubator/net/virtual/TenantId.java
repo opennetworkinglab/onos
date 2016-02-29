@@ -16,8 +16,7 @@
 package org.onosproject.incubator.net.virtual;
 
 import com.google.common.annotations.Beta;
-
-import java.util.Objects;
+import org.onlab.util.Identifier;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -25,26 +24,22 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Representation of network tenant.
  */
 @Beta
-public final class TenantId {
+public final class TenantId extends Identifier<String> {
 
     /**
      * Represents no tenant, or an unspecified tenant.
      */
     public static final TenantId NONE = new TenantId();
 
-
-    private final String id;
-
     // Public construction is prohibited
     private TenantId(String id) {
+        super(id);
         checkArgument(id != null && id.length() > 0, "Tenant ID cannot be null or empty");
-        this.id = id;
     }
-
 
     // Default constructor for serialization
     protected TenantId() {
-        this.id = "";
+        super("");
     }
 
     /**
@@ -56,28 +51,4 @@ public final class TenantId {
     public static TenantId tenantId(String id) {
         return new TenantId(id);
     }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof TenantId) {
-            final TenantId that = (TenantId) obj;
-            return this.getClass() == that.getClass() &&
-                    Objects.equals(this.id, that.id);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return id;
-    }
-
 }

@@ -18,6 +18,7 @@ package org.onosproject.core;
 /**
  * Group identifier.
  */
+// TODO: require refactor to extend from Identifier base class
 public interface GroupId {
 
     /**

@@ -15,24 +15,20 @@
  */
 package org.onosproject.store.intent.impl;
 
-import com.google.common.base.MoreObjects;
-
-import java.util.Objects;
+import org.onlab.util.Identifier;
 
 /**
  * Identifies a partition of the intent keyspace which will be assigned to and
  * processed by a single ONOS instance at a time.
  */
-final class PartitionId {
-    private final int id;
-
+final class PartitionId extends Identifier<Integer> {
     /**
      * Creates a new partition ID.
      *
      * @param id the partition ID
      */
     PartitionId(int id) {
-        this.id = id;
+        super(id);
     }
 
     /**
@@ -41,28 +37,6 @@ final class PartitionId {
      * @return ID value
      */
     int value() {
-        return id;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof PartitionId)) {
-            return false;
-        }
-
-        PartitionId that = (PartitionId) o;
-        return Objects.equals(this.id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id;
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("partition ID", id)
-                .toString();
+        return identifier;
     }
 }

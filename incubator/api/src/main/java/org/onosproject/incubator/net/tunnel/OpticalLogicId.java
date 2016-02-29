@@ -16,66 +16,44 @@
 
 package org.onosproject.incubator.net.tunnel;
 
-import java.util.Objects;
-
 import com.google.common.annotations.Beta;
 import com.google.common.primitives.UnsignedLongs;
+import org.onlab.util.Identifier;
 
 /**
  * Representation of a label Id, a logical port identifier.
  */
 @Beta
-public final class OpticalLogicId {
-        /**
-         * Represents a logical Id.
-        */
-        private final long logicId;
+public final class OpticalLogicId extends Identifier<Long> {
 
-        /**
-         * Constructor, public creation is prohibited.
-         */
-        private OpticalLogicId(long id) {
-            this.logicId = id;
-        }
+    /**
+     * Constructor, public creation is prohibited.
+     */
+    private OpticalLogicId(long id) {
+        super(id);
+    }
 
-        /**
-         * Returns the LabelId representing the specified long value.
-         *
-         * @param id identifier as long value
-         * @return LabelId
-         */
-        public static OpticalLogicId logicId(long id) {
-            return new OpticalLogicId(id);
-        }
+    /**
+     * Returns the LabelId representing the specified long value.
+     *
+     * @param id identifier as long value
+     * @return LabelId
+     */
+    public static OpticalLogicId logicId(long id) {
+        return new OpticalLogicId(id);
+    }
 
-        public static OpticalLogicId logicId(String string) {
-            return new OpticalLogicId(UnsignedLongs.decode(string));
-        }
+    /**
+     * Returns the LabelId representing the specified string value.
+     *
+     * @param string identifier as string value
+     * @return LabelId
+     */
+    public static OpticalLogicId logicId(String string) {
+        return new OpticalLogicId(UnsignedLongs.decode(string));
+    }
 
-        public long toLong() {
-            return logicId;
-        }
-
-        @Override
-        public String toString() {
-            return UnsignedLongs.toString(logicId);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(logicId);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj instanceof OpticalLogicId) {
-                final OpticalLogicId other = (OpticalLogicId) obj;
-                return this.logicId == other.logicId;
-            }
-            return false;
-        }
-
+    public long toLong() {
+        return identifier;
+    }
 }

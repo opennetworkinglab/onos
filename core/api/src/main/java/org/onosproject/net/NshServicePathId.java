@@ -15,16 +15,12 @@
  */
 package org.onosproject.net;
 
-import java.util.Objects;
-
-import com.google.common.base.MoreObjects;
+import org.onlab.util.Identifier;
 
 /*
  * Representation of NSH Service path Identifier
  */
-public final class NshServicePathId {
-
-    private final int servicePathId;
+public final class NshServicePathId extends Identifier<Integer> {
 
     /**
      * Default constructor.
@@ -32,7 +28,7 @@ public final class NshServicePathId {
      * @param servicePathId nsh service path identifier
      */
     private NshServicePathId(int servicePathId) {
-        this.servicePathId = servicePathId;
+        super(servicePathId);
     }
 
     /**
@@ -45,39 +41,13 @@ public final class NshServicePathId {
         return new NshServicePathId(servicePathId);
     }
 
-
     /**
      * Returns nsh context service path identifier.
      *
      * @return the nsh context service path id
      */
     public int servicePathId() {
-        return servicePathId;
-    }
-
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(servicePathId);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!(obj instanceof NshServicePathId)) {
-            return false;
-        }
-        final NshServicePathId other = (NshServicePathId) obj;
-        return   Objects.equals(this.servicePathId, other.servicePathId);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("servicePathId", servicePathId)
-                .toString();
+        return identifier;
     }
 }
 

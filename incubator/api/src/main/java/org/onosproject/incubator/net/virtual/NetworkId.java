@@ -16,14 +16,13 @@
 package org.onosproject.incubator.net.virtual;
 
 import com.google.common.annotations.Beta;
-
-import java.util.Objects;
+import org.onlab.util.Identifier;
 
 /**
  * Representation of network identity.
  */
 @Beta
-public final class NetworkId {
+public final class NetworkId extends Identifier<Long> {
 
     /**
      * Represents no network, or an unspecified network.
@@ -35,18 +34,15 @@ public final class NetworkId {
      */
     public static final NetworkId PHYSICAL = networkId(0L);
 
-
-    private final long id;
-
     // Public construction is prohibited
     private NetworkId(long id) {
-        this.id = id;
+        super(id);
     }
 
 
     // Default constructor for serialization
     protected NetworkId() {
-        this.id = -1;
+        super(-1L);
     }
 
     /**
@@ -58,27 +54,4 @@ public final class NetworkId {
     public static NetworkId networkId(long id) {
         return new NetworkId(id);
     }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof NetworkId) {
-            final NetworkId that = (NetworkId) obj;
-            return this.getClass() == that.getClass() && this.id == that.id;
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return Long.toString(id);
-    }
-
 }

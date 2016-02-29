@@ -16,12 +16,12 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import org.onlab.util.Identifier;
+
 /**
  * A wrapper class for a long used to identify domain level tunnels.
  */
-public final class DomainTunnelId {
-
-    private final long value;
+public final class DomainTunnelId extends Identifier<Long> {
 
     /**
      * Creates a tunnel identifier from the specified tunnel.
@@ -47,7 +47,7 @@ public final class DomainTunnelId {
      * Constructor for serializer.
      */
     protected DomainTunnelId() {
-        this.value = 0;
+        super(0L);
     }
 
     /**
@@ -56,37 +56,11 @@ public final class DomainTunnelId {
      * @param value the underlying value of this domain ID
      */
     public DomainTunnelId(long value) {
-        this.value = value;
-    }
-
-    /**
-     * Returns the backing value of this domain ID.
-     *
-     * @return the long value
-     */
-    public long id() {
-        return value;
-    }
-
-    @Override
-    public int hashCode() {
-        return Long.hashCode(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof DomainTunnelId)) {
-            return false;
-        }
-        DomainTunnelId that = (DomainTunnelId) obj;
-        return this.value == that.value;
+        super(value);
     }
 
     @Override
     public String toString() {
-        return "0x" + Long.toHexString(value);
+        return "0x" + Long.toHexString(identifier);
     }
 }

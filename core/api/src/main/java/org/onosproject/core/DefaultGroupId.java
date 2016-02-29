@@ -22,6 +22,7 @@ import java.util.Objects;
 /**
  * Default implementation of {@link GroupId}.
  */
+// TODO: require refactor to extend from Identifier base class
 public class DefaultGroupId implements GroupId {
 
     private final int id;

@@ -52,5 +52,4 @@ public final class NodeId extends Identifier<String> implements Comparable<NodeI
     public int compareTo(NodeId that) {
         return identifier.compareTo(that.identifier);
     }
-
 }

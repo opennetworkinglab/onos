@@ -16,14 +16,12 @@
 
 package org.onosproject.ui.topo;
 
-import com.google.common.base.MoreObjects;
+import org.onlab.util.Identifier;
 
 /**
  * Designates the identity of a button on the topology view panels.
  */
-public class ButtonId {
-
-    private final String id;
+public class ButtonId extends Identifier<String> {
 
     /**
      * Creates a button ID with the given identifier.
@@ -31,39 +29,6 @@ public class ButtonId {
      * @param id identifier for the button
      */
     public ButtonId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * Returns the identifier for this button.
-     *
-     * @return identifier
-     */
-    public String id() {
-        return id;
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("id", id()).toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ButtonId that = (ButtonId) o;
-        return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
+        super(id);
     }
 }
