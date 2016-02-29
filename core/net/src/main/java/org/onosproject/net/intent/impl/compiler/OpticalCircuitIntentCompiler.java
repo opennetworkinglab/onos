@@ -316,42 +316,18 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
         OduSignalType oduSignalType = mappingCltSignalTypeToOduSignalType(signalType);
 
-        for (Intent intent : intentService.getIntents()) {
-            if (!(intent instanceof OpticalConnectivityIntent)) {
-                continue;
-            }
-
-            OpticalConnectivityIntent connIntent = (OpticalConnectivityIntent) intent;
-
-            // Ignore if the intents don't have identical src and dst devices
-            if (!src.deviceId().equals(connIntent.getSrc().deviceId()) ||
-                    !dst.deviceId().equals(connIntent.getDst().deviceId())) {
-                continue;
-            }
-
-            if (!isAllowed(src, connIntent.getSrc())) {
-                continue;
-            }
-
-            if (!isAllowed(dst, connIntent.getDst())) {
-                continue;
-            }
-
-            if (!isAvailable(connIntent.id())) {
-                continue;
-            }
-
-            if (multiplexingSupported) {
-                if (!isAvailableTributarySlots(connIntent.getSrc(), connIntent.getDst(),
-                        oduSignalType.tributarySlots())) {
-                    continue;
-                }
-            }
-
-            return connIntent;
-        }
-
-        return null;
+        return Tools.stream(intentService.getIntents())
+                .filter(x -> x instanceof OpticalConnectivityIntent)
+                .map(x -> (OpticalConnectivityIntent) x)
+                .filter(x -> src.deviceId().equals(x.getSrc().deviceId()))
+                .filter(x -> dst.deviceId().equals(x.getDst().deviceId()))
+                .filter(x -> isAllowed(src, x.getSrc()))
+                .filter(x -> isAllowed(dst, x.getDst()))
+                .filter(x -> isAvailable(x.id()))
+                .filter(x -> !multiplexingSupported ||
+                        isAvailableTributarySlots(x.getSrc(), x.getDst(), oduSignalType.tributarySlots()))
+                .findFirst()
+                .orElse(null);
     }
 
     private boolean isAvailableTributarySlots(ConnectPoint src, ConnectPoint dst, int requestedTsNum) {
