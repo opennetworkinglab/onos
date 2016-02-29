@@ -194,7 +194,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         }
 
         // Check if both devices support multiplexing (usage of TributarySlots)
-        boolean multiplexingSupported = isMultiplexingSupported(intent);
+        boolean multiplexingSupported = isMultiplexingSupported(intent.getSrc(), intent.getDst());
 
         // slots are used only for devices supporting multiplexing
         Set<TributarySlot> slots = Collections.emptySet();
@@ -581,10 +581,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return (driver != null && driver.hasBehaviour(TributarySlotQuery.class));
     }
 
-    private boolean isMultiplexingSupported(OpticalCircuitIntent intent) {
-        ConnectPoint src = intent.getSrc();
-        ConnectPoint dst = intent.getDst();
-
+    private boolean isMultiplexingSupported(ConnectPoint src, ConnectPoint dst) {
         if (!isTributarySlotBehaviourSupported(src.deviceId()) ||
                 !isTributarySlotBehaviourSupported(dst.deviceId())) {
             return false;
