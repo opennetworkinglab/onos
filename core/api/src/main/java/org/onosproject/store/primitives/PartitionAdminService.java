@@ -16,9 +16,7 @@
 package org.onosproject.store.primitives;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
-import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.service.PartitionInfo;
 
 /**
@@ -31,20 +29,4 @@ public interface PartitionAdminService {
      * @return list of {@code PartitionInfo}
      */
     List<PartitionInfo> partitionInfo();
-
-    /**
-     * Leaves a partition.
-     *
-     * @param partitionId partition identifier
-     * @return future that is completed when the operation completes.
-     */
-    CompletableFuture<Void> leave(PartitionId partitionId);
-
-    /**
-     * Joins a partition.
-     *
-     * @param partitionId partition identifier
-     * @return future that is completed when the operation completes.
-     */
-    CompletableFuture<Void> join(PartitionId partitionId);
 }
