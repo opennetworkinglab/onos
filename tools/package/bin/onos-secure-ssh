@@ -3,6 +3,8 @@
 # Enables secure access to ONOS console by removing default users & keys.
 # -----------------------------------------------------------------------------
 
+# Remove the "unsecure" shell client which uses karaf "client" which is used
+# by default; we will install the "secure" client that just uses raw ssh later.
 rm -f $(dirname $0)/onos
 
 set -e
