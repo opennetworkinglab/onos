@@ -393,7 +393,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return null;
     }
 
-    private OchPort findAvailableOchPort(ConnectPoint oduPort, OduSignalType ochPortSignalType) {
+    private Optional<OchPort> findAvailableOchPort(ConnectPoint oduPort, OduSignalType ochPortSignalType) {
         // First see if the port mappings are constrained
         ConnectPoint ochCP = staticPort(oduPort);
 
@@ -408,9 +408,9 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                             .findAny();
 
             if (isAvailable(intentId.orElse(null))) {
-                return ochPort;
+                return Optional.of(ochPort);
             }
-            return null;
+            return Optional.empty();
         }
 
         // No port constraints, so find any port that works
@@ -438,11 +438,11 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                             .findAny();
 
             if (isAvailable(intentId.orElse(null))) {
-                return (OchPort) port;
+                return Optional.of((OchPort) port);
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private Pair<OchPort, OchPort> findPorts(ConnectPoint src, ConnectPoint dst, CltSignalType signalType) {
@@ -451,31 +451,21 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             case CLT_1GBE:
             case CLT_10GBE:
                 // First search for OCH ports with OduSignalType of ODU2. If not found - search for those with ODU4
-                Pair<OchPort, OchPort> ochPorts = findPorts(src, dst, OduSignalType.ODU2);
-                if (ochPorts == null) {
-                    ochPorts = findPorts(src, dst, OduSignalType.ODU4);
-                }
-                return ochPorts;
+                return findPorts(src, dst, OduSignalType.ODU2)
+                        .orElse(findPorts(src, dst, OduSignalType.ODU4).orElse(null));
             case CLT_100GBE:
-                return findPorts(src, dst, OduSignalType.ODU4);
+                return findPorts(src, dst, OduSignalType.ODU4).orElse(null);
             case CLT_40GBE:
             default:
                 return null;
         }
     }
 
-    private Pair<OchPort, OchPort> findPorts(ConnectPoint src, ConnectPoint dst, OduSignalType ochPortSignalType) {
-        OchPort srcPort = findAvailableOchPort(src, ochPortSignalType);
-        if (srcPort == null) {
-            return null;
-        }
-
-        OchPort dstPort = findAvailableOchPort(dst, ochPortSignalType);
-        if (dstPort == null) {
-            return null;
-        }
-
-        return Pair.of(srcPort, dstPort);
+    private Optional<Pair<OchPort, OchPort>> findPorts(ConnectPoint src, ConnectPoint dst,
+                                                       OduSignalType ochPortSignalType) {
+        return findAvailableOchPort(src, ochPortSignalType)
+                .flatMap(srcOch ->
+                        findAvailableOchPort(dst, ochPortSignalType).map(dstOch -> Pair.of(srcOch, dstOch)));
     }
 
     /**
