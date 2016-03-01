@@ -106,17 +106,16 @@ public class NetconfSessionImpl implements NetconfSession {
                             deviceInfo.name(), deviceInfo.password());
                 }
             } catch (IOException e) {
-                log.error("Authentication connection to device " +
-                                  deviceInfo.getDeviceId() + " failed:" +
-                                  e.getMessage());
+                log.error("Authentication connection to device {} failed: {} ",
+                                  deviceInfo.getDeviceId(), e.getMessage());
                 throw new NetconfException("Authentication connection to device " +
                                                    deviceInfo.getDeviceId() + " failed", e);
             }
 
             connectionActive = true;
             Preconditions.checkArgument(isAuthenticated,
-                                        "Authentication to device {} with username " +
-                                                "{} Failed",
+                                        "Authentication to device %s with username " +
+                                                "%s failed",
                                         deviceInfo.getDeviceId(), deviceInfo.name());
             startSshSession();
         }
@@ -132,8 +131,7 @@ public class NetconfSessionImpl implements NetconfSession {
             this.addDeviceOutputListener(new NetconfDeviceOutputEventListenerImpl(deviceInfo));
             sendHello();
         } catch (IOException e) {
-            log.error("Failed to create ch.ethz.ssh2.Session session:" +
-                              e.getMessage());
+            log.error("Failed to create ch.ethz.ssh2.Session session:", e);
             throw new NetconfException("Failed to create ch.ethz.ssh2.Session session with device" +
                                                deviceInfo, e);
         }
@@ -434,7 +432,7 @@ public class NetconfSessionImpl implements NetconfSession {
                 return true;
             }
         }
-        log.warn("Device " + deviceInfo + "has error in reply {}", reply);
+        log.warn("Device {} has error in reply {}", deviceInfo, reply);
         return false;
     }
 
@@ -445,8 +443,8 @@ public class NetconfSessionImpl implements NetconfSession {
             Optional<Integer> messageId = event.getMessageID();
             if (!messageId.isPresent()) {
                 errorReplies.add(event.getMessagePayload());
-                log.error("Device " + event.getDeviceInfo() +
-                          " sent error reply " + event.getMessagePayload());
+                log.error("Device {} sent error reply {}",
+                          event.getDeviceInfo(), event.getMessagePayload());
                 return;
             }
             CompletableFuture<String> completedReply =
