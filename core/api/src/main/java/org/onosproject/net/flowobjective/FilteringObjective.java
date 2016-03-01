@@ -149,6 +149,7 @@ public interface FilteringObjective extends Objective {
          *
          * @return a filtering objective
          */
+        @Override
         FilteringObjective add();
 
         /**
@@ -156,6 +157,7 @@ public interface FilteringObjective extends Objective {
          *
          * @return a filtering objective.
          */
+        @Override
         FilteringObjective remove();
 
         /**
@@ -165,6 +167,7 @@ public interface FilteringObjective extends Objective {
          * @param context an objective context
          * @return a filtering objective
          */
+        @Override
         FilteringObjective add(ObjectiveContext context);
 
         /**
@@ -174,6 +177,7 @@ public interface FilteringObjective extends Objective {
          * @param context an objective context
          * @return a filtering objective
          */
+        @Override
         FilteringObjective remove(ObjectiveContext context);
 
 

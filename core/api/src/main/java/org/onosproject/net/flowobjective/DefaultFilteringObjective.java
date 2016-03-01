@@ -36,7 +36,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Beta
 public final class DefaultFilteringObjective implements FilteringObjective {
 
-
     private final Type type;
     private final boolean permanent;
     private final int timeout;
@@ -62,7 +61,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         this.meta = builder.meta;
 
         this.id = Objects.hash(type, key, conditions, permanent,
-                timeout, appId, priority);
+                               timeout, appId, priority);
     }
 
     @Override
@@ -121,6 +120,33 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         return context;
     }
 
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, permanent, timeout, appId, priority, key,
+                            conditions, op, meta);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof DefaultFilteringObjective) {
+            final DefaultFilteringObjective other = (DefaultFilteringObjective) obj;
+            return Objects.equals(this.type, other.type)
+                    && Objects.equals(this.permanent, other.permanent)
+                    && Objects.equals(this.timeout, other.timeout)
+                    && Objects.equals(this.appId, other.appId)
+                    && Objects.equals(this.priority, other.priority)
+                    && Objects.equals(this.key, other.key)
+                    && Objects.equals(this.conditions, other.conditions)
+                    && Objects.equals(this.op, other.op)
+                    && Objects.equals(this.meta, other.meta);
+        }
+        return false;
+    }
+
     /**
      * Returns a new builder.
      *
@@ -130,6 +156,10 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         return new Builder();
     }
 
+    @Override
+    public Builder copy() {
+        return new Builder(this);
+    }
 
     public static final class Builder implements FilteringObjective.Builder {
         private final ImmutableList.Builder<Criterion> listBuilder
@@ -145,6 +175,23 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         private Operation op;
         private ObjectiveContext context;
         private TrafficTreatment meta;
+
+        // Creates an empty builder
+        private Builder() {
+        }
+
+        // Creates a builder set to create a copy of the specified objective.
+        private Builder(FilteringObjective objective) {
+            this.type = objective.type();
+            this.key = objective.key();
+            this.conditions = ImmutableList.copyOf(objective.conditions());
+            this.permanent = objective.permanent();
+            this.timeout = objective.timeout();
+            this.priority = objective.priority();
+            this.appId = objective.appId();
+            this.meta = objective.meta();
+            this.op = objective.op();
+        }
 
         @Override
         public Builder withKey(Criterion key) {
@@ -210,7 +257,6 @@ public final class DefaultFilteringObjective implements FilteringObjective {
             checkNotNull(appId, "Must supply an application id");
 
             return new DefaultFilteringObjective(this);
-
         }
 
         @Override
@@ -222,7 +268,6 @@ public final class DefaultFilteringObjective implements FilteringObjective {
             op = Operation.REMOVE;
 
             return new DefaultFilteringObjective(this);
-
         }
 
         @Override
@@ -248,7 +293,6 @@ public final class DefaultFilteringObjective implements FilteringObjective {
 
             return new DefaultFilteringObjective(this);
         }
-
 
     }
 

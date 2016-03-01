@@ -23,6 +23,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -102,6 +103,28 @@ public final class DefaultNextObjective implements NextObjective {
         return meta;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(treatments, appId, type, id, op, meta);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof DefaultNextObjective) {
+            final DefaultNextObjective other = (DefaultNextObjective) obj;
+            return Objects.equals(this.treatments, other.treatments)
+                    && Objects.equals(this.appId, other.appId)
+                    && Objects.equals(this.type, other.type)
+                    && Objects.equals(this.id, other.id)
+                    && Objects.equals(this.op, other.op)
+                    && Objects.equals(this.meta, other.meta);
+        }
+        return false;
+    }
+
     /**
      * Returns a new builder.
      *
@@ -109,6 +132,11 @@ public final class DefaultNextObjective implements NextObjective {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public Builder copy() {
+        return new Builder(this);
     }
 
     public static final class Builder implements NextObjective.Builder {
@@ -123,6 +151,20 @@ public final class DefaultNextObjective implements NextObjective {
 
         private final ImmutableList.Builder<TrafficTreatment> listBuilder
                 = ImmutableList.builder();
+
+        // Creates an empty builder
+        private Builder() {
+        }
+
+        // Creates a builder set to create a copy of the specified objective.
+        private Builder(NextObjective objective) {
+            this.type = objective.type();
+            this.id = objective.id();
+            this.treatments = ImmutableList.copyOf(objective.next());
+            this.meta = objective.meta();
+            this.appId = objective.appId();
+            this.op = objective.op();
+        }
 
         @Override
         public Builder withId(int nextId) {

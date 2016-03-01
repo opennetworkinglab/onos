@@ -112,6 +112,13 @@ public interface Objective {
     Optional<ObjectiveContext> context();
 
     /**
+     * Returns a new builder set to create a copy of this objective.
+     *
+     * @return new builder
+     */
+    Objective.Builder copy();
+
+    /**
      * An objective builder.
      */
     interface Builder {
@@ -146,6 +153,36 @@ public interface Objective {
          */
         Builder withPriority(int priority);
 
-    }
+        /**
+         * Builds the objective that will be added.
+         *
+         * @return an objective
+         */
+        Objective add();
 
+        /**
+         * Builds the objective that will be removed.
+         *
+         * @return an objective.
+         */
+        Objective remove();
+
+        /**
+         * Builds the objective that will be added.
+         * The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return an objective
+         */
+        Objective add(ObjectiveContext context);
+
+        /**
+         * Builds the objective that will be removed.
+         * The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return an objective
+         */
+        Objective remove(ObjectiveContext context);
+    }
 }

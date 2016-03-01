@@ -154,6 +154,7 @@ public interface NextObjective extends Objective {
          *
          * @return a next objective
          */
+        @Override
         NextObjective add();
 
         /**
@@ -161,6 +162,7 @@ public interface NextObjective extends Objective {
          *
          * @return a next objective.
          */
+        @Override
         NextObjective remove();
 
         /**
@@ -170,6 +172,7 @@ public interface NextObjective extends Objective {
          * @param context an objective context
          * @return a next objective
          */
+        @Override
         NextObjective add(ObjectiveContext context);
 
         /**
@@ -179,6 +182,7 @@ public interface NextObjective extends Objective {
          * @param context an objective context
          * @return a next objective
          */
+        @Override
         NextObjective remove(ObjectiveContext context);
 
         /**

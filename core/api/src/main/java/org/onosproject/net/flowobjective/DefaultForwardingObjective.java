@@ -120,49 +120,28 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
         return context;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public int hashCode() {
-        return Objects.hash(selector, flag, permanent,
-                            timeout, appId, priority, nextId,
-                            treatment, op);
+        return Objects.hash(selector, flag, permanent, timeout, appId,
+                            priority, nextId, treatment, op);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof DefaultForwardingObjective)) {
-            return false;
-        }
-        final DefaultForwardingObjective other = (DefaultForwardingObjective) obj;
-        boolean nextEq = false, treatmentEq = false;
-        if (this.selector.equals(other.selector) &&
-                this.flag == other.flag &&
-                this.permanent == other.permanent &&
-                this.timeout == other.timeout &&
-                this.appId.equals(other.appId) &&
-                this.priority == other.priority &&
-                this.op == other.op) {
-            if (this.nextId != null && other.nextId != null) {
-                nextEq = this.nextId == other.nextId;
-            }
-            if (this.treatment != null && other.treatment != null) {
-                treatmentEq = this.treatment.equals(other.treatment);
-            }
-            if (nextEq && treatmentEq) {
-                return true;
-            }
+        if (obj instanceof DefaultForwardingObjective) {
+            final DefaultForwardingObjective other = (DefaultForwardingObjective) obj;
+            return Objects.equals(this.selector, other.selector)
+                    && Objects.equals(this.flag, other.flag)
+                    && Objects.equals(this.permanent, other.permanent)
+                    && Objects.equals(this.timeout, other.timeout)
+                    && Objects.equals(this.appId, other.appId)
+                    && Objects.equals(this.priority, other.priority)
+                    && Objects.equals(this.nextId, other.nextId)
+                    && Objects.equals(this.treatment, other.treatment)
+                    && Objects.equals(this.op, other.op);
         }
         return false;
     }
@@ -176,6 +155,13 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
         return new Builder();
     }
 
+
+    @Override
+    public Builder copy() {
+        return new Builder(this);
+    }
+
+
     public static final class Builder implements ForwardingObjective.Builder {
 
         private TrafficSelector selector;
@@ -188,6 +174,23 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
         private TrafficTreatment treatment;
         private Operation op;
         private ObjectiveContext context;
+
+        // Creates an empty builder
+        private Builder() {
+        }
+
+        // Creates a builder set to create a copy of the specified objective.
+        private Builder(ForwardingObjective objective) {
+            this.selector = objective.selector();
+            this.flag = objective.flag();
+            this.permanent = objective.permanent();
+            this.timeout = objective.timeout();
+            this.priority = objective.priority();
+            this.appId = objective.appId();
+            this.nextId = objective.nextId();
+            this.treatment = objective.treatment();
+            this.op = objective.op();
+        }
 
         @Override
         public Builder withSelector(TrafficSelector selector) {
@@ -286,4 +289,5 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
             return new DefaultForwardingObjective(this);
         }
     }
+
 }

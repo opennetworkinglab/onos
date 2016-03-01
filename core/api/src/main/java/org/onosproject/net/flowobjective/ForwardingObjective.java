@@ -128,6 +128,7 @@ public interface ForwardingObjective extends Objective {
          *
          * @return a forwarding objective
          */
+        @Override
         ForwardingObjective add();
 
         /**
@@ -135,6 +136,7 @@ public interface ForwardingObjective extends Objective {
          *
          * @return a forwarding objective.
          */
+        @Override
         ForwardingObjective remove();
 
         /**
@@ -144,6 +146,7 @@ public interface ForwardingObjective extends Objective {
          * @param context an objective context
          * @return a forwarding objective
          */
+        @Override
         ForwardingObjective add(ObjectiveContext context);
 
         /**
@@ -153,6 +156,7 @@ public interface ForwardingObjective extends Objective {
          * @param context an objective context
          * @return a forwarding objective
          */
+        @Override
         ForwardingObjective remove(ObjectiveContext context);
     }
 }
