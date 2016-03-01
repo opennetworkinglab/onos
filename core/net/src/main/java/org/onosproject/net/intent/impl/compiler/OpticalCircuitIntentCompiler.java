@@ -270,32 +270,6 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     }
 
     /**
-     * Checks if current allocations on given resource can satisfy request.
-     * If the resource is null, return true.
-     *
-     * @param resource the resource on which to map the intent
-     * @return true if the resource can accept the request, false otherwise
-     */
-    private boolean isAvailable(IntentId resource) {
-        if (resource == null) {
-            return true;
-        }
-
-        Set<IntentId> mapping = intentSetMultimap.getMapping(resource);
-
-        if (mapping == null) {
-            return true;
-        }
-
-        return mapping.size() < maxCapacity;
-    }
-
-    private boolean isAllowed(ConnectPoint circuitCp, ConnectPoint connectivityCp) {
-        ConnectPoint staticPort = staticPort(circuitCp);
-        return staticPort == null || staticPort.equals(connectivityCp);
-    }
-
-    /**
      * Returns existing and available optical connectivity intent that matches the given circuit intent.
      *
      * @param src source connect point of optical circuit intent
@@ -323,6 +297,32 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                         isAvailableTributarySlots(x.getSrc(), x.getDst(), oduSignalType.tributarySlots()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private boolean isAllowed(ConnectPoint circuitCp, ConnectPoint connectivityCp) {
+        ConnectPoint staticPort = staticPort(circuitCp);
+        return staticPort == null || staticPort.equals(connectivityCp);
+    }
+
+    /**
+     * Checks if current allocations on given resource can satisfy request.
+     * If the resource is null, return true.
+     *
+     * @param resource the resource on which to map the intent
+     * @return true if the resource can accept the request, false otherwise
+     */
+    private boolean isAvailable(IntentId resource) {
+        if (resource == null) {
+            return true;
+        }
+
+        Set<IntentId> mapping = intentSetMultimap.getMapping(resource);
+
+        if (mapping == null) {
+            return true;
+        }
+
+        return mapping.size() < maxCapacity;
     }
 
     private boolean isAvailableTributarySlots(ConnectPoint src, ConnectPoint dst, int requestedTsNum) {
@@ -388,6 +388,29 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return null;
     }
 
+    private Pair<OchPort, OchPort> findPorts(ConnectPoint src, ConnectPoint dst, CltSignalType signalType) {
+        // According to the OpticalCircuitIntent's signalType find OCH ports with available TributarySlots resources
+        switch (signalType) {
+            case CLT_1GBE:
+            case CLT_10GBE:
+                // First search for OCH ports with OduSignalType of ODU2. If not found - search for those with ODU4
+                return findPorts(src, dst, OduSignalType.ODU2)
+                        .orElse(findPorts(src, dst, OduSignalType.ODU4).orElse(null));
+            case CLT_100GBE:
+                return findPorts(src, dst, OduSignalType.ODU4).orElse(null);
+            case CLT_40GBE:
+            default:
+                return null;
+        }
+    }
+
+    private Optional<Pair<OchPort, OchPort>> findPorts(ConnectPoint src, ConnectPoint dst,
+                                                       OduSignalType ochPortSignalType) {
+        return findAvailableOchPort(src, ochPortSignalType)
+                .flatMap(srcOch ->
+                        findAvailableOchPort(dst, ochPortSignalType).map(dstOch -> Pair.of(srcOch, dstOch)));
+    }
+
     private Optional<OchPort> findAvailableOchPort(ConnectPoint oduPort, OduSignalType ochPortSignalType) {
         // First see if the port mappings are constrained
         ConnectPoint ochCP = staticPort(oduPort);
@@ -438,29 +461,6 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         }
 
         return Optional.empty();
-    }
-
-    private Pair<OchPort, OchPort> findPorts(ConnectPoint src, ConnectPoint dst, CltSignalType signalType) {
-        // According to the OpticalCircuitIntent's signalType find OCH ports with available TributarySlots resources
-        switch (signalType) {
-            case CLT_1GBE:
-            case CLT_10GBE:
-                // First search for OCH ports with OduSignalType of ODU2. If not found - search for those with ODU4
-                return findPorts(src, dst, OduSignalType.ODU2)
-                        .orElse(findPorts(src, dst, OduSignalType.ODU4).orElse(null));
-            case CLT_100GBE:
-                return findPorts(src, dst, OduSignalType.ODU4).orElse(null);
-            case CLT_40GBE:
-            default:
-                return null;
-        }
-    }
-
-    private Optional<Pair<OchPort, OchPort>> findPorts(ConnectPoint src, ConnectPoint dst,
-                                                       OduSignalType ochPortSignalType) {
-        return findAvailableOchPort(src, ochPortSignalType)
-                .flatMap(srcOch ->
-                        findAvailableOchPort(dst, ochPortSignalType).map(dstOch -> Pair.of(srcOch, dstOch)));
     }
 
     /**
