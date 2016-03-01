@@ -446,25 +446,22 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     }
 
     private Pair<OchPort, OchPort> findPorts(ConnectPoint src, ConnectPoint dst, CltSignalType signalType) {
-        Pair<OchPort, OchPort> ochPorts = null;
         // According to the OpticalCircuitIntent's signalType find OCH ports with available TributarySlots resources
         switch (signalType) {
             case CLT_1GBE:
             case CLT_10GBE:
                 // First search for OCH ports with OduSignalType of ODU2. If not found - search for those with ODU4
-                ochPorts = findPorts(src, dst, OduSignalType.ODU2);
+                Pair<OchPort, OchPort> ochPorts = findPorts(src, dst, OduSignalType.ODU2);
                 if (ochPorts == null) {
                     ochPorts = findPorts(src, dst, OduSignalType.ODU4);
                 }
-                break;
+                return ochPorts;
             case CLT_100GBE:
-                ochPorts = findPorts(src, dst, OduSignalType.ODU4);
-                break;
+                return findPorts(src, dst, OduSignalType.ODU4);
             case CLT_40GBE:
             default:
-                break;
+                return null;
         }
-        return ochPorts;
     }
 
     private Pair<OchPort, OchPort> findPorts(ConnectPoint src, ConnectPoint dst, OduSignalType ochPortSignalType) {
