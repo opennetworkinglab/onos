@@ -78,7 +78,7 @@ public class IntentConfigurableRegistrator {
     @Modified
     public void modified(ComponentContext context) {
         if (context == null) {
-            log.info("Default config");
+            log.info("Settings: useFlowObjectives={}", useFlowObjectives);
             return;
         }
 
@@ -93,7 +93,7 @@ public class IntentConfigurableRegistrator {
         if (useFlowObjectives != newFlowObjectives) {
             useFlowObjectives = newFlowObjectives;
             changeCompilers();
-            log.info("Reconfigured use of flow objectives");
+            log.info("Settings: useFlowObjectives={}", useFlowObjectives);
         }
     }
 
