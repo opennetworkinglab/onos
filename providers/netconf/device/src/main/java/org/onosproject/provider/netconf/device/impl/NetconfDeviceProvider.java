@@ -53,7 +53,10 @@ import org.onosproject.netconf.NetconfException;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -87,6 +90,9 @@ public class NetconfDeviceProvider extends AbstractProvider
     private static final String SCHEME_NAME = "netconf";
     private static final String DEVICE_PROVIDER_PACKAGE = "org.onosproject.netconf.provider.device";
     private static final String UNKNOWN = "unknown";
+
+    private final ExecutorService executor =
+            Executors.newFixedThreadPool(5, groupedThreads("onos/netconfdeviceprovider", "device-installer-%d"));
 
     private DeviceProviderService providerService;
     private NetconfDeviceListener innerNodeListener = new InnerNetconfDeviceListener();
@@ -229,7 +235,7 @@ public class NetconfDeviceProvider extends AbstractProvider
 
         @Override
         public void event(NetworkConfigEvent event) {
-            connectDevices();
+            executor.submit(NetconfDeviceProvider.this::connectDevices);
         }
 
         @Override
