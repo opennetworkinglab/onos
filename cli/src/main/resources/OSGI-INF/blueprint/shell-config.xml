@@ -218,6 +218,9 @@
             <action class="org.onosproject.cli.net.IntentsListCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.IntentListCompilers"/>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.IntentRemoveCommand"/>
             <completers>
                 <ref component-id="appIdWithIntentNameCompleter"/>
