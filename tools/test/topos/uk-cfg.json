@@ -1,0 +1,31 @@
+{
+  "devices": {
+    "of:0000000000000001": { "basic": { "name": "LONDON", "latitude": 51.5072, "longitude": -0.1275   }},
+    "of:0000000000000002": { "basic": { "name": "BRISTL", "latitude": 51.4500, "longitude": -2.5833  }},
+    "of:0000000000000003": { "basic": { "name": "BIRMHM", "latitude": 52.4831, "longitude": -1.8936  }},
+    "of:0000000000000004": { "basic": { "name": "PLYMTH", "latitude": 50.3714, "longitude": -4.1422  }},
+    "of:0000000000000005": { "basic": { "name": "DOVER",  "latitude": 51.1295, "longitude":  1.3089  }},
+    "of:0000000000000006": { "basic": { "name": "BRGHTN", "latitude": 50.8429, "longitude": -0.1313  }},
+    "of:0000000000000007": { "basic": { "name": "LIVRPL", "latitude": 53.4000, "longitude": -3.0000  }},
+    "of:0000000000000008": { "basic": { "name": "YORK",   "latitude": 53.9583, "longitude": -1.0803  }},
+    "of:0000000000000009": { "basic": { "name": "NWCSTL", "latitude": 54.9667, "longitude": -1.6000  }},
+    "of:000000000000000a": { "basic": { "name": "NRWICH", "latitude": 52.6283, "longitude":  1.2967  }},
+    "of:000000000000000b": { "basic": { "name": "EDBUGH", "latitude": 55.9531, "longitude": -3.1889  }},
+    "of:000000000000000c": { "basic": { "name": "ABYSTW", "latitude": 52.4140, "longitude": -4.0810  }}
+  },
+
+  "hosts": {
+    "00:00:00:00:00:01/-1": { "basic": { "location": "of:0000000000000001/1", "ips": [ "10.0.0.1" ],  "name": "LONDON", "latitude": 51.9798, "longitude":  0.0671 }},
+    "00:00:00:00:00:02/-1": { "basic": { "location": "of:0000000000000002/1", "ips": [ "10.0.0.2" ],  "name": "BRISTL", "latitude": 51.1693, "longitude": -2.5234 }},
+    "00:00:00:00:00:03/-1": { "basic": { "location": "of:0000000000000003/1", "ips": [ "10.0.0.3" ],  "name": "BIRMHM", "latitude": 52.2088, "longitude": -1.7738 }},
+    "00:00:00:00:00:04/-1": { "basic": { "location": "of:0000000000000004/1", "ips": [ "10.0.0.4" ],  "name": "PLYMTH", "latitude": 50.7991, "longitude": -4.1871 }},
+    "00:00:00:00:00:05/-1": { "basic": { "location": "of:0000000000000005/1", "ips": [ "10.0.0.5" ],  "name": "DOVER",  "latitude": 51.4570, "longitude":  1.6981 }},
+    "00:00:00:00:00:06/-1": { "basic": { "location": "of:0000000000000006/1", "ips": [ "10.0.0.6" ],  "name": "BRGHTN", "latitude": 50.5870, "longitude":  0.2429 }},
+    "00:00:00:00:00:07/-1": { "basic": { "location": "of:0000000000000007/1", "ips": [ "10.0.0.7" ],  "name": "LIVRPL", "latitude": 53.1044, "longitude": -3.0899 }},
+    "00:00:00:00:00:08/-1": { "basic": { "location": "of:0000000000000008/1", "ips": [ "10.0.0.8" ],  "name": "YORK",   "latitude": 54.2567, "longitude": -0.7510 }},
+    "00:00:00:00:00:09/-1": { "basic": { "location": "of:0000000000000009/1", "ips": [ "10.0.0.9" ],  "name": "NWCSTL", "latitude": 55.3089, "longitude": -1.4952 }},
+    "00:00:00:00:00:0a/-1": { "basic": { "location": "of:000000000000000a/1", "ips": [ "10.0.0.10" ], "name": "NRWICH", "latitude": 52.9722, "longitude":  1.4613 }},
+    "00:00:00:00:00:0b/-1": { "basic": { "location": "of:000000000000000b/1", "ips": [ "10.0.0.11" ], "name": "EDBUGH", "latitude": 55.7009, "longitude": -3.6230 }},
+    "00:00:00:00:00:0c/-1": { "basic": { "location": "of:000000000000000c/1", "ips": [ "10.0.0.12" ], "name": "ABYSTW", "latitude": 52.0745, "longitude": -4.1444 }}
+  }
+}
