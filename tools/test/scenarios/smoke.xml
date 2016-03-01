@@ -15,9 +15,10 @@
   -->
 <scenario name="smoke" description="ONOS smoke test">
     <import file="${ONOS_SCENARIOS}/prerequisites.xml"/>
+    <import file="${ONOS_SCENARIOS}/net-prerequisites.xml"/>
 
     <import file="${ONOS_SCENARIOS}/setup.xml"/>
-    <dependency name="Setup" requires="Prerequisites"/>
+    <dependency name="Setup" requires="Prerequisites,Net-Prerequisites"/>
 
     <import file="${ONOS_SCENARIOS}/net-smoke.xml"/>
     <dependency name="Net-Smoke" requires="Setup"/>
