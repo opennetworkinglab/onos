@@ -57,7 +57,9 @@ public interface FlowObjectiveService {
     int allocateNextId();
 
     /**
-     * Installs the filtering rules onto the specified device.
+     * Provides a composition policy expression.
+     * <p>
+     * WARNING: This method is a no-op in the default implementation.
      *
      * @param policy policy expression
      */
