@@ -20,6 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.TestApplicationId;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
@@ -74,6 +75,7 @@ public class LinkCollectionIntentCompilerTest {
 
     private CoreService coreService;
     private IntentExtensionService intentExtensionService;
+    private IntentConfigurableRegistrator registrator;
     private IdGenerator idGenerator = new MockIdGenerator();
 
     private LinkCollectionIntent intent;
@@ -101,7 +103,13 @@ public class LinkCollectionIntentCompilerTest {
         intentExtensionService = createMock(IntentExtensionService.class);
         intentExtensionService.registerCompiler(LinkCollectionIntent.class, sut);
         intentExtensionService.unregisterCompiler(LinkCollectionIntent.class);
-        sut.intentManager = intentExtensionService;
+
+        registrator = new IntentConfigurableRegistrator();
+        registrator.extensionService = intentExtensionService;
+        registrator.cfgService = new ComponentConfigAdapter();
+        registrator.activate();
+
+        sut.registrator = registrator;
 
         replay(coreService, intentExtensionService);
     }

@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.VlanId;
 import org.onosproject.TestApplicationId;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
@@ -67,6 +68,7 @@ public class PathIntentCompilerTest {
 
     private CoreService coreService;
     private IntentExtensionService intentExtensionService;
+    private IntentConfigurableRegistrator registrator;
     private IdGenerator idGenerator = new MockIdGenerator();
     private PathIntentCompiler sut;
 
@@ -142,7 +144,13 @@ public class PathIntentCompilerTest {
         intentExtensionService = createMock(IntentExtensionService.class);
         intentExtensionService.registerCompiler(PathIntent.class, sut);
         intentExtensionService.unregisterCompiler(PathIntent.class);
-        sut.intentManager = intentExtensionService;
+
+        registrator = new IntentConfigurableRegistrator();
+        registrator.extensionService = intentExtensionService;
+        registrator.cfgService = new ComponentConfigAdapter();
+        registrator.activate();
+
+        sut.registrator = registrator;
 
         replay(coreService, intentExtensionService);
     }

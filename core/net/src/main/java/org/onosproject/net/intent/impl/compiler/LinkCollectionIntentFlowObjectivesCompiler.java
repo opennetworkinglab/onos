@@ -15,12 +15,8 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -42,12 +38,14 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
-import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Compiler to produce flow objectives from link collections.
@@ -56,7 +54,7 @@ import com.google.common.collect.SetMultimap;
 public class LinkCollectionIntentFlowObjectivesCompiler implements IntentCompiler<LinkCollectionIntent> {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentExtensionService intentManager;
+    protected IntentConfigurableRegistrator registrator;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -66,12 +64,12 @@ public class LinkCollectionIntentFlowObjectivesCompiler implements IntentCompile
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.net.intent");
-        //intentManager.registerCompiler(LinkCollectionIntent.class, this);
+        registrator.registerCompiler(LinkCollectionIntent.class, this, true);
     }
 
     @Deactivate
     public void deactivate() {
-        //intentManager.unregisterCompiler(LinkCollectionIntent.class);
+        registrator.unregisterCompiler(LinkCollectionIntent.class, true);
     }
 
     @Override

@@ -85,18 +85,22 @@ public class IntentManager
     public static final String INTENT_NULL = "Intent cannot be null";
     public static final String INTENT_ID_NULL = "Intent key cannot be null";
 
-    private static final int NUM_THREADS = 12;
-
     private static final EnumSet<IntentState> RECOMPILE
             = EnumSet.of(INSTALL_REQ, FAILED, WITHDRAW_REQ);
     private static final EnumSet<IntentState> WITHDRAW
             = EnumSet.of(WITHDRAW_REQ, WITHDRAWING, WITHDRAWN);
-    private static final boolean DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL = false;
 
+    private static final boolean DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL = false;
     @Property(name = "skipReleaseResourcesOnWithdrawal",
             boolValue = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL,
             label = "Indicates whether skipping resource releases on withdrawal is enabled or not")
     private boolean skipReleaseResourcesOnWithdrawal = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL;
+
+    private static final int DEFAULT_NUM_THREADS = 12;
+    @Property(name = "numThreads",
+            intValue = DEFAULT_NUM_THREADS,
+            label = "Number of worker threads")
+    private int numThreads = DEFAULT_NUM_THREADS;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -118,7 +122,6 @@ public class IntentManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService configService;
-
 
     private ExecutorService batchExecutor;
     private ExecutorService workerExecutor;
@@ -147,7 +150,7 @@ public class IntentManager
         trackerService.setDelegate(topoDelegate);
         eventDispatcher.addSink(IntentEvent.class, listenerRegistry);
         batchExecutor = newSingleThreadExecutor(groupedThreads("onos/intent", "batch"));
-        workerExecutor = newFixedThreadPool(NUM_THREADS, groupedThreads("onos/intent", "worker-%d"));
+        workerExecutor = newFixedThreadPool(numThreads, groupedThreads("onos/intent", "worker-%d"));
         idGenerator = coreService.getIdGenerator("intent-ids");
         Intent.bindIdGenerator(idGenerator);
         log.info("Started");
@@ -183,11 +186,25 @@ public class IntentManager
         if (skipReleaseResourcesOnWithdrawal && !newTestEnabled) {
             store.unsetDelegate(testOnlyDelegate);
             store.setDelegate(delegate);
-            logConfig("Reconfigured");
+            skipReleaseResourcesOnWithdrawal = false;
+            logConfig("Reconfigured skip release resources on withdrawal");
         } else if (!skipReleaseResourcesOnWithdrawal && newTestEnabled) {
             store.unsetDelegate(delegate);
             store.setDelegate(testOnlyDelegate);
-            logConfig("Reconfigured");
+            skipReleaseResourcesOnWithdrawal = true;
+            logConfig("Reconfigured skip release resources on withdrawal");
+        }
+
+        s = Tools.get(context.getProperties(), "numThreads");
+        int newNumThreads = isNullOrEmpty(s) ? numThreads : Integer.parseInt(s);
+        if (newNumThreads != numThreads) {
+            numThreads = newNumThreads;
+            ExecutorService oldWorkerExecutor = workerExecutor;
+            workerExecutor = newFixedThreadPool(numThreads, groupedThreads("onos/intent", "worker-%d"));
+            if (oldWorkerExecutor != null) {
+                oldWorkerExecutor.shutdown();
+            }
+            logConfig("Reconfigured number of worker threads");
         }
     }
 
@@ -281,7 +298,6 @@ public class IntentManager
     @Override
     public Iterable<Intent> getPending() {
         checkPermission(INTENT_READ);
-
         return store.getPending();
     }
 

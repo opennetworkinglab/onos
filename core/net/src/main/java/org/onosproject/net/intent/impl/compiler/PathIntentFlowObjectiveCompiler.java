@@ -38,7 +38,6 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
-import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
@@ -60,7 +59,7 @@ public class PathIntentFlowObjectiveCompiler
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentExtensionService intentManager;
+    protected IntentConfigurableRegistrator registrator;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceService resourceService;
@@ -70,12 +69,12 @@ public class PathIntentFlowObjectiveCompiler
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.net.intent");
-        //intentManager.registerCompiler(PathIntent.class, this);
+        registrator.registerCompiler(PathIntent.class, this, true);
     }
 
     @Deactivate
     public void deactivate() {
-        //intentManager.unregisterCompiler(PathIntent.class);
+        registrator.unregisterCompiler(PathIntent.class, true);
     }
 
     @Override
