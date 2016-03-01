@@ -291,13 +291,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     }
 
     private boolean isAllowed(ConnectPoint circuitCp, ConnectPoint connectivityCp) {
-        ConnectPoint srcStaticPort = staticPort(circuitCp);
-        if (srcStaticPort != null) {
-            if (!srcStaticPort.equals(connectivityCp)) {
-                return false;
-            }
-        }
-        return true;
+        ConnectPoint staticPort = staticPort(circuitCp);
+        return staticPort == null || staticPort.equals(connectivityCp);
     }
 
     /**
