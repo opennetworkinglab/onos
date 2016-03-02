@@ -22,6 +22,9 @@ cd $ONOS_ROOT
 onos-change-version $NEW_VERSION
 export ONOS_VERSION=$NEW_VERSION
 
+# Validate integrity of the versioning
+onos-validate-change-version
+
 # Build ONOS & deploy to staging repo using the release profile.
 onos-build && onos-package --tar --zip && mvn -Prelease clean deploy -DskipTests
 
