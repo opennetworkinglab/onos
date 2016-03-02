@@ -32,3 +32,4 @@ export ONOS_ROOT=$DIR
 . $ONOS_ROOT/tools/build/envDefaults
 exec bash -i
 
+# TODO on exit, print "leaving directory"
