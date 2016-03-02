@@ -81,3 +81,7 @@ class UkTopo( Topo ):
         self.addLink( YORK,   NRWICH, bw=10, delay='1.0ms')
 
 topos = { 'uk': ( lambda: UkTopo() ) }
+
+if __name__ == '__main__':
+    from onosnet import run
+    run( UkTopo() )

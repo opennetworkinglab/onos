@@ -34,13 +34,7 @@
         <step name="Wait-For-Mininet" requires="Start-Mininet"
               exec="onos-mininet wait 10"/>
 
-        <step name="Show-Network" requires="Wait-For-Mininet"
-              exec="onos-mininet sendAndExpect net --expect ."/>
-
-        <step name="Discover-Hosts" requires="Show-Network"
-              exec="onos-mininet sendAndExpect py [ h.cmd('arping -U -c 1 ' + h.IP()) for h in net.hosts ] --expect ."/>
-
-        <step name="Check-Summary" requires="Discover-Hosts"
+        <step name="Check-Summary" requires="~Wait-For-Mininet"
               exec="onos-check-summary ${OC1} [0-9]* 25 140 25"/>
 
         <step name="Balance-Masters" requires="~Check-Summary" if="${OC2}"
