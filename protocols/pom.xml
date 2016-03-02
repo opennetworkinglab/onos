@@ -38,6 +38,7 @@
         <module>ovsdb</module>
         <module>bgp</module>
         <module>rest</module>
+        <module>ospf</module>
     </modules>
 
     <dependencies>
