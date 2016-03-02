@@ -194,7 +194,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         Map<PartitionId, Database> databases = Maps.transformEntries(partitionMap, (k, v) -> {
                     String[] replicas = v.stream().map(this::nodeIdToUri).toArray(String[]::new);
                     DatabaseConfig config = newDatabaseConfig(String.format("p%s", k), logFunction.apply(k), replicas);
-                    return coordinator.getResource(config.getName(), config.resolve(clusterConfig)
+                    return coordinator.<Database>getResource(config.getName(), config.resolve(clusterConfig)
                             .withSerializer(copycatConfig.getDefaultSerializer())
                             .withDefaultExecutor(copycatConfig.getDefaultExecutor()));
         });
