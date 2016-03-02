@@ -186,7 +186,8 @@ public class FpmManager implements RouteSourceService, FpmInfoService {
             log.trace("Received FPM message: {}", fpmMessage);
         }
 
-        if (rtNetlink.protocol() != RtProtocol.ZEBRA) {
+        if (!(rtNetlink.protocol() == RtProtocol.ZEBRA ||
+                rtNetlink.protocol() == RtProtocol.UNSPEC)) {
             log.trace("Ignoring non-zebra route");
             return;
         }
