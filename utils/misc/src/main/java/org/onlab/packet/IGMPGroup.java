@@ -34,8 +34,8 @@ public abstract class IGMPGroup {
     /**
      * Initialize this object with a multicast group address and additional info.
      *
-     * @param gaddr: the multicast group address for this message type.
-     * @param auxInfo: additional info potentially used by IGMPQuery
+     * @param gaddr the multicast group address for this message type.
+     * @param auxInfo additional info potentially used by IGMPQuery
      */
     public IGMPGroup(IpAddress gaddr, int auxInfo) {
         this.gaddr = gaddr;

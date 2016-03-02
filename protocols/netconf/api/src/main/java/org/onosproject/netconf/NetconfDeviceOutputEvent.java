@@ -83,7 +83,6 @@ public final class NetconfDeviceOutputEvent extends
      * @param payload           message from the device
      * @param msgID             id of the message related to the event
      * @param netconfDeviceInfo device of event
-     * @param msgID             id of the message related to the event
      * @param time              occurrence time
      */
     public NetconfDeviceOutputEvent(Type type, Object subject, String payload,
