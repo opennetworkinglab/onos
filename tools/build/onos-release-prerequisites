@@ -1,0 +1,61 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Validates that the local environment is ready to commence release process.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+
+GERRIT_USER=${GERRIT_USER:-$USER}
+
+set -e
+
+# Test access to Gerrit (Administrator)
+function testGerritAccess {
+    trap "echo 'FAILED'" ERR
+    printf "Checking Gerrit Administrator access... "
+    ssh -p 29418 gerrit.onosproject.org gerrit ls-members Administrators \
+        --recursive | grep -q $GERRIT_USER
+    echo "OK"
+}
+
+# Test access to wiki.onosproject.org
+function testWikiAccess {
+    trap "echo 'FAILED'" ERR
+    printf "Checking Wiki access... "
+    ssh $USER@api.onosproject.org "test -w /var/www/api/index.html"
+    echo "OK"
+}
+
+# Test access to EC2
+function testEC2Access {
+    aux=$(mktemp)
+    trap "cat $aux; rm -f $aux; echo 'FAILED'" ERR
+    printf "Checking EC2 access... "
+    uploadToS3.py -v 1>$aux 2>&1
+    rm -f $aux
+    echo "OK"
+}
+
+# Sonatype account must be created & ~/.m2/settings.xml must be configured
+# Test by "releasing" a fake project setup for that purpose to validate access.
+function testSonatypeAccess {
+    aux=$(mktemp)
+    trap "cat $aux; rm -f $aux; echo 'FAILED'" ERR
+    printf "Checking Sonatype access... "
+    pushd $ONOS_ROOT/tools/build/release-test >/dev/null
+    # TODO: Figure out how to supress the GPG note
+    mvn -Prelease clean deploy org.sonatype.plugins:nexus-staging-maven-plugin:drop \
+        1>$aux 2>&1 </dev/null
+    mvn clean >/dev/null
+    rm -f $aux
+    popd >/dev/null
+    echo "OK"
+}
+
+testGerritAccess
+testWikiAccess
+testEC2Access
+testSonatypeAccess
+
+echo "Ready to commence release process!"
+

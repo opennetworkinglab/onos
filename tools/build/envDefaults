@@ -11,8 +11,8 @@ export KARAF_TAR=${KARAF_TAR:-~/Downloads/apache-karaf-$KARAF_VERSION.tar.gz}
 export KARAF_DIST=$(basename $KARAF_ZIP .zip)
 
 # Add ONOS-specific directories to the exectable PATH
-export PATH="$PATH:$ONOS_ROOT/tools/dev/bin:$ONOS_ROOT/tools/test/bin"
-export PATH="$PATH:$ONOS_ROOT/tools/build"
+export PATH="$ONOS_ROOT/tools/dev/bin:$ONOS_ROOT/tools/test/bin:$PATH"
+export PATH="$ONOS_ROOT/tools/build:$PATH"
 
 # Fallback build number us derived from from the user name & time
 export BUILD_NUMBER=${BUILD_NUMBER:-$(id -un)~$(date +'%Y/%m/%d@%H:%M')}
