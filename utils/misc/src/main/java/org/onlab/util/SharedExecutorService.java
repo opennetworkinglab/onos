@@ -15,6 +15,7 @@
  */
 package org.onlab.util;
 
+import com.codahale.metrics.Timer;
 import org.onlab.metrics.MetricsComponent;
 import org.onlab.metrics.MetricsFeature;
 import org.onlab.metrics.MetricsService;
@@ -27,8 +28,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import com.codahale.metrics.Timer;
 
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -111,11 +112,11 @@ class SharedExecutorService implements ExecutorService {
         return executor.submit(() -> {
                     T t = null;
                     long queueWaitTime = (long) taskCounter.duration();
-                    String className;
+                    Class className;
                     if (task instanceof  CallableExtended) {
-                        className =  ((CallableExtended) task).getRunnable().getClass().toString();
+                        className =  ((CallableExtended) task).getRunnable().getClass();
                     } else {
-                        className = task.getClass().toString();
+                        className = task.getClass();
                     }
                     if (queueMetrics != null) {
                         queueMetrics.update(queueWaitTime, TimeUnit.SECONDS);
@@ -123,7 +124,9 @@ class SharedExecutorService implements ExecutorService {
                     taskCounter.reset();
                     try {
                         t = task.call();
-                    } catch (Exception e) { }
+                    } catch (Exception e) {
+                        getLogger(className).error("Uncaught exception on " + className, e);
+                    }
                     long taskwaittime = (long) taskCounter.duration();
                     if (delayMetrics != null) {
                         delayMetrics.update(taskwaittime, TimeUnit.SECONDS);
