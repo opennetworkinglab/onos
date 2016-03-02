@@ -1,0 +1,49 @@
+#!/bin/bash
+
+GERRIT_USER=${GERRIT_USER:-$USER}
+GERRIT_PROJECT=${GERRIT_PROJECT:-onos}
+
+function setup() {
+  DIR=$(mktemp -d /tmp/$GERRIT_PROJECT-config.XXXXX) || { echo "Failed to create temp file"; exit 1; }
+  cd $DIR
+  git init
+  git remote add origin ssh://$GERRIT_USER@gerrit.onosproject.org:29418/$GERRIT_PROJECT
+  git fetch origin refs/meta/config:refs/remotes/origin/meta/config
+  git checkout meta/config
+}
+
+function cleanup() {
+  # clean up the directory
+  rm -rf $OUT
+}
+
+setup
+case $1 in
+  block)
+    sed -i '' "s/submit = group/submit = block group/g" project.config
+    git diff
+    git commit -am"Blocking submit for all users in project"
+    git push origin HEAD:refs/meta/config
+    ;;
+  unblock)
+    echo unblock
+    sed -i '' "s/submit = block group/submit = group/g" project.config
+    git diff
+    git commit -am"Unblocking submit for all users in project"
+    git push origin HEAD:refs/meta/config
+    ;;
+  edit)
+    echo
+    echo "Make your changes now."
+    echo "To push changes, commit them and exit with 0"
+    echo "To abandon changes, do not commit or exit with non-zero value" 
+    bash -i && git push origin HEAD:refs/meta/config || echo "ABANDONED CHANGES"
+    ;;
+  *)
+    echo
+    echo "USAGE: onos-edit-config <option>"
+    echo "   block: blocks submits for all users in the project"
+    echo "   unblock: unblocks submits for all users in the project"
+    echo "   edit: allows you to make arbitrary changes to project config"
+esac
+cleanup
