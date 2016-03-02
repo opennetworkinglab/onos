@@ -5,12 +5,16 @@
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 
-aux=/tmp/pom-$$.log
+aux=$(mktemp)
 trap "rm -f $aux 2>/dev/null" EXIT
 
+cd $ONOS_ROOT
 grep -r SNAPSHOT . | \
-    grep -v -f $(dirname $0)/onos-validate-change-version.excludes > $aux
+    egrep -v -f $ONOS_ROOT/tools/build/onos-validate-change-version.excludes >$aux
 
-[ ! -s $aux ] && echo "There are files containing SNAPSHOT references:" && \
-    cat $aux && exit 1
+if [ -s $aux ]; then
+    echo "There are files containing SNAPSHOT references:"
+    cat $aux
+    exit 1
+fi
 exit 0
