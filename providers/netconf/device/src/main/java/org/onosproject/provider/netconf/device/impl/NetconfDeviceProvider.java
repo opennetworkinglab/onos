@@ -118,7 +118,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         cfgService.registerConfigFactory(factory);
         cfgService.addListener(cfgLister);
         controller.addDeviceListener(innerNodeListener);
-        connectDevices();
+        executor.execute(NetconfDeviceProvider.this::connectDevices);
         log.info("Started");
     }
 

@@ -130,7 +130,7 @@ public class RestDeviceProvider extends AbstractProvider
         providerService = providerRegistry.register(this);
         cfgService.registerConfigFactory(factory);
         cfgService.addListener(cfgLister);
-        connectDevices();
+        executor.execute(RestDeviceProvider.this::connectDevices);
         log.info("Started");
     }
 
