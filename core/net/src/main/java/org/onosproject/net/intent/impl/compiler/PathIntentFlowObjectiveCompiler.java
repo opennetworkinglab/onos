@@ -122,7 +122,9 @@ public class PathIntentFlowObjectiveCompiler
                   .withPriority(priority)
                   .fromApp(appId)
                   .makePermanent()
-                  .withFlag(ForwardingObjective.Flag.SPECIFIC)
+                  // FIXME - reevaluate how to set this flag.
+                  // Must be VERSATILE now because default pipeline only supports VERSATILE
+                  .withFlag(ForwardingObjective.Flag.VERSATILE)
                   .add());
         devices.add(ingress.deviceId());
     }
