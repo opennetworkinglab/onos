@@ -197,56 +197,114 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                 && isMultiplexingSupported(intent.getDst());
 
         // slots are used only for devices supporting multiplexing
-        Set<TributarySlot> slots = Collections.emptySet();
+        List<Resource> ports = ImmutableList.of(srcPortResource, dstPortResource);
 
         OpticalConnectivityIntent connIntent = findOpticalConnectivityIntent(intent.getSrc(), intent.getDst(),
                 intent.getSignalType(), multiplexingSupported);
-        if ((connIntent != null) && multiplexingSupported) {
-            // Allocate TributarySlots on existing OCH ports
-            slots = assignTributarySlots(intent, Pair.of(connIntent.getSrc(), connIntent.getDst()));
+
+        if (connIntent != null && !multiplexingSupported) {
+            return compile(intent, src, dst, Optional.of(connIntent), ports, false);
         }
 
         // Create optical connectivity intent if needed - no optical intent or not enough slots available
-        if (connIntent == null || (multiplexingSupported && slots.isEmpty())) {
+        if (connIntent == null) {
+            return compile(intent, src, dst, Optional.empty(), ports, multiplexingSupported);
+        }
+
+        List<Resource> slots = availableSlotResources(connIntent.getSrc(), connIntent.getDst(),
+                intent.getSignalType());
+        if (slots.isEmpty()) {
+            return compile(intent, src, dst, Optional.empty(), ports, true);
+        }
+
+        return compile(intent, src, dst, Optional.of(connIntent), ImmutableList.<Resource>builder()
+                .addAll(ports).addAll(slots).build(), false);
+
+    }
+
+    private List<Intent> compile(OpticalCircuitIntent intent, ConnectPoint src, ConnectPoint dst,
+                                 Optional<OpticalConnectivityIntent> existingConnectivity,
+                                 List<Resource> resources, boolean supportsMultiplexing) {
+        OpticalConnectivityIntent connectivityIntent;
+        List<Resource> required;
+        if (existingConnectivity.isPresent()) {
+            connectivityIntent = existingConnectivity.get();
+            required = resources;
+        } else {
             // Find OCh ports with available resources
             Pair<OchPort, OchPort> ochPorts = findPorts(intent.getSrc(), intent.getDst(), intent.getSignalType());
 
             if (ochPorts == null) {
-                // Release port allocations if unsuccessful
-                resourceService.release(intent.id());
                 throw new IntentCompilationException("Unable to find suitable OCH ports for intent " + intent);
             }
 
             ConnectPoint srcCP = new ConnectPoint(src.elementId(), ochPorts.getLeft().number());
             ConnectPoint dstCP = new ConnectPoint(dst.elementId(), ochPorts.getRight().number());
 
-            if (multiplexingSupported) {
-                // Allocate TributarySlots on OCH ports
-                slots = assignTributarySlots(intent, Pair.of(srcCP, dstCP));
-                if (slots.isEmpty()) {
-                    // Release port allocations if unsuccessful
-                    resourceService.release(intent.id());
-                    throw new IntentCompilationException("Unable to find Tributary Slots for intent " + intent);
-                }
-            }
-
             // Create optical connectivity intent
-            OduSignalType signalType = ochPorts.getLeft().signalType();
-            connIntent = OpticalConnectivityIntent.builder()
+            connectivityIntent = OpticalConnectivityIntent.builder()
                     .appId(appId)
                     .src(srcCP)
                     .dst(dstCP)
-                    .signalType(signalType)
+                    .signalType(ochPorts.getLeft().signalType())
                     .bidirectional(intent.isBidirectional())
                     .build();
-            intentService.submit(connIntent);
+
+            if (!supportsMultiplexing) {
+                required = resources;
+            } else {
+                List<Resource> slots = availableSlotResources(srcCP, dstCP, intent.getSignalType());
+                if (slots.isEmpty()) {
+                    throw new IntentCompilationException("Unable to find Tributary Slots for intent " + intent);
+                }
+                required = ImmutableList.<Resource>builder().addAll(resources).addAll(slots).build();
+            }
         }
 
-        // Save circuit to connectivity intent mapping
-        intentSetMultimap.allocateMapping(connIntent.id(), intent.id());
+        if (resourceService.allocate(intent.id(), required).isEmpty()) {
+            throw new IntentCompilationException("Unable to allocate resources for intent " + intent
+                    + ": resources=" + required);
+        }
 
-        FlowRuleIntent circuitIntent = createFlowRule(intent, connIntent, slots);
+        intentService.submit(connectivityIntent);
+
+        // Save circuit to connectivity intent mapping
+        intentSetMultimap.allocateMapping(connectivityIntent.id(), intent.id());
+
+        FlowRuleIntent circuitIntent = createFlowRule(intent, connectivityIntent, required.stream().
+                flatMap(x -> Tools.stream(x.valueAs(TributarySlot.class)))
+                .collect(Collectors.toSet()));
         return ImmutableList.of(circuitIntent);
+    }
+
+    private List<Resource> availableSlotResources(ConnectPoint src, ConnectPoint dst, CltSignalType signalType) {
+        OduSignalType oduSignalType = mappingCltSignalTypeToOduSignalType(signalType);
+        int requestedTsNum = oduSignalType.tributarySlots();
+        Set<TributarySlot> commonTributarySlots = findCommonTributarySlotsOnCps(src, dst);
+        if (commonTributarySlots.isEmpty()) {
+            return Collections.emptyList();
+        }
+        if (commonTributarySlots.size() < requestedTsNum) {
+            return Collections.emptyList();
+        }
+
+        Set<TributarySlot> tributarySlots = commonTributarySlots.stream()
+                .limit(requestedTsNum)
+                .collect(Collectors.toSet());
+
+        final List<ConnectPoint> portsList = ImmutableList.of(src, dst);
+        List<Resource> tributarySlotResources = portsList.stream()
+                .flatMap(cp -> tributarySlots
+                        .stream()
+                        .map(ts-> Resources.discrete(cp.deviceId(), cp.port()).resource().child(ts)))
+                .collect(Collectors.toList());
+
+        if (!tributarySlotResources.stream().allMatch(resourceService::isAvailable)) {
+            log.debug("Resource allocation for {} on {} and {} failed (resource request: {})",
+                    signalType, src, dst, tributarySlotResources);
+            return Collections.emptyList();
+        }
+        return tributarySlotResources;
     }
 
     private FlowRuleIntent createFlowRule(OpticalCircuitIntent higherIntent,
@@ -336,39 +394,6 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             return false;
         }
         return true;
-    }
-
-    private Set<TributarySlot> assignTributarySlots(OpticalCircuitIntent intent,
-            Pair<ConnectPoint, ConnectPoint> ports) {
-
-        OduSignalType oduSignalType = mappingCltSignalTypeToOduSignalType(intent.getSignalType());
-        int requestedTsNum = oduSignalType.tributarySlots();
-        Set<TributarySlot> commonTributarySlots = findCommonTributarySlotsOnCps(ports.getLeft(), ports.getRight());
-        if (commonTributarySlots.isEmpty()) {
-            return Collections.emptySet();
-        }
-        if (commonTributarySlots.size() < requestedTsNum) {
-            return Collections.emptySet();
-        }
-
-        Set<TributarySlot> tributarySlots = commonTributarySlots.stream()
-                .limit(requestedTsNum)
-                .collect(Collectors.toSet());
-
-        final List<ConnectPoint> portsList = ImmutableList.of(ports.getLeft(), ports.getRight());
-        List<Resource> tributarySlotResources = portsList.stream()
-                .flatMap(cp -> tributarySlots
-                        .stream()
-                        .map(ts-> Resources.discrete(cp.deviceId(), cp.port()).resource().child(ts)))
-                .collect(Collectors.toList());
-
-        List<ResourceAllocation> allocations = resourceService.allocate(intent.id(), tributarySlotResources);
-        if (allocations.isEmpty()) {
-            log.debug("Resource allocation for {} failed (resource request: {})",
-                    intent, tributarySlotResources);
-            return Collections.emptySet();
-        }
-        return tributarySlots;
     }
 
     private ConnectPoint staticPort(ConnectPoint connectPoint) {
