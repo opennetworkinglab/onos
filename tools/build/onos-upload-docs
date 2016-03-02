@@ -19,5 +19,6 @@ ssh $remote "
     mv onos-apidocs-$ONOS_VERSION/* .
     rm -rf onos-apidocs-$ONOS_VERSION
 
-    # TODO: optionally bump /var/www/api/index.html
+    # bump /var/www/api/index.html
+    sed -i -E 's#/[^/]+/#/$ONOS_VERSION/#g' /var/www/api/index.html
 "
