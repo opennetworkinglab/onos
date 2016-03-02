@@ -106,7 +106,7 @@ public class RestDeviceProvider extends AbstractProvider
     private static final String UNKNOWN = "unknown";
 
     private final ExecutorService executor =
-            Executors.newFixedThreadPool(5, groupedThreads("onos/restsbprovider", "device-installer-%d"));
+            Executors.newFixedThreadPool(5, groupedThreads("onos/restsbprovider", "device-installer-%d", log));
 
     private final ConfigFactory factory =
             new ConfigFactory<ApplicationId, RestProviderConfig>(APP_SUBJECT_FACTORY,
@@ -279,7 +279,7 @@ public class RestDeviceProvider extends AbstractProvider
 
         @Override
         public void event(NetworkConfigEvent event) {
-            executor.submit(RestDeviceProvider.this::connectDevices);
+            executor.execute(RestDeviceProvider.this::connectDevices);
         }
 
         @Override

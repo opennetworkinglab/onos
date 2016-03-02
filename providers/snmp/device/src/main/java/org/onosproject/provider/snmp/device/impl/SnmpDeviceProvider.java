@@ -92,7 +92,7 @@ public class SnmpDeviceProvider extends AbstractProvider
     protected ComponentConfigService cfgService;
 
     private final ExecutorService deviceBuilder = Executors
-            .newFixedThreadPool(1, groupedThreads("onos/snmp", "device-creator"));
+            .newFixedThreadPool(1, groupedThreads("onos/snmp", "device-creator", log));
 
     // Delay between events in ms.
     private static final int EVENTINTERVAL = 5;
@@ -140,7 +140,7 @@ public class SnmpDeviceProvider extends AbstractProvider
         try {
             snmpDeviceMap
                     .entrySet().stream().forEach((deviceEntry) -> {
-                        deviceBuilder.submit(new DeviceCreator(deviceEntry.getValue(), false));
+                        deviceBuilder.execute(new DeviceCreator(deviceEntry.getValue(), false));
                     });
             deviceBuilder.awaitTermination(1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
@@ -184,9 +184,9 @@ public class SnmpDeviceProvider extends AbstractProvider
                             device.getDeviceState().name()}
                 );
                 if (device.isActive()) {
-                    deviceBuilder.submit(new DeviceCreator(device, true));
+                    deviceBuilder.execute(new DeviceCreator(device, true));
                 } else {
-                    deviceBuilder.submit(new DeviceCreator(device, false));
+                    deviceBuilder.execute(new DeviceCreator(device, false));
                 }
             }
         }

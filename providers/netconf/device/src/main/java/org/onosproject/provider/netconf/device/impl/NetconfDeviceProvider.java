@@ -92,7 +92,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     private static final String UNKNOWN = "unknown";
 
     private final ExecutorService executor =
-            Executors.newFixedThreadPool(5, groupedThreads("onos/netconfdeviceprovider", "device-installer-%d"));
+            Executors.newFixedThreadPool(5, groupedThreads("onos/netconfdeviceprovider", "device-installer-%d", log));
 
     private DeviceProviderService providerService;
     private NetconfDeviceListener innerNodeListener = new InnerNetconfDeviceListener();
@@ -235,7 +235,7 @@ public class NetconfDeviceProvider extends AbstractProvider
 
         @Override
         public void event(NetworkConfigEvent event) {
-            executor.submit(NetconfDeviceProvider.this::connectDevices);
+            executor.execute(NetconfDeviceProvider.this::connectDevices);
         }
 
         @Override

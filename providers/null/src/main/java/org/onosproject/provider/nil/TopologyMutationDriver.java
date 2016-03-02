@@ -70,7 +70,7 @@ class TopologyMutationDriver implements Runnable {
     private List<LinkDescription> inactiveLinks;
 
     private final ExecutorService executor =
-            newSingleThreadScheduledExecutor(groupedThreads("onos/null", "topo-mutator"));
+            newSingleThreadScheduledExecutor(groupedThreads("onos/null", "topo-mutator", log));
 
     private Map<DeviceId, Set<Link>> savedLinks = Maps.newConcurrentMap();
 
@@ -99,7 +99,7 @@ class TopologyMutationDriver implements Runnable {
         activeLinks = reduceLinks();
         inactiveLinks = Lists.newArrayList();
         adjustRate(mutationRate);
-        executor.submit(this);
+        executor.execute(this);
     }
 
     /**

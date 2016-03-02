@@ -785,7 +785,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
         @Override
         public void event(NetworkConfigEvent event) {
-            SharedExecutors.getSingleThreadExecutor().execute(() -> {
+            SharedExecutors.getPoolThreadExecutor().execute(() -> {
                 if (event.configClass() == LinkDiscoveryFromDevice.class &&
                         CONFIG_CHANGED.contains(event.type())) {
 
