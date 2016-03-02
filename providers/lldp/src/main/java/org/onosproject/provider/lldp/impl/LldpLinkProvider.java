@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onlab.util.SharedExecutors;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterMetadata;
@@ -784,7 +785,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
         @Override
         public void event(NetworkConfigEvent event) {
-            executor.submit(() -> {
+            SharedExecutors.getSingleThreadExecutor().execute(() -> {
                 if (event.configClass() == LinkDiscoveryFromDevice.class &&
                         CONFIG_CHANGED.contains(event.type())) {
 
