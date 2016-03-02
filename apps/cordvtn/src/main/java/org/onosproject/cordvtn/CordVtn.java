@@ -548,16 +548,23 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             return;
         }
 
-        if (service.serviceType().equals(CordService.ServiceType.MANAGEMENT)) {
-            ruleInstaller.populateManagementNetworkRules(host, service);
-        } else {
-            // TODO check if the service needs an update on its group buckets after done CORD-433
-            ruleInstaller.updateServiceGroup(service);
-            arpProxy.addGateway(service.serviceIp(), privateGatewayMac);
-
-            // sends gratuitous ARP here for the case of adding existing VMs
-            // when ONOS or cordvtn app is restarted
-            arpProxy.sendGratuitousArpForGateway(service.serviceIp(), Sets.newHashSet(host));
+        switch (service.serviceType()) {
+            case MANAGEMENT:
+                ruleInstaller.populateManagementNetworkRules(host, service);
+                break;
+            case PRIVATE:
+            case PRIVATE_INDIRECT:
+            case PRIVATE_DIRECT:
+                arpProxy.addGateway(service.serviceIp(), privateGatewayMac);
+            case PUBLIC_INDIRECT:
+            case PUBLIC_DIRECT:
+            default:
+                // TODO check if the service needs an update on its group buckets after done CORD-433
+                ruleInstaller.updateServiceGroup(service);
+                // sends gratuitous ARP here for the case of adding existing VMs
+                // when ONOS or cordvtn app is restarted
+                arpProxy.sendGratuitousArpForGateway(service.serviceIp(), Sets.newHashSet(host));
+                break;
         }
 
         registerDhcpLease(host, service);
@@ -616,15 +623,22 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             return;
         }
 
-        if (service.serviceType().equals(CordService.ServiceType.MANAGEMENT)) {
-            ruleInstaller.removeManagementNetworkRules(host, service);
-        } else {
-            // TODO check if the service needs an update on its group buckets after done CORD-433
-            ruleInstaller.updateServiceGroup(service);
-
-            if (getHostsWithOpenstackNetwork(vNet).isEmpty()) {
-                arpProxy.removeGateway(service.serviceIp());
-            }
+        switch (service.serviceType()) {
+            case MANAGEMENT:
+                ruleInstaller.removeManagementNetworkRules(host, service);
+                break;
+            case PRIVATE:
+            case PRIVATE_INDIRECT:
+            case PRIVATE_DIRECT:
+                if (getHostsWithOpenstackNetwork(vNet).isEmpty()) {
+                    arpProxy.removeGateway(service.serviceIp());
+                }
+            case PUBLIC_INDIRECT:
+            case PUBLIC_DIRECT:
+            default:
+                // TODO check if the service needs an update on its group buckets after done CORD-433
+                ruleInstaller.updateServiceGroup(service);
+                break;
         }
     }
 
