@@ -15,7 +15,6 @@
  */
 package org.onosproject.ospf.controller.area;
 
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -115,8 +114,8 @@ public class OspfInterfaceImplTest {
         ospfNbr = new OspfNbrImpl(new OspfAreaImpl(), new OspfInterfaceImpl(),
                                   Ip4Address.valueOf("1.1.1.1"), Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                                                    topologyForDeviceAndLink);
         ospfNbr.setNeighborId(Ip4Address.valueOf("111.111.111.111"));
         ospfInterface.addNeighbouringRouter(ospfNbr);
         assertThat(ospfInterface, is(notNullValue()));
@@ -131,8 +130,8 @@ public class OspfInterfaceImplTest {
         ospfNbr = new OspfNbrImpl(new OspfAreaImpl(), new OspfInterfaceImpl(),
                                   Ip4Address.valueOf("1.1.1.1"), Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                                                    topologyForDeviceAndLink);
         ospfNbr.setNeighborId(Ip4Address.valueOf("111.111.111.111"));
         ospfInterface.addNeighbouringRouter(ospfNbr);
         assertThat(ospfInterface.neighbouringRouter("111.111.111.111"), is(notNullValue()));
@@ -166,8 +165,8 @@ public class OspfInterfaceImplTest {
         ospfNbr = new OspfNbrImpl(new OspfAreaImpl(), new OspfInterfaceImpl(),
                                   Ip4Address.valueOf("1.1.1.1"), Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                                                    topologyForDeviceAndLink);
         ospfNbr.setNeighborId(Ip4Address.valueOf("111.111.111.111"));
         ospfInterface.addNeighbouringRouter(ospfNbr);
         assertThat(ospfInterface.isNeighborInList("111.111.111.111"), is(notNullValue()));
@@ -183,8 +182,8 @@ public class OspfInterfaceImplTest {
                                   Ip4Address.valueOf("1.1.1.1"), Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(),
                                                                   new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                                                    topologyForDeviceAndLink);
         ospfNbr.setNeighborId(Ip4Address.valueOf("111.111.111.111"));
         ospfNbrHashMap.put("111.111.111.111", ospfNbr);
         ospfInterface.setListOfNeighbors(ospfNbrHashMap);
@@ -200,8 +199,8 @@ public class OspfInterfaceImplTest {
         ospfNbr = new OspfNbrImpl(new OspfAreaImpl(), new OspfInterfaceImpl(),
                                   Ip4Address.valueOf("1.1.1.1"), Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                                                    topologyForDeviceAndLink);
         ospfNbr.setNeighborId(Ip4Address.valueOf("111.111.111.111"));
         ospfNbrHashMap.put("111.111.111.111", ospfNbr);
         ospfInterface.setListOfNeighbors(ospfNbrHashMap);

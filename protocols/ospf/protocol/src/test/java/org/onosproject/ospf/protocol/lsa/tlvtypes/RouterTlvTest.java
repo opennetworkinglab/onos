@@ -112,7 +112,7 @@ public class RouterTlvTest {
      * Tests getTlvBodyAsByteArray() method.
      */
     @Test(expected = Exception.class)
-    public void testGetTLVBodyAsByteArray() throws Exception {
+    public void testGetTlvBodyAsByteArray() throws Exception {
         result = rtlv.getTlvBodyAsByteArray();
         assertThat(result, is(notNullValue()));
     }

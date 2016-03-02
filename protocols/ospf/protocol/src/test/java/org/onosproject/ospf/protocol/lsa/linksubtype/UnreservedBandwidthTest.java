@@ -97,7 +97,7 @@ public class UnreservedBandwidthTest {
      * Tests getLinkSubTypeTlvBodyAsByteArray() method.
      */
     @Test
-    public void testGetLinkSubTypeTLVBodyAsByteArray() throws Exception {
+    public void testGetLinkSubTypeTlvBodyAsByteArray() throws Exception {
         result = unreservedBandwidth.getLinkSubTypeTlvBodyAsByteArray();
         assertThat(result, is(notNullValue()));
     }

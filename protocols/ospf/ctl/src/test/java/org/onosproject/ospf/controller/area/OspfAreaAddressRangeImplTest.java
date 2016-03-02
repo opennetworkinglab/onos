@@ -16,7 +16,6 @@
 package org.onosproject.ospf.controller.area;
 
 
-import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -105,17 +104,12 @@ public class OspfAreaAddressRangeImplTest {
      */
     @Test
     public void testEquals() throws Exception {
-        assertThat(ospfAreaAddressRange.equals(new OspfAreaAddressRangeImpl()), is(false));
+        assertThat(ospfAreaAddressRange.equals(new OspfAreaAddressRangeImpl()), is(true));
     }
 
     /**
-     * Tests equals() method.
+     * Tests hashCode() method.
      */
-    @Test
-    public void testEquals1() throws Exception {
-        assertThat(ospfAreaAddressRange.equals(EasyMock.createMock(OspfAreaAddressRange.class)), is(false));
-    }
-
     @Test
     public void testHashCode() throws Exception {
         result = ospfAreaAddressRange.hashCode();

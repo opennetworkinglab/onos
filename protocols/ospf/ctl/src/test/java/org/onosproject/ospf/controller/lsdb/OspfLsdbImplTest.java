@@ -65,8 +65,6 @@ public class OspfLsdbImplTest {
         opaqueLsa10 = new OpaqueLsa10(new OpaqueLsaHeader());
         opaqueLsa11 = new OpaqueLsa11(new OpaqueLsaHeader());
         externalLsa = new ExternalLsa(new LsaHeader());
-
-
     }
 
     @After
@@ -130,7 +128,6 @@ public class OspfLsdbImplTest {
         assertThat(ospfLsdb.addLsa(externalLsa, false, new OspfInterfaceImpl()), is(true));
         ospfLsdb.initializeDb();
         assertThat(ospfLsdb.getAllLsaHeaders(true, true).size(), is(5));
-
     }
 
     /**
@@ -236,7 +233,7 @@ public class OspfLsdbImplTest {
      * Tests addLSA() method.
      */
     @Test
-    public void testAddLSA() throws Exception {
+    public void testAddLsa() throws Exception {
         routerLsa.setLsType(1);
         assertThat(ospfLsdb.addLsa(routerLsa, false, new OspfInterfaceImpl()), is(true));
         networkLsa.setLsType(2);
@@ -380,7 +377,7 @@ public class OspfLsdbImplTest {
      * Tests isNewerOrSameLsa() method.
      */
     @Test
-    public void testIsNewerorSameLSA() throws Exception {
+    public void testIsNewerorSameLsa() throws Exception {
         lsaWrapper = new LsaWrapperImpl();
         opaqueLsaHeader1 = new OpaqueLsaHeader();
         opaqueLsaHeader1.setLsType(1);

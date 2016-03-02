@@ -91,7 +91,7 @@ public class LsaWrapperImplTest {
      * Tests addLsa() method.
      */
     @Test
-    public void testAddLSA() throws Exception {
+    public void testAddLsa() throws Exception {
         lsaWrapper.addLsa(OspfLsaType.ROUTER, new RouterLsa());
         assertThat(lsaWrapper, is(notNullValue()));
     }
@@ -216,7 +216,7 @@ public class LsaWrapperImplTest {
      * Tests isSentReplyForOlderLsa() method.
      */
     @Test
-    public void testIsSentReplyForOlderLSA() throws Exception {
+    public void testIsSentReplyForOlderLsa() throws Exception {
         lsaWrapper.setSentReplyForOlderLsa(true);
         assertThat(lsaWrapper.isSentReplyForOlderLsa(), is(true));
     }
@@ -228,15 +228,6 @@ public class LsaWrapperImplTest {
     public void testIsCheckAge() throws Exception {
         lsaWrapper.setCheckAge(true);
         assertThat(lsaWrapper.isCheckAge(), is(true));
-    }
-
-    /**
-     * Tests isCheckAge() setter method.
-     */
-    @Test
-    public void testIsSentReplyForOlderLsa() throws Exception {
-        lsaWrapper.setIsSequenceRollOver(true);
-        assertThat(lsaWrapper.isSequenceRollOver(), is(true));
     }
 
     /**

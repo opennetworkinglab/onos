@@ -186,22 +186,22 @@ public class OspfAreaImplTest {
                                                    Ip4Address.valueOf("2.2.2.2"), 2,
                                                    new OspfInterfaceChannelHandler(new Controller(),
                                                                                    new OspfAreaImpl(),
-                                                                                   new OspfInterfaceImpl())
-                , topologyForDeviceAndLink));
+                                                                                   new OspfInterfaceImpl()),
+                                                   topologyForDeviceAndLink));
         ospfNbrList.put("3.3.3.3", new OspfNbrImpl(new OspfAreaImpl(), new OspfInterfaceImpl(),
                                                    Ip4Address.valueOf("1.1.1.1"),
                                                    Ip4Address.valueOf("2.2.2.2"), 2,
                                                    new OspfInterfaceChannelHandler(new Controller(),
                                                                                    new OspfAreaImpl(),
-                                                                                   new OspfInterfaceImpl())
-                , topologyForDeviceAndLink));
+                                                                                   new OspfInterfaceImpl()),
+                                                   topologyForDeviceAndLink));
         ospfNbrList.put("4.4.4.4", new OspfNbrImpl(new OspfAreaImpl(), new OspfInterfaceImpl(),
                                                    Ip4Address.valueOf("1.1.1.1"),
                                                    Ip4Address.valueOf("2.2.2.2"), 2,
                                                    new OspfInterfaceChannelHandler(new Controller(),
                                                                                    new OspfAreaImpl(),
-                                                                                   new OspfInterfaceImpl())
-                , topologyForDeviceAndLink));
+                                                                                   new OspfInterfaceImpl()),
+                                                   topologyForDeviceAndLink));
 
         ospfInterface.setListOfNeighbors(ospfNbrList);
         ospfInterface.setIpAddress(Ip4Address.valueOf("10.10.10.10"));
@@ -265,8 +265,8 @@ public class OspfAreaImplTest {
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(),
                                                                   new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                  topologyForDeviceAndLink);
         ospfNbr.setState(OspfNeighborState.FULL);
         ospfInterface1.addNeighbouringRouter(ospfNbr);
         ospfInterfaces.add(ospfInterface1);
@@ -290,8 +290,8 @@ public class OspfAreaImplTest {
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(),
                                                                   new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                  topologyForDeviceAndLink);
         ospfNbr.setState(OspfNeighborState.FULL);
         ospfInterfaces = new ArrayList();
         ospfInterface1 = new OspfInterfaceImpl();
@@ -352,8 +352,8 @@ public class OspfAreaImplTest {
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(),
                                                                   new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                  topologyForDeviceAndLink);
         ospfNbr.setState(OspfNeighborState.FULL);
         ospfInterface1.addNeighbouringRouter(ospfNbr);
         ospfInterfaces.add(ospfInterface1);
@@ -516,8 +516,8 @@ public class OspfAreaImplTest {
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(),
                                                                   new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                  topologyForDeviceAndLink);
         ospfNbr.setState(OspfNeighborState.EXCHANGE.EXCHANGE);
         ospfInterface1.addNeighbouringRouter(ospfNbr);
         ospfInterfaces.add(ospfInterface1);
@@ -633,8 +633,8 @@ public class OspfAreaImplTest {
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(),
                                                                   new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                  topologyForDeviceAndLink);
         ospfNbr.setState(OspfNeighborState.FULL);
         ospfInterface1.addNeighbouringRouter(ospfNbr);
         ospfInterfaces.add(ospfInterface1);
@@ -665,8 +665,8 @@ public class OspfAreaImplTest {
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(),
                                                                   new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                  topologyForDeviceAndLink);
         ospfNbr.setState(OspfNeighborState.FULL);
         ospfInterface1.addNeighbouringRouter(ospfNbr);
         ospfInterfaces.add(ospfInterface1);

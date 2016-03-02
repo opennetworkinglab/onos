@@ -95,17 +95,6 @@ public class LsAcknowledgeTest {
         assertThat(lsAck, is(notNullValue()));
     }
 
-
-    /**
-     * Tests ospfMessageType() getter method.
-     */
-    @Test
-    public void testGetOSPFMessageType() throws Exception {
-        ospfPacketType = lsAck.ospfMessageType();
-        assertThat(ospfPacketType, is(notNullValue()));
-        assertThat(ospfPacketType, is(OspfPacketType.LSAACK));
-    }
-
     /**
      * Tests ospfMessageType() getter method.
      */

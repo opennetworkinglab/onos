@@ -181,9 +181,9 @@ public class LsUpdate extends OspfPacketHeader {
                         addLsa(asbrSummaryLsa);
                         break;
                     case OspfParameters.SUMMARY:
-                        SummaryLsa summaryLSA = new SummaryLsa(header);
-                        summaryLSA.readFrom(channelBuffer.readBytes(lsaLength - OspfUtil.LSA_HEADER_LENGTH));
-                        addLsa(summaryLSA);
+                        SummaryLsa summaryLsa = new SummaryLsa(header);
+                        summaryLsa.readFrom(channelBuffer.readBytes(lsaLength - OspfUtil.LSA_HEADER_LENGTH));
+                        addLsa(summaryLsa);
                         break;
                     case OspfParameters.EXTERNAL_LSA:
                         ExternalLsa externalLsa = new ExternalLsa(header);

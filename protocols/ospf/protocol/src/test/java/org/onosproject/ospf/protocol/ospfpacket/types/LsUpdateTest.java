@@ -102,7 +102,7 @@ public class LsUpdateTest {
     private SummaryLsa ospflsa2;
     private AsbrSummaryLsa ospflsa3;
     private ExternalLsa ospflsa4;
-    private Vector<OspfLsa> listLSA = new Vector();
+    private Vector<OspfLsa> listLsa = new Vector();
     private List lsa;
     private int result;
     private OspfPacketType ospfMessageType;
@@ -151,7 +151,7 @@ public class LsUpdateTest {
         ospflsa2 = null;
         ospflsa3 = null;
         ospflsa4 = null;
-        listLSA.clear();
+        listLsa.clear();
         lsa = null;
         ospfMessageType = null;
         ospfPacketHeader = null;
@@ -325,13 +325,13 @@ public class LsUpdateTest {
         byte[] lsUpdatePacket = {0, 0, 0, 7, 0, 2, 2,
                 1, -64, -88, -86, 3, -64, -88, -86, 3, -128, 0, 0, 1, 58,
                 -100, 0, 48, 2, 0, 0, 2, -64, -88, -86, 0, -1, -1, -1, 0,
-                3, 0, 0, 10, -64, -88, -86, 0, -1, -1, -1, 0, 3, 0, 0, 10
-                , 0, 3, 2, 5, 80, -44, 16, 0, -64, -88, -86, 2, -128, 0, 0
-                , 1, 42, 73, 0, 36, -1, -1, -1, -1, -128, 0, 0, 20, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 3, 2, 5, -108, 121, -85, 0, -64, -88
-                , -86, 2, -128, 0, 0, 1, 52, -91, 0, 36, -1, -1, -1, 0,
-                -128, 0, 0, 20, -64, -88, -86, 1, 0, 0, 0, 0, 0, 3, 2, 5
-                , -64, -126, 120, 0, -64, -88, -86, 2, -128, 0, 0, 1, -45,
+                3, 0, 0, 10, -64, -88, -86, 0, -1, -1, -1, 0, 3, 0, 0, 10,
+                0, 3, 2, 5, 80, -44, 16, 0, -64, -88, -86, 2, -128, 0, 0,
+                1, 42, 73, 0, 36, -1, -1, -1, -1, -128, 0, 0, 20, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 3, 2, 5, -108, 121, -85, 0, -64, -88,
+                -86, 2, -128, 0, 0, 1, 52, -91, 0, 36, -1, -1, -1, 0,
+                -128, 0, 0, 20, -64, -88, -86, 1, 0, 0, 0, 0, 0, 3, 2, 5,
+                -64, -126, 120, 0, -64, -88, -86, 2, -128, 0, 0, 1, -45,
                 25, 0, 36, -1, -1, -1, 0, -128, 0, 0, 20, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 3, 2, 5, -64, -88, 0, 0, -64, -88, -86, 2,
                 -128, 0, 0, 1, 55, 8, 0, 36, -1, -1, -1, 0, -128, 0, 0,

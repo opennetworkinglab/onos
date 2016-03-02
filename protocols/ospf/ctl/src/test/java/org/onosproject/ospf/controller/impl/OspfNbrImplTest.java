@@ -33,7 +33,6 @@ import org.onosproject.ospf.controller.area.OspfInterfaceImpl;
 import org.onosproject.ospf.controller.lsdb.LsaWrapperImpl;
 import org.onosproject.ospf.controller.lsdb.LsdbAgeImpl;
 import org.onosproject.ospf.protocol.lsa.LsaHeader;
-
 import org.onosproject.ospf.protocol.lsa.types.NetworkLsa;
 import org.onosproject.ospf.protocol.lsa.types.RouterLsa;
 import org.onosproject.ospf.protocol.ospfpacket.OspfMessage;
@@ -42,7 +41,6 @@ import org.onosproject.ospf.protocol.ospfpacket.types.HelloPacket;
 import org.onosproject.ospf.protocol.ospfpacket.types.LsRequest;
 import org.onosproject.ospf.protocol.ospfpacket.types.LsUpdate;
 import org.onosproject.ospf.protocol.util.ChecksumCalculator;
-
 import org.onosproject.ospf.protocol.util.OspfUtil;
 
 import java.net.SocketAddress;
@@ -102,8 +100,8 @@ public class OspfNbrImplTest {
         ospfNbr = new OspfNbrImpl(ospfArea, ospfInterface, Ip4Address.valueOf("1.1.1.1"),
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(),
-                                                                  ospfArea, ospfInterface)
-                , topologyForDeviceAndLink);
+                                                                  ospfArea, ospfInterface),
+                                  topologyForDeviceAndLink);
 
     }
 

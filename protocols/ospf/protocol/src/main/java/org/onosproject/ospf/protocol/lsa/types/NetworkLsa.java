@@ -136,7 +136,7 @@ public class NetworkLsa extends LsaHeader {
         byte[] lsaMessage = null;
 
         byte[] lsaHeader = getLsaHeaderAsByteArray();
-        byte[] lsaBody = getLSABodyAsByteArray();
+        byte[] lsaBody = getLsaBodyAsByteArray();
         lsaMessage = Bytes.concat(lsaHeader, lsaBody);
 
         return lsaMessage;
@@ -148,7 +148,7 @@ public class NetworkLsa extends LsaHeader {
      * @return LSA body as byte array
      * @throws OspfParseException might throws exception while parsing packet
      */
-    public byte[] getLSABodyAsByteArray() throws OspfParseException {
+    public byte[] getLsaBodyAsByteArray() throws OspfParseException {
         List<Byte> bodyLst = new ArrayList<>();
 
         try {

@@ -47,8 +47,8 @@ public class OspfMessageDecoderTest {
             -88, -86, 2, -128, 0, 0, 1, 74, -114, 0, 48};
     private final byte[] lsUpdatePacket = {0, 0, 0, 0, 2, 4, 0, 76, -64, -88, -86, 3, 0, 0, 0, 1, 7, 111,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 14, 16, 2, 1, -64, -88,
-            -86, 2, -64, -88, -86, 2, -128, 0, 0, 1, 74, -114, 0, 48, 2, 0, 0, 2
-            , -64, -88, -86, 0, -1, -1, -1, 0, 3, 0, 0, 10, -64, -88, -86, 0, -1, -1, -1, 0, 3, 0, 0, 10};
+            -86, 2, -64, -88, -86, 2, -128, 0, 0, 1, 74, -114, 0, 48, 2, 0, 0, 2,
+            -64, -88, -86, 0, -1, -1, -1, 0, 3, 0, 0, 10, -64, -88, -86, 0, -1, -1, -1, 0, 3, 0, 0, 10};
     private final byte[] lsRequestPacket = {0, 0, 0, 0, 2, 3, 0, 36, -64, -88, -86, 3, 0, 0, 0, 1, -67, -57,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -64, -88, -86, 8, -64, -88, -86, 8};
     private OspfMessageDecoder ospfMessageDecoder;
@@ -80,7 +80,5 @@ public class OspfMessageDecoderTest {
         socketAddress = InetSocketAddress.createUnresolved("127.0.0.1", 7000);
         channelBuffer = ChannelBuffers.copiedBuffer(hellopacket);
         assertThat(ospfMessageDecoder.decode(ctx, channel, channelBuffer), is(nullValue()));
-
-
     }
 }

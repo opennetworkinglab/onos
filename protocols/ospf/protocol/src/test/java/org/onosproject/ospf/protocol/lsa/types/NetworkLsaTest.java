@@ -164,7 +164,7 @@ public class NetworkLsaTest {
         networkLsa.addAttachedRouter(Ip4Address.valueOf("1.1.1.1"));
         networkLsa.addAttachedRouter(Ip4Address.valueOf("2.2.2.2"));
         networkLsa.addAttachedRouter(Ip4Address.valueOf("3.3.3.3"));
-        result1 = networkLsa.getLSABodyAsByteArray();
+        result1 = networkLsa.getLsaBodyAsByteArray();
         assertThat(result1, is(notNullValue()));
     }
 
@@ -177,7 +177,7 @@ public class NetworkLsaTest {
         networkLsa.addAttachedRouter(Ip4Address.valueOf("1.1.1.1"));
         networkLsa.addAttachedRouter(Ip4Address.valueOf("2.2.2.2"));
         networkLsa.addAttachedRouter(Ip4Address.valueOf("3.3.3.3"));
-        result1 = networkLsa.getLSABodyAsByteArray();
+        result1 = networkLsa.getLsaBodyAsByteArray();
         assertThat(result1, is(notNullValue()));
     }
 

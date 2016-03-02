@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2016 Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
     <artifactId>onos-ospf-protocol</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS Ospf controller protocol</description>
+    <description>ONOS OSPF controller protocol</description>
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>

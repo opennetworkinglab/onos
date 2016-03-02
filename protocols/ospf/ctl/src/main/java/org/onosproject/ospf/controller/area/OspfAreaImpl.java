@@ -729,8 +729,8 @@ public class OspfAreaImpl implements OspfArea {
                     if (nbr.getLsReqList().containsKey(key)) {
                         LsaWrapper lsWrapper = lsaLookup(recLsa);
                         if (lsWrapper != null) {
-                            LsaHeader ownLSA = (LsaHeader) lsWrapper.ospfLsa();
-                            String status = isNewerOrSameLsa(recLsa, ownLSA);
+                            LsaHeader ownLsa = (LsaHeader) lsWrapper.ospfLsa();
+                            String status = isNewerOrSameLsa(recLsa, ownLsa);
                             if (status.equals("old")) {
                                 continue;
                             } else if (status.equals("same")) {

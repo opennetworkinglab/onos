@@ -104,8 +104,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, ospfInterface, Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  ospfInterface)
-                , topologyForDeviceAndLink);
+                                                                  ospfInterface),
+                                  topologyForDeviceAndLink);
         ospfNbr.setNeighborId(Ip4Address.valueOf("10.10.10.10"));
         ospfNbr.setRouterPriority(0);
         ospfNbr.setNeighborDr(Ip4Address.valueOf("13.13.13.13"));
@@ -219,8 +219,8 @@ public class OspfInterfaceChannelHandlerTest {
                                   Ip4Address.valueOf("1.1.1.1"), Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(),
                                                                   new OspfAreaImpl(),
-                                                                  new OspfInterfaceImpl())
-                , topologyForDeviceAndLink);
+                                                                  new OspfInterfaceImpl()),
+                                  topologyForDeviceAndLink);
         ospfNbr.setNeighborId(Ip4Address.valueOf("111.111.111.111"));
         ospfNbrHashMap.put("111.111.111.111", ospfNbr);
         ospfNbr.setState(OspfNeighborState.EXCHANGE);
@@ -333,10 +333,10 @@ public class OspfInterfaceChannelHandlerTest {
     }
 
     /**
-     * Tests processOSPFMessage() method.
+     * Tests processOspfMessage() method.
      */
     @Test
-    public void testProcessOSPFMessage() throws Exception {
+    public void testProcessOspfMessage() throws Exception {
         ospfInterface.setIpAddress(Ip4Address.valueOf("11.11.11.11"));
         ospfInterface.setIpNetworkMask(Ip4Address.valueOf("225.225.225.225"));
         ospfInterface.setInterfaceType(2);
@@ -364,7 +364,7 @@ public class OspfInterfaceChannelHandlerTest {
         buf = ChannelBuffers.copiedBuffer(checkArray);
         helloPacket.setChecksum(buf.readUnsignedShort());
         message = helloPacket;
-        ospfInterfaceChannelHandler.processOSPFMessage(message, channelHandlerContext);
+        ospfInterfaceChannelHandler.processOspfMessage(message, channelHandlerContext);
         ddPacket = new DdPacket();
         ddPacket.setSourceIp(Ip4Address.valueOf("1.1.1.1"));
         ddPacket.setRouterId(Ip4Address.valueOf("10.10.10.10"));
@@ -383,7 +383,7 @@ public class OspfInterfaceChannelHandlerTest {
         buf = ChannelBuffers.copiedBuffer(checkArray);
         ddPacket.setChecksum(buf.readUnsignedShort());
         message = ddPacket;
-        ospfInterfaceChannelHandler.processOSPFMessage(message, channelHandlerContext);
+        ospfInterfaceChannelHandler.processOspfMessage(message, channelHandlerContext);
         lsRequest = new LsRequest();
         lsRequest.setSourceIp(Ip4Address.valueOf("1.1.1.1"));
         lsRequest.setRouterId(Ip4Address.valueOf("10.10.10.10"));
@@ -401,7 +401,7 @@ public class OspfInterfaceChannelHandlerTest {
         buf = ChannelBuffers.copiedBuffer(checkArray);
         lsRequest.setChecksum(buf.readUnsignedShort());
         message = lsRequest;
-        ospfInterfaceChannelHandler.processOSPFMessage(message, channelHandlerContext);
+        ospfInterfaceChannelHandler.processOspfMessage(message, channelHandlerContext);
         lsUpdate = new LsUpdate();
         lsUpdate.setSourceIp(Ip4Address.valueOf("1.1.1.1"));
         lsUpdate.setRouterId(Ip4Address.valueOf("10.10.10.10"));
@@ -419,7 +419,7 @@ public class OspfInterfaceChannelHandlerTest {
         buf = ChannelBuffers.copiedBuffer(checkArray);
         lsUpdate.setChecksum(buf.readUnsignedShort());
         message = lsUpdate;
-        ospfInterfaceChannelHandler.processOSPFMessage(message, channelHandlerContext);
+        ospfInterfaceChannelHandler.processOspfMessage(message, channelHandlerContext);
         lsAck = new LsAcknowledge();
         lsAck.setSourceIp(Ip4Address.valueOf("1.1.1.1"));
         lsAck.setRouterId(Ip4Address.valueOf("10.10.10.10"));
@@ -437,7 +437,7 @@ public class OspfInterfaceChannelHandlerTest {
         buf = ChannelBuffers.copiedBuffer(checkArray);
         lsAck.setChecksum(buf.readUnsignedShort());
         message = lsAck;
-        ospfInterfaceChannelHandler.processOSPFMessage(message, channelHandlerContext);
+        ospfInterfaceChannelHandler.processOspfMessage(message, channelHandlerContext);
         assertThat(ospfInterfaceChannelHandler, is(notNullValue()));
 
     }
@@ -504,8 +504,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, ospfInterface, Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  ospfInterface)
-                , topologyForDeviceAndLink);
+                                                                  ospfInterface),
+                                  topologyForDeviceAndLink);
         ospfNbr.setNeighborId(Ip4Address.valueOf("2.2.2.2"));
         ospfNbr.setRouterPriority(0);
         ospfNbr.setNeighborDr(Ip4Address.valueOf("13.13.13.13"));
@@ -542,8 +542,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, ospfInterface, Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  ospfInterface)
-                , topologyForDeviceAndLink);
+                                                                  ospfInterface),
+                                  topologyForDeviceAndLink);
         ospfNbr.setLastDdPacket(createDdPacket());
         ospfNbr.setNeighborId(Ip4Address.valueOf("2.2.2.2"));
         ospfNbr.setState(OspfNeighborState.EXSTART);
@@ -583,8 +583,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, ospfInterface, Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  ospfInterface)
-                , topologyForDeviceAndLink);
+                                                                  ospfInterface),
+                                  topologyForDeviceAndLink);
         ospfNbr.setLastDdPacket(createDdPacket());
         ospfNbr.setNeighborId(Ip4Address.valueOf("2.2.2.2"));
         ospfNbr.setState(OspfNeighborState.EXSTART);
@@ -629,8 +629,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, ospfInterface, Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  ospfInterface)
-                , topologyForDeviceAndLink);
+                                                                  ospfInterface),
+                                  topologyForDeviceAndLink);
         ospfNbr.setLastDdPacket(createDdPacket());
         ospfNbr.setNeighborId(Ip4Address.valueOf("2.2.2.2"));
         ospfNbr.setState(OspfNeighborState.EXCHANGE);
@@ -676,8 +676,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, ospfInterface, Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("2.2.2.2"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  ospfInterface)
-                , topologyForDeviceAndLink);
+                                                                  ospfInterface),
+                                  topologyForDeviceAndLink);
         ospfNbr.setLastDdPacket(createDdPacket());
         ospfNbr.setNeighborId(Ip4Address.valueOf("2.2.2.2"));
         ospfNbr.setState(OspfNeighborState.LOADING);
@@ -733,8 +733,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, createOspfInterface(), Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("10.226.165.100"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  createOspfInterface1())
-                , topologyForDeviceAndLink);
+                                                                  createOspfInterface1()),
+                                  topologyForDeviceAndLink);
         ospfNbr.setLastDdPacket(createDdPacket());
         ospfNbr.setNeighborId(Ip4Address.valueOf("2.2.2.2"));
         ospfNbr.setState(OspfNeighborState.FULL);
@@ -775,8 +775,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, createOspfInterface(), Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("10.226.165.100"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  createOspfInterface1())
-                , topologyForDeviceAndLink);
+                                                                  createOspfInterface1()),
+                                  topologyForDeviceAndLink);
         ospfNbr.setLastDdPacket(createDdPacket());
         ospfNbr.setNeighborId(Ip4Address.valueOf("2.2.2.2"));
         ospfNbr.setState(OspfNeighborState.FULL);
@@ -809,8 +809,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, createOspfInterface(), Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("10.226.165.100"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  createOspfInterface())
-                , topologyForDeviceAndLink);
+                                                                  createOspfInterface()),
+                                  topologyForDeviceAndLink);
         ospfNbr.setLastDdPacket(createDdPacket());
         ospfNbr.setNeighborId(Ip4Address.valueOf("2.2.2.2"));
         ospfNbr.setState(OspfNeighborState.FULL);
@@ -976,8 +976,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, createOspfInterface(), Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("10.226.165.100"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  createOspfInterface())
-                , topologyForDeviceAndLink);
+                                                                  createOspfInterface()),
+                                  topologyForDeviceAndLink);
 
         ospfInterfaceChannelHandler.addDeviceInformation(new OspfRouterImpl());
         assertThat(ospfInterfaceChannelHandler, is(notNullValue()));
@@ -991,8 +991,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, createOspfInterface(), Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("10.226.165.100"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  createOspfInterface())
-                , topologyForDeviceAndLink);
+                                                                  createOspfInterface()),
+                                  topologyForDeviceAndLink);
 
         ospfInterfaceChannelHandler.removeDeviceInformation(new OspfRouterImpl());
         assertThat(ospfInterfaceChannelHandler, is(notNullValue()));
@@ -1006,8 +1006,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, createOspfInterface(), Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("10.226.165.100"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  createOspfInterface())
-                , topologyForDeviceAndLink);
+                                                                  createOspfInterface()),
+                                  topologyForDeviceAndLink);
 
         List topTlv = new ArrayList();
         topTlv.add(new RouterTlv(new TlvHeader()));
@@ -1023,8 +1023,8 @@ public class OspfInterfaceChannelHandlerTest {
         ospfNbr = new OspfNbrImpl(ospfArea, createOspfInterface(), Ip4Address.valueOf("10.10.10.10"),
                                   Ip4Address.valueOf("10.226.165.100"), 2,
                                   new OspfInterfaceChannelHandler(new Controller(), ospfArea,
-                                                                  createOspfInterface())
-                , topologyForDeviceAndLink);
+                                                                  createOspfInterface()),
+                                  topologyForDeviceAndLink);
 
         ospfInterfaceChannelHandler.removeLinkInformation(ospfNbr);
         assertThat(ospfInterfaceChannelHandler, is(notNullValue()));
@@ -1052,8 +1052,8 @@ public class OspfInterfaceChannelHandlerTest {
         OspfInterfaceChannelHandler ospfInterfaceChannelHandler = EasyMock.createMock(
                 OspfInterfaceChannelHandler.class);
         ospfNbr = new OspfNbrImpl(ospfArea, ospfInterface, Ip4Address.valueOf("10.226.165.164"),
-                                  Ip4Address.valueOf("1.1.1.1"), 2, ospfInterfaceChannelHandler
-                , topologyForDeviceAndLink);
+                                  Ip4Address.valueOf("1.1.1.1"), 2, ospfInterfaceChannelHandler,
+                                  topologyForDeviceAndLink);
         ospfNbr.setState(OspfNeighborState.EXSTART);
         ospfNbr.setNeighborId(Ip4Address.valueOf("10.226.165.100"));
         this.ospfInterface = new OspfInterfaceImpl();
@@ -1087,8 +1087,8 @@ public class OspfInterfaceChannelHandlerTest {
         OspfInterfaceChannelHandler ospfInterfaceChannelHandler = EasyMock.createMock(
                 OspfInterfaceChannelHandler.class);
         ospfNbr = new OspfNbrImpl(ospfArea, ospfInterface, Ip4Address.valueOf("10.226.165.164"),
-                                  Ip4Address.valueOf("1.1.1.1"), 2, ospfInterfaceChannelHandler
-                , topologyForDeviceAndLink);
+                                  Ip4Address.valueOf("1.1.1.1"), 2, ospfInterfaceChannelHandler,
+                                  topologyForDeviceAndLink);
         ospfNbr.setState(OspfNeighborState.FULL);
         ospfNbr.setNeighborId(Ip4Address.valueOf("10.226.165.100"));
         ospfInterface = new OspfInterfaceImpl();
@@ -1153,5 +1153,4 @@ public class OspfInterfaceChannelHandlerTest {
         ospfAreaAddressRange.setMask("mask");
         return ospfAreaAddressRange;
     }
-
 }

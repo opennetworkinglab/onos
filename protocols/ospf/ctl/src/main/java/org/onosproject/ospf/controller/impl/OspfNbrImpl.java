@@ -1046,8 +1046,7 @@ public class OspfNbrImpl implements OspfNbr {
 
         //If LSA type is external & the area is configured as stub area discard the lsa RFC 2328 13(3)
         if ((recLsa.getOspfLsaType() == OspfLsaType.EXTERNAL_LSA) &&
-                (!ospfArea.isExternalRoutingCapability())) // to determine how to store options
-        {
+                (!ospfArea.isExternalRoutingCapability())) {
             return true;
         }
 

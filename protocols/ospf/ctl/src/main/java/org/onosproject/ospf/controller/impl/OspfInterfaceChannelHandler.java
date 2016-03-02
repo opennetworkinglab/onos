@@ -258,7 +258,7 @@ public class OspfInterfaceChannelHandler extends IdleStateAwareChannelHandler {
             log.debug("OspfChannelHandler::List of OspfMessages Size {}", ospfMessageList.size());
             if (ospfMessageList != null) {
                 for (OspfMessage ospfMessage : ospfMessageList) {
-                    processOSPFMessage(ospfMessage, ctx);
+                    processOspfMessage(ospfMessage, ctx);
                 }
             } else {
                 log.debug("OspfChannelHandler::OspfMessages Null List...!!");
@@ -267,7 +267,7 @@ public class OspfInterfaceChannelHandler extends IdleStateAwareChannelHandler {
         if (message instanceof OspfMessage) {
             OspfMessage ospfMessage = (OspfMessage) message;
             log.debug("OspfChannelHandler::OspfMessages received...!!");
-            processOSPFMessage(ospfMessage, ctx);
+            processOspfMessage(ospfMessage, ctx);
         }
     }
 
@@ -280,8 +280,8 @@ public class OspfInterfaceChannelHandler extends IdleStateAwareChannelHandler {
      * @param ctx         channel handler context instance.
      * @throws Exception might throws exception
      */
-    public void processOSPFMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) throws Exception {
-        log.debug("OspfChannelHandler::processOSPFMessage...!!!");
+    public void processOspfMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) throws Exception {
+        log.debug("OspfChannelHandler::processOspfMessage...!!!");
 
         if (!validateMessage(ospfMessage)) {
             return;
