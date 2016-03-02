@@ -9,12 +9,8 @@
 ###  sudo route -n add 10.0.3.0/24 192.168.56.102
 ###
 
-## Use this command on VM to see IP addresses of instances:
-##   sudo lxc-ls --fancy
-
-export ONOS_USE_SSH=true
-export ONOS_NIC="10.0.3.*"
-
+## ONOS Cluster VM (has LXC containers for cluster nodes)
+export OCVM=192.168.56.102
 
 #============================================
 # sdn@ubuntuvm:~$ sudo lxc-ls --fancy
@@ -24,12 +20,13 @@ export ONOS_NIC="10.0.3.*"
 #============================================
 
 
+export ONOS_USE_SSH=true
+export ONOS_NIC="10.0.3.*"
+
 ## ONOS instances (LXC containers)
 export OC1=10.0.3.174
-# TODO: clone OC1
-#export OC2=10.0.3.78
-#export OC3=10.0.3.195
-#export OC4=10.0.3.126
+export OC2=10.0.3.242
+export OC3=10.0.3.49
 
 ## default ONOS instance
 export OCI=$OC1
