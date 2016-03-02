@@ -113,16 +113,16 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     private int workerThreads = DEFAULT_WORKER_THREADS;
 
     protected ExecutorService executorMsgs =
-        Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d"));
+        Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d", log));
 
     protected ExecutorService executorPacketIn =
-        Executors.newCachedThreadPool(groupedThreads("onos/of", "event-pkt-in-stats-%d"));
+        Executors.newCachedThreadPool(groupedThreads("onos/of", "event-pkt-in-stats-%d", log));
 
     protected ExecutorService executorFlowRemoved =
-        Executors.newCachedThreadPool(groupedThreads("onos/of", "event-flow-removed-stats-%d"));
+        Executors.newCachedThreadPool(groupedThreads("onos/of", "event-flow-removed-stats-%d", log));
 
     private final ExecutorService executorBarrier =
-        Executors.newFixedThreadPool(4, groupedThreads("onos/of", "event-barrier-%d"));
+        Executors.newFixedThreadPool(4, groupedThreads("onos/of", "event-barrier-%d", log));
 
     protected ConcurrentMap<Dpid, OpenFlowSwitch> connectedSwitches =
             new ConcurrentHashMap<>();
@@ -286,19 +286,19 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 p.handlePacket(pktCtx);
             }
             if (monitorAllEvents) {
-                executorPacketIn.submit(new OFMessageHandler(dpid, msg));
+                executorPacketIn.execute(new OFMessageHandler(dpid, msg));
             }
             break;
         // TODO: Consider using separate threadpool for sensitive messages.
         //    ie. Back to back error could cause us to starve.
         case FLOW_REMOVED:
             if (monitorAllEvents) {
-                executorFlowRemoved.submit(new OFMessageHandler(dpid, msg));
+                executorFlowRemoved.execute(new OFMessageHandler(dpid, msg));
                 break;
             }
         case ERROR:
             log.debug("Received error message from {}: {}", dpid, msg);
-            executorMsgs.submit(new OFMessageHandler(dpid, msg));
+            executorMsgs.execute(new OFMessageHandler(dpid, msg));
             break;
         case STATS_REPLY:
             OFStatsReply reply = (OFStatsReply) msg;
@@ -315,7 +315,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                                 OFFactories.getFactory(msg.getVersion()).buildFlowStatsReply();
                         rep.setEntries(Lists.newLinkedList(flowStats));
                         rep.setXid(reply.getXid());
-                        executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
+                        executorMsgs.execute(new OFMessageHandler(dpid, rep.build()));
                     }
                     break;
                 case TABLE:
@@ -324,7 +324,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                         OFTableStatsReply.Builder rep =
                                 OFFactories.getFactory(msg.getVersion()).buildTableStatsReply();
                         rep.setEntries(Lists.newLinkedList(tableStats));
-                        executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
+                        executorMsgs.execute(new OFMessageHandler(dpid, rep.build()));
                     }
                     break;
                 case GROUP:
@@ -334,7 +334,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                                 OFFactories.getFactory(msg.getVersion()).buildGroupStatsReply();
                         rep.setEntries(Lists.newLinkedList(groupStats));
                         rep.setXid(reply.getXid());
-                        executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
+                        executorMsgs.execute(new OFMessageHandler(dpid, rep.build()));
                     }
                     break;
                 case GROUP_DESC:
@@ -345,14 +345,14 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                                 OFFactories.getFactory(msg.getVersion()).buildGroupDescStatsReply();
                         rep.setEntries(Lists.newLinkedList(groupDescStats));
                         rep.setXid(reply.getXid());
-                        executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
+                        executorMsgs.execute(new OFMessageHandler(dpid, rep.build()));
                     }
                     break;
                 case PORT:
-                    executorMsgs.submit(new OFMessageHandler(dpid, reply));
+                    executorMsgs.execute(new OFMessageHandler(dpid, reply));
                     break;
                 case METER:
-                    executorMsgs.submit(new OFMessageHandler(dpid, reply));
+                    executorMsgs.execute(new OFMessageHandler(dpid, reply));
                     break;
                 case EXPERIMENTER:
                     if (reply instanceof OFCalientFlowStatsReply) {
@@ -394,10 +394,10 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                             OFFlowStatsReply.Builder rep =
                                     OFFactories.getFactory(msg.getVersion()).buildFlowStatsReply();
                             rep.setEntries(Lists.newLinkedList(flowStats));
-                            executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
+                            executorMsgs.execute(new OFMessageHandler(dpid, rep.build()));
                         }
                     } else {
-                        executorMsgs.submit(new OFMessageHandler(dpid, reply));
+                        executorMsgs.execute(new OFMessageHandler(dpid, reply));
                     }
                     break;
                 default:
@@ -406,7 +406,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             }
             break;
         case BARRIER_REPLY:
-            executorBarrier.submit(new OFMessageHandler(dpid, msg));
+            executorBarrier.execute(new OFMessageHandler(dpid, msg));
             break;
         case EXPERIMENTER:
             long experimenter = ((OFExperimenter) msg).getExperimenter();

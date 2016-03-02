@@ -95,7 +95,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     protected Set<OpenFlowEventListener> ofOutgoingMsgListener = new CopyOnWriteArraySet<>();
 
     protected ExecutorService executorMsgs =
-            Executors.newCachedThreadPool(groupedThreads("onos/of", "event-outgoing-msg-stats-%d"));
+            Executors.newCachedThreadPool(groupedThreads("onos/of", "event-outgoing-msg-stats-%d", log));
 
     // messagesPendingMastership is used as synchronization variable for
     // all mastership related changes. In this block, mastership (including
@@ -173,7 +173,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
                 if (m.getType() == OFType.PACKET_OUT ||
                         m.getType() == OFType.FLOW_MOD ||
                         m.getType() == OFType.STATS_REQUEST) {
-                    executorMsgs.submit(new OFMessageHandler(dpid, m));
+                    executorMsgs.execute(new OFMessageHandler(dpid, m));
                 }
             });
         }

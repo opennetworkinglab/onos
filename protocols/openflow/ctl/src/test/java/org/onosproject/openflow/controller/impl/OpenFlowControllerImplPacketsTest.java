@@ -15,21 +15,15 @@
  */
 package org.onosproject.openflow.controller.impl;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Future;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.openflow.ExecutorServiceAdapter;
-import org.onosproject.openflow.MockOfPortStatus;
-import org.onosproject.openflow.OpenFlowSwitchListenerAdapter;
-import org.onosproject.openflow.OpenflowSwitchDriverAdapter;
 import org.onosproject.openflow.MockOfFeaturesReply;
 import org.onosproject.openflow.MockOfPacketIn;
+import org.onosproject.openflow.MockOfPortStatus;
 import org.onosproject.openflow.OfMessageAdapter;
+import org.onosproject.openflow.OpenFlowSwitchListenerAdapter;
+import org.onosproject.openflow.OpenflowSwitchDriverAdapter;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowPacketContext;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
@@ -37,11 +31,14 @@ import org.onosproject.openflow.controller.PacketListener;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFType;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+
 import static junit.framework.TestCase.fail;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Tests for packet processing in the open flow controller impl class.
@@ -85,11 +82,10 @@ public class OpenFlowControllerImplPacketsTest {
         }
 
         @Override
-        public Future<?> submit(Runnable task) {
+        public void execute(Runnable task) {
             OpenFlowControllerImpl.OFMessageHandler handler =
                     (OpenFlowControllerImpl.OFMessageHandler) task;
             submittedMessages.add(handler.msg);
-            return null;
         }
     }
 
