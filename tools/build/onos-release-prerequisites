@@ -6,15 +6,17 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 
 GERRIT_USER=${GERRIT_USER:-$USER}
+WIKI_USER=${WIKI_USER:-$USER}
 
 set -e
 
 # Test access to Gerrit (Administrator)
 function testGerritAccess {
     trap "echo 'FAILED'" ERR
-    printf "Checking Gerrit Administrator access... "
-    ssh -p 29418 gerrit.onosproject.org gerrit ls-members Administrators \
-        --recursive | grep -q $GERRIT_USER
+    printf "Checking Gerrit ONOS Release group access... "
+    ssh -p 29418 gerrit.onosproject.org gerrit ls-members "ONOS\ Release"\
+         --recursive | grep -q $GERRIT_USER
+
     echo "OK"
 }
 
@@ -22,7 +24,7 @@ function testGerritAccess {
 function testWikiAccess {
     trap "echo 'FAILED'" ERR
     printf "Checking Wiki access... "
-    ssh $USER@api.onosproject.org "test -w /var/www/api/index.html"
+    ssh $WIKI_USER@wiki.onosproject.org "test -w /var/www/api/index.html"
     echo "OK"
 }
 

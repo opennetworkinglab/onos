@@ -8,7 +8,7 @@ set -e
 GERRIT_USER=${GERRIT_USER:-$USER}
 GERRIT_PROJECT=${GERRIT_PROJECT:-onos}
 
-function setup() {
+function setup {
   DIR=$(mktemp -d /tmp/$GERRIT_PROJECT-config.XXXXX) || { echo "Failed to create temp file"; exit 1; }
   cd $DIR
   git init
@@ -17,22 +17,30 @@ function setup() {
   git checkout meta/config
 }
 
-function cleanup() {
+function cleanup {
   # clean up the directory
-  rm -rf $OUT
+  rm -rf $DIR
+}
+
+function testReleaseMembership {
+    trap "echo 'ERROR: Not a member of the ONOS Release group'; cleanup" ERR
+    ssh -p 29418 gerrit.onosproject.org gerrit ls-members "ONOS\ Release" | grep -q $GERRIT_USER
 }
 
 setup
 case $1 in
   block)
+    testReleaseMembership
     sed -i '' "s/submit = group/submit = block group/g" project.config
+    sed -i '' "s/push = block group ONOS Release/push = group ONOS Release/g" project.config
     git diff
     git commit -am"Blocking submit for all users in project"
     git push origin HEAD:refs/meta/config
     ;;
   unblock)
-    echo unblock
+    testReleaseMembership
     sed -i '' "s/submit = block group/submit = group/g" project.config
+    sed -i '' "s/push = group ONOS Release/push = block group ONOS Release/g" project.config
     git diff
     git commit -am"Unblocking submit for all users in project"
     git push origin HEAD:refs/meta/config
