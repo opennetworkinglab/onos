@@ -44,6 +44,16 @@ def uploadFile( filename, dest=None, bucket=None, overwrite=False ):
     else:
         print 'file', basename( filename ), 'already exists in', bucket.name
 
+def testAccess( bucket=None ):
+    "Verify access to a bucket"
+    if not bucket:
+        bucket = 'onos'
+
+    conn = S3Connection()
+    bucket = conn.get_bucket( bucket )
+    print bucket.get_acl()
+
+
 if __name__ == '__main__':
     usage = "Usage: %prog [options] <file to upload>"
     parser = OptionParser(usage=usage)
@@ -57,8 +67,14 @@ if __name__ == '__main__':
                       help="Bucket on S3")
     parser.add_option("-f", "--force", dest="overwrite",
                       help="Overwrite existing file")
+    parser.add_option("-v", "--verify", dest="verify",  action="store_true",
+                      help="Verify access to a bucket")
     (options, args) = parser.parse_args()
-    
+
+    if options.verify:
+        testAccess(options.bucket)
+        exit()
+
     if len( args ) == 0:
         parser.error("missing filenames")
     for file in args:
