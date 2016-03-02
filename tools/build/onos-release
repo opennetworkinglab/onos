@@ -8,7 +8,7 @@
 
 set -e
 
-export NEW_VERSION=$1
+export NEW_VERSION=${1:-$ONOS_VERSION}
 [ -z "$NEW_VERSION" ] && echo "New ONOS version not specified" && exit 1
 
 export NEW_VERSION_SHORT=${NEW_VERSION%-SNAPSHOT}

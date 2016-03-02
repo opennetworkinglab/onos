@@ -1,4 +1,9 @@
 #!/bin/bash
+# ----------------------------------------------------
+# Used to update the project's refs/meta/config
+# ----------------------------------------------------
+
+set -e
 
 GERRIT_USER=${GERRIT_USER:-$USER}
 GERRIT_PROJECT=${GERRIT_PROJECT:-onos}
