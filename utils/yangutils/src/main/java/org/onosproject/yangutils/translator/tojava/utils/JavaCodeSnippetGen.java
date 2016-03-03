@@ -16,12 +16,7 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
-import java.util.List;
-import java.util.SortedSet;
-
-import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.translator.GeneratedFileType;
-import org.onosproject.yangutils.translator.tojava.GeneratedMethodTypes;
 import org.onosproject.yangutils.translator.tojava.ImportInfo;
 import org.onosproject.yangutils.utils.UtilConstants;
 
@@ -39,7 +34,7 @@ public final class JavaCodeSnippetGen {
     /**
      * Get the java file header comment.
      *
-     * @return the java file header comment.
+     * @return the java file header comment
      */
     public static String getFileHeaderComment() {
 
@@ -50,37 +45,26 @@ public final class JavaCodeSnippetGen {
     }
 
     /**
-     * reorder the import list based on the ONOS import rules.
-     *
-     * @param importInfo the set of classes/interfaces to be imported.
-     * @return string of import info.
-     */
-    public List<ImportInfo> sortImportOrder(SortedSet<ImportInfo> importInfo) {
-        /* TODO: reorder the import list based on the ONOS import rules. */
-        return null;
-    }
-
-    /**
      * Get the textual java code information corresponding to the import list.
      *
-     * @param importInfo import info.
+     * @param importInfo import info
      * @return the textual java code information corresponding to the import
-     *         list.
+     *         list
      */
     public static String getImportText(ImportInfo importInfo) {
         return UtilConstants.IMPORT + importInfo.getPkgInfo() + UtilConstants.PERIOD + importInfo.getClassInfo()
-        + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE;
+                + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE;
     }
 
     /**
      * Based on the file type and the YANG name of the file, generate the class
      * / interface definition start.
      *
-     * @param genFileTypes type of file being generated.
-     * @param yangName YANG name.
-     * @return corresponding textual java code information.
+     * @param genFileTypes type of file being generated
+     * @param yangName YANG name
+     * @return corresponding textual java code information
      */
-    public static String getJavaClassDefStart(GeneratedFileType genFileTypes, String yangName) {
+    public static String getJavaClassDefStart(int genFileTypes, String yangName) {
         /*
          * get the camel case name for java class / interface.
          */
@@ -91,19 +75,29 @@ public final class JavaCodeSnippetGen {
     /**
      * Get the textual java code for attribute definition in class.
      *
-     * @param genFileTypes type of file being generated.
-     * @param yangName YANG name of the the attribute.
-     * @param type type of the the attribute.
-     * @return the textual java code for attribute definition in class.
+     * @param javaAttributeTypePkg Package of the attribute type
+     * @param javaAttributeType java attribute type
+     * @param javaAttributeName name of the attribute
+     * @return the textual java code for attribute definition in class
      */
-    public static String getJavaAttributeInfo(GeneratedFileType genFileTypes, String yangName, YangType<?> type) {
-        yangName = JavaIdentifierSyntax.getCamelCase(yangName);
-        if (type != null) {
-            return UtilConstants.PRIVATE + UtilConstants.SPACE + type.getDataTypeName() + UtilConstants.SPACE + yangName
-                    + UtilConstants.SEMI_COLAN;
+    public static String getJavaAttributeDefination(String javaAttributeTypePkg, String javaAttributeType,
+            String javaAttributeName) {
+
+        String attributeDefination = UtilConstants.PRIVATE
+                + UtilConstants.SPACE;
+
+        if (javaAttributeTypePkg != null) {
+            attributeDefination = attributeDefination
+                    + javaAttributeTypePkg + ".";
         }
-        return UtilConstants.PRIVATE + UtilConstants.SPACE + JavaIdentifierSyntax.getCaptialCase(yangName)
-        + UtilConstants.SPACE + yangName + UtilConstants.SEMI_COLAN;
+
+        attributeDefination = attributeDefination
+                + javaAttributeType
+                + UtilConstants.SPACE
+                + javaAttributeName
+                + UtilConstants.SEMI_COLAN;
+
+        return attributeDefination;
     }
 
     /**
@@ -117,37 +111,19 @@ public final class JavaCodeSnippetGen {
     }
 
     /**
-     * Based on the file type and method type(s) and the YANG name of the
-     * method, generate the method definitions(s).
-     *
-     * @param genFileTypes type of file being generated
-     * @param yangName name if the attribute whose getter / setter is required.
-     * @param methodTypes getter and / or setter type of method indicator.
-     * @param returnType type return type of the method.
-     * @return based on the file type and method type(s) the method
-     *         definitions(s).
-     */
-    public static String getJavaMethodInfo(GeneratedFileType genFileTypes, String yangName,
-            GeneratedMethodTypes methodTypes, YangType<?> returnType) {
-
-        yangName = JavaIdentifierSyntax.getCamelCase(yangName);
-        return MethodsGenerator.constructMethodInfo(genFileTypes, yangName, methodTypes, returnType);
-    }
-
-    /**
      * Based on the file type and the YANG name of the file, generate the class
      * / interface definition close.
      *
-     * @param genFileTypes type of file being generated.
-     * @param yangName YANG name.
-     * @return corresponding textual java code information.
+     * @param genFileTypes type of file being generated
+     * @param yangName YANG name
+     * @return corresponding textual java code information
      */
-    public static String getJavaClassDefClose(GeneratedFileType genFileTypes, String yangName) {
+    public static String getJavaClassDefClose(int genFileTypes, String yangName) {
 
-        if (genFileTypes.equals(GeneratedFileType.INTERFACE)) {
+        if ((genFileTypes & GeneratedFileType.INTERFACE_MASK) != 0) {
 
             return UtilConstants.CLOSE_CURLY_BRACKET;
-        } else if (genFileTypes.equals(GeneratedFileType.BUILDER_CLASS)) {
+        } else if ((genFileTypes & GeneratedFileType.BUILDER_CLASS_MASK) != 0) {
 
             return UtilConstants.CLOSE_CURLY_BRACKET;
         }

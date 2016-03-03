@@ -26,14 +26,14 @@ public interface CodeGenerator {
     /**
      * Traverse the schema of application and generate corresponding code.
      *
-     * @throws IOException when fails to translate the data model tree.
+     * @throws IOException when fails to translate the data model tree
      */
     void generateJavaCodeEntry() throws IOException;
 
     /**
      * Traverse the schema of application and generate corresponding code.
      *
-     * @throws IOException when fails to generate java code.
+     * @throws IOException when fails to generate java code
      */
     void generateJavaCodeExit() throws IOException;
 

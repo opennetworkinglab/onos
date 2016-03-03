@@ -34,7 +34,7 @@ public final class UtilConstants {
     public static final String BUILDER_CLASS_JAVA_DOC = " * Provides the builder implementation of ";
     public static final String INTERFACE_JAVA_DOC = " * Abstraction of an entity which provides functionalities of ";
     public static final String BUILDER_INTERFACE_JAVA_DOC = " * Builder for ";
-    public static final String PACKAGE_INFO_JAVADOC = " * Generated java code for the YANG file ";
+    public static final String PACKAGE_INFO_JAVADOC = " * Generated java code corresponding to YANG ";
     public static final String JAVA_DOC_FIRST_LINE = "/**\n";
     public static final String JAVA_DOC_END_LINE = " */\n";
     public static final String JAVA_DOC_PARAM = " * @param ";
@@ -93,7 +93,7 @@ public final class UtilConstants {
     /**
      * For directories.
      */
-    public static final String YANG_GEN_DIR = "src/main/yangmodal/";
+    public static final String YANG_GEN_DIR = "src/main/yangmodel/";
     public static final String DEFAULT_BASE_PKG = "org.onosproject.yang.gen";
     public static final String REVISION_PREFIX = "rev";
     public static final String VERSION_PREFIX = "v";
@@ -108,15 +108,89 @@ public final class UtilConstants {
     /**
      * For data types.
      */
-    public static final String INT = "int";
+    /**
+     * Void java type.
+     */
     public static final String VOID = "void";
-    public static final String SHORT = "short";
-    public static final String LONG = "long";
-    public static final String BOOLEAN = "boolean";
+
+    /**
+     * String built in java type.
+     */
     public static final String STRING = "String";
-    public static final String FLOAT = "float";
+    /**
+     * java.lang.* packages.
+     */
+    public static final String JAVA_LANG = "java.lang";
+
+    /**
+     * boolean built in java type.
+     */
+    public static final String BOOLEAN = "boolean";
+
+    /**
+     * byte java built in type.
+     */
     public static final String BYTE = "byte";
+
+    /**
+     * short java built in type.
+     */
+    public static final String SHORT = "short";
+
+    /**
+     * int java built in type.
+     */
+    public static final String INT = "int";
+
+    /**
+     * long java built in type.
+     */
+    public static final String LONG = "long";
+
+    /**
+     * float java built in type.
+     */
+    public static final String FLOAT = "float";
+
+    /**
+     * double java built in type.
+     */
     public static final String DOUBLE = "double";
+
+    /**
+     * boolean built in java wrapper type.
+     */
+    public static final String BOOLEAN_WRAPPER = "Boolean";
+
+    /**
+     * byte java built in wrapper type.
+     */
+    public static final String BYTE_WRAPPER = "Byte";
+
+    /**
+     * short java built in wrapper type.
+     */
+    public static final String SHORT_WRAPPER = "Short";
+
+    /**
+     * Integer java built in wrapper type.
+     */
+    public static final String INTEGER_WRAPPER = "Integer";
+
+    /**
+     * long java built in wrapper type.
+     */
+    public static final String LONG_WRAPPER = "Long";
+
+    /**
+     * float java built in wrapper type.
+     */
+    public static final String FLOAT_WRAPPER = "Float";
+
+    /**
+     * double java built in wrapper type.
+     */
+    public static final String DOUBLE_WRAPPER = "Double";
 
     /**
      * For idenifiers.

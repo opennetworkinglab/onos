@@ -22,15 +22,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-import org.sonatype.plexus.build.incremental.BuildContext;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.model.Resource;
-
-import org.onosproject.yangutils.utils.UtilConstants;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.model.Resource;
+import org.apache.maven.project.MavenProject;
+import org.onosproject.yangutils.utils.UtilConstants;
+import org.slf4j.Logger;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import org.slf4j.Logger;
 
 /**
  * Provides common utility functionalities for code generation.
@@ -64,7 +63,7 @@ public final class YangIoUtils {
      * @param path directory path
      * @param classInfo class info for the package
      * @param pack package of the directory
-     * @throws IOException when fails to create package info file.
+     * @throws IOException when fails to create package info file
      */
     public static void addPackageInfo(File path, String classInfo, String pack) throws IOException {
 
@@ -92,7 +91,7 @@ public final class YangIoUtils {
     /**
      * Cleans the generated directory if already exist in source folder.
      *
-     * @param baseDir generated directory in previous build.
+     * @param baseDir generated directory in previous build
      */
     public static void clean(String baseDir) {
         File generatedDirectory = new File(baseDir + File.separator + UtilConstants.YANG_GEN_DIR);

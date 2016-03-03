@@ -34,8 +34,9 @@ public final class JavaCodeGenerator {
     /**
      * Generate Java code files corresponding to the YANG schema.
      *
-     * @param rootNode root node of the data model tree.
-     * @throws IOException when fails to generate java code file the current node.
+     * @param rootNode root node of the data model tree
+     * @throws IOException when fails to generate java code file the current
+     *             node
      */
     public static void generateJavaCode(YangNode rootNode) throws IOException {
         YangNode curNode = rootNode;
@@ -45,10 +46,10 @@ public final class JavaCodeGenerator {
             if (curTraversal != TraversalType.PARENT) {
                 curNode.generateJavaCodeEntry();
             }
-            if (curTraversal != TraversalType.PARENT && (curNode.getChild() != null)) {
+            if (curTraversal != TraversalType.PARENT && curNode.getChild() != null) {
                 curTraversal = TraversalType.CHILD;
                 curNode = curNode.getChild();
-            } else if ((curNode.getNextSibling() != null)) {
+            } else if (curNode.getNextSibling() != null) {
                 curNode.generateJavaCodeExit();
                 curTraversal = TraversalType.SIBILING;
                 curNode = curNode.getNextSibling();

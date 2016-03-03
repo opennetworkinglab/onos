@@ -123,6 +123,8 @@ public class YangList extends YangNode
     private List<YangLeafList> listOfLeafList;
 
     /**
+     * Reference RFC 6020.
+     *
      * The "max-elements" statement, which is optional, takes as an argument a
      * positive integer or the string "unbounded", which puts a constraint on
      * valid list entries. A valid leaf-list or list always has at most
@@ -130,9 +132,11 @@ public class YangList extends YangNode
      *
      * If no "max-elements" statement is present, it defaults to "unbounded".
      */
-    private int maxElelements = Integer.MAX_VALUE;
+    private int maxElements = Integer.MAX_VALUE;
 
     /**
+     * Reference RFC 6020.
+     *
      * The "min-elements" statement, which is optional, takes as an argument a
      * non-negative integer that puts a constraint on valid list entries. A
      * valid leaf-list or list MUST have at least min-elements entries.
@@ -162,17 +166,15 @@ public class YangList extends YangNode
     private YangStatusType status = YangStatusType.CURRENT;
 
     /**
-     * package of the generated java code.
+     * Package of the generated java code.
      */
     private String pkg;
 
     /**
      * Constructor.
-     *
-     * @param type list node
      */
-    public YangList(YangNodeType type) {
-        super(type);
+    public YangList() {
+        super(YangNodeType.LIST_NODE);
     }
 
     /**
@@ -341,17 +343,17 @@ public class YangList extends YangNode
      *
      * @return the max elements
      */
-    public int getMaxElelements() {
-        return maxElelements;
+    public int getMaxElements() {
+        return maxElements;
     }
 
     /**
      * Set the max elements.
      *
-     * @param maxElelements the max elements
+     * @param max the max elements
      */
-    public void setMaxElelements(int maxElelements) {
-        this.maxElelements = maxElelements;
+    public void setMaxElements(int max) {
+        maxElements = max;
     }
 
     /**
@@ -447,8 +449,8 @@ public class YangList extends YangNode
         validateConfig(leaves, leafLists);
 
         /* A list must have atleast one key leaf if config is true */
-        if ((isConfig)
-                && ((keys == null) || ((leaves == null) && (leafLists == null)))) {
+        if (isConfig
+                && (keys == null || leaves == null && leafLists == null)) {
             throw new DataModelException("A list must have atleast one key leaf if config is true;");
         } else if (keys != null) {
             if (leaves != null) {
@@ -508,7 +510,7 @@ public class YangList extends YangNode
          * If a node has "config" set to "false", no node underneath it can have
          * "config" set to "true".
          */
-        if ((!isConfig) && (leaves != null)) {
+        if (!isConfig && leaves != null) {
             for (YangLeaf leaf : leaves) {
                 if (leaf.isConfig()) {
                     throw new DataModelException("If a list has \"config\" set to \"false\", no node underneath " +
@@ -517,7 +519,7 @@ public class YangList extends YangNode
             }
         }
 
-        if ((!isConfig) && (leafLists != null)) {
+        if (!isConfig && leafLists != null) {
             for (YangLeafList leafList : leafLists) {
                 if (leafList.isConfig()) {
                     throw new DataModelException("If a list has \"config\" set to \"false\", no node underneath " +

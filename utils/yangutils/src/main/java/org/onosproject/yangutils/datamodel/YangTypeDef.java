@@ -17,8 +17,8 @@ package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.translator.CachedFileHandle;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 /*-
  * Reference RFC 6020.
@@ -53,7 +53,6 @@ import org.onosproject.yangutils.translator.CachedFileHandle;
  * Data model node to maintain information defined in YANG typedef.
  */
 public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
-
 
     /**
      * Default value in string, needs to be converted to the target object,
@@ -97,8 +96,6 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     public YangTypeDef() {
         super(YangNodeType.TYPEDEF_NODE);
     }
-
-
 
     /**
      * Get the default value.
@@ -245,8 +242,8 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
         if (type == null) {
             throw new DataModelException("Typedef does not have type info.");
         }
-        if ((type.getDataType() != YangDataTypes.DERIVED)
-                || (type.getDataTypeName() == null)) {
+        if (type.getDataType() != YangDataTypes.DERIVED
+                || type.getDataTypeName() == null) {
             throw new DataModelException("Typedef type is not derived.");
         }
 

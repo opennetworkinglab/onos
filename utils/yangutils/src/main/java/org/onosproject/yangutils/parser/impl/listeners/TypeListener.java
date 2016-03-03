@@ -27,7 +27,6 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -35,6 +34,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -110,11 +110,11 @@ public final class TypeListener {
         switch (tmpData.getYangConstructType()) {
             case LEAF_DATA:
                 YangLeaf leaf = (YangLeaf) tmpData;
-                leaf.setDataType((YangType) type);
+                leaf.setDataType((YangType<?>) type);
                 break;
             case LEAF_LIST_DATA:
                 YangLeafList leafList = (YangLeafList) tmpData;
-                leafList.setDataType((YangType) type);
+                leafList.setDataType((YangType<?>) type);
                 break;
             case TYPEDEF_DATA:
 
@@ -128,15 +128,15 @@ public final class TypeListener {
                 }
 
                 YangDerivedType derivedTypeInfo = new YangDerivedType();
-                if (((YangType) type).getDataType() != YangDataTypes.DERIVED) {
-                    derivedTypeInfo.setEffectiveYangBuiltInType(((YangType) type).getDataType());
+                if (((YangType<?>) type).getDataType() != YangDataTypes.DERIVED) {
+                    derivedTypeInfo.setEffectiveYangBuiltInType(((YangType<?>) type).getDataType());
                 } else {
                     /*
                      * It will be resolved in the validate data model at exit.
                      * Nothing needs to be done.
                      */
                 }
-                derivedTypeInfo.setBaseType((YangType) type);
+                derivedTypeInfo.setBaseType((YangType<?>) type);
                 derivedType.setDataTypeExtendedInfo(derivedTypeInfo);
 
                 break;

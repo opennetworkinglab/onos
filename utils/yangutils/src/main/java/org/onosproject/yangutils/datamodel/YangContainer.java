@@ -487,8 +487,9 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
         CachedFileHandle handle = null;
         try {
             FileSystemUtil.createPackage(UtilConstants.YANG_GEN_DIR + getPackage(), getName());
-            handle = FileSystemUtil.createSourceFiles(getPackage(), getName(), GeneratedFileType.ALL);
-            handle.setFilePath(UtilConstants.YANG_GEN_DIR + getPackage().replace(".", "/"));
+            handle = FileSystemUtil.createSourceFiles(getPackage(), getName(),
+                    GeneratedFileType.GENERATE_INTERFACE_WITH_BUILDER);
+            handle.setRelativeFilePath(UtilConstants.YANG_GEN_DIR + getPackage().replace(".", "/"));
         } catch (IOException e) {
             throw new IOException("Failed to create the source files.");
         }
@@ -504,7 +505,6 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      */
     private void addAttributeInParent() {
         if (getParent() != null) {
-            getParent().getFileHandle().setChildsPackage(getPackage());
             getParent().getFileHandle().addAttributeInfo(null, getName(), false);
         }
     }

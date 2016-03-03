@@ -20,12 +20,13 @@ import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
@@ -35,7 +36,6 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinality;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityNonNull;
@@ -115,7 +115,7 @@ public final class ListListener {
         String identifierName = ctx.IDENTIFIER().getText();
         detectCollidingChildUtil(listener, line, charPositionInLine, identifierName, LIST_DATA);
 
-        YangList yangList = new YangList(YangNodeType.LIST_NODE);
+        YangList yangList = new YangList();
         yangList.setName(ctx.IDENTIFIER().getText());
 
         /*
@@ -128,8 +128,8 @@ public final class ListListener {
         }
 
         Parsable curData = listener.getParsedDataStack().peek();
-        if ((curData instanceof YangModule) || (curData instanceof YangContainer)
-                || (curData instanceof YangList)) {
+        if (curData instanceof YangModule || curData instanceof YangContainer
+                || curData instanceof YangList) {
             curNode = (YangNode) curData;
             try {
                 curNode.addChild(yangList);

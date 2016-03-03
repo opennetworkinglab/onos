@@ -46,11 +46,10 @@ import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.utils.YangConstructType.ENUMERATION_DATA;
-import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -58,6 +57,8 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.utils.YangConstructType.ENUMERATION_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 
 /**
  * Implements listener based call back function corresponding to the
@@ -104,7 +105,7 @@ public final class EnumerationListener {
                 // TODO typedef, union, deviate.
                 default:
                     throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, TYPE_DATA,
-                            ((YangType) typeData).getDataTypeName(), ENTRY));
+                            ((YangType<?>) typeData).getDataTypeName(), ENTRY));
             }
             listener.getParsedDataStack().push(typeData);
             listener.getParsedDataStack().push(enumerationNode);
@@ -128,6 +129,7 @@ public final class EnumerationListener {
 
         Parsable tmpEnumerationNode = listener.getParsedDataStack().peek();
         if (tmpEnumerationNode instanceof YangEnumeration) {
+            YangEnumeration enumerationNode = (YangEnumeration) tmpEnumerationNode;
             listener.getParsedDataStack().pop();
 
             // Check for stack to be non empty.
@@ -136,8 +138,8 @@ public final class EnumerationListener {
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getYangConstructType()) {
                 case TYPE_DATA: {
-                    YangType typeNode = (YangType) tmpNode;
-                    typeNode.setDataTypeExtendedInfo((YangEnumeration) tmpEnumerationNode);
+                    YangType<YangEnumeration> typeNode = (YangType<YangEnumeration>) tmpNode;
+                    typeNode.setDataTypeExtendedInfo(enumerationNode);
                     break;
                 }
                 default:

@@ -33,7 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Provides storage for Temp data while traversing data model tree for code generation.
+ * Provides storage for Temp data while traversing data model tree for code
+ * generation.
  */
 public final class TempDataStore {
 
@@ -130,7 +131,7 @@ public final class TempDataStore {
      * @param data data to be stored
      * @param type type of Temp data store
      * @param className class name
-     * @throws IOException when fails to create a Temp data file.
+     * @throws IOException when fails to create a Temp data file
      */
     public static void setTempData(String data, TempDataStoreType type, String className) throws IOException {
 
@@ -170,11 +171,11 @@ public final class TempDataStore {
      * Get the Temp data.
      *
      * @param type type of Temp data store
-     * @param className name of the class.
-     * @return list of attribute info.
-     * @throws IOException when fails to read from the file.
-     * @throws ClassNotFoundException when class is missing.
-     * @throws FileNotFoundException when file is missing.
+     * @param className name of the class
+     * @return list of attribute info
+     * @throws IOException when fails to read from the file
+     * @throws ClassNotFoundException when class is missing
+     * @throws FileNotFoundException when file is missing
      */
     public static List<String> getTempData(TempDataStoreType type, String className)
             throws IOException, FileNotFoundException, ClassNotFoundException {

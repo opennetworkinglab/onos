@@ -16,6 +16,10 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.onosproject.yangutils.datamodel.YangImport;
 import org.onosproject.yangutils.datamodel.YangInclude;
 import org.onosproject.yangutils.parser.Parsable;
@@ -23,16 +27,12 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import static org.onosproject.yangutils.utils.YangConstructType.REVISION_DATE_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.utils.YangConstructType.REVISION_DATE_DATA;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -83,11 +83,11 @@ public final class RevisionDateListener {
      * @param ctx context object of the grammar rule
      */
     public static void processRevisionDateEntry(TreeWalkListener listener,
-                                                GeneratedYangParser.RevisionDateStatementContext ctx) {
+            GeneratedYangParser.RevisionDateStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATE_DATA, ctx.DATE_ARG().getText(),
-                             ENTRY);
+                ENTRY);
 
         if (!isDateValid(ctx.DATE_ARG().getText())) {
             ParserException parserException = new ParserException("YANG file error: Input date is not correct");
@@ -99,19 +99,19 @@ public final class RevisionDateListener {
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getYangConstructType()) {
-        case IMPORT_DATA: {
-            YangImport importNode = (YangImport) tmpNode;
-            importNode.setRevision(ctx.DATE_ARG().getText());
-            break;
-        }
-        case INCLUDE_DATA: {
-            YangInclude includeNode = (YangInclude) tmpNode;
-            includeNode.setRevision(ctx.DATE_ARG().getText());
-            break;
-        }
-        default:
-            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, REVISION_DATE_DATA,
-                                                                    ctx.DATE_ARG().getText(), ENTRY));
+            case IMPORT_DATA: {
+                YangImport importNode = (YangImport) tmpNode;
+                importNode.setRevision(ctx.DATE_ARG().getText());
+                break;
+            }
+            case INCLUDE_DATA: {
+                YangInclude includeNode = (YangInclude) tmpNode;
+                includeNode.setRevision(ctx.DATE_ARG().getText());
+                break;
+            }
+            default:
+                throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, REVISION_DATE_DATA,
+                        ctx.DATE_ARG().getText(), ENTRY));
         }
     }
 

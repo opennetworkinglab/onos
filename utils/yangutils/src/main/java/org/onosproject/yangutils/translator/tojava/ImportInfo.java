@@ -23,7 +23,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Maintains the information about individual imports in the generated file.
  */
-public class ImportInfo {
+public class ImportInfo implements Comparable {
 
     /**
      * Package location where the imported class/interface is defined.
@@ -31,7 +31,7 @@ public class ImportInfo {
     private String pkgInfo;
 
     /**
-     * class/interface being referenced.
+     * Class/interface being referenced.
      */
     private String classInfo;
 
@@ -44,7 +44,7 @@ public class ImportInfo {
     /**
      * Get the imported package info.
      *
-     * @return the imported package info.
+     * @return the imported package info
      */
     public String getPkgInfo() {
         return pkgInfo;
@@ -53,7 +53,7 @@ public class ImportInfo {
     /**
      * Set the imported package info.
      *
-     * @param pkgInfo the imported package info.
+     * @param pkgInfo the imported package info
      */
     public void setPkgInfo(String pkgInfo) {
         this.pkgInfo = pkgInfo;
@@ -62,7 +62,7 @@ public class ImportInfo {
     /**
      * Get the imported class/interface info.
      *
-     * @return the imported class/interface info.
+     * @return the imported class/interface info
      */
     public String getClassInfo() {
         return classInfo;
@@ -71,7 +71,7 @@ public class ImportInfo {
     /**
      * Set the imported class/interface info.
      *
-     * @param classInfo the imported class/interface info.
+     * @param classInfo the imported class/interface info
      */
     public void setClassInfo(String classInfo) {
         this.classInfo = classInfo;
@@ -112,6 +112,22 @@ public class ImportInfo {
         return MoreObjects.toStringHelper(getClass())
                 .add("pkgInfo", pkgInfo)
                 .add("classInfo", classInfo).toString();
+    }
+
+    /**
+     * Check that there is no 2 objects with the same class name.
+     *
+     * @param o compared import info.
+     */
+    @Override
+    public int compareTo(Object o) {
+        ImportInfo other;
+        if (o instanceof ImportInfo) {
+            other = (ImportInfo) o;
+        } else {
+            return -1;
+        }
+        return getClassInfo().compareTo(other.getClassInfo());
     }
 
 }

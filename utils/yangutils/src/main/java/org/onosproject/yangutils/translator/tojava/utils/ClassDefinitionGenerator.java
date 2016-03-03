@@ -31,30 +31,31 @@ public final class ClassDefinitionGenerator {
     }
 
     /**
-     * Generate class definition for specific classes.
+     * Based on the file type and the YANG name of the file, generate the class
+     * / interface definition start.
      *
      * @param genFileTypes generated file type
      * @param yangName class name
      * @return class definition
      */
-    public static String generateClassDefinition(GeneratedFileType genFileTypes, String yangName) {
+    public static String generateClassDefinition(int genFileTypes, String yangName) {
 
         /**
-         * based on the file type and the YANG name of the file, generate
-         * the class / interface definition start.
+         * based on the file type and the YANG name of the file, generate the
+         * class / interface definition start.
          */
-        if (genFileTypes.equals(GeneratedFileType.INTERFACE)) {
+        if ((genFileTypes & GeneratedFileType.INTERFACE_MASK) != 0) {
 
             return getInterfaceDefinition(yangName);
-        } else if (genFileTypes.equals(GeneratedFileType.BUILDER_CLASS)) {
+        } else if ((genFileTypes & GeneratedFileType.BUILDER_CLASS_MASK) != 0) {
 
             return getBuilderClassDefinition(yangName);
-        } else if (genFileTypes.equals(GeneratedFileType.IMPL)) {
+        } else if ((genFileTypes & GeneratedFileType.IMPL_CLASS_MASK) != 0) {
 
             return getImplClassDefinition(yangName);
-        } else if (genFileTypes.equals(GeneratedFileType.BUILDER_INTERFACE)) {
+        } else if ((genFileTypes & GeneratedFileType.BUILDER_INTERFACE_MASK) != 0) {
 
-            return getBuilderInterfaceDefinition();
+            return getBuilderInterfaceDefinition(yangName);
         }
         return null;
     }
@@ -74,10 +75,12 @@ public final class ClassDefinitionGenerator {
     /**
      * Returns builder interface file class definition.
      *
+     * @param yangName java class name, corresponding to which the builder class
+     *            is being generated
      * @return definition
      */
-    private static String getBuilderInterfaceDefinition() {
-        return UtilConstants.INTERFACE + UtilConstants.SPACE + UtilConstants.BUILDER + UtilConstants.SPACE
+    private static String getBuilderInterfaceDefinition(String yangName) {
+        return UtilConstants.INTERFACE + UtilConstants.SPACE + yangName + UtilConstants.BUILDER + UtilConstants.SPACE
                 + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE;
     }
 

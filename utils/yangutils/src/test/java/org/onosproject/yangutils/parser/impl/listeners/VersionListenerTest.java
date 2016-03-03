@@ -16,13 +16,13 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.io.IOException;
+
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
-import java.io.IOException;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;

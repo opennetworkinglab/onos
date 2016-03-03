@@ -18,20 +18,18 @@ package org.onosproject.yangutils.translator.tojava;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.translator.CachedFileHandle;
 import org.onosproject.yangutils.translator.GeneratedFileType;
 import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
-import org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen;
 import org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator;
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
-import org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator;
 import org.onosproject.yangutils.utils.UtilConstants;
 
 /**
@@ -47,17 +45,7 @@ public class CachedJavaFileHandle implements CachedFileHandle {
      * The type(s) of java source file(s) to be generated when the cached file
      * handle is closed.
      */
-    private GeneratedFileType genFileTypes;
-
-    /**
-     * Java package in which the class/interface needs to be generated.
-     */
-    private String pkg;
-
-    /**
-     * Java package in which the child class/interface needs to be generated.
-     */
-    private String childsPkg;
+    private int genFileTypes;
 
     /**
      * Name of the object in YANG file.
@@ -68,7 +56,7 @@ public class CachedJavaFileHandle implements CachedFileHandle {
      * Sorted set of import info, to be used to maintain the set of classes to
      * be imported in the generated class.
      */
-    private SortedSet<String> importSet;
+    private SortedSet<ImportInfo> importSet;
 
     /**
      * Cached list of attribute info.
@@ -78,7 +66,12 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     /**
      * File generation directory path.
      */
-    private String filePath;
+    private String relativeFilePath;
+
+    /**
+     * Typedef Info.
+     */
+    private YangTypeDef typedefInfo;
 
     /**
      * Prevent invoking default constructor.
@@ -91,14 +84,16 @@ public class CachedJavaFileHandle implements CachedFileHandle {
      * Create a cached file handle which takes care of adding attributes to the
      * generated java file.
      *
-     * @param pcg package in which class/interface need to be generated.
-     * @param yangName name of the attribute in YANG file.
-     * @param types the types of files that needs to be generated.
-     * @throws IOException file IO exception.
+     * @param pcg package in which class/interface need to be generated
+     * @param yangName name of the attribute in YANG file
+     * @param types the types of files that needs to be generated
+     * @throws IOException file IO exception
      */
-    public CachedJavaFileHandle(String pcg, String yangName, GeneratedFileType types) throws IOException {
+    public CachedJavaFileHandle(String pcg, String yangName, int types) throws IOException {
+        setCachedAttributeList(new LinkedList<AttributeInfo>());
+        setImportSet(new TreeSet<ImportInfo>());
+        setRelativeFilePath(pcg.replace(".", "/"));
         setGeneratedFileTypes(types);
-        setPackage(pcg);
         setYangName(yangName);
     }
 
@@ -107,9 +102,9 @@ public class CachedJavaFileHandle implements CachedFileHandle {
      * definition.
      *
      * @return the types of files being generated corresponding to the YANG
-     *         definition.
+     *         definition
      */
-    public GeneratedFileType getGeneratedFileTypes() {
+    public int getGeneratedFileTypes() {
         return genFileTypes;
     }
 
@@ -118,16 +113,16 @@ public class CachedJavaFileHandle implements CachedFileHandle {
      * definition.
      *
      * @param fileTypes the types of files being generated corresponding to the
-     *            YANG definition.
+     *            YANG definition
      */
-    public void setGeneratedFileTypes(GeneratedFileType fileTypes) {
+    public void setGeneratedFileTypes(int fileTypes) {
         genFileTypes = fileTypes;
     }
 
     /**
      * Get the corresponding name defined in YANG.
      *
-     * @return the corresponding name defined in YANG.
+     * @return the corresponding name defined in YANG
      */
     public String getYangName() {
         return yangName;
@@ -136,59 +131,27 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     /**
      * Set the corresponding name defined in YANG.
      *
-     * @param yangName the corresponding name defined in YANG.
+     * @param yangName the corresponding name defined in YANG
      */
     public void setYangName(String yangName) {
         this.yangName = yangName;
     }
 
     /**
-     * Get the java package.
-     *
-     * @return the java package.
-     */
-    public String getPackage() {
-        return pkg;
-    }
-
-    /**
-     * Set the java package.
-     *
-     * @param pcg the package to set
-     */
-    public void setPackage(String pcg) {
-        pkg = pcg;
-    }
-
-    /**
-     * Get the java package.
-     *
-     * @return the java package.
-     */
-    public String getChildsPackage() {
-        return childsPkg;
-    }
-
-    @Override
-    public void setChildsPackage(String pcg) {
-        childsPkg = pcg;
-    }
-
-    /**
      * Get the set containing the imported class/interface info.
      *
-     * @return the set containing the imported class/interface info.
+     * @return the set containing the imported class/interface info
      */
-    public SortedSet<String> getImportSet() {
+    public SortedSet<ImportInfo> getImportSet() {
         return importSet;
     }
 
     /**
      * Assign the set containing the imported class/interface info.
      *
-     * @param importSet the set containing the imported class/interface info.
+     * @param importSet the set containing the imported class/interface info
      */
-    private void setImportSet(SortedSet<String> importSet) {
+    private void setImportSet(SortedSet<ImportInfo> importSet) {
         this.importSet = importSet;
     }
 
@@ -197,25 +160,17 @@ public class CachedJavaFileHandle implements CachedFileHandle {
      * set. If already part of the set, return false, else add to set and return
      * true.
      *
-     * @param importInfo class/interface info being imported.
+     * @param importInfo class/interface info being imported
      * @return status of new addition of class/interface to the import set
      */
     public boolean addImportInfo(ImportInfo importInfo) {
-        /*
-         * implement the import info adding. The return value will be used to
-         * check if the qualified name will be used or class/interface name will
-         * be used in the generated class.
-         */
-        if (getImportSet() == null) {
-            setImportSet(new TreeSet<String>());
-        }
-        return getImportSet().add(JavaCodeSnippetGen.getImportText(importInfo));
+        return getImportSet().add(importInfo);
     }
 
     /**
      * Get the list of cached attribute list.
      *
-     * @return the set containing the imported class/interface info.
+     * @return the set containing the imported class/interface info
      */
     public List<AttributeInfo> getCachedAttributeList() {
         return attributeList;
@@ -224,33 +179,39 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     /**
      * Set the cached attribute list.
      *
-     * @param attrList attribute list.
+     * @param attrList attribute list
      */
     private void setCachedAttributeList(List<AttributeInfo> attrList) {
         attributeList = attrList;
     }
 
-    @Override
-    public void setFilePath(String path) {
-        filePath = path;
-    }
-
     /**
-     * Set the cached attribute list.
+     * Set the package relative path.
      *
-     * @param attrList attribute list.
+     * @param path package relative path
      */
-    private String getFilePath() {
-        return filePath;
+    @Override
+    public void setRelativeFilePath(String path) {
+        relativeFilePath = path;
     }
 
     /**
-     * Flush the cached attribute list to the serialized file.
+     * Get the package relative path.
+     *
+     * @return package relative path
      */
-    private void flushCacheAttrToSerFile(String className) {
+    @Override
+    public String getRelativeFilePath() {
+        return relativeFilePath;
+    }
+
+    /**
+     * Flush the cached attribute list to the corresponding temporary file.
+     */
+    private void flushCacheAttrToTempFile() {
 
         for (AttributeInfo attr : getCachedAttributeList()) {
-            JavaFileGenerator.parseAttributeInfo(attr, getGeneratedFileTypes(), className);
+            JavaFileGenerator.parseAttributeInfo(attr, getGeneratedFileTypes(), getYangName());
         }
 
         /*
@@ -262,88 +223,61 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     /**
      * Add a new attribute to the file(s).
      *
-     * @param attrType data type of the added attribute.
-     * @param name name of the attribute.
+     * @param attrType data type of the added attribute
+     * @param name name of the attribute
      * @param isListAttr if the current added attribute needs to be maintained
-     *            in a list.
+     *            in a list
      */
     @Override
     public void addAttributeInfo(YangType<?> attrType, String name, boolean isListAttr) {
+        /* YANG name is mapped to java name */
+        name = JavaIdentifierSyntax.getCamelCase(name);
+
+        ImportInfo importInfo = new ImportInfo();
+        boolean isImport = false;
 
         AttributeInfo newAttr = new AttributeInfo();
         if (attrType != null) {
             newAttr.setAttributeType(attrType);
-        } else {
-            ImportInfo importInfo = new ImportInfo();
-            importInfo.setPkgInfo(getChildsPackage());
-            importInfo.setClassInfo(JavaIdentifierSyntax.getCaptialCase(name));
-            if (getImportSet() != null) {
-                getImportSet().add(JavaCodeSnippetGen.getImportText(importInfo));
+            String importStr = AttributesJavaDataType.getJavaImportClass(attrType, isListAttr);
+            if (importStr != null) {
+                importInfo.setClassInfo(importStr);
+                importStr = AttributesJavaDataType.getJavaImportPackage(attrType, isListAttr);
+                importInfo.setPkgInfo(importStr);
+                isImport = true;
             } else {
-                SortedSet<String> newImportInfo = new TreeSet<>();
-                newImportInfo.add(JavaCodeSnippetGen.getImportText(importInfo));
-                setImportSet(newImportInfo);
+                importStr = AttributesJavaDataType.getJavaDataType(attrType);
+                if (importStr == null) {
+                    throw new RuntimeException("not supported data type");
+                    //TODO: need to change to translator exception.
+                }
+                importInfo.setClassInfo(importStr);
             }
 
-            newAttr.setQualifiedName(getQualifiedFlag(JavaCodeSnippetGen.getImportText(importInfo)));
+        } else {
+            importInfo.setClassInfo(JavaIdentifierSyntax.getCaptialCase(name));
+
+            importInfo.setPkgInfo(getRelativeFilePath().replace('/', '.')
+                    + "." + getYangName());
+            isImport = true;
         }
+
+        newAttr.setQualifiedName(false);
+        if (isImport) {
+            boolean isNewImport = addImportInfo(importInfo);
+            if (!isNewImport) {
+                newAttr.setQualifiedName(true);
+            }
+        }
+
         newAttr.setAttributeName(name);
         newAttr.setListAttr(isListAttr);
+        newAttr.setImportInfo(importInfo);
 
-        if (newAttr.isListAttr()) {
-            newAttr.setAttributeType(AttributesJavaDataType.getListString(newAttr));
+        if (getCachedAttributeList().size() == MAX_CACHABLE_ATTR) {
+            flushCacheAttrToTempFile();
         }
-
-        if (isListAttr) {
-            String listImport = UtilConstants.COLLECTION_IMPORTS + UtilConstants.LIST + UtilConstants.SEMI_COLAN
-                    + UtilConstants.NEW_LINE + UtilConstants.NEW_LINE;
-            if (getImportSet() != null) {
-                getImportSet().add(listImport);
-            } else {
-                SortedSet<String> newImportInfo = new TreeSet<>();
-                newImportInfo.add(listImport);
-                setImportSet(newImportInfo);
-            }
-
-            newAttr.setQualifiedName(getQualifiedFlag(listImport));
-        }
-
-        if (getCachedAttributeList() != null) {
-            if (getCachedAttributeList().size() == MAX_CACHABLE_ATTR) {
-                flushCacheAttrToSerFile(getYangName());
-            }
-            getCachedAttributeList().add(newAttr);
-        } else {
-            List<AttributeInfo> newAttributeInfo = new LinkedList<>();
-            newAttributeInfo.add(newAttr);
-            setCachedAttributeList(newAttributeInfo);
-        }
-    }
-
-    /**
-     * Check if the import set does not have a class info same as the new class
-     * info, if so the new class info be added to the import set. Otherwise
-     * check if the corresponding package info is same as the new package info,
-     * if so no need to qualified access, otherwise, it needs qualified access.
-     *
-     * @param newImportInfo new import info to be check for qualified access or
-     *            not and updated in the import set accordingly.
-     * @return if the new attribute needs to be accessed in a qualified manner.
-     */
-    private boolean getQualifiedFlag(String newImportInfo) {
-        for (String curImportInfo : getImportSet()) {
-            if (curImportInfo.equals(newImportInfo)) {
-                /*
-                 * If import is already existing import with same package, we
-                 * don't need qualified access, otherwise it needs to be
-                 * qualified access.
-                 */
-                return !curImportInfo.equals(newImportInfo);
-            }
-        }
-
-        getImportSet().add(newImportInfo);
-        return false;
+        getCachedAttributeList().add(newAttr);
     }
 
     /**
@@ -352,10 +286,12 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     @Override
     public void close() throws IOException {
 
+        flushCacheAttrToTempFile();
+
         String className = getYangName();
         className = JavaIdentifierSyntax.getCaptialCase(className);
-        String filePath = getFilePath();
-        GeneratedFileType fileType = getGeneratedFileTypes();
+        String path = getRelativeFilePath();
+        int fileType = getGeneratedFileTypes();
 
         /*
          * TODO: add the file header using
@@ -363,45 +299,46 @@ public class CachedJavaFileHandle implements CachedFileHandle {
          */
 
         List<String> imports = new LinkedList<>();
+        String importString;
 
-        if (getCachedAttributeList() != null) {
-            MethodsGenerator.setAttrInfo(getCachedAttributeList());
-            for (AttributeInfo attr : getCachedAttributeList()) {
-
-                if (getImportSet() != null) {
-                    imports = new ArrayList<>(getImportSet());
-                }
+        for (ImportInfo importInfo : getImportSet()) {
+            importString = "";
+            if (importInfo.getPkgInfo() != null) {
+                importString = importString + importInfo.getPkgInfo() + ".";
             }
+            importString = importString + importInfo.getClassInfo();
+            imports.add(importString);
         }
 
         /**
          * Start generation of files.
          */
-        if (fileType.equals(GeneratedFileType.INTERFACE) || fileType.equals(GeneratedFileType.ALL)) {
+        if ((fileType & GeneratedFileType.INTERFACE_MASK) != 0
+                || fileType == GeneratedFileType.GENERATE_INTERFACE_WITH_BUILDER) {
 
             /**
              * Create interface file.
              */
             String interfaceFileName = className;
-            File interfaceFile = new File(filePath + File.separator + interfaceFileName + JAVA_FILE_EXTENSION);
+            File interfaceFile = JavaFileGenerator.getFileObject(path, interfaceFileName, JAVA_FILE_EXTENSION);
             interfaceFile = JavaFileGenerator.generateInterfaceFile(interfaceFile, className, imports,
-                    getCachedAttributeList(), getPackage());
+                    getCachedAttributeList(), path.replace('/', '.'));
 
             /**
              * Create temp builder interface file.
              */
             String builderInterfaceFileName = className + UtilConstants.BUILDER + UtilConstants.INTERFACE;
-            File builderInterfaceFile = new File(
-                    filePath + File.separator + builderInterfaceFileName + TEMP_FILE_EXTENSION);
+            File builderInterfaceFile = JavaFileGenerator.getFileObject(path, builderInterfaceFileName,
+                    TEMP_FILE_EXTENSION);
             builderInterfaceFile = JavaFileGenerator.generateBuilderInterfaceFile(builderInterfaceFile, className,
-                    getPackage(), getCachedAttributeList());
+                    path.replace('/', '.'), getCachedAttributeList());
 
             /**
              * Append builder interface file to interface file and close it.
              */
             JavaFileGenerator.appendFileContents(builderInterfaceFile, interfaceFile);
             JavaFileGenerator.insert(interfaceFile,
-                    JavaFileGenerator.closeFile(GeneratedFileType.INTERFACE, interfaceFileName));
+                    JavaFileGenerator.closeFile(GeneratedFileType.INTERFACE_MASK, interfaceFileName));
 
             /**
              * Remove temp files.
@@ -409,38 +346,45 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             JavaFileGenerator.clean(builderInterfaceFile);
         }
 
-        if (fileType.equals(GeneratedFileType.BUILDER_CLASS) || fileType.equals(GeneratedFileType.ALL)) {
+        if ((fileType & GeneratedFileType.BUILDER_CLASS_MASK) != 0
+                || fileType == GeneratedFileType.GENERATE_INTERFACE_WITH_BUILDER) {
 
             /**
              * Create builder class file.
              */
             String builderFileName = className + UtilConstants.BUILDER;
-            File builderFile = new File(filePath + File.separator + builderFileName + JAVA_FILE_EXTENSION);
-            MethodsGenerator.setBuilderClassName(className + UtilConstants.BUILDER);
-
-            builderFile = JavaFileGenerator.generateBuilderClassFile(builderFile, className, imports, getPackage(),
-                    getCachedAttributeList());
+            File builderFile = JavaFileGenerator.getFileObject(path, builderFileName, JAVA_FILE_EXTENSION);
+            builderFile = JavaFileGenerator.generateBuilderClassFile(builderFile, className, imports,
+                    path.replace('/', '.'), getCachedAttributeList());
 
             /**
              * Create temp impl class file.
              */
 
             String implFileName = className + UtilConstants.IMPL;
-            File implTempFile = new File(filePath + File.separator + implFileName + TEMP_FILE_EXTENSION);
-            implTempFile = JavaFileGenerator.generateImplClassFile(implTempFile, className, getPackage(),
-                    getCachedAttributeList());
+            File implTempFile = JavaFileGenerator.getFileObject(path, implFileName, TEMP_FILE_EXTENSION);
+            implTempFile = JavaFileGenerator.generateImplClassFile(implTempFile, className,
+                    path.replace('/', '.'), getCachedAttributeList());
 
             /**
              * Append impl class to builder class and close it.
              */
             JavaFileGenerator.appendFileContents(implTempFile, builderFile);
             JavaFileGenerator.insert(builderFile,
-                    JavaFileGenerator.closeFile(GeneratedFileType.BUILDER_CLASS, builderFileName));
+                    JavaFileGenerator.closeFile(GeneratedFileType.BUILDER_CLASS_MASK, builderFileName));
 
             /**
              * Remove temp files.
              */
             JavaFileGenerator.clean(implTempFile);
         }
+    }
+
+    public YangTypeDef getTypedefInfo() {
+        return typedefInfo;
+    }
+
+    public void setTypedefInfo(YangTypeDef typedefInfo) {
+        this.typedefInfo = typedefInfo;
     }
 }

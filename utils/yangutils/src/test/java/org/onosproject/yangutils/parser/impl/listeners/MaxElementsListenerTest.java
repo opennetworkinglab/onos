@@ -88,7 +88,7 @@ public class MaxElementsListenerTest {
         // Check whether the list is child of module
         YangList yangList = (YangList) yangNode.getChild();
         assertThat(yangList.getName(), is("valid"));
-        assertThat(yangList.getMaxElelements(), is(3));
+        assertThat(yangList.getMaxElements(), is(3));
     }
 
     /**

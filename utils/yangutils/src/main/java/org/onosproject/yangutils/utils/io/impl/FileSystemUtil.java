@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.onosproject.yangutils.translator.CachedFileHandle;
-import org.onosproject.yangutils.translator.GeneratedFileType;
 import org.onosproject.yangutils.translator.tojava.CachedJavaFileHandle;
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
 import org.onosproject.yangutils.utils.UtilConstants;
@@ -42,8 +41,8 @@ public final class FileSystemUtil {
     /**
      * Check if the package directory structure created.
      *
-     * @param pkg Package to check if it is created.
-     * @return existence status of package.
+     * @param pkg Package to check if it is created
+     * @return existence status of package
      */
     public static boolean doesPackageExist(String pkg) {
         File pkgDir = new File(pkg.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
@@ -76,13 +75,16 @@ public final class FileSystemUtil {
     /**
      * Create a java source file in the specified package.
      *
-     * @param pkg java package under which the interface file needs to be created.
-     * @param yangName YANG name of the node for which java file needs to be created.
-     * @param types types of files to be created.
-     * @throws IOException when fails to create interface file.
-     * @return the cached java file handle, which can be used to further add methods.
+     * @param pkg java package under which the interface file needs to be
+     *            created
+     * @param yangName YANG name of the node for which java file needs to be
+     *            created
+     * @param types types of files to be created
+     * @throws IOException when fails to create interface file
+     * @return the cached java file handle, which can be used to further add
+     *         methods
      */
-    public static CachedFileHandle createSourceFiles(String pkg, String yangName, GeneratedFileType types)
+    public static CachedFileHandle createSourceFiles(String pkg, String yangName, int types)
             throws IOException {
         yangName = JavaIdentifierSyntax.getCamelCase(yangName);
         CachedFileHandle handler = new CachedJavaFileHandle(pkg, yangName, types);
@@ -95,10 +97,10 @@ public final class FileSystemUtil {
      * file.
      *
      * @param toAppend destination file in which the contents of source file is
-     *            appended.
+     *            appended
      * @param srcFile source file from which data is read and added to to append
-     *            file.
-     * @throws IOException any IO errors.
+     *            file
+     * @throws IOException any IO errors
      */
     public static void appendFileContents(File toAppend, File srcFile) throws IOException {
 
@@ -109,8 +111,8 @@ public final class FileSystemUtil {
     /**
      * Reads file and convert it to string.
      *
-     * @param toAppend file to be converted.
-     * @return string of file.
+     * @param toAppend file to be converted
+     * @return string of file
      * @throws IOException when fails to convert to string
      */
     private static String readAppendFile(String toAppend) throws IOException {
@@ -134,8 +136,8 @@ public final class FileSystemUtil {
      * Insert content to the generated file.
      *
      * @param inputFile input file
-     * @param contentTobeAdded content to be appended to the file.
-     * @throws IOException when fails to append content to the file.
+     * @param contentTobeAdded content to be appended to the file
+     * @throws IOException when fails to append content to the file
      */
     public static void insertStringInFile(File inputFile, String contentTobeAdded) throws IOException {
         FileWriter fileWriter = new FileWriter(inputFile, true);

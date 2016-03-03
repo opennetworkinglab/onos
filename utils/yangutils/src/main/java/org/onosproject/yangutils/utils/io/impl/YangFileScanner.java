@@ -37,10 +37,10 @@ public final class YangFileScanner {
      * Returns the list of java files.
      *
      * @param root specified directory
-     * @return list of java files.
-     * @throws NullPointerException when no files are there.
+     * @return list of java files
+     * @throws NullPointerException when no files are there
      * @throws IOException when files get deleted while performing the
-     *             operations.
+     *             operations
      */
     public static List<String> getJavaFiles(String root) throws NullPointerException, IOException {
         return getFiles(root, ".java");
@@ -50,10 +50,10 @@ public final class YangFileScanner {
      * Returns the list of YANG files.
      *
      * @param root specified directory
-     * @return list of YANG files.
-     * @throws NullPointerException when no files are there.
+     * @return list of YANG files
+     * @throws NullPointerException when no files are there
      * @throws IOException when files get deleted while performing the
-     *             operations.
+     *             operations
      */
     public static List<String> getYangFiles(String root) throws NullPointerException, IOException {
         return getFiles(root, ".yang");
@@ -63,12 +63,13 @@ public final class YangFileScanner {
      * Returns the list of required files.
      *
      * @param root specified directory
-     * @param extension file extension.
-     * @return list of required files.
+     * @param extension file extension
+     * @return list of required files
      * @throws IOException when files get deleted while performing the
-     *             operations.
+     *             operations
+     * @throws NullPointerException null pointer access
      */
-    public static List<String> getFiles(String root, String extension) throws  NullPointerException, IOException {
+    public static List<String> getFiles(String root, String extension) throws NullPointerException, IOException {
         List<String> store = new LinkedList<>();
         Stack<String> stack = new Stack<>();
         stack.push(root);

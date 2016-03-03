@@ -54,7 +54,7 @@ public class UnitsListenerTest {
         YangNode node = manager.getDataModel("src/test/resources/UnitsStatement.yang");
 
         // Check whether the data model tree returned is of type module.
-        assertThat((node instanceof YangModule), is(true));
+        assertThat(node instanceof YangModule, is(true));
 
         // Check whether the node type is set properly to module.
         assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
@@ -103,7 +103,7 @@ public class UnitsListenerTest {
         YangNode node = manager.getDataModel("src/test/resources/UnitsStatementOrder.yang");
 
         // Check whether the data model tree returned is of type module.
-        assertThat((node instanceof YangModule), is(true));
+        assertThat(node instanceof YangModule, is(true));
 
         // Check whether the node type is set properly to module.
         assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
@@ -135,7 +135,7 @@ public class UnitsListenerTest {
         YangNode node = manager.getDataModel("src/test/resources/UnitsDefaultValue.yang");
 
         // Check whether the data model tree returned is of type module.
-        assertThat((node instanceof YangModule), is(true));
+        assertThat(node instanceof YangModule, is(true));
 
         // Check whether the node type is set properly to module.
         assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
@@ -170,7 +170,7 @@ public class UnitsListenerTest {
         YangNode node = manager.getDataModel("src/test/resources/LeafListSubStatementUnits.yang");
 
         // Check whether the data model tree returned is of type module.
-        assertThat((node instanceof YangModule), is(true));
+        assertThat(node instanceof YangModule, is(true));
 
         // Check whether the node type is set properly to module.
         assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));

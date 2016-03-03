@@ -75,7 +75,7 @@ public final class FileSystemUtilTest {
     @Test
     public void createSourceFilesTest() throws IOException {
 
-        FileSystemUtil.createSourceFiles(baseDirPkg + "srcFile1", packageInfoContent, GeneratedFileType.INTERFACE);
+        FileSystemUtil.createSourceFiles(baseDirPkg + "srcFile1", packageInfoContent, GeneratedFileType.INTERFACE_MASK);
     }
 
     /**

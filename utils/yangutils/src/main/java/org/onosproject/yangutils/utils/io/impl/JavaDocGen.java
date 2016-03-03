@@ -91,7 +91,7 @@ public final class JavaDocGen {
      *
      * @param type java doc type
      * @param name name of the YangNode
-     * @return javadocs.
+     * @return javadocs
      */
     public static String getJavaDoc(JavaDocType type, String name) {
         name = JavaIdentifierSyntax.getCamelCase(name);
@@ -127,12 +127,12 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForGetters(String attribute) {
-        return (UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
+        return UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
                 + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_GETTERS + attribute
                 + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
                 + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_RETURN
                 + attribute + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.JAVA_DOC_END_LINE);
+                + UtilConstants.JAVA_DOC_END_LINE;
     }
 
     /**
@@ -142,58 +142,58 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForSetters(String attribute) {
-        return (UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
+        return UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
                 + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_SETTERS + attribute
                 + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
                 + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM
                 + attribute + UtilConstants.SPACE + attribute + UtilConstants.NEW_LINE
                 + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_RETURN + UtilConstants.BUILDER_OBJECT
                 + attribute + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.JAVA_DOC_END_LINE);
+                + UtilConstants.JAVA_DOC_END_LINE;
     }
 
     /**
      * Generate javaDocs for the impl class.
      *
      * @param className class name
-     * @return javaDocs.
+     * @return javaDocs
      */
     private static String generateForImplClass(String className) {
-        return (UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.IMPL_CLASS_JAVA_DOC + className + UtilConstants.PERIOD
-                + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE);
+        return UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.IMPL_CLASS_JAVA_DOC + className + UtilConstants.PERIOD
+                + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
     }
 
     /**
      * Generate javaDocs for the builder class.
      *
      * @param className class name
-     * @return javaDocs.
+     * @return javaDocs
      */
     private static String generateForBuilderClass(String className) {
-        return (UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.BUILDER_CLASS_JAVA_DOC + className
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE);
+        return UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.BUILDER_CLASS_JAVA_DOC + className
+                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
     }
 
     /**
      * Generate javaDoc for the interface.
      *
      * @param interfaceName interface name
-     * @return javaDocs.
+     * @return javaDocs
      */
     private static String generateForInterface(String interfaceName) {
-        return (UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.INTERFACE_JAVA_DOC + interfaceName
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE);
+        return UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.INTERFACE_JAVA_DOC + interfaceName
+                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
     }
 
     /**
      * Generate javaDoc for the builder interface.
      *
      * @param builderforName builder for name
-     * @return javaDocs.
+     * @return javaDocs
      */
     private static String generateForBuilderInterface(String builderforName) {
-        return (UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.BUILDER_INTERFACE_JAVA_DOC + builderforName
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE);
+        return UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.BUILDER_INTERFACE_JAVA_DOC + builderforName
+                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
     }
 
     /**
@@ -203,8 +203,8 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForPackage(String packageName) {
-        return (UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.PACKAGE_INFO_JAVADOC + packageName
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE);
+        return UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.PACKAGE_INFO_JAVADOC + packageName
+                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
     }
 
     /**
@@ -213,38 +213,38 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForDefaultConstructors() {
-        return (UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_DEFAULT_CONSTRUCTOR
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE);
+        return UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_DEFAULT_CONSTRUCTOR
+                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE;
     }
 
     /**
      * Generate javaDocs for constructor with parameters.
      *
-     * @param params list of parameters
      * @param className class name
      * @return javaDocs
      */
     private static String generateForConstructors(String className) {
-        return (UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.FOUR_SPACE_INDENTATION
+        return UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.FOUR_SPACE_INDENTATION
                 + UtilConstants.JAVA_DOC_CONSTRUCTOR + className + UtilConstants.IMPL + UtilConstants.PERIOD
                 + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.NEW_LINE_ESTRIC
                 + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM
-                + (className.substring(0, 1).toLowerCase() + className.substring(1)) + UtilConstants.OBJECT
+                + className.substring(0, 1).toLowerCase() + className.substring(1) + UtilConstants.OBJECT
                 + UtilConstants.SPACE + UtilConstants.BUILDER_OBJECT + UtilConstants.SPACE + className
-                + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE);
+                + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE;
     }
 
     /**
      * Generate javaDocs for build.
      *
+     * @param buildName builder name
      * @return javaDocs
      */
     private static String generateForBuild(String buildName) {
-        return (UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
+        return UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
                 + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_BUILD + buildName + UtilConstants.PERIOD
                 + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.NEW_LINE_ESTRIC
                 + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_RETURN
                 + UtilConstants.JAVA_DOC_BUILD_RETURN + buildName + UtilConstants.PERIOD + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE);
+                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE;
     }
 }

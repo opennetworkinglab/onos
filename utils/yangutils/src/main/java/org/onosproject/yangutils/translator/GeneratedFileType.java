@@ -19,29 +19,41 @@ package org.onosproject.yangutils.translator;
 /**
  * Type of files generated.
  */
-public enum GeneratedFileType {
+public final class GeneratedFileType {
+
+    /**
+     * prevent creating attributes.
+     */
+    private GeneratedFileType() {
+    }
+
     /**
      * Interface file.
      */
-    INTERFACE,
-
-    /**
-     * Builder class file.
-     */
-    BUILDER_CLASS,
+    public static final int INTERFACE_MASK = 1;
 
     /**
      * Builder interface file.
      */
-    BUILDER_INTERFACE,
+    public static final int BUILDER_INTERFACE_MASK = 2;
+
+    /**
+     * Builder class file.
+     */
+    public static final int BUILDER_CLASS_MASK = 4;
 
     /**
      * Impl class file.
      */
-    IMPL,
+    public static final int IMPL_CLASS_MASK = 8;
 
     /**
-     * interface and class file.
+     * Interface and class file.
      */
-    ALL
+    public static final int GENERATE_INTERFACE_WITH_BUILDER = 15;
+
+    /**
+     * Java class corresponding to typedef.
+     */
+    public static final int GENERATE_TYPEDEF_CLASS = 16;
 }

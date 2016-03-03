@@ -29,31 +29,31 @@ public interface CachedFileHandle {
     /**
      * Add a new attribute to the file(s).
      *
-     * @param attrType data type of the added attribute.
-     * @param name name of the attribute.
+     * @param attrType data type of the added attribute
+     * @param name name of the attribute
      * @param isListAttr if the current added attribute needs to be maintained
-     *            in a list.
+     *            in a list
      */
     void addAttributeInfo(YangType<?> attrType, String name, boolean isListAttr);
 
     /**
      * Flushes the cached contents to the target file, frees used resources.
      *
-     * @throws IOException when failes to generated java files.
+     * @throws IOException when failes to generated java files
      */
     void close() throws IOException;
-
-    /**
-     * Sets child package path for import.
-     *
-     * @param pkg child's package path
-     */
-    void setChildsPackage(String pkg);
 
     /**
      * Sets directory package path for code generation.
      *
      * @param filePath directory package path for code generation
      */
-    void setFilePath(String filePath);
+    void setRelativeFilePath(String filePath);
+
+    /**
+     * Gets directory package path for code generation.
+     *
+     * @return directory package path for code generation
+     */
+    String getRelativeFilePath();
 }

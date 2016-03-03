@@ -24,8 +24,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import static org.slf4j.LoggerFactory.getLogger;
 import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides the license header for the generated files.
@@ -48,7 +49,7 @@ public final class CopyrightHeader {
      * Returns copyright file header.
      *
      * @return copyright file header
-     * @throws IOException when fails to parse copyright header.
+     * @throws IOException when fails to parse copyright header
      */
     public static String getCopyrightHeader() throws IOException {
         return copyrightHeader;
@@ -66,7 +67,7 @@ public final class CopyrightHeader {
     /**
      * parse Copyright to the temporary file.
      *
-     * @throws IOException when fails to get the copyright header.
+     * @throws IOException when fails to get the copyright header
      */
     public static void parseCopyrightHeader() throws IOException {
 

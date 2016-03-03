@@ -58,12 +58,22 @@ import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinality;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityEqualsOne;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_CONTENT;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinality;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityEqualsOne;
 import static org.onosproject.yangutils.utils.YangConstructType.DEFAULT_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.REFERENCE_DATA;
@@ -71,15 +81,6 @@ import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.TYPEDEF_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.UNITS_DATA;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /**
  * Implements listener based call back function corresponding to the "typedef"
@@ -122,8 +123,8 @@ public final class TypeDefListener {
 
         Parsable curData = listener.getParsedDataStack().peek();
 
-        if ((curData instanceof YangModule) | (curData instanceof YangSubModule) | (curData instanceof YangContainer)
-                | (curData instanceof YangList)) {
+        if (curData instanceof YangModule || curData instanceof YangSubModule || curData instanceof YangContainer
+                || curData instanceof YangList) {
             /*
              * TODO YangGrouping, YangRpc, YangInput, YangOutput, Notification.
              */
@@ -159,8 +160,8 @@ public final class TypeDefListener {
             try {
                 typeDefNode.validateDataOnExit();
             } catch (DataModelException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new ParserException(constructListenerErrorMessage(INVALID_CONTENT, TYPEDEF_DATA,
+                        ctx.IDENTIFIER().getText(), EXIT));
             }
 
             listener.getParsedDataStack().pop();

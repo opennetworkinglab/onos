@@ -242,8 +242,8 @@ public enum YangConstructType {
     /**
      * Returns the YANG construct keyword corresponding to enum values.
      *
-     * @param yangConstructType enum value for parsable data type
-     * @return YANG construct keyword
+     * @param yangConstructType enum value for parsable data type.
+     * @return YANG construct keyword.
      */
     public static String getYangConstructType(YangConstructType yangConstructType) {
 

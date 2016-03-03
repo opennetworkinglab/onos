@@ -34,10 +34,10 @@ public final class JavaIdentifierSyntax {
     /**
      * Get the root package string.
      *
-     * @param version YANG version.
-     * @param nameSpace name space of the module.
+     * @param version YANG version
+     * @param nameSpace name space of the module
      * @param revision revision of the module defined
-     * @return returns the root package string.
+     * @return returns the root package string
      */
     public static String getRootPackage(byte version, String nameSpace, String revision) {
 
@@ -56,7 +56,7 @@ public final class JavaIdentifierSyntax {
     /**
      * Returns version.
      *
-     * @param ver YANG version.
+     * @param ver YANG version
      * @return version
      */
     private static String getYangVersion(byte ver) {
@@ -67,7 +67,7 @@ public final class JavaIdentifierSyntax {
      * Get package name from name space.
      *
      * @param nameSpace name space of YANG module
-     *  @return java package name as per java rules.
+     * @return java package name as per java rules
      */
     public static String getPkgFromNameSpace(String nameSpace) {
         ArrayList<String> pkgArr = new ArrayList<String>();
@@ -125,9 +125,9 @@ public final class JavaIdentifierSyntax {
     /**
      * Get the package from parent's package and string.
      *
-     * @param parentPkg parent's package.
-     * @param parentName parent's name.
-     * @return package string.
+     * @param parentPkg parent's package
+     * @param parentName parent's name
+     * @return package string
      */
     public static String getPackageFromParent(String parentPkg, String parentName) {
         return (parentPkg + UtilConstants.PERIOD + getSubPkgFromName(parentName)).toLowerCase();
@@ -136,8 +136,8 @@ public final class JavaIdentifierSyntax {
     /**
      * Get package sub name from YANG identifier name.
      *
-     * @param name YANG identifier name.
-     * @return java package sub name as per java rules.
+     * @param name YANG identifier name
+     * @return java package sub name as per java rules
      */
     public static String getSubPkgFromName(String name) {
         ArrayList<String> pkgArr = new ArrayList<String>();
@@ -152,22 +152,23 @@ public final class JavaIdentifierSyntax {
     /**
      * Translate the YANG identifier name to java identifier.
      *
-     * @param yangIdentifier identifier in YANG file.
+     * @param yangIdentifier identifier in YANG file
      * @return corresponding java identifier
      */
     public static String getCamelCase(String yangIdentifier) {
         String[] strArray = yangIdentifier.split(UtilConstants.HYPHEN);
         String camelCase = strArray[0];
         for (int i = 1; i < strArray.length; i++) {
-            camelCase = camelCase + (strArray[i].substring(0, 1).toUpperCase() + strArray[i].substring(1));
+            camelCase = camelCase + strArray[i].substring(0, 1).toUpperCase() + strArray[i].substring(1);
         }
         return camelCase;
     }
 
     /**
-     * Translate the YANG identifier name to java identifier with first letter in caps.
+     * Translate the YANG identifier name to java identifier with first letter
+     * in caps.
      *
-     * @param yangIdentifier identifier in YANG file.
+     * @param yangIdentifier identifier in YANG file
      * @return corresponding java identifier
      */
     public static String getCaptialCase(String yangIdentifier) {

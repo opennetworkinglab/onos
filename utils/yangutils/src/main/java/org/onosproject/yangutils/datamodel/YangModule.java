@@ -158,16 +158,13 @@ public class YangModule extends YangNode
     private byte version;
 
     /**
-     * Package of the generated java code.
-     */
-    private String pkg;
-
-    /**
      * Cached Java File Handle.
      */
     private CachedFileHandle fileHandle;
 
     /*-
+     * Reference RFC 6020.
+     *
      * Nested typedefs and groupings.
      * Typedefs and groupings may appear nested under many YANG statements,
      * allowing these to be lexically scoped by the hierarchy under which
@@ -519,7 +516,10 @@ public class YangModule extends YangNode
      */
     @Override
     public String getPackage() {
-        return pkg;
+        if (getFileHandle() != null) {
+            return getFileHandle().getRelativeFilePath().replace("/", ".");
+        }
+        return null;
     }
 
     /**
@@ -529,7 +529,10 @@ public class YangModule extends YangNode
      */
     @Override
     public void setPackage(String pcg) {
-        pkg = pcg;
+        if (getFileHandle() != null) {
+            pcg.replace(".", "/");
+            getFileHandle().setRelativeFilePath(pcg);
+        }
     }
 
     /**
@@ -628,16 +631,16 @@ public class YangModule extends YangNode
     public void generateJavaCodeEntry() throws IOException {
         String modPkg = JavaIdentifierSyntax.getRootPackage(getVersion(), getNameSpace().getUri(),
                 getRevision().getRevDate());
-        setPackage(modPkg);
 
         CachedFileHandle handle = null;
         try {
-            FileSystemUtil.createPackage(UtilConstants.YANG_GEN_DIR + getPackage(), getName());
-            handle = FileSystemUtil.createSourceFiles(getPackage(), getName(), GeneratedFileType.ALL);
-            handle.setFilePath(UtilConstants.YANG_GEN_DIR + getPackage().replace(".", "/"));
+            FileSystemUtil.createPackage(UtilConstants.YANG_GEN_DIR + modPkg, getName());
+            handle = FileSystemUtil.createSourceFiles(modPkg, getName(),
+                    GeneratedFileType.GENERATE_INTERFACE_WITH_BUILDER);
         } catch (IOException e) {
             throw new IOException("Failed to create the source files.");
         }
+
         setFileHandle(handle);
         addLeavesAttributes();
         addLeafListAttributes();

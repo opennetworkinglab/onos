@@ -16,17 +16,18 @@
 
 package org.onosproject.yangutils.parser.impl.parserutils;
 
+import java.util.List;
+
 import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import org.onosproject.yangutils.utils.YangConstructType;
-import static org.onosproject.yangutils.utils.YangConstructType.getYangConstructType;
 
-import java.util.List;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.utils.YangConstructType.getYangConstructType;
 
 /**
  * It's a utility to carry out listener validation.
@@ -50,8 +51,8 @@ public final class ListenerValidation {
      * @param errorLocation location where error occurred
      */
     public static void checkStackIsNotEmpty(TreeWalkListener listener, ListenerErrorType errorType,
-                                            YangConstructType yangConstructType, String parsableDataTypeName,
-                                            ListenerErrorLocation errorLocation) {
+            YangConstructType yangConstructType, String parsableDataTypeName,
+            ListenerErrorLocation errorLocation) {
         if (listener.getParsedDataStack().empty()) {
             /*
              * If stack is empty it indicates error condition, value of
@@ -59,7 +60,7 @@ public final class ListenerValidation {
              * attached to parsable data type.
              */
             String message = constructListenerErrorMessage(errorType, yangConstructType, parsableDataTypeName,
-                                                           errorLocation);
+                    errorLocation);
             throw new ParserException(message);
         }
     }
@@ -75,8 +76,8 @@ public final class ListenerValidation {
      * @param errorLocation location where error occurred
      */
     public static void checkStackIsEmpty(TreeWalkListener listener, ListenerErrorType errorType,
-                                         YangConstructType yangConstructType, String parsableDataTypeName,
-                                         ListenerErrorLocation errorLocation) {
+            YangConstructType yangConstructType, String parsableDataTypeName,
+            ListenerErrorLocation errorLocation) {
 
         if (!listener.getParsedDataStack().empty()) {
             /*
@@ -85,14 +86,14 @@ public final class ListenerValidation {
              * attached to parsable data type.
              */
             String message = constructListenerErrorMessage(errorType, yangConstructType, parsableDataTypeName,
-                                                           errorLocation);
+                    errorLocation);
             throw new ParserException(message);
         }
     }
 
     /**
-     * Returns parent node config value, if top node does not specify a config statement
-     * then default value true is returned.
+     * Returns parent node config value, if top node does not specify a config
+     * statement then default value true is returned.
      *
      * @param listener listener's object
      * @return true/false parent's config value
@@ -117,14 +118,14 @@ public final class ListenerValidation {
      *
      * @param childContext child's context
      * @param yangChildConstruct child construct for whom cardinality is to be
-     *                           validated
+     *            validated
      * @param yangParentConstruct parent construct
      * @param parentName parent name
      * @throws ParserException exception if cardinality check fails
      */
     public static void validateCardinality(List<?> childContext, YangConstructType yangChildConstruct,
-                                           YangConstructType yangParentConstruct, String parentName)
-            throws ParserException {
+            YangConstructType yangParentConstruct, String parentName)
+                    throws ParserException {
 
         if (!childContext.isEmpty() && childContext.size() != 1) {
             ParserException parserException = new ParserException("YANG file error: Invalid cardinality of "
@@ -139,14 +140,13 @@ public final class ListenerValidation {
      *
      * @param childContext child's context
      * @param yangChildConstruct child construct for whom cardinality is to be
-     *                           validated
+     *            validated
      * @param yangParentConstruct parent construct
      * @param parentName parent name
      * @throws ParserException exception if cardinality check fails
      */
     public static void validateCardinalityEqualsOne(List<?> childContext, YangConstructType yangChildConstruct,
-                                                    YangConstructType yangParentConstruct, String parentName)
-            throws ParserException {
+            YangConstructType yangParentConstruct, String parentName) throws ParserException {
 
         if (childContext.isEmpty() || childContext.size() != 1) {
             ParserException parserException = new ParserException("YANG file error: Invalid cardinality of "
@@ -161,14 +161,13 @@ public final class ListenerValidation {
      *
      * @param childContext child's context
      * @param yangChildConstruct child construct for whom cardinality is to be
-     *                           validated
+     *            validated
      * @param yangParentConstruct parent construct
      * @param parentName parent name
      * @throws ParserException exception if cardinality check fails
      */
     public static void validateCardinalityNonNull(List<?> childContext, YangConstructType yangChildConstruct,
-                                                  YangConstructType yangParentConstruct, String parentName)
-            throws ParserException {
+            YangConstructType yangParentConstruct, String parentName) throws ParserException {
 
         if (childContext.isEmpty()) {
             ParserException parserException = new ParserException("YANG file error: Invalid cardinality of "

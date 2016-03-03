@@ -36,15 +36,16 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import org.onosproject.yangutils.datamodel.YangBit;
 import org.onosproject.yangutils.datamodel.YangBits;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.utils.YangConstructType.POSITION_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.utils.YangConstructType.POSITION_DATA;
 
 /**
  * Implements listener based call back function corresponding to the "position"
@@ -69,7 +70,7 @@ public final class PositionListener {
      * @param ctx context object of the grammar rule
      */
     public static void processPositionEntry(TreeWalkListener listener,
-                                            GeneratedYangParser.PositionStatementContext ctx) {
+            GeneratedYangParser.PositionStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, POSITION_DATA, ctx.INTEGER().getText(), ENTRY);
@@ -102,7 +103,7 @@ public final class PositionListener {
      * @return validation result
      */
     private static boolean isBitPositionValid(TreeWalkListener listener,
-                                           GeneratedYangParser.PositionStatementContext ctx) {
+            GeneratedYangParser.PositionStatementContext ctx) {
         Parsable bitNode = listener.getParsedDataStack().pop();
 
         // Check for stack to be non empty.

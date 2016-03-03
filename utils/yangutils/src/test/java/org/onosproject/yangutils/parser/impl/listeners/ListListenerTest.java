@@ -151,7 +151,7 @@ public class ListListenerTest {
         assertThat(yangList.getKeyList().contains("invalid-interval"), is(true));
 
         assertThat(yangList.isConfig(), is(true));
-        assertThat(yangList.getMaxElelements(), is(10));
+        assertThat(yangList.getMaxElements(), is(10));
         assertThat(yangList.getMinElements(), is(3));
         assertThat(yangList.getDescription(), is("\"list description\""));
         assertThat(yangList.getStatus(), is(YangStatusType.CURRENT));
