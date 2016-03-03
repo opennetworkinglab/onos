@@ -75,6 +75,7 @@ public class OpenstackSwitchingRulePopulator {
      * @param appId application id
      * @param flowObjectiveService FlowObjectiveService reference
      * @param deviceService DeviceService reference
+     * @param openstackService openstack interface service
      * @param driverService DriverService reference
      */
     public OpenstackSwitchingRulePopulator(ApplicationId appId,

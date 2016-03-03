@@ -120,7 +120,7 @@ public class OpenstackRoutingRulePopulator {
      *  @param inboundPacket Packet-in event packet
      * @param openstackPort Target VM information
      * @param portNum Pnat port number
-     * @param externalIp
+     * @param externalIp external ip address
      * @param externalInterfaceMacAddress Gateway external interface macaddress
      * @param externalRouterMacAddress Outer(physical) router`s macaddress
      */

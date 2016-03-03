@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstackinterface;
+package org.onosproject.openstackinterface.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -35,6 +35,13 @@ import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.openstackinterface.OpenstackInterfaceService;
+import org.onosproject.openstackinterface.OpenstackNetwork;
+import org.onosproject.openstackinterface.OpenstackNetworkingConfig;
+import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstackinterface.OpenstackRouter;
+import org.onosproject.openstackinterface.OpenstackSecurityGroup;
+import org.onosproject.openstackinterface.OpenstackSubnet;
 import org.onosproject.openstackinterface.web.OpenstackNetworkCodec;
 import org.onosproject.openstackinterface.web.OpenstackPortCodec;
 import org.onosproject.openstackinterface.web.OpenstackRouterCodec;

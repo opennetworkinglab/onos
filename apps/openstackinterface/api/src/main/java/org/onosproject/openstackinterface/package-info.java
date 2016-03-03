@@ -15,6 +15,6 @@
  */
 
 /**
- * Application for OpenstackRouting.
+ * Application that handles OpenStack Neutron REST calls.
  */
 package org.onosproject.openstackinterface;

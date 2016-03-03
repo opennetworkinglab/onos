@@ -69,6 +69,7 @@ public class OpenstackArpHandler {
      * OpenStack if it's not. This ARP proxy does not support overlapping IP.
      *
      * @param pkt ARP request packet
+     * @param openstackPortInfoCollection collection of port information
      */
     public void processPacketIn(InboundPacket pkt, Collection<OpenstackPortInfo> openstackPortInfoCollection) {
         Ethernet ethRequest = pkt.parsed();
