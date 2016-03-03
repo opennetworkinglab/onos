@@ -212,10 +212,6 @@ public class LumentumFlowRuleDriver extends AbstractHandlerBehaviour implements 
         OID ctrlAmpModuleTargetGainBooster = new OID(CTRL_AMP_MODULE_TARGET_GAIN_BOOSTER);
         pdu.add(new VariableBinding(ctrlAmpModuleTargetGainBooster, new Integer32(DEFAULT_TARGET_GAIN_BOOSTER)));
 
-        // Enable the channel
-        OID ctrlChannelState = new OID(CTRL_CHANNEL_STATE + (xc.isAddRule() ? "1." : "2.") + channel);
-        pdu.add(new VariableBinding(ctrlChannelState, new Integer32(IN_SERVICE)));
-
         // Make cross connect
         OID ctrlChannelAddDropPortIndex = new OID(CTRL_CHANNEL_ADD_DROP_PORT_INDEX +
                 (xc.isAddRule() ? "1." : "2.") + channel);
@@ -237,6 +233,10 @@ public class LumentumFlowRuleDriver extends AbstractHandlerBehaviour implements 
             pdu.add(new VariableBinding(
                     ctrlChannelAbsoluteAttenuation, new UnsignedInteger32(DEFAULT_CHANNEL_ABSOLUTE_ATTENUATION)));
         }
+
+        // Final step is to enable the channel
+        OID ctrlChannelState = new OID(CTRL_CHANNEL_STATE + (xc.isAddRule() ? "1." : "2.") + channel);
+        pdu.add(new VariableBinding(ctrlChannelState, new Integer32(IN_SERVICE)));
 
         try {
             ResponseEvent response = snmp.set(pdu);
