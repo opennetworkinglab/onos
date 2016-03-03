@@ -16,6 +16,7 @@
 
 package org.onlab.util;
 
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -33,7 +34,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * A new scheduled executor service that does not eat exception.
  */
-class LogScheduledExecutorService implements ScheduledExecutorService {
+class SharedScheduledExecutorService implements ScheduledExecutorService {
 
     private static final String NOT_ALLOWED = "Shutdown of scheduled executor is not allowed";
     private final Logger log = getLogger(getClass());
@@ -45,7 +46,7 @@ class LogScheduledExecutorService implements ScheduledExecutorService {
      *
      * @param executor executor service to wrap
      */
-    LogScheduledExecutorService(ScheduledExecutorService executor) {
+    SharedScheduledExecutorService(ScheduledExecutorService executor) {
         this.executor = executor;
     }
 
@@ -191,7 +192,7 @@ class LogScheduledExecutorService implements ScheduledExecutorService {
                 runnable.run();
             } catch (Exception e) {
                 log.error("Uncaught exception on " + runnable.getClass().getSimpleName(), e);
-                throw new RuntimeException(e);
+                throw Throwables.propagate(e);
             }
         }
     }
