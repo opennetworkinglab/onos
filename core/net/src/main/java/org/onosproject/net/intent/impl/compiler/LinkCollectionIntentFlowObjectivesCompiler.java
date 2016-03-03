@@ -141,7 +141,7 @@ public class LinkCollectionIntentFlowObjectivesCompiler implements IntentCompile
                     .withPriority(intent.priority())
                     .fromApp(appId)
                     .makePermanent()
-                    .withFlag(ForwardingObjective.Flag.VERSATILE)
+                    .withFlag(ForwardingObjective.Flag.SPECIFIC)
                     .add();
 
             objectives.add(objective);
