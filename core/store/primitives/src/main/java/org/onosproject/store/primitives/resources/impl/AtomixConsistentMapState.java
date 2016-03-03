@@ -318,7 +318,10 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected void listen(Commit<? extends Listen> commit) {
         Long sessionId = commit.session().id();
-        listeners.put(sessionId, commit);
+        if (listeners.putIfAbsent(sessionId, commit) != null) {
+            commit.close();
+            return;
+        }
         commit.session()
                 .onStateChange(
                         state -> {
