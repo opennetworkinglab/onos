@@ -103,6 +103,12 @@ public final class Instructions {
         return new SetQueueInstruction(queueId, port);
     }
 
+    /**
+     * Creates a meter instruction.
+     *
+     * @param meterId Meter Id
+     * @return meter instruction
+     */
     public static MeterInstruction meterTraffic(final MeterId meterId) {
         checkNotNull(meterId, "meter id cannot be null");
         return new MeterInstruction(meterId);

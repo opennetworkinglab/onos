@@ -15,13 +15,12 @@
  */
 package org.onosproject.codec.impl;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -50,6 +49,7 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
     protected static final String TUNNEL_ID = "tunnelId";
     protected static final String TCP_PORT = "tcpPort";
     protected static final String UDP_PORT = "udpPort";
+    protected static final String TABLE_ID = "tableId";
     protected static final String TRIBUTARY_PORT_NUMBER = "tributaryPortNumber";
     protected static final String TRIBUTARY_SLOT_LEN = "tributarySlotLength";
     protected static final String TRIBUTARY_SLOT_BITMAP = "tributarySlotBitmap";
