@@ -16,9 +16,11 @@
 package org.onlab.util;
 
 import com.codahale.metrics.Timer;
+import com.google.common.base.Throwables;
 import org.onlab.metrics.MetricsComponent;
 import org.onlab.metrics.MetricsFeature;
 import org.onlab.metrics.MetricsService;
+import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,6 +41,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 class SharedExecutorService implements ExecutorService {
 
     private static final String NOT_ALLOWED = "Shutdown of shared executor is not allowed";
+    private final Logger log = getLogger(getClass());
 
     private ExecutorService executor;
 
@@ -77,7 +80,6 @@ class SharedExecutorService implements ExecutorService {
         this.executor = executor;
         oldExecutor.shutdown();
     }
-
 
     @Override
     public void shutdown() {
@@ -138,12 +140,12 @@ class SharedExecutorService implements ExecutorService {
 
     @Override
     public <T> Future<T> submit(Runnable task, T result) {
-        return executor.submit(task, result);
+        return executor.submit(wrap(task), result);
     }
 
     @Override
     public Future<?> submit(Runnable task) {
-        return executor.submit(task);
+        return executor.submit(wrap(task));
     }
 
     @Override
@@ -193,10 +195,36 @@ class SharedExecutorService implements ExecutorService {
        }
     }
 
+    private Runnable wrap(Runnable command) {
+        return new LoggableRunnable(command);
+    }
+
+    /**
+     * A runnable class that allows to capture and log the exceptions.
+     */
+    private class LoggableRunnable implements Runnable {
+
+        private Runnable runnable;
+
+        public LoggableRunnable(Runnable runnable) {
+            super();
+            this.runnable = runnable;
+        }
+
+        @Override
+        public void run() {
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                log.error("Uncaught exception on " + runnable.getClass().getSimpleName(), e);
+                throw Throwables.propagate(e);
+            }
+        }
+    }
+
     /**
      *  CallableExtended class is used to get Runnable Object
      *  from Callable Object.
-     *
      */
     class CallableExtended implements Callable {
 
