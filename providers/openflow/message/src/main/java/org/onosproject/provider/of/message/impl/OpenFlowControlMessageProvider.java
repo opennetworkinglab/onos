@@ -39,15 +39,16 @@ import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onlab.util.Tools.loggableScheduledExecutor;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.openflow.controller.Dpid.uri;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * Provider which uses an OpenFlow controller to collect control message.
@@ -105,8 +106,9 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
         // listens all OpenFlow outgoing message events
         controller.getSwitches().forEach(sw -> sw.addEventListener(outMsgListener));
 
-        executor = Executors.newSingleThreadScheduledExecutor(
-                             groupedThreads("onos/provider", "aggregator"));
+        executor = loggableScheduledExecutor(
+                        newSingleThreadScheduledExecutor(groupedThreads("onos/provider",
+                                                                        "aggregator")));
 
         connectInitialDevices();
         log.info("Started");

@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -126,6 +127,17 @@ public abstract class Tools {
                 .setNameFormat(groupName.replace(GroupedThreadFactory.DELIMITER, "-") + "-" + pattern)
                 .setUncaughtExceptionHandler((t, e) -> logger.error("Uncaught exception on " + t.getName(), e))
                 .build();
+    }
+
+    /**
+     * Returns a loggable scheduled executor service that allows to capture and
+     * log any exceptions if the scheduled tasks are failed during execution.
+     *
+     * @param executor scheduled executor service
+     * @return loggable scheduled executor service
+     */
+    public static ScheduledExecutorService loggableScheduledExecutor(ScheduledExecutorService executor) {
+        return new LogScheduledExecutorService(executor);
     }
 
     /**
