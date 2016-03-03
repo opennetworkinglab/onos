@@ -236,11 +236,8 @@ public class AtomixConsistentMap extends Resource<AtomixConsistentMap>
     @Override
     public synchronized CompletableFuture<Void> addListener(MapEventListener<String, byte[]> listener) {
         if (!mapEventListeners.isEmpty()) {
-            if (mapEventListeners.add(listener)) {
-                return CompletableFuture.completedFuture(new ChangeListener(listener)).thenApply(v -> null);
-            } else {
-                return CompletableFuture.completedFuture(null);
-            }
+            mapEventListeners.add(listener);
+            return CompletableFuture.completedFuture(null);
         }
         mapEventListeners.add(listener);
         return submit(new AtomixConsistentMapCommands.Listen()).thenApply(v -> null);

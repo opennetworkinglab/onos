@@ -337,10 +337,9 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      *
      * @param commit unlisten commit
      */
-    protected void unlisten(
-            Commit<? extends Unlisten> commit) {
+    protected void unlisten(Commit<? extends Unlisten> commit) {
         try {
-            Commit<? extends Listen> listener = listeners.remove(commit.session());
+            Commit<? extends Listen> listener = listeners.remove(commit.session().id());
             if (listener != null) {
                 listener.close();
             }

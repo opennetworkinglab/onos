@@ -17,7 +17,6 @@ package org.onosproject.store.primitives.resources.impl;
 
 import static org.junit.Assert.*;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import io.atomix.Atomix;
@@ -27,7 +26,6 @@ import io.atomix.variables.DistributedLong;
 /**
  * Unit tests for {@link AtomixCounter}.
  */
-@Ignore
 public class AtomixLongTest extends AtomixTestBase {
 
     @Override
