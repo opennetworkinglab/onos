@@ -24,6 +24,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
@@ -180,6 +181,10 @@ public class TopoIntentFilter {
                     if (rulesContainDevice(flowRuleIntent.flowRules(), device.id())) {
                         return true;
                     }
+                } else if (installable instanceof FlowObjectiveIntent) {
+                    FlowObjectiveIntent objectiveIntent = (FlowObjectiveIntent) installable;
+                    return objectiveIntent.devices().contains(device.id());
+
                 } else if (installable instanceof LinkCollectionIntent) {
                     LinkCollectionIntent linksIntent = (LinkCollectionIntent) installable;
                     if (pathContainsDevice(linksIntent.links(), device.id())) {

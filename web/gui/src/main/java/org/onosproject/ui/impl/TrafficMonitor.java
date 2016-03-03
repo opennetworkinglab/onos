@@ -29,6 +29,7 @@ import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.LinkCollectionIntent;
@@ -571,6 +572,8 @@ public class TrafficMonitor {
                     if (installable instanceof PathIntent) {
                         links = ((PathIntent) installable).path().links();
                     } else if (installable instanceof FlowRuleIntent) {
+                        links = linkResources(installable);
+                    } else if (installable instanceof FlowObjectiveIntent) {
                         links = linkResources(installable);
                     } else if (installable instanceof LinkCollectionIntent) {
                         links = ((LinkCollectionIntent) installable).links();
