@@ -425,12 +425,12 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
         @Override
         public void handleMessage(Dpid dpid, OFMessage msg) {
-            OpenFlowSwitch sw = controller.getSwitch(dpid);
+            DeviceId deviceId = DeviceId.deviceId(Dpid.uri(dpid));
             switch (msg.getType()) {
                 case FLOW_REMOVED:
                     OFFlowRemoved removed = (OFFlowRemoved) msg;
 
-                    FlowEntry fr = new FlowEntryBuilder(dpid, removed, driverService).build();
+                    FlowEntry fr = new FlowEntryBuilder(deviceId, removed, driverService).build();
                     providerService.flowRemoved(fr);
 
                     if (adaptiveFlowSampling) {
@@ -481,7 +481,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
                             InternalCacheEntry entry =
                                     pendingBatches.getIfPresent(msg.getXid());
                             if (entry != null) {
-                                entry.appendFailure(new FlowEntryBuilder(dpid, fm, driverService).build());
+                                entry.appendFailure(new FlowEntryBuilder(deviceId, fm, driverService).build());
                             } else {
                                 log.error("No matching batch for this error: {}", error);
                             }
@@ -508,7 +508,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
             DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
 
             List<FlowEntry> flowEntries = replies.getEntries().stream()
-                    .map(entry -> new FlowEntryBuilder(dpid, entry, driverService).build())
+                    .map(entry -> new FlowEntryBuilder(did, entry, driverService).build())
                     .collect(Collectors.toList());
 
             if (adaptiveFlowSampling)  {
