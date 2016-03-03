@@ -125,14 +125,6 @@
             </filter>
 
           </filters>
-          <transformers>
-              <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                  <resource>META-INF/services/io.atomix.catalyst.serializer.CatalystSerializable</resource>
-              </transformer>
-              <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                  <resource>META-INF/services/io.atomix.resource.Resource</resource>
-              </transformer>
-          </transformers>
         </configuration>
         <executions>
           <execution>
