@@ -370,8 +370,11 @@ public class ApplicationArchive
      */
     protected boolean setActive(String appName) {
         try {
-            return appFile(appName, "active").createNewFile() && updateTime(appName);
+            File active = appFile(appName, "active");
+            createParentDirs(active);
+            return active.createNewFile() && updateTime(appName);
         } catch (IOException e) {
+            log.warn("Unable to mark app {} as active", appName, e);
             throw new ApplicationException("Unable to mark app as active", e);
         }
     }
