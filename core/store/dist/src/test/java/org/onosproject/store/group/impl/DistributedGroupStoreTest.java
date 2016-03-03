@@ -46,7 +46,7 @@ import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupStore;
 import org.onosproject.net.group.GroupStoreDelegate;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapter;
-import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.TestStorageService;
 
 import com.google.common.collect.ImmutableList;
@@ -109,7 +109,7 @@ public class DistributedGroupStoreTest {
 
     DistributedGroupStore groupStoreImpl;
     GroupStore groupStore;
-    EventuallyConsistentMap auditPendingReqQueue;
+    ConsistentMap auditPendingReqQueue;
 
     static class MasterOfAll extends MastershipServiceAdapter {
         @Override
