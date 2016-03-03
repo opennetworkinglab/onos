@@ -23,6 +23,15 @@ import org.onosproject.net.flow.FlowId;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Simple implementation of a local flow rule cache that stores the flow ID and priority.
+ *
+ * Use this if you have a device that does not allow you to store these fields.
+ *
+ * WARNING: Be aware that this implementation makes no attempt to use a distributed store
+ * for the cache, so do not rely on it to support fail-over in multi-instance deployments.
+ * If the instance which holds the cache goes down, you *will* be in trouble.
+ */
 @Component(immediate = true, enabled = true)
 @Service
 public class DefaultCrossConnectCache implements CrossConnectCache {

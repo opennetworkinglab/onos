@@ -62,12 +62,27 @@ public class LumentumFlowRuleDriver extends AbstractHandlerBehaviour implements 
 
     private static final Logger log =
             LoggerFactory.getLogger(LumentumFlowRuleDriver.class);
-    private static final int DEFAULT_ATTENUATION = 160;
+
+    // Default values
+    private static final int DEFAULT_TARGET_GAIN_PREAMP = 150;
+    private static final int DEFAULT_TARGET_GAIN_BOOSTER = 200;
+    private static final int DISABLE_CHANNEL_TARGET_POWER = -650;
+    private static final int DEFAULT_CHANNEL_TARGET_POWER = -30;
+    private static final int DISABLE_CHANNEL_ABSOLUTE_ATTENUATION = 160;
+    private static final int DEFAULT_CHANNEL_ABSOLUTE_ATTENUATION = 50;
     private static final int OUT_OF_SERVICE = 1;
     private static final int IN_SERVICE = 2;
+    private static final int OPEN_LOOP = 1;
+    private static final int CLOSED_LOOP = 2;
+
+    // OIDs
     private static final String CTRL_AMP_MODULE_SERVICE_STATE_PREAMP = ".1.3.6.1.4.1.46184.1.4.4.1.2.1";
     private static final String CTRL_AMP_MODULE_SERVICE_STATE_BOOSTER = ".1.3.6.1.4.1.46184.1.4.4.1.2.2";
+    private static final String CTRL_AMP_MODULE_TARGET_GAIN_PREAMP = ".1.3.6.1.4.1.46184.1.4.4.1.8.1";
+    private static final String CTRL_AMP_MODULE_TARGET_GAIN_BOOSTER = ".1.3.6.1.4.1.46184.1.4.4.1.8.2";
     private static final String CTRL_CHANNEL_STATE = ".1.3.6.1.4.1.46184.1.4.2.1.3.";
+    private static final String CTRL_CHANNEL_MODE = ".1.3.6.1.4.1.46184.1.4.2.1.4.";
+    private static final String CTRL_CHANNEL_TARGET_POWER = ".1.3.6.1.4.1.46184.1.4.2.1.6.";
     private static final String CTRL_CHANNEL_ADD_DROP_PORT_INDEX = ".1.3.6.1.4.1.46184.1.4.2.1.13.";
     private static final String CTRL_CHANNEL_ABSOLUTE_ATTENUATION = ".1.3.6.1.4.1.46184.1.4.2.1.5.";
 
@@ -184,12 +199,18 @@ public class LumentumFlowRuleDriver extends AbstractHandlerBehaviour implements 
         PDU pdu = new PDU();
         pdu.setType(PDU.SET);
 
-        // Enable preamp & booster for service
+        // Enable preamp & booster
         List<OID> oids = Arrays.asList(new OID(CTRL_AMP_MODULE_SERVICE_STATE_PREAMP),
                 new OID(CTRL_AMP_MODULE_SERVICE_STATE_BOOSTER));
         oids.forEach(
                 oid -> pdu.add(new VariableBinding(oid, new Integer32(IN_SERVICE)))
         );
+
+        // Set target gain on preamp & booster
+        OID ctrlAmpModuleTargetGainPreamp = new OID(CTRL_AMP_MODULE_TARGET_GAIN_PREAMP);
+        pdu.add(new VariableBinding(ctrlAmpModuleTargetGainPreamp, new Integer32(DEFAULT_TARGET_GAIN_PREAMP)));
+        OID ctrlAmpModuleTargetGainBooster = new OID(CTRL_AMP_MODULE_TARGET_GAIN_BOOSTER);
+        pdu.add(new VariableBinding(ctrlAmpModuleTargetGainBooster, new Integer32(DEFAULT_TARGET_GAIN_BOOSTER)));
 
         // Enable the channel
         OID ctrlChannelState = new OID(CTRL_CHANNEL_STATE + (xc.isAddRule() ? "1." : "2.") + channel);
@@ -200,10 +221,22 @@ public class LumentumFlowRuleDriver extends AbstractHandlerBehaviour implements 
                 (xc.isAddRule() ? "1." : "2.") + channel);
         pdu.add(new VariableBinding(ctrlChannelAddDropPortIndex, new UnsignedInteger32(addDrop)));
 
-        // Set attenuation to zero
-        OID ctrlChannelAbsoluteAttenuation = new OID(CTRL_CHANNEL_ABSOLUTE_ATTENUATION +
-                (xc.isAddRule() ? "1." : "2.") + channel);
-        pdu.add(new VariableBinding(ctrlChannelAbsoluteAttenuation, new UnsignedInteger32(0)));
+        // Add rules use closed loop, drop rules open loop
+        // Add rules are set to target power, drop rules are attenuated
+        if (xc.isAddRule()) {
+            OID ctrlChannelMode = new OID(CTRL_CHANNEL_MODE + "1." + channel);
+            pdu.add(new VariableBinding(ctrlChannelMode, new Integer32(CLOSED_LOOP)));
+
+            OID ctrlChannelTargetPower = new OID(CTRL_CHANNEL_TARGET_POWER + "1." + channel);
+            pdu.add(new VariableBinding(ctrlChannelTargetPower, new Integer32(DEFAULT_CHANNEL_TARGET_POWER)));
+        } else {
+            OID ctrlChannelMode = new OID(CTRL_CHANNEL_MODE + "2." + channel);
+            pdu.add(new VariableBinding(ctrlChannelMode, new Integer32(OPEN_LOOP)));
+
+            OID ctrlChannelAbsoluteAttenuation = new OID(CTRL_CHANNEL_ABSOLUTE_ATTENUATION + "2." + channel);
+            pdu.add(new VariableBinding(
+                    ctrlChannelAbsoluteAttenuation, new UnsignedInteger32(DEFAULT_CHANNEL_ABSOLUTE_ATTENUATION)));
+        }
 
         try {
             ResponseEvent response = snmp.set(pdu);
@@ -234,11 +267,19 @@ public class LumentumFlowRuleDriver extends AbstractHandlerBehaviour implements 
                 (xc.isAddRule() ? "1." : "2.") + channel);
         pdu.add(new VariableBinding(ctrlChannelAddDropPortIndex, new UnsignedInteger32(OUT_OF_SERVICE)));
 
-        // Set attenuation to default value
-        OID ctrlChannelAbsoluteAttenuation = new OID(CTRL_CHANNEL_ABSOLUTE_ATTENUATION +
-                (xc.isAddRule() ? "1." : "2.") + channel);
-        pdu.add(new VariableBinding(ctrlChannelAbsoluteAttenuation, new UnsignedInteger32(DEFAULT_ATTENUATION))
-        );
+        // Put port/channel back to open loop
+        OID ctrlChannelMode = new OID(CTRL_CHANNEL_MODE + (xc.isAddRule() ? "1." : "2.") + channel);
+        pdu.add(new VariableBinding(ctrlChannelMode, new Integer32(OPEN_LOOP)));
+
+        // Add rules are set to target power, drop rules are attenuated
+        if (xc.isAddRule()) {
+            OID ctrlChannelTargetPower = new OID(CTRL_CHANNEL_TARGET_POWER + "1." + channel);
+            pdu.add(new VariableBinding(ctrlChannelTargetPower, new Integer32(DISABLE_CHANNEL_TARGET_POWER)));
+        } else {
+            OID ctrlChannelAbsoluteAttenuation = new OID(CTRL_CHANNEL_ABSOLUTE_ATTENUATION + "2." + channel);
+            pdu.add(new VariableBinding(
+                    ctrlChannelAbsoluteAttenuation, new UnsignedInteger32(DISABLE_CHANNEL_ABSOLUTE_ATTENUATION)));
+        }
 
         try {
             ResponseEvent response = snmp.set(pdu);
