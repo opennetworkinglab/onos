@@ -48,6 +48,10 @@
     }
 
     angular.module('ovDriverMatrix', [])
+        .run(['IconService', function (is) {
+            // Create our icon-to-glyph binding here:
+            is.registerIconMapping('nav_drivers', 'cog');
+        }])
         .controller('OvDriverMatrixCtrl',
         ['$log', '$scope', 'TableBuilderService',
             'FnService', 'WebSocketService',

@@ -73,12 +73,11 @@
 
     function ensureIconLibDefs() {
         var body = d3.select('body'),
-            svg = body.select('svg#IconLibDefs'),
-            defs;
+            svg = body.select('svg#IconLibDefs');
 
         if (svg.empty()) {
             svg = body.append('svg').attr('id', 'IconLibDefs');
-            defs = svg.append('defs');
+            svg.append('defs');
         }
         return svg.select('defs');
     }
@@ -227,7 +226,10 @@
         if (glyphMapping[iconId]) {
             $log.warn('Icon with id', iconId, 'already mapped. Ignoring.');
         } else {
+            // map icon-->glyph
             glyphMapping[iconId] = glyphId;
+            // make sure definition is installed
+            gs.loadDefs(ensureIconLibDefs(), [glyphId], true);
         }
     }
 

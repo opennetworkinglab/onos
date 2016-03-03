@@ -38,6 +38,7 @@ public class DriverViewComponent {
 
     private static final String VIEW_ID = "driverMatrix";
     private static final String VIEW_TEXT = "Driver Matrix";
+    private static final String NAV_ICON = "nav_drivers";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -46,7 +47,7 @@ public class DriverViewComponent {
 
     // List of application views
     private final List<UiView> uiViews = ImmutableList.of(
-            new UiView(UiView.Category.PLATFORM, VIEW_ID, VIEW_TEXT)
+            new UiView(UiView.Category.PLATFORM, VIEW_ID, VIEW_TEXT, NAV_ICON)
     );
 
     // Factory for UI message handlers
