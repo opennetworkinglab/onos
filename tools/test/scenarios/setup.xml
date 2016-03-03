@@ -17,6 +17,8 @@
     <group name="Setup">
         <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
         <step name="Secure-SSH" exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS}" if="${ONOS_USE_SSH}"/>
+        <step name="Enable-Flow-Objective-Intents" if="${ONOS_USE_FOI}"
+              exec="onos ${OC1} cfg set org.onosproject.net.intent.impl.compiler.IntentConfigurableRegistrator useFlowObjectives true"/>
 
         <parallel var="${OC#}">
             <step name="Push-Bits-${#}" exec="onos-push-bits ${OC#}"
@@ -43,6 +45,8 @@
                   requires="~Check-Components-${#}"/>
             <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#} ${ONOS_APPS} includes"
                   requires="~Check-Components-${#}"/>
+
+            <dependency name="Enable-Flow-Objective-Intents" requires="Check-Apps-${#}"/>
         </parallel>
     </group>
 </scenario>
