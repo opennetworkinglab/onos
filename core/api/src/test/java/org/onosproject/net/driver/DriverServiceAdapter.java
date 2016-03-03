@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openflow;
+package org.onosproject.net.driver;
 
 import java.util.Set;
 
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.driver.Behaviour;
-import org.onosproject.net.driver.Driver;
-import org.onosproject.net.driver.DriverHandler;
-import org.onosproject.net.driver.DriverService;
+
 
 /**
- * Created by ray on 11/4/15.
+ * Testing adapter for the driver service interface.
  */
 public class DriverServiceAdapter implements DriverService {
     @Override

@@ -29,10 +29,13 @@ import org.junit.rules.TemporaryFolder;
 import org.onlab.junit.TestTools;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.Driver;
-import org.onosproject.openflow.DriverAdapter;
-import org.onosproject.openflow.DriverServiceAdapter;
+import org.onosproject.net.driver.DriverAdapter;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverServiceAdapter;
 import org.onosproject.openflow.OFDescStatsReplyAdapter;
+import org.onosproject.openflow.OpenflowSwitchDriverAdapter;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.slf4j.Logger;
@@ -58,6 +61,17 @@ public class ControllerTest {
 
     Controller controller;
     protected static final Logger log = LoggerFactory.getLogger(ControllerTest.class);
+
+    private class TestDriver extends DriverAdapter {
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T extends Behaviour> T createBehaviour(DriverHandler handler, Class<T> behaviourClass) {
+            if (behaviourClass == OpenFlowSwitchDriver.class) {
+                return (T) new OpenflowSwitchDriverAdapter();
+            }
+            return null;
+        }
+    }
 
     /*
      * Writes the necessary file for the tests in the temporary directory
@@ -91,7 +105,7 @@ public class ControllerTest {
                 case ITEM_NOT_FOUND_DRIVER:
                     throw new ItemNotFoundException();
                 case DRIVER_EXISTS:
-                    return new DriverAdapter();
+                    return new TestDriver();
                 default:
                     throw new AssertionError();
             }

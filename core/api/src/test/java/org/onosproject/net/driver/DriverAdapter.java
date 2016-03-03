@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openflow;
+package org.onosproject.net.driver;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.onosproject.net.driver.Behaviour;
-import org.onosproject.net.driver.Driver;
-import org.onosproject.net.driver.DriverData;
-import org.onosproject.net.driver.DriverHandler;
-import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
-
 /**
- * Created by ray on 11/4/15.
+ * Test adapter for the driver class.
  */
 public class DriverAdapter implements Driver {
     @Override
@@ -79,12 +73,8 @@ public class DriverAdapter implements Driver {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T extends Behaviour> T createBehaviour(DriverHandler handler, Class<T> behaviourClass) {
-        if (behaviourClass == OpenFlowSwitchDriver.class) {
-            return (T) new OpenflowSwitchDriverAdapter();
-        }
         return null;
     }
 

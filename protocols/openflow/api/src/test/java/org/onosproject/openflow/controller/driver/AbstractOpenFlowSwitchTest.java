@@ -18,6 +18,7 @@ package org.onosproject.openflow.controller.driver;
 import org.jboss.netty.channel.Channel;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.core.netty.ChannelAdapter;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.projectfloodlight.openflow.protocol.OFMessage;

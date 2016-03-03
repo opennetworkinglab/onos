@@ -19,7 +19,7 @@ package org.onosproject.openflow.controller.impl;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
-import org.onosproject.openflow.ChannelAdapter;
+import org.onosproject.core.netty.ChannelAdapter;
 import org.onosproject.openflow.ChannelHandlerContextAdapter;
 import org.projectfloodlight.openflow.protocol.OFHello;
 
