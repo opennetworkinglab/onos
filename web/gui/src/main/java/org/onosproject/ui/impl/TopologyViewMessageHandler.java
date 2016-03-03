@@ -741,6 +741,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         public void event(DeviceEvent event) {
             if (event.type() != PORT_STATS_UPDATED) {
                 msgSender.execute(() -> sendMessage(deviceMessage(event)));
+                msgSender.execute(traffic::pokeIntent);
                 eventAccummulator.add(event);
             }
         }
@@ -751,6 +752,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void event(LinkEvent event) {
             msgSender.execute(() -> sendMessage(linkMessage(event)));
+            msgSender.execute(traffic::pokeIntent);
             eventAccummulator.add(event);
         }
     }
@@ -760,6 +762,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void event(HostEvent event) {
             msgSender.execute(() -> sendMessage(hostMessage(event)));
+            msgSender.execute(traffic::pokeIntent);
             eventAccummulator.add(event);
         }
     }
