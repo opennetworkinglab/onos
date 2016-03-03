@@ -75,6 +75,9 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
         // write message type bytes
         out.writeBytes(messageTypeBytes);
 
+        // write message status value
+        out.writeInt(message.status().ordinal());
+
         byte[] payload = message.payload();
 
         // write payload length

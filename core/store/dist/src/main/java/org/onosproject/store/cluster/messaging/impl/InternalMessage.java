@@ -25,16 +25,46 @@ import org.onosproject.store.cluster.messaging.Endpoint;
  */
 public final class InternalMessage {
 
+    /**
+     * Message status.
+     */
+    public enum Status {
+        /**
+         * All ok.
+         */
+        OK,
+
+        /**
+         * Response status signifying no registered handler.
+         */
+        ERROR_NO_HANDLER,
+
+        /**
+         * Response status signifying an exception handling the message.
+         */
+        ERROR_HANDLER_EXCEPTION
+
+        // NOTE: For backwards compatibility it important that new enum constants
+        // be appended.
+        // FIXME: We should remove this restriction in the future.
+    }
+
     private final long id;
     private final Endpoint sender;
     private final String type;
     private final byte[] payload;
+    private final Status status;
 
     public InternalMessage(long id, Endpoint sender, String type, byte[] payload) {
+        this(id, sender, type, payload, Status.OK);
+    }
+
+    public InternalMessage(long id, Endpoint sender, String type, byte[] payload, Status status) {
         this.id = id;
         this.sender = sender;
         this.type = type;
         this.payload = payload;
+        this.status = status;
     }
 
     public long id() {
@@ -53,12 +83,17 @@ public final class InternalMessage {
         return payload;
     }
 
+    public Status status() {
+        return status;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("type", type)
                 .add("sender", sender)
+                .add("status", status)
                 .add("payload", ByteArraySizeHashPrinter.of(payload))
                 .toString();
     }

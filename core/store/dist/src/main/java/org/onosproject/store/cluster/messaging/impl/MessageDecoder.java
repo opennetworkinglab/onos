@@ -16,12 +16,15 @@
 package org.onosproject.store.cluster.messaging.impl;
 
 import com.google.common.base.Charsets;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
+
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpAddress.Version;
 import org.onosproject.store.cluster.messaging.Endpoint;
+import org.onosproject.store.cluster.messaging.impl.InternalMessage.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +47,7 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
     private int senderPort;
     private int messageTypeLength;
     private String messageType;
+    private Status status;
     private int contentLength;
 
     public MessageDecoder(int correctPreamble) {
@@ -86,18 +90,27 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
             byte[] messageTypeBytes = new byte[messageTypeLength];
             buffer.readBytes(messageTypeBytes);
             messageType = new String(messageTypeBytes, Charsets.UTF_8);
+            checkpoint(DecoderState.READ_MESSAGE_STATUS);
+        case READ_MESSAGE_STATUS:
+            status = Status.values()[buffer.readInt()];
             checkpoint(DecoderState.READ_CONTENT_LENGTH);
         case READ_CONTENT_LENGTH:
             contentLength = buffer.readInt();
             checkpoint(DecoderState.READ_CONTENT);
         case READ_CONTENT:
-            //TODO Perform a sanity check on the size before allocating
-            byte[] payload = new byte[contentLength];
-            buffer.readBytes(payload);
+            byte[] payload;
+            if (contentLength > 0) {
+                //TODO Perform a sanity check on the size before allocating
+                payload = new byte[contentLength];
+                buffer.readBytes(payload);
+            } else {
+                payload = new byte[0];
+            }
             InternalMessage message = new InternalMessage(messageId,
                                                           new Endpoint(senderIp, senderPort),
                                                           messageType,
-                                                          payload);
+                                                          payload,
+                                                          status);
             out.add(message);
             checkpoint(DecoderState.READ_MESSAGE_PREAMBLE);
             break;
