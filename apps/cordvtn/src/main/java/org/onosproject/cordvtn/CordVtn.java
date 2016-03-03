@@ -559,11 +559,8 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                 ruleInstaller.populateManagementNetworkRules(host, service);
                 break;
             case PRIVATE:
-            case PRIVATE_INDIRECT:
-            case PRIVATE_DIRECT:
                 arpProxy.addGateway(service.serviceIp(), privateGatewayMac);
-            case PUBLIC_INDIRECT:
-            case PUBLIC_DIRECT:
+            case PUBLIC:
             default:
                 // TODO check if the service needs an update on its group buckets after done CORD-433
                 ruleInstaller.updateServiceGroup(service);
@@ -634,13 +631,10 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                 ruleInstaller.removeManagementNetworkRules(host, service);
                 break;
             case PRIVATE:
-            case PRIVATE_INDIRECT:
-            case PRIVATE_DIRECT:
                 if (getHostsWithOpenstackNetwork(vNet).isEmpty()) {
                     arpProxy.removeGateway(service.serviceIp());
                 }
-            case PUBLIC_INDIRECT:
-            case PUBLIC_DIRECT:
+            case PUBLIC:
             default:
                 // TODO check if the service needs an update on its group buckets after done CORD-433
                 ruleInstaller.updateServiceGroup(service);

@@ -27,18 +27,12 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.cordvtn.CordService.ServiceType.*;
-import static org.onosproject.cordvtn.CordService.ServiceType.PRIVATE;
-import static org.onosproject.cordvtn.CordService.ServiceType.PUBLIC_INDIRECT;
 
 public final class CordService {
 
     enum ServiceType {
         PRIVATE,
-        PRIVATE_DIRECT,
-        PRIVATE_INDIRECT,
-        PUBLIC_DIRECT,
-        PUBLIC_INDIRECT,
+        PUBLIC,
         MANAGEMENT
     }
 
@@ -172,18 +166,12 @@ public final class CordService {
         checkNotNull(netName);
 
         String name = netName.toUpperCase();
-        if (name.contains(PRIVATE_DIRECT.toString())) {
-            return PRIVATE_DIRECT;
-        } else if (name.contains(PRIVATE_INDIRECT.toString())) {
-            return PRIVATE_INDIRECT;
-        } else if (name.contains(PUBLIC_DIRECT.toString())) {
-            return PUBLIC_DIRECT;
-        } else if (name.contains(PUBLIC_INDIRECT.toString())) {
-            return PUBLIC_INDIRECT;
-        } else if (name.contains(MANAGEMENT.toString())) {
-            return MANAGEMENT;
+        if (name.contains(ServiceType.PUBLIC.toString())) {
+            return ServiceType.PUBLIC;
+        } else if (name.contains(ServiceType.MANAGEMENT.toString())) {
+            return ServiceType.MANAGEMENT;
         } else {
-            return PRIVATE;
+            return ServiceType.PRIVATE;
         }
     }
 }
