@@ -102,9 +102,10 @@ public class IGMPMembership extends IGMPGroup {
 
         gaddr = Ip4Address.valueOf(bb.getInt());
 
-        // Make sure we have enough buffer to hold all of these sources
-        checkBufferLength(bb.remaining(), 0, Ip4Address.BYTE_LENGTH * nsrcs);
+
         for (; nsrcs > 0; nsrcs--) {
+            // Make sure we have enough buffer to hold all of these sources
+            checkBufferLength(bb.remaining(), 0, Ip4Address.BYTE_LENGTH * nsrcs);
             Ip4Address src = Ip4Address.valueOf(bb.getInt());
             this.sources.add(src);
         }
