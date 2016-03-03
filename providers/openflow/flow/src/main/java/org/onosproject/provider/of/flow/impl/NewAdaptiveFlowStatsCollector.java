@@ -58,6 +58,22 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class NewAdaptiveFlowStatsCollector {
     private final Logger log = getLogger(getClass());
 
+    private static final String CHECK_AND_MOVE_LOG =
+            "checkAndMoveLiveFlowInternal: flowId={}, state={}, afterLiveType={}"
+                    + ", liveTime={}, life={}, bytes={}, packets={}, fromLastSeen={}"
+                    + ", priority={}, selector={}, treatment={} dpid={}";
+
+    private static final String CHECK_AND_MOVE_COUNT_LOG =
+            "checkAndMoveLiveFlowAll: Total Flow_Count={}, add-remove_Count={}"
+                    + ", IMMEDIATE_FLOW_Count={}, SHORT_FLOW_Count={}"
+                    + ", MID_FLOW_Count={}, LONG_FLOW_Count={}, add_Count={}"
+                    + ", addWithSetFlowLiveType_Count={}, remove_Count={}, dpid={}";
+
+    private static final String ADD_INVALID_LOG =
+            "addOrUpdateFlows: invalid flow update! The new life is SMALLER than the previous one"
+                    + ", new flowId={}, old flowId={}, new bytes={}, old bytes={}"
+                    + ", new life={}, old life={}, new lastSeen={}, old lastSeen={}";
+
     private final DriverService driverService;
     private final OpenFlowSwitch sw;
 
@@ -178,7 +194,7 @@ public class NewAdaptiveFlowStatsCollector {
                 longPollInterval,
                 TimeUnit.SECONDS);
 
-        log.debug("calAndPollInterval=" + calAndPollInterval + "is adjusted");
+        log.debug("calAndPollInterval={} is adjusted", calAndPollInterval);
     }
 
     private class CalAndShortFlowsTask implements Runnable {
@@ -224,7 +240,8 @@ public class NewAdaptiveFlowStatsCollector {
             // After processing the reply of this request message,
             // this must be set to NO_FLOW_MISSING_XID(-1) by provider
             setFlowMissingXid(request.getXid());
-            log.debug("ofFlowStatsRequestAllSend,Request={},for {}", request.toString(), sw.getStringId());
+            log.debug("ofFlowStatsRequestAllSend: request={}, dpid={}",
+                    request.toString(), sw.getStringId());
 
             sw.sendMsg(request);
         }
@@ -321,8 +338,7 @@ public class NewAdaptiveFlowStatsCollector {
     }
 
     /**
-     * start adaptive flow statistic collection.
-     *
+     * Starts adaptive flow statistic collection.
      */
     public synchronized void start() {
         log.debug("Starting AdaptiveStats collection thread for {}", sw.getStringId());
@@ -358,8 +374,7 @@ public class NewAdaptiveFlowStatsCollector {
     }
 
     /**
-     * stop adaptive flow statistic collection.
-     *
+     * Stops adaptive flow statistic collection.
      */
     public synchronized void stop() {
         log.debug("Stopping AdaptiveStats collection thread for {}", sw.getStringId());
@@ -381,10 +396,9 @@ public class NewAdaptiveFlowStatsCollector {
     }
 
     /**
-     * add typed flow entry from flow rule into the internal flow table.
+     * Adds typed flow entry from flow rule into the internal flow table.
      *
      * @param flowRules the flow rules
-     *
      */
     public synchronized void addWithFlowRule(FlowRule... flowRules) {
         for (FlowRule fr : flowRules) {
@@ -399,70 +413,66 @@ public class NewAdaptiveFlowStatsCollector {
     }
 
     /**
-     * add or update typed flow entry from flow entry into the internal flow table.
+     * Adds or updates typed flow entry from flow entry into the internal flow table.
      *
      * @param flowEntries the flow entries
-     *
      */
     public synchronized void addOrUpdateFlows(FlowEntry... flowEntries) {
-       for (FlowEntry fe : flowEntries) {
-           // check if this new rule is an update to an existing entry
-           TypedStoredFlowEntry stored = deviceFlowTable.getFlowEntry(fe);
+        for (FlowEntry fe : flowEntries) {
+            // check if this new rule is an update to an existing entry
+            TypedStoredFlowEntry stored = deviceFlowTable.getFlowEntry(fe);
 
-           if (stored != null) {
-               // duplicated flow entry is collected!, just skip
-               if (fe.bytes() == stored.bytes() && fe.packets() == stored.packets()
-                       && fe.life() == stored.life()) {
-                   log.debug("addOrUpdateFlows:, FlowId=" + Long.toHexString(fe.id().value())
-                                   + ",is DUPLICATED stats collection, just skip."
-                                   + " AdaptiveStats collection thread for {}",
-                           sw.getStringId());
+            if (stored != null) {
+                // duplicated flow entry is collected!, just skip
+                if (fe.bytes() == stored.bytes() && fe.packets() == stored.packets()
+                        && fe.life() == stored.life()) {
+                    if (log.isTraceEnabled()) {
+                        log.trace("addOrUpdateFlows({}): flowId={},is DUPLICATED stats collection, just skip.",
+                                sw.getStringId(), fe.id());
+                    }
 
-                   //FIXME modification of "stored" flow entry outside of store
-                   stored.setLastSeen();
-                   continue;
-               } else if (fe.life() < stored.life()) {
-                   // Invalid updates the stats values, i.e., bytes, packets, durations ...
-                   log.debug("addOrUpdateFlows():" +
-                               " Invalid Flow Update! The new life is SMALLER than the previous one, jus skip." +
-                               " new flowId=" + Long.toHexString(fe.id().value()) +
-                               ", old flowId=" + Long.toHexString(stored.id().value()) +
-                               ", new bytes=" + fe.bytes() + ", old bytes=" + stored.bytes() +
-                               ", new life=" + fe.life() + ", old life=" + stored.life() +
-                               ", new lastSeen=" + fe.lastSeen() + ", old lastSeen=" + stored.lastSeen());
-                   // go next
-                   //FIXME modification of "stored" flow entry outside of store
-                   stored.setLastSeen();
-                   continue;
-               }
+                    //FIXME modification of "stored" flow entry outside of store
+                    stored.setLastSeen();
+                    continue;
+                } else if (fe.life() < stored.life()) {
+                    // Invalid updates the stats values, i.e., bytes, packets, durations ...
+                    if (log.isDebugEnabled()) {
+                        log.debug(ADD_INVALID_LOG, fe.id(), stored.id(), fe.bytes(),
+                                stored.bytes(), fe.life(), stored.life(),
+                                fe.lastSeen(), stored.lastSeen());
+                    }
+                    // go next
+                    //FIXME modification of "stored" flow entry outside of store
+                    stored.setLastSeen();
+                    continue;
+                }
 
-               // update now
-               //FIXME modification of "stored" flow entry outside of store
-               stored.setLife(fe.life());
-               stored.setPackets(fe.packets());
-               stored.setBytes(fe.bytes());
-               stored.setLastSeen();
-               if (stored.state() == FlowEntry.FlowEntryState.PENDING_ADD) {
-                   // flow is really RULE_ADDED
-                   stored.setState(FlowEntry.FlowEntryState.ADDED);
-               }
-               // flow is RULE_UPDATED, skip adding and just updating flow live table
-               //deviceFlowTable.calAndSetFlowLiveType(stored);
-               continue;
-           }
+                // update now
+                //FIXME modification of "stored" flow entry outside of store
+                stored.setLife(fe.life());
+                stored.setPackets(fe.packets());
+                stored.setBytes(fe.bytes());
+                stored.setLastSeen();
+                if (stored.state() == FlowEntry.FlowEntryState.PENDING_ADD) {
+                    // flow is really RULE_ADDED
+                    stored.setState(FlowEntry.FlowEntryState.ADDED);
+                }
+                // flow is RULE_UPDATED, skip adding and just updating flow live table
+                //deviceFlowTable.calAndSetFlowLiveType(stored);
+                continue;
+            }
 
-           // add new flow entry, we suppose IMMEDIATE_FLOW
-           TypedStoredFlowEntry newFlowEntry = new DefaultTypedFlowEntry(fe,
+            // add new flow entry, we suppose IMMEDIATE_FLOW
+            TypedStoredFlowEntry newFlowEntry = new DefaultTypedFlowEntry(fe,
                     FlowLiveType.IMMEDIATE_FLOW);
-           deviceFlowTable.addWithCalAndSetFlowLiveType(newFlowEntry);
+            deviceFlowTable.addWithCalAndSetFlowLiveType(newFlowEntry);
         }
     }
 
     /**
-     * remove typed flow entry from the internal flow table.
+     * Removes typed flow entry from the internal flow table.
      *
      * @param flowRules the flow entries
-     *
      */
     public synchronized void removeFlows(FlowRule...  flowRules) {
         for (FlowRule rule : flowRules) {
@@ -472,10 +482,9 @@ public class NewAdaptiveFlowStatsCollector {
 
     // same as removeFlows() function
     /**
-     * remove typed flow entry from the internal flow table.
+     * Removes typed flow entry from the internal flow table.
      *
      * @param flowRules the flow entries
-     *
      */
     public void flowRemoved(FlowRule... flowRules) {
         removeFlows(flowRules);
@@ -483,19 +492,16 @@ public class NewAdaptiveFlowStatsCollector {
 
     // same as addOrUpdateFlows() function
     /**
-     * add or update typed flow entry from flow entry into the internal flow table.
+     * Adds or updates typed flow entry from flow entry into the internal flow table.
      *
      * @param flowEntries the flow entry list
-     *
      */
     public void pushFlowMetrics(List<FlowEntry> flowEntries) {
-        flowEntries.forEach(fe -> {
-            addOrUpdateFlows(fe);
-        });
+        flowEntries.forEach(this::addOrUpdateFlows);
     }
 
     /**
-     * returns flowMissingXid that indicates the execution of flowMissing process or not(NO_FLOW_MISSING_XID(-1)).
+     * Returns flowMissingXid that indicates the execution of flowMissing process or not(NO_FLOW_MISSING_XID(-1)).
      *
      * @return xid of missing flow
      */
@@ -504,10 +510,9 @@ public class NewAdaptiveFlowStatsCollector {
     }
 
     /**
-     * set flowMissingXid, namely OFFlowStatsRequest match any ALL message Id.
+     * Sets flowMissingXid, namely OFFlowStatsRequest match any ALL message Id.
      *
      * @param flowMissingXid the OFFlowStatsRequest message Id
-     *
      */
     public void setFlowMissingXid(long flowMissingXid) {
         this.flowMissingXid = flowMissingXid;
@@ -531,8 +536,7 @@ public class NewAdaptiveFlowStatsCollector {
         private long removeCount = 0;
 
         /**
-         * Resets all count values with zero.
-         *
+         * Resets all count values to zero.
          */
         public void resetAllCount() {
             addCount = 0;
@@ -565,8 +569,7 @@ public class NewAdaptiveFlowStatsCollector {
         /**
          * Gets the number of flow entry in flow table.
          *
-         * @return the number of flow entry.
-         *
+         * @return the number of flow entry
          */
         public long getFlowCount() {
             return flowEntries.values().stream().mapToLong(Set::size).sum();
@@ -576,8 +579,7 @@ public class NewAdaptiveFlowStatsCollector {
          * Gets the number of flow entry in flow table.
          *
          * @param rule the flow rule
-         * @return the typed flow entry.
-         *
+         * @return the typed flow entry
          */
         public TypedStoredFlowEntry getFlowEntry(FlowRule rule) {
             checkNotNull(rule);
@@ -588,8 +590,7 @@ public class NewAdaptiveFlowStatsCollector {
         /**
          * Gets the all typed flow entries in flow table.
          *
-         * @return the set of typed flow entry.
-         *
+         * @return the set of typed flow entry
          */
         public Set<TypedStoredFlowEntry> getFlowEntries() {
             return getFlowEntriesInternal();
@@ -598,38 +599,34 @@ public class NewAdaptiveFlowStatsCollector {
         /**
          * Gets the short typed flow entries in flow table.
          *
-         * @return the set of typed flow entry.
-         *
+         * @return the set of typed flow entry
          */
         public Set<StoredFlowEntry> getShortFlows() {
-            return ImmutableSet.copyOf(shortFlows); //Sets.newHashSet(shortFlows);
+            return ImmutableSet.copyOf(shortFlows);
         }
 
         /**
          * Gets the mid typed flow entries in flow table.
          *
-         * @return the set of typed flow entry.
-         *
+         * @return the set of typed flow entry
          */
         public Set<StoredFlowEntry> getMidFlows() {
-            return ImmutableSet.copyOf(midFlows); //Sets.newHashSet(midFlows);
+            return ImmutableSet.copyOf(midFlows);
         }
 
         /**
          * Gets the long typed flow entries in flow table.
          *
-         * @return the set of typed flow entry.
-         *
+         * @return the set of typed flow entry
          */
         public Set<StoredFlowEntry> getLongFlows() {
-            return ImmutableSet.copyOf(longFlows); //Sets.newHashSet(longFlows);
+            return ImmutableSet.copyOf(longFlows);
         }
 
         /**
          * Add typed flow entry into table only.
          *
          * @param rule the flow rule
-         *
          */
         public synchronized void add(TypedStoredFlowEntry rule) {
             checkNotNull(rule);
@@ -643,11 +640,10 @@ public class NewAdaptiveFlowStatsCollector {
         }
 
         /**
-         * Calculates and set the flow live type at the first time,
+         * Calculates and sets the flow live type at the first time,
          * and then add it into a corresponding typed flow table.
          *
          * @param rule the flow rule
-         *
          */
         public void calAndSetFlowLiveType(TypedStoredFlowEntry rule) {
             checkNotNull(rule);
@@ -656,13 +652,12 @@ public class NewAdaptiveFlowStatsCollector {
         }
 
         /**
-         * Add the typed flow entry into table, and calculates and set the flow live type,
+         * Adds the typed flow entry into table, and calculates and set the flow live type,
          * and then add it into a corresponding typed flow table.
          *
          * @param rule the flow rule
-         *
          */
-       public synchronized void addWithCalAndSetFlowLiveType(TypedStoredFlowEntry rule) {
+        public synchronized void addWithCalAndSetFlowLiveType(TypedStoredFlowEntry rule) {
             checkNotNull(rule);
 
             //rule have to be new DefaultTypedFlowEntry
@@ -671,10 +666,10 @@ public class NewAdaptiveFlowStatsCollector {
                 calAndSetFlowLiveTypeInternal(rule);
                 addWithSetFlowLiveTypeCount++;
             } else {
-                log.debug("addWithCalAndSetFlowLiveType, FlowId=" + Long.toHexString(rule.id().value())
-                                + " ADD Failed, cause it may already exists in table !!!,"
-                                + " AdaptiveStats collection thread for {}",
-                        sw.getStringId());
+                if (log.isDebugEnabled()) {
+                    log.debug("FlowId {} ADD failed, it may already exist in table - {}",
+                            rule.id(), sw.getStringId());
+                }
             }
         }
 
@@ -701,18 +696,18 @@ public class NewAdaptiveFlowStatsCollector {
 
             if (rule.flowLiveType() != prevFlowLiveType) {
                 switch (prevFlowLiveType) {
-                    // delete it from previous flow table
-                    case SHORT_FLOW:
-                        shortFlows.remove(rule);
-                        break;
-                    case MID_FLOW:
-                        midFlows.remove(rule);
-                        break;
-                    case LONG_FLOW:
-                        longFlows.remove(rule);
-                        break;
-                    default:
-                        break;
+                // delete it from previous flow table
+                case SHORT_FLOW:
+                    shortFlows.remove(rule);
+                    break;
+                case MID_FLOW:
+                    midFlows.remove(rule);
+                    break;
+                case LONG_FLOW:
+                    longFlows.remove(rule);
+                    break;
+                default:
+                    break;
                 }
             }
         }
@@ -728,71 +723,60 @@ public class NewAdaptiveFlowStatsCollector {
 
 
             switch (fe.flowLiveType()) {
-                case IMMEDIATE_FLOW:
-                    if (liveTime >= longPollInterval) {
-                        fe.setFlowLiveType(FlowLiveType.LONG_FLOW);
-                         longFlows.add(fe);
-                    } else if (liveTime >= midPollInterval) {
-                        fe.setFlowLiveType(FlowLiveType.MID_FLOW);
-                        midFlows.add(fe);
-                    } else if (liveTime >= calAndPollInterval) {
-                        fe.setFlowLiveType(FlowLiveType.SHORT_FLOW);
-                        shortFlows.add(fe);
-                    }
-                    break;
-                case SHORT_FLOW:
-                    if (liveTime >= longPollInterval) {
-                        fe.setFlowLiveType(FlowLiveType.LONG_FLOW);
-                        shortFlows.remove(fe);
-                        longFlows.add(fe);
-                    } else if (liveTime >= midPollInterval) {
-                        fe.setFlowLiveType(FlowLiveType.MID_FLOW);
-                        shortFlows.remove(fe);
-                        midFlows.add(fe);
-                    }
-                    break;
-                case MID_FLOW:
-                    if (liveTime >= longPollInterval) {
-                        fe.setFlowLiveType(FlowLiveType.LONG_FLOW);
-                        midFlows.remove(fe);
-                        longFlows.add(fe);
-                    }
-                    break;
-                case LONG_FLOW:
-                    if (fromLastSeen > entirePollInterval) {
-                        log.trace("checkAndMoveLiveFlowInternal, flow is already removed at switch.");
-                        return false;
-                    }
-                    break;
-                case UNKNOWN_FLOW: // Unknown flow is an internal error flow type, just fall through
-                default :
-                    // Error Unknown Live Type
-                    log.error("checkAndMoveLiveFlowInternal, Unknown Live Type error!"
-                            + "AdaptiveStats collection thread for {}",
-                            sw.getStringId());
+            case IMMEDIATE_FLOW:
+                if (liveTime >= longPollInterval) {
+                    fe.setFlowLiveType(FlowLiveType.LONG_FLOW);
+                    longFlows.add(fe);
+                } else if (liveTime >= midPollInterval) {
+                    fe.setFlowLiveType(FlowLiveType.MID_FLOW);
+                    midFlows.add(fe);
+                } else if (liveTime >= calAndPollInterval) {
+                    fe.setFlowLiveType(FlowLiveType.SHORT_FLOW);
+                    shortFlows.add(fe);
+                }
+                break;
+            case SHORT_FLOW:
+                if (liveTime >= longPollInterval) {
+                    fe.setFlowLiveType(FlowLiveType.LONG_FLOW);
+                    shortFlows.remove(fe);
+                    longFlows.add(fe);
+                } else if (liveTime >= midPollInterval) {
+                    fe.setFlowLiveType(FlowLiveType.MID_FLOW);
+                    shortFlows.remove(fe);
+                    midFlows.add(fe);
+                }
+                break;
+            case MID_FLOW:
+                if (liveTime >= longPollInterval) {
+                    fe.setFlowLiveType(FlowLiveType.LONG_FLOW);
+                    midFlows.remove(fe);
+                    longFlows.add(fe);
+                }
+                break;
+            case LONG_FLOW:
+                if (fromLastSeen > entirePollInterval) {
+                    log.trace("checkAndMoveLiveFlowInternal: flow is already removed at switch.");
                     return false;
+                }
+                break;
+            case UNKNOWN_FLOW: // Unknown flow is an internal error flow type, just fall through
+            default:
+                log.error("Unknown live type error for {}", sw.getStringId());
+                return false;
             }
 
-            log.debug("checkAndMoveLiveFlowInternal, FlowId=" + Long.toHexString(fe.id().value())
-                            + ", state=" + fe.state()
-                            + ", After liveType=" + fe.flowLiveType()
-                            + ", liveTime=" + liveTime
-                            + ", life=" + fe.life()
-                            + ", bytes=" + fe.bytes()
-                            + ", packets=" + fe.packets()
-                            + ", fromLastSeen=" + fromLastSeen
-                            + ", priority=" + fe.priority()
-                            + ", selector=" + fe.selector().criteria()
-                            + ", treatment=" + fe.treatment()
-                            + " AdaptiveStats collection thread for {}",
-                    sw.getStringId());
+            if (log.isTraceEnabled()) {
+                log.trace(CHECK_AND_MOVE_LOG, fe.id(), fe.state(), fe.flowLiveType(),
+                        liveTime, fe.life(), fe.bytes(), fe.packets(), fromLastSeen,
+                        fe.priority(), fe.selector().criteria(), fe.treatment(),
+                        sw.getStringId());
+            }
 
             return true;
         }
 
         /**
-         * Check and move live type for all type flow entries in table at every calAndPollInterval time.
-         *
+         * Checks and moves live type for all type flow entries in table at every calAndPollInterval time.
          */
         public void checkAndMoveLiveFlowAll() {
             Set<TypedStoredFlowEntry> typedFlowEntries = getFlowEntriesInternal();
@@ -805,7 +789,7 @@ public class NewAdaptiveFlowStatsCollector {
             });
 
             // print table counts for debug
-            if (log.isDebugEnabled()) {
+            if (log.isTraceEnabled()) {
                 synchronized (this) {
                     long totalFlowCount = getFlowCount();
                     long shortFlowCount = shortFlows.size();
@@ -814,73 +798,58 @@ public class NewAdaptiveFlowStatsCollector {
                     long immediateFlowCount = totalFlowCount - shortFlowCount - midFlowCount - longFlowCount;
                     long calTotalCount = addCount + addWithSetFlowLiveTypeCount - removeCount;
 
-                    log.debug("--------------------------------------------------------------------------- for {}",
-                            sw.getStringId());
-                    log.debug("checkAndMoveLiveFlowAll, Total Flow_Count=" + totalFlowCount
-                            + ", add - remove_Count=" + calTotalCount
-                            + ", IMMEDIATE_FLOW_Count=" + immediateFlowCount
-                            + ", SHORT_FLOW_Count=" + shortFlowCount
-                            + ", MID_FLOW_Count=" + midFlowCount
-                            + ", LONG_FLOW_Count=" + longFlowCount
-                            + ", add_Count=" + addCount
-                            + ", addWithSetFlowLiveType_Count=" + addWithSetFlowLiveTypeCount
-                            + ", remove_Count=" + removeCount
-                            + " AdaptiveStats collection thread for {}", sw.getStringId());
-                    log.debug("--------------------------------------------------------------------------- for {}",
-                            sw.getStringId());
+                    log.trace(CHECK_AND_MOVE_COUNT_LOG, totalFlowCount, calTotalCount,
+                            immediateFlowCount, shortFlowCount, midFlowCount, longFlowCount,
+                            addCount, addWithSetFlowLiveTypeCount, removeCount, sw.getStringId());
+
                     if (totalFlowCount != calTotalCount) {
-                        log.error("checkAndMoveLiveFlowAll, Real total flow count and "
-                                + "calculated total flow count do NOT match, something is wrong internally "
-                                + "or check counter value bound is over!");
+                        log.error("Real total flow count and calculated total flow count do NOT match");
                     }
                     if (immediateFlowCount < 0) {
-                        log.error("checkAndMoveLiveFlowAll, IMMEDIATE_FLOW count is negative, "
-                                + "something is wrong internally "
-                                + "or check counter value bound is over!");
+                        log.error("Immediate flow count is negative");
                     }
                 }
             }
-            log.trace("checkAndMoveLiveFlowAll, AdaptiveStats for {}", sw.getStringId());
+            log.trace("checkAndMoveLiveFlowAll: adaptiveStats for {}", sw.getStringId());
         }
 
         /**
-         * Remove the typed flow entry from table.
+         * Removes the typed flow entry from table.
          *
          * @param rule the flow rule
-         *
          */
         public synchronized void remove(FlowRule rule) {
             checkNotNull(rule);
 
             TypedStoredFlowEntry removeStore = getFlowEntryInternal(rule);
             if (removeStore != null) {
-                removeLiveFlowsInternal((TypedStoredFlowEntry) removeStore);
+                removeLiveFlowsInternal(removeStore);
                 boolean result = getFlowEntriesInternal(rule.id()).remove(removeStore);
 
                 if (result) {
                     removeCount++;
                 }
             }
-       }
+        }
 
         // Remove the typed flow entry from corresponding table
         private void removeLiveFlowsInternal(TypedStoredFlowEntry fe) {
             switch (fe.flowLiveType()) {
-                case IMMEDIATE_FLOW:
-                    // do nothing
-                    break;
-                case SHORT_FLOW:
-                    shortFlows.remove(fe);
-                    break;
-                case MID_FLOW:
-                    midFlows.remove(fe);
-                    break;
-                case LONG_FLOW:
-                    longFlows.remove(fe);
-                    break;
-                default: // error in Flow Live Type
-                    log.error("removeLiveFlowsInternal, Unknown Live Type error!");
-                    break;
+            case IMMEDIATE_FLOW:
+                // do nothing
+                break;
+            case SHORT_FLOW:
+                shortFlows.remove(fe);
+                break;
+            case MID_FLOW:
+                midFlows.remove(fe);
+                break;
+            case LONG_FLOW:
+                longFlows.remove(fe);
+                break;
+            default: // error in Flow Live Type
+                log.error("removeLiveFlowsInternal: unknown live type error");
+                break;
             }
         }
     }

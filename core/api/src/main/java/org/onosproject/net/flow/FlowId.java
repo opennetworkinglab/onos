@@ -26,11 +26,27 @@ public final class FlowId extends Identifier<Long> {
         super(id);
     }
 
+    /**
+     * Creates a flow ID from a long value.
+     *
+     * @param id long value
+     * @return flow ID
+     */
     public static FlowId valueOf(long id) {
         return new FlowId(id);
     }
 
+    /**
+     * Gets the flow ID value.
+     *
+     * @return flow ID value as long
+     */
     public long value() {
         return this.identifier;
+    }
+
+    @Override
+    public String toString() {
+        return Long.toHexString(identifier);
     }
 }
