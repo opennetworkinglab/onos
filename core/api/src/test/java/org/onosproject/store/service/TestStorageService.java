@@ -30,7 +30,7 @@ public class TestStorageService extends StorageServiceAdapter {
 
     @Override
     public <E> DistributedSetBuilder<E> setBuilder() {
-        throw new UnsupportedOperationException("setBuilder");
+        return TestDistributedSet.builder();
     }
 
     @Override
