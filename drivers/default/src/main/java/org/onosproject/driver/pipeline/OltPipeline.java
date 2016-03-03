@@ -72,6 +72,8 @@ import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.AtomicCounter;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -79,7 +81,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -92,18 +93,20 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private static final Integer QQ_TABLE = 1;
     private static final short MCAST_VLAN = 4000;
+    private static final String OLTCOOKIES = "olt-cookies-must-be-unique";
     private final Logger log = getLogger(getClass());
 
     private ServiceDirectory serviceDirectory;
     private FlowRuleService flowRuleService;
     private GroupService groupService;
     private CoreService coreService;
+    private StorageService storageService;
 
     private DeviceId deviceId;
     private ApplicationId appId;
     // NOTE: OLT currently has some issue with cookie 0. Pick something larger
     //       to avoid collision
-    private AtomicLong counter = new AtomicLong(123);
+    private AtomicCounter counter;
 
     protected FlowObjectiveStore flowObjectiveStore;
 
@@ -127,6 +130,18 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         coreService = serviceDirectory.get(CoreService.class);
         groupService = serviceDirectory.get(GroupService.class);
         flowObjectiveStore = context.store();
+        storageService = serviceDirectory.get(StorageService.class);
+
+        counter = storageService.atomicCounterBuilder()
+                .withName(String.format(OLTCOOKIES, deviceId))
+                .build()
+                .asAtomicCounter();
+
+        /*
+        magic olt number to make sure we don't collide with it's internal
+        processing
+         */
+        counter.set(123);
 
 
         appId = coreService.registerApplication(
