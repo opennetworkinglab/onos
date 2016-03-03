@@ -63,7 +63,7 @@ public class NeutronMl2PortsWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createPorts(InputStream input) {
-        log.debug(String.format(PORTS_MESSAGE, "create"));
+        log.trace(String.format(PORTS_MESSAGE, "create"));
         return Response.status(Response.Status.OK).build();
     }
 
@@ -110,7 +110,7 @@ public class NeutronMl2PortsWebResource extends AbstractWebResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deletePorts(@PathParam("id") String id) {
-        log.debug(String.format(PORTS_MESSAGE, "delete"));
+        log.trace(String.format(PORTS_MESSAGE, "delete"));
         return Response.status(Response.Status.OK).build();
     }
 }

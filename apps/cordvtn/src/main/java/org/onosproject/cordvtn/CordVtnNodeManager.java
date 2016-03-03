@@ -24,7 +24,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.TpPort;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
@@ -64,6 +63,7 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -297,6 +297,22 @@ public class CordVtnNodeManager {
     public boolean isNodeInitComplete(CordVtnNode node) {
         checkNotNull(node);
         return nodeStore.containsKey(node) && getNodeState(node).equals(NodeState.COMPLETE);
+    }
+
+    /**
+     * Returns if current node state saved in nodeStore is COMPLETE or not.
+     *
+     * @param node cordvtn node
+     * @return true if it's complete state, otherwise false
+     */
+    private boolean isNodeStateComplete(CordVtnNode node) {
+        checkNotNull(node);
+
+        // the state saved in nodeStore can be wrong if IP address settings are changed
+        // after the node init has been completed since there's no way to detect it
+        // getNodeState and checkNodeInitState always return correct answer but can be slow
+        Versioned<NodeState> state = nodeStore.get(node);
+        return state != null && state.value().equals(NodeState.COMPLETE);
     }
 
     /**
@@ -771,7 +787,7 @@ public class CordVtnNodeManager {
             log.debug("Port {} is added to {}", portName, node.hostname());
 
             if (portName.startsWith(VPORT_PREFIX)) {
-                if (isNodeInitComplete(node)) {
+                if (isNodeStateComplete(node)) {
                     cordVtnService.addServiceVm(node, getConnectPoint(port));
                 } else {
                     log.debug("VM is detected on incomplete node, ignore it.", portName);
@@ -799,7 +815,7 @@ public class CordVtnNodeManager {
             log.debug("Port {} is removed from {}", portName, node.hostname());
 
             if (portName.startsWith(VPORT_PREFIX)) {
-                if (isNodeInitComplete(node)) {
+                if (isNodeStateComplete(node)) {
                     cordVtnService.removeServiceVm(getConnectPoint(port));
                 } else {
                     log.debug("VM is vanished from incomplete node, ignore it.", portName);
@@ -847,36 +863,12 @@ public class CordVtnNodeManager {
      */
     private void readConfiguration() {
         CordVtnConfig config = configRegistry.getConfig(appId, CordVtnConfig.class);
-
         if (config == null) {
             log.debug("No configuration found");
             return;
         }
 
-        NetworkAddress localMgmtIp = config.localMgmtIp();
-        TpPort ovsdbPort = config.ovsdbPort();
-        TpPort sshPort = config.sshPort();
-        String sshUser = config.sshUser();
-        String sshKeyFile = config.sshKeyFile();
-
-        config.cordVtnNodes().forEach(node -> {
-            log.debug("Read node {}", node.hostname());
-            CordVtnNode cordVtnNode = new CordVtnNode(
-                    node.hostname(),
-                    node.hostMgmtIp(),
-                    localMgmtIp,
-                    node.dpIp(),
-                    ovsdbPort,
-                    new SshAccessInfo(node.hostMgmtIp().ip().getIp4Address(),
-                                      sshPort,
-                                      sshUser,
-                                      sshKeyFile),
-                    node.bridgeId(),
-                    node.dpIntf());
-
-            addNode(cordVtnNode);
-        });
-
+        config.cordVtnNodes().forEach(this::addNode);
         // TODO remove nodes if needed
     }
 

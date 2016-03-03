@@ -21,6 +21,8 @@ import org.onlab.packet.TpPort;
 
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Representation of SSH access information.
  */
@@ -40,10 +42,10 @@ public final class SshAccessInfo {
      * @param privateKey path of ssh private key
      */
     public SshAccessInfo(Ip4Address remoteIp, TpPort port, String user, String privateKey) {
-        this.remoteIp = remoteIp;
-        this.port = port;
-        this.user = user;
-        this.privateKey = privateKey;
+        this.remoteIp = checkNotNull(remoteIp);
+        this.port = checkNotNull(port);
+        this.user = checkNotNull(user);
+        this.privateKey = checkNotNull(privateKey);
     }
 
     /**

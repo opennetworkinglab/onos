@@ -43,7 +43,7 @@ public class NeutronMl2SubnetsWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createSubnet(InputStream input) {
-        log.debug(String.format(SUBNETS_MESSAGE, "create"));
+        log.trace(String.format(SUBNETS_MESSAGE, "create"));
         return Response.status(Response.Status.OK).build();
     }
 
@@ -53,7 +53,7 @@ public class NeutronMl2SubnetsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateSubnet(@PathParam("id") String id, InputStream input) {
-        log.debug(String.format(SUBNETS_MESSAGE, "update"));
+        log.trace(String.format(SUBNETS_MESSAGE, "update"));
         return Response.status(Response.Status.OK).build();
 
     }
@@ -62,7 +62,7 @@ public class NeutronMl2SubnetsWebResource extends AbstractWebResource {
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteSubnet(@PathParam("id") String id) {
-        log.debug(String.format(SUBNETS_MESSAGE, "delete"));
+        log.trace(String.format(SUBNETS_MESSAGE, "delete"));
         return Response.status(Response.Status.OK).build();
     }
 }
