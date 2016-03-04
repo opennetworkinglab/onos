@@ -43,6 +43,9 @@ public class PartitionsListCommand extends AbstractShellCommand {
      * @param partitionInfo partition descriptions
      */
     private void displayPartitions(List<PartitionInfo> partitionInfo) {
+        if (partitionInfo.isEmpty()) {
+            return;
+        }
         print("----------------------------------------------------------");
         print(FMT, "Name", "Term", "Members", "");
         print("----------------------------------------------------------");

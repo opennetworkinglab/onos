@@ -19,10 +19,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
 
@@ -46,8 +46,6 @@ import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
-
-import com.google.common.base.Throwables;
 
 /**
  * Implementation of ClusterMetadataService.
@@ -126,11 +124,15 @@ public class ClusterMetadataManager
      * @return primary cluster metadata provider
      */
     private ClusterMetadataProvider getPrimaryProvider() {
+        String metadataUri = System.getProperty("onos.cluster.metadata.uri");
         try {
-            URI uri = new URI(System.getProperty("onos.cluster.metadata.uri", "config:///cluster.json"));
-            return getProvider(uri.getScheme());
-        } catch (URISyntaxException e) {
-            Throwables.propagate(e);
+            String protocol = metadataUri == null ? null : new URL(metadataUri).getProtocol();
+            if (protocol != null && (!protocol.equals("file") && !protocol.equals("http"))) {
+                return getProvider(protocol);
+            }
+            // file provider supports both "file" and "http" uris
+            return getProvider("file");
+        } catch (MalformedURLException e) {
             return null;
         }
     }

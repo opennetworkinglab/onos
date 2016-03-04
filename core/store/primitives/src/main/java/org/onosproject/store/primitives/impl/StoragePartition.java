@@ -23,8 +23,10 @@ import io.atomix.variables.DistributedLong;
 import java.io.File;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
@@ -83,7 +85,9 @@ public class StoragePartition implements Managed<StoragePartition> {
 
     @Override
     public CompletableFuture<Void> open() {
-        openServer();
+        if (partition.getMembers().contains(localNodeId)) {
+            openServer();
+        }
         return openClient().thenAccept(v -> isOpened.set(true))
                            .thenApply(v -> null);
     }
@@ -120,6 +124,10 @@ public class StoragePartition implements Managed<StoragePartition> {
         return Collections2.transform(partition.getMembers(), this::toAddress);
     }
 
+    /**
+     * Attempts to rejoin the partition.
+     * @return future that is completed after the operation is complete
+     */
     private CompletableFuture<Void> openServer() {
         if (!partition.getMembers().contains(localNodeId) || server != null) {
             return CompletableFuture.completedFuture(null);
@@ -133,6 +141,26 @@ public class StoragePartition implements Managed<StoragePartition> {
                 RESOURCE_TYPES,
                 logFolder);
         return server.open().thenRun(() -> this.server = server);
+    }
+
+    /**
+     * Attempts to join the partition as a new member.
+     * @return future that is completed after the operation is complete
+     */
+    private CompletableFuture<Void> joinCluster() {
+        Set<NodeId> otherMembers = partition.getMembers()
+                 .stream()
+                 .filter(nodeId -> !nodeId.equals(localNodeId))
+                 .collect(Collectors.toSet());
+        StoragePartitionServer server = new StoragePartitionServer(toAddress(localNodeId),
+                this,
+                serializer,
+                () -> new CopycatTransport(CopycatTransport.Mode.SERVER,
+                                     partition.getId(),
+                                     messagingService),
+                RESOURCE_TYPES,
+                logFolder);
+        return server.join(Collections2.transform(otherMembers, this::toAddress)).thenRun(() -> this.server = server);
     }
 
     private CompletableFuture<StoragePartitionClient> openClient() {
@@ -149,7 +177,7 @@ public class StoragePartition implements Managed<StoragePartition> {
      * Closes the partition server if it was previously opened.
      * @return future that is completed when the operation completes
      */
-    public CompletableFuture<Void> closeServer() {
+    public CompletableFuture<Void> leaveCluster() {
         return server != null ? server.closeAndExit() : CompletableFuture.completedFuture(null);
     }
 
@@ -181,15 +209,21 @@ public class StoragePartition implements Managed<StoragePartition> {
      * @return partition info
      */
     public Optional<PartitionInfo> info() {
-        return server != null ? Optional.of(server.info()) : Optional.empty();
+        return server != null && !server.isClosed() ? Optional.of(server.info()) : Optional.empty();
     }
 
-    public void onUpdate(Partition partition) {
-        this.partition = partition;
+    public void onUpdate(Partition newValue) {
+        if (partition.getMembers().contains(localNodeId) && newValue.getMembers().contains(localNodeId)) {
+            return;
+        }
+        if (!partition.getMembers().contains(localNodeId) && !newValue.getMembers().contains(localNodeId)) {
+            return;
+        }
+        this.partition = newValue;
         if (partition.getMembers().contains(localNodeId)) {
-            openServer();
+            joinCluster();
         } else if (!partition.getMembers().contains(localNodeId)) {
-            closeServer();
+            leaveCluster();
         }
     }
 }

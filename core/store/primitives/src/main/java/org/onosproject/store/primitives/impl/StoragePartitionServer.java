@@ -77,7 +77,7 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
                 return CompletableFuture.completedFuture(null);
             }
             synchronized (this) {
-                server = buildServer();
+                server = buildServer(partition.getMemberAddresses());
             }
             serverOpenFuture = server.open();
         } else {
@@ -109,12 +109,12 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
         return server.close();
     }
 
-    private CopycatServer buildServer() {
+    private CopycatServer buildServer(Collection<Address> clusterMembers) {
         ResourceTypeResolver resourceResolver = new ServiceLoaderResourceResolver();
         ResourceRegistry registry = new ResourceRegistry();
         resourceTypes.forEach(registry::register);
         resourceResolver.resolve(registry);
-        CopycatServer server = CopycatServer.builder(localAddress, partition.getMemberAddresses())
+        CopycatServer server = CopycatServer.builder(localAddress, clusterMembers)
                 .withName("partition-" + partition.getId())
                 .withSerializer(serializer.clone())
                 .withTransport(transport.get())
@@ -128,6 +128,18 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
                 .build();
         server.serializer().resolve(new ResourceManagerTypeResolver(registry));
         return server;
+    }
+
+    public CompletableFuture<Void> join(Collection<Address> otherMembers) {
+        server = buildServer(otherMembers);
+
+        return server.open().whenComplete((r, e) -> {
+            if (e == null) {
+                log.info("Successfully joined partition {}", partition.getId());
+            } else {
+                log.info("Failed to join partition {}", partition.getId(), e);
+            }
+        }).thenApply(v -> null);
     }
 
     @Override
