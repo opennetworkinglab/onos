@@ -339,6 +339,8 @@
                     api.unsupNode(hdata.id, less);
                 }
                 // TODO: further highlighting?
+            } else {
+                $log.warn('HILITE: no host element:', host.id);
             }
         });
 
@@ -352,6 +354,8 @@
                     api.unsupNode(ddata.id, less);
                 }
                 // TODO: further highlighting?
+            } else {
+                $log.warn('HILITE: no device element:', device.id);
             }
         });
 
@@ -382,6 +386,8 @@
                     }
                     ldata.el.classed(portcls, true);
                 }
+            } else {
+                $log.warn('HILITE: no link element:', link.id);
             }
         });
 
