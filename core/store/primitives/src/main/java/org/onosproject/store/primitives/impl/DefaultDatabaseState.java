@@ -207,6 +207,11 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     @Override
+    public void counterSet(String counterName, long value) {
+        getCounter(counterName).set(value);
+    }
+
+    @Override
     public Long queueSize(String queueName) {
         return Long.valueOf(getQueue(queueName).size());
     }

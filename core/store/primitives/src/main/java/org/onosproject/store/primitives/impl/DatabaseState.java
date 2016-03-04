@@ -104,6 +104,9 @@ public interface DatabaseState<K, V> {
   Long counterGet(String counterName);
 
   @Command
+  void counterSet(String counterName, long value);
+
+  @Command
   CommitResponse prepareAndCommit(Transaction transaction);
 
   @Command
