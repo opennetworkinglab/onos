@@ -60,6 +60,7 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
      *
      * @param adminService {@link ResourceAdminService}
      * @param cfgService {@link NetworkConfigService}
+     * @param mastershipService {@link MastershipService}
      * @param executor Executor to use.
      */
     ResourceNetworkConfigListener(ResourceAdminService adminService, NetworkConfigService cfgService,

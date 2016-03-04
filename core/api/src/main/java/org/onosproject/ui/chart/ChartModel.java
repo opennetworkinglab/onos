@@ -42,6 +42,7 @@ public class ChartModel {
     /**
      * Constructs a chart model with initialized series set.
      *
+     * @param size datapoints size
      * @param series a set of series
      */
     public ChartModel(int size, String... series) {

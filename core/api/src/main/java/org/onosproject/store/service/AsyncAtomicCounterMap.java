@@ -26,6 +26,7 @@ public interface AsyncAtomicCounterMap<K> {
      * Increments by one the value currently associated with key, and returns the new value.
      *
      * @param key key with which the specified value is to be associated
+     * @return incremented value
      */
     CompletableFuture<Long> incrementAndGet(K key);
 
