@@ -33,8 +33,12 @@
         <dependency name="S2M-Intent-Connectivity"
                     requires="Net-Setup,~Reactive-Forwarding.Net-Link-Down-Up,Host-Intent-Connectivity,P2P-Intent-Connectivity"/>
 
+        <import file="${ONOS_SCENARIOS}/net-multi-to-single-intent.xml"/>
+        <dependency name="M2S-Intent-Connectivity"
+                    requires="S2M-Intent-Connectivity"/>
+        
         <import file="${ONOS_SCENARIOS}/net-rest.xml"/>
-        <dependency name="Net-REST" requires="Net-Setup,P2P-Intent-Connectivity,S2M-Intent-Connectivity"/>
+        <dependency name="Net-REST" requires="Net-Setup,P2P-Intent-Connectivity,M2S-Intent-Connectivity"/>
 
         <import file="${ONOS_SCENARIOS}/net-create-flows.xml"/>
         <dependency name="Net-Create-Flows" requires="Net-Setup,P2P-Intent-Connectivity,Net-REST"/>
