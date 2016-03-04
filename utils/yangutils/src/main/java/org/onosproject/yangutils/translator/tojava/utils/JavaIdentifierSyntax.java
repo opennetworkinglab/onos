@@ -18,6 +18,7 @@ package org.onosproject.yangutils.translator.tojava.utils;
 
 import java.util.ArrayList;
 
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.utils.UtilConstants;
 
 /**
@@ -25,8 +26,15 @@ import org.onosproject.yangutils.utils.UtilConstants;
  */
 public final class JavaIdentifierSyntax {
 
+    private static final int MAX_MONTHS = 12;
+    private static final int MAX_DAYS = 31;
+    private static final int INDEX_ZERO = 0;
+    private static final int INDEX_ONE = 1;
+    private static final int INDEX_TWO = 2;
+    private static final int INDEX_THREE = 3;
+
     /**
-     * Util class, with static functions only.
+     * Default constructor.
      */
     private JavaIdentifierSyntax() {
     }
@@ -71,9 +79,9 @@ public final class JavaIdentifierSyntax {
      */
     public static String getPkgFromNameSpace(String nameSpace) {
         ArrayList<String> pkgArr = new ArrayList<String>();
-        nameSpace = nameSpace.replace("\"", "");
-
-        String[] nameSpaceArr = nameSpace.split(UtilConstants.COLAN);
+        nameSpace = nameSpace.replace(UtilConstants.QUOTES, UtilConstants.EMPTY_STRING);
+        String properNameSpace = nameSpace.replaceAll(UtilConstants.REGEX_WITH_SPECIAL_CHAR, UtilConstants.COLAN);
+        String[] nameSpaceArr = properNameSpace.split(UtilConstants.COLAN);
 
         for (String nameSpaceString : nameSpaceArr) {
             pkgArr.add(nameSpaceString);
@@ -86,19 +94,31 @@ public final class JavaIdentifierSyntax {
      *
      * @param date YANG module revision
      * @return revision string
+     * @throws TranslatorException when date is invalid.
      */
-    public static String getYangRevisionStr(String date) {
+    public static String getYangRevisionStr(String date) throws TranslatorException {
         String[] revisionArr = date.split(UtilConstants.HYPHEN);
 
         String rev = "rev";
-        for (String element : revisionArr) {
-            Integer val = Integer.parseInt(element);
-            if (val < 10) {
-                rev = rev + "0";
+        String year = revisionArr[INDEX_ZERO];
+        char[] yearBytes = year.toCharArray();
+        rev = rev + yearBytes[INDEX_TWO] + yearBytes[INDEX_THREE];
+
+        if ((Integer.parseInt(revisionArr[INDEX_ONE]) <= MAX_MONTHS)
+                && Integer.parseInt(revisionArr[INDEX_TWO]) <= MAX_DAYS) {
+            for (int i = INDEX_ONE; i < revisionArr.length; i++) {
+
+                Integer val = Integer.parseInt(revisionArr[i]);
+                if (val < 10) {
+                    rev = rev + "0";
+                }
+                rev = rev + val;
             }
-            rev = rev + val;
+
+            return rev;
+        } else {
+            throw new TranslatorException("Date in revision is not proper: " + date);
         }
-        return rev;
     }
 
     /**
@@ -109,10 +129,14 @@ public final class JavaIdentifierSyntax {
      */
     public static String getPkgFrmArr(ArrayList<String> pkgArr) {
 
-        String pkg = "";
+        String pkg = UtilConstants.EMPTY_STRING;
         int size = pkgArr.size();
         int i = 0;
         for (String member : pkgArr) {
+            boolean presenceOfKeyword = UtilConstants.JAVA_KEY_WORDS.contains(member);
+            if (presenceOfKeyword || (member.matches(UtilConstants.REGEX_FOR_FIRST_DIGIT))) {
+                member = UtilConstants.UNDER_SCORE + member;
+            }
             pkg = pkg + member;
             if (i != size - 1) {
                 pkg = pkg + UtilConstants.PERIOD;
@@ -173,5 +197,15 @@ public final class JavaIdentifierSyntax {
      */
     public static String getCaptialCase(String yangIdentifier) {
         return yangIdentifier.substring(0, 1).toUpperCase() + yangIdentifier.substring(1);
+    }
+
+    /**
+     * Translate the YANG identifier name to java identifier with first letter in small.
+     *
+     * @param yangIdentifier identifier in YANG file.
+     * @return corresponding java identifier
+     */
+    public static String getLowerCase(String yangIdentifier) {
+        return yangIdentifier.substring(0, 1).toLowerCase() + yangIdentifier.substring(1);
     }
 }

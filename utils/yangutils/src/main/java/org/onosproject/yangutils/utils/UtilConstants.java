@@ -16,6 +16,9 @@
 
 package org.onosproject.yangutils.utils;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Provides utility constants while generating java files.
  */
@@ -41,6 +44,8 @@ public final class UtilConstants {
     public static final String JAVA_DOC_RETURN = " * @return ";
     public static final String JAVA_DOC_THROWS = " * @throws ";
     public static final String JAVA_DOC_SETTERS = " * Returns the builder object of ";
+    public static final String JAVA_DOC_OF = " * Returns the object of ";
+    public static final String JAVA_DOC_SETTERS_COMMON = " * Sets the value of ";
     public static final String JAVA_DOC_GETTERS = " * Returns the attribute ";
     public static final String JAVA_DOC_DEFAULT_CONSTRUCTOR = " * Default Constructor.\n";
     public static final String JAVA_DOC_CONSTRUCTOR = " * Construct the object of ";
@@ -51,9 +56,11 @@ public final class UtilConstants {
      * Basic requirements.
      */
     public static final String NEW_LINE = "\n";
+    public static final String EMPTY_STRING = "";
     public static final String NEW_LINE_ESTRIC = " *\n";
     public static final String PERIOD = ".";
     public static final String COLAN = ":";
+    public static final String UNDER_SCORE = "_";
     public static final String SEMI_COLAN = ";";
     public static final String HYPHEN = "-";
     public static final String SPACE = " ";
@@ -63,6 +70,25 @@ public final class UtilConstants {
     public static final String ADD = "+";
     public static final String ASTERISK = "*";
     public static final String AT = "@";
+    public static final String QUOTES = "\"";
+    public static final String AND = "&";
+    public static final String COMMA = ",";
+    public static final String ADD_STRING = "add";
+    public static final String CHECK_NOT_NULL_STRING = "checkNotNull";
+    public static final String HASH_CODE_STRING = "hashCode";
+    public static final String EQUALS_STRING = "equals";
+    public static final String OBJECT_STRING = "Object";
+    public static final String INSTANCE_OF = " instanceof ";
+
+    public static final String VALUE = "value";
+
+    public static final String IF = "if";
+    public static final String FOR = "for";
+    public static final String WHILE = "while";
+    public static final String OF = "of";
+
+    public static final String TRUE = "true";
+    public static final String FALSE = "false";
 
     /**
      * For brackets.
@@ -193,7 +219,23 @@ public final class UtilConstants {
     public static final String DOUBLE_WRAPPER = "Double";
 
     /**
-     * For idenifiers.
+     * List of keywords in java, this is used for checking if the input does not contain these keywords.
+     */
+    public static final List JAVA_KEY_WORDS = Arrays.asList("abstract", "assert", "boolean", "break", "byte", "case",
+            "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "extends", "false",
+            "final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int", "interface",
+            "long", "native", "new", "null", "package", "private", "protected", "public", "return", "short", "static",
+            "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "true", "try",
+            "void", "volatile", "while");
+
+    /**
+     * Defining regular expression.
+     */
+    public static final String REGEX_WITH_SPECIAL_CHAR = "[ : / - @ $ # ' * + , ; = ]+";
+    public static final String REGEX_FOR_FIRST_DIGIT = "\\d.*";
+
+    /**
+     * For identifiers.
      */
     public static final String CLASS = "class";
     public static final String BUILDER = "Builder";
@@ -218,7 +260,9 @@ public final class UtilConstants {
     /**
      * For collections.
      */
-    public static final String COLLECTION_IMPORTS = "import java.util.";
+    public static final String COLLECTION_IMPORTS = "java.util";
+    public static final String MORE_OBJECT_IMPORT = "import com.google.common.base.MoreObjects;\n";
+    public static final String JAVA_UTIL_OBJECTS_IMPORT = "import java.util.Objects;\n";
     public static final String ABSTRACT_COLLECTION = "AbstractCollection";
 
     public static final String LIST = "List";

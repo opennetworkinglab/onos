@@ -70,7 +70,7 @@ public final class YangIoUtilsTest {
     @Test
     public void addPackageInfoWithEmptyPathTest() throws IOException {
 
-        File dirPath = new File("");
+        File dirPath = new File("invalid/check");
         thrown.expect(IOException.class);
         thrown.expectMessage("Exception occured while creating package info file.");
         YangIoUtils.addPackageInfo(dirPath, "check1", createPath);
