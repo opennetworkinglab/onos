@@ -15,20 +15,8 @@
  */
 package org.onosproject.codec.impl;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.onosproject.net.NetTestTools.APP_ID;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.EthType;
@@ -83,8 +71,19 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.onosproject.net.NetTestTools.APP_ID;
 
 /**
  * Flow rule codec unit tests.
@@ -139,6 +138,7 @@ public class FlowRuleCodecTest {
         assertThat(rule.isPermanent(), is(false));
         assertThat(rule.timeout(), is(1));
         assertThat(rule.priority(), is(1));
+        assertThat(rule.tableId(), is(1));
         assertThat(rule.deviceId().toString(), is("of:0000000000000001"));
     }
 

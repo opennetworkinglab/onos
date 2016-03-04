@@ -3,6 +3,7 @@
   "isPermanent":"false",
   "timeout":1,
   "deviceId":"of:0000000000000001",
+  "tableId": 1,
   "selector":
   {"criteria":
   [

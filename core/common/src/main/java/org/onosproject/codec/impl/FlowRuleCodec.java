@@ -15,6 +15,8 @@
  */
 package org.onosproject.codec.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.CoreService;
@@ -23,8 +25,6 @@ import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static org.onlab.util.Tools.nullIsIllegal;
 
@@ -36,6 +36,7 @@ public final class FlowRuleCodec extends JsonCodec<FlowRule> {
     private static final String PRIORITY = "priority";
     private static final String TIMEOUT = "timeout";
     private static final String IS_PERMANENT = "isPermanent";
+    private static final String TABLE_ID = "tableId";
     private static final String DEVICE_ID = "deviceId";
     private static final String TREATMENT = "treatment";
     private static final String SELECTOR = "selector";
@@ -69,6 +70,11 @@ public final class FlowRuleCodec extends JsonCodec<FlowRule> {
                             TIMEOUT
                             + MISSING_MEMBER_MESSAGE
                             + " if the flow is temporary").asInt());
+        }
+
+        JsonNode tableIdJson = json.get(TABLE_ID);
+        if (tableIdJson != null) {
+            resultBuilder.forTable(tableIdJson.asInt());
         }
 
         DeviceId deviceId = DeviceId.deviceId(nullIsIllegal(json.get(DEVICE_ID),
