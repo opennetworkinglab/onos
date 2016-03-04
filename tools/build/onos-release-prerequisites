@@ -10,13 +10,80 @@ WIKI_USER=${WIKI_USER:-$USER}
 
 set -e
 
+# Tests availability of the specified tools
+function testTool {
+    trap "echo 'FAILED'" ERR
+    printf "Checking $1 availability... "
+    which -s $1
+    echo "OK"
+}
+
+# Tests availability of gerrit
+function testGerritTool {
+    trap "echo 'FAILED'" ERR
+    printf "Checking gerrit... "
+    git review --version 2>/dev/null
+    echo "OK"
+}
+
+# Tests availability of GPG or GPG2
+function testGpgTool {
+    trap "echo 'FAILED'" ERR
+    printf "Checking gpg or gpg2... "
+    which -s gpg || which -s gpg2
+    echo "OK"
+}
+
+# Tests Java version
+function testJavaVersion {
+    trap "echo 'FAILED'" ERR
+    printf "Checking Java version... "
+    v=$(javac -version 2>&1 | grep 1.8.0_ | sed -e 's/.*1.8.0_\([0-9]*\).*/\1/g')
+    test "$v" -ge 74
+    echo "OK"
+}
+
+# Tests availability of the required tools
+function testToolchain {
+    for tool in bash python git java javac mvn tar; do
+        testTool $tool;
+    done
+    testGerritTool
+    testGpgTool
+    testJavaVersion
+}
+
+# Tests that the specified artifact dependency is not a snapshot version
+function testArtifactDependency {
+    trap "echo 'FAILED'" ERR
+    printf "Checking $1 dependency... "
+    grep "<$1.version>.*</$1.version>" $ONOS_ROOT/pom.xml | grep -q SNAPSHOT && false
+    echo "OK"
+}
+
+# Tests that the ONOS-base is not a snapshot version
+function testOnosBase {
+    trap "echo 'FAILED'" ERR
+    printf "Checking onos-base dependency... "
+    grep -A1 "onos-base" $ONOS_ROOT/pom.xml | grep -q SNAPSHOT && false
+    echo "OK"
+}
+
+# Tests that the root pom does not contain any snapshot dependencies
+# on anxillary artifacts, e.g. openflowj, copycat
+function testSnapshotDependencies {
+    testOnosBase
+    for artifact in onos-build-conf onos-maven-plugin openflowj atomix copycat; do
+        testArtifactDependency $artifact
+    done
+}
+
 # Test access to Gerrit (Administrator)
 function testGerritAccess {
     trap "echo 'FAILED'" ERR
     printf "Checking Gerrit ONOS Release group access... "
     ssh -p 29418 gerrit.onosproject.org gerrit ls-members "ONOS\ Release"\
          --recursive | grep -q $GERRIT_USER
-
     echo "OK"
 }
 
@@ -54,6 +121,8 @@ function testSonatypeAccess {
     echo "OK"
 }
 
+testToolchain
+testSnapshotDependencies
 testGerritAccess
 testWikiAccess
 testEC2Access
