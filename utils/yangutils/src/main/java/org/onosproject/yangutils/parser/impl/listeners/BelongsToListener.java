@@ -22,6 +22,8 @@ import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -50,7 +52,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.BELONGS_TO_DATA;
  * submodule_header_statement : yang_version_stmt? belongs_to_stmt
  *                            | belongs_to_stmt yang_version_stmt?
  *                            ;
- * belongs_to_stmt : BELONGS_TO_KEYWORD IDENTIFIER LEFT_CURLY_BRACE belongs_to_stmt_body RIGHT_CURLY_BRACE;
+ * belongs_to_stmt : BELONGS_TO_KEYWORD identifier LEFT_CURLY_BRACE belongs_to_stmt_body RIGHT_CURLY_BRACE;
  * belongs_to_stmt_body : prefix_stmt;
  */
 
@@ -78,11 +80,13 @@ public final class BelongsToListener {
                                              GeneratedYangParser.BelongstoStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, ctx.IDENTIFIER().getText(),
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, ctx.identifier().getText(),
                              ENTRY);
 
+        String identifier = getValidIdentifier(ctx.identifier().getText(), BELONGS_TO_DATA, ctx);
+
         YangBelongsTo belongstoNode = new YangBelongsTo();
-        belongstoNode.setBelongsToModuleName(ctx.IDENTIFIER().getText());
+        belongstoNode.setBelongsToModuleName(identifier);
 
         // Push belongsto into the stack.
         listener.getParsedDataStack().push(belongstoNode);
@@ -99,7 +103,7 @@ public final class BelongsToListener {
                                             GeneratedYangParser.BelongstoStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, ctx.IDENTIFIER().getText(),
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, ctx.identifier().getText(),
                              EXIT);
 
         Parsable tmpBelongstoNode = listener.getParsedDataStack().peek();
@@ -108,7 +112,7 @@ public final class BelongsToListener {
 
             // Check for stack to be empty.
             checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA,
-                                 ctx.IDENTIFIER().getText(), EXIT);
+                                 ctx.identifier().getText(), EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getYangConstructType()) {
@@ -119,12 +123,12 @@ public final class BelongsToListener {
             }
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, BELONGS_TO_DATA,
-                                                                        ctx.IDENTIFIER().getText(),
+                                                                        ctx.identifier().getText(),
                                                                         EXIT));
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, BELONGS_TO_DATA,
-                                                                    ctx.IDENTIFIER().getText(), EXIT));
+                                                                    ctx.identifier().getText(), EXIT));
         }
     }
 }

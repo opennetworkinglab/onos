@@ -56,6 +56,18 @@ public class VersionListenerTest {
     }
 
     /**
+     * Checks version in double quotes.
+     */
+    @Test
+    public void processValidVersionWithDoubleQuotes() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/ValidVersionWithDoubleQuotes.yang");
+
+        // Checks for the version value in data model tree.
+        assertThat(((YangModule) node).getVersion(), is((byte) 1));
+    }
+
+    /**
      * Checks if version which is optional paramater is not present.
      */
     @Test

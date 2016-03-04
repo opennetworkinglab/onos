@@ -53,21 +53,29 @@ public class RevisionDateListenerTest {
     }
 
     /**
-     * Checks revision date should not be in quotes inside include.
+     * Checks revision date in quotes inside include.
      */
-    @Test(expected = ParserException.class)
+    @Test
     public void processRevisionDateInQuotesAtInclude() throws IOException, ParserException {
 
         YangNode node = manager.getDataModel("src/test/resources/RevisionDateInQuotesAtInclude.yang");
+        // Checks for the version value in data model tree.
+        assertThat(((YangModule) node).getImportList().get(0).getRevision(), is("2015-02-03"));
+        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is("2016-02-03"));
+        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is("2014-02-03"));
     }
 
     /**
-     * Checks revision date should not be in quotes inside import.
+     * Checks revision date in quotes inside import.
      */
-    @Test(expected = ParserException.class)
+    @Test
     public void processRevisionDateInQuotesAtImport() throws IOException, ParserException {
 
         YangNode node = manager.getDataModel("src/test/resources/RevisionDateInQuotesAtImport.yang");
+        // Checks for the version value in data model tree.
+        assertThat(((YangModule) node).getImportList().get(0).getRevision(), is("2015-02-03"));
+        assertThat(((YangModule) node).getIncludeList().get(0).getRevision(), is("2016-02-03"));
+        assertThat(((YangModule) node).getIncludeList().get(1).getRevision(), is("2014-02-03"));
     }
 
     /**

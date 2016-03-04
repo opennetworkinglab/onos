@@ -1163,6 +1163,26 @@ public class TreeWalkListener implements GeneratedYangListener {
     }
 
     @Override
+    public void enterIdentifier(GeneratedYangParser.IdentifierContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitIdentifier(GeneratedYangParser.IdentifierContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterDateArgumentString(GeneratedYangParser.DateArgumentStringContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitDateArgumentString(GeneratedYangParser.DateArgumentStringContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
     public void visitTerminal(TerminalNode terminalNode) {
         // TODO: implement the method.
     }

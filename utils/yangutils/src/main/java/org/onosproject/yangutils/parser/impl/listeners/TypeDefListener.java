@@ -42,7 +42,7 @@ package org.onosproject.yangutils.parser.impl.listeners;
  *                         "}"
  *
  * ANTLR grammar rule
- * typedefStatement : TYPEDEF_KEYWORD IDENTIFIER LEFT_CURLY_BRACE
+ * typedefStatement : TYPEDEF_KEYWORD identifier LEFT_CURLY_BRACE
  *                (typeStatement | unitsStatement | defaultStatement | statusStatement
  *                | descriptionStatement | referenceStatement)* RIGHT_CURLY_BRACE;
  */
@@ -62,6 +62,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
@@ -105,7 +106,9 @@ public final class TypeDefListener {
             GeneratedYangParser.TypedefStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPEDEF_DATA, ctx.IDENTIFIER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPEDEF_DATA, ctx.identifier().getText(), ENTRY);
+
+        String identifier = getValidIdentifier(ctx.identifier().getText(), TYPEDEF_DATA, ctx);
 
         // Validate sub statement cardinality.
         validateSubStatementsCardinality(ctx);
@@ -116,7 +119,7 @@ public final class TypeDefListener {
          */
         YangType<YangDerivedType> derivedType = new YangType<YangDerivedType>();
         derivedType.setDataType(YangDataTypes.DERIVED);
-        derivedType.setDataTypeName(ctx.IDENTIFIER().getText());
+        derivedType.setDataTypeName(identifier);
 
         YangTypeDef typeDefNode = new YangTypeDef();
         typeDefNode.setDerivedType(derivedType);
@@ -133,12 +136,12 @@ public final class TypeDefListener {
                 curNode.addChild(typeDefNode);
             } catch (DataModelException e) {
                 throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
-                        TYPEDEF_DATA, ctx.IDENTIFIER().getText(), ENTRY, e.getMessage()));
+                        TYPEDEF_DATA, ctx.identifier().getText(), ENTRY, e.getMessage()));
             }
             listener.getParsedDataStack().push(typeDefNode);
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER,
-                    TYPEDEF_DATA, ctx.IDENTIFIER().getText(), ENTRY));
+                    TYPEDEF_DATA, ctx.identifier().getText(), ENTRY));
         }
     }
 
@@ -153,7 +156,7 @@ public final class TypeDefListener {
             GeneratedYangParser.TypedefStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPEDEF_DATA, ctx.IDENTIFIER().getText(), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPEDEF_DATA, ctx.identifier().getText(), EXIT);
 
         if (listener.getParsedDataStack().peek() instanceof YangTypeDef) {
             YangTypeDef typeDefNode = (YangTypeDef) listener.getParsedDataStack().peek();
@@ -161,13 +164,13 @@ public final class TypeDefListener {
                 typeDefNode.validateDataOnExit();
             } catch (DataModelException e) {
                 throw new ParserException(constructListenerErrorMessage(INVALID_CONTENT, TYPEDEF_DATA,
-                        ctx.IDENTIFIER().getText(), EXIT));
+                        ctx.identifier().getText(), EXIT));
             }
 
             listener.getParsedDataStack().pop();
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, TYPEDEF_DATA,
-                    ctx.IDENTIFIER().getText(), EXIT));
+                    ctx.identifier().getText(), EXIT));
         }
     }
 
@@ -178,11 +181,11 @@ public final class TypeDefListener {
      */
     private static void validateSubStatementsCardinality(GeneratedYangParser.TypedefStatementContext ctx) {
 
-        validateCardinality(ctx.unitsStatement(), UNITS_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.defaultStatement(), DEFAULT_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
-        validateCardinalityEqualsOne(ctx.typeStatement(), TYPE_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.statusStatement(), STATUS_DATA, TYPEDEF_DATA, ctx.IDENTIFIER().getText());
+        validateCardinality(ctx.unitsStatement(), UNITS_DATA, TYPEDEF_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.defaultStatement(), DEFAULT_DATA, TYPEDEF_DATA, ctx.identifier().getText());
+        validateCardinalityEqualsOne(ctx.typeStatement(), TYPE_DATA, TYPEDEF_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, TYPEDEF_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, TYPEDEF_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.statusStatement(), STATUS_DATA, TYPEDEF_DATA, ctx.identifier().getText());
     }
 }

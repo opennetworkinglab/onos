@@ -85,7 +85,7 @@ public class LeafListenerTest {
     @Test
     public void processLeafInvalidIdentifier() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input '1invalid-interval' expecting IDENTIFIER");
+        thrown.expectMessage("YANG file error : leaf name 1invalid-interval is not valid.");
         YangNode node = manager.getDataModel("src/test/resources/LeafInvalidIdentifier.yang");
     }
 

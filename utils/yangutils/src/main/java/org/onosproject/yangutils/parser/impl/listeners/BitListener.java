@@ -32,7 +32,7 @@ package org.onosproject.yangutils.parser.impl.listeners;
  *                        "}")
  *
  * ANTLR grammar rule
- * bitStatement : BIT_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE bitBodyStatement RIGHT_CURLY_BRACE);
+ * bitStatement : BIT_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE bitBodyStatement RIGHT_CURLY_BRACE);
  *
  * bitBodyStatement : positionStatement? statusStatement? descriptionStatement? referenceStatement?
  *               | positionStatement? statusStatement? referenceStatement? descriptionStatement?
@@ -65,10 +65,12 @@ import org.onosproject.yangutils.datamodel.YangBit;
 import org.onosproject.yangutils.datamodel.YangBits;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import static org.onosproject.yangutils.utils.YangConstructType.BIT_DATA;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
+import static org.onosproject.yangutils.utils.YangConstructType.BIT_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
@@ -102,10 +104,12 @@ public final class BitListener {
                                         GeneratedYangParser.BitStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, BIT_DATA, ctx.IDENTIFIER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, BIT_DATA, ctx.identifier().getText(), ENTRY);
+
+        String identifier = getValidIdentifier(ctx.identifier().getText(), BIT_DATA, ctx);
 
         YangBit bitNode = new YangBit();
-        bitNode.setBitName(ctx.IDENTIFIER().getText());
+        bitNode.setBitName(identifier);
         listener.getParsedDataStack().push(bitNode);
     }
 
@@ -120,14 +124,14 @@ public final class BitListener {
                                        GeneratedYangParser.BitStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, BIT_DATA, ctx.IDENTIFIER().getText(), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, BIT_DATA, ctx.identifier().getText(), EXIT);
 
         Parsable tmpBitNode = listener.getParsedDataStack().peek();
         if (tmpBitNode instanceof YangBit) {
             listener.getParsedDataStack().pop();
 
             // Check for stack to be non empty.
-            checkStackIsNotEmpty(listener, MISSING_HOLDER, BIT_DATA, ctx.IDENTIFIER().getText(), EXIT);
+            checkStackIsNotEmpty(listener, MISSING_HOLDER, BIT_DATA, ctx.identifier().getText(), EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getYangConstructType()) {
@@ -152,20 +156,20 @@ public final class BitListener {
                         yangBits.addBitInfo((YangBit) tmpBitNode);
                     } catch (DataModelException e) {
                         ParserException parserException = new ParserException(constructExtendedListenerErrorMessage(
-                                INVALID_CONTENT, BIT_DATA, ctx.IDENTIFIER().getText(), EXIT, e.getMessage()));
-                        parserException.setLine(ctx.IDENTIFIER().getSymbol().getLine());
-                        parserException.setCharPosition(ctx.IDENTIFIER().getSymbol().getCharPositionInLine());
+                                INVALID_CONTENT, BIT_DATA, ctx.identifier().getText(), EXIT, e.getMessage()));
+                        parserException.setLine(ctx.getStart().getLine());
+                        parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
                         throw parserException;
                     }
                     break;
                 }
                 default:
                     throw new ParserException(
-                            constructListenerErrorMessage(INVALID_HOLDER, BIT_DATA, ctx.IDENTIFIER().getText(), EXIT));
+                            constructListenerErrorMessage(INVALID_HOLDER, BIT_DATA, ctx.identifier().getText(), EXIT));
             }
         } else {
             throw new ParserException(
-                    constructListenerErrorMessage(MISSING_CURRENT_HOLDER, BIT_DATA, ctx.IDENTIFIER().getText(), EXIT));
+                    constructListenerErrorMessage(MISSING_CURRENT_HOLDER, BIT_DATA, ctx.identifier().getText(), EXIT));
         }
     }
 }

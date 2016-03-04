@@ -23,6 +23,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
 import static org.onosproject.yangutils.utils.YangConstructType.VERSION_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -59,7 +60,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
  * submodule_header_statement : yang_version_stmt? belongs_to_stmt
  *                            | belongs_to_stmt yang_version_stmt?
  *                            ;
- * yang_version_stmt :   YANG_VERSION_KEYWORD INTEGER STMTEND;
+ * yang_version_stmt :   YANG_VERSION_KEYWORD string STMTEND;
  */
 
 /**
@@ -85,13 +86,13 @@ public final class VersionListener {
                                            GeneratedYangParser.YangVersionStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, VERSION_DATA, ctx.INTEGER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, VERSION_DATA, ctx.string().getText(), ENTRY);
 
-        Integer version = Integer.valueOf(ctx.INTEGER().getText());
-        if (!isVersionValid(version)) {
+        String version = removeQuotesAndHandleConcat(ctx.string().getText());
+        if (!isVersionValid(Integer.valueOf(version))) {
             ParserException parserException = new ParserException("YANG file error: Input version not supported");
-            parserException.setLine(ctx.INTEGER().getSymbol().getLine());
-            parserException.setCharPosition(ctx.INTEGER().getSymbol().getCharPositionInLine());
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
             throw parserException;
         }
 
@@ -110,7 +111,7 @@ public final class VersionListener {
         }
         default:
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, VERSION_DATA,
-                                                                    ctx.INTEGER().getText(), ENTRY));
+                                                                    ctx.string().getText(), ENTRY));
         }
     }
 

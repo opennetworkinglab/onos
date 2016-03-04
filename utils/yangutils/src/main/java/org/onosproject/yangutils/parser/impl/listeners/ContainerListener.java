@@ -25,6 +25,9 @@ import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
+
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
@@ -34,7 +37,6 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
-import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinality;
 import static org.onosproject.yangutils.utils.YangConstructType.CONFIG_DATA;
@@ -66,7 +68,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
  *                         "}")
  *
  * ANTLR grammar rule
- *  containerStatement : CONTAINER_KEYWORD IDENTIFIER
+ *  containerStatement : CONTAINER_KEYWORD identifier
  *                   (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | mustStatement |
  *                   presenceStatement | configStatement | statusStatement | descriptionStatement |
  *                   referenceStatement | typedefStatement | groupingStatement
@@ -96,19 +98,20 @@ public final class ContainerListener {
             GeneratedYangParser.ContainerStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, CONTAINER_DATA, ctx.IDENTIFIER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, CONTAINER_DATA, ctx.identifier().getText(), ENTRY);
+
+        String identifier = getValidIdentifier(ctx.identifier().getText(), CONTAINER_DATA, ctx);
 
         // Validate sub statement cardinality.
         validateSubStatementsCardinality(ctx);
 
         // Check for identifier collision
-        int line = ctx.IDENTIFIER().getSymbol().getLine();
-        int charPositionInLine = ctx.IDENTIFIER().getSymbol().getCharPositionInLine();
-        String identifierName = ctx.IDENTIFIER().getText();
-        detectCollidingChildUtil(listener, line, charPositionInLine, identifierName, CONTAINER_DATA);
+        int line = ctx.getStart().getLine();
+        int charPositionInLine = ctx.getStart().getCharPositionInLine();
+        detectCollidingChildUtil(listener, line, charPositionInLine, identifier, CONTAINER_DATA);
 
         YangContainer container = new YangContainer();
-        container.setName(ctx.IDENTIFIER().getText());
+        container.setName(identifier);
 
         /*
          * If "config" is not specified, the default is the same as the parent
@@ -127,12 +130,12 @@ public final class ContainerListener {
                 curNode.addChild(container);
             } catch (DataModelException e) {
                 throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
-                        CONTAINER_DATA, ctx.IDENTIFIER().getText(), ENTRY, e.getMessage()));
+                                CONTAINER_DATA, ctx.identifier().getText(), ENTRY, e.getMessage()));
             }
             listener.getParsedDataStack().push(container);
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, CONTAINER_DATA,
-                    ctx.IDENTIFIER().getText(), ENTRY));
+                    ctx.identifier().getText(), ENTRY));
         }
     }
 
@@ -147,7 +150,7 @@ public final class ContainerListener {
             GeneratedYangParser.ContainerStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, CONTAINER_DATA, ctx.IDENTIFIER().getText(), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, CONTAINER_DATA, ctx.identifier().getText(), EXIT);
 
         if (listener.getParsedDataStack().peek() instanceof YangContainer) {
             YangContainer yangContainer = (YangContainer) listener.getParsedDataStack().peek();
@@ -155,12 +158,12 @@ public final class ContainerListener {
                 yangContainer.validateDataOnExit();
             } catch (DataModelException e) {
                 throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
-                        CONTAINER_DATA, ctx.IDENTIFIER().getText(), EXIT, e.getMessage()));
+                        CONTAINER_DATA, ctx.identifier().getText(), EXIT, e.getMessage()));
             }
             listener.getParsedDataStack().pop();
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, CONTAINER_DATA,
-                    ctx.IDENTIFIER().getText(), EXIT));
+                            ctx.identifier().getText(), EXIT));
         }
     }
 
@@ -171,11 +174,11 @@ public final class ContainerListener {
      */
     private static void validateSubStatementsCardinality(GeneratedYangParser.ContainerStatementContext ctx) {
 
-        validateCardinality(ctx.presenceStatement(), PRESENCE_DATA, CONTAINER_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.configStatement(), CONFIG_DATA, CONTAINER_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, CONTAINER_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, CONTAINER_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.statusStatement(), STATUS_DATA, CONTAINER_DATA, ctx.IDENTIFIER().getText());
+        validateCardinality(ctx.presenceStatement(), PRESENCE_DATA, CONTAINER_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.configStatement(), CONFIG_DATA, CONTAINER_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, CONTAINER_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, CONTAINER_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.statusStatement(), STATUS_DATA, CONTAINER_DATA, ctx.identifier().getText());
         // TODO when, grouping, typedef.
     }
 }

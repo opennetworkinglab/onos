@@ -22,6 +22,8 @@ import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
@@ -64,7 +66,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.UNITS_DATA;
  *                         "}"
  *
  * ANTLR grammar rule
- *  leafListStatement : LEAF_LIST_KEYWORD IDENTIFIER LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement |
+ *  leafListStatement : LEAF_LIST_KEYWORD identifier LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement |
  *  typeStatement | unitsStatement | mustStatement | configStatement | minElementsStatement | maxElementsStatement |
  *  orderedByStatement | statusStatement | descriptionStatement | referenceStatement)* RIGHT_CURLY_BRACE;
  */
@@ -92,19 +94,20 @@ public final class LeafListListener {
             GeneratedYangParser.LeafListStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, LEAF_LIST_DATA, ctx.IDENTIFIER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, LEAF_LIST_DATA, ctx.identifier().getText(), ENTRY);
+
+        String identifier = getValidIdentifier(ctx.identifier().getText(), LEAF_LIST_DATA, ctx);
 
         // Validate sub statement cardinality.
         validateSubStatementsCardinality(ctx);
 
         // Check for identifier collision
-        int line = ctx.IDENTIFIER().getSymbol().getLine();
-        int charPositionInLine = ctx.IDENTIFIER().getSymbol().getCharPositionInLine();
-        String identifierName = ctx.IDENTIFIER().getText();
-        detectCollidingChildUtil(listener, line, charPositionInLine, identifierName, LEAF_LIST_DATA);
+        int line = ctx.getStart().getLine();
+        int charPositionInLine = ctx.getStart().getCharPositionInLine();
+        detectCollidingChildUtil(listener, line, charPositionInLine, identifier, LEAF_LIST_DATA);
 
         YangLeafList leafList = new YangLeafList();
-        leafList.setLeafName(ctx.IDENTIFIER().getText());
+        leafList.setLeafName(identifier);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
         YangLeavesHolder leaves;
@@ -114,7 +117,7 @@ public final class LeafListListener {
             leaves.addLeafList(leafList);
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, LEAF_LIST_DATA,
-                    ctx.IDENTIFIER().getText(), ENTRY));
+                            ctx.identifier().getText(), ENTRY));
         }
         listener.getParsedDataStack().push(leafList);
     }
@@ -130,31 +133,31 @@ public final class LeafListListener {
             GeneratedYangParser.LeafListStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, LEAF_LIST_DATA, ctx.IDENTIFIER().getText(), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, LEAF_LIST_DATA, ctx.identifier().getText(), EXIT);
 
         if (listener.getParsedDataStack().peek() instanceof YangLeafList) {
             listener.getParsedDataStack().pop();
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, LEAF_LIST_DATA,
-                    ctx.IDENTIFIER().getText(), EXIT));
+                    ctx.identifier().getText(), EXIT));
         }
     }
 
     /**
      * Validates the cardinality of leaf-list sub-statements as per grammar.
      *
-     * @param ctx context object of the grammar rule.
+     * @param ctx context object of the grammar rule
      */
     private static void validateSubStatementsCardinality(GeneratedYangParser.LeafListStatementContext ctx) {
 
-        validateCardinalityEqualsOne(ctx.typeStatement(), TYPE_DATA, LEAF_LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.unitsStatement(), UNITS_DATA, LEAF_LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.configStatement(), CONFIG_DATA, LEAF_LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.maxElementsStatement(), MAX_ELEMENT_DATA, LEAF_LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.minElementsStatement(), MIN_ELEMENT_DATA, LEAF_LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, LEAF_LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, LEAF_LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.statusStatement(), STATUS_DATA, LEAF_LIST_DATA, ctx.IDENTIFIER().getText());
+        validateCardinalityEqualsOne(ctx.typeStatement(), TYPE_DATA, LEAF_LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.unitsStatement(), UNITS_DATA, LEAF_LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.configStatement(), CONFIG_DATA, LEAF_LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.maxElementsStatement(), MAX_ELEMENT_DATA, LEAF_LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.minElementsStatement(), MIN_ELEMENT_DATA, LEAF_LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, LEAF_LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, LEAF_LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.statusStatement(), STATUS_DATA, LEAF_LIST_DATA, ctx.identifier().getText());
         //TODO ordered by
     }
 }

@@ -24,6 +24,8 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.isDateValid;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
@@ -32,10 +34,6 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLoc
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -88,7 +86,7 @@ public final class RevisionListener {
                                             GeneratedYangParser.RevisionStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, ctx.DATE_ARG().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, ctx.dateArgumentString().getText(), ENTRY);
 
         // Validate for reverse chronological order of revision & for revision
         // value.
@@ -97,15 +95,16 @@ public final class RevisionListener {
             // TODO to be implemented.
         }
 
-        if (!isDateValid(ctx.DATE_ARG().getText())) {
+        String date = removeQuotesAndHandleConcat(ctx.dateArgumentString().getText());
+        if (!isDateValid(date)) {
             ParserException parserException = new ParserException("YANG file error: Input date is not correct");
-            parserException.setLine(ctx.DATE_ARG().getSymbol().getLine());
-            parserException.setCharPosition(ctx.DATE_ARG().getSymbol().getCharPositionInLine());
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
             throw parserException;
         }
 
         YangRevision revisionNode = new YangRevision();
-        revisionNode.setRevDate(ctx.DATE_ARG().getText());
+        revisionNode.setRevDate(date);
 
         listener.getParsedDataStack().push(revisionNode);
     }
@@ -121,14 +120,14 @@ public final class RevisionListener {
             ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, ctx.DATE_ARG().getText(), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, ctx.dateArgumentString().getText(), EXIT);
 
         Parsable tmpRevisionNode = listener.getParsedDataStack().peek();
         if (tmpRevisionNode instanceof YangRevision) {
             listener.getParsedDataStack().pop();
 
             // Check for stack to be non empty.
-            checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, ctx.DATE_ARG().getText(),
+            checkStackIsNotEmpty(listener, MISSING_HOLDER, REVISION_DATA, ctx.dateArgumentString().getText(),
                                  EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
@@ -145,12 +144,12 @@ public final class RevisionListener {
             }
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, REVISION_DATA,
-                                                                        ctx.DATE_ARG().getText(),
+                                                                        ctx.dateArgumentString().getText(),
                                                                         EXIT));
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, REVISION_DATA,
-                                                                    ctx.DATE_ARG().getText(), EXIT));
+                                                                    ctx.dateArgumentString().getText(), EXIT));
         }
     }
 
@@ -164,31 +163,6 @@ public final class RevisionListener {
     private static boolean validateRevision(TreeWalkListener listener,
                                             GeneratedYangParser.RevisionStatementContext ctx) {
         // TODO to be implemented
-        return true;
-    }
-
-    /**
-     * Validates the revision date.
-     *
-     * @param dateToValidate input revision date
-     * @return validation result, true for success, false for failure
-     */
-    private static boolean isDateValid(String dateToValidate) {
-
-        if (dateToValidate == null) {
-            return false;
-        }
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        sdf.setLenient(false);
-
-        try {
-            //if not valid, it will throw ParseException
-            Date date = sdf.parse(dateToValidate);
-            System.out.println(date);
-        } catch (ParseException e) {
-            return false;
-        }
         return true;
     }
 }

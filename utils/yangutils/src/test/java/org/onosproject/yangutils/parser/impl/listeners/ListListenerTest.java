@@ -205,7 +205,7 @@ public class ListListenerTest {
     @Test
     public void processListInvalidIdentifier() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input '1valid' expecting IDENTIFIER");
+        thrown.expectMessage("YANG file error : list name 1valid is not valid.");
         YangNode node = manager.getDataModel("src/test/resources/ListInvalidIdentifier.yang");
     }
 }

@@ -23,6 +23,8 @@ import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -49,7 +51,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.INCLUDE_DATA;
  * ANTLR grammar rule
  * linkage_stmts : (import_stmt
  *               | include_stmt)*;
- * include_stmt : INCLUDE_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE
+ * include_stmt : INCLUDE_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE
  *                revision_date_stmt? RIGHT_CURLY_BRACE);
  */
 
@@ -75,11 +77,13 @@ public final class IncludeListener {
     public static void processIncludeEntry(TreeWalkListener listener, GeneratedYangParser.IncludeStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, ctx.IDENTIFIER().getText(),
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, ctx.identifier().getText(),
                              ENTRY);
 
+        String identifier = getValidIdentifier(ctx.identifier().getText(), INCLUDE_DATA, ctx);
+
         YangInclude includeNode = new YangInclude();
-        includeNode.setSubModuleName(ctx.IDENTIFIER().getText());
+        includeNode.setSubModuleName(identifier);
 
         listener.getParsedDataStack().push(includeNode);
     }
@@ -94,14 +98,14 @@ public final class IncludeListener {
     public static void processIncludeExit(TreeWalkListener listener, GeneratedYangParser.IncludeStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, ctx.IDENTIFIER().getText(), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, ctx.identifier().getText(), EXIT);
 
         Parsable tmpIncludeNode = listener.getParsedDataStack().peek();
         if (tmpIncludeNode instanceof YangInclude) {
             listener.getParsedDataStack().pop();
 
             // Check for stack to be non empty.
-            checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, ctx.IDENTIFIER().getText(),
+            checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, ctx.identifier().getText(),
                                  EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
@@ -118,12 +122,12 @@ public final class IncludeListener {
             }
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, INCLUDE_DATA,
-                                                                        ctx.IDENTIFIER().getText(),
+                                                                        ctx.identifier().getText(),
                                                                         EXIT));
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, INCLUDE_DATA,
-                                                                    ctx.IDENTIFIER().getText(), EXIT));
+                                                                    ctx.identifier().getText(), EXIT));
         }
     }
 }

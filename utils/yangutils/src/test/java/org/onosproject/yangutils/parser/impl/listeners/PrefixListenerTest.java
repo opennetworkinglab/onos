@@ -56,6 +56,16 @@ public class PrefixListenerTest {
     }
 
     /**
+     * Checks prefix value with double quotes.
+     */
+    @Test
+    public void processPrefixWithDoubleQuotes() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/PrefixWithDoubleQuotes.yang");
+        assertThat(((YangModule) node).getPrefix(), is("On"));
+    }
+
+    /**
      * Checks that prefix should be present just once.
      */
     @Test(expected = ParserException.class)

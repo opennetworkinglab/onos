@@ -27,6 +27,7 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
@@ -74,7 +75,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
  *                         "}"
  *
  * ANTLR grammar rule
- *  listStatement : LIST_KEYWORD IDENTIFIER LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | mustStatement |
+ *  listStatement : LIST_KEYWORD identifier LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | mustStatement |
  *  keyStatement | uniqueStatement | configStatement | minElementsStatement | maxElementsStatement |
  *  orderedByStatement | statusStatement | descriptionStatement | referenceStatement | typedefStatement |
  *  groupingStatement| dataDefStatement)* RIGHT_CURLY_BRACE;
@@ -104,19 +105,20 @@ public final class ListListener {
 
         YangNode curNode;
 
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, LIST_DATA, ctx.IDENTIFIER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, LIST_DATA, ctx.identifier().getText(), ENTRY);
+
+        String identifier = getValidIdentifier(ctx.identifier().getText(), LIST_DATA, ctx);
 
         // Validate sub statement cardinality.
         validateSubStatementsCardinality(ctx);
 
         // Check for identifier collision
-        int line = ctx.IDENTIFIER().getSymbol().getLine();
-        int charPositionInLine = ctx.IDENTIFIER().getSymbol().getCharPositionInLine();
-        String identifierName = ctx.IDENTIFIER().getText();
-        detectCollidingChildUtil(listener, line, charPositionInLine, identifierName, LIST_DATA);
+        int line = ctx.getStart().getLine();
+        int charPositionInLine = ctx.getStart().getCharPositionInLine();
+        detectCollidingChildUtil(listener, line, charPositionInLine, identifier, LIST_DATA);
 
         YangList yangList = new YangList();
-        yangList.setName(ctx.IDENTIFIER().getText());
+        yangList.setName(identifier);
 
         /*
          * If "config" is not specified, the default is the same as the parent
@@ -135,12 +137,12 @@ public final class ListListener {
                 curNode.addChild(yangList);
             } catch (DataModelException e) {
                 throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
-                        LIST_DATA, ctx.IDENTIFIER().getText(), ENTRY, e.getMessage()));
+                        LIST_DATA, ctx.identifier().getText(), ENTRY, e.getMessage()));
             }
             listener.getParsedDataStack().push(yangList);
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, LIST_DATA,
-                    ctx.IDENTIFIER().getText(), ENTRY));
+                            ctx.identifier().getText(), ENTRY));
         }
     }
 
@@ -154,7 +156,7 @@ public final class ListListener {
     public static void processListExit(TreeWalkListener listener,
             GeneratedYangParser.ListStatementContext ctx) {
 
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, LIST_DATA, ctx.IDENTIFIER().getText(), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, LIST_DATA, ctx.identifier().getText(), EXIT);
 
         if (listener.getParsedDataStack().peek() instanceof YangList) {
             YangList yangList = (YangList) listener.getParsedDataStack().peek();
@@ -162,12 +164,12 @@ public final class ListListener {
                 yangList.validateDataOnExit();
             } catch (DataModelException e) {
                 throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
-                        LIST_DATA, ctx.IDENTIFIER().getText(), EXIT, e.getMessage()));
+                        LIST_DATA, ctx.identifier().getText(), EXIT, e.getMessage()));
             }
             listener.getParsedDataStack().pop();
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, LIST_DATA,
-                    ctx.IDENTIFIER().getText(), EXIT));
+                            ctx.identifier().getText(), EXIT));
         }
     }
 
@@ -178,14 +180,14 @@ public final class ListListener {
      */
     private static void validateSubStatementsCardinality(GeneratedYangParser.ListStatementContext ctx) {
 
-        validateCardinality(ctx.keyStatement(), KEY_DATA, LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.configStatement(), CONFIG_DATA, LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.maxElementsStatement(), MAX_ELEMENT_DATA, LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.minElementsStatement(), MIN_ELEMENT_DATA, LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinality(ctx.statusStatement(), STATUS_DATA, LIST_DATA, ctx.IDENTIFIER().getText());
-        validateCardinalityNonNull(ctx.dataDefStatement(), DATA_DEF_DATA, LIST_DATA, ctx.IDENTIFIER().getText());
+        validateCardinality(ctx.keyStatement(), KEY_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.configStatement(), CONFIG_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.maxElementsStatement(), MAX_ELEMENT_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.minElementsStatement(), MIN_ELEMENT_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinality(ctx.statusStatement(), STATUS_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinalityNonNull(ctx.dataDefStatement(), DATA_DEF_DATA, LIST_DATA, ctx.identifier().getText());
         //TODO when, typedef, grouping, unique
     }
 }

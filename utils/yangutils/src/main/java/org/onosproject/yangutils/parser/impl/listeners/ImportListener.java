@@ -23,6 +23,8 @@ import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -49,7 +51,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.IMPORT_DATA;
  * ANTLR grammar rule
  * linkage_stmts : (import_stmt
  *               | include_stmt)*;
- * import_stmt : IMPORT_KEYWORD IDENTIFIER LEFT_CURLY_BRACE import_stmt_body
+ * import_stmt : IMPORT_KEYWORD identifier LEFT_CURLY_BRACE import_stmt_body
  *               RIGHT_CURLY_BRACE;
  * import_stmt_body : prefix_stmt revision_date_stmt?;
  */
@@ -76,10 +78,12 @@ public final class ImportListener {
     public static void processImportEntry(TreeWalkListener listener, GeneratedYangParser.ImportStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, IMPORT_DATA, ctx.IDENTIFIER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, IMPORT_DATA, ctx.identifier().getText(), ENTRY);
+
+        String identifier = getValidIdentifier(ctx.identifier().getText(), IMPORT_DATA, ctx);
 
         YangImport importNode = new YangImport();
-        importNode.setModuleName(ctx.IDENTIFIER().getText());
+        importNode.setModuleName(identifier);
 
         // Push import node to the stack.
         listener.getParsedDataStack().push(importNode);
@@ -95,14 +99,14 @@ public final class ImportListener {
     public static void processImportExit(TreeWalkListener listener, GeneratedYangParser.ImportStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, IMPORT_DATA, ctx.IDENTIFIER().getText(), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, IMPORT_DATA, ctx.identifier().getText(), EXIT);
 
         Parsable tmpImportNode = listener.getParsedDataStack().peek();
         if (tmpImportNode instanceof YangImport) {
             listener.getParsedDataStack().pop();
 
             // Check for stack to be non empty.
-            checkStackIsNotEmpty(listener, MISSING_HOLDER, IMPORT_DATA, ctx.IDENTIFIER().getText(),
+            checkStackIsNotEmpty(listener, MISSING_HOLDER, IMPORT_DATA, ctx.identifier().getText(),
                                  EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
@@ -119,12 +123,12 @@ public final class ImportListener {
             }
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, IMPORT_DATA,
-                                                                        ctx.IDENTIFIER().getText(),
+                                                                        ctx.identifier().getText(),
                                                                         EXIT));
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, IMPORT_DATA,
-                                                                    ctx.IDENTIFIER().getText(), EXIT));
+                                                                    ctx.identifier().getText(), EXIT));
         }
     }
 }

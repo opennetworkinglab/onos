@@ -16,7 +16,9 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
@@ -34,6 +36,9 @@ import static org.junit.Assert.assertThat;
 public class ModuleListenerTest {
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     /**
      * Checks if module listener updates the data model root node.
@@ -61,5 +66,16 @@ public class ModuleListenerTest {
     public void processModuleInvalidEntryTest() throws IOException, ParserException {
 
         YangNode node = manager.getDataModel("src/test/resources/ModuleWithInvalidIdentifier.yang");
+    }
+
+    /**
+     * Checks whether exception is thrown when module length is greater than 64 characters.
+     */
+    @Test
+    public void processModuleInvalidIdentifierLength() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("YANG file error : module name Testttttttttttttttttttttttttttttttttttttttttttttttttttt" +
+                "tttttttttt is greater than 64 characters.");
+        YangNode node = manager.getDataModel("src/test/resources/ModuleInvalidIdentifierLength.yang");
     }
 }

@@ -40,7 +40,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                       "}" optsep
      */
 
-    moduleStatement : MODULE_KEYWORD IDENTIFIER LEFT_CURLY_BRACE moduleBody* RIGHT_CURLY_BRACE;
+    moduleStatement : MODULE_KEYWORD identifier LEFT_CURLY_BRACE moduleBody* RIGHT_CURLY_BRACE;
 
     moduleBody : moduleHeaderStatement linkageStatements metaStatements revisionStatements bodyStatements;
 
@@ -135,7 +135,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                       optsep stmtend
      */
 
-    yangVersionStatement :   YANG_VERSION_KEYWORD INTEGER STMTEND;
+    yangVersionStatement :   YANG_VERSION_KEYWORD string STMTEND;
 
 
     /**
@@ -148,7 +148,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      * prefix-stmt         = prefix-keyword sep prefix-arg-str
      *                       optsep stmtend
      */
-    prefixStatement : PREFIX_KEYWORD IDENTIFIER STMTEND;
+    prefixStatement : PREFIX_KEYWORD identifier STMTEND;
 
     /**
      * import-stmt         = import-keyword sep identifier-arg-str optsep
@@ -157,12 +157,12 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                           [revision-date-stmt stmtsep]
      *                        "}"
      */
-    importStatement : IMPORT_KEYWORD IDENTIFIER LEFT_CURLY_BRACE importStatementBody RIGHT_CURLY_BRACE;
+    importStatement : IMPORT_KEYWORD identifier LEFT_CURLY_BRACE importStatementBody RIGHT_CURLY_BRACE;
 
     importStatementBody : prefixStatement revisionDateStatement?;
 
     // revision-date-stmt = revision-date-keyword sep revision-date stmtend
-    revisionDateStatement : REVISION_DATE_KEYWORD DATE_ARG STMTEND;
+    revisionDateStatement : REVISION_DATE_KEYWORD dateArgumentString STMTEND;
 
     /**
      * include-stmt        = include-keyword sep identifier-arg-str optsep
@@ -171,7 +171,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                                  [revision-date-stmt stmtsep]
      *                            "}")
      */
-    includeStatement : INCLUDE_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE revisionDateStatement? RIGHT_CURLY_BRACE);
+    includeStatement : INCLUDE_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE revisionDateStatement? RIGHT_CURLY_BRACE);
 
     /**
      * organization-stmt   = organization-keyword sep string
@@ -196,7 +196,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                                  [reference-stmt stmtsep]
      *                              "}")
      */
-    revisionStatement : REVISION_KEYWORD DATE_ARG (STMTEND | LEFT_CURLY_BRACE revisionStatementBody RIGHT_CURLY_BRACE);
+    revisionStatement : REVISION_KEYWORD dateArgumentString (STMTEND | LEFT_CURLY_BRACE revisionStatementBody RIGHT_CURLY_BRACE);
     revisionStatementBody : descriptionStatement? referenceStatement?;
 
     /**
@@ -210,7 +210,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                                 body-stmts
      *                             "}" optsep
      */
-    subModuleStatement : SUBMODULE_KEYWORD IDENTIFIER LEFT_CURLY_BRACE submoduleBody* RIGHT_CURLY_BRACE;
+    subModuleStatement : SUBMODULE_KEYWORD identifier LEFT_CURLY_BRACE submoduleBody* RIGHT_CURLY_BRACE;
     submoduleBody : submoduleHeaderStatement linkageStatements metaStatements revisionStatements bodyStatements;
 
     /** submodule-header-stmts =
@@ -229,7 +229,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                           prefix-stmt stmtsep
      *                       "}"
      */
-    belongstoStatement : BELONGS_TO_KEYWORD IDENTIFIER LEFT_CURLY_BRACE belongstoStatementBody RIGHT_CURLY_BRACE;
+    belongstoStatement : BELONGS_TO_KEYWORD identifier LEFT_CURLY_BRACE belongstoStatementBody RIGHT_CURLY_BRACE;
     belongstoStatementBody : prefixStatement;
 
     /**
@@ -243,7 +243,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                            [reference-stmt stmtsep]
      *                        "}")
      */
-    extensionStatement : EXTENSION_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE extensionBody RIGHT_CURLY_BRACE);
+    extensionStatement : EXTENSION_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE extensionBody RIGHT_CURLY_BRACE);
     extensionBody : argumentStatement? statusStatement? descriptionStatement? referenceStatement?
                    | argumentStatement? statusStatement? referenceStatement? descriptionStatement?
                    | argumentStatement? descriptionStatement? statusStatement? referenceStatement?
@@ -277,7 +277,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                            [yin-element-stmt stmtsep]
      *                        "}")
      */
-    argumentStatement : ARGUMENT_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE argumentBody RIGHT_CURLY_BRACE);
+    argumentStatement : ARGUMENT_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE argumentBody RIGHT_CURLY_BRACE);
     argumentBody : yinElementStatement?;
 
     /**
@@ -297,7 +297,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                            [reference-stmt stmtsep]
      *                        "}")
      */
-    identityStatement : IDENTITY_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE identityBody RIGHT_CURLY_BRACE);
+    identityStatement : IDENTITY_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE identityBody RIGHT_CURLY_BRACE);
     identityBody : baseStatement? statusStatement? descriptionStatement? referenceStatement?
                   | baseStatement? statusStatement? referenceStatement? descriptionStatement?
                   | baseStatement? descriptionStatement? statusStatement? referenceStatement?
@@ -410,7 +410,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                           "}"
      * TODO : 0..1 occurance to be validated in listener
      */
-    typedefStatement : TYPEDEF_KEYWORD IDENTIFIER LEFT_CURLY_BRACE
+    typedefStatement : TYPEDEF_KEYWORD identifier LEFT_CURLY_BRACE
                    (typeStatement | unitsStatement | defaultStatement | statusStatement | descriptionStatement | referenceStatement)*
                    RIGHT_CURLY_BRACE;
 
@@ -622,7 +622,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                          "}"
      *                        "}")
      */
-    bitStatement : BIT_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE bitBodyStatement RIGHT_CURLY_BRACE);
+    bitStatement : BIT_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE bitBodyStatement RIGHT_CURLY_BRACE);
 
     bitBodyStatement : positionStatement? statusStatement? descriptionStatement? referenceStatement?
                   | positionStatement? statusStatement? referenceStatement? descriptionStatement?
@@ -657,7 +657,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                              position-value-arg >
      *  position-value-arg  = non-negative-integer-value
      */
-    positionStatement : POSITION_KEYWORD INTEGER STMTEND;
+    positionStatement : POSITION_KEYWORD string STMTEND;
 
     /**
      *  status-stmt         = status-keyword sep status-arg-str stmtend
@@ -771,7 +771,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                         "}")
      * TODO : 0..1 occurance to be checked in listener
      */
-    groupingStatement : GROUPING_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE
+    groupingStatement : GROUPING_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE
                       (statusStatement | descriptionStatement | referenceStatement | typedefStatement | groupingStatement
                        | dataDefStatement)* RIGHT_CURLY_BRACE);
 
@@ -794,7 +794,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                         "}")
      * TODO : 0..1 occurance to be checked in listener
      */
-    containerStatement : CONTAINER_KEYWORD IDENTIFIER
+    containerStatement : CONTAINER_KEYWORD identifier
                      (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | mustStatement | presenceStatement | configStatement
                      | statusStatement | descriptionStatement | referenceStatement | typedefStatement | groupingStatement
                      | dataDefStatement)* RIGHT_CURLY_BRACE);
@@ -817,7 +817,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                         "}"
      * TODO : 0..1 occurance to be checked in listener
      */
-    leafStatement : LEAF_KEYWORD IDENTIFIER LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | typeStatement | unitsStatement
+    leafStatement : LEAF_KEYWORD identifier LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | typeStatement | unitsStatement
               | mustStatement | defaultStatement | configStatement | mandatoryStatement | statusStatement  | descriptionStatement
               | referenceStatement)* RIGHT_CURLY_BRACE;
 
@@ -840,7 +840,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                         "}"
      * TODO : 0..1 occurance to be checked in listener
      */
-    leafListStatement : LEAF_LIST_KEYWORD IDENTIFIER LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | typeStatement
+    leafListStatement : LEAF_LIST_KEYWORD identifier LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | typeStatement
                      | unitsStatement | mustStatement | configStatement | minElementsStatement | maxElementsStatement | orderedByStatement
                      | statusStatement | descriptionStatement | referenceStatement)* RIGHT_CURLY_BRACE;
 
@@ -866,7 +866,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                         "}"
      * TODO : 0..1 occurance to be checked in listener
      */
-    listStatement : LIST_KEYWORD IDENTIFIER LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | mustStatement | keyStatement
+    listStatement : LIST_KEYWORD identifier LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | mustStatement | keyStatement
               | uniqueStatement | configStatement | minElementsStatement | maxElementsStatement | orderedByStatement | statusStatement
               | descriptionStatement | referenceStatement | typedefStatement | groupingStatement| dataDefStatement)* RIGHT_CURLY_BRACE;
 
@@ -897,7 +897,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                         "}")
      * TODO : 0..1 occurance to be checked in listener
      */
-    choiceStatement : CHOICE_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | defaultStatement
+    choiceStatement : CHOICE_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | defaultStatement
                   | configStatement | mandatoryStatement | statusStatement | descriptionStatement | referenceStatement | shortCaseStatement
                   | caseStatement)* RIGHT_CURLY_BRACE);
 
@@ -924,7 +924,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                         "}")
      * TODO : 0..1 occurance to be checked in listener
      */
-    caseStatement : CASE_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | statusStatement
+    caseStatement : CASE_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | statusStatement
               | descriptionStatement | referenceStatement | dataDefStatement)* RIGHT_CURLY_BRACE);
 
     /**
@@ -1095,7 +1095,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                         "}")
      * TODO : 0..1 occurance to be checked in listener
      */
-    rpcStatement : RPC_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE (ifFeatureStatement | statusStatement | descriptionStatement
+    rpcStatement : RPC_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE (ifFeatureStatement | statusStatement | descriptionStatement
                 | referenceStatement | typedefStatement | groupingStatement | inputStatement | outputStatement)* RIGHT_CURLY_BRACE);
 
     /**
@@ -1223,3 +1223,9 @@ package org.onosproject.yangutils.parser.antlrgencode;
     string : STRING (PLUS STRING)*
            | IDENTIFIER
            | INTEGER;
+
+    identifier : STRING (PLUS STRING)*
+               | IDENTIFIER;
+
+    dateArgumentString : DATE_ARG
+                       | STRING (PLUS STRING)*;

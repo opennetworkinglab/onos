@@ -20,6 +20,8 @@ import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -45,7 +47,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.MODULE_DATA;
  *                       "}" optsep
  *
  * ANTLR grammar rule
- * module_stmt : MODULE_KEYWORD IDENTIFIER LEFT_CURLY_BRACE module_body* RIGHT_CURLY_BRACE;
+ * module_stmt : MODULE_KEYWORD identifier LEFT_CURLY_BRACE module_body* RIGHT_CURLY_BRACE;
  */
 
 /**
@@ -70,10 +72,12 @@ public final class ModuleListener {
     public static void processModuleEntry(TreeWalkListener listener, GeneratedYangParser.ModuleStatementContext ctx) {
 
         // Check if stack is empty.
-        checkStackIsEmpty(listener, INVALID_HOLDER, MODULE_DATA, ctx.IDENTIFIER().getText(), ENTRY);
+        checkStackIsEmpty(listener, INVALID_HOLDER, MODULE_DATA, ctx.identifier().getText(), ENTRY);
+
+        String identifier = getValidIdentifier(ctx.identifier().getText(), MODULE_DATA, ctx);
 
         YangModule yangModule = new YangModule();
-        yangModule.setName(ctx.IDENTIFIER().getText());
+        yangModule.setName(identifier);
 
         if (ctx.moduleBody(0).moduleHeaderStatement().yangVersionStatement() == null) {
             yangModule.setVersion((byte) 1);
@@ -92,11 +96,11 @@ public final class ModuleListener {
     public static void processModuleExit(TreeWalkListener listener, GeneratedYangParser.ModuleStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, MODULE_DATA, ctx.IDENTIFIER().getText(), EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, MODULE_DATA, ctx.identifier().getText(), EXIT);
 
         if (!(listener.getParsedDataStack().peek() instanceof YangModule)) {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, MODULE_DATA,
-                                                                    ctx.IDENTIFIER().getText(), EXIT));
+                                                                    ctx.identifier().getText(), EXIT));
         }
     }
 }

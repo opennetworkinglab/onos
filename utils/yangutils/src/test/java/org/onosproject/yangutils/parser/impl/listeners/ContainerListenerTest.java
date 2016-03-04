@@ -226,7 +226,7 @@ public class ContainerListenerTest {
     @Test
     public void processContainerInvalidIdentifier() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input '1valid' expecting IDENTIFIER");
+        thrown.expectMessage("YANG file error : container name 1valid is not valid.");
         YangNode node = manager.getDataModel("src/test/resources/ContainerInvalidIdentifier.yang");
     }
 }
