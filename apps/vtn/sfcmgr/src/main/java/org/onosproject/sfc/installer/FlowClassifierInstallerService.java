@@ -30,6 +30,7 @@ public interface FlowClassifierInstallerService {
      *
      * @param portChain port-chain
      * @param nshSpiId service path index identifier
+     * @return connectPoint the network identifier
      */
     ConnectPoint installFlowClassifier(PortChain portChain, NshServicePathId nshSpiId);
 
@@ -38,6 +39,7 @@ public interface FlowClassifierInstallerService {
      *
      * @param portChain port-chain
      * @param nshSpiId service path index identifier
+     * @return connectPoint the network identifier
      */
     ConnectPoint unInstallFlowClassifier(PortChain portChain, NshServicePathId nshSpiId);
 
@@ -47,6 +49,7 @@ public interface FlowClassifierInstallerService {
      * @param portChain port-chain
      * @param fiveTuple five tuple packet information
      * @param nshSpiId service path index identifier
+     * @return connectPoint the network identifier
      */
     ConnectPoint installLoadBalancedFlowClassifier(PortChain portChain, FiveTuple fiveTuple,
                                                    NshServicePathId nshSpiId);
@@ -57,6 +60,7 @@ public interface FlowClassifierInstallerService {
      * @param portChain port-chain
      * @param fiveTuple five tuple packet information
      * @param nshSpiId service path index identifier
+     * @return connectPoint the network identifier
      */
     ConnectPoint unInstallLoadBalancedFlowClassifier(PortChain portChain, FiveTuple fiveTuple,
                                                      NshServicePathId nshSpiId);

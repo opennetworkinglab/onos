@@ -332,9 +332,11 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
      * Pack traffic treatment.
      *
      * @param deviceId device id
+     * @param port port number
      * @param nshDstPort vxlan tunnel port for nsh header
      * @param nshSpi nsh spi
      * @param flowClassifier flow-classifier
+     * @param isSameOvs whether the next service function is in same ovs
      * @return traffic treatment
      */
     public TrafficTreatment.Builder packTrafficTreatment(DeviceId deviceId, PortNumber port,
