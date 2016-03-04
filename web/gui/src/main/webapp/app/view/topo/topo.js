@@ -398,6 +398,13 @@
                 adjustScale: mapScale,
                 shading: shading()
             });
+        } else if (mapId === 'taiwan') {
+            shadeFlip = 0;
+            promise = ms.loadMapInto(mapG, '*taiwan', {
+                objectTag: 'taiwan',
+                adjustScale: mapScale,
+                shading: shading()
+            })
         } else {
             shadeFlip = 0;
             cfilter = countryFilters[mapId] || countryFilters.world;
