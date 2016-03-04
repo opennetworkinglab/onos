@@ -39,13 +39,15 @@ public class OspfMessageEncoder extends OneToOneEncoder {
 
 
     /**
-     * Constructor.
+     * Creates an instance of OSPF message encoder.
      */
     OspfMessageEncoder() {
     }
 
     /**
-     * Constructor to initialize instance.
+     * Creates an instance of OSPF message encoder.
+     *
+     * @param ospfInterface OSPF interface instance
      */
     OspfMessageEncoder(OspfInterface ospfInterface) {
         this.ospfInterface = ospfInterface;
