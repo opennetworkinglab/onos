@@ -15,10 +15,16 @@
  */
 package org.onosproject.yangutils.datamodel;
 
+import java.io.IOException;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.translator.CachedFileHandle;
+import org.onosproject.yangutils.translator.GeneratedFileType;
+import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
+import org.onosproject.yangutils.utils.UtilConstants;
 import org.onosproject.yangutils.utils.YangConstructType;
+import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
 
 /*-
  * Reference RFC 6020.
@@ -89,6 +95,11 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      * package of the generated java code.
      */
     private String pkg;
+
+    /**
+     * Cached Java File Handle.
+     */
+    private CachedFileHandle fileHandle;
 
     /**
      * Create a typedef node.
@@ -298,20 +309,60 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
 
     /**
      * Generate java code snippet corresponding to YANG typedef.
+     *
+     * @param codeGenDir code generation directory
+     * @throws IOException when fails to generate files for typedef
      */
     @Override
-    public void generateJavaCodeEntry() {
-        // TODO Auto-generated method stub
+    public void generateJavaCodeEntry(String codeGenDir) throws IOException {
 
+        YangNode parent = getParent();
+        String typeDefPkg = JavaIdentifierSyntax.getPackageFromParent(parent.getPackage(), parent.getName());
+
+        typeDefPkg = JavaIdentifierSyntax.getCamelCase(typeDefPkg).toLowerCase();
+        setPackage(typeDefPkg);
+
+        CachedFileHandle handle = null;
+        try {
+            FileSystemUtil.createPackage(codeGenDir + getPackage(), parent.getName() + UtilConstants.CHILDREN);
+            handle = FileSystemUtil.createSourceFiles(getPackage(), getName(),
+                    GeneratedFileType.GENERATE_TYPEDEF_CLASS);
+            handle.setRelativeFilePath(getPackage().replace(".", "/"));
+            handle.setCodeGenFilePath(codeGenDir);
+        } catch (IOException e) {
+            throw new IOException("Failed to create the source files.");
+        }
+        setFileHandle(handle);
+        addAttributeInfo();
+        addAttributeInParent();
+    }
+
+    /**
+     * Adds current node attribute to parent file.
+     */
+    private void addAttributeInParent() {
+        if (getParent() != null) {
+            getParent().getFileHandle().addAttributeInfo(null, getName(), false);
+        }
+    }
+
+    /**
+     * Adds attribute to file handle.
+     */
+    private void addAttributeInfo() {
+        getFileHandle().addAttributeInfo(getDerivedType().getDataTypeExtendedInfo().getBaseType(),
+                JavaIdentifierSyntax.getCamelCase(getName()), false);
     }
 
     /**
      * Free resource used for code generation of YANG typedef.
+     *
+     * @throws IOException when fails to generate files
      */
     @Override
-    public void generateJavaCodeExit() {
-        // TODO Auto-generated method stub
-
+    public void generateJavaCodeExit() throws IOException {
+        getFileHandle().close();
+        return;
     }
 
     /**
@@ -342,18 +393,16 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      */
     @Override
     public CachedFileHandle getFileHandle() {
-        // TODO Auto-generated method stub
-        return null;
+        return fileHandle;
     }
 
     /**
      * Set the file handle to be used used for code generation.
      *
-     * @param fileHandle cached file handle
+     * @param handle cached file handle
      */
     @Override
-    public void setFileHandle(CachedFileHandle fileHandle) {
-        // TODO Auto-generated method stub
-
+    public void setFileHandle(CachedFileHandle handle) {
+        fileHandle = handle;
     }
 }

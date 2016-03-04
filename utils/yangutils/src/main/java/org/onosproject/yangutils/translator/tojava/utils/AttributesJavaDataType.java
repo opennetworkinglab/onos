@@ -79,7 +79,7 @@ public final class AttributesJavaDataType {
         } else if (type.equals(YangDataTypes.INSTANCE_IDENTIFIER)) {
             //TODO:INSTANCE_IDENTIFIER
         } else if (type.equals(YangDataTypes.DERIVED)) {
-            //TODO:DERIVED
+            return yangType.getDataTypeName();
         }
         return null;
     }

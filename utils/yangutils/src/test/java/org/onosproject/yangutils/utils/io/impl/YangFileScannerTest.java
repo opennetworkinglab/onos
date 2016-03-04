@@ -84,8 +84,8 @@ public final class YangFileScannerTest {
     /**
      * Method used for creating multiple directories inside the target file.
      *
-     * @param path where directories should be created.
-     * @return
+     * @param path where directories should be created
+     * @return the directory path that is created
      */
     public File createDirectory(String path) {
 

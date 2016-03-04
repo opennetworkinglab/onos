@@ -299,9 +299,11 @@ public class YangGrouping extends YangNode
 
     /**
      * Generate the code for YANG grouping.
+     *
+     * @param codeGenDir code generated directory.
      */
     @Override
-    public void generateJavaCodeEntry() {
+    public void generateJavaCodeEntry(String codeGenDir) {
         // TODO Auto-generated method stub
 
     }

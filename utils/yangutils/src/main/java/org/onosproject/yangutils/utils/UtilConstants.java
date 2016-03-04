@@ -256,6 +256,7 @@ public final class UtilConstants {
     public static final String BUILD = "build";
     public static final String OBJECT = "Object";
     public static final String OVERRIDE = "@Override";
+    public static final String CHILDREN = "'s children";
 
     /**
      * For collections.

@@ -37,7 +37,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * Unit tests for adding package-info, creating directories, cleaning the folder and to add sources.
+ * Unit tests for YANG io utils.
  */
 public final class YangIoUtilsTest {
 
@@ -65,6 +65,20 @@ public final class YangIoUtilsTest {
     }
 
     /**
+     * This test case checks with an additional info in the path.
+     */
+    @Test
+    public void addPackageInfoWithPathTest() throws IOException {
+
+        File dirPath = new File(createPath);
+        dirPath.mkdirs();
+        CopyrightHeader.parseCopyrightHeader();
+        YangIoUtils.addPackageInfo(dirPath, "check1", "src/main/yangmodel/" + createPath);
+        File filePath = new File(dirPath + File.separator + "package-info.java");
+        assertThat(filePath.isFile(), is(true));
+    }
+
+    /**
      * This test case checks whether the package-info file is created when invalid path is given.
      */
     @Test
@@ -81,12 +95,12 @@ public final class YangIoUtilsTest {
     /**
      * A private constructor is tested.
      *
-     * @throws SecurityException if any security violation is observed.
-     * @throws NoSuchMethodException if when the method is not found.
-     * @throws IllegalArgumentException if there is illegal argument found.
-     * @throws InstantiationException if instantiation is provoked for the private constructor.
-     * @throws IllegalAccessException if instance is provoked or a method is provoked.
-     * @throws InvocationTargetException when an exception occurs by the method or constructor.
+     * @throws SecurityException if any security violation is observed
+     * @throws NoSuchMethodException if when the method is not found
+     * @throws IllegalArgumentException if there is illegal argument found
+     * @throws InstantiationException if instantiation is provoked for the private constructor
+     * @throws IllegalAccessException if instance is provoked or a method is provoked
+     * @throws InvocationTargetException when an exception occurs by the method or constructor
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,

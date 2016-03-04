@@ -71,6 +71,21 @@ public final class JavaDocGen {
         SETTER,
 
         /**
+         * For type def's setters.
+         */
+        TYPE_DEF_SETTER,
+
+        /**
+         * For type def's constructor.
+         */
+        TYPE_DEF_CONSTRUCTOR,
+
+        /**
+         * For of method.
+         */
+        OF,
+
+        /**
          * For default constructor.
          */
         DEFAULT_CONSTRUCTOR,
@@ -91,10 +106,11 @@ public final class JavaDocGen {
      *
      * @param type java doc type
      * @param name name of the YangNode
-     * @return javadocs
+     * @param isList is list attribute
+     * @return javadocs.
      */
-    public static String getJavaDoc(JavaDocType type, String name) {
-        name = JavaIdentifierSyntax.getCamelCase(name);
+    public static String getJavaDoc(JavaDocType type, String name, boolean isList) {
+        name = JavaIdentifierSyntax.getLowerCase(JavaIdentifierSyntax.getCamelCase(name));
         String javaDoc = "";
         if (type.equals(JavaDocType.IMPL_CLASS)) {
             javaDoc = generateForImplClass(name);
@@ -107,9 +123,15 @@ public final class JavaDocGen {
         } else if (type.equals(JavaDocType.PACKAGE_INFO)) {
             javaDoc = generateForPackage(name);
         } else if (type.equals(JavaDocType.GETTER)) {
-            javaDoc = generateForGetters(name);
+            javaDoc = generateForGetters(name, isList);
+        } else if (type.equals(JavaDocType.TYPE_DEF_SETTER)) {
+            javaDoc = generateForTypeDefSetter(name);
+        } else if (type.equals(JavaDocType.TYPE_DEF_CONSTRUCTOR)) {
+            javaDoc = generateForTypeDefConstructor(name);
         } else if (type.equals(JavaDocType.SETTER)) {
-            javaDoc = generateForSetters(name);
+            javaDoc = generateForSetters(name, isList);
+        } else if (type.equals(JavaDocType.OF)) {
+            javaDoc = generateForOf(name);
         } else if (type.equals(JavaDocType.DEFAULT_CONSTRUCTOR)) {
             javaDoc = generateForDefaultConstructors();
         } else if (type.equals(JavaDocType.BUILD)) {
@@ -124,32 +146,96 @@ public final class JavaDocGen {
      * Generate javaDocs for getter method.
      *
      * @param attribute attribute
+     * @param isList is list attribute
      * @return javaDocs
      */
-    private static String generateForGetters(String attribute) {
-        return UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
+    private static String generateForGetters(String attribute, boolean isList) {
+        String getter = UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
+                + UtilConstants.JAVA_DOC_FIRST_LINE
                 + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_GETTERS + attribute
                 + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_RETURN
-                + attribute + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
+                + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_RETURN;
+        if (isList) {
+            attribute = UtilConstants.LIST.toLowerCase() + UtilConstants.SPACE + UtilConstants.OF + UtilConstants.SPACE
+                    + attribute;
+        }
+
+        getter = getter + attribute + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
                 + UtilConstants.JAVA_DOC_END_LINE;
+        return getter;
     }
 
     /**
      * Generates javaDocs for setter method.
      *
      * @param attribute attribute
+     * @param isList is list attribute
      * @return javaDocs
      */
-    private static String generateForSetters(String attribute) {
-        return UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
+    private static String generateForSetters(String attribute, boolean isList) {
+        String setter = UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
+                + UtilConstants.JAVA_DOC_FIRST_LINE
                 + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_SETTERS + attribute
                 + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
                 + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM
-                + attribute + UtilConstants.SPACE + attribute + UtilConstants.NEW_LINE
+                + attribute + UtilConstants.SPACE;
+        if (isList) {
+            attribute = UtilConstants.LIST.toLowerCase() + UtilConstants.SPACE + UtilConstants.OF + UtilConstants.SPACE
+                    + attribute;
+        }
+
+        setter = setter + attribute + UtilConstants.NEW_LINE
                 + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_RETURN + UtilConstants.BUILDER_OBJECT
                 + attribute + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
                 + UtilConstants.JAVA_DOC_END_LINE;
+        return setter;
+    }
+
+    /**
+     * Generates javaDocs for of method.
+     *
+     * @param attribute attribute
+     * @return javaDocs
+     */
+    private static String generateForOf(String attribute) {
+        return UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
+                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_OF + attribute
+                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
+                + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM
+                + UtilConstants.VALUE + UtilConstants.SPACE + UtilConstants.VALUE + UtilConstants.NEW_LINE
+                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_RETURN + UtilConstants.OBJECT
+                + UtilConstants.SPACE + UtilConstants.OF + UtilConstants.SPACE + attribute + UtilConstants.NEW_LINE
+                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE;
+    }
+
+    /**
+     * Generates javaDocs for typedef setter method.
+     *
+     * @param attribute attribute
+     * @return javaDocs
+     */
+    private static String generateForTypeDefSetter(String attribute) {
+        return (UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
+                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_SETTERS_COMMON + attribute
+                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
+                + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM
+                + UtilConstants.VALUE + UtilConstants.SPACE + UtilConstants.VALUE + UtilConstants.NEW_LINE
+                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE);
+    }
+
+    /**
+     * Generates javaDocs for typedef constructor.
+     *
+     * @param attribute attribute
+     * @return javaDocs
+     */
+    private static String generateForTypeDefConstructor(String attribute) {
+        return (UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
+                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_CONSTRUCTOR + attribute
+                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
+                + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM
+                + UtilConstants.VALUE + UtilConstants.SPACE + UtilConstants.VALUE + UtilConstants.NEW_LINE
+                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE);
     }
 
     /**
@@ -170,8 +256,8 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForBuilderClass(String className) {
-        return UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.BUILDER_CLASS_JAVA_DOC + className
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
+        return UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.BUILDER_CLASS_JAVA_DOC
+                + className + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
     }
 
     /**
@@ -181,8 +267,8 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForInterface(String interfaceName) {
-        return UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.INTERFACE_JAVA_DOC + interfaceName
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
+        return UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.INTERFACE_JAVA_DOC
+                + interfaceName + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
     }
 
     /**

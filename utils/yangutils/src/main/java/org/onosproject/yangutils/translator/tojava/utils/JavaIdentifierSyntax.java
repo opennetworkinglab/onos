@@ -31,7 +31,6 @@ public final class JavaIdentifierSyntax {
     private static final int INDEX_ZERO = 0;
     private static final int INDEX_ONE = 1;
     private static final int INDEX_TWO = 2;
-    private static final int INDEX_THREE = 3;
 
     /**
      * Default constructor.
@@ -100,9 +99,7 @@ public final class JavaIdentifierSyntax {
         String[] revisionArr = date.split(UtilConstants.HYPHEN);
 
         String rev = "rev";
-        String year = revisionArr[INDEX_ZERO];
-        char[] yearBytes = year.toCharArray();
-        rev = rev + yearBytes[INDEX_TWO] + yearBytes[INDEX_THREE];
+        rev = rev + revisionArr[INDEX_ZERO];
 
         if ((Integer.parseInt(revisionArr[INDEX_ONE]) <= MAX_MONTHS)
                 && Integer.parseInt(revisionArr[INDEX_TWO]) <= MAX_DAYS) {

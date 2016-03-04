@@ -41,7 +41,7 @@ public final class JavaDocGenTest {
     @Test
     public void builderClassGenerationTest() {
 
-        String builderClassJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.BUILDER_CLASS, "testGeneration1");
+        String builderClassJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.BUILDER_CLASS, "testGeneration1", false);
         assertTrue(builderClassJavaDoc.contains("Provides the builder implementation of")
                 && builderClassJavaDoc.contains(" */\n"));
     }
@@ -52,7 +52,7 @@ public final class JavaDocGenTest {
     @Test
     public void builderInterfaceGenerationTest() {
 
-        String builderInterfaceJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.BUILDER_INTERFACE, "testGeneration1");
+        String builderInterfaceJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.BUILDER_INTERFACE, "testGeneration1", false);
         assertTrue(builderInterfaceJavaDoc.contains("Builder for") && builderInterfaceJavaDoc.contains(" */\n"));
     }
 
@@ -62,19 +62,19 @@ public final class JavaDocGenTest {
     @Test
     public void buildGenerationTest() {
 
-        String buildDoc = JavaDocGen.getJavaDoc(JavaDocType.BUILD, "testGeneration1");
+        String buildDoc = JavaDocGen.getJavaDoc(JavaDocType.BUILD, "testGeneration1", false);
         assertTrue(buildDoc.contains("Builds object of") && buildDoc.contains(" */\n"));
     }
 
     /**
      * A private constructor is tested.
      *
-     * @throws SecurityException if any security violation is observed.
-     * @throws NoSuchMethodException if when the method is not found.
-     * @throws IllegalArgumentException if there is illegal argument found.
-     * @throws InstantiationException if instantiation is provoked for the private constructor.
-     * @throws IllegalAccessException if instance is provoked or a method is provoked.
-     * @throws InvocationTargetException when an exception occurs by the method or constructor.
+     * @throws SecurityException if any security violation is observed
+     * @throws NoSuchMethodException if when the method is not found
+     * @throws IllegalArgumentException if there is illegal argument found
+     * @throws InstantiationException if instantiation is provoked for the private constructor
+     * @throws IllegalAccessException if instance is provoked or a method is provoked
+     * @throws InvocationTargetException when an exception occurs by the method or constructor
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
@@ -94,7 +94,7 @@ public final class JavaDocGenTest {
     @Test
     public void constructorGenerationTest() {
 
-        String constructorDoc = JavaDocGen.getJavaDoc(JavaDocType.CONSTRUCTOR, "testGeneration1");
+        String constructorDoc = JavaDocGen.getJavaDoc(JavaDocType.CONSTRUCTOR, "testGeneration1", false);
         assertTrue(
                 constructorDoc.contains("Construct the object of") && constructorDoc.contains("builder object of")
                 && constructorDoc.contains("@param") && constructorDoc.contains("*/\n"));
@@ -107,7 +107,7 @@ public final class JavaDocGenTest {
     @Test
     public void defaultConstructorGenerationTest() {
 
-        String defaultConstructorDoc = JavaDocGen.getJavaDoc(JavaDocType.DEFAULT_CONSTRUCTOR, "testGeneration1");
+        String defaultConstructorDoc = JavaDocGen.getJavaDoc(JavaDocType.DEFAULT_CONSTRUCTOR, "testGeneration1", false);
         assertTrue(defaultConstructorDoc.contains("Default Constructor") && defaultConstructorDoc.contains(" */\n"));
     }
 
@@ -117,7 +117,7 @@ public final class JavaDocGenTest {
     @Test
     public void getterGenerationTest() {
 
-        String getterJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.GETTER, "testGeneration1");
+        String getterJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.GETTER, "testGeneration1", false);
         assertTrue(getterJavaDoc.contains("Returns the attribute") && getterJavaDoc.contains(" */\n"));
     }
 
@@ -126,7 +126,7 @@ public final class JavaDocGenTest {
      */
     @Test
     public void implClassGenerationTest() {
-        String implClassJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.IMPL_CLASS, "testGeneration1");
+        String implClassJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.IMPL_CLASS, "testGeneration1", false);
         assertTrue(implClassJavaDoc.contains("Provides the implementation of") && implClassJavaDoc.contains(" */\n"));
     }
 
@@ -136,7 +136,7 @@ public final class JavaDocGenTest {
     @Test
     public void interfaceGenerationTest() {
 
-        String interfaceJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.INTERFACE, "testGeneration1");
+        String interfaceJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.INTERFACE, "testGeneration1", false);
         assertTrue(interfaceJavaDoc.contains("Abstraction of an entity which provides functionalities of")
                 && interfaceJavaDoc.contains(" */\n"));
     }
@@ -146,10 +146,9 @@ public final class JavaDocGenTest {
      */
     @Test
     public void packageInfoGenerationTest() {
-        // TODO:  udpate to new framework.
-        //        String packageInfo = JavaDocGen.getJavaDoc(JavaDocType.PACKAGE_INFO, "testGeneration1");
-        //        assertTrue(packageInfo.contains(
-        //        "Generated java code for the YANG file") && packageInfo.contains(" */\n"));
+
+        String packageInfo = JavaDocGen.getJavaDoc(JavaDocType.PACKAGE_INFO, "testGeneration1", false);
+        assertTrue(packageInfo.contains("Generated java code corresponding to YANG") && packageInfo.contains(" */\n"));
     }
 
     /**
@@ -158,7 +157,17 @@ public final class JavaDocGenTest {
     @Test
     public void setterGenerationTest() {
 
-        String setterJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.SETTER, "testGeneration1");
+        String setterJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.SETTER, "testGeneration1", false);
         assertTrue(setterJavaDoc.contains("Returns the builder object of") && setterJavaDoc.contains(" */\n"));
+    }
+
+    /**
+     * This test case checks the content received for the typedef setter java doc.
+     */
+    @Test
+    public void typeDefSetterGenerationTest() {
+
+        String typeDefSetter = JavaDocGen.getJavaDoc(JavaDocType.TYPE_DEF_SETTER, "testGeneration1", false);
+        assertTrue(typeDefSetter.contains("Sets the value of") && typeDefSetter.contains(" */\n"));
     }
 }

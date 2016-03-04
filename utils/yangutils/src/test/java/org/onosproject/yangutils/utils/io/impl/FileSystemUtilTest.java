@@ -16,22 +16,25 @@
 
 package org.onosproject.yangutils.utils.io.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import org.junit.Test;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
-import org.onosproject.yangutils.translator.GeneratedFileType;
-import org.onosproject.yangutils.utils.UtilConstants;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import org.onosproject.yangutils.translator.GeneratedFileType;
+import org.onosproject.yangutils.utils.UtilConstants;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+
 
 /**
  * Tests the file handle utilities.
@@ -50,12 +53,12 @@ public final class FileSystemUtilTest {
     /**
      * A private constructor is tested.
      *
-     * @throws SecurityException if any security violation is observed.
-     * @throws NoSuchMethodException if when the method is not found.
-     * @throws IllegalArgumentException if there is illegal argument found.
-     * @throws InstantiationException if instantiation is provoked for the private constructor.
-     * @throws IllegalAccessException if instance is provoked or a method is provoked.
-     * @throws InvocationTargetException when an exception occurs by the method or constructor.
+     * @throws SecurityException if any security violation is observed
+     * @throws NoSuchMethodException if when the method is not found
+     * @throws IllegalArgumentException if there is illegal argument found
+     * @throws InstantiationException if instantiation is provoked for the private constructor
+     * @throws IllegalAccessException if instance is provoked or a method is provoked
+     * @throws InvocationTargetException when an exception occurs by the method or constructor
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
@@ -82,17 +85,18 @@ public final class FileSystemUtilTest {
      * This test case checks the contents to be written in the file.
      */
     @Test
-    public void insertStringInFileTest() throws IOException {
+    public void updateFileHandleTest() throws IOException {
         File dir = new File(baseDir + File.separator + "File1");
         dir.mkdirs();
         File createFile = new File(dir + "testFile");
         createFile.createNewFile();
         File createSourceFile = new File(dir + "sourceTestFile");
         createSourceFile.createNewFile();
-        FileSystemUtil.insertStringInFile(createFile, "This is to append a text to the file first1\n");
-        FileSystemUtil.insertStringInFile(createFile, "This is next second line\n");
-        FileSystemUtil.insertStringInFile(createFile, "This is next third line in the file");
+        FileSystemUtil.updateFileHandle(createFile, "This is to append a text to the file first1\n", false);
+        FileSystemUtil.updateFileHandle(createFile, "This is next second line\n", false);
+        FileSystemUtil.updateFileHandle(createFile, "This is next third line in the file", false);
         FileSystemUtil.appendFileContents(createFile, createSourceFile);
+        FileSystemUtil.updateFileHandle(createFile, null, true);
     }
 
     /**

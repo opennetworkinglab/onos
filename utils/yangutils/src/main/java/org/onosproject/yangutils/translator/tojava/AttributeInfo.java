@@ -41,7 +41,7 @@ public class AttributeInfo {
     /**
      * If the added attribute has to be accessed in a fully qualified manner.
      */
-    private boolean isQualifiedName;
+    private boolean isQualifiedName = false;
 
     /**
      * The class info will be used to set the attribute type and package info

@@ -47,7 +47,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Maintains the data type information.
  *
- * @param <T> YANG data type info.
+ * @param <T> YANG data type info
  */
 public class YangType<T> implements Parsable {
 
@@ -55,6 +55,11 @@ public class YangType<T> implements Parsable {
      * YANG data type name.
      */
     private String dataTypeName;
+
+    /**
+     * Java package in which the Java type is defined.
+     */
+    private String javaPackage;
 
     /**
      * YANG data type.
@@ -90,6 +95,24 @@ public class YangType<T> implements Parsable {
      */
     public void setDataTypeName(String typeName) {
         dataTypeName = typeName;
+    }
+
+    /**
+     * Get the Java package where the type is defined.
+     *
+     * @return Java package where the type is defined
+     */
+    public String getJavaPackage() {
+        return javaPackage;
+    }
+
+    /**
+     * Set Java package where the type is defined.
+     *
+     * @param javaPackage Java package where the type is defined
+     */
+    public void setJavaPackage(String javaPackage) {
+        this.javaPackage = javaPackage;
     }
 
     /**

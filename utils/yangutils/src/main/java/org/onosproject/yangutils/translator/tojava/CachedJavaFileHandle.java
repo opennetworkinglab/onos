@@ -16,21 +16,26 @@
 
 package org.onosproject.yangutils.translator.tojava;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.onosproject.yangutils.datamodel.YangType;
-import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.translator.CachedFileHandle;
 import org.onosproject.yangutils.translator.GeneratedFileType;
 import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
 import org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator;
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
+import org.onosproject.yangutils.translator.tojava.utils.TempDataStoreTypes;
 import org.onosproject.yangutils.utils.UtilConstants;
+import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
 
 /**
  * Maintain the information about the java file to be generated.
@@ -40,6 +45,17 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     private static final int MAX_CACHABLE_ATTR = 64;
     private static final String JAVA_FILE_EXTENSION = ".java";
     private static final String TEMP_FILE_EXTENSION = ".tmp";
+    private static final String GETTER_METHOD_FILE_NAME = "GetterMethod";
+    private static final String SETTER_METHOD_FILE_NAME = "SetterMethod";
+    private static final String GETTER_METHOD_IMPL_FILE_NAME = "GetterMethodImpl";
+    private static final String SETTER_METHOD_IMPL_FILE_NAME = "SetterMethodImpl";
+    private static final String CONSTRUCTOR_FILE_NAME = "Constructor";
+    private static final String ATTRIBUTE_FILE_NAME = "Attributes";
+    private static final String TO_STRING_METHOD_FILE_NAME = "ToString";
+    private static final String HASH_CODE_METHOD_FILE_NAME = "HashCode";
+    private static final String EQUALS_METHOD_FILE_NAME = "Equals";
+    private static final String TYPE_DEF_FILE_NAME = "TypeDef";
+    private static final String TEMP_FOLDER_NAME_SUFIX = "-Temp";
 
     /**
      * The type(s) of java source file(s) to be generated when the cached file
@@ -69,9 +85,9 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     private String relativeFilePath;
 
     /**
-     * Typedef Info.
+     * File generation base directory path.
      */
-    private YangTypeDef typedefInfo;
+    private String codeGenDirFilePath;
 
     /**
      * Prevent invoking default constructor.
@@ -185,24 +201,24 @@ public class CachedJavaFileHandle implements CachedFileHandle {
         attributeList = attrList;
     }
 
-    /**
-     * Set the package relative path.
-     *
-     * @param path package relative path
-     */
     @Override
     public void setRelativeFilePath(String path) {
         relativeFilePath = path;
     }
 
-    /**
-     * Get the package relative path.
-     *
-     * @return package relative path
-     */
     @Override
     public String getRelativeFilePath() {
         return relativeFilePath;
+    }
+
+    @Override
+    public String getCodeGenFilePath() {
+        return codeGenDirFilePath;
+    }
+
+    @Override
+    public void setCodeGenFilePath(String path) {
+        codeGenDirFilePath = path;
     }
 
     /**
@@ -211,7 +227,8 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     private void flushCacheAttrToTempFile() {
 
         for (AttributeInfo attr : getCachedAttributeList()) {
-            JavaFileGenerator.parseAttributeInfo(attr, getGeneratedFileTypes(), getYangName());
+            JavaFileGenerator.parseAttributeInfo(attr, getGeneratedFileTypes(), getYangName(), getCodeGenFilePath() +
+                    getRelativeFilePath().replace(UtilConstants.PERIOD, UtilConstants.SLASH), this);
         }
 
         /*
@@ -220,14 +237,6 @@ public class CachedJavaFileHandle implements CachedFileHandle {
         getCachedAttributeList().clear();
     }
 
-    /**
-     * Add a new attribute to the file(s).
-     *
-     * @param attrType data type of the added attribute
-     * @param name name of the attribute
-     * @param isListAttr if the current added attribute needs to be maintained
-     *            in a list
-     */
     @Override
     public void addAttributeInfo(YangType<?> attrType, String name, boolean isListAttr) {
         /* YANG name is mapped to java name */
@@ -256,16 +265,29 @@ public class CachedJavaFileHandle implements CachedFileHandle {
 
         } else {
             importInfo.setClassInfo(JavaIdentifierSyntax.getCaptialCase(name));
-
             importInfo.setPkgInfo(getRelativeFilePath().replace('/', '.')
-                    + "." + getYangName());
+                    + "." + getYangName().toLowerCase());
             isImport = true;
         }
 
         newAttr.setQualifiedName(false);
         if (isImport) {
-            boolean isNewImport = addImportInfo(importInfo);
-            if (!isNewImport) {
+            addImportInfo(importInfo);
+        }
+
+        if (isListAttr) {
+            ImportInfo listImportInfo = new ImportInfo();
+            listImportInfo.setPkgInfo(UtilConstants.COLLECTION_IMPORTS);
+            listImportInfo.setClassInfo(UtilConstants.LIST);
+            addImportInfo(listImportInfo);
+        }
+
+        /**
+         * If two classes with different packages have same class info for import than use qualified name.
+         */
+        for (ImportInfo imports : getImportSet()) {
+            if (imports.getClassInfo().equals(importInfo.getClassInfo())
+                    && !imports.getPkgInfo().equals(importInfo.getPkgInfo())) {
                 newAttr.setQualifiedName(true);
             }
         }
@@ -280,9 +302,6 @@ public class CachedJavaFileHandle implements CachedFileHandle {
         getCachedAttributeList().add(newAttr);
     }
 
-    /**
-     * Flushes the cached contents to the target file, frees used resources.
-     */
     @Override
     public void close() throws IOException {
 
@@ -298,17 +317,18 @@ public class CachedJavaFileHandle implements CachedFileHandle {
          * JavaCodeSnippetGen.getFileHeaderComment
          */
 
-        List<String> imports = new LinkedList<>();
+        List<String> imports = new ArrayList<>();
         String importString;
 
-        for (ImportInfo importInfo : getImportSet()) {
-            importString = "";
+        for (ImportInfo importInfo : new ArrayList<ImportInfo>(getImportSet())) {
+            importString = UtilConstants.IMPORT;
             if (importInfo.getPkgInfo() != null) {
                 importString = importString + importInfo.getPkgInfo() + ".";
             }
-            importString = importString + importInfo.getClassInfo();
+            importString = importString + importInfo.getClassInfo() + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE;
             imports.add(importString);
         }
+        java.util.Collections.sort(imports);
 
         /**
          * Start generation of files.
@@ -320,31 +340,38 @@ public class CachedJavaFileHandle implements CachedFileHandle {
              * Create interface file.
              */
             String interfaceFileName = className;
-            File interfaceFile = JavaFileGenerator.getFileObject(path, interfaceFileName, JAVA_FILE_EXTENSION);
+            File interfaceFile = JavaFileGenerator.getFileObject(path, interfaceFileName, JAVA_FILE_EXTENSION, this);
             interfaceFile = JavaFileGenerator.generateInterfaceFile(interfaceFile, className, imports,
-                    getCachedAttributeList(), path.replace('/', '.'));
-
+                    getCachedAttributeList(), path.replace('/', '.'), this);
             /**
              * Create temp builder interface file.
              */
             String builderInterfaceFileName = className + UtilConstants.BUILDER + UtilConstants.INTERFACE;
             File builderInterfaceFile = JavaFileGenerator.getFileObject(path, builderInterfaceFileName,
-                    TEMP_FILE_EXTENSION);
+                    TEMP_FILE_EXTENSION, this);
             builderInterfaceFile = JavaFileGenerator.generateBuilderInterfaceFile(builderInterfaceFile, className,
-                    path.replace('/', '.'), getCachedAttributeList());
-
+                    path.replace('/', '.'), getCachedAttributeList(), this);
             /**
              * Append builder interface file to interface file and close it.
              */
             JavaFileGenerator.appendFileContents(builderInterfaceFile, interfaceFile);
             JavaFileGenerator.insert(interfaceFile,
                     JavaFileGenerator.closeFile(GeneratedFileType.INTERFACE_MASK, interfaceFileName));
+            /**
+             * Close file handle for interface files.
+             */
+            JavaFileGenerator.closeFileHandles(builderInterfaceFile);
+            JavaFileGenerator.closeFileHandles(interfaceFile);
 
             /**
              * Remove temp files.
              */
             JavaFileGenerator.clean(builderInterfaceFile);
         }
+
+        imports.add(UtilConstants.MORE_OBJECT_IMPORT);
+        imports.add(UtilConstants.JAVA_UTIL_OBJECTS_IMPORT);
+        java.util.Collections.sort(imports);
 
         if ((fileType & GeneratedFileType.BUILDER_CLASS_MASK) != 0
                 || fileType == GeneratedFileType.GENERATE_INTERFACE_WITH_BUILDER) {
@@ -353,19 +380,17 @@ public class CachedJavaFileHandle implements CachedFileHandle {
              * Create builder class file.
              */
             String builderFileName = className + UtilConstants.BUILDER;
-            File builderFile = JavaFileGenerator.getFileObject(path, builderFileName, JAVA_FILE_EXTENSION);
+            File builderFile = JavaFileGenerator.getFileObject(path, builderFileName, JAVA_FILE_EXTENSION, this);
             builderFile = JavaFileGenerator.generateBuilderClassFile(builderFile, className, imports,
-                    path.replace('/', '.'), getCachedAttributeList());
-
+                    path.replace('/', '.'), getCachedAttributeList(), this);
             /**
              * Create temp impl class file.
              */
 
             String implFileName = className + UtilConstants.IMPL;
-            File implTempFile = JavaFileGenerator.getFileObject(path, implFileName, TEMP_FILE_EXTENSION);
+            File implTempFile = JavaFileGenerator.getFileObject(path, implFileName, TEMP_FILE_EXTENSION, this);
             implTempFile = JavaFileGenerator.generateImplClassFile(implTempFile, className,
-                    path.replace('/', '.'), getCachedAttributeList());
-
+                    path.replace('/', '.'), getCachedAttributeList(), this);
             /**
              * Append impl class to builder class and close it.
              */
@@ -374,17 +399,210 @@ public class CachedJavaFileHandle implements CachedFileHandle {
                     JavaFileGenerator.closeFile(GeneratedFileType.BUILDER_CLASS_MASK, builderFileName));
 
             /**
+             * Close file handle for classes files.
+             */
+            JavaFileGenerator.closeFileHandles(implTempFile);
+            JavaFileGenerator.closeFileHandles(builderFile);
+
+            /**
              * Remove temp files.
              */
             JavaFileGenerator.clean(implTempFile);
         }
+
+        if ((fileType & GeneratedFileType.GENERATE_TYPEDEF_CLASS) != 0) {
+
+            /**
+             * Create builder class file.
+             */
+            String typeDefFileName = className;
+            File typeDefFile = JavaFileGenerator.getFileObject(path, typeDefFileName, JAVA_FILE_EXTENSION, this);
+            typeDefFile = JavaFileGenerator.generateTypeDefClassFile(typeDefFile, className, imports,
+                    path.replace('/', '.'), getCachedAttributeList(), this);
+            JavaFileGenerator.insert(typeDefFile,
+                    JavaFileGenerator.closeFile(GeneratedFileType.GENERATE_TYPEDEF_CLASS, typeDefFileName));
+
+            /**
+             * Close file handle for classes files.
+             */
+            JavaFileGenerator.closeFileHandles(typeDefFile);
+        }
+
+        closeTempDataFileHandles(className, getCodeGenFilePath() + getRelativeFilePath());
+        JavaFileGenerator
+                .cleanTempFiles(new File(getCodeGenFilePath() + getRelativeFilePath() + File.separator + className
+                        + TEMP_FOLDER_NAME_SUFIX));
     }
 
-    public YangTypeDef getTypedefInfo() {
-        return typedefInfo;
+    @Override
+    public void setTempData(String data, TempDataStoreTypes type, String className, String genDir)
+            throws IOException {
+
+        String fileName = "";
+        if (type.equals(TempDataStoreTypes.ATTRIBUTE)) {
+            fileName = ATTRIBUTE_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.GETTER_METHODS)) {
+            fileName = GETTER_METHOD_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.GETTER_METHODS_IMPL)) {
+            fileName = GETTER_METHOD_IMPL_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.SETTER_METHODS)) {
+            fileName = SETTER_METHOD_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.SETTER_METHODS_IMPL)) {
+            fileName = SETTER_METHOD_IMPL_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.TYPE_DEF)) {
+            fileName = TYPE_DEF_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.TO_STRING)) {
+            fileName = TO_STRING_METHOD_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.HASH_CODE)) {
+            fileName = HASH_CODE_METHOD_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.EQUALS)) {
+            fileName = EQUALS_METHOD_FILE_NAME;
+        } else {
+            fileName = CONSTRUCTOR_FILE_NAME;
+        }
+
+        String path = genDir.replace(UtilConstants.PERIOD, UtilConstants.SLASH)
+                + File.separator + className
+                + TEMP_FOLDER_NAME_SUFIX + File.separator;
+        File dir = new File(path);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File file = new File(path + fileName + TEMP_FILE_EXTENSION);
+        try {
+            if (!file.exists()) {
+                file.createNewFile();
+                JavaFileGenerator.insert(file, data);
+            } else {
+                JavaFileGenerator.insert(file, data);
+            }
+        } catch (IOException ex) {
+            throw new IOException("failed to write in temp file.");
+        }
     }
 
-    public void setTypedefInfo(YangTypeDef typedefInfo) {
-        this.typedefInfo = typedefInfo;
+    @Override
+    public String getTempData(TempDataStoreTypes type, String className, String genDir)
+            throws IOException, FileNotFoundException, ClassNotFoundException {
+
+        String fileName = "";
+        if (type.equals(TempDataStoreTypes.ATTRIBUTE)) {
+            fileName = ATTRIBUTE_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.GETTER_METHODS)) {
+            fileName = GETTER_METHOD_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.GETTER_METHODS_IMPL)) {
+            fileName = GETTER_METHOD_IMPL_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.SETTER_METHODS)) {
+            fileName = SETTER_METHOD_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.SETTER_METHODS_IMPL)) {
+            fileName = SETTER_METHOD_IMPL_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.TYPE_DEF)) {
+            fileName = TYPE_DEF_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.TO_STRING)) {
+            fileName = TO_STRING_METHOD_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.HASH_CODE)) {
+            fileName = HASH_CODE_METHOD_FILE_NAME;
+        } else if (type.equals(TempDataStoreTypes.EQUALS)) {
+            fileName = EQUALS_METHOD_FILE_NAME;
+        } else {
+            fileName = CONSTRUCTOR_FILE_NAME;
+        }
+
+        String path = genDir.replace(UtilConstants.PERIOD, UtilConstants.SLASH)
+                + File.separator + className + TEMP_FOLDER_NAME_SUFIX + File.separator;
+
+        try {
+            return readFile(path + fileName + TEMP_FILE_EXTENSION);
+
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException("No such file or directory.");
+        }
+    }
+
+    /**
+     * Reads file and convert it to string.
+     *
+     * @param toAppend file to be converted
+     * @return string of file
+     * @throws IOException when fails to convert to string
+     */
+    private static String readFile(String toAppend) throws IOException {
+        BufferedReader bufferReader = new BufferedReader(new FileReader(toAppend));
+        try {
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = bufferReader.readLine();
+
+            while (line != null) {
+                stringBuilder.append(line);
+                stringBuilder.append("\n");
+                line = bufferReader.readLine();
+            }
+            return stringBuilder.toString();
+        } finally {
+            bufferReader.close();
+        }
+    }
+
+    /**
+     * Closes the temp file handles.
+     *
+     * @param className class name
+     * @param genDir generated directory
+     * @throws IOException when failes to close file handle
+     */
+    private void closeTempDataFileHandles(String className, String genDir)
+            throws IOException {
+
+        String path = genDir.replace(UtilConstants.PERIOD, UtilConstants.SLASH) + File.separator + className
+                + TEMP_FOLDER_NAME_SUFIX + File.separator;
+
+        String fileName = "";
+        fileName = ATTRIBUTE_FILE_NAME;
+        closeTempFile(fileName, path);
+
+        fileName = GETTER_METHOD_FILE_NAME;
+        closeTempFile(fileName, path);
+
+        fileName = GETTER_METHOD_IMPL_FILE_NAME;
+        closeTempFile(fileName, path);
+
+        fileName = SETTER_METHOD_FILE_NAME;
+        closeTempFile(fileName, path);
+
+        fileName = SETTER_METHOD_IMPL_FILE_NAME;
+        closeTempFile(fileName, path);
+
+        fileName = TYPE_DEF_FILE_NAME;
+        closeTempFile(fileName, path);
+
+        fileName = TO_STRING_METHOD_FILE_NAME;
+        closeTempFile(fileName, path);
+
+        fileName = HASH_CODE_METHOD_FILE_NAME;
+        closeTempFile(fileName, path);
+
+        fileName = EQUALS_METHOD_FILE_NAME;
+        closeTempFile(fileName, path);
+
+        fileName = CONSTRUCTOR_FILE_NAME;
+        closeTempFile(fileName, path);
+    }
+
+    /**
+     * Closes the specific temp file.
+     *
+     * @param fileName temp file name
+     * @param path path
+     * @throws IOException when failed to close file handle
+     */
+    private void closeTempFile(String fileName, String path) throws IOException {
+        File file = new File(path + fileName + TEMP_FILE_EXTENSION);
+        try {
+            if (!file.exists()) {
+                FileSystemUtil.updateFileHandle(file, null, true);
+            }
+        } catch (IOException ex) {
+            throw new IOException("failed to close the temp file handle.");
+        }
     }
 }

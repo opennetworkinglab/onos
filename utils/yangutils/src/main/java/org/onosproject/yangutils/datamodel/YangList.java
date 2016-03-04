@@ -622,9 +622,11 @@ public class YangList extends YangNode
     /**
      * Populate the cached handle with information about the list attributes to
      * generate java code.
+     *
+     * @param codeGenDir code generated directory
      */
     @Override
-    public void generateJavaCodeEntry() {
+    public void generateJavaCodeEntry(String codeGenDir) {
         // TODO Auto-generated method stub
 
     }

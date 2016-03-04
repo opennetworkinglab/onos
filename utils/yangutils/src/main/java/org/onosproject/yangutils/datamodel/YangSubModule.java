@@ -470,9 +470,11 @@ public class YangSubModule extends YangNode
 
     /**
      * Generates java code for sub-module.
+     *
+     * @param codeGenDir code generation directory.
      */
     @Override
-    public void generateJavaCodeEntry() {
+    public void generateJavaCodeEntry(String codeGenDir) {
         // TODO Auto-generated method stub
     }
 

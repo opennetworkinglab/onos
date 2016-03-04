@@ -16,9 +16,11 @@
 
 package org.onosproject.yangutils.translator;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.translator.tojava.utils.TempDataStoreTypes;
 
 /**
  * Cached java file handle, which supports the addition of member attributes and
@@ -56,4 +58,43 @@ public interface CachedFileHandle {
      * @return directory package path for code generation
      */
     String getRelativeFilePath();
+
+    /**
+     * Gets base directory package path for code generation.
+     *
+     * @return directory package path for code generation
+     */
+    String getCodeGenFilePath();
+
+    /**
+     * Sets base directory package path for code generation.
+     *
+     * @param path base directory path
+     */
+    void setCodeGenFilePath(String path);
+
+    /**
+     * Writes specific info to a Temp file.
+     *
+     * @param data data to be stored
+     * @param type type of Temp data store
+     * @param className class name
+     * @param genDir generated directory
+     * @throws IOException when fails to create a Temp data file
+     */
+    void setTempData(String data, TempDataStoreTypes type, String className, String genDir) throws IOException;
+
+    /**
+     * Get the Temp data.
+     *
+     * @param type type of Temp data store
+     * @param className name of the class
+     * @param genDir generated directory
+     * @return temp data
+     * @throws IOException when fails to read from the file
+     * @throws ClassNotFoundException when class is missing
+     * @throws FileNotFoundException when file is missing
+     */
+    String getTempData(TempDataStoreTypes type, String className, String genDir)
+            throws IOException, FileNotFoundException, ClassNotFoundException;
 }

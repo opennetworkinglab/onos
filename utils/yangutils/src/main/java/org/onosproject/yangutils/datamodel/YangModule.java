@@ -15,20 +15,20 @@
  */
 package org.onosproject.yangutils.datamodel;
 
-import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
+
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.translator.CachedFileHandle;
 import org.onosproject.yangutils.translator.CodeGenerator;
 import org.onosproject.yangutils.translator.GeneratedFileType;
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
-import org.onosproject.yangutils.utils.UtilConstants;
 import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
-
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 
 /*-
  * Reference:RFC 6020.
@@ -211,7 +211,7 @@ public class YangModule extends YangNode
     /**
      * Get name of the module.
      *
-     * @return module name.
+     * @return module name
      */
     @Override
     public String getName() {
@@ -221,7 +221,7 @@ public class YangModule extends YangNode
     /**
      * Set module name.
      *
-     * @param moduleName module name.
+     * @param moduleName module name
      */
     @Override
     public void setName(String moduleName) {
@@ -231,7 +231,7 @@ public class YangModule extends YangNode
     /**
      * Get the contact details of the module owner.
      *
-     * @return the contact details of YANG owner.
+     * @return the contact details of YANG owner
      */
     public String getContact() {
         return contact;
@@ -240,7 +240,7 @@ public class YangModule extends YangNode
     /**
      * Set the contact details of the module owner.
      *
-     * @param contact the contact details of YANG owner.
+     * @param contact the contact details of YANG owner
      */
     public void setContact(String contact) {
         this.contact = contact;
@@ -249,7 +249,7 @@ public class YangModule extends YangNode
     /**
      * Get the description of module.
      *
-     * @return the description of YANG module.
+     * @return the description of YANG module
      */
     @Override
     public String getDescription() {
@@ -259,7 +259,7 @@ public class YangModule extends YangNode
     /**
      * Set the description of module.
      *
-     * @param description set the description of YANG module.
+     * @param description set the description of YANG module
      */
     @Override
     public void setDescription(String description) {
@@ -269,7 +269,7 @@ public class YangModule extends YangNode
     /**
      * Get the list of imported modules.
      *
-     * @return the list of imported modules.
+     * @return the list of imported modules
      */
     public List<YangImport> getImportList() {
         return importList;
@@ -278,7 +278,7 @@ public class YangModule extends YangNode
     /**
      * prevent setting the import list from outside.
      *
-     * @param importList the import list to set.
+     * @param importList the import list to set
      */
     private void setImportList(List<YangImport> importList) {
         this.importList = importList;
@@ -287,7 +287,7 @@ public class YangModule extends YangNode
     /**
      * Add the imported module information to the import list.
      *
-     * @param importedModule module being imported.
+     * @param importedModule module being imported
      */
     public void addImportedInfo(YangImport importedModule) {
 
@@ -303,7 +303,7 @@ public class YangModule extends YangNode
     /**
      * Get the list of included sub modules.
      *
-     * @return the included list of sub modules.
+     * @return the included list of sub modules
      */
     public List<YangInclude> getIncludeList() {
         return includeList;
@@ -312,7 +312,7 @@ public class YangModule extends YangNode
     /**
      * Set the list of included sub modules.
      *
-     * @param includeList the included list to set.
+     * @param includeList the included list to set
      */
     private void setIncludeList(List<YangInclude> includeList) {
         this.includeList = includeList;
@@ -321,7 +321,7 @@ public class YangModule extends YangNode
     /**
      * Add the included sub module information to the include list.
      *
-     * @param includeModule submodule being included.
+     * @param includeModule submodule being included
      */
     public void addIncludedInfo(YangInclude includeModule) {
 
@@ -336,7 +336,7 @@ public class YangModule extends YangNode
     /**
      * Get the list of leaves in module.
      *
-     * @return the list of leaves.
+     * @return the list of leaves
      */
     @Override
     public List<YangLeaf> getListOfLeaf() {
@@ -346,7 +346,7 @@ public class YangModule extends YangNode
     /**
      * Set the list of leaf in module.
      *
-     * @param leafsList the list of leaf to set.
+     * @param leafsList the list of leaf to set
      */
     private void setListOfLeaf(List<YangLeaf> leafsList) {
         listOfLeaf = leafsList;
@@ -355,7 +355,7 @@ public class YangModule extends YangNode
     /**
      * Add a leaf in module.
      *
-     * @param leaf the leaf to be added.
+     * @param leaf the leaf to be added
      */
     @Override
     public void addLeaf(YangLeaf leaf) {
@@ -369,7 +369,7 @@ public class YangModule extends YangNode
     /**
      * Get the list of leaf-list from module.
      *
-     * @return the list of leaf-list.
+     * @return the list of leaf-list
      */
     @Override
     public List<YangLeafList> getListOfLeafList() {
@@ -379,7 +379,7 @@ public class YangModule extends YangNode
     /**
      * Set the list of leaf-list in module.
      *
-     * @param listOfLeafList the list of leaf-list to set.
+     * @param listOfLeafList the list of leaf-list to set
      */
     private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
         this.listOfLeafList = listOfLeafList;
@@ -388,7 +388,7 @@ public class YangModule extends YangNode
     /**
      * Add a leaf-list in module.
      *
-     * @param leafList the leaf-list to be added.
+     * @param leafList the leaf-list to be added
      */
     @Override
     public void addLeafList(YangLeafList leafList) {
@@ -402,7 +402,7 @@ public class YangModule extends YangNode
     /**
      * Get the name space of module elements.
      *
-     * @return the nameSpace.
+     * @return the nameSpace
      */
     public YangNameSpace getNameSpace() {
         return nameSpace;
@@ -411,7 +411,7 @@ public class YangModule extends YangNode
     /**
      * Set the name space of module elements.
      *
-     * @param nameSpace the nameSpace to set.
+     * @param nameSpace the nameSpace to set
      */
     public void setNameSpace(YangNameSpace nameSpace) {
         this.nameSpace = nameSpace;
@@ -420,7 +420,7 @@ public class YangModule extends YangNode
     /**
      * Get the modules organization.
      *
-     * @return the organization.
+     * @return the organization
      */
     public String getOrganization() {
         return organization;
@@ -429,7 +429,7 @@ public class YangModule extends YangNode
     /**
      * Set the modules organization.
      *
-     * @param org the organization to set.
+     * @param org the organization to set
      */
     public void setOrganization(String org) {
         organization = org;
@@ -447,7 +447,7 @@ public class YangModule extends YangNode
     /**
      * Set the prefix.
      *
-     * @param prefix the prefix to set.
+     * @param prefix the prefix to set
      */
     public void setPrefix(String prefix) {
         this.prefix = prefix;
@@ -456,7 +456,7 @@ public class YangModule extends YangNode
     /**
      * Get the textual reference.
      *
-     * @return the reference.
+     * @return the reference
      */
     @Override
     public String getReference() {
@@ -466,7 +466,7 @@ public class YangModule extends YangNode
     /**
      * Set the textual reference.
      *
-     * @param reference the reference to set.
+     * @param reference the reference to set
      */
     @Override
     public void setReference(String reference) {
@@ -476,7 +476,7 @@ public class YangModule extends YangNode
     /**
      * Get the revision.
      *
-     * @return the revision.
+     * @return the revision
      */
     public YangRevision getRevision() {
         return revision;
@@ -485,7 +485,7 @@ public class YangModule extends YangNode
     /**
      * Set the revision.
      *
-     * @param revision the revision to set.
+     * @param revision the revision to set
      */
     public void setRevision(YangRevision revision) {
         this.revision = revision;
@@ -494,7 +494,7 @@ public class YangModule extends YangNode
     /**
      * Get the version.
      *
-     * @return the version.
+     * @return the version
      */
     public byte getVersion() {
         return version;
@@ -503,7 +503,7 @@ public class YangModule extends YangNode
     /**
      * Set the version.
      *
-     * @param version the version to set.
+     * @param version the version to set
      */
     public void setVersion(byte version) {
         this.version = version;
@@ -558,7 +558,7 @@ public class YangModule extends YangNode
     /**
      * Get the list of nested reference's which required resolution.
      *
-     * @return list of nested reference's which required resolution.
+     * @return list of nested reference's which required resolution
      */
     public List<YangNode> getNestedReferenceResoulutionList() {
         return nestedReferenceResoulutionList;
@@ -568,7 +568,7 @@ public class YangModule extends YangNode
      * Set list of nested reference's which requires resolution.
      *
      * @param nestedReferenceResoulutionList list of nested reference's which
-     *            requires resolution.
+     *            requires resolution
      */
     private void setNestedReferenceResoulutionList(List<YangNode> nestedReferenceResoulutionList) {
         this.nestedReferenceResoulutionList = nestedReferenceResoulutionList;
@@ -577,7 +577,7 @@ public class YangModule extends YangNode
     /**
      * Set list of nested reference's which requires resolution.
      *
-     * @param nestedReference nested reference which requires resolution.
+     * @param nestedReference nested reference which requires resolution
      */
     public void addToNestedReferenceResoulutionList(YangNode nestedReference) {
         if (getNestedReferenceResoulutionList() == null) {
@@ -589,7 +589,7 @@ public class YangModule extends YangNode
     /**
      * Returns the type of the parsed data.
      *
-     * @return returns MODULE_DATA.
+     * @return returns MODULE_DATA
      */
     @Override
     public YangConstructType getYangConstructType() {
@@ -625,18 +625,21 @@ public class YangModule extends YangNode
     /**
      * Generates java code for module.
      *
-     * @throws IOException when fails to generate the source files.
+     * @param codeGenDir code generation directory
+     * @throws IOException when fails to generate the source files
      */
     @Override
-    public void generateJavaCodeEntry() throws IOException {
+    public void generateJavaCodeEntry(String codeGenDir) throws IOException {
         String modPkg = JavaIdentifierSyntax.getRootPackage(getVersion(), getNameSpace().getUri(),
                 getRevision().getRevDate());
 
+        modPkg = JavaIdentifierSyntax.getCamelCase(modPkg);
         CachedFileHandle handle = null;
         try {
-            FileSystemUtil.createPackage(UtilConstants.YANG_GEN_DIR + modPkg, getName());
+            FileSystemUtil.createPackage(codeGenDir + modPkg, getName());
             handle = FileSystemUtil.createSourceFiles(modPkg, getName(),
                     GeneratedFileType.GENERATE_INTERFACE_WITH_BUILDER);
+            handle.setCodeGenFilePath(codeGenDir);
         } catch (IOException e) {
             throw new IOException("Failed to create the source files.");
         }
@@ -680,8 +683,8 @@ public class YangModule extends YangNode
     /**
      * Add a type to resolve the nested references.
      *
-     * @param node grouping or typedef node which needs to be resolved.
-     * @throws DataModelException data model exception.
+     * @param node grouping or typedef node which needs to be resolved
+     * @throws DataModelException data model exception
      */
     public static void addToResolveList(YangNode node) throws DataModelException {
         /* get the module node to add maintain the list of nested reference */

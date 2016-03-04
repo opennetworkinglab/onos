@@ -26,9 +26,10 @@ public interface CodeGenerator {
     /**
      * Traverse the schema of application and generate corresponding code.
      *
+     * @param codeGenDir code generation directory
      * @throws IOException when fails to translate the data model tree
      */
-    void generateJavaCodeEntry() throws IOException;
+    void generateJavaCodeEntry(String codeGenDir) throws IOException;
 
     /**
      * Traverse the schema of application and generate corresponding code.

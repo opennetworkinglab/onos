@@ -340,9 +340,11 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
     /**
      * Prepare the information for java code generation corresponding to YANG
      * grouping info.
+     *
+     * @param codeGenDir code generation directory
      */
     @Override
-    public void generateJavaCodeEntry() {
+    public void generateJavaCodeEntry(String codeGenDir) {
         // TODO Auto-generated method stub
 
     }

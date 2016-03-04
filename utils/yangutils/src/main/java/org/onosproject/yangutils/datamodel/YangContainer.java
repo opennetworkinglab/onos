@@ -16,18 +16,19 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
+
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.translator.CachedFileHandle;
 import org.onosproject.yangutils.translator.GeneratedFileType;
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
 import org.onosproject.yangutils.utils.UtilConstants;
+import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
 /*-
  * Reference RFC 6020.
@@ -476,20 +477,24 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     /**
      * Generate the java code corresponding to YANG container.
      *
-     * @throws IOException when fails to generate the source files
+     * @param codeGenDir code generation directory
+     * @throws IOException when fails to generate the source files.
      */
     @Override
-    public void generateJavaCodeEntry() throws IOException {
+    public void generateJavaCodeEntry(String codeGenDir) throws IOException {
         YangNode parent = getParent();
         String contPkg = JavaIdentifierSyntax.getPackageFromParent(parent.getPackage(), parent.getName());
+
+        contPkg = JavaIdentifierSyntax.getCamelCase(contPkg).toLowerCase();
         setPackage(contPkg);
 
         CachedFileHandle handle = null;
         try {
-            FileSystemUtil.createPackage(UtilConstants.YANG_GEN_DIR + getPackage(), getName());
+            FileSystemUtil.createPackage(codeGenDir + getPackage(), parent.getName() + UtilConstants.CHILDREN);
             handle = FileSystemUtil.createSourceFiles(getPackage(), getName(),
                     GeneratedFileType.GENERATE_INTERFACE_WITH_BUILDER);
-            handle.setRelativeFilePath(UtilConstants.YANG_GEN_DIR + getPackage().replace(".", "/"));
+            handle.setRelativeFilePath(getPackage().replace(".", "/"));
+            handle.setCodeGenFilePath(codeGenDir);
         } catch (IOException e) {
             throw new IOException("Failed to create the source files.");
         }

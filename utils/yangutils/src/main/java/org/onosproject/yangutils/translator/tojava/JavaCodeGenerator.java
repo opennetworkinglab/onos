@@ -35,16 +35,16 @@ public final class JavaCodeGenerator {
      * Generate Java code files corresponding to the YANG schema.
      *
      * @param rootNode root node of the data model tree
-     * @throws IOException when fails to generate java code file the current
-     *             node
+     * @param codeGenDir code generation directory
+     * @throws IOException when fails to generate java code file the current node
      */
-    public static void generateJavaCode(YangNode rootNode) throws IOException {
+    public static void generateJavaCode(YangNode rootNode, String codeGenDir) throws IOException {
         YangNode curNode = rootNode;
         TraversalType curTraversal = TraversalType.ROOT;
 
         while (!(curNode == null)) {
             if (curTraversal != TraversalType.PARENT) {
-                curNode.generateJavaCodeEntry();
+                curNode.generateJavaCodeEntry(codeGenDir);
             }
             if (curTraversal != TraversalType.PARENT && curNode.getChild() != null) {
                 curTraversal = TraversalType.CHILD;

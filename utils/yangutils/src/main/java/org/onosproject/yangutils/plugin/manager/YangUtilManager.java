@@ -43,7 +43,7 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
  * ONOS YANG utility maven plugin. Goal of plugin is yang2java Execution phase
- * in generate-sources requiresDependencyResolution at compile time
+ * in generate-sources requiresDependencyResolution at compile time.
  */
 @Mojo(name = "yang2java", defaultPhase = LifecyclePhase.GENERATE_SOURCES,
         requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = true)
@@ -54,6 +54,12 @@ public class YangUtilManager extends AbstractMojo {
      */
     @Parameter(property = "yangFilesDir", defaultValue = "src/main/yang")
     private String yangFilesDir;
+
+    /**
+     * Base directory for project.
+     */
+    @Parameter(property = "basedir", defaultValue = "${basedir}")
+    private String baseDir;
 
     /**
      * Output directory.
@@ -74,13 +80,13 @@ public class YangUtilManager extends AbstractMojo {
     private BuildContext context;
 
     private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
-    private String baseDir;
     private String searchDir;
+    private String codeGenDir;
 
     /**
      * Set current project.
      *
-     * @param curProject maven project.
+     * @param curProject maven project
      */
     public void setCurrentProject(final MavenProject curProject) {
         project = curProject;
@@ -92,7 +98,6 @@ public class YangUtilManager extends AbstractMojo {
         try {
 
             CopyrightHeader.parseCopyrightHeader();
-            baseDir = project.getBasedir().toString();
 
             /**
              * For deleting the generated code in previous build.
@@ -100,6 +105,7 @@ public class YangUtilManager extends AbstractMojo {
             YangIoUtils.clean(baseDir);
 
             searchDir = baseDir + File.separator + yangFilesDir;
+            codeGenDir = baseDir + File.separator + UtilConstants.YANG_GEN_DIR;
 
             List<String> yangFiles = YangFileScanner.getYangFiles(searchDir);
             Iterator<String> yangFileIterator = yangFiles.iterator();
@@ -107,7 +113,7 @@ public class YangUtilManager extends AbstractMojo {
                 String yangFile = yangFileIterator.next();
                 try {
                     YangNode yangNode = yangUtilsParser.getDataModel(yangFile);
-                    JavaCodeGenerator.generateJavaCode(yangNode);
+                    JavaCodeGenerator.generateJavaCode(yangNode, codeGenDir);
                 } catch (ParserException e) {
                     String logInfo = "Error in file: " + e.getFileName();
                     if (e.getLineNumber() != 0) {

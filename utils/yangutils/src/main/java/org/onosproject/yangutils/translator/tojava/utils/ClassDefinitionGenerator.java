@@ -56,6 +56,9 @@ public final class ClassDefinitionGenerator {
         } else if ((genFileTypes & GeneratedFileType.BUILDER_INTERFACE_MASK) != 0) {
 
             return getBuilderInterfaceDefinition(yangName);
+        } else if ((genFileTypes & GeneratedFileType.GENERATE_TYPEDEF_CLASS) != 0) {
+
+            return getTypeDefClassDefinition(yangName);
         }
         return null;
     }
@@ -94,7 +97,7 @@ public final class ClassDefinitionGenerator {
 
         return UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.CLASS + UtilConstants.SPACE + yangName
                 + UtilConstants.BUILDER + UtilConstants.SPACE + UtilConstants.IMPLEMENTS + UtilConstants.SPACE
-                + yangName + UtilConstants.PERIOD + UtilConstants.BUILDER + UtilConstants.SPACE
+                + yangName + UtilConstants.PERIOD + yangName + UtilConstants.BUILDER + UtilConstants.SPACE
                 + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE;
     }
 
@@ -108,8 +111,22 @@ public final class ClassDefinitionGenerator {
 
         return UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.FINAL + UtilConstants.SPACE
                 + UtilConstants.CLASS + UtilConstants.SPACE + yangName + UtilConstants.IMPL + UtilConstants.SPACE
-                + UtilConstants.IMPLEMENTS + UtilConstants.SPACE + yangName + UtilConstants.OPEN_CURLY_BRACKET
+                + UtilConstants.IMPLEMENTS + UtilConstants.SPACE + yangName + UtilConstants.SPACE
+                + UtilConstants.OPEN_CURLY_BRACKET
                 + UtilConstants.SPACE + UtilConstants.NEW_LINE;
+    }
+
+    /**
+     * Returns typeDef file class definition.
+     *
+     * @param yangName file name
+     * @return definition
+     */
+    private static String getTypeDefClassDefinition(String yangName) {
+
+        return UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.FINAL + UtilConstants.SPACE
+                + UtilConstants.CLASS + UtilConstants.SPACE + yangName + UtilConstants.SPACE
+                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.SPACE + UtilConstants.NEW_LINE;
     }
 
 }

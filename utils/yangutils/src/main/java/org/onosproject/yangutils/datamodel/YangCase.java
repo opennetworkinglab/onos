@@ -337,9 +337,11 @@ public class YangCase extends YangNode
 
     /**
      * Generate the code corresponding to YANG case info.
+     *
+     * @param codeGenDir code generation directory
      */
     @Override
-    public void generateJavaCodeEntry() {
+    public void generateJavaCodeEntry(String codeGenDir) {
         // TODO Auto-generated method stub
 
     }

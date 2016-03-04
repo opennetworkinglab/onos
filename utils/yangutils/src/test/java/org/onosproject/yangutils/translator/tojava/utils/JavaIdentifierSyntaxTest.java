@@ -36,8 +36,8 @@ public final class JavaIdentifierSyntaxTest {
     public static final String DATE2 = "1992-01-25";
     public static final String PARENT_WITH_PERIOD = "test5.test6.test7";
     public static final String CHILD_WITH_PERIOD = "test1.test2.test3";
-    public static final String DATE_WITH_REV1 = "rev000105";
-    public static final String DATE_WITH_REV2 = "rev920125";
+    public static final String DATE_WITH_REV1 = "rev20000105";
+    public static final String DATE_WITH_REV2 = "rev19920125";
     public static final String VERSION_NUMBER = "v1";
     public static final String INVALID_NAME_SPACE1 = "byte:#test2:9test3";
     public static final String INVALID_NAME_SPACE2 = "const:#test2://9test3";

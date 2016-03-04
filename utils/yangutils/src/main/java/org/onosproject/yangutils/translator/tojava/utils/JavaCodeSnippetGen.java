@@ -78,25 +78,37 @@ public final class JavaCodeSnippetGen {
      * @param javaAttributeTypePkg Package of the attribute type
      * @param javaAttributeType java attribute type
      * @param javaAttributeName name of the attribute
+     * @param isList is list attribute
      * @return the textual java code for attribute definition in class
      */
     public static String getJavaAttributeDefination(String javaAttributeTypePkg, String javaAttributeType,
-            String javaAttributeName) {
+            String javaAttributeName, boolean isList) {
 
         String attributeDefination = UtilConstants.PRIVATE
                 + UtilConstants.SPACE;
 
-        if (javaAttributeTypePkg != null) {
+        if (!isList) {
+            if (javaAttributeTypePkg != null) {
+                attributeDefination = attributeDefination
+                        + javaAttributeTypePkg + ".";
+            }
+
             attributeDefination = attributeDefination
-                    + javaAttributeTypePkg + ".";
+                    + javaAttributeType
+                    + UtilConstants.SPACE
+                    + javaAttributeName
+                    + UtilConstants.SEMI_COLAN;
+        } else {
+            attributeDefination = attributeDefination + UtilConstants.LIST + UtilConstants.DIAMOND_OPEN_BRACKET;
+            if (javaAttributeTypePkg != null) {
+                attributeDefination = attributeDefination
+                        + javaAttributeTypePkg + ".";
+            }
+
+            attributeDefination = attributeDefination
+                    + javaAttributeType + UtilConstants.DIAMOND_CLOSE_BRACKET + UtilConstants.SPACE
+                    + javaAttributeName + UtilConstants.SEMI_COLAN;
         }
-
-        attributeDefination = attributeDefination
-                + javaAttributeType
-                + UtilConstants.SPACE
-                + javaAttributeName
-                + UtilConstants.SEMI_COLAN;
-
         return attributeDefination;
     }
 
@@ -124,6 +136,9 @@ public final class JavaCodeSnippetGen {
 
             return UtilConstants.CLOSE_CURLY_BRACKET;
         } else if ((genFileTypes & GeneratedFileType.BUILDER_CLASS_MASK) != 0) {
+
+            return UtilConstants.CLOSE_CURLY_BRACKET;
+        } else if ((genFileTypes & GeneratedFileType.GENERATE_TYPEDEF_CLASS) != 0) {
 
             return UtilConstants.CLOSE_CURLY_BRACKET;
         }

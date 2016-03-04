@@ -213,54 +213,36 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getName()
-     */
     @Override
     public String getName() {
         // TODO Auto-generated method stub
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setName(java.lang.String)
-     */
     @Override
     public void setName(String name) {
         // TODO Auto-generated method stub
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeEntry()
-     */
     @Override
-    public void generateJavaCodeEntry() {
+    public void generateJavaCodeEntry(String codeGenDir) {
         // TODO Auto-generated method stub
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.translator.CodeGenerator#generateJavaCodeExit()
-     */
     @Override
     public void generateJavaCodeExit() {
         // TODO Auto-generated method stub
 
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#getPackage()
-     */
     @Override
     public String getPackage() {
         // TODO Auto-generated method stub
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see org.onosproject.yangutils.datamodel.YangNode#setPackage(java.lang.String)
-     */
     @Override
     public void setPackage(String pkg) {
         // TODO Auto-generated method stub

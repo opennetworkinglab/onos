@@ -16,6 +16,8 @@
 
 package org.onosproject.yangutils.utils.io.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -28,8 +30,6 @@ import org.apache.maven.project.MavenProject;
 import org.onosproject.yangutils.utils.UtilConstants;
 import org.slf4j.Logger;
 import org.sonatype.plexus.build.incremental.BuildContext;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides common utility functionalities for code generation.
@@ -80,7 +80,7 @@ public final class YangIoUtils {
             fileWriter = new FileWriter(packageInfo);
             bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write(CopyrightHeader.getCopyrightHeader());
-            bufferedWriter.write(JavaDocGen.getJavaDoc(JavaDocGen.JavaDocType.PACKAGE_INFO, classInfo));
+            bufferedWriter.write(JavaDocGen.getJavaDoc(JavaDocGen.JavaDocType.PACKAGE_INFO, classInfo, false));
             bufferedWriter.write(UtilConstants.PACKAGE + UtilConstants.SPACE + pack + UtilConstants.SEMI_COLAN);
             bufferedWriter.close();
         } catch (IOException e) {
@@ -125,6 +125,40 @@ public final class YangIoUtils {
         project.addResource(rsc);
         context.refresh(project.getBasedir());
         log.info("Source directory added to compilation root: " + source);
+    }
+
+    /**
+     * Removes extra char from the string.
+     *
+     * @param valueString string to be trimmed
+     * @param removealStirng extra chars
+     * @return new string
+     */
+    public static String trimAtLast(String valueString, String removealStirng) {
+        StringBuilder stringBuilder = new StringBuilder(valueString);
+        int index = valueString.lastIndexOf(removealStirng);
+        stringBuilder.deleteCharAt(index);
+        return stringBuilder.toString();
+    }
+
+    /**
+     * Returns new parted string.
+     *
+     * @param partString string to be parted
+     * @return parted string
+     */
+    public static String partString(String partString) {
+        String[] strArray = partString.split(UtilConstants.COMMA);
+        String newString = "";
+        for (int i = 0; i < strArray.length; i++) {
+            if (i % 4 != 0) {
+                newString = newString + strArray[i] + UtilConstants.COMMA;
+            } else {
+                newString = newString + UtilConstants.NEW_LINE + UtilConstants.TWELVE_SPACE_INDENTATION + strArray[i]
+                        + UtilConstants.COMMA;
+            }
+        }
+        return trimAtLast(newString, UtilConstants.COMMA);
     }
 
 }

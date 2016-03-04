@@ -25,7 +25,11 @@ import org.onosproject.yangutils.translator.tojava.ImportInfo;
 import org.onosproject.yangutils.utils.UtilConstants;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.hamcrest.core.Is.is;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Unit test cases for java code snippet generator.
@@ -38,6 +42,27 @@ public class JavaCodeSnippetGenTest {
     private static final GeneratedMethodTypes METHOD_GEN_TYPE = GeneratedMethodTypes.GETTER;
     private static final String YANG_NAME = "Test";
     private static final String STRING = "String";
+
+    /**
+     * Unit test for private constructor.
+     *
+     * @throws SecurityException if any security violation is observed
+     * @throws NoSuchMethodException if when the method is not found
+     * @throws IllegalArgumentException if there is illegal argument found
+     * @throws InstantiationException if instantiation is provoked for the private constructor
+     * @throws IllegalAccessException if instance is provoked or a method is provoked
+     * @throws InvocationTargetException when an exception occurs by the method or constructor
+     */
+    @Test
+    public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
+            InstantiationException, IllegalAccessException, InvocationTargetException {
+        Class<?>[] classesToConstruct = {JavaCodeSnippetGen.class };
+        for (Class<?> clazz : classesToConstruct) {
+            Constructor<?> constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            assertNotNull(constructor.newInstance());
+        }
+    }
 
     /**
      * Unit test case for import text.
@@ -64,27 +89,6 @@ public class JavaCodeSnippetGenTest {
                 is(classDef.equals(UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.INTERFACE
                         + UtilConstants.SPACE + YANG_NAME + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET
                         + UtilConstants.NEW_LINE)));
-    }
-
-    /**
-     * Unit test case for java attribute info.
-     */
-    @SuppressWarnings("rawtypes")
-    @Test
-    public void testForJavaAttributeInfo() {
-        // TODO: need to update for new framework
-        //        String attributeWithType
-        //        = JavaCodeSnippetGen.getJavaAttributeDefination(FILE_GEN_TYPE, YANG_NAME, getType());
-        //        assertThat(true, is(attributeWithType.equals(UtilConstants.PRIVATE + UtilConstants.SPACE
-        //                + getType().getDataTypeName() + UtilConstants.SPACE + YANG_NAME + UtilConstants.SEMI_COLAN)));
-        //
-        //        String attributeWithoutType
-        //        = JavaCodeSnippetGen.getJavaAttributeDefination(FILE_GEN_TYPE, YANG_NAME, null);
-        //        assertThat(true,
-        //                is(attributeWithoutType.equals(
-        //                        UtilConstants.PRIVATE
-        //        + UtilConstants.SPACE + JavaIdentifierSyntax.getCaptialCase(YANG_NAME)
-        //                                + UtilConstants.SPACE + YANG_NAME + UtilConstants.SEMI_COLAN)));
 
     }
 
@@ -99,29 +103,62 @@ public class JavaCodeSnippetGenTest {
     }
 
     /**
-     * Unit test case for java method info.
+     * Unit test case for java class interface definition close.
      */
     @Test
-    public void testForJavaMethodInfo() {
-        //TODO: update to new framework.
-        //        String method
-        //        = JavaCodeSnippetGen.getJavaMethodInfo(FILE_GEN_TYPE, YANG_NAME, METHOD_GEN_TYPE, getType());
-        //        assertThat(true,
-        //                is(method.equals(UtilConstants.FOUR_SPACE_INDENTATION
-        //                        + JavaIdentifierSyntax.getCaptialCase(getType().getDataTypeName())
-        //        + UtilConstants.SPACE
-        //                        + UtilConstants.GET_METHOD_PREFIX + JavaIdentifierSyntax.getCaptialCase(YANG_NAME)
-        //                        + UtilConstants.OPEN_PARENTHESIS + UtilConstants.CLOSE_PARENTHESIS
-        //                        + UtilConstants.SEMI_COLAN)));
+    public void testForJavaClassDefInterfaceClose() {
+        String interfaceDef = JavaCodeSnippetGen.getJavaClassDefClose(FILE_GEN_TYPE, YANG_NAME);
+        assertThat(true, is(interfaceDef.equals(UtilConstants.CLOSE_CURLY_BRACKET)));
     }
 
     /**
-     * Unit test case for java class definition close.
+     * Unit test case for java class builder class definition close.
      */
     @Test
-    public void testForJavaClassDefClose() {
-        String classDef = JavaCodeSnippetGen.getJavaClassDefClose(FILE_GEN_TYPE, YANG_NAME);
-        assertThat(true, is(classDef.equals(UtilConstants.CLOSE_CURLY_BRACKET)));
+    public void testForJavaClassDefBuilderClassClose() {
+        String builderClassDef = JavaCodeSnippetGen.getJavaClassDefClose(GeneratedFileType.BUILDER_CLASS_MASK,
+                YANG_NAME);
+        assertThat(true, is(builderClassDef.equals(UtilConstants.CLOSE_CURLY_BRACKET)));
+    }
+
+    /**
+     * Unit test case for java class typedef definition close.
+     */
+    @Test
+    public void testForJavaClassDefTypeDefClose() {
+        String typeDef = JavaCodeSnippetGen.getJavaClassDefClose(GeneratedFileType.GENERATE_TYPEDEF_CLASS, YANG_NAME);
+        assertThat(true, is(typeDef.equals(UtilConstants.CLOSE_CURLY_BRACKET)));
+    }
+
+    /**
+     * Unit test case for java attribute info.
+     */
+    @SuppressWarnings("rawtypes")
+    @Test
+    public void testForJavaAttributeInfo() {
+
+        String attributeWithoutTypePkg = JavaCodeSnippetGen.getJavaAttributeDefination(null, "String", YANG_NAME,
+                false);
+        assertThat(true, is(attributeWithoutTypePkg.equals(UtilConstants.PRIVATE + UtilConstants.SPACE + "String"
+                + UtilConstants.SPACE + YANG_NAME + UtilConstants.SEMI_COLAN)));
+        String attributeWithTypePkg = JavaCodeSnippetGen.getJavaAttributeDefination("java.lang", "String", YANG_NAME,
+                false);
+        assertThat(true, is(attributeWithTypePkg.equals(UtilConstants.PRIVATE + UtilConstants.SPACE + "java.lang."
+                + "String" + UtilConstants.SPACE + YANG_NAME + UtilConstants.SEMI_COLAN)));
+        String attributeWithListPkg = JavaCodeSnippetGen.getJavaAttributeDefination("java.lang", "String", YANG_NAME,
+                true);
+        assertThat(true,
+                is(attributeWithListPkg.equals(UtilConstants.PRIVATE + UtilConstants.SPACE + UtilConstants.LIST
+                        + UtilConstants.DIAMOND_OPEN_BRACKET + "java.lang."
+                        + "String" + UtilConstants.DIAMOND_CLOSE_BRACKET + UtilConstants.SPACE + YANG_NAME
+                        + UtilConstants.SEMI_COLAN)));
+        String attributeWithListWithoutPkg = JavaCodeSnippetGen.getJavaAttributeDefination(null, "String", YANG_NAME,
+                true);
+        assertThat(true,
+                is(attributeWithListWithoutPkg.equals(UtilConstants.PRIVATE + UtilConstants.SPACE + UtilConstants.LIST
+                        + UtilConstants.DIAMOND_OPEN_BRACKET + "String"
+                        + UtilConstants.DIAMOND_CLOSE_BRACKET + UtilConstants.SPACE + YANG_NAME
+                        + UtilConstants.SEMI_COLAN)));
     }
 
     /**

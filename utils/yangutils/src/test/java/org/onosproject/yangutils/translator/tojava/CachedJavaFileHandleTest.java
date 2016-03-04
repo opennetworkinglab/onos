@@ -20,6 +20,10 @@ import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.translator.CachedFileHandle;
@@ -33,7 +37,7 @@ import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
  */
 public class CachedJavaFileHandleTest {
 
-    private static final String DIR_PKG = "target/unit/cachedfile/";
+    private static final String DIR_PKG = "target/unit/cachedfile/yangmodel/";
     private static final String PKG = "org.onosproject.unittest";
     private static final String CHILD_PKG = "target/unit/cachedfile/child";
     private static final String YANG_NAME = "Test1";
@@ -42,7 +46,7 @@ public class CachedJavaFileHandleTest {
     /**
      * Unit test case for add attribute info.
      *
-     * @throws IOException when fails to add an attribute.
+     * @throws IOException when fails to add an attribute
      */
     @Test
     public void testForAddAttributeInfo() throws IOException {
@@ -55,39 +59,23 @@ public class CachedJavaFileHandleTest {
     /**
      * Unit test case for close of cached files.
      *
-     * @throws IOException when fails to generate files.
+     * @throws IOException when fails to generate files
      */
     @Test
     public void testForClose() throws IOException {
 
-        // TODO: update to new framework.
-        //        CopyrightHeader.parseCopyrightHeader();
-        //
-        //        AttributeInfo attr = getAttr();
-        //        attr.setListAttr(false);
-        //        CachedFileHandle handle = getFileHandle();
-        //        handle.addAttributeInfo(attr.getAttributeType(), attr.getAttributeName(), attr.isListAttr());
-        //        handle.close();
-        //
-        //        assertThat(true, is(getStubDir().exists()));
-        //        assertThat(true, is(getStubPkgInfo().exists()));
-        //        assertThat(true, is(getStubInterfaceFile().exists()));
-        //        assertThat(true, is(getStubBuilderFile().exists()));
-    }
-
-    /**
-     * Unit test case for setting child's package.
-     *
-     * @throws IOException when fails to add child's package
-     */
-    @Test
-    public void testForSetChildsPackage() throws IOException {
+        CopyrightHeader.parseCopyrightHeader();
 
         AttributeInfo attr = getAttr();
         attr.setListAttr(false);
         CachedFileHandle handle = getFileHandle();
         handle.addAttributeInfo(attr.getAttributeType(), attr.getAttributeName(), attr.isListAttr());
+        handle.close();
 
+        assertThat(true, is(getStubDir().exists()));
+        assertThat(true, is(getStubPkgInfo().exists()));
+        assertThat(true, is(getStubInterfaceFile().exists()));
+        assertThat(true, is(getStubBuilderFile().exists()));
     }
 
     /**
@@ -113,14 +101,14 @@ public class CachedJavaFileHandleTest {
     /**
      * Returns cached java file handle.
      *
-     * @return java file handle.
+     * @return java file handle
      */
     private CachedFileHandle getFileHandle() throws IOException {
         CopyrightHeader.parseCopyrightHeader();
         FileSystemUtil.createPackage(DIR_PKG + File.separator + PKG, YANG_NAME);
         CachedFileHandle fileHandle = FileSystemUtil.createSourceFiles(PKG, YANG_NAME, GEN_TYPE);
-        fileHandle.setRelativeFilePath(DIR_PKG + PKG.replace(".", "/"));
-
+        fileHandle.setRelativeFilePath(PKG.replace(".", "/"));
+        fileHandle.setCodeGenFilePath(DIR_PKG);
         return fileHandle;
     }
 

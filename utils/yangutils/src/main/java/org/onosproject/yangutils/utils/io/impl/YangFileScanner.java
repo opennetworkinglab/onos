@@ -38,7 +38,7 @@ public final class YangFileScanner {
      *
      * @param root specified directory
      * @return list of java files
-     * @throws NullPointerException when no files are there
+     * @throws NullPointerException when no files are there.
      * @throws IOException when files get deleted while performing the
      *             operations
      */
@@ -67,9 +67,8 @@ public final class YangFileScanner {
      * @return list of required files
      * @throws IOException when files get deleted while performing the
      *             operations
-     * @throws NullPointerException null pointer access
      */
-    public static List<String> getFiles(String root, String extension) throws NullPointerException, IOException {
+    public static List<String> getFiles(String root, String extension) throws  NullPointerException, IOException {
         List<String> store = new LinkedList<>();
         Stack<String> stack = new Stack<>();
         stack.push(root);
