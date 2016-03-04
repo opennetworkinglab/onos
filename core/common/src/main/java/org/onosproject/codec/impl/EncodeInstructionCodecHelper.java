@@ -15,6 +15,7 @@
  */
 package org.onosproject.codec.impl;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.OchSignal;
@@ -28,8 +29,6 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * JSON encoding of Instructions.
@@ -247,6 +246,12 @@ public final class EncodeInstructionCodecHelper {
 
             case DROP:
             case NOACTION:
+                break;
+
+            case GROUP:
+                final Instructions.GroupInstruction groupInstruction =
+                        (Instructions.GroupInstruction) instruction;
+                result.put(InstructionCodec.GROUP_ID, groupInstruction.groupId().toString());
                 break;
 
             case L0MODIFICATION:

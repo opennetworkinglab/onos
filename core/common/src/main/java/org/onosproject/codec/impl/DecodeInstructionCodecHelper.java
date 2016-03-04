@@ -22,6 +22,8 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.HexString;
+import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
@@ -261,6 +263,10 @@ public final class DecodeInstructionCodecHelper {
         } else if (type.equals(Instruction.Type.TABLE.name())) {
             return Instructions.transition(nullIsIllegal(json.get(InstructionCodec.TABLE_ID)
                     .asInt(), InstructionCodec.TABLE_ID + InstructionCodec.MISSING_MEMBER_MESSAGE));
+        } else if (type.equals(Instruction.Type.GROUP.name())) {
+            GroupId groupId = new DefaultGroupId(nullIsIllegal(json.get(InstructionCodec.GROUP_ID)
+                    .asInt(), InstructionCodec.GROUP_ID + InstructionCodec.MISSING_MEMBER_MESSAGE));
+            return Instructions.createGroup(groupId);
         } else if (type.equals(Instruction.Type.L0MODIFICATION.name())) {
             return decodeL0();
         } else if (type.equals(Instruction.Type.L1MODIFICATION.name())) {
