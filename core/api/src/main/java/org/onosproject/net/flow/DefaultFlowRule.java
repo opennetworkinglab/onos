@@ -263,7 +263,7 @@ public class DefaultFlowRule implements FlowRule {
                 .add("deviceId", deviceId)
                 .add("priority", priority)
                 .add("selector", selector.criteria())
-                .add("treatment", treatment == null ? "N/A" : treatment.allInstructions())
+                .add("treatment", treatment == null ? "N/A" : treatment)
                 .add("tableId", tableId)
                 .add("created", created)
                 .add("payLoad", payLoad)
