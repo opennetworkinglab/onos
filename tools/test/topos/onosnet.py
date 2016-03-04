@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
 import sys
-from threading import Thread
+import itertools
+from time import sleep
 
 from mininet.net import Mininet
 from mininet.log import setLogLevel
 from mininet.node import RemoteController
-from mininet.log import info, debug
+from mininet.log import info, debug, output
 from mininet.util import quietRun
 from mininet.link import TCLink
 from mininet.cli import CLI
@@ -62,19 +63,16 @@ class ONOSMininet( Mininet ):
             info( '\nWARNING: arping is not found, using ping instead.\n'
                   'For higher performance, install arping: sudo apt-get install iputils-arping\n\n' )
 
-            threads = [ self.threadPing(s, d) for (s, d) in zip( self.hosts, self.hosts[1:] + self.hosts[0:1] ) ]
-            for t in threads:
-                t.join()
-            info ( '\n' )
-
-    def threadPing( self, src, dst ):
-        "Ping from src to dst in a thread"
-        def p():
-            src.cmd( 'ping -w 0.1 -W 0.1 -c1 ' + dst.IP() )
-        t = Thread( target=p )
-        info ( '%s ' % src.name )
-        t.start()
-        return t
+            procs = [ s.popen( 'ping -w 0.1 -W 0.1 -c1 %s > /dev/null; printf "%s "'
+                                % ( d.IP(), s.name ), shell=True )
+                      for (s, d) in zip( self.hosts, self.hosts[1:] + self.hosts[0:1] ) ]
+            for t in procs:
+                out, err = t.communicate()
+                if err:
+                    info ( err )
+                else:
+                    info ( out )
+        info ( '\n' )
 
     def pingloop( self ):
         "Loop forever pinging the full mesh of hosts"
@@ -85,8 +83,64 @@ class ONOSMininet( Mininet ):
         finally:
             setLogLevel( 'info' )
 
+    def bgIperf( self, hosts=[], seconds=10 ):
+        #TODO check if the hosts are strings or objects
+        #    h1 = net.getNodeByName('h1')
+        servers = [ host.popen("iperf -s") for host in hosts ]
+
+        clients = []
+        for pair in itertools.combinations(hosts, 2):
+            info ( '%s <--> %s\n' % ( pair[0].name, pair[1].name ))
+            cmd = "iperf -c %s -t %s" % (pair[1].IP(), seconds)
+            clients.append(pair[0].popen(cmd))
+
+        progress( seconds )
+
+        for c in clients:
+            out, err = c.communicate()
+            if err:
+                info( err )
+            else:
+                debug( out )
+                #TODO parse output and print summary
+
+        for s in servers:
+            s.terminate()
+
+def progress(t):
+    while t > 0:
+        sys.stdout.write( '.' )
+        t -= 1
+        sys.stdout.flush()
+        sleep(1)
+    print
+
 # Initialize ONOSMininet the first time that the class is loaded
 ONOSMininet.setup()
+
+def do_iperf( self, line ):
+    args = line.split()
+    if not args:
+        output( 'Provide a list of hosts.\n' )
+    hosts = []
+    err = False
+    for arg in args:
+        if arg not in self.mn:
+            err = True
+            error( "node '%s' not in network\n" % arg )
+        else:
+            hosts.append( self.mn[ arg ] )
+    if "bgIperf" in dir(self.mn) and not err:
+        self.mn.bgIperf( hosts )
+
+def do_gratuitousArp( self, _line ):
+    if "gratuitousArp" in dir(self.mn):
+        self.mn.gratuitousArp()
+    else:
+        output( 'Gratuitous ARP is not support.\n' )
+
+CLI.do_bgIperf = do_iperf
+CLI.do_gratuitousArp = do_gratuitousArp
 
 def run( topo, controllers=None, link=TCLink, autoSetMacs=True ):
     if not controllers and len( sys.argv ) > 1:
