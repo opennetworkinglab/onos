@@ -4,6 +4,12 @@
     display: inline-block;
 }
 
+#ov-driver-matrix .driver-matrix {
+    /* FIXME: demo only, need a proper scrolling solution */
+    height: 600px;
+    overflow: scroll;
+}
+
 #ov-driver-matrix table {
     margin-left: 20px;
 }
@@ -12,10 +18,10 @@
     border-collapse: collapse;
 }
 #ov-driver-matrix .table-header-rotated td {
-    width: 30px;
+    width: 24px;
 }
 #ov-driver-matrix .table-header-rotated td.xmark {
-    background-color: yellow;
+    background-color: rgba(200, 85, 85, 0.5);
 }
 #ov-driver-matrix .table-header-rotated td {
     text-align: center;
@@ -25,6 +31,7 @@
 #ov-driver-matrix .table-header-rotated th.rotate {
     height: 140px;
     white-space: nowrap;
+    font-size: 10pt;
 }
 #ov-driver-matrix .table-header-rotated th.rotate > div {
     -webkit-transform: translate(25px, 51px) rotate(-45deg);

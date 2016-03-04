@@ -34,7 +34,8 @@ export OCI=$OC1
 ## credentials for logging into ONOS instances
 export ONOS_USER=sdn
 
-export ONOS_APPS="drivers,openflow,proxyarp,fwd"
+## the apps we want activated at startup
+export ONOS_APPS="drivers,openflow,proxyarp,drivermatrix"
 
 ## mininet VM
 export OCN="192.168.56.103"
