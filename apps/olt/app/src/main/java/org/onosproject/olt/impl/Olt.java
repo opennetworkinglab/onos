@@ -30,6 +30,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.AbstractListenerManager;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -97,6 +98,9 @@ public class Olt
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -420,6 +424,9 @@ public class Olt
     }
 
     private void processFilteringObjectives(DeviceId devId, PortNumber port, boolean install) {
+        if (!mastershipService.isLocalMaster(devId)) {
+            return;
+        }
         DefaultFilteringObjective.Builder builder = DefaultFilteringObjective.builder();
 
         FilteringObjective eapol = (install ? builder.permit() : builder.deny())
@@ -550,6 +557,9 @@ public class Olt
     }
 
     private void provisionDefaultFlows(DeviceId deviceId) {
+        if (!mastershipService.isLocalMaster(deviceId)) {
+            return;
+        }
         List<Port> ports = deviceService.getPorts(deviceId);
 
         ports.stream()
