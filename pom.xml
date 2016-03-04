@@ -79,7 +79,7 @@
         <!-- TODO: replace with final release version when it is out -->
         <atomix.version>1.0.0-rc2</atomix.version>
         <copycat.version>0.5.1.onos</copycat.version>
-        <openflowj.version>0.9.2.onos-SNAPSHOT</openflowj.version>
+        <openflowj.version>0.9.2.onos</openflowj.version>
         <onos-maven-plugin.version>1.8</onos-maven-plugin.version>
         <osgi.version>4.3.1</osgi.version>
         <karaf.version>3.0.5</karaf.version>
@@ -100,14 +100,6 @@
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
-
-    <!-- FIXME remove before Falcon release -->
-    <repositories>
-        <repository>
-            <id>snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </repository>
-    </repositories>
 
     <dependencyManagement>
         <dependencies>
