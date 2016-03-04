@@ -384,6 +384,9 @@
 
         tintOn = tint === 'on' ? 1 : 0;
 
+        $log.debug('setUpMap() mapId:', mapId, ', mapScale:', mapScale,
+                   ', tint:', tint);
+
         mapG = zoomLayer.append('g').attr('id', 'topo-map');
         if (mapId === 'usa') {
             shadeFlip = 0;
