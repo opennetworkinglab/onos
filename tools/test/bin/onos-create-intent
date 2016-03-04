@@ -15,8 +15,11 @@ name=$2
 type=$3
 arg1=$4
 arg2=$5
+arg3=$6
+arg4=$7
+arg5=$8
 
 set -x
 
-onos $target "onos:add-${type}-intent" --key $name "${arg1}" "${arg2}"
+onos $target "onos:add-${type}-intent" --key $name "${arg1}" "${arg2}" "${arg3}" "${arg4}" "${arg5}"
 
