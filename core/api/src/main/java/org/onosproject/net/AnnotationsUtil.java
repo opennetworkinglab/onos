@@ -33,7 +33,11 @@ public final class AnnotationsUtil {
         }
 
         for (String key : lhs.keys()) {
-            if (!lhs.value(key).equals(rhs.value(key))) {
+            if (lhs.value(key) == null && rhs.value(key) != null) {
+                return false;
+            }
+
+            if (lhs.value(key) != null && !lhs.value(key).equals(rhs.value(key))) {
                 return false;
             }
         }
