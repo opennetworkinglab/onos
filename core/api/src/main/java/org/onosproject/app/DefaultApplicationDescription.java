@@ -35,6 +35,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
 
     private final String name;
     private final Version version;
+    private final String title;
     private final String description;
     private final String origin;
     private final String category;
@@ -52,6 +53,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
      *
      * @param name         application name
      * @param version      application version
+     * @param title        application title
      * @param description  application description
      * @param origin       origin company
      * @param category     application category
@@ -64,7 +66,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
      * @param features     application features
      * @param requiredApps list of required application names
      */
-    public DefaultApplicationDescription(String name, Version version,
+    public DefaultApplicationDescription(String name, Version version, String title,
                                          String description, String origin, String category,
                                          String url, String readme, byte[] icon,
                                          ApplicationRole role, Set<Permission> permissions,
@@ -72,6 +74,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
                                          List<String> requiredApps) {
         this.name = checkNotNull(name, "Name cannot be null");
         this.version = checkNotNull(version, "Version cannot be null");
+        this.title = checkNotNull(title, "Title cannot be null");
         this.description = checkNotNull(description, "Description cannot be null");
         this.origin = checkNotNull(origin, "Origin cannot be null");
         this.category = checkNotNull(category, "Category cannot be null");
@@ -94,6 +97,11 @@ public class DefaultApplicationDescription implements ApplicationDescription {
     @Override
     public Version version() {
         return version;
+    }
+
+    @Override
+    public String title() {
+        return title;
     }
 
     @Override
@@ -157,6 +165,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
                 .add("name", name)
                 .add("version", version)
                 .add("description", description)
+                .add("title", title)
                 .add("origin", origin)
                 .add("category", category)
                 .add("url", url)

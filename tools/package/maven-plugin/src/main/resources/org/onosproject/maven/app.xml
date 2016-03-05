@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <app name="${onos.app.name}" origin="${onos.app.origin}" version="${project.version}"
-        category="${onos.app.category}" url="${onos.app.url}"
+        title="${onos.app.title}" category="${onos.app.category}" url="${onos.app.url}"
         featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
         features="${project.artifactId}" apps="${onos.app.requires}">
     <description>${project.description}</description>

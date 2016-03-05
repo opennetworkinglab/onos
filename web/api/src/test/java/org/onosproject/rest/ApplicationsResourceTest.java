@@ -84,26 +84,26 @@ public class ApplicationsResourceTest extends ResourceTest {
     private static final Version VER = Version.version(1, 2, "a", null);
 
     private Application app1 =
-            new DefaultApplication(id1, VER,
-                                   "app1", "origin1", "category1", "url1",
+            new DefaultApplication(id1, VER, "title1",
+                                   "desc1", "origin1", "category1", "url1",
                                    "readme1", new byte[0], ApplicationRole.ADMIN,
                                    ImmutableSet.of(), Optional.of(FURL),
                                    ImmutableList.of("My Feature"), ImmutableList.of());
     private Application app2 =
-            new DefaultApplication(id2, VER,
-                                   "app2", "origin2", "category2", "url2",
+            new DefaultApplication(id2, VER, "title2",
+                                   "desc2", "origin2", "category2", "url2",
                                    "readme2", new byte[0], ApplicationRole.ADMIN,
                                    ImmutableSet.of(), Optional.of(FURL),
                                    ImmutableList.of("My Feature"), ImmutableList.of());
     private Application app3 =
-            new DefaultApplication(id3, VER,
-                                   "app3", "origin3", "category3", "url3",
+            new DefaultApplication(id3, VER, "title3",
+                                   "desc3", "origin3", "category3", "url3",
                                    "readme3", new byte[0], ApplicationRole.ADMIN,
                                    ImmutableSet.of(), Optional.of(FURL),
                                    ImmutableList.of("My Feature"), ImmutableList.of());
     private Application app4 =
-            new DefaultApplication(id4, VER,
-                                   "app4", "origin4", "category4", "url4",
+            new DefaultApplication(id4, VER, "title4",
+                                   "desc4", "origin4", "category4", "url4",
                                    "readme4", new byte[0], ApplicationRole.ADMIN,
                                    ImmutableSet.of(), Optional.of(FURL),
                                    ImmutableList.of("My Feature"), ImmutableList.of());

@@ -33,6 +33,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.xosintegration</onos.app.name>
+        <onos.app.title>ONOS XOS Integration App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>ONOS XOS integration application.</onos.app.readme>

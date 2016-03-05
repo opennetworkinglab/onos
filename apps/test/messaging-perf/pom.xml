@@ -33,6 +33,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.messagingperf</onos.app.name>
+        <onos.app.title>Messaging Performance Test App</onos.app.title>
         <onos.app.category>test</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Messaging performance test application.</onos.app.readme>

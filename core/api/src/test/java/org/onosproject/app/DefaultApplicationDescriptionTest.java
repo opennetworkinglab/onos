@@ -38,6 +38,7 @@ public class DefaultApplicationDescriptionTest {
 
     public static final String APP_NAME = "org.foo.app";
     public static final Version VER = Version.version(1, 2, "a", null);
+    public static final String TITLE = "Awesome App";
     public static final String DESC = "Awesome application from Circus, Inc.";
     public static final String ORIGIN = "Circus";
     public static final String CATEGORY = "other";
@@ -55,11 +56,12 @@ public class DefaultApplicationDescriptionTest {
     @Test
     public void basics() {
         ApplicationDescription app =
-                new DefaultApplicationDescription(APP_NAME, VER, DESC, ORIGIN,
+                new DefaultApplicationDescription(APP_NAME, VER, TITLE, DESC, ORIGIN,
                                                   CATEGORY, URL, README, ICON,
                                                   ROLE, PERMS, FURL, FEATURES, APPS);
         assertEquals("incorrect id", APP_NAME, app.name());
         assertEquals("incorrect version", VER, app.version());
+        assertEquals("incorrect title", TITLE, app.title());
         assertEquals("incorrect description", DESC, app.description());
         assertEquals("incorrect origin", ORIGIN, app.origin());
         assertEquals("incorrect category", CATEGORY, app.category());

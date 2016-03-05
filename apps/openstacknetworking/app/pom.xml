@@ -31,6 +31,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.openstacknetworking</onos.app.name>
+        <onos.app.title>Openstack Networking App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Openstack Networking Application.</onos.app.readme>

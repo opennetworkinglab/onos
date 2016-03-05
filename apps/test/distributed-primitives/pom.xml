@@ -34,6 +34,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.distributedprimitives</onos.app.name>
+        <onos.app.title>Distributed Primitives Test App</onos.app.title>
         <onos.app.category>test</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>ONOS app to test distributed primitives.</onos.app.readme>

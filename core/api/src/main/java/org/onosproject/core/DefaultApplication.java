@@ -36,6 +36,7 @@ public class DefaultApplication implements Application {
 
     private final ApplicationId appId;
     private final Version version;
+    private final String title;
     private final String description;
     private final String category;
     private final String url;
@@ -53,6 +54,7 @@ public class DefaultApplication implements Application {
      *
      * @param appId        application identifier
      * @param version      application version
+     * @param title        application title
      * @param description  application description
      * @param origin       origin company
      * @param category     application category
@@ -65,7 +67,7 @@ public class DefaultApplication implements Application {
      * @param features     application features
      * @param requiredApps list of required application names
      */
-    public DefaultApplication(ApplicationId appId, Version version,
+    public DefaultApplication(ApplicationId appId, Version version, String title,
                               String description, String origin, String category,
                               String url, String readme, byte[] icon,
                               ApplicationRole role, Set<Permission> permissions,
@@ -73,6 +75,7 @@ public class DefaultApplication implements Application {
                               List<String> requiredApps) {
         this.appId = checkNotNull(appId, "ID cannot be null");
         this.version = checkNotNull(version, "Version cannot be null");
+        this.title = checkNotNull(title, "Title cannot be null");
         this.description = checkNotNull(description, "Description cannot be null");
         this.origin = checkNotNull(origin, "Origin cannot be null");
         this.category = checkNotNull(category, "Category cannot be null");
@@ -101,6 +104,11 @@ public class DefaultApplication implements Application {
     @Override
     public Version version() {
         return version;
+    }
+
+    @Override
+    public String title() {
+        return title;
     }
 
     @Override
@@ -160,7 +168,7 @@ public class DefaultApplication implements Application {
 
     @Override
     public int hashCode() {
-        return Objects.hash(appId, version, description, origin, category, url,
+        return Objects.hash(appId, version, title, description, origin, category, url,
                             readme, role, permissions, featuresRepo, features, requiredApps);
     }
 
@@ -173,8 +181,12 @@ public class DefaultApplication implements Application {
             return false;
         }
         final DefaultApplication other = (DefaultApplication) obj;
+        // TODO: review -- do ALL the fields need to be included?
+        // It is debatable whether fields like description, url, and readme,
+        //   need to be included in the notion of equivalence.
         return Objects.equals(this.appId, other.appId) &&
                 Objects.equals(this.version, other.version) &&
+                Objects.equals(this.title, other.title) &&
                 Objects.equals(this.description, other.description) &&
                 Objects.equals(this.origin, other.origin) &&
                 Objects.equals(this.category, other.category) &&
@@ -192,6 +204,7 @@ public class DefaultApplication implements Application {
         return toStringHelper(this)
                 .add("appId", appId)
                 .add("version", version)
+                .add("title", title)
                 .add("description", description)
                 .add("origin", origin)
                 .add("category", category)

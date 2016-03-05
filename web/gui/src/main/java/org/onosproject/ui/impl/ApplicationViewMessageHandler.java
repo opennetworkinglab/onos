@@ -54,6 +54,7 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
     private static final String VERSION = "version";
     private static final String CATEGORY = "category";
     private static final String ORIGIN = "origin";
+    private static final String TITLE = "title";
     private static final String DESC = "desc";
     private static final String URL = "url";
     private static final String README = "readme";
@@ -66,7 +67,7 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
     private static final String ICON_ID_INACTIVE = "appInactive";
 
     private static final String[] COL_IDS = {
-            STATE, STATE_IID, ID, ICON, VERSION, CATEGORY, ORIGIN, DESC,
+            STATE, STATE_IID, ID, ICON, VERSION, CATEGORY, ORIGIN, TITLE, DESC,
             URL, README, ROLE, REQUIRED_APPS, FEATURES, PERMISSIONS
     };
 
@@ -118,6 +119,7 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
                 .cell(VERSION, app.version())
                 .cell(CATEGORY, app.category())
                 .cell(ORIGIN, app.origin())
+                .cell(TITLE, app.title())
                 .cell(DESC, app.description())
                 .cell(URL, app.url());
         }
@@ -168,6 +170,7 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
             data.put(VERSION, app.version().toString());
             data.put(ROLE, app.role().toString());
             data.put(CATEGORY, app.category());
+            data.put(TITLE, app.title());
             data.put(ORIGIN, app.origin());
             data.put(README, app.readme());
             data.put(DESC, app.description());

@@ -51,6 +51,13 @@ public interface ApplicationDescription {
     String origin();
 
     /**
+     * Returns title of the application.
+     *
+     * @return application title text
+     */
+    String title();
+
+    /**
      * Returns description of the application.
      *
      * @return application description text

@@ -32,6 +32,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.segmentrouting</onos.app.name>
+        <onos.app.title>Segment Routing App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Segment routing application.</onos.app.readme>

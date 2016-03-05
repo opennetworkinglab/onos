@@ -33,9 +33,11 @@
 
     <properties>
         <onos.app.name>org.onosproject.mobility</onos.app.name>
+        <onos.app.title>Host Mobility App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>Host mobility application.
+        <onos.app.readme>
+            Host mobility application.
         </onos.app.readme>
     </properties>
 

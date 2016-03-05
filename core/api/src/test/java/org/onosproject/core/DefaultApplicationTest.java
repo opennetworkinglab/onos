@@ -43,7 +43,7 @@ public class DefaultApplicationTest {
 
     @Test
     public void basics() {
-        Application app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
                                                  CATEGORY, URL, README, ICON, ROLE,
                                                  PERMS, Optional.of(FURL), FEATURES, APPS);
         assertEquals("incorrect id", APP_ID, app.id());
@@ -64,16 +64,16 @@ public class DefaultApplicationTest {
 
     @Test
     public void testEquality() {
-        Application a1 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application a1 = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
                                                 CATEGORY, URL, README, ICON, ROLE,
                                                 PERMS, Optional.of(FURL), FEATURES, APPS);
-        Application a2 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application a2 = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
                                                 CATEGORY, URL, README, ICON, ROLE,
                                                 PERMS, Optional.of(FURL), FEATURES, APPS);
-        Application a3 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application a3 = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
                                                 CATEGORY, URL, README, ICON, ROLE,
                                                 PERMS, Optional.empty(), FEATURES, APPS);
-        Application a4 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN + "asd",
+        Application a4 = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN + "asd",
                                                 CATEGORY, URL, README, ICON, ROLE,
                                                 PERMS, Optional.of(FURL), FEATURES, APPS);
         new EqualsTester().addEqualityGroup(a1, a2)
@@ -87,7 +87,7 @@ public class DefaultApplicationTest {
     public void immutableIcon() {
         byte[] iconSourceData = ICON_ORIG.clone();
 
-        Application app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
                 CATEGORY, URL, README, iconSourceData, ROLE,
                 PERMS, Optional.of(FURL), FEATURES, APPS);
 
@@ -128,7 +128,7 @@ public class DefaultApplicationTest {
 //        Set<Permission> p = PERMS_ORIG;
         Set<Permission> p = PERMS_UNSAFE;
 
-        Application app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
                 CATEGORY, URL, README, ICON, ROLE,
                 p, Optional.of(FURL), FEATURES, APPS);
 
@@ -170,7 +170,7 @@ public class DefaultApplicationTest {
 //        List<String> f = FEATURES_ORIG;
         List<String> f = FEATURES_UNSAFE;
 
-        Application app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
                 CATEGORY, URL, README, ICON, ROLE,
                 PERMS, Optional.of(FURL), f, APPS);
 
@@ -190,7 +190,7 @@ public class DefaultApplicationTest {
 //        List<String> ra = REQ_APPS_ORIG;
         List<String> ra = REQ_APPS_UNSAFE;
 
-        Application app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
                 CATEGORY, URL, README, ICON, ROLE,
                 PERMS, Optional.of(FURL), FEATURES, ra);
 
@@ -206,7 +206,7 @@ public class DefaultApplicationTest {
 
     @Test
     public void nullIcon() {
-        Application app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
                 CATEGORY, URL, README, null, ROLE,
                 PERMS, Optional.of(FURL), FEATURES, APPS);
         byte[] icon = app.icon();

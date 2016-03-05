@@ -32,6 +32,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.cordfabric</onos.app.name>
+        <onos.app.title>CORD Fabric App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Simple fabric application for CORD.</onos.app.readme>

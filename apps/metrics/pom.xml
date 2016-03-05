@@ -33,9 +33,11 @@
 
     <properties>
         <onos.app.name>org.onosproject.metrics</onos.app.name>
+        <onos.app.title>Performance Metrics App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>Performance metrics collection application.
+        <onos.app.readme>
+            Performance metrics collection application.
         </onos.app.readme>
     </properties>
 

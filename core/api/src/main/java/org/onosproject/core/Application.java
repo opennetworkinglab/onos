@@ -42,6 +42,15 @@ public interface Application {
     Version version();
 
     /**
+     * Returns the title of the application.
+     * This should be a short, human-readable string, as opposed
+     * to the unique identifier returned by {@link #id()}.
+     *
+     * @return application title text
+     */
+    String title();
+
+    /**
      * Returns description of the application.
      *
      * @return application description text

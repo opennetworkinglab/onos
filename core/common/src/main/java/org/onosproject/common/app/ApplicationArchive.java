@@ -88,6 +88,7 @@ public class ApplicationArchive
 
     private static final String CATEGORY = "[@category]";
     private static final String URL = "[@url]";
+    private static final String TITLE = "[@title]";
 
     private static final String ROLE = "security.role";
     private static final String APP_PERMISSIONS = "security.permissions.app-perm";
@@ -294,6 +295,11 @@ public class ApplicationArchive
         String name = cfg.getString(NAME);
         Version version = Version.version(cfg.getString(VERSION));
         String origin = cfg.getString(ORIGIN);
+
+        String title = cfg.getString(TITLE);
+        // FIXME: title should be set as attribute to APP, but fallback for now...
+        title = title == null ? name : title;
+
         String category = cfg.getString(CATEGORY, UTILITY);
         String url = cfg.getString(URL);
         byte[] icon = getApplicationIcon(name);
@@ -313,7 +319,7 @@ public class ApplicationArchive
         // put short description to description field
         String desc = compactDescription(readme);
 
-        return new DefaultApplicationDescription(name, version, desc, origin,
+        return new DefaultApplicationDescription(name, version, title, desc, origin,
                                                  category, url, readme, icon,
                                                  role, perms, featuresRepo,
                                                  features, requiredApps);

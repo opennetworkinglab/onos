@@ -33,6 +33,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.mlb</onos.app.name>
+        <onos.app.title>Mastership Load Balancer App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Application that balances mastership among nodes.

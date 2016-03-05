@@ -40,6 +40,7 @@
     <properties>
         <onos.app.name>org.onosproject.acl</onos.app.name>
         <onos.app.origin>DLUT</onos.app.origin>
+        <onos.app.title>ONOS ACL App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>ONOS ACL application.</onos.app.readme>

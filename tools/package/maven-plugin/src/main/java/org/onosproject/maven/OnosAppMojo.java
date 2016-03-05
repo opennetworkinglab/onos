@@ -74,6 +74,7 @@ public class OnosAppMojo extends AbstractMojo {
 
     private static final String ONOS_APP_CATEGORY = "onos.app.category";
     private static final String ONOS_APP_URL = "onos.app.url";
+    private static final String ONOS_APP_TITLE = "onos.app.title";
     private static final String ONOS_APP_README = "onos.app.readme";
 
     private static final String JAR = "jar";
@@ -99,6 +100,7 @@ public class OnosAppMojo extends AbstractMojo {
     private String requiredApps;
     private String category;
     private String url;
+    private String title;
     private String readme;
     private String version = DEFAULT_VERSION;
     private String featuresRepo = DEFAULT_FEATURES_REPO;
@@ -188,6 +190,10 @@ public class OnosAppMojo extends AbstractMojo {
 
         url = (String) project.getProperties().get(ONOS_APP_URL);
         url = url != null ? url : DEFAULT_URL;
+
+        // if title does not exist, fall back to the name
+        title = (String) project.getProperties().get(ONOS_APP_TITLE);
+        title = title != null ? title : name;
 
         // if readme does not exist, we simply fallback to use description
         readme = (String) project.getProperties().get(ONOS_APP_README);
@@ -387,6 +393,7 @@ public class OnosAppMojo extends AbstractMojo {
                         .replaceAll("\\$\\{onos.app.origin\\}", origin)
                         .replaceAll("\\$\\{onos.app.requires\\}", requiredApps)
                         .replaceAll("\\$\\{onos.app.category\\}", category)
+                        .replaceAll("\\$\\{onos.app.title\\}", title)
                         .replaceAll("\\$\\{onos.app.url\\}", url)
                         .replaceAll("\\$\\{project.groupId\\}", projectGroupId)
                         .replaceAll("\\$\\{project.artifactId\\}", projectArtifactId)

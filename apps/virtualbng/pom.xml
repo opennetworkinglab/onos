@@ -33,6 +33,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.virtualbng</onos.app.name>
+        <onos.app.title>Virtual Broadband Gateway App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Virtual broadband gateway application.</onos.app.readme>

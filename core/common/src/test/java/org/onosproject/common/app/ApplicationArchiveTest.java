@@ -65,6 +65,7 @@ public class ApplicationArchiveTest {
         assertEquals("incorrect url", URL, app.url());
         assertEquals("incorrect readme", README, app.readme());
 
+        assertEquals("incorrect title", TITLE, app.title());
         assertEquals("incorrect description", DESC, app.description());
         assertEquals("incorrect features URI", FURL, app.featuresRepo().get());
         assertEquals("incorrect permissions", PERMS, app.permissions());

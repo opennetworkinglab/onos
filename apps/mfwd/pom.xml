@@ -33,9 +33,11 @@
 
     <properties>
         <onos.app.name>org.onosproject.mfwd</onos.app.name>
+        <onos.app.title>Multicast Forwarding App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>Multicast forwarding application.
+        <onos.app.readme>
+            Multicast forwarding application.
         </onos.app.readme>
     </properties>
 

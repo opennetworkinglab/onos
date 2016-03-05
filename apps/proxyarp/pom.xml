@@ -33,6 +33,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.proxyarp</onos.app.name>
+        <onos.app.title>Proxy ARP/NDP App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Proxy ARP/NDP application.</onos.app.readme>

@@ -31,6 +31,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.openflow</onos.app.name>
+        <onos.app.title>OpenFlow Southbound Meta App</onos.app.title>
         <onos.app.requires>
             org.onosproject.openflow-base,
             org.onosproject.hostprovider,

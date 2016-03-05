@@ -34,6 +34,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.election</onos.app.name>
+        <onos.app.title>Master Election Test App</onos.app.title>
         <onos.app.category>test</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Master election test application.</onos.app.readme>

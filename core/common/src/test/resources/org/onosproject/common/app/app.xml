@@ -13,8 +13,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.foo.app" origin="Circus" version="1.2.a" category="other"
-     url="http://www.onosproject.org" featuresRepo="mvn:org.foo-features/1.2a/xml/features"
+<app name="org.foo.app" origin="Circus" version="1.2.a"
+     title="Awesome App" category="other"
+     url="http://www.onosproject.org"
+     featuresRepo="mvn:org.foo-features/1.2a/xml/features"
      features="foo,bar">
     <description>Awesome application from Circus, Inc.</description>
     <security>
