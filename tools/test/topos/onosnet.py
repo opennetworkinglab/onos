@@ -2,21 +2,22 @@
 
 import sys
 import itertools
+import signal
 from time import sleep
+from threading import Thread
 
 from mininet.net import Mininet
 from mininet.log import setLogLevel
-from mininet.node import RemoteController
-from mininet.log import info, debug, output
-from mininet.util import quietRun
+from mininet.node import RemoteController, Node
+from mininet.log import info, debug, output, error
 from mininet.link import TCLink
 from mininet.cli import CLI
 
-class ONOSMininet( Mininet ):
+# This is the program that each host will call
+import gratuitousArp
+ARP_PATH = gratuitousArp.__file__.replace('.pyc', '.py')
 
-    @classmethod
-    def setup( cls ):
-        cls.useArping = True if quietRun( 'which arping' ) else False
+class ONOSMininet( Mininet ):
 
     def __init__( self, controllers=[], gratuitousArp=True, build=True, *args, **kwargs ):
         """Create Mininet object for ONOS.
@@ -32,7 +33,6 @@ class ONOSMininet( Mininet ):
         Mininet.__init__(self, *args, **kwargs )
 
         self.gratArp = gratuitousArp
-        self.useArping = ONOSMininet.useArping
 
         info ( '*** Adding controllers\n' )
         ctrl_count = 0
@@ -47,31 +47,30 @@ class ONOSMininet( Mininet ):
     def start( self ):
         Mininet.start( self )
         if self.gratArp:
-            self.waitConnected()
+            self.waitConnected( timeout=5 )
             info ( '*** Sending a gratuitious ARP from each host\n' )
             self.gratuitousArp()
 
-
-    def gratuitousArp( self ):
-        "Send an ARP from each host to aid controller's host discovery; fallback to ping if necessary"
-        if self.useArping:
-            for host in self.hosts:
-                info( '%s ' % host.name )
-                debug( host.cmd( 'arping -U -c 1 ' + host.IP() ) )
-            info ( '\n' )
-        else:
-            info( '\nWARNING: arping is not found, using ping instead.\n'
-                  'For higher performance, install arping: sudo apt-get install iputils-arping\n\n' )
-
-            procs = [ s.popen( 'ping -w 0.1 -W 0.1 -c1 %s > /dev/null; printf "%s "'
-                                % ( d.IP(), s.name ), shell=True )
-                      for (s, d) in zip( self.hosts, self.hosts[1:] + self.hosts[0:1] ) ]
-            for t in procs:
-                out, err = t.communicate()
-                if err:
-                    info ( err )
+    def verifyHosts( self, hosts ):
+        for i in range( len( hosts ) ):
+            if isinstance( hosts[i], str):
+                if hosts[i] in self:
+                    hosts[i] = self[ hosts[i] ]
                 else:
-                    info ( out )
+                    info( '*** ERROR: %s is not a host\n' % hosts[i] )
+                    del hosts[i]
+            elif not isinstance( hosts[i], Node):
+                del hosts[i]
+
+    def gratuitousArp( self, hosts=[] ):
+        "Send an ARP from each host to aid controller's host discovery; fallback to ping if necessary"
+        if not hosts:
+            hosts = self.hosts
+        self.verifyHosts( hosts )
+
+        for host in hosts:
+            info( '%s ' % host.name )
+            info( host.cmd( ARP_PATH ) )
         info ( '\n' )
 
     def pingloop( self ):
@@ -84,28 +83,51 @@ class ONOSMininet( Mininet ):
             setLogLevel( 'info' )
 
     def bgIperf( self, hosts=[], seconds=10 ):
-        #TODO check if the hosts are strings or objects
-        #    h1 = net.getNodeByName('h1')
+        self.verifyHosts( hosts )
         servers = [ host.popen("iperf -s") for host in hosts ]
 
         clients = []
-        for pair in itertools.combinations(hosts, 2):
-            info ( '%s <--> %s\n' % ( pair[0].name, pair[1].name ))
-            cmd = "iperf -c %s -t %s" % (pair[1].IP(), seconds)
-            clients.append(pair[0].popen(cmd))
+        for s, d in itertools.combinations(hosts, 2):
+            info ( '%s <--> %s\n' % ( s.name, d.name ))
+            cmd = 'iperf -c %s -t %s -y csv' % (d.IP(), seconds)
+            p = s.popen(cmd)
+            p.s = s.name
+            p.d = d.name
+            clients.append(p)
 
-        progress( seconds )
+        def handler (_signum, _frame):
+            raise BackgroundException()
+        oldSignal = signal.getsignal(signal.SIGTSTP)
+        signal.signal(signal.SIGTSTP, handler)
 
-        for c in clients:
-            out, err = c.communicate()
-            if err:
-                info( err )
-            else:
-                debug( out )
-                #TODO parse output and print summary
+        def finish( verbose=True ):
+            for c in clients:
+                out, err = c.communicate()
+                if verbose:
+                    if err:
+                        info( err )
+                    else:
+                        bw = out.split( ',' )[8]
+                        info( '%s <--> %s: %s\n' % ( c.s, c.d, formatBw(bw) ) )
+            for s in servers:
+                s.terminate()
 
-        for s in servers:
-            s.terminate()
+        try:
+            info ( 'Press ^Z to continue in background or ^C to abort\n')
+            progress( seconds )
+            finish()
+        except KeyboardInterrupt:
+            for c in clients:
+                c.terminate()
+            for s in servers:
+                s.terminate()
+        except BackgroundException:
+            info( '\n*** Continuing in background...\n' )
+            t = Thread( target=finish, args=[ False ] )
+            t.start()
+        finally:
+            #Disable custom background signal
+            signal.signal(signal.SIGTSTP, oldSignal)
 
 def progress(t):
     while t > 0:
@@ -115,13 +137,39 @@ def progress(t):
         sleep(1)
     print
 
-# Initialize ONOSMininet the first time that the class is loaded
-ONOSMininet.setup()
+def formatBw( bw ):
+    bw = float(bw)
+    if bw > 1000:
+        bw /= 1000
+        if bw > 1000:
+            bw /= 1000
+            if bw > 1000:
+                bw /= 1000
+                return '%.2f Gbps' % bw
+            return '%.2f Mbps' % bw
+        return '%.2f Kbps' % bw
+    return '%.2f bps' % bw
 
-def do_iperf( self, line ):
+class BackgroundException( Exception ):
+    pass
+
+def do_bgIperf( self, line ):
     args = line.split()
     if not args:
         output( 'Provide a list of hosts.\n' )
+
+    #Try to parse the '-t' argument as the number of seconds
+    seconds = 10
+    for i, arg in enumerate(args):
+        if arg == '-t':
+            if i + 1 < len(args):
+                try:
+                    seconds = int(args[i + 1])
+                except ValueError:
+                    error( 'Could not parse number of seconds: %s', args[i+1] )
+                del(args[i+1])
+            del args[i]
+
     hosts = []
     err = False
     for arg in args:
@@ -131,15 +179,16 @@ def do_iperf( self, line ):
         else:
             hosts.append( self.mn[ arg ] )
     if "bgIperf" in dir(self.mn) and not err:
-        self.mn.bgIperf( hosts )
+        self.mn.bgIperf( hosts, seconds=seconds )
 
-def do_gratuitousArp( self, _line ):
-    if "gratuitousArp" in dir(self.mn):
-        self.mn.gratuitousArp()
+def do_gratuitousArp( self, line ):
+    args = line.split()
+    if "gratuitousArp" in dir( self.mn ):
+        self.mn.gratuitousArp( args )
     else:
-        output( 'Gratuitous ARP is not support.\n' )
+        output( 'Gratuitous ARP is not supported.\n' )
 
-CLI.do_bgIperf = do_iperf
+CLI.do_bgIperf = do_bgIperf
 CLI.do_gratuitousArp = do_gratuitousArp
 
 def run( topo, controllers=None, link=TCLink, autoSetMacs=True ):
