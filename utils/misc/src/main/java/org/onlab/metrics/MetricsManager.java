@@ -102,6 +102,16 @@ public class MetricsManager implements MetricsService {
     }
 
     /**
+     * Fetches existing metric registry.
+     *
+     * @return metric registry
+     */
+    @Override
+    public MetricRegistry getMetricRegistry() {
+        return metricsRegistry;
+    }
+
+    /**
      * Generates a name for a Metric from its component and feature.
      *
      * @param component component the metric is defined in

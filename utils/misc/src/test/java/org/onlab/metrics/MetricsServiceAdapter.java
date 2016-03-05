@@ -19,6 +19,7 @@ package org.onlab.metrics;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
@@ -36,6 +37,11 @@ public class MetricsServiceAdapter implements MetricsService {
     public MetricsComponent registerComponent(String name) {
         MetricsComponent metricsComponent = new MetricsComponent(name);
         return metricsComponent;
+    }
+
+    @Override
+    public MetricRegistry getMetricRegistry() {
+        return null;
     }
 
     @Override
