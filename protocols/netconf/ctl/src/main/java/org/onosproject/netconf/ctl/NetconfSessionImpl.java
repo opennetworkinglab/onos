@@ -53,7 +53,7 @@ public class NetconfSessionImpl implements NetconfSession {
     private static final int CONNECTION_TIMEOUT = 0;
     private static final String ENDPATTERN = "]]>]]>";
     private static final String MESSAGE_ID_STRING = "message-id";
-    private static final String HELLO = "hello";
+    private static final String HELLO = "<hello";
     private static final String NEW_LINE = "\n";
     private static final int FUTURE_REPLY_TIMEOUT = 5000;
     private static final String ERROR = "ERROR ";
@@ -131,7 +131,7 @@ public class NetconfSessionImpl implements NetconfSession {
             this.addDeviceOutputListener(new NetconfDeviceOutputEventListenerImpl(deviceInfo));
             sendHello();
         } catch (IOException e) {
-            log.error("Failed to create ch.ethz.ssh2.Session session:", e);
+            log.error("Failed to create ch.ethz.ssh2.Session session." + e.getMessage());
             throw new NetconfException("Failed to create ch.ethz.ssh2.Session session with device" +
                                                deviceInfo, e);
         }

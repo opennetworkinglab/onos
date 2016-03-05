@@ -44,7 +44,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
 
     private static final Logger log = LoggerFactory
             .getLogger(NetconfStreamThread.class);
-    private static final String HELLO = "hello";
+    private static final String HELLO = "<hello";
     private static final String END_PATTERN = "]]>]]>";
     private static final String RPC_REPLY = "rpc-reply";
     private static final String RPC_ERROR = "rpc-error";
@@ -87,23 +87,23 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
             @Override
             NetconfMessageState evaluateChar(char c) {
                 if (c == ']') {
-                    return FIRST_BRAKET;
+                    return FIRST_BRACKET;
                 } else {
                     return this;
                 }
             }
         },
-        FIRST_BRAKET {
+        FIRST_BRACKET {
             @Override
             NetconfMessageState evaluateChar(char c) {
                 if (c == ']') {
-                    return SECOND_BRAKET;
+                    return SECOND_BRACKET;
                 } else {
                     return NO_MATCHING_PATTERN;
                 }
             }
         },
-        SECOND_BRAKET {
+        SECOND_BRACKET {
             @Override
             NetconfMessageState evaluateChar(char c) {
                 if (c == '>') {
@@ -117,13 +117,13 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
             @Override
             NetconfMessageState evaluateChar(char c) {
                 if (c == ']') {
-                    return THIRD_BRAKET;
+                    return THIRD_BRACKET;
                 } else {
                     return NO_MATCHING_PATTERN;
                 }
             }
         },
-        THIRD_BRAKET {
+        THIRD_BRACKET {
             @Override
             NetconfMessageState evaluateChar(char c) {
                 if (c == ']') {
@@ -163,6 +163,12 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                     if (cInt == -1) {
                         log.debug("Netconf device {}  sent error char in session," +
                                           " will need to be reopend", netconfDeviceInfo);
+                        NetconfDeviceOutputEvent event = new NetconfDeviceOutputEvent(
+                                NetconfDeviceOutputEvent.Type.DEVICE_UNREGISTERED,
+                                null, null, Optional.of(-1), netconfDeviceInfo);
+                        netconfDeviceEventListeners.forEach(
+                                listener -> listener.event(event));
+                        socketClosed = true;
                     }
                     char c = (char) cInt;
                     state = state.evaluateChar(c);
@@ -210,19 +216,18 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
     }
 
     private static Optional<Integer> getMsgId(String reply) {
-        if (reply.contains(HELLO)) {
+        if (reply.contains(MESSAGE_ID)) {
+            String[] outer = reply.split(MESSAGE_ID);
+            Preconditions.checkArgument(outer.length != 1,
+                                        "Error in retrieving the message id");
+            String messageID = outer[1].substring(0, 3).replace("\"", "");
+            Preconditions.checkNotNull(Integer.parseInt(messageID),
+                                       "Error in retrieving the message id");
+            return Optional.of(Integer.parseInt(messageID));
+        } else if (reply.contains(HELLO)) {
             return Optional.of(0);
         }
-        if (reply.contains(RPC_ERROR) && !reply.contains(MESSAGE_ID)) {
-            return Optional.empty();
-        }
-        String[] outer = reply.split(MESSAGE_ID);
-        Preconditions.checkArgument(outer.length != 1,
-                                    "Error in retrieving the message id");
-        String messageID = outer[1].substring(0, 3).replace("\"", "");
-        Preconditions.checkNotNull(Integer.parseInt(messageID),
-                                   "Error in retrieving the message id");
-        return Optional.of(Integer.parseInt(messageID));
+        return Optional.empty();
     }
 
     public void addDeviceEventListener(NetconfDeviceOutputEventListener listener) {
