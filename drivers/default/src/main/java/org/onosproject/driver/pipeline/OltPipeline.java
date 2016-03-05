@@ -383,7 +383,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             return;
         }
 
-        Instruction output = fetchOutput(fwd, "downstream");
+        Instructions.OutputInstruction output = (Instructions.OutputInstruction) fetchOutput(fwd, "downstream");
 
         if (output == null) {
             return;
@@ -396,6 +396,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Criterion outerVlan = selector.getCriterion(Criterion.Type.VLAN_VID);
         Criterion innerVlan = selector.getCriterion(Criterion.Type.INNER_VLAN_VID);
         Criterion inport = selector.getCriterion(Criterion.Type.IN_PORT);
+        Criterion bullshit = Criteria.matchMetadata(output.port().toLong());
 
         if (outerVlan == null || innerVlan == null || inport == null) {
             log.error("Forwarding objective is underspecified: {}", fwd);
@@ -410,7 +411,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .forDevice(deviceId)
                 .makePermanent()
                 .withPriority(fwd.priority())
-                .withSelector(buildSelector(inport, outerVlan))
+                .withSelector(buildSelector(inport, outerVlan, bullshit))
                 .withTreatment(buildTreatment(popAndRewrite.getLeft(),
                                               Instructions.transition(QQ_TABLE)));
 
