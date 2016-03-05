@@ -631,6 +631,11 @@ public class CordVtnNodeManager {
             return;
         }
 
+        RemoteIpCommandUtil.getCurrentIps(session, DEFAULT_BRIDGE).stream()
+                .filter(ip -> !ip.equals(node.localMgmtIp().ip()))
+                .filter(ip -> !ip.equals(node.dpIp().ip()))
+                .forEach(ip -> RemoteIpCommandUtil.deleteIp(session, ip, DEFAULT_BRIDGE));
+
         boolean result = RemoteIpCommandUtil.flushIp(session, node.dpIntf()) &&
                 RemoteIpCommandUtil.setInterfaceUp(session, node.dpIntf()) &&
                 RemoteIpCommandUtil.addIp(session, node.dpIp(), DEFAULT_BRIDGE) &&
