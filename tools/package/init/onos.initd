@@ -19,13 +19,22 @@ start () {
     mkdir -p $ONOS_HOME/var 2>/dev/null && chown $ONOS_USER.$ONOS_GROUP $ONOS_HOME/var
     mkdir -p $ONOS_HOME/config 2>/dev/null && chown $ONOS_USER.$ONOS_GROUP $ONOS_HOME/config
     [ ! -h $ONOS_HOME/log ]  && ln -s $ONOS_HOME/karaf/data/log $ONOS_HOME/log || :
-    start-stop-daemon --signal INT --start --chuid $ONOS_USER \
-        --exec $ONOS_HOME/bin/onos-service --pidfile $ONOS_PID \
-        -- $ONOS_OPTS >$ONOS_HOME/var/stdout.log 2>$ONOS_HOME/var/stderr.log
+    # Start ONOS if it's not already running
+    if ! status > /dev/null; then
+        start-stop-daemon --signal INT --start --chuid $ONOS_USER \
+            --background --exec $ONOS_HOME/bin/onos-service \
+            -- $ONOS_OPTS >$ONOS_HOME/var/stdout.log 2>$ONOS_HOME/var/stderr.log
+    else
+        echo "ONOS/karaf is already running"
+    fi
 }
 
 stop () {
-    $ONOS_HOME/karaf/bin/stop
+    if status> /dev/null; then
+        $ONOS_HOME/karaf/bin/stop
+    else
+        echo "ONOS/karaf is not running"
+    fi
 }
 
 restart () {
@@ -34,6 +43,7 @@ restart () {
 }
 
 status () {
+    # karaf status returns 0 if running, 1 if not
     $ONOS_HOME/karaf/bin/status
 }
 

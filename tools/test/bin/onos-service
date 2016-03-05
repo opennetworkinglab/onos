@@ -32,7 +32,7 @@ if [ "${1}" = "-h" -o "${1}" = "--help" ]; then
     exit 0
 fi
 
-case $2 in 
+case $2 in
     start|stop|restart|status)
         # Select the target
         if [ "${1}" = "--cell" ]; then
@@ -43,7 +43,7 @@ case $2 in
 
         # Execute the remote commands
         for node in $nodes; do
-            ssh $ONOS_USER@${node} "sudo /etc/init.d/onos ${2:-status}"
+            ssh $ONOS_USER@${node} "sudo service onos ${2:-status}"
         done
     ;;
     *)

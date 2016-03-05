@@ -48,4 +48,4 @@ for app in ${SYS_APPS//,/ } ${ONOS_APPS//,/ }; do
   fi
 done
 
-exec ${ONOS_HOME}/apache-karaf-$KARAF_VERSION/bin/start $KARAF_ARGS
+exec ${ONOS_HOME}/apache-karaf-$KARAF_VERSION/bin/karaf $KARAF_ARGS
