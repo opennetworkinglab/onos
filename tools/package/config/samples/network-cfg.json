@@ -1,86 +1,150 @@
 {
     "ports" : {
-    "of:0000000000000002/1" : {
+    "of:0000000000000001/3" : {
+	    "interfaces" : [
+		{
+		    "ips" : [ "10.0.1.254/24" ],
+		    "mac" : "08:9e:01:82:38:68",
+		    "vlan" : "100"
+		}
+	    ]
+	},
+    "of:0000000000000001/4" : {
         "interfaces" : [
         {
-            "ips" : [ "192.168.10.101/24" ],
+            "ips" : [ "10.0.1.254/24" ],
             "mac" : "08:9e:01:82:38:68",
             "vlan" : "100"
         }
         ]
     },
-    "of:0000000000000002/2" : {
+	"of:0000000000000002/3" : {
+	    "interfaces" : [
+		{
+		    "ips" : [ "10.0.2.254/24" ],
+		    "mac" : "08:9e:01:82:38:68",
+		    "vlan" : "100"
+		}
+	    ]
+	},
+    "of:0000000000000002/4" : {
         "interfaces" : [
         {
-            "ips" : [ "192.168.20.101/24" ],
+            "ips" : [ "10.0.2.254/24" ],
             "mac" : "08:9e:01:82:38:68",
-            "vlan" : "200"
+            "vlan" : "100"
+        }
+        ]
+    },
+    "of:0000000000000003/3" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.3.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
+        }
+        ]
+    },
+    "of:0000000000000003/4" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.3.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
+        }
+        ]
+    },
+    "of:0000000000000004/3" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.4.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
+        }
+        ]
+    },
+    "of:0000000000000004/4" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.4.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
         }
         ]
     }
     },
     "devices" : {
-        "of:0000000000000002" : {
+        "of:0000000000000001" : {
             "segmentrouting" : {
                 "name" : "Leaf-R1",
                 "nodeSid" : 101,
                 "routerIp" : "10.0.1.254",
                 "routerMac" : "00:00:00:00:01:80",
-                "isEdgeRouter" : true,
-                "adjacencySids" : [
-                    { "adjSids" : 100, "ports" : [2, 3] },
-                    { "adjSids" : 200, "ports" : [4, 5] }
-                ]
+                "isEdgeRouter" : true
             }
         },
-        "of:0000000000000191" : {
+        "of:0000000000000002" : {
             "segmentrouting" : {
+                "name" : "Leaf-R2",
+                "nodeSid" : 102,
+                "routerIp" : "10.0.2.254",
+                "routerMac" : "00:00:00:00:02:80",
+                "isEdgeRouter" : true
+            }
+    	},
+        "of:0000000000000003" : {
+            "segmentrouting" : {
+                "name" : "Leaf-R3",
+                "nodeSid" : 103,
+                "routerIp" : "10.0.3.254",
+                "routerMac" : "00:00:00:00:03:80",
+                "isEdgeRouter" : true
+            }
+        },
+        "of:0000000000000004" : {
+            "segmentrouting" : {
+                "name" : "Leaf-R4",
+                "nodeSid" : 104,
+                "routerIp" : "10.0.4.254",
+                "routerMac" : "00:00:00:00:04:80",
+                "isEdgeRouter" : true
+            }
+        },
+    	"of:0000000000000191" : {
+    		"segmentrouting" : {
                 "name" : "Spine-R1",
                 "nodeSid" : 105,
                 "routerIp" : "192.168.0.11",
                 "routerMac" : "00:00:01:00:11:80",
-                "isEdgeRouter" : false,
-                "adjacencySids" : []
-            }
-        }
-    },
-    "apps" : {
-    "org.onosproject.router" : {
-        "bgp" : {
-        "bgpSpeakers" : [
-            {
-            "connectPoint" : "of:00000000000000aa/10",
-            "peers" : [
-                "192.168.10.1"
-            ]
-            },
-            {
-            "connectPoint" : "of:00000000000000aa/20",
-            "peers" : [
-                "192.168.20.1"
-            ]
-            }
-        ]
-        }
-    }
-    },
-    "hosts" : {
-        "00:00:00:00:00:01/4093": {
-            "basic": {
-                "ips": [
-                    "10.0.1.1"
-                ],
-                "location": "of:0000000000000001/3"
+                "isEdgeRouter" : false
             }
         },
-        "00:00:00:00:00:02/4093": {
-            "basic": {
-                "ips": [
-                    "10.0.1.2"
-                ],
-                "location": "of:0000000000000001/4"
+        "of:0000000000000192" : {
+            "segmentrouting" : {
+                "name" : "Spine-R2",
+                "nodeSid" : 106,
+                "routerIp" : "192.168.0.22",
+                "routerMac" : "00:00:01:00:22:80",
+                "isEdgeRouter" : false
+            }
+        },
+        "of:0000000000000193" : {
+            "segmentrouting" : {
+                "name" : "Spine-R3",
+                "nodeSid" : 107,
+                "routerIp" : "192.168.0.33",
+                "routerMac" : "00:00:03:00:33:80",
+                "isEdgeRouter" : false
+            }
+        },
+        "of:0000000000000194" : {
+            "segmentrouting" : {
+                "name" : "Spine-R4",
+                "nodeSid" : 108,
+                "routerIp" : "192.168.0.44",
+                "routerMac" : "00:00:04:00:44:80",
+                "isEdgeRouter" : false
             }
         }
     }
 }
-
