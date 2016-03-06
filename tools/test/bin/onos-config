@@ -2,6 +2,7 @@
 # -----------------------------------------------------------------------------
 # Remotely configures & starts ONOS for the first time.
 # -----------------------------------------------------------------------------
+set -x
 
 function _usage () {
 cat << _EOF_
@@ -64,5 +65,6 @@ scp -q $CDEF_FILE $remote:$ONOS_INSTALL_DIR/config/cluster.json
 scp -qr ${ONOS_ROOT}/tools/package/config/ $remote:$ONOS_INSTALL_DIR/
 
 # Copy the desired initial network configuration to remote if needed
-[ -n "$ONOS_CFG" -a -f "$ONOS_CFG" -a "${1:-$OCI}" = "$OC1" ] && \
+#[ -n "$ONOS_CFG" -a -f "$ONOS_CFG" -a "${1:-$OCI}" = "$OC1" ] && \
+[ -n "$ONOS_CFG" -a -f "$ONOS_CFG" -a "${1:-$OCI}" = "${1:-$OCI}" ] && \
     scp $ONOS_CFG $remote:$ONOS_INSTALL_DIR/config/network-cfg.json
