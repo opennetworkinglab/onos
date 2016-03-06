@@ -70,10 +70,13 @@ public class LumentumFlowRuleDriver extends AbstractHandlerBehaviour implements 
     private static final int DEFAULT_CHANNEL_TARGET_POWER = -30;
     private static final int DISABLE_CHANNEL_ABSOLUTE_ATTENUATION = 160;
     private static final int DEFAULT_CHANNEL_ABSOLUTE_ATTENUATION = 50;
+    private static final int DISABLE_CHANNEL_ADD_DROP_PORT_INDEX = 1;
     private static final int OUT_OF_SERVICE = 1;
     private static final int IN_SERVICE = 2;
     private static final int OPEN_LOOP = 1;
     private static final int CLOSED_LOOP = 2;
+    // First 20 ports are add/mux ports, next 20 are drop/demux
+    private static final int DROP_PORT_OFFSET = 20;
 
     // OIDs
     private static final String CTRL_AMP_MODULE_SERVICE_STATE_PREAMP = ".1.3.6.1.4.1.46184.1.4.4.1.2.1";
@@ -194,6 +197,9 @@ public class LumentumFlowRuleDriver extends AbstractHandlerBehaviour implements 
 
         int channel = toChannel(xc.ochSignal());
         long addDrop = xc.addDrop().toLong();
+        if (!xc.isAddRule()) {
+            addDrop -= DROP_PORT_OFFSET;
+        }
 
         // Create the PDU object
         PDU pdu = new PDU();
@@ -265,7 +271,8 @@ public class LumentumFlowRuleDriver extends AbstractHandlerBehaviour implements 
         // Put cross connect back into default port 1
         OID ctrlChannelAddDropPortIndex = new OID(CTRL_CHANNEL_ADD_DROP_PORT_INDEX +
                 (xc.isAddRule() ? "1." : "2.") + channel);
-        pdu.add(new VariableBinding(ctrlChannelAddDropPortIndex, new UnsignedInteger32(OUT_OF_SERVICE)));
+        pdu.add(new VariableBinding(ctrlChannelAddDropPortIndex,
+                new UnsignedInteger32(DISABLE_CHANNEL_ADD_DROP_PORT_INDEX)));
 
         // Put port/channel back to open loop
         OID ctrlChannelMode = new OID(CTRL_CHANNEL_MODE + (xc.isAddRule() ? "1." : "2.") + channel);
@@ -336,6 +343,9 @@ public class LumentumFlowRuleDriver extends AbstractHandlerBehaviour implements 
             for (VariableBinding varBinding : varBindings) {
                 if (varBinding.getOid().last() == channel) {
                     int port = varBinding.getVariable().toInt();
+                    if (!isAddPort) {
+                        port += DROP_PORT_OFFSET;
+                    }
                     return PortNumber.portNumber(port);
 
                 }
