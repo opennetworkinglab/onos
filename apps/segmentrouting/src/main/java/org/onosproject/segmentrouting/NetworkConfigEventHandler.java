@@ -137,12 +137,7 @@ public class NetworkConfigEventHandler {
         if (config == null) {
             return ImmutableSet.of();
         }
-
-        HashSet<MacAddress> macAddresses = new HashSet<>();
-        config.vRouterMacs().forEach(mac -> {
-            macAddresses.add(mac);
-        });
-        return ImmutableSet.copyOf(macAddresses);
+        return ImmutableSet.copyOf(config.vRouterMacs());
     }
 
     private boolean isEdge(DeviceId deviceId) {

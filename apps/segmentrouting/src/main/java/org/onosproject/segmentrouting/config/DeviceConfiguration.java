@@ -59,7 +59,6 @@ public class DeviceConfiguration implements DeviceProperties {
     private final Map<VlanId, List<ConnectPoint>> xConnects = new ConcurrentHashMap<>();
     private ApplicationId appId;
     private NetworkConfigService cfgService;
-    private SegmentRoutingAppConfig appConfig;
 
     private class SegmentRouterInfo {
         int nodeSid;
@@ -106,9 +105,6 @@ public class DeviceConfiguration implements DeviceProperties {
             deviceConfigMap.put(info.deviceId, info);
             allSegmentIds.add(info.nodeSid);
         });
-
-        // Read SegmentRoutingAppConfig
-        appConfig = cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
 
         // Read gatewayIps and subnets from port subject.
         Set<ConnectPoint> portSubjects =
@@ -367,8 +363,12 @@ public class DeviceConfiguration implements DeviceProperties {
 
             ImmutableSet.Builder<Ip4Prefix> builder = ImmutableSet.builder();
             builder.addAll(srinfo.subnets.values());
-            if (appConfig != null && deviceId.equals(appConfig.vRouterId())) {
-                builder.add(Ip4Prefix.valueOf("0.0.0.0/0"));
+            SegmentRoutingAppConfig appConfig =
+                    cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
+            if (appConfig != null) {
+                if (deviceId.equals(appConfig.vRouterId().orElse(null))) {
+                    builder.add(Ip4Prefix.valueOf("0.0.0.0/0"));
+                }
             }
             return builder.build();
         }
@@ -493,10 +493,14 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     public Set<ConnectPoint> suppressSubnet() {
+        SegmentRoutingAppConfig appConfig =
+                cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
         return (appConfig != null) ? appConfig.suppressSubnet() : ImmutableSet.of();
     }
 
     public Set<ConnectPoint> suppressHost() {
+        SegmentRoutingAppConfig appConfig =
+                cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
         return (appConfig != null) ? appConfig.suppressHost() : ImmutableSet.of();
     }
 }
