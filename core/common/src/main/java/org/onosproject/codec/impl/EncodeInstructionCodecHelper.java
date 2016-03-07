@@ -56,20 +56,19 @@ public final class EncodeInstructionCodecHelper {
      * @param result json node that the instruction attributes are added to
      */
     private void encodeL0(ObjectNode result) {
-        L0ModificationInstruction instruction =
-                (L0ModificationInstruction) this.instruction;
-        result.put(InstructionCodec.SUBTYPE, instruction.subtype().name());
+        L0ModificationInstruction l0Instruction = (L0ModificationInstruction) instruction;
+        result.put(InstructionCodec.SUBTYPE, l0Instruction.subtype().name());
 
-        switch (instruction.subtype()) {
+        switch (l0Instruction.subtype()) {
             case LAMBDA:
                 final L0ModificationInstruction.ModLambdaInstruction modLambdaInstruction =
-                        (L0ModificationInstruction.ModLambdaInstruction) instruction;
+                        (L0ModificationInstruction.ModLambdaInstruction) l0Instruction;
                 result.put(InstructionCodec.LAMBDA, modLambdaInstruction.lambda());
                 break;
 
             case OCH:
                 L0ModificationInstruction.ModOchSignalInstruction ochSignalInstruction =
-                        (L0ModificationInstruction.ModOchSignalInstruction) instruction;
+                        (L0ModificationInstruction.ModOchSignalInstruction) l0Instruction;
                 OchSignal ochSignal = ochSignalInstruction.lambda();
                 result.put(InstructionCodec.GRID_TYPE, ochSignal.gridType().name());
                 result.put(InstructionCodec.CHANNEL_SPACING, ochSignal.channelSpacing().name());
@@ -78,7 +77,7 @@ public final class EncodeInstructionCodecHelper {
                 break;
 
             default:
-                log.info("Cannot convert L0 subtype of {}", instruction.subtype());
+                log.info("Cannot convert L0 subtype of {}", l0Instruction.subtype());
         }
     }
 
@@ -88,14 +87,13 @@ public final class EncodeInstructionCodecHelper {
      * @param result json node that the instruction attributes are added to
      */
     private void encodeL1(ObjectNode result) {
-        L1ModificationInstruction instruction =
-                (L1ModificationInstruction) this.instruction;
-        result.put(InstructionCodec.SUBTYPE, instruction.subtype().name());
+        L1ModificationInstruction l1Instruction = (L1ModificationInstruction) instruction;
+        result.put(InstructionCodec.SUBTYPE, l1Instruction.subtype().name());
 
-        switch (instruction.subtype()) {
+        switch (l1Instruction.subtype()) {
             case ODU_SIGID:
                 final L1ModificationInstruction.ModOduSignalIdInstruction oduSignalIdInstruction =
-                        (L1ModificationInstruction.ModOduSignalIdInstruction) instruction;
+                        (L1ModificationInstruction.ModOduSignalIdInstruction) l1Instruction;
                 OduSignalId oduSignalId = oduSignalIdInstruction.oduSignalId();
 
                 ObjectNode child = result.putObject("oduSignalId");
@@ -106,7 +104,7 @@ public final class EncodeInstructionCodecHelper {
                         HexString.toHexString(oduSignalId.tributarySlotBitmap()));
                 break;
             default:
-                log.info("Cannot convert L1 subtype of {}", instruction.subtype());
+                log.info("Cannot convert L1 subtype of {}", l1Instruction.subtype());
                 break;
         }
     }
@@ -117,39 +115,38 @@ public final class EncodeInstructionCodecHelper {
      * @param result json node that the instruction attributes are added to
      */
     private void encodeL2(ObjectNode result) {
-        L2ModificationInstruction instruction =
-                (L2ModificationInstruction) this.instruction;
-        result.put(InstructionCodec.SUBTYPE, instruction.subtype().name());
+        L2ModificationInstruction l2Instruction = (L2ModificationInstruction) instruction;
+        result.put(InstructionCodec.SUBTYPE, l2Instruction.subtype().name());
 
-        switch (instruction.subtype()) {
+        switch (l2Instruction.subtype()) {
             case ETH_SRC:
             case ETH_DST:
                 final L2ModificationInstruction.ModEtherInstruction modEtherInstruction =
-                        (L2ModificationInstruction.ModEtherInstruction) instruction;
+                        (L2ModificationInstruction.ModEtherInstruction) l2Instruction;
                 result.put(InstructionCodec.MAC, modEtherInstruction.mac().toString());
                 break;
 
             case VLAN_ID:
                 final L2ModificationInstruction.ModVlanIdInstruction modVlanIdInstruction =
-                        (L2ModificationInstruction.ModVlanIdInstruction) instruction;
+                        (L2ModificationInstruction.ModVlanIdInstruction) l2Instruction;
                 result.put(InstructionCodec.VLAN_ID, modVlanIdInstruction.vlanId().toShort());
                 break;
 
             case VLAN_PCP:
                 final L2ModificationInstruction.ModVlanPcpInstruction modVlanPcpInstruction =
-                        (L2ModificationInstruction.ModVlanPcpInstruction) instruction;
+                        (L2ModificationInstruction.ModVlanPcpInstruction) l2Instruction;
                 result.put(InstructionCodec.VLAN_PCP, modVlanPcpInstruction.vlanPcp());
                 break;
 
             case MPLS_LABEL:
                 final L2ModificationInstruction.ModMplsLabelInstruction modMplsLabelInstruction =
-                        (L2ModificationInstruction.ModMplsLabelInstruction) instruction;
+                        (L2ModificationInstruction.ModMplsLabelInstruction) l2Instruction;
                 result.put(InstructionCodec.MPLS_LABEL, modMplsLabelInstruction.label().toInt());
                 break;
 
             case MPLS_PUSH:
                 final L2ModificationInstruction.PushHeaderInstructions pushHeaderInstructions =
-                        (L2ModificationInstruction.PushHeaderInstructions) instruction;
+                        (L2ModificationInstruction.PushHeaderInstructions) l2Instruction;
 
                 result.put(InstructionCodec.ETHERNET_TYPE,
                         pushHeaderInstructions.ethernetType().toShort());
@@ -157,12 +154,12 @@ public final class EncodeInstructionCodecHelper {
 
             case TUNNEL_ID:
                 final L2ModificationInstruction.ModTunnelIdInstruction modTunnelIdInstruction =
-                        (L2ModificationInstruction.ModTunnelIdInstruction) instruction;
+                        (L2ModificationInstruction.ModTunnelIdInstruction) l2Instruction;
                 result.put(InstructionCodec.TUNNEL_ID, modTunnelIdInstruction.tunnelId());
                 break;
 
             default:
-                log.info("Cannot convert L2 subtype of {}", instruction.subtype());
+                log.info("Cannot convert L2 subtype of {}", l2Instruction.subtype());
                 break;
         }
     }
@@ -173,28 +170,27 @@ public final class EncodeInstructionCodecHelper {
      * @param result json node that the instruction attributes are added to
      */
     private void encodeL3(ObjectNode result) {
-        L3ModificationInstruction instruction =
-                (L3ModificationInstruction) this.instruction;
-        result.put(InstructionCodec.SUBTYPE, instruction.subtype().name());
-        switch (instruction.subtype()) {
+        L3ModificationInstruction l3Instruction = (L3ModificationInstruction) instruction;
+        result.put(InstructionCodec.SUBTYPE, l3Instruction.subtype().name());
+        switch (l3Instruction.subtype()) {
             case IPV4_SRC:
             case IPV4_DST:
             case IPV6_SRC:
             case IPV6_DST:
                 final L3ModificationInstruction.ModIPInstruction modIPInstruction =
-                        (L3ModificationInstruction.ModIPInstruction) instruction;
+                        (L3ModificationInstruction.ModIPInstruction) l3Instruction;
                 result.put(InstructionCodec.IP, modIPInstruction.ip().toString());
                 break;
 
             case IPV6_FLABEL:
                 final L3ModificationInstruction.ModIPv6FlowLabelInstruction
                         modFlowLabelInstruction =
-                        (L3ModificationInstruction.ModIPv6FlowLabelInstruction) instruction;
+                        (L3ModificationInstruction.ModIPv6FlowLabelInstruction) l3Instruction;
                 result.put(InstructionCodec.FLOW_LABEL, modFlowLabelInstruction.flowLabel());
                 break;
 
             default:
-                log.info("Cannot convert L3 subtype of {}", instruction.subtype());
+                log.info("Cannot convert L3 subtype of {}", l3Instruction.subtype());
                 break;
         }
     }
@@ -205,26 +201,25 @@ public final class EncodeInstructionCodecHelper {
      * @param result json node that the instruction attributes are added to
      */
     private void encodeL4(ObjectNode result) {
-        L4ModificationInstruction instruction =
-                (L4ModificationInstruction) this.instruction;
-        result.put(InstructionCodec.SUBTYPE, instruction.subtype().name());
-        switch (instruction.subtype()) {
+        L4ModificationInstruction l4Instruction = (L4ModificationInstruction) instruction;
+        result.put(InstructionCodec.SUBTYPE, l4Instruction.subtype().name());
+        switch (l4Instruction.subtype()) {
             case TCP_DST:
             case TCP_SRC:
                 final L4ModificationInstruction.ModTransportPortInstruction modTcpPortInstruction =
-                        (L4ModificationInstruction.ModTransportPortInstruction) instruction;
+                        (L4ModificationInstruction.ModTransportPortInstruction) l4Instruction;
                 result.put(InstructionCodec.TCP_PORT, modTcpPortInstruction.port().toInt());
                 break;
 
             case UDP_DST:
             case UDP_SRC:
                 final L4ModificationInstruction.ModTransportPortInstruction modUdpPortInstruction =
-                        (L4ModificationInstruction.ModTransportPortInstruction) instruction;
+                        (L4ModificationInstruction.ModTransportPortInstruction) l4Instruction;
                 result.put(InstructionCodec.UDP_PORT, modUdpPortInstruction.port().toInt());
                 break;
 
             default:
-                log.info("Cannot convert L4 subtype of {}", instruction.subtype());
+                log.info("Cannot convert L4 subtype of {}", l4Instruction.subtype());
                 break;
         }
     }
