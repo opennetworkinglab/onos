@@ -47,7 +47,7 @@
 
     function clear() {
         wss.sendEvent(clearMessage);
-        flash.flash('Source node: ' + node.id);
+        flash.flash('Cleared source and destination');
     }
 
     function setSrc(node) {
@@ -78,7 +78,6 @@
     function prevPath() {
         wss.sendEvent(prevPathMessage);
     }
-
 
     function setMode(mode) {
         if (currentMode === mode) {

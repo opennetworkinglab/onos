@@ -210,9 +210,16 @@
                 tt: 'Highlight next path',
                 gid: 'nextIntent'
             },
+            0: {
+                cb: function () {
+                    pps.clear();
+                },
+                tt: 'Clear source and destination',
+                gid: 'xMark'
+            },
 
             _keyOrder: [
-                'openBracket', 'closeBracket', '3', '4', '5', '6', 'leftArrow', 'rightArrow'
+                'openBracket', 'closeBracket', '3', '4', '5', '6', 'leftArrow', 'rightArrow', '0'
             ]
         },
 
