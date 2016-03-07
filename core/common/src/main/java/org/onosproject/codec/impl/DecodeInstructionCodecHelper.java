@@ -37,6 +37,7 @@ import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
+import org.onosproject.net.meter.MeterId;
 
 import static org.onlab.util.Tools.nullIsIllegal;
 
@@ -267,6 +268,10 @@ public final class DecodeInstructionCodecHelper {
             GroupId groupId = new DefaultGroupId(nullIsIllegal(json.get(InstructionCodec.GROUP_ID)
                     .asInt(), InstructionCodec.GROUP_ID + InstructionCodec.MISSING_MEMBER_MESSAGE));
             return Instructions.createGroup(groupId);
+        } else if (type.equals(Instruction.Type.METER.name())) {
+            MeterId meterId = MeterId.meterId(nullIsIllegal(json.get(InstructionCodec.METER_ID)
+                    .asLong(), InstructionCodec.METER_ID + InstructionCodec.MISSING_MEMBER_MESSAGE));
+            return Instructions.meterTraffic(meterId);
         } else if (type.equals(Instruction.Type.L0MODIFICATION.name())) {
             return decodeL0();
         } else if (type.equals(Instruction.Type.L1MODIFICATION.name())) {

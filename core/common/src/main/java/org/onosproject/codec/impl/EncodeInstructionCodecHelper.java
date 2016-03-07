@@ -42,7 +42,7 @@ public final class EncodeInstructionCodecHelper {
      * Creates an instruction object encoder.
      *
      * @param instruction instruction to encode
-     * @param context codec context for the encoding
+     * @param context     codec context for the encoding
      */
     public EncodeInstructionCodecHelper(Instruction instruction, CodecContext context) {
         this.instruction = instruction;
@@ -93,20 +93,21 @@ public final class EncodeInstructionCodecHelper {
         result.put(InstructionCodec.SUBTYPE, instruction.subtype().name());
 
         switch (instruction.subtype()) {
-        case ODU_SIGID:
-            final L1ModificationInstruction.ModOduSignalIdInstruction oduSignalIdInstruction =
-                    (L1ModificationInstruction.ModOduSignalIdInstruction) instruction;
-            OduSignalId oduSignalId = oduSignalIdInstruction.oduSignalId();
+            case ODU_SIGID:
+                final L1ModificationInstruction.ModOduSignalIdInstruction oduSignalIdInstruction =
+                        (L1ModificationInstruction.ModOduSignalIdInstruction) instruction;
+                OduSignalId oduSignalId = oduSignalIdInstruction.oduSignalId();
 
-            ObjectNode child = result.putObject("oduSignalId");
+                ObjectNode child = result.putObject("oduSignalId");
 
-            child.put(InstructionCodec.TRIBUTARY_PORT_NUMBER, oduSignalId.tributaryPortNumber());
-            child.put(InstructionCodec.TRIBUTARY_SLOT_LEN, oduSignalId.tributarySlotLength());
-            child.put(InstructionCodec.TRIBUTARY_SLOT_BITMAP, HexString.toHexString(oduSignalId.tributarySlotBitmap()));
-            break;
-        default:
-            log.info("Cannot convert L1 subtype of {}", instruction.subtype());
-            break;
+                child.put(InstructionCodec.TRIBUTARY_PORT_NUMBER, oduSignalId.tributaryPortNumber());
+                child.put(InstructionCodec.TRIBUTARY_SLOT_LEN, oduSignalId.tributarySlotLength());
+                child.put(InstructionCodec.TRIBUTARY_SLOT_BITMAP,
+                        HexString.toHexString(oduSignalId.tributarySlotBitmap()));
+                break;
+            default:
+                log.info("Cannot convert L1 subtype of {}", instruction.subtype());
+                break;
         }
     }
 
@@ -151,7 +152,7 @@ public final class EncodeInstructionCodecHelper {
                         (L2ModificationInstruction.PushHeaderInstructions) instruction;
 
                 result.put(InstructionCodec.ETHERNET_TYPE,
-                           pushHeaderInstructions.ethernetType().toShort());
+                        pushHeaderInstructions.ethernetType().toShort());
                 break;
 
             case TUNNEL_ID:
@@ -252,6 +253,12 @@ public final class EncodeInstructionCodecHelper {
                 final Instructions.GroupInstruction groupInstruction =
                         (Instructions.GroupInstruction) instruction;
                 result.put(InstructionCodec.GROUP_ID, groupInstruction.groupId().toString());
+                break;
+
+            case METER:
+                final Instructions.MeterInstruction meterInstruction =
+                        (Instructions.MeterInstruction) instruction;
+                result.put(InstructionCodec.METER_ID, meterInstruction.meterId().toString());
                 break;
 
             case L0MODIFICATION:
