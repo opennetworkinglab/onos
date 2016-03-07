@@ -52,6 +52,7 @@
         <module>incubator</module>
         <module>features</module>
 
+        <module>tools/package/maven-plugin</module>
         <module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
     </modules>
@@ -80,7 +81,7 @@
         <atomix.version>1.0.0-rc2</atomix.version>
         <copycat.version>0.5.1.onos</copycat.version>
         <openflowj.version>0.9.2.onos</openflowj.version>
-        <onos-maven-plugin.version>1.8</onos-maven-plugin.version>
+        <onos-maven-plugin.version>1.9-SNAPSHOT</onos-maven-plugin.version>
         <osgi.version>4.3.1</osgi.version>
         <karaf.version>3.0.5</karaf.version>
         <jersey.version>1.19</jersey.version>
