@@ -109,8 +109,8 @@ public class RestSBControllerImpl implements RestSBController {
     }
 
     @Override
-    public void removeDevice(RestSBDevice device) {
-        deviceMap.remove(device.deviceId());
+    public void removeDevice(DeviceId deviceId) {
+        deviceMap.remove(deviceId);
     }
 
     @Override

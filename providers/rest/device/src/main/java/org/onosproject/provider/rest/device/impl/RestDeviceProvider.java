@@ -135,13 +135,13 @@ public class RestDeviceProvider extends AbstractProvider
         log.info("Started");
     }
 
-
     @Deactivate
     public void deactivate() {
+        cfgService.removeListener(cfgLister);
+        controller.getDevices().keySet().forEach(this::deviceRemoved);
         providerRegistry.unregister(this);
         providerService = null;
         cfgService.unregisterConfigFactory(factory);
-        cfgService.removeListener(cfgLister);
         log.info("Stopped");
     }
 
@@ -195,12 +195,10 @@ public class RestDeviceProvider extends AbstractProvider
         addedDevices.add(deviceId);
     }
 
-    //when do I call it ?
-    public void deviceRemoved(RestSBDevice nodeId) {
-        Preconditions.checkNotNull(nodeId, ISNOTNULL);
-        DeviceId deviceId = nodeId.deviceId();
+    private void deviceRemoved(DeviceId deviceId) {
+        Preconditions.checkNotNull(deviceId, ISNOTNULL);
         providerService.deviceDisconnected(deviceId);
-        controller.removeDevice(nodeId);
+        controller.removeDevice(deviceId);
     }
 
     private void connectDevices() {
@@ -217,7 +215,7 @@ public class RestDeviceProvider extends AbstractProvider
                             deviceAdded(device);
                         });
                 //Removing devices not wanted anymore
-                toBeRemoved.stream().forEach(device -> deviceRemoved(device));
+                toBeRemoved.stream().forEach(device -> deviceRemoved(device.deviceId()));
 
             }
         } catch (ConfigException e) {

@@ -108,11 +108,23 @@ public class NetconfControllerImpl implements NetconfController {
     }
 
     @Override
-    public void removeDevice(NetconfDeviceInfo deviceInfo) {
+    public void disconnectDevice(NetconfDeviceInfo deviceInfo) {
         if (!netconfDeviceMap.containsKey(deviceInfo.getDeviceId())) {
             log.warn("Device {} is not present", deviceInfo);
         } else {
             stopDevice(deviceInfo);
+        }
+    }
+
+    @Override
+    public void removeDevice(NetconfDeviceInfo deviceInfo) {
+        if (!netconfDeviceMap.containsKey(deviceInfo.getDeviceId())) {
+            log.warn("Device {} is not present", deviceInfo);
+        } else {
+            netconfDeviceMap.remove(deviceInfo.getDeviceId());
+            for (NetconfDeviceListener l : netconfDeviceListeners) {
+                l.deviceRemoved(deviceInfo);
+            }
         }
     }
 
@@ -136,6 +148,11 @@ public class NetconfControllerImpl implements NetconfController {
     @Override
     public Map<DeviceId, NetconfDevice> getDevicesMap() {
         return netconfDeviceMap;
+    }
+
+    @Override
+    public Set<DeviceId> getNetconfDevices() {
+        return netconfDeviceMap.keySet();
     }
 
     //Device factory for the specific NetconfDeviceImpl

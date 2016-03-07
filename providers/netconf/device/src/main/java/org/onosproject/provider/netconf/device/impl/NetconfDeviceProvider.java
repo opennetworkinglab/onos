@@ -126,10 +126,13 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     @Deactivate
     public void deactivate() {
+        controller.removeDeviceListener(innerNodeListener);
+        controller.getNetconfDevices().forEach(id ->
+            controller.removeDevice(controller.getDevicesMap().get(id)
+                                            .getDeviceInfo()));
         providerRegistry.unregister(this);
         providerService = null;
         cfgService.unregisterConfigFactory(factory);
-        controller.removeDeviceListener(innerNodeListener);
         log.info("Stopped");
     }
 

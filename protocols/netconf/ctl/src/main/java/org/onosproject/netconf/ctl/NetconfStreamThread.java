@@ -182,6 +182,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                                     null, null, Optional.of(-1), netconfDeviceInfo);
                             netconfDeviceEventListeners.forEach(
                                     listener -> listener.event(event));
+                            this.interrupt();
                         } else {
                             deviceReply = deviceReply.replace(END_PATTERN, "");
                             if (deviceReply.contains(RPC_REPLY) ||

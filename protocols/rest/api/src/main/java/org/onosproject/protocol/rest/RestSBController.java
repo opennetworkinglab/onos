@@ -62,9 +62,9 @@ public interface RestSBController {
     /**
      * Removes the device from the devices map.
      *
-     * @param device to be removed
+     * @param deviceId to be removed
      */
-    void removeDevice(RestSBDevice device);
+    void removeDevice(DeviceId deviceId);
 
     /**
      * Does a REST POST request with specified parameters to the device.
@@ -91,8 +91,8 @@ public interface RestSBController {
     /**
      * Does a REST GET request with specified parameters to the device.
      *
-     * @param device  device to make the request to
-     * @param request url of the request
+     * @param device    device to make the request to
+     * @param request   url of the request
      * @param mediaType format to retrieve the content in
      * @return an inputstream of data from the reply.
      */
@@ -101,8 +101,8 @@ public interface RestSBController {
     /**
      * Does a REST PATCH request with specified parameters to the device.
      *
-     * @param device  device to make the request to
-     * @param request url of the request
+     * @param device    device to make the request to
+     * @param request   url of the request
      * @param payload   payload of the request as an InputStream
      * @param mediaType format to retrieve the content in
      * @return true if operation returned 200, 201, 202, false otherwise

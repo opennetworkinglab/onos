@@ -20,6 +20,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstraction of an NETCONF controller. Serves as a one stop shop for obtaining
@@ -52,7 +53,14 @@ public interface NetconfController {
     NetconfDevice connectDevice(NetconfDeviceInfo deviceInfo) throws NetconfException;
 
     /**
-     * Removes a Netconf device.
+     * Disconnects a Netconf device and removes it from the core.
+     *
+     * @param deviceInfo info about the device to remove
+     */
+    void disconnectDevice(NetconfDeviceInfo deviceInfo);
+
+    /**
+     * Removes a Netconf device from the core.
      *
      * @param deviceInfo info about the device to remove
      */
@@ -62,8 +70,16 @@ public interface NetconfController {
      * Gets all the nodes information.
      *
      * @return map of devices
+     *
      */
     Map<DeviceId, NetconfDevice> getDevicesMap();
+
+    /**
+     * Gets all Netconf Devices.
+     *
+     * @return List of all the NetconfDevices Ids
+     */
+    Set<DeviceId> getNetconfDevices();
 
     /**
      * Gets a Netconf Device by node identifier.

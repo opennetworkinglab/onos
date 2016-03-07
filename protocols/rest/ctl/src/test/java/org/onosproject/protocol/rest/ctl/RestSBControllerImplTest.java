@@ -53,7 +53,7 @@ public class RestSBControllerImplTest {
         assertEquals("Incorrect Get Device by IP, Port", controller.getDevice(device1.ip(), device1.port()), device1);
         controller.addDevice(device2);
         assertTrue("Device2 non added", controller.getDevices().containsValue(device2));
-        controller.removeDevice(device2);
+        controller.removeDevice(device2.deviceId());
         assertFalse("Device2 not removed", controller.getDevices().containsValue(device2));
     }
 }

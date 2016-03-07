@@ -32,8 +32,10 @@ import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 
 import java.lang.reflect.Field;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -134,6 +136,14 @@ public class NetconfControllerImplTest {
     }
 
     @Test
+    public void testGetNetconfDevices() {
+        Set<DeviceId> devices = new HashSet<>();
+        devices.add(deviceId1);
+        devices.add(deviceId2);
+        assertTrue("Incorrect devices", ctrl.getNetconfDevices().containsAll(devices));
+    }
+
+    @Test
     public void testGetNetconfDevice() {
         NetconfDevice fetchedDevice1 = ctrl.getNetconfDevice(deviceId1);
         assertThat("Incorrect device fetched", fetchedDevice1, is(device1));
@@ -192,7 +202,16 @@ public class NetconfControllerImplTest {
     }
 
     /**
-     * Check for removeDevice exception.
+     * Check that disconnectDevice actually disconnects the device and removes it.
+     */
+    @Test
+    public void testDisconnectDevice() throws Exception {
+        ctrl.disconnectDevice(deviceInfo1);
+        assertFalse("Incorrect device removal", ctrl.getDevicesMap().containsKey(deviceId1));
+    }
+
+    /**
+     * Checks that disconnectDevice actually disconnects the device and removes it.
      */
     @Test
     public void testRemoveDevice() throws Exception {
