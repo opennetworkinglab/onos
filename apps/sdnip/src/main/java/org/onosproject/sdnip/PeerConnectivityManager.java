@@ -23,6 +23,8 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceEvent;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -44,9 +46,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -77,14 +81,17 @@ public class PeerConnectivityManager {
     private final InternalNetworkConfigListener configListener
             = new InternalNetworkConfigListener();
 
+    private final InternalInterfaceListener interfaceListener
+            = new InternalInterfaceListener();
+
     /**
      * Creates a new PeerConnectivityManager.
      *
      * @param appId              the application ID
      * @param intentSynchronizer the intent synchronizer
-     * @param configService      the SDN-IP config service
-     * @param interfaceService   the interface service
+     * @param configService      the network config service
      * @param routerAppId        application ID
+     * @param interfaceService   the interface service
      */
     public PeerConnectivityManager(ApplicationId appId,
                                    IntentSynchronizationService intentSynchronizer,
@@ -105,6 +112,7 @@ public class PeerConnectivityManager {
      */
     public void start() {
         configService.addListener(configListener);
+        interfaceService.addListener(interfaceListener);
         setUpConnectivity();
     }
 
@@ -113,6 +121,7 @@ public class PeerConnectivityManager {
      */
     public void stop() {
         configService.removeListener(configListener);
+        interfaceService.removeListener(interfaceListener);
     }
 
     /**
@@ -122,14 +131,18 @@ public class PeerConnectivityManager {
     private void setUpConnectivity() {
         BgpConfig config = configService.getConfig(routerAppId, RoutingService.CONFIG_CLASS);
 
+        Set<BgpConfig.BgpSpeakerConfig> bgpSpeakers;
+
         if (config == null) {
-            log.warn("No BgpConfig found");
-            return;
+            log.warn("No BGP config available");
+            bgpSpeakers = Collections.emptySet();
+        } else {
+            bgpSpeakers = config.bgpSpeakers();
         }
 
         Map<Key, PointToPointIntent> existingIntents = new HashMap<>(peerIntents);
 
-        for (BgpConfig.BgpSpeakerConfig bgpSpeaker : config.bgpSpeakers()) {
+        for (BgpConfig.BgpSpeakerConfig bgpSpeaker : bgpSpeakers) {
             log.debug("Start to set up BGP paths for BGP speaker: {}",
                     bgpSpeaker);
 
@@ -402,6 +415,21 @@ public class PeerConnectivityManager {
                 if (event.configClass() == RoutingService.CONFIG_CLASS) {
                     setUpConnectivity();
                 }
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
+    private class InternalInterfaceListener implements InterfaceListener {
+        @Override
+        public void event(InterfaceEvent event) {
+            switch (event.type()) {
+            case INTERFACE_ADDED:
+            case INTERFACE_UPDATED:
+            case INTERFACE_REMOVED:
+                setUpConnectivity();
                 break;
             default:
                 break;

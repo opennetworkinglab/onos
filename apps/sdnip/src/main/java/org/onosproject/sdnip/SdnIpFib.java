@@ -17,6 +17,7 @@
 package org.onosproject.sdnip;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -30,6 +31,8 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceEvent;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -75,6 +78,7 @@ public class SdnIpFib {
     protected RoutingService routingService;
 
     private final InternalFibListener fibListener = new InternalFibListener();
+    private final InternalInterfaceListener interfaceListener = new InternalInterfaceListener();
 
     private static final int PRIORITY_OFFSET = 100;
     private static final int PRIORITY_MULTIPLIER = 5;
@@ -90,12 +94,15 @@ public class SdnIpFib {
     public void activate() {
         appId = coreService.getAppId(SdnIp.SDN_IP_APP);
 
+        interfaceService.addListener(interfaceListener);
+
         routingService.addFibListener(fibListener);
         routingService.start();
     }
 
     @Deactivate
     public void deactivate() {
+        interfaceService.removeListener(interfaceListener);
         // TODO remove listener
         routingService.stop();
     }
@@ -240,10 +247,74 @@ public class SdnIpFib {
                 .build();
     }
 
+    private void updateInterface(Interface intf) {
+        synchronized (this) {
+            for (Map.Entry<IpPrefix, MultiPointToSinglePointIntent> entry : routeIntents.entrySet()) {
+                MultiPointToSinglePointIntent intent = entry.getValue();
+                Set<ConnectPoint> ingress = Sets.newHashSet(intent.ingressPoints());
+                ingress.add(intf.connectPoint());
+
+                MultiPointToSinglePointIntent newIntent =
+                        MultiPointToSinglePointIntent.builder(intent)
+                                .ingressPoints(ingress)
+                                .build();
+
+                routeIntents.put(entry.getKey(), newIntent);
+                intentSynchronizer.submit(newIntent);
+            }
+        }
+    }
+
+    private void removeInterface(Interface intf) {
+        synchronized (this) {
+            for (Map.Entry<IpPrefix, MultiPointToSinglePointIntent> entry : routeIntents.entrySet()) {
+                MultiPointToSinglePointIntent intent = entry.getValue();
+                if (intent.egressPoint().equals(intf.connectPoint())) {
+                    // This intent just lost its head. Remove it and let
+                    // higher layer routing reroute.
+                    intentSynchronizer.withdraw(routeIntents.remove(entry.getKey()));
+                } else {
+                    if (intent.ingressPoints().contains(intf.connectPoint())) {
+
+                        Set<ConnectPoint> ingress = Sets.newHashSet(intent.ingressPoints());
+                        ingress.remove(intf.connectPoint());
+
+                        MultiPointToSinglePointIntent newIntent =
+                                MultiPointToSinglePointIntent.builder(intent)
+                                .ingressPoints(ingress)
+                                .build();
+
+                        routeIntents.put(entry.getKey(), newIntent);
+                        intentSynchronizer.submit(newIntent);
+                    }
+                }
+            }
+        }
+    }
+
     private class InternalFibListener implements FibListener {
         @Override
         public void update(Collection<FibUpdate> updates, Collection<FibUpdate> withdraws) {
             SdnIpFib.this.update(updates, withdraws);
+        }
+    }
+
+    private class InternalInterfaceListener implements InterfaceListener {
+
+        @Override
+        public void event(InterfaceEvent event) {
+            switch (event.type()) {
+            case INTERFACE_ADDED:
+                updateInterface(event.subject());
+                break;
+            case INTERFACE_UPDATED:
+                break;
+            case INTERFACE_REMOVED:
+                removeInterface(event.subject());
+                break;
+            default:
+                break;
+            }
         }
     }
 

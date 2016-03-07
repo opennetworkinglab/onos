@@ -17,7 +17,6 @@ package org.onosproject.sdnip;
 
 import com.google.common.collect.Sets;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.packet.Ethernet;
@@ -30,6 +29,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -48,14 +48,10 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.config.BgpConfig;
 import org.onosproject.routing.config.BgpPeer;
-import org.onosproject.routing.config.BgpSpeaker;
-import org.onosproject.routing.config.InterfaceAddress;
-import org.onosproject.routing.config.RoutingConfigurationService;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -81,7 +77,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
     private PeerConnectivityManager peerConnectivityManager;
     private IntentSynchronizationService intentSynchronizer;
-    private RoutingConfigurationService routingConfig;
     private InterfaceService interfaceService;
     private NetworkConfigService networkConfigService;
 
@@ -104,8 +99,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
     // Interfaces connected to BGP speakers
     private final ConnectPoint s1Eth100 =
             new ConnectPoint(deviceId1, PortNumber.portNumber(100));
-    private final ConnectPoint s2Eth100 =
-            new ConnectPoint(deviceId2, PortNumber.portNumber(100));
 
     // Interfaces connected to BGP peers
     private final ConnectPoint s1Eth1 =
@@ -119,8 +112,10 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        routingConfig = createMock(RoutingConfigurationService.class);
+
         interfaceService = createMock(InterfaceService.class);
+        interfaceService.addListener(anyObject(InterfaceListener.class));
+        expectLastCall().anyTimes();
         networkConfigService = createMock(NetworkConfigService.class);
         networkConfigService.addListener(anyObject(NetworkConfigListener.class));
         expectLastCall().anyTimes();
@@ -172,7 +167,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         InterfaceIpAddress ia1 =
             new InterfaceIpAddress(IpAddress.valueOf("192.168.10.101"),
                                    IpPrefix.valueOf("192.168.10.0/24"));
-        Interface intfsw1eth1 = new Interface(s1Eth1,
+        Interface intfsw1eth1 = new Interface(interfaceSw1Eth1, s1Eth1,
                 Collections.singletonList(ia1),
                 MacAddress.valueOf("00:00:00:00:00:01"),
                 VlanId.NONE);
@@ -182,7 +177,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         InterfaceIpAddress ia2 =
             new InterfaceIpAddress(IpAddress.valueOf("192.168.20.101"),
                                    IpPrefix.valueOf("192.168.20.0/24"));
-        Interface intfsw2eth1 = new Interface(s2Eth1,
+        Interface intfsw2eth1 = new Interface(interfaceSw2Eth1, s2Eth1,
                 Collections.singletonList(ia2),
                 MacAddress.valueOf("00:00:00:00:00:02"),
                 VlanId.NONE);
@@ -192,7 +187,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         InterfaceIpAddress ia3 =
                 new InterfaceIpAddress(IpAddress.valueOf("192.168.30.101"),
                         IpPrefix.valueOf("192.168.30.0/24"));
-        Interface intfsw2eth1intf2 = new Interface(s2Eth1,
+        Interface intfsw2eth1intf2 = new Interface(interfaceSw2Eth1intf2, s2Eth1,
                 Collections.singletonList(ia3),
                 MacAddress.valueOf("00:00:00:00:00:03"),
                 VlanId.NONE);
@@ -430,13 +425,11 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      * @throws TestUtilsException if exceptions when using TestUtils
      */
     private void initPeerConnectivity() throws TestUtilsException {
-        expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
         expect(bgpConfig.bgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
         replay(bgpConfig);
         expect(networkConfigService.getConfig(APPID, BgpConfig.class))
                 .andReturn(bgpConfig).anyTimes();
         replay(networkConfigService);
-        replay(routingConfig);
         replay(interfaceService);
 
         intentSynchronizer = createMock(IntentSynchronizationService.class);
@@ -478,6 +471,8 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
     @Test
     public void testNullInterfaces() {
         reset(interfaceService);
+        interfaceService.addListener(anyObject(InterfaceListener.class));
+        expectLastCall().anyTimes();
 
         expect(interfaceService.getInterfaces()).andReturn(
                 Sets.newHashSet()).anyTimes();
@@ -511,13 +506,9 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     @Test
     public void testNullBgpSpeakers() {
-        reset(routingConfig);
         reset(bgpConfig);
-
         expect(bgpConfig.bgpSpeakers()).andReturn(Collections.emptySet()).anyTimes();
         replay(bgpConfig);
-        expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
-        replay(routingConfig);
 
         reset(intentSynchronizer);
         replay(intentSynchronizer);
@@ -537,21 +528,4 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         testConnectionSetup();
     }
 
-    /**
-     * Tests a corner case, when there is no Interface configured for one BGP
-     * speaker.
-     */
-    @Ignore
-    @Test
-    public void testNoSpeakerInterface() {
-        BgpSpeaker bgpSpeaker100 = new BgpSpeaker(
-                "bgpSpeaker100",
-                "00:00:00:00:00:00:01:00", 100,
-                "00:00:00:00:01:00");
-        List<InterfaceAddress> interfaceAddresses100 = new LinkedList<>();
-        interfaceAddresses100.add(new InterfaceAddress(dpid1, 1, "192.168.10.201"));
-        interfaceAddresses100.add(new InterfaceAddress(dpid2, 1, "192.168.20.201"));
-        bgpSpeaker100.setInterfaceAddresses(interfaceAddresses100);
-        testConnectionSetup();
-    }
 }

@@ -31,7 +31,10 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceEvent;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.incubator.net.intf.InterfaceServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -48,18 +51,16 @@ import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.RoutingServiceAdapter;
-import org.onosproject.routing.config.BgpPeer;
-import org.onosproject.routing.config.RoutingConfigurationService;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
@@ -70,7 +71,6 @@ import static org.onosproject.routing.TestIntentServiceHelper.eqExceptId;
  */
 public class SdnIpFibTest extends AbstractIntentTest {
 
-    private RoutingConfigurationService routingConfig;
     private InterfaceService interfaceService;
 
     private static final ConnectPoint SW1_ETH1 = new ConnectPoint(
@@ -89,6 +89,10 @@ public class SdnIpFibTest extends AbstractIntentTest {
             DeviceId.deviceId("of:0000000000000004"),
             PortNumber.portNumber(1));
 
+    private static final ConnectPoint SW5_ETH1 = new ConnectPoint(
+            DeviceId.deviceId("of:0000000000000005"),
+            PortNumber.portNumber(1));
+
     private SdnIpFib sdnipFib;
     private IntentSynchronizationService intentSynchronizer;
     private final Set<Interface> interfaces = Sets.newHashSet();
@@ -96,19 +100,19 @@ public class SdnIpFibTest extends AbstractIntentTest {
     private static final ApplicationId APPID = TestApplicationId.create("SDNIP");
 
     private FibListener fibListener;
+    private InterfaceListener interfaceListener;
 
     @Before
     public void setUp() throws Exception {
         super.setUp();
 
-        routingConfig = createMock(RoutingConfigurationService.class);
         interfaceService = createMock(InterfaceService.class);
+        interfaceService.addListener(anyObject(InterfaceListener.class));
+        expectLastCall().andDelegateTo(new InterfaceServiceDelegate());
 
         // These will set expectations on routingConfig and interfaceService
         setUpInterfaceService();
-        setUpBgpPeers();
 
-        replay(routingConfig);
         replay(interfaceService);
 
         intentSynchronizer = createMock(IntentSynchronizationService.class);
@@ -123,33 +127,6 @@ public class SdnIpFibTest extends AbstractIntentTest {
     }
 
     /**
-     * Sets up BGP peers in external networks.
-     */
-    private void setUpBgpPeers() {
-
-        Map<IpAddress, BgpPeer> peers = new HashMap<>();
-
-        String peerSw1Eth1 = "192.168.10.1";
-        peers.put(IpAddress.valueOf(peerSw1Eth1),
-                new BgpPeer("00:00:00:00:00:00:00:01", 1, peerSw1Eth1));
-
-        // Two BGP peers are connected to switch 2 port 1.
-        String peer1Sw2Eth1 = "192.168.20.1";
-        peers.put(IpAddress.valueOf(peer1Sw2Eth1),
-                new BgpPeer("00:00:00:00:00:00:00:02", 1, peer1Sw2Eth1));
-
-        String peer2Sw2Eth1 = "192.168.20.2";
-        peers.put(IpAddress.valueOf(peer2Sw2Eth1),
-                new BgpPeer("00:00:00:00:00:00:00:02", 1, peer2Sw2Eth1));
-
-        String peer1Sw4Eth1 = "192.168.40.1";
-        peers.put(IpAddress.valueOf(peer1Sw4Eth1),
-                new BgpPeer("00:00:00:00:00:00:00:04", 1, peer1Sw4Eth1));
-
-        expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
-    }
-
-    /**
      * Sets up InterfaceService.
      */
     private void setUpInterfaceService() {
@@ -157,7 +134,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         interfaceIpAddresses1.add(new InterfaceIpAddress(
                 IpAddress.valueOf("192.168.10.101"),
                 IpPrefix.valueOf("192.168.10.0/24")));
-        Interface sw1Eth1 = new Interface(SW1_ETH1,
+        Interface sw1Eth1 = new Interface("sw1-eth1", SW1_ETH1,
                 interfaceIpAddresses1, MacAddress.valueOf("00:00:00:00:00:01"),
                 VlanId.NONE);
         interfaces.add(sw1Eth1);
@@ -166,7 +143,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         interfaceIpAddresses2.add(
                 new InterfaceIpAddress(IpAddress.valueOf("192.168.20.101"),
                         IpPrefix.valueOf("192.168.20.0/24")));
-        Interface sw2Eth1 = new Interface(SW2_ETH1,
+        Interface sw2Eth1 = new Interface("sw2-eth1", SW2_ETH1,
                 interfaceIpAddresses2, MacAddress.valueOf("00:00:00:00:00:02"),
                 VlanId.NONE);
         interfaces.add(sw2Eth1);
@@ -175,7 +152,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         interfaceIpAddresses3.add(
                 new InterfaceIpAddress(IpAddress.valueOf("192.168.30.101"),
                         IpPrefix.valueOf("192.168.30.0/24")));
-        Interface sw3Eth1 = new Interface(SW3_ETH1,
+        Interface sw3Eth1 = new Interface("sw3-eth1", SW3_ETH1,
                 interfaceIpAddresses3, MacAddress.valueOf("00:00:00:00:00:03"),
                 VlanId.NONE);
         interfaces.add(sw3Eth1);
@@ -183,7 +160,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         InterfaceIpAddress interfaceIpAddress4 =
                 new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"),
                         IpPrefix.valueOf("192.168.40.0/24"));
-        Interface sw4Eth1 = new Interface(SW4_ETH1,
+        Interface sw4Eth1 = new Interface("sw4-eth1", SW4_ETH1,
                 Lists.newArrayList(interfaceIpAddress4),
                 MacAddress.valueOf("00:00:00:00:00:04"),
                 VlanId.vlanId((short) 1));
@@ -428,6 +405,100 @@ public class SdnIpFibTest extends AbstractIntentTest {
         verify(intentSynchronizer);
     }
 
+    @Test
+    public void testAddInterface() {
+        testFibAdd();
+
+        IpPrefix prefix = Ip4Prefix.valueOf("1.1.1.0/24");
+
+        // Construct the existing MultiPointToSinglePoint intent
+        TrafficSelector.Builder selectorBuilder =
+                DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(prefix);
+
+        TrafficTreatment.Builder treatmentBuilder =
+                DefaultTrafficTreatment.builder();
+        treatmentBuilder.setEthDst(MacAddress.valueOf("00:00:00:00:00:01"));
+
+        Set<ConnectPoint> ingressPoints = new HashSet<>();
+        ingressPoints.add(SW2_ETH1);
+        ingressPoints.add(SW3_ETH1);
+        ingressPoints.add(SW4_ETH1);
+        ingressPoints.add(SW5_ETH1);
+
+        MultiPointToSinglePointIntent addedIntent =
+                MultiPointToSinglePointIntent.builder()
+                        .appId(APPID)
+                        .key(Key.of(prefix.toString(), APPID))
+                        .selector(selectorBuilder.build())
+                        .treatment(treatmentBuilder.build())
+                        .ingressPoints(ingressPoints)
+                        .egressPoint(SW1_ETH1)
+                        .constraints(SdnIpFib.CONSTRAINTS)
+                        .build();
+
+        reset(intentSynchronizer);
+
+        intentSynchronizer.submit(eqExceptId(addedIntent));
+        expectLastCall().once();
+
+        replay(intentSynchronizer);
+
+        Interface intf = new Interface("newintf", SW5_ETH1,
+                Collections.singletonList(InterfaceIpAddress.valueOf("192.168.50.101/24")),
+                MacAddress.valueOf("00:00:00:00:00:02"), VlanId.NONE);
+        InterfaceEvent intfEvent = new InterfaceEvent(InterfaceEvent.Type.INTERFACE_ADDED, intf);
+        interfaceListener.event(intfEvent);
+
+        verify(intentSynchronizer);
+    }
+
+    @Test
+    public void testRemoveInterface() {
+        testFibAdd();
+
+        IpPrefix prefix = Ip4Prefix.valueOf("1.1.1.0/24");
+
+        // Construct the existing MultiPointToSinglePoint intent
+        TrafficSelector.Builder selectorBuilder =
+                DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(prefix);
+
+        TrafficTreatment.Builder treatmentBuilder =
+                DefaultTrafficTreatment.builder();
+        treatmentBuilder.setEthDst(MacAddress.valueOf("00:00:00:00:00:01"));
+
+        Set<ConnectPoint> ingressPoints = new HashSet<>();
+        ingressPoints.add(SW2_ETH1);
+        ingressPoints.add(SW3_ETH1);
+
+        MultiPointToSinglePointIntent addedIntent =
+                MultiPointToSinglePointIntent.builder()
+                        .appId(APPID)
+                        .key(Key.of(prefix.toString(), APPID))
+                        .selector(selectorBuilder.build())
+                        .treatment(treatmentBuilder.build())
+                        .ingressPoints(ingressPoints)
+                        .egressPoint(SW1_ETH1)
+                        .constraints(SdnIpFib.CONSTRAINTS)
+                        .build();
+
+        reset(intentSynchronizer);
+
+        intentSynchronizer.submit(eqExceptId(addedIntent));
+        expectLastCall().once();
+
+        replay(intentSynchronizer);
+
+        Interface intf = new Interface("newintf", SW4_ETH1,
+                Collections.singletonList(InterfaceIpAddress.valueOf("192.168.50.101/24")),
+                MacAddress.valueOf("00:00:00:00:00:02"), VlanId.NONE);
+        InterfaceEvent intfEvent = new InterfaceEvent(InterfaceEvent.Type.INTERFACE_REMOVED, intf);
+        interfaceListener.event(intfEvent);
+
+        verify(intentSynchronizer);
+    }
+
     private class TestCoreService extends CoreServiceAdapter {
         @Override
         public ApplicationId getAppId(String name) {
@@ -440,6 +511,14 @@ public class SdnIpFibTest extends AbstractIntentTest {
         @Override
         public void addFibListener(FibListener fibListener) {
             SdnIpFibTest.this.fibListener = fibListener;
+        }
+    }
+
+    private class InterfaceServiceDelegate extends InterfaceServiceAdapter {
+
+        @Override
+        public void addListener(InterfaceListener listener) {
+            SdnIpFibTest.this.interfaceListener = listener;
         }
     }
 }
