@@ -556,7 +556,8 @@ public class OFDPA2GroupHandler {
         }
 
         // assemble info for l2 flood group
-        Integer l2floodgroupId = L2_FLOOD_TYPE | (vlanId.toShort() << 16) | nextObj.id();
+        // since there can be only one flood group for a vlan, its index is always the same - 0
+        Integer l2floodgroupId = L2_FLOOD_TYPE | (vlanId.toShort() << 16);
         int l2floodgk = L2_FLOOD_TYPE | nextObj.id() << 12;
         final GroupKey l2floodgroupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l2floodgk));
         // collection of group buckets pointing to all the l2 interface groups
@@ -1007,7 +1008,7 @@ public class OFDPA2GroupHandler {
         if (gceSet != null) {
             for (GroupChainElem gce : gceSet) {
                 log.info("Group service {} group key {} in device {}. "
-                                + "Processing next group in group chain with group id {}",
+                                + "Processing next group in group chain with group id 0x{}",
                         (added) ? "ADDED" : "processed",
                         key, deviceId,
                         Integer.toHexString(gce.groupDescription.givenGroupId()));
@@ -1020,7 +1021,7 @@ public class OFDPA2GroupHandler {
                 pendingNextObjectives.invalidate(key);
                 nextGrpList.forEach(nextGrp -> {
                     log.info("Group service {} group key {} in device:{}. "
-                                    + "Done implementing next objective: {} <<-->> gid:{}",
+                                    + "Done implementing next objective: {} <<-->> gid:0x{}",
                             (added) ? "ADDED" : "processed",
                             key, deviceId, nextGrp.nextObjective().id(),
                             Integer.toHexString(groupService.getGroup(deviceId, key)
@@ -1116,7 +1117,6 @@ public class OFDPA2GroupHandler {
             this.nextObj = nextObj;
         }
 
-        @SuppressWarnings("unused")
         public List<Deque<GroupKey>> groupKey() {
             return gkeys;
         }

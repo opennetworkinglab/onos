@@ -576,7 +576,7 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return type().toString() + SEPARATOR + Integer.toHexString(groupId.id());
+            return type().toString() + SEPARATOR + "0x" + Integer.toHexString(groupId.id());
         }
 
         @Override

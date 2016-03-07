@@ -37,6 +37,7 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupOperation;
+import org.onosproject.net.group.GroupOperation.GroupMsgErrorCode;
 import org.onosproject.net.group.GroupOperations;
 import org.onosproject.net.group.GroupProvider;
 import org.onosproject.net.group.GroupProviderRegistry;
@@ -56,6 +57,7 @@ import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupMod;
+import org.projectfloodlight.openflow.protocol.OFGroupModFailedCode;
 import org.projectfloodlight.openflow.protocol.OFGroupStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFGroupStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupType;
@@ -64,6 +66,7 @@ import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.protocol.errormsg.OFGroupModFailedErrorMsg;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Maps;
@@ -135,7 +138,6 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
     @Override
     public void performGroupOperation(DeviceId deviceId, GroupOperations groupOps) {
-        Map<OFGroupMod, OpenFlowSwitch> mods = Maps.newIdentityHashMap();
         final Dpid dpid = Dpid.dpid(deviceId.uri());
         OpenFlowSwitch sw = controller.getSwitch(dpid);
         for (GroupOperation groupOperation: groupOps.operations()) {
@@ -329,11 +331,17 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                                     pendingGroupOperations.get(pendingGroupId);
                             DeviceId deviceId = DeviceId.deviceId(Dpid.uri(dpid));
                             if (operation != null) {
+                                OFGroupModFailedCode code =
+                                        ((OFGroupModFailedErrorMsg) errorMsg).getCode();
+                                GroupMsgErrorCode failureCode =
+                                        GroupMsgErrorCode.values()[(code.ordinal())];
+                                GroupOperation failedOperation = GroupOperation
+                                        .createFailedGroupOperation(operation, failureCode);
                                 providerService.groupOperationFailed(deviceId,
-                                        operation);
+                                        failedOperation);
                                 pendingGroupOperations.remove(pendingGroupId);
                                 pendingXidMaps.remove(pendingGroupId);
-                                log.warn("Received an group mod error {}", msg);
+                                log.warn("Received a group mod error {}", msg);
                             } else {
                                 log.error("Cannot find pending group operation with group ID: {}",
                                         pendingGroupId);

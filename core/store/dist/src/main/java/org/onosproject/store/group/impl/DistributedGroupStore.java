@@ -88,7 +88,8 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Manages inventory of group entries using trivial in-memory implementation.
+ * Manages inventory of group entries using distributed group stores from the
+ * storage service.
  */
 @Component(immediate = true)
 @Service
@@ -450,16 +451,18 @@ public class DistributedGroupStore
             matchingExtraneousGroup = getMatchingExtraneousGroupbyId(
                                 groupDesc.deviceId(), groupDesc.givenGroupId());
             if (matchingExtraneousGroup != null) {
-                log.debug("storeGroupDescriptionInternal: Matching extraneous group found in Device {} for group id {}",
+                log.debug("storeGroupDescriptionInternal: Matching extraneous group "
+                        + "found in Device {} for group id 0x{}",
                           groupDesc.deviceId(),
-                          groupDesc.givenGroupId());
+                          Integer.toHexString(groupDesc.givenGroupId()));
                 //Check if the group buckets matches with user provided buckets
                 if (matchingExtraneousGroup.buckets().equals(groupDesc.buckets())) {
                     //Group is already existing with the same buckets and Id
                     // Create a group entry object
-                    log.debug("storeGroupDescriptionInternal: Buckets also matching in Device {} for group id {}",
+                    log.debug("storeGroupDescriptionInternal: Buckets also matching "
+                            + "in Device {} for group id 0x{}",
                               groupDesc.deviceId(),
-                              groupDesc.givenGroupId());
+                              Integer.toHexString(groupDesc.givenGroupId()));
                     StoredGroupEntry group = new DefaultGroup(
                               matchingExtraneousGroup.id(), groupDesc);
                     // Insert the newly created group entry into key and id maps
@@ -476,10 +479,27 @@ public class DistributedGroupStore
                 } else {
                     //Group buckets are not matching. Update group
                     //with user provided buckets.
-                    //TODO
-                    log.debug("storeGroupDescriptionInternal: Buckets are not matching in Device {} for group id {}",
+                    log.debug("storeGroupDescriptionInternal: Buckets are not "
+                            + "matching in Device {} for group id 0x{}",
                               groupDesc.deviceId(),
-                              groupDesc.givenGroupId());
+                              Integer.toHexString(groupDesc.givenGroupId()));
+                    StoredGroupEntry modifiedGroup = new DefaultGroup(
+                               matchingExtraneousGroup.id(), groupDesc);
+                    modifiedGroup.setState(GroupState.PENDING_UPDATE);
+                    getGroupStoreKeyMap().
+                        put(new GroupStoreKeyMapKey(groupDesc.deviceId(),
+                                                groupDesc.appCookie()), modifiedGroup);
+                    // Ensure it also inserted into group id based table to
+                    // avoid any chances of duplication in group id generation
+                    getGroupIdTable(groupDesc.deviceId()).
+                        put(matchingExtraneousGroup.id(), modifiedGroup);
+                    removeExtraneousGroupEntry(matchingExtraneousGroup);
+                    log.debug("storeGroupDescriptionInternal: Triggering Group "
+                            + "UPDATE request for {} in device {}",
+                              matchingExtraneousGroup.id(),
+                              groupDesc.deviceId());
+                    notifyDelegate(new GroupEvent(Type.GROUP_UPDATE_REQUESTED, modifiedGroup));
+                    return;
                 }
             }
         } else {
@@ -754,7 +774,7 @@ public class DistributedGroupStore
         GroupEvent event = null;
 
         if (existing != null) {
-            log.debug("addOrUpdateGroupEntry: updating group entry {} in device {}",
+            log.trace("addOrUpdateGroupEntry: updating group entry {} in device {}",
                     group.id(),
                     group.deviceId());
             synchronized (existing) {
@@ -779,7 +799,7 @@ public class DistributedGroupStore
                 existing.setBytes(group.bytes());
                 if ((existing.state() == GroupState.PENDING_ADD) ||
                     (existing.state() == GroupState.PENDING_ADD_RETRY)) {
-                    log.debug("addOrUpdateGroupEntry: group entry {} in device {} moving from {} to ADDED",
+                    log.trace("addOrUpdateGroupEntry: group entry {} in device {} moving from {} to ADDED",
                             existing.id(),
                             existing.deviceId(),
                             existing.state());
@@ -787,7 +807,7 @@ public class DistributedGroupStore
                     existing.setIsGroupStateAddedFirstTime(true);
                     event = new GroupEvent(Type.GROUP_ADDED, existing);
                 } else {
-                    log.debug("addOrUpdateGroupEntry: group entry {} in device {} moving from {} to ADDED",
+                    log.trace("addOrUpdateGroupEntry: group entry {} in device {} moving from {} to ADDED",
                             existing.id(),
                             existing.deviceId(),
                             GroupState.PENDING_UPDATE);
@@ -911,18 +931,19 @@ public class DistributedGroupStore
         }
 
         log.warn("groupOperationFailed: group operation {} failed"
-                + "for group {} in device {}",
+                + "for group {} in device {} with code {}",
                 operation.opType(),
                 existing.id(),
-                existing.deviceId());
+                existing.deviceId(),
+                operation.failureCode());
+        if (operation.failureCode() == GroupOperation.GroupMsgErrorCode.GROUP_EXISTS) {
+            log.warn("Current extraneous groups in device:{} are: {}",
+                     deviceId,
+                     getExtraneousGroups(deviceId));
+        }
         switch (operation.opType()) {
             case ADD:
                 if (existing.state() == GroupState.PENDING_ADD) {
-                    //TODO: Need to add support for passing the group
-                    //operation failure reason from group provider.
-                    //If the error type is anything other than GROUP_EXISTS,
-                    //then the GROUP_ADD_FAILED event should be raised even
-                    //in PENDING_ADD_RETRY state also.
                     notifyDelegate(new GroupEvent(Type.GROUP_ADD_FAILED, existing));
                     log.warn("groupOperationFailed: cleaningup "
                             + "group {} from store in device {}....",
@@ -1220,13 +1241,13 @@ public class DistributedGroupStore
         for (Group group : extraneousStoredEntries) {
             // there are groups in the extraneous store that
             // aren't in the switch
-            log.debug("Group AUDIT: clearing extransoeus group {} from store for device {}",
+            log.debug("Group AUDIT: clearing extraneous group {} from store for device {}",
                     group.id(), deviceId);
             removeExtraneousGroupEntry(group);
         }
 
         if (!deviceInitialAuditStatus) {
-            log.debug("Group AUDIT: Setting device {} initial AUDIT completed",
+            log.info("Group AUDIT: Setting device {} initial AUDIT completed",
                       deviceId);
             deviceInitialAuditCompleted(deviceId, true);
         }
@@ -1266,7 +1287,7 @@ public class DistributedGroupStore
     }
 
     private void extraneousGroup(Group group) {
-        log.debug("Group {} is on device {} but not in store.",
+        log.trace("Group {} is on device {} but not in store.",
                   group, group.deviceId());
         addOrUpdateExtraneousGroupEntry(group);
     }

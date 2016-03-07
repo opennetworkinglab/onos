@@ -61,7 +61,7 @@ public class DefaultGroupId implements GroupId {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("id", id)
+                .add("id", "0x" + Integer.toHexString(id))
                 .toString();
     }
 }
