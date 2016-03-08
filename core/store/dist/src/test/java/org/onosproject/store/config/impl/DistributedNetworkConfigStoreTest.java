@@ -59,6 +59,11 @@ public class DistributedNetworkConfigStoreTest {
     public class BasicConfig extends Config<String> { }
 
     /**
+     * Config class for testing.
+     */
+    public class BasicIntConfig extends Config<Integer> { }
+
+    /**
      * Config factory class for testing.
      */
     public class MockConfigFactory extends ConfigFactory<String, BasicConfig> {
@@ -68,6 +73,19 @@ public class DistributedNetworkConfigStoreTest {
         @Override
         public BasicConfig createConfig() {
             return new BasicConfig();
+        }
+    }
+
+    /**
+     * Config factory class for testing.
+     */
+    public class MockIntConfigFactory extends ConfigFactory<Integer, BasicIntConfig> {
+        protected MockIntConfigFactory(Class<BasicIntConfig> configClass, String configKey) {
+            super(new MockIntSubjectFactory("strings"), configClass, configKey);
+        }
+        @Override
+        public BasicIntConfig createConfig() {
+            return new BasicIntConfig();
         }
     }
 
@@ -85,6 +103,19 @@ public class DistributedNetworkConfigStoreTest {
         }
     }
 
+    /**
+     * Subject factory class for testing.
+     */
+    public class MockIntSubjectFactory extends SubjectFactory<Integer> {
+        protected MockIntSubjectFactory(String subjectClassKey) {
+            super(Integer.class, subjectClassKey);
+        }
+
+        @Override
+        public Integer createSubject(String subjectKey) {
+            return Integer.parseInt(subjectKey);
+        }
+    }
     /**
      * Tests creation, query and removal of a config.
      */
@@ -132,9 +163,44 @@ public class DistributedNetworkConfigStoreTest {
     public void testApplyConfig() {
         configStore.addConfigFactory(new MockConfigFactory(BasicConfig.class, "config1"));
 
-        configStore.applyConfig("config1", BasicConfig.class, new ObjectMapper().createObjectNode());
-        assertThat(configStore.getConfigClasses("config1"), hasSize(1));
+        configStore.applyConfig("subject", BasicConfig.class, new ObjectMapper().createObjectNode());
+        assertThat(configStore.getConfigClasses("subject"), hasSize(1));
         assertThat(configStore.getSubjects(String.class, BasicConfig.class), hasSize(1));
         assertThat(configStore.getSubjects(String.class), hasSize(1));
+    }
+
+    /**
+     * Tests inserting a pending configuration.
+     */
+    @Test
+    public void testPendingConfig() {
+        configStore.queueConfig("subject", "config1", new ObjectMapper().createObjectNode());
+        configStore.addConfigFactory(new MockConfigFactory(BasicConfig.class, "config1"));
+
+        assertThat(configStore.getConfigClasses("subject"), hasSize(1));
+        assertThat(configStore.getSubjects(String.class, BasicConfig.class), hasSize(1));
+        assertThat(configStore.getSubjects(String.class), hasSize(1));
+    }
+
+    /**
+     * Tests inserting a pending configuration for the same key, different subject.
+     */
+    @Test
+    public void testPendingConfigSameKey() {
+        configStore.queueConfig("subject", "config1", new ObjectMapper().createObjectNode());
+        configStore.queueConfig(123, "config1", new ObjectMapper().createObjectNode());
+        configStore.addConfigFactory(new MockConfigFactory(BasicConfig.class, "config1"));
+
+        assertThat(configStore.getConfigClasses("subject"), hasSize(1));
+        assertThat(configStore.getConfigClasses(123), hasSize(0));
+        assertThat(configStore.getSubjects(String.class, BasicConfig.class), hasSize(1));
+        assertThat(configStore.getSubjects(String.class), hasSize(1));
+
+        configStore.addConfigFactory(new MockIntConfigFactory(BasicIntConfig.class, "config1"));
+
+        assertThat(configStore.getConfigClasses("subject"), hasSize(1));
+        assertThat(configStore.getConfigClasses(123), hasSize(1));
+        assertThat(configStore.getSubjects(Integer.class, BasicIntConfig.class), hasSize(1));
+        assertThat(configStore.getSubjects(Integer.class), hasSize(1));
     }
 }

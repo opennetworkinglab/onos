@@ -29,7 +29,6 @@ import com.fasterxml.jackson.databind.node.ShortNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -124,14 +123,18 @@ public class DistributedNetworkConfigStore
 
     // Sweep through any pending configurations, validate them and then prune them.
     private void processPendingConfigs(ConfigFactory configFactory) {
-        Set<ConfigKey> toBePruned = Sets.newHashSet();
-        configs.keySet().forEach(k -> {
-            if (Objects.equals(k.configKey, configFactory.configKey())) {
+        ImmutableSet.copyOf(configs.keySet()).forEach(k -> {
+            if (Objects.equals(k.configKey, configFactory.configKey()) &&
+                    isAssignableFrom(configFactory, k)) {
                 validateConfig(k, configFactory, configs.get(k).value());
-                toBePruned.add(k); // Prune whether valid or not
+                configs.remove(k); // Prune whether valid or not
             }
         });
-        toBePruned.forEach(configs::remove);
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean isAssignableFrom(ConfigFactory configFactory, ConfigKey k) {
+        return configFactory.subjectFactory().subjectClass().isAssignableFrom(k.subject.getClass());
     }
 
     @SuppressWarnings("unchecked")
