@@ -33,7 +33,9 @@
 
     <properties>
         <onos.app.name>org.onosproject.vpls</onos.app.name>
+        <onos.app.category>Traffic Steering</onos.app.category>
         <onos.app.title>VLAN L2 Broadcast Network App</onos.app.title>
+        <onos.app.url>http://onosproject.org</onos.app.url>
     </properties>
 
     <dependencies>

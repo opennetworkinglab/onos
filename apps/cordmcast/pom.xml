@@ -33,7 +33,9 @@
 
     <properties>
         <onos.app.name>org.onosproject.cordmcast</onos.app.name>
+        <onos.app.category>Traffic Steering</onos.app.category>
         <onos.app.title>CORD Multicast App</onos.app.title>
+        <onos.app.url>http://opencord.org</onos.app.url>
     </properties>
 
     <dependencies>

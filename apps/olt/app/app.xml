@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.olt" origin="ON.Lab" version="${project.version}"
-     category="default" url="http://onosproject.org" title="ONOS OLT App"
+     category="Traffic Steering" url="http://onosproject.org" title="Optical Line Terminal App"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>

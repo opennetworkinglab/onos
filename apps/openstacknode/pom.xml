@@ -34,8 +34,8 @@
 
     <properties>
         <onos.app.name>org.onosproject.openstacknode</onos.app.name>
-        <onos.app.title>SONA Openstack Node Bootstrap App</onos.app.title>
-        <onos.app.category>default</onos.app.category>
+        <onos.app.title>OpenStack Node Bootstrap App</onos.app.title>
+        <onos.app.category>Utility</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>SONA Openstack Node Bootstrap Application</onos.app.readme>
         <onos.app.requires>

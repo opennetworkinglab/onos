@@ -33,8 +33,8 @@
 
     <properties>
         <onos.app.name>org.onosproject.flowanalyzer</onos.app.name>
-        <onos.app.title>Flow Space Analyzer</onos.app.title>
-        <onos.app.category>default</onos.app.category>
+        <onos.app.title>Flow Space Analysis App</onos.app.title>
+        <onos.app.category>Monitoring</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Simple flow space analyzer.</onos.app.readme>
     </properties>

@@ -34,7 +34,7 @@
     <properties>
         <onos.app.name>org.onosproject.igmp</onos.app.name>
         <onos.app.title>IGMP App</onos.app.title>
-        <onos.app.category>default</onos.app.category>
+        <onos.app.category>Traffic Steering</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>IGMP implementation.</onos.app.readme>
     </properties>

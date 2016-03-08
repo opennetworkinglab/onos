@@ -26,6 +26,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <description>Fujitsu device drivers</description>
+
+    <artifactId>onos-drivers-fujitsu</artifactId>
+    <packaging>bundle</packaging>
+
+    <properties>
+        <onos.app.name>org.onosproject.drivers.fujitsu</onos.app.name>
+        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.category>Drivers</onos.app.category>
+        <onos.app.title>Fujitsu Device Drivers</onos.app.title>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -38,12 +50,5 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
-
-    <artifactId>onos-drivers-fujitsu</artifactId>
-    <packaging>bundle</packaging>
-
-    <properties>
-        <onos.app.name>org.onosproject.drivers.fujitsu</onos.app.name>
-    </properties>
 
 </project>

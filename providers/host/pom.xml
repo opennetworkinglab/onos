@@ -33,7 +33,7 @@
         <onos.app.name>org.onosproject.hostprovider</onos.app.name>
         <onos.app.title>Host Location Provider</onos.app.title>
         <onos.app.origin>ON.Lab</onos.app.origin>
-        <onos.app.category>default</onos.app.category>
+        <onos.app.category>Provider</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>ONOS host location provider.</onos.app.readme>
     </properties>

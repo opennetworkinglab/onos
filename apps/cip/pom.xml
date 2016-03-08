@@ -33,7 +33,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.cip</onos.app.name>
-        <onos.app.category>default</onos.app.category>
+        <onos.app.category>Utility</onos.app.category>
         <onos.app.title>Cluster IP Alias App</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Cluster IP alias application.</onos.app.readme>

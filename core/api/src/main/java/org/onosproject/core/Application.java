@@ -60,6 +60,10 @@ public interface Application {
     /**
      * Returns category of the application.
      *
+     * The application developer can choose one of the category from the
+     * following examples to easily discern the high-level purpose of the application.
+     * (Security, Traffic Steering, Monitoring, Drivers, Provider, Utility)
+     *
      * @return application category text
      */
     String category();

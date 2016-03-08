@@ -33,8 +33,8 @@
 
     <properties>
         <onos.app.name>org.onosproject.demo</onos.app.name>
-        <onos.app.title>Flow Throughput Demo</onos.app.title>
-        <onos.app.category>test</onos.app.category>
+        <onos.app.title>Flow Throughput Demo App</onos.app.title>
+        <onos.app.category>Test</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Flow throughput test application.</onos.app.readme>
         <web.context>/onos/demo</web.context>

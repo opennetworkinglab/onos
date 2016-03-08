@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.cpman" origin="ON.Lab" version="${project.version}"
-     category="default" url="http://onosproject.org" title="Control Plane Manager"
+     category="Monitoring" url="http://onosproject.org" title="Control Plane Management App"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}" apps="org.onosproject.openflow-message">
     <description>${project.description}</description>

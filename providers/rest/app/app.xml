@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.restsb" origin="ON.Lab" version="${project.version}"
-     category="default" url="http://onosproject.org" title="REST Provider"
+     category="Provider" url="https://wiki.onosproject.org/display/ONOS/REST" title="REST/SB Provider"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>

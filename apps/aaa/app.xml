@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.aaa" origin="ATT" version="${project.version}"
-     category="default" url="http://onosproject.org" title="ONOS Auth App"
+     category="Security" url="http://onosproject.org" title="Authentication App"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>

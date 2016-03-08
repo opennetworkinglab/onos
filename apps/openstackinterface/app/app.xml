@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.openstackinterface" origin="ON.Lab" version="${project.version}"
-     category="default" url="http://onosproject.org" title="Openstack Interface App"
+     category="Utility" url="http://onosproject.org" title="OpenStack Interface App"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>

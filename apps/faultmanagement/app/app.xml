@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.faultmanagement" origin="BTI Systems" version="${project.version}"
-     category="default" url="http://onosproject.org" title="ONOS Fault Mgmt App"
+     category="Monitoring" url="https://wiki.onosproject.org/display/ONOS/Fault+Management" title="Fault Management App"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>

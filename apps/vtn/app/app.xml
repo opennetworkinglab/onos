@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.vtn" origin="ON.Lab" version="${project.version}"
-     category="default" url="http://onosproject.org" title="ONOS Framework App"
+     category="Utility" url="http://onosproject.org" title="OPNFV App"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>

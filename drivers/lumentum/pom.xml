@@ -31,6 +31,10 @@
 
     <properties>
         <onos.app.name>org.onosproject.drivers.lumentum</onos.app.name>
+        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.category>Drivers</onos.app.category>
+        <onos.app.title>Lumentum Device Drivers</onos.app.title>
+        <onos.app.url>http://onosproject.org</onos.app.url>
     </properties>
 
     <dependencies>

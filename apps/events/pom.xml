@@ -32,8 +32,8 @@
 
     <properties>
         <onos.app.name>org.onosproject.events</onos.app.name>
-        <onos.app.title>ONOS Event History App</onos.app.title>
-        <onos.app.category>default</onos.app.category>
+        <onos.app.title>Event History App</onos.app.title>
+        <onos.app.category>Utility</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>ONOS event history display application.</onos.app.readme>
     </properties>

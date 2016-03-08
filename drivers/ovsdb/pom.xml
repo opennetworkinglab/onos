@@ -28,10 +28,14 @@
     <artifactId>onos-drivers-ovsdb</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ovsdb device drivers</description>
+    <description>OVSDB device drivers</description>
 
     <properties>
         <onos.app.name>org.onosproject.drivers.ovsdb</onos.app.name>
+        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.category>Drivers</onos.app.category>
+        <onos.app.title>OVSDB Device Drivers</onos.app.title>
+        <onos.app.url>http://onosproject.org</onos.app.url>
     </properties>
 
     <dependencies>
