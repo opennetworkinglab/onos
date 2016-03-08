@@ -671,7 +671,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                     log.warn("Cannot process instruction in versatile fwd {}", ins);
                 }
             }
-            ttBuilder.wipeDeferred();
         }
         if (fwd.nextId() != null) {
             // overide case
