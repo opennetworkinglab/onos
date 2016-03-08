@@ -55,6 +55,8 @@ public class MastershipLoadBalancer {
 
     private final Logger log = getLogger(getClass());
 
+    // TODO: parameterize via component config
+    private static final int SCHEDULE_PERIOD = 5;
     private static final String REBALANCE_MASTERSHIP = "rebalance/mastership";
 
     private NodeId localId;
@@ -120,8 +122,9 @@ public class MastershipLoadBalancer {
     private void scheduleBalance() {
         if (isLeader.get() && nextTask.get() == null) {
 
-            ListenableScheduledFuture task = executorService.schedule(mastershipAdminService::balanceRoles, 30,
-                    TimeUnit.SECONDS);
+            ListenableScheduledFuture task =
+                    executorService.schedule(mastershipAdminService::balanceRoles,
+                            SCHEDULE_PERIOD, TimeUnit.SECONDS);
             task.addListener(() -> {
                         log.info("Completed balance roles");
                         nextTask.set(null);
