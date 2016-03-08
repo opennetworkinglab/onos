@@ -29,9 +29,7 @@ export ONOS_NIC="10.0.3.*"
 export OC1=10.0.3.174
 export OC2=10.0.3.242
 export OC3=10.0.3.49
-
-## keep this out of the initial cluster...
-## export OC4=10.0.3.132
+export OC4=10.0.3.132
 
 ## default ONOS instance
 export OCI=$OC1
