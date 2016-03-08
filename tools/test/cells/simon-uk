@@ -16,22 +16,22 @@ export OCVM=192.168.56.102
 # sdn@ocluster:~$ sudo lxc-ls --fancy
 # NAME   STATE    IPV4        IPV6  AUTOSTART
 # -------------------------------------------
-# onos1  RUNNING  10.0.3.174  -     YES
-# onos2  RUNNING  10.0.3.242  -     YES
-# onos3  RUNNING  10.0.3.49   -     YES
-# onos4  RUNNING  10.0.3.132  -     YES
+# onos1  RUNNING  10.0.3.11   -     YES
+# onos2  RUNNING  10.0.3.12   -     YES
+# onos3  RUNNING  10.0.3.13   -     YES
+# onos4  RUNNING  10.0.3.14   -     YES
 #============================================
 
 export ONOS_USE_SSH=true
 export ONOS_NIC="10.0.3.*"
 
 ## ONOS instances (LXC containers)
-export OC1=10.0.3.174
-export OC2=10.0.3.242
-export OC3=10.0.3.49
+export OC1=10.0.3.11
+export OC2=10.0.3.12
+export OC3=10.0.3.13
 
 ## keep this out of the initial cluster...
-## export OC4=10.0.3.132
+## export OC4=10.0.3.14
 
 ## default ONOS instance
 export OCI=$OC1
