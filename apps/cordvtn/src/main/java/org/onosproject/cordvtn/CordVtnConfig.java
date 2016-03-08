@@ -60,7 +60,7 @@ public class CordVtnConfig extends Config<ApplicationId> {
     /**
      * Returns the set of nodes read from network config.
      *
-     * @return set of CordVtnNodeConfig or null
+     * @return set of CordVtnNodeConfig or empty set
      */
     public Set<CordVtnNode> cordVtnNodes() {
 
@@ -68,7 +68,7 @@ public class CordVtnConfig extends Config<ApplicationId> {
         JsonNode jsonNodes = object.get(CORDVTN_NODES);
         if (jsonNodes == null) {
             log.debug("No CORD VTN nodes found");
-            return null;
+            return nodes;
         }
 
         for (JsonNode jsonNode : jsonNodes) {
@@ -94,7 +94,8 @@ public class CordVtnConfig extends Config<ApplicationId> {
                         TpPort.tpPort(Integer.parseInt(getConfig(object, OVSDB_PORT))),
                         sshInfo,
                         DeviceId.deviceId(getConfig(jsonNode, BRIDGE_ID)),
-                        getConfig(jsonNode, DATA_PLANE_INTF));
+                        getConfig(jsonNode, DATA_PLANE_INTF),
+                        CordVtnNodeState.noState());
 
                 log.info("Successfully read {} from the config", hostname);
                 nodes.add(newNode);

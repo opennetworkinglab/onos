@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ public final class CordVtnNode {
     private final SshAccessInfo sshInfo;
     private final DeviceId bridgeId;
     private final String dpIntf;
+    private final CordVtnNodeState state;
 
     public static final Comparator<CordVtnNode> CORDVTN_NODE_COMPARATOR =
             (node1, node2) -> node1.hostname().compareTo(node2.hostname());
@@ -52,10 +53,11 @@ public final class CordVtnNode {
      * @param sshInfo SSH access information
      * @param bridgeId integration bridge identifier
      * @param dpIntf data plane interface name
+     * @param state cordvtn node state
      */
     public CordVtnNode(String hostname, NetworkAddress hostMgmtIp, NetworkAddress localMgmtIp,
                        NetworkAddress dpIp, TpPort ovsdbPort, SshAccessInfo sshInfo,
-                       DeviceId bridgeId, String dpIntf) {
+                       DeviceId bridgeId, String dpIntf, CordVtnNodeState state) {
         this.hostname = checkNotNull(hostname, "hostname cannot be null");
         this.hostMgmtIp = checkNotNull(hostMgmtIp, "hostMgmtIp cannot be null");
         this.localMgmtIp = checkNotNull(localMgmtIp, "localMgmtIp cannot be null");
@@ -64,6 +66,23 @@ public final class CordVtnNode {
         this.sshInfo = checkNotNull(sshInfo, "sshInfo cannot be null");
         this.bridgeId = checkNotNull(bridgeId, "bridgeId cannot be null");
         this.dpIntf = checkNotNull(dpIntf, "dpIntf cannot be null");
+        this.state = state;
+    }
+
+    /**
+     * Returns cordvtn node with new state.
+     *
+     * @param node cordvtn node
+     * @param state cordvtn node init state
+     * @return cordvtn node
+     */
+    public static CordVtnNode getUpdatedNode(CordVtnNode node, CordVtnNodeState state) {
+        return new CordVtnNode(node.hostname,
+                               node.hostMgmtIp, node.localMgmtIp, node.dpIp,
+                               node.ovsdbPort,
+                               node.sshInfo,
+                               node.bridgeId,
+                               node.dpIntf, state);
     }
 
     /**
@@ -147,6 +166,15 @@ public final class CordVtnNode {
         return this.dpIntf;
     }
 
+    /**
+     * Returns the state of the node.
+     *
+     * @return state
+     */
+    public CordVtnNodeState state() {
+        return this.state;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -180,6 +208,7 @@ public final class CordVtnNode {
                 .add("sshInfo", sshInfo)
                 .add("bridgeId", bridgeId)
                 .add("dpIntf", dpIntf)
+                .add("state", state)
                 .toString();
     }
 }
