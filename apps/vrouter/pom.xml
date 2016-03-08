@@ -31,23 +31,16 @@
     <packaging>bundle</packaging>
 
     <description>Virtual router (vRouter) application</description>
-    <url>http://onosproject.org</url>
-
-    <properties>
-        <onos.version>1.5.0-SNAPSHOT</onos.version>
-    </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
-            <version>${onos.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
-            <version>${onos.version}</version>
         </dependency>
 
         <dependency>
@@ -64,7 +57,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
-            <version>${onos.version}</version>
             <scope>test</scope>
             <classifier>tests</classifier>
         </dependency>

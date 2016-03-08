@@ -30,16 +30,8 @@
     <description>
         Links provider that uses network config service to predefine devices and links.
     </description>
-    <url>http://onosproject.org</url>
-
-    <properties>
-        <onos.app.name>org.onosproject.netcfglinksprovider</onos.app.name>
-        <onos.app.title>Network Config Link Provider</onos.app.title>
-        <onos.app.origin>ON.Lab</onos.app.origin>
-    </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>

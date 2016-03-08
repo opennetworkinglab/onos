@@ -36,8 +36,7 @@
         <onos.app.title>Packet/Optical Use-Case App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>Packet/Optical use-case application.
-        </onos.app.readme>
+        <onos.app.readme>Packet/Optical use-case application.</onos.app.readme>
     </properties>
 
     <dependencies>

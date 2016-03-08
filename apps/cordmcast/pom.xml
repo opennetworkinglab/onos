@@ -33,6 +33,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.cordmcast</onos.app.name>
+        <onos.app.title>CORD Multicast App</onos.app.title>
     </properties>
 
     <dependencies>

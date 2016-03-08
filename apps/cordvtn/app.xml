@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.cordvtn" origin="ON.Lab" version="${project.version}"
-        category="default" url="http://onosproject.org"
+        category="default" url="http://onosproject.org" title="CORD Virtual Tenant Network"
         featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
         features="${project.artifactId}"
         apps="org.onosproject.ovsdb-base,org.onosproject.openstackinterface,org.onosproject.dhcp">

@@ -32,11 +32,6 @@
     <description>Virtual tenant network service for CORD</description>
 
     <properties>
-        <onos.app.name>org.onosproject.cordvtn</onos.app.name>
-        <onos.app.title>CORD Virtual Tenant Network</onos.app.title>
-        <onos.app.category>default</onos.app.category>
-        <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>Virtual tenant network service for CORD.</onos.app.readme>
         <web.context>/onos/cordvtn</web.context>
         <api.version>1.0.0</api.version>
         <api.title>CORD VTN REST API</api.title>

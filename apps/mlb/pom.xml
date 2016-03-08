@@ -36,7 +36,8 @@
         <onos.app.title>Mastership Load Balancer App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>Application that balances mastership among nodes.
+        <onos.app.readme>
+            Application that balances mastership among nodes.
         </onos.app.readme>
     </properties>
 

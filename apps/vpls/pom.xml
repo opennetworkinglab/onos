@@ -33,6 +33,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.vpls</onos.app.name>
+        <onos.app.title>VLAN L2 Broadcast Network App</onos.app.title>
     </properties>
 
     <dependencies>

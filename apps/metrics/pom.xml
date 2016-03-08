@@ -36,9 +36,7 @@
         <onos.app.title>Performance Metrics App</onos.app.title>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>
-            Performance metrics collection application.
-        </onos.app.readme>
+        <onos.app.readme>Performance metrics collection application.</onos.app.readme>
     </properties>
 
     <dependencies>

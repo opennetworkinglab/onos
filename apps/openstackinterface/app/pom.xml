@@ -29,12 +29,9 @@
     <artifactId>onos-app-openstackinterface-app</artifactId>
     <packaging>bundle</packaging>
 
+    <description>Openstack Interface Application</description>
 
     <properties>
-        <onos.app.name>org.onosproject.openstackinterface</onos.app.name>
-        <onos.app.title>Openstack Interface App</onos.app.title>
-        <onos.app.category>default</onos.app.category>
-        <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Openstack Interface Application.</onos.app.readme>
     </properties>
 
@@ -95,6 +92,4 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
-
-
 </project>
