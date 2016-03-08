@@ -26,6 +26,9 @@
     <import file="${ONOS_SCENARIOS}/archetypes.xml"/>
     <dependency name="Archetypes" requires="Setup"/>
 
+    <import file="${ONOS_SCENARIOS}/drivers-test.xml"/>
+    <dependency name="Drivers-Test" requires="Setup,Net-Smoke,Archetypes"/>
+
     <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
     <dependency name="Wrapup" requires="~Archetypes,~Setup,~Net-Smoke"/>
 </scenario>
