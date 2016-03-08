@@ -21,6 +21,7 @@ import org.onosproject.event.ListenerService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -43,6 +44,13 @@ public interface AccessDeviceService
      * @param port subscriber's connection point
      */
     void removeSubscriber(ConnectPoint port);
+
+    /**
+     * Returns information about the provisioned subscribers.
+     *
+     * @return subscribers
+     */
+    Collection<Map.Entry<ConnectPoint, VlanId>> getSubscribers();
 
     /**
      * Returns the map of configured OLTs.

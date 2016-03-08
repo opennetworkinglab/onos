@@ -37,6 +37,9 @@
                 <null/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.olt.cli.ShowSubscribersCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>

@@ -26,9 +26,9 @@ import org.onosproject.olt.AccessDeviceService;
 import java.util.Map;
 
 /**
- * Adds a subscriber to an access device.
+ * Shows configured OLTs.
  */
-@Command(scope = "onos", name = "show-olts",
+@Command(scope = "onos", name = "olts",
         description = "Shows configured OLTs")
 public class ShowOltCommand extends AbstractShellCommand {
 

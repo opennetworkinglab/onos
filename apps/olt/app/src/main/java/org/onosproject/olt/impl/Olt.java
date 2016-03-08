@@ -67,6 +67,7 @@ import org.onosproject.store.service.StorageService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
@@ -240,6 +241,11 @@ public class Olt
         unprovisionSubscriber(olt.deviceId(), olt.uplink(), port.port(), subscriberVlan,
                               olt.vlan(), olt.defaultVlan());
 
+    }
+
+    @Override
+    public Collection<Map.Entry<ConnectPoint, VlanId>> getSubscribers() {
+        return subscribers.entrySet();
     }
 
     @Override
@@ -459,11 +465,10 @@ public class Olt
         public void event(DeviceEvent event) {
             DeviceId devId = event.subject().id();
             if (!oltData.containsKey(devId)) {
-                log.debug("Device {} is not an OLT", devId);
                 return;
             }
             switch (event.type()) {
-                //TODO: Port handling and bookkeeping should be inproved once
+                //TODO: Port handling and bookkeeping should be improved once
                 // olt firmware handles correct behaviour.
                 case PORT_ADDED:
                     if (!oltData.get(devId).uplink().equals(event.port().number()) &&
