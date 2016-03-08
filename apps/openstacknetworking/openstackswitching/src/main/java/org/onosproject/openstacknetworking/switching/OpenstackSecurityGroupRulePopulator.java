@@ -68,9 +68,9 @@ public class OpenstackSecurityGroupRulePopulator {
     /**
      * Constructor.
      *
-     * @param appId
-     * @param openstackService
-     * @param flowObjectiveService
+     * @param appId application ID
+     * @param openstackService OpenStack interface service
+     * @param flowObjectiveService flow objective service
      */
     public OpenstackSecurityGroupRulePopulator(ApplicationId appId, OpenstackInterfaceService openstackService,
                                                FlowObjectiveService flowObjectiveService) {

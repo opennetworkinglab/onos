@@ -44,6 +44,7 @@ public final class OpenstackPortInfo {
      * @param deviceId device ID
      * @param vni  tunnel ID
      * @param gatewayIP gateway IP address
+     * @param networkId network identifier
      * @param securityGroups security group list
      */
     public OpenstackPortInfo(Ip4Address hostIp, MacAddress hostMac, DeviceId deviceId, long vni,
