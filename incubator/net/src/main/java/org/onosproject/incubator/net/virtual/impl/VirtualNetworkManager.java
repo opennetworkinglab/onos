@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Service
 public class VirtualNetworkManager
         extends AbstractListenerProviderRegistry<VirtualNetworkEvent, VirtualNetworkListener,
-                                                 VirtualNetworkProvider, VirtualNetworkProviderService>
+        VirtualNetworkProvider, VirtualNetworkProviderService>
         implements VirtualNetworkService, VirtualNetworkAdminService, VirtualNetworkProviderRegistry {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -70,19 +70,23 @@ public class VirtualNetworkManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected VirtualNetworkStore store;
 
-    private VirtualNetworkStoreDelegate delegate = new InternalStoreDelegate();
+    private VirtualNetworkStoreDelegate delegate = this::post;
 
     // TODO: figure out how to coordinate "implementation" of a virtual network in a cluster
 
     @Activate
     protected void activate() {
         store.setDelegate(delegate);
+        eventDispatcher.addSink(VirtualNetworkEvent.class, listenerRegistry);
+
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         store.unsetDelegate(delegate);
+        eventDispatcher.removeSink(VirtualNetworkEvent.class);
+
         log.info("Stopped");
     }
 
@@ -208,15 +212,6 @@ public class VirtualNetworkManager
             implements VirtualNetworkProviderService {
         InternalVirtualNetworkProviderService(VirtualNetworkProvider provider) {
             super(provider);
-        }
-    }
-
-    // Auxiliary store delegate to receive notification about changes in
-    // the virtual network configuration store state - by the store itself.
-    private class InternalStoreDelegate implements VirtualNetworkStoreDelegate {
-        @Override
-        public void notify(VirtualNetworkEvent event) {
-            post(event);
         }
     }
 

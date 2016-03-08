@@ -27,7 +27,7 @@ import static com.google.common.base.MoreObjects.*;
 /**
  * Default representation of a virtual device.
  */
-public class DefaultVirtualDevice extends DefaultDevice implements VirtualDevice {
+public final class DefaultVirtualDevice extends DefaultDevice implements VirtualDevice {
 
     private static final String VIRTUAL = "virtual";
     private static final ProviderId PID = new ProviderId(VIRTUAL, VIRTUAL);
@@ -53,7 +53,7 @@ public class DefaultVirtualDevice extends DefaultDevice implements VirtualDevice
 
     @Override
     public int hashCode() {
-        return 31 * super.hashCode() + networkId.hashCode();
+        return Objects.hash(networkId);
     }
 
     @Override

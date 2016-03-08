@@ -64,7 +64,7 @@ public class DistributedSetTest {
     public void basicTests() {
         set1.add("item1");
         assertEquals("The set name should match.", SETNAME, set1.name());
-        assertEquals("The set name should match.", DistributedPrimitive.Type.SET, set1.primitiveType());
+        assertEquals("The set primitive type should match.", DistributedPrimitive.Type.SET, set1.primitiveType());
 
         set1.add("item2");
         set1.add("item3");

@@ -27,6 +27,11 @@ import java.util.Set;
 public interface VirtualNetworkService {
 
     /**
+     * The topic used for obtaining globally unique ids.
+     */
+    String VIRTUAL_NETWORK_TOPIC = "virtual-network-ids";
+
+    /**
      * Returns a collection of all virtual networks created on behalf of the
      * specified tenant.
      *

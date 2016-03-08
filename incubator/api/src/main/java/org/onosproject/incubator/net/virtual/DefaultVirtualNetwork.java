@@ -22,7 +22,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Default implementation of the virtual network descriptor.
  */
-public class DefaultVirtualNetwork implements VirtualNetwork {
+public final class DefaultVirtualNetwork implements VirtualNetwork {
 
     private final NetworkId id;
     private final TenantId tenantId;
