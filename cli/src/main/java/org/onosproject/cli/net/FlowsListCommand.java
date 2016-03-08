@@ -40,8 +40,10 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
+
 
 /**
  * Lists all currently-known flows.
@@ -78,6 +80,11 @@ public class FlowsListCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private boolean shortOutput = false;
 
+    @Option(name = "-n", aliases = "--no-core-flows",
+            description = "Suppress core flows from output",
+            required = false, multiValued = false)
+    private boolean suppressCoreOutput = false;
+
     @Option(name = "-c", aliases = "--count",
             description = "Print flow count only",
             required = false, multiValued = false)
@@ -93,7 +100,7 @@ public class FlowsListCommand extends AbstractShellCommand {
 
         compilePredicate();
 
-        SortedMap<Device, List<FlowEntry>> flows = getSortedFlows(deviceService, service);
+        SortedMap<Device, List<FlowEntry>> flows = getSortedFlows(deviceService, service, coreService);
 
         if (outputJson()) {
             print("%s", json(flows.keySet(), flows));
@@ -157,7 +164,7 @@ public class FlowsListCommand extends AbstractShellCommand {
      * @return sorted device list
      */
     protected SortedMap<Device, List<FlowEntry>> getSortedFlows(DeviceService deviceService,
-                                                          FlowRuleService service) {
+                                                          FlowRuleService service, CoreService coreService) {
         SortedMap<Device, List<FlowEntry>> flows = new TreeMap<>(Comparators.ELEMENT_COMPARATOR);
         List<FlowEntry> rules;
 
@@ -182,6 +189,13 @@ public class FlowsListCommand extends AbstractShellCommand {
                 }
             }
             rules.sort(Comparators.FLOW_RULE_COMPARATOR);
+
+            if (suppressCoreOutput) {
+                short coreAppId = coreService.getAppId("org.onosproject.core").id();
+                rules = rules.stream()
+                        .filter(f -> f.appId() != coreAppId)
+                        .collect(Collectors.toList());
+            }
             flows.put(d, rules);
         }
         return flows;
