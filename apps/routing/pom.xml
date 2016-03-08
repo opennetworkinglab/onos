@@ -30,14 +30,6 @@
     <packaging>bundle</packaging>
     <description>Libraries for routing applications</description>
 
-    <properties>
-        <onos.app.name>org.onosproject.routing</onos.app.name>
-        <onos.app.title>SDN-IP Routing App</onos.app.title>
-        <onos.app.category>Traffic Steering</onos.app.category>
-        <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>SDN-IP routing application.</onos.app.readme>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
