@@ -436,4 +436,10 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
         str += ")";
         return str;
     }
+
+    @Override
+    public List<String> getNextMappings() {
+        // TODO Implementation deferred as this is an experimental component.
+        return null;
+    }
 }

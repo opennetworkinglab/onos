@@ -537,4 +537,10 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
             return appKryo.serialize(nextActions);
         }
     }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // TODO Implementation deferred to vendor
+        return null;
+    }
 }

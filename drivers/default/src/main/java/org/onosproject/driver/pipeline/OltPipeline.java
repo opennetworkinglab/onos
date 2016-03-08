@@ -702,4 +702,10 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         }
 
     }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // TODO Implementation deferred to vendor
+        return null;
+    }
 }

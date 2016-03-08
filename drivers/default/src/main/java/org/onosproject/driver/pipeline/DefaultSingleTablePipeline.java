@@ -17,6 +17,7 @@ package org.onosproject.driver.pipeline;
 
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -38,6 +39,8 @@ import org.onosproject.net.flowobjective.ObjectiveError;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.List;
 
 /**
  * Simple single table pipeline abstraction.
@@ -165,6 +168,12 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
 
     @Override
     public void next(NextObjective nextObjective) {
+    }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // Default single table pipeline does not use nextObjectives or groups
+        return null;
     }
 
 }

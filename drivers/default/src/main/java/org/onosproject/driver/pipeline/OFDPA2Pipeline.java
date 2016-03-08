@@ -1029,4 +1029,28 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static void fail(Objective obj, ObjectiveError error) {
         obj.context().ifPresent(context -> context.onError(obj, error));
     }
+
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        List<String> mappings = new ArrayList<>();
+        List<Deque<GroupKey>> gkeys = appKryo.deserialize(nextGroup.data());
+        for (Deque<GroupKey> gkd : gkeys) {
+            Group lastGroup = null;
+            String gchain = "";
+            for (GroupKey gk : gkd) {
+                Group g = groupService.getGroup(deviceId, gk);
+                gchain += "  0x" + Integer.toHexString(g.id().id()) + " -->";
+                lastGroup = g;
+            }
+            // add port information for last group in group-chain
+            for (Instruction i: lastGroup.buckets().buckets().get(0).treatment().allInstructions()) {
+                if (i instanceof OutputInstruction) {
+                    gchain += " port:" + ((OutputInstruction) i).port();
+                }
+            }
+            mappings.add(gchain);
+        }
+        return mappings;
+    }
 }

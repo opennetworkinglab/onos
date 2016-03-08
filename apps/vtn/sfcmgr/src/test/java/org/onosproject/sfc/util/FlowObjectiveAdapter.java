@@ -15,6 +15,8 @@
  */
 package org.onosproject.sfc.util;
 
+import java.util.List;
+
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
@@ -54,5 +56,10 @@ public class FlowObjectiveAdapter implements FlowObjectiveService {
 
     public ForwardingObjective forwardingObjective() {
         return forwardingObjective;
+    }
+
+    @Override
+    public List<String> getNextMappings() {
+        return null;
     }
 }

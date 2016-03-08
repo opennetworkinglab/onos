@@ -27,6 +27,10 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.FlowObjectiveNextListCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.FlowObjectiveCompositionCommand"/>
         </command>
 

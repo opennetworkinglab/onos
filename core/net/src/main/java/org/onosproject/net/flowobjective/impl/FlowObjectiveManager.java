@@ -30,6 +30,7 @@ import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.device.DeviceEvent;
@@ -53,7 +54,9 @@ import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -123,6 +126,10 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     private Map<Integer, Set<PendingNext>> pendingForwards = Maps.newConcurrentMap();
 
+    // local store to track which nextObjectives were sent to which device
+    // for debugging purposes
+    private Map<Integer, DeviceId> nextToDevice = Maps.newConcurrentMap();
+
     private ExecutorService executorService;
 
     @Activate
@@ -143,6 +150,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         executorService.shutdown();
         pipeliners.clear();
         driverHandlers.clear();
+        nextToDevice.clear();
         log.info("Stopped");
     }
 
@@ -215,6 +223,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Override
     public void next(DeviceId deviceId, NextObjective nextObjective) {
         checkPermission(FLOWRULE_WRITE);
+        nextToDevice.put(nextObjective.id(), deviceId);
         executorService.submit(new ObjectiveInstaller(deviceId, nextObjective));
     }
 
@@ -442,5 +451,34 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
             return false;
         }
+    }
+
+    @Override
+    public List<String> getNextMappings() {
+        List<String> mappings = new ArrayList<>();
+        Map<Integer, NextGroup> allnexts = flowObjectiveStore.getAllGroups();
+        // XXX if the NextGroup upon decoding stored info of the deviceId
+        // then info on any nextObj could be retrieved from one controller instance.
+        // Right now the drivers on one instance can only fetch for next-ids that came
+        // to them.
+        // Also, we still need to send the right next-id to the right driver as potentially
+        // there can be different drivers for different devices. But on that account,
+        // no instance should be decoding for another instance's nextIds.
+
+        for (Map.Entry<Integer, NextGroup> e : allnexts.entrySet()) {
+            // get the device this next Objective was sent to
+            DeviceId deviceId = nextToDevice.get(e.getKey());
+            mappings.add("NextId " + e.getKey() + ": " +
+                    ((deviceId != null) ? deviceId : "nextId not in this onos instance"));
+            if (deviceId != null) {
+                // this instance of the controller sent the nextObj to a driver
+                Pipeliner pipeliner = getDevicePipeliner(deviceId);
+                List<String> nextMappings = pipeliner.getNextMappings(e.getValue());
+                if (nextMappings != null) {
+                    mappings.addAll(nextMappings);
+                }
+            }
+        }
+        return mappings;
     }
 }

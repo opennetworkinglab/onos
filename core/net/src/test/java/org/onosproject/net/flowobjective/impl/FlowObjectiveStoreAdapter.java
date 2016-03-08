@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.flowobjective.impl;
 
+import java.util.Map;
+
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.FlowObjectiveStoreDelegate;
@@ -56,5 +58,10 @@ public class FlowObjectiveStoreAdapter implements FlowObjectiveStore {
     @Override
     public boolean hasDelegate() {
         return false;
+    }
+
+    @Override
+    public Map<Integer, NextGroup> getAllGroups() {
+        return null;
     }
 }

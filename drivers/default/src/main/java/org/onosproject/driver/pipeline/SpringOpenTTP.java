@@ -1126,4 +1126,10 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         }
 
     }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // TODO Implementation deferred to vendor
+        return null;
+    }
 }

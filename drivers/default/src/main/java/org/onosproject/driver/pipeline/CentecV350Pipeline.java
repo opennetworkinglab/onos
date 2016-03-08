@@ -74,6 +74,7 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -633,5 +634,11 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
             return appKryo.serialize(key);
         }
 
+    }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // TODO Implementation deferred to vendor
+        return null;
     }
 }

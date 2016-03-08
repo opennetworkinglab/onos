@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.behaviour;
 
+import java.util.List;
+
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.driver.DriverHandler;
@@ -64,5 +66,10 @@ public class PipelinerAdapter implements Pipeliner {
     @Override
     public void setData(DriverData data) {
 
+    }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        return null;
     }
 }

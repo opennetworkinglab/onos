@@ -37,6 +37,9 @@ import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Manages the inventory of created next groups.
  */
@@ -103,6 +106,18 @@ public class DistributedFlowObjectiveStore
             return new DefaultNextGroup(versionGroup.value());
         }
         return null;
+    }
+
+    @Override
+    public Map<Integer, NextGroup> getAllGroups() {
+        Map<Integer, NextGroup> nextGroupMappings = new HashMap<>();
+        for (int key : nextGroups.keySet()) {
+            NextGroup nextGroup = getNextGroup(key);
+            if (nextGroup != null) {
+                nextGroupMappings.put(key, nextGroup);
+            }
+        }
+        return nextGroupMappings;
     }
 
     @Override

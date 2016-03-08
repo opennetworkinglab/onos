@@ -57,6 +57,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static org.onlab.util.Tools.delay;
@@ -465,6 +466,12 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
             return appKryo.serialize(nextActions);
         }
 
+    }
+
+    @Override
+    public List<String> getNextMappings(NextGroup nextGroup) {
+        // nextObjectives converted to flow-actions not groups
+        return Collections.emptyList();
     }
 
 }

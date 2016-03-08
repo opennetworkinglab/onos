@@ -16,6 +16,9 @@
 package org.onosproject.net.flowobjective;
 
 import com.google.common.annotations.Beta;
+
+import java.util.List;
+
 import org.onosproject.net.DeviceId;
 
 /**
@@ -82,4 +85,17 @@ public interface FlowObjectiveService {
             throw new UnsupportedOperationException("Unsupported objective of type " + objective.getClass());
         }
     }
+
+    /**
+     * Retrieve all nextObjective to group mappings known to this onos instance,
+     * in a format meant for display on the CLI, to help with debugging. Applications
+     * are only aware of next-Ids, while the group sub-system is only aware of group-ids.
+     * This method fills in the gap by providing information on the mapping
+     * between next-ids and group-ids done by device-drivers.
+     *
+     * @return a list of strings preformatted by the device-drivers to provide
+     *         information on next-id to group-id mapping. Consumed by the
+     *         "next-ids" command on the CLI.
+     */
+    List<String> getNextMappings();
 }

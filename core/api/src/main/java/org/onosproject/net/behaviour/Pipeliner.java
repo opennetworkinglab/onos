@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.behaviour;
 
+import java.util.List;
+
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.HandlerBehaviour;
 import org.onosproject.net.flowobjective.FilteringObjective;
@@ -54,4 +56,18 @@ public interface Pipeliner extends HandlerBehaviour {
      * @param nextObjective a next objectives
      */
     void next(NextObjective nextObjective);
+
+    /**
+     *  Retrieves a mapping of the nextObjective to the groups in the dataplane,
+     *  and returns it in a form that can be displayed on the CLI. Typically
+     *  group-ids are returned for groups with multiple buckets, where each list element
+     *  represents a bucket. For nextObjectives that are converted to flow-actions,
+     *  an empty list is returned.
+     *
+     *  @param nextGroup representation of the nextObjective. This representation
+     *                   is stored in the distributed group store
+     *  @return a list of preformatted strings representing group information, or
+     *          an empty list if no groups were created
+     */
+    List<String> getNextMappings(NextGroup nextGroup);
 }
