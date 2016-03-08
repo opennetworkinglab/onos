@@ -15,6 +15,8 @@
  */
 package org.onosproject.cluster.impl;
 
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -44,9 +46,6 @@ import org.onosproject.cluster.PartitionId;
 import org.onosproject.event.AbstractListenerManager;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Sets;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -58,8 +57,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.CLUSTER_READ;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
 
 /**
  * Implementation of the cluster service.
@@ -133,6 +132,10 @@ public class ClusterManager
         return store.getState(nodeId);
     }
 
+    @Override
+    public void markFullyStarted(boolean started) {
+        store.markFullyStarted(started);
+    }
 
     @Override
     public DateTime getLastUpdated(NodeId nodeId) {

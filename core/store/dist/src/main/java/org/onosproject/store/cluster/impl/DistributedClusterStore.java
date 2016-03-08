@@ -18,7 +18,6 @@ package org.onosproject.store.cluster.impl;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -90,6 +89,7 @@ public class DistributedClusterStore
     private final Map<NodeId, ControllerNode> allNodes = Maps.newConcurrentMap();
     private final Map<NodeId, State> nodeStates = Maps.newConcurrentMap();
     private final Map<NodeId, DateTime> nodeStateLastUpdatedTimes = Maps.newConcurrentMap();
+
     private ScheduledExecutorService heartBeatSender = Executors.newSingleThreadScheduledExecutor(
             groupedThreads("onos/cluster/membership", "heartbeat-sender"));
     private ExecutorService heartBeatMessageHandler = Executors.newSingleThreadExecutor(
@@ -168,6 +168,11 @@ public class DistributedClusterStore
     }
 
     @Override
+    public void markFullyStarted(boolean started) {
+        updateState(localNode.id(), started ? State.READY : State.ACTIVE);
+    }
+
+    @Override
     public ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort) {
         ControllerNode node = new DefaultControllerNode(nodeId, ip, tcpPort);
         addNode(node);
@@ -201,13 +206,14 @@ public class DistributedClusterStore
                     .stream()
                     .filter(node -> !(node.id().equals(localNode.id())))
                     .collect(Collectors.toSet());
-            byte[] hbMessagePayload = SERIALIZER.encode(new HeartbeatMessage(localNode, peers));
+            State state = nodeStates.get(localNode.id());
+            byte[] hbMessagePayload = SERIALIZER.encode(new HeartbeatMessage(localNode, state, peers));
             peers.forEach((node) -> {
                 heartbeatToPeer(hbMessagePayload, node);
                 State currentState = nodeStates.get(node.id());
                 double phi = failureDetector.phi(node.id());
                 if (phi >= PHI_FAILURE_THRESHOLD) {
-                    if (currentState == State.ACTIVE) {
+                    if (currentState.isActive()) {
                         updateState(node.id(), State.INACTIVE);
                         notifyStateChange(node.id(), State.ACTIVE, State.INACTIVE);
                     }
@@ -225,7 +231,7 @@ public class DistributedClusterStore
 
     private void notifyStateChange(NodeId nodeId, State oldState, State newState) {
         ControllerNode node = allNodes.get(nodeId);
-        if (newState == State.ACTIVE) {
+        if (newState.isActive()) {
             notifyDelegate(new ClusterEvent(ClusterEvent.Type.INSTANCE_ACTIVATED, node));
         } else {
             notifyDelegate(new ClusterEvent(ClusterEvent.Type.INSTANCE_DEACTIVATED, node));
@@ -246,6 +252,7 @@ public class DistributedClusterStore
         public void accept(Endpoint sender, byte[] message) {
             HeartbeatMessage hb = SERIALIZER.decode(message);
             failureDetector.report(hb.source().id());
+            updateState(hb.source().id(), hb.state);
             hb.knownPeers().forEach(node -> {
                 allNodes.put(node.id(), node);
             });
@@ -254,10 +261,12 @@ public class DistributedClusterStore
 
     private static class HeartbeatMessage {
         private ControllerNode source;
+        private State state;
         private Set<ControllerNode> knownPeers;
 
-        public HeartbeatMessage(ControllerNode source, Set<ControllerNode> members) {
+        public HeartbeatMessage(ControllerNode source, State state, Set<ControllerNode> members) {
             this.source = source;
+            this.state = state != null ? state : State.ACTIVE;
             this.knownPeers = ImmutableSet.copyOf(members);
         }
 

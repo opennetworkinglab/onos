@@ -262,6 +262,12 @@
                 <version>1.9.12</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.scr</artifactId>
+                <version>1.8.2</version>
+            </dependency>
+
 
             <dependency>
                 <groupId>org.apache.karaf.features</groupId>

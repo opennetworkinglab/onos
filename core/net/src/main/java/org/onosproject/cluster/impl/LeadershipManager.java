@@ -76,7 +76,7 @@ public class LeadershipManager
         deadlockDetector.scheduleWithFixedDelay(() -> clusterService.getNodes()
                 .stream()
                 .map(ControllerNode::id)
-                .filter(id -> clusterService.getState(id) != ControllerNode.State.ACTIVE)
+                .filter(id -> !clusterService.getState(id).isActive())
                 .forEach(this::unregister), 0, 2, TimeUnit.SECONDS);
         log.info("Started");
     }

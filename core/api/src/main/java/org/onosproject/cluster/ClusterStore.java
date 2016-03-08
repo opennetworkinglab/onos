@@ -57,6 +57,13 @@ public interface ClusterStore extends Store<ClusterEvent, ClusterStoreDelegate> 
     ControllerNode.State getState(NodeId nodeId);
 
     /**
+     * Marks the current node as fully started.
+     *
+     * @param started true indicates all components have been started
+     */
+    void markFullyStarted(boolean started);
+
+    /**
      * Returns the system when the availability state was last updated.
      *
      * @param nodeId controller node identifier

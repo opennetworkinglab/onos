@@ -49,7 +49,7 @@ public class SummaryCommand extends AbstractShellCommand {
         for (final ControllerNode node : nodes) {
             final ControllerNode.State nodeState =
                     get(ClusterService.class).getState(node.id());
-            if (nodeState == ControllerNode.State.ACTIVE) {
+            if (nodeState.isActive()) {
                 nodeCount++;
             }
         }

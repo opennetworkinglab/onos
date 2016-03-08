@@ -30,7 +30,8 @@
         <div class="table-header" onos-sortable-header>
             <table>
                 <tr>
-                    <td colId="_iconid_state" class="table-icon" sortable></td>
+                    <td colId="_iconid_state" class="table-icon" col-width="60px" sortable>Active </td>
+                    <td colId="_iconid_started" class="table-icon" col-width="60px" sortable>Started </td>
                     <td colId="id" sortable>ID </td>
                     <td colId="ip" sortable>IP Address </td>
                     <td colId="tcp" sortable>TCP Port </td>
@@ -51,6 +52,9 @@
                     ng-repeat-complete row-id="{{node.id}}">
                     <td class="table-icon">
                         <div icon icon-id="{{node._iconid_state}}"></div>
+                    </td>
+                    <td class="table-icon">
+                        <div icon icon-id="{{node._iconid_started}}"></div>
                     </td>
                     <td>{{node.id}}</td>
                     <td>{{node.ip}}</td>

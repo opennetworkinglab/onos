@@ -50,7 +50,9 @@ public interface ClusterService
     ControllerNode getNode(NodeId nodeId);
 
     /**
-     * Returns the availability state of the specified controller node.
+     * Returns the availability state of the specified controller node. Note
+     * that this does not imply that all the core and application components
+     * have been fully activated; only that the node has joined the cluster.
      *
      * @param nodeId controller node identifier
      * @return availability state

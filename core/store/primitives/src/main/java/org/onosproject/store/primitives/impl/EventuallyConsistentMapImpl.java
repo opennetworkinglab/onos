@@ -556,7 +556,7 @@ public class EventuallyConsistentMapImpl<K, V>
                 .stream()
                 .map(ControllerNode::id)
                 .filter(id -> !localNodeId.equals(id))
-                .filter(id -> clusterService.getState(id) == ControllerNode.State.ACTIVE)
+                .filter(id -> clusterService.getState(id).isActive())
                 .collect(Collectors.toList());
         Collections.shuffle(activePeers);
         return activePeers.isEmpty() ? Optional.empty() : Optional.of(activePeers.get(0));

@@ -81,7 +81,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
@@ -230,7 +229,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         ObjectNode payload = objectNode()
                 .put("id", node.id().toString())
                 .put("ip", node.ip().toString())
-                .put("online", clusterService.getState(node.id()) == ACTIVE)
+                .put("online", clusterService.getState(node.id()).isActive())
                 .put("uiAttached", node.equals(clusterService.getLocalNode()))
                 .put("switches", switchCount);
 

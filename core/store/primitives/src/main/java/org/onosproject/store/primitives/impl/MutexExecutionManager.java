@@ -200,7 +200,7 @@ public class MutexExecutionManager implements MutexExecutionService {
             long activeNodes = clusterService.getNodes()
                                              .stream()
                                              .map(node -> clusterService.getState(node.id()))
-                                             .filter(State.ACTIVE::equals)
+                                             .filter(State::isActive)
                                              .count();
             if (clusterService.getNodes().size() > 1 && activeNodes == 1) {
                 log.info("This node is partitioned away from the cluster. Stopping all inflight executions");

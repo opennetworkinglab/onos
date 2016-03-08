@@ -67,6 +67,7 @@ public class SimpleClusterStore
     protected EventDeliveryService eventDispatcher;
 
     private ListenerRegistry<IntentPartitionEvent, IntentPartitionEventListener> listenerRegistry;
+    private boolean started = false;
 
     @Activate
     public void activate() {
@@ -103,6 +104,11 @@ public class SimpleClusterStore
     @Override
     public ControllerNode.State getState(NodeId nodeId) {
         return ControllerNode.State.ACTIVE;
+    }
+
+    @Override
+    public void markFullyStarted(boolean started) {
+        this.started = started;
     }
 
     @Override

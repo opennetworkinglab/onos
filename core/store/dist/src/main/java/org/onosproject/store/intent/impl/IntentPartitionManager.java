@@ -22,7 +22,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
@@ -30,10 +29,10 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
-import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.IntentPartitionEvent;
 import org.onosproject.net.intent.IntentPartitionEventListener;
 import org.onosproject.net.intent.IntentPartitionService;
+import org.onosproject.net.intent.Key;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,7 +172,7 @@ public class IntentPartitionManager implements IntentPartitionService {
     private void rebalance() {
         int activeNodes = (int) clusterService.getNodes()
                 .stream()
-                .filter(node -> ControllerNode.State.ACTIVE == clusterService.getState(node.id()))
+                .filter(node -> clusterService.getState(node.id()).isActive())
                 .count();
 
         int myShare = (int) Math.ceil((double) NUM_PARTITIONS / activeNodes);

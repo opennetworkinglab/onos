@@ -44,10 +44,11 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
     private static final String IP = "ip";
     private static final String TCP_PORT = "tcp";
     private static final String STATE_IID = "_iconid_state";
+    private static final String STARTED_IID = "_iconid_started";
     private static final String UPDATED = "updated";
 
     private static final String[] COL_IDS = {
-            ID, IP, TCP_PORT, STATE_IID, UPDATED
+            ID, IP, TCP_PORT, STATE_IID, STARTED_IID, UPDATED
     };
 
     private static final String ICON_ID_ONLINE = "active";
@@ -95,13 +96,15 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
                                  ClusterService cs) {
             NodeId id = node.id();
             DateTime lastUpdated = cs.getLastUpdated(id);
-            String iconId = (cs.getState(id) == ControllerNode.State.ACTIVE) ?
-                    ICON_ID_ONLINE : ICON_ID_OFFLINE;
+            ControllerNode.State state = cs.getState(id);
+            String iconId = state.isActive() ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
+            String startedId = state.isReady() ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
 
             row.cell(ID, id)
                 .cell(IP, node.ip())
                 .cell(TCP_PORT, node.tcpPort())
                 .cell(STATE_IID, iconId)
+                .cell(STARTED_IID, startedId)
                 .cell(UPDATED, lastUpdated);
         }
     }

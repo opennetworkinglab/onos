@@ -25,6 +25,12 @@ public interface ControllerNode {
     /** Represents the operational state of the instance. */
     enum State {
         /**
+         * Signifies that the instance is active and that all components are
+         * operating normally.
+         */
+        READY,
+
+        /**
          * Signifies that the instance is active and operating normally.
          */
         ACTIVE,
@@ -33,7 +39,25 @@ public interface ControllerNode {
          * Signifies that the instance is inactive, which means either down or
          * up, but not operational.
          */
-        INACTIVE
+        INACTIVE;
+
+        /**
+         * Indicates whether the state represents node which is active or ready.
+         *
+         * @return true if active or ready
+         */
+        public boolean isActive() {
+            return this == ACTIVE || this == READY;
+        }
+
+        /**
+         * Indicates whether the state represents a node which is ready.
+         *
+         * @return true if active and ready
+         */
+        public boolean isReady() {
+            return this == READY;
+        }
     }
 
     /**

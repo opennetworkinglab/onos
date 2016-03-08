@@ -30,8 +30,8 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
-import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.core.MetricsHelper;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
@@ -57,11 +57,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.onlab.metrics.MetricsUtil.startTimer;
 import static org.onlab.metrics.MetricsUtil.stopTimer;
-import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
 import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.CLUSTER_READ;
+import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
 
 
 
@@ -204,7 +204,7 @@ public class MastershipManager
 
         // Create buckets reflecting current ownership.
         for (ControllerNode node : nodes) {
-            if (clusterService.getState(node.id()) == ACTIVE) {
+            if (clusterService.getState(node.id()).isActive()) {
                 Set<DeviceId> devicesOf = new HashSet<>(getDevicesOf(node.id()));
                 deviceCount += devicesOf.size();
                 controllerDevices.put(node, devicesOf);
