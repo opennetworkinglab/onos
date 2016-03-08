@@ -172,6 +172,13 @@ public class CordVtnRuleInstaller {
     }
 
     /**
+     * Flush flows installed by this application.
+     */
+    public void flushRules() {
+        flowRuleService.getFlowRulesById(appId).forEach(flowRule -> processFlowRule(false, flowRule));
+    }
+
+    /**
      * Populates basic rules that connect a VM to the other VMs in the system.
      *
      * @param host host

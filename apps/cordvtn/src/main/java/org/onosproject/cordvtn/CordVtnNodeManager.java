@@ -237,7 +237,6 @@ public class CordVtnNodeManager {
 
         deviceService.addListener(deviceListener);
         configService.addListener(configListener);
-        readConfiguration();
     }
 
     @Deactivate
@@ -312,6 +311,13 @@ public class CordVtnNodeManager {
     public boolean isNodeInitComplete(CordVtnNode node) {
         checkNotNull(node);
         return nodeStore.containsKey(node.hostname()) && getNodeState(node).equals(NodeState.COMPLETE);
+    }
+
+    /**
+     * Flush flows installed by cordvtn.
+     */
+    public void flushRules() {
+        ruleInstaller.flushRules();
     }
 
     /**
