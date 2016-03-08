@@ -145,6 +145,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     private static final String DATA_PLANE_IP = "dataPlaneIp";
     private static final String DATA_PLANE_INTF = "dataPlaneIntf";
     private static final String S_TAG = "stag";
+    private static final String VSG_HOST_ID = "vsgHostId";
 
     private static final Ip4Address DEFAULT_DNS = Ip4Address.valueOf("8.8.8.8");
 
@@ -175,7 +176,6 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                                                  deviceService,
                                                  driverService,
                                                  groupService,
-                                                 mastershipService,
                                                  DEFAULT_TUNNEL);
 
         arpProxy = new CordVtnArpProxy(appId, packetService, hostService);
@@ -301,30 +301,28 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     @Override
     public void updateVirtualSubscriberGateways(HostId vSgHostId, String serviceVlan,
                                                 Map<IpAddress, MacAddress> vSgs) {
-        Host vSgVm = hostService.getHost(vSgHostId);
-
-        if (vSgVm == null || !vSgVm.annotations().value(S_TAG).equals(serviceVlan)) {
+        Host vSgHost = hostService.getHost(vSgHostId);
+        if (vSgHost == null || !vSgHost.annotations().value(S_TAG).equals(serviceVlan)) {
             log.debug("Invalid vSG updates for {}", serviceVlan);
             return;
         }
 
-        log.info("Updates vSGs in {} with {}", vSgVm.id(), vSgs.toString());
+        log.info("Updates vSGs in {} with {}", vSgHost.id(), vSgs.toString());
         vSgs.entrySet().stream()
+                .filter(entry -> hostService.getHostsByMac(entry.getValue()).isEmpty())
                 .forEach(entry -> addVirtualSubscriberGateway(
-                        vSgVm,
+                        vSgHost,
                         entry.getKey(),
                         entry.getValue(),
                         serviceVlan));
 
-        hostService.getConnectedHosts(vSgVm.location()).stream()
-                .filter(host -> !host.mac().equals(vSgVm.mac()))
+        hostService.getConnectedHosts(vSgHost.location()).stream()
+                .filter(host -> !host.mac().equals(vSgHost.mac()))
                 .filter(host -> !vSgs.values().contains(host.mac()))
                 .forEach(host -> {
                     log.info("Removed vSG {}", host.toString());
                     hostProvider.hostVanished(host.id());
                 });
-
-        ruleInstaller.populateSubscriberGatewayRules(vSgVm, vSgs.keySet());
     }
 
     /**
@@ -337,16 +335,12 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      */
     private void addVirtualSubscriberGateway(Host vSgHost, IpAddress vSgIp, MacAddress vSgMac,
                                              String serviceVlan) {
-        HostId hostId = HostId.hostId(vSgMac);
-        Host host = hostService.getHost(hostId);
-        if (host != null) {
-            log.trace("vSG with {} already exists", vSgMac.toString());
-            return;
-        }
+        log.info("vSG with IP({}) MAC({}) added", vSgIp.toString(), vSgMac.toString());
 
-        log.info("vSG with IP({}) MAC({}) detected", vSgIp.toString(), vSgMac.toString());
+        HostId hostId = HostId.hostId(vSgMac);
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
-                .set(S_TAG, serviceVlan);
+                .set(S_TAG, serviceVlan)
+                .set(VSG_HOST_ID, vSgHost.id().toString());
 
         HostDescription hostDesc = new DefaultHostDescription(
                 vSgMac,
@@ -529,6 +523,11 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param host host
      */
     private void serviceVmAdded(Host host) {
+        String serviceVlan = host.annotations().value(S_TAG);
+        if (serviceVlan != null) {
+            virtualSubscriberGatewayAdded(host, serviceVlan);
+        }
+
         String vNetId = host.annotations().value(SERVICE_ID);
         if (vNetId == null) {
             // ignore this host, it is not the service VM, or it's a vSG
@@ -538,8 +537,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         OpenstackNetwork vNet = openstackService.network(vNetId);
         if (vNet == null) {
             log.warn("Failed to get OpenStack network {} for VM {}({}).",
-                     vNetId,
-                     host.id(),
+                     vNetId, host.id(),
                      host.annotations().value(OPENSTACK_VM_ID));
             return;
         }
@@ -572,20 +570,6 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
         registerDhcpLease(host, service);
         ruleInstaller.populateBasicConnectionRules(host, getTunnelIp(host), vNet);
-
-        String serviceVlan = host.annotations().value(S_TAG);
-        if (serviceVlan != null) {
-            log.debug("vSG VM detected {}", host.id());
-            Map<IpAddress, MacAddress> vSgs = getSubscriberGateways(host);
-            vSgs.entrySet().stream()
-                    .forEach(entry -> addVirtualSubscriberGateway(
-                            host,
-                            entry.getKey(),
-                            entry.getValue(),
-                            serviceVlan));
-
-            ruleInstaller.populateSubscriberGatewayRules(host, vSgs.keySet());
-        }
     }
 
     /**
@@ -594,21 +578,21 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param host host
      */
     private void serviceVmRemoved(Host host) {
+        String serviceVlan = host.annotations().value(S_TAG);
+        if (serviceVlan != null) {
+            virtualSubscriberGatewayRemoved(host);
+        }
+
         String vNetId = host.annotations().value(SERVICE_ID);
         if (vNetId == null) {
             // ignore it, it's not the service VM or it's a vSG
-            String serviceVlan = host.annotations().value(S_TAG);
-            if (serviceVlan != null) {
-                log.info("vSG {} removed", host.id());
-            }
             return;
         }
 
         OpenstackNetwork vNet = openstackService.network(vNetId);
         if (vNet == null) {
             log.warn("Failed to get OpenStack network {} for VM {}({}).",
-                     vNetId,
-                     host.id(),
+                     vNetId, host.id(),
                      host.annotations().value(OPENSTACK_VM_ID));
             return;
         }
@@ -640,6 +624,62 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                 ruleInstaller.updateServiceGroup(service);
                 break;
         }
+    }
+
+
+    /**
+     * Handles virtual subscriber gateway VM or container.
+     *
+     * @param host new host with stag, it can be vsg VM or vsg
+     * @param serviceVlan service vlan
+     */
+    private void virtualSubscriberGatewayAdded(Host host, String serviceVlan) {
+        Map<IpAddress, MacAddress> vSgs;
+        Host vSgHost;
+
+        String vSgHostId = host.annotations().value(VSG_HOST_ID);
+        if (vSgHostId == null) {
+            log.debug("vSG VM detected {}", host.id());
+
+            vSgHost = host;
+            vSgs = getSubscriberGateways(vSgHost);
+            vSgs.entrySet().stream().forEach(entry -> addVirtualSubscriberGateway(
+                    vSgHost,
+                    entry.getKey(),
+                    entry.getValue(),
+                    serviceVlan));
+        } else {
+            vSgHost = hostService.getHost(HostId.hostId(vSgHostId));
+            if (vSgHost == null) {
+                return;
+            }
+
+            log.debug("vSG detected {}", host.id());
+            vSgs = getSubscriberGateways(vSgHost);
+        }
+
+        ruleInstaller.populateSubscriberGatewayRules(vSgHost, vSgs.keySet());
+    }
+
+    /**
+     * Handles virtual subscriber gateway removed.
+     *
+     * @param vSg vsg host to remove
+     */
+    private void virtualSubscriberGatewayRemoved(Host vSg) {
+        String vSgHostId = vSg.annotations().value(VSG_HOST_ID);
+        if (vSgHostId == null) {
+            return;
+        }
+
+        Host vSgHost = hostService.getHost(HostId.hostId(vSgHostId));
+        if (vSgHost == null) {
+            return;
+        }
+
+        log.info("vSG removed {}", vSg.id());
+        Map<IpAddress, MacAddress> vSgs = getSubscriberGateways(vSgHost);
+        ruleInstaller.populateSubscriberGatewayRules(vSgHost, vSgs.keySet());
     }
 
     /**
@@ -709,10 +749,14 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
             switch (event.type()) {
                 case HOST_ADDED:
-                    eventExecutor.submit(() -> serviceVmAdded(host));
+                    if (mastershipService.isLocalMaster(host.location().deviceId())) {
+                        eventExecutor.submit(() -> serviceVmAdded(host));
+                    }
                     break;
                 case HOST_REMOVED:
-                    eventExecutor.submit(() -> serviceVmRemoved(host));
+                    if (mastershipService.isLocalMaster(host.location().deviceId())) {
+                        eventExecutor.submit(() -> serviceVmRemoved(host));
+                    }
                     break;
                 default:
                     break;

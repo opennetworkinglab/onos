@@ -27,9 +27,10 @@ import org.onlab.packet.IpAddress;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -70,6 +71,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -149,7 +151,7 @@ public class CordVtnNodeManager {
     protected FlowRuleService flowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipService mastershipService;
+    protected LeadershipService leadershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected GroupService groupService;
@@ -169,6 +171,7 @@ public class CordVtnNodeManager {
     private ConsistentMap<String, CordVtnNode> nodeStore;
     private CordVtnRuleInstaller ruleInstaller;
     private ApplicationId appId;
+    private NodeId localNodeId;
 
     private enum NodeState implements CordVtnNodeState {
 
@@ -217,6 +220,9 @@ public class CordVtnNodeManager {
     @Activate
     protected void active() {
         appId = coreService.getAppId(CordVtnService.CORDVTN_APP_ID);
+        localNodeId = clusterService.getLocalNode().id();
+        leadershipService.runForLeadership(appId.name());
+
         nodeStore = storageService.<String, CordVtnNode>consistentMapBuilder()
                 .withSerializer(Serializer.using(NODE_SERIALIZER.build()))
                 .withName("cordvtn-nodestore")
@@ -227,7 +233,6 @@ public class CordVtnNodeManager {
                                                  deviceService,
                                                  driverService,
                                                  groupService,
-                                                 mastershipService,
                                                  DEFAULT_TUNNEL);
 
         deviceService.addListener(deviceListener);
@@ -242,6 +247,7 @@ public class CordVtnNodeManager {
 
         eventExecutor.shutdown();
         nodeStore.clear();
+        leadershipService.withdraw(appId.name());
     }
 
     /**
@@ -282,6 +288,13 @@ public class CordVtnNodeManager {
 
         if (!nodeStore.containsKey(node.hostname())) {
             log.warn("Node {} does not exist, add node first", node.hostname());
+            return;
+        }
+
+        NodeId leaderNodeId = leadershipService.getLeader(appId.name());
+        log.debug("Node init requested, local: {} leader: {}", localNodeId, leaderNodeId);
+        if (!Objects.equals(localNodeId, leaderNodeId)) {
+            // only the leader performs node init
             return;
         }
 
@@ -838,6 +851,12 @@ public class CordVtnNodeManager {
 
         @Override
         public void event(DeviceEvent event) {
+
+            NodeId leaderNodeId = leadershipService.getLeader(appId.name());
+            if (!Objects.equals(localNodeId, leaderNodeId)) {
+                // only the leader processes events
+                return;
+            }
 
             Device device = event.subject();
             ConnectionHandler<Device> handler =

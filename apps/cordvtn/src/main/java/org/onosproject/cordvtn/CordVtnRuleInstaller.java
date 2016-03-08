@@ -30,7 +30,6 @@ import org.onlab.util.ItemNotFoundException;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
-import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -120,13 +119,13 @@ public class CordVtnRuleInstaller {
     private static final String PORT_NAME = "portName";
     private static final String DATA_PLANE_INTF = "dataPlaneIntf";
     private static final String S_TAG = "stag";
+    private static final String OVS_HW_VERSION = "Open vSwitch";
 
     private final ApplicationId appId;
     private final FlowRuleService flowRuleService;
     private final DeviceService deviceService;
     private final DriverService driverService;
     private final GroupService groupService;
-    private final MastershipService mastershipService;
     private final String tunnelType;
 
     /**
@@ -137,7 +136,6 @@ public class CordVtnRuleInstaller {
      * @param deviceService device service
      * @param driverService driver service
      * @param groupService group service
-     * @param mastershipService mastership service
      * @param tunnelType tunnel type
      */
     public CordVtnRuleInstaller(ApplicationId appId,
@@ -145,14 +143,12 @@ public class CordVtnRuleInstaller {
                                 DeviceService deviceService,
                                 DriverService driverService,
                                 GroupService groupService,
-                                MastershipService mastershipService,
                                 String tunnelType) {
         this.appId = appId;
         this.flowRuleService = flowRuleService;
         this.deviceService = deviceService;
         this.driverService = driverService;
         this.groupService = groupService;
-        this.mastershipService = mastershipService;
         this.tunnelType = checkNotNull(tunnelType);
     }
 
@@ -187,10 +183,6 @@ public class CordVtnRuleInstaller {
         checkNotNull(vNet);
 
         DeviceId deviceId = host.location().deviceId();
-        if (!mastershipService.isLocalMaster(deviceId)) {
-            return;
-        }
-
         PortNumber inPort = host.location().port();
         MacAddress dstMac = host.mac();
         IpAddress hostIp = host.ipAddresses().stream().findFirst().get();
@@ -224,10 +216,6 @@ public class CordVtnRuleInstaller {
         MacAddress mac = host.mac();
         PortNumber port = host.location().port();
         IpAddress ip = host.ipAddresses().stream().findFirst().orElse(null);
-
-        if (!mastershipService.isLocalMaster(deviceId)) {
-            return;
-        }
 
         for (FlowRule flowRule : flowRuleService.getFlowRulesById(appId)) {
             if (flowRule.deviceId().equals(deviceId)) {
@@ -284,6 +272,10 @@ public class CordVtnRuleInstaller {
         Map<DeviceId, Set<PortNumber>> inPorts = Maps.newHashMap();
 
         for (Device device : deviceService.getAvailableDevices(SWITCH)) {
+            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
+                continue;
+            }
+
             GroupId groupId = createServiceGroup(device.id(), pService);
             outGroups.put(device.id(), groupId);
 
@@ -320,12 +312,16 @@ public class CordVtnRuleInstaller {
         Map<DeviceId, GroupId> outGroups = Maps.newHashMap();
         GroupKey groupKey = new DefaultGroupKey(pService.id().id().getBytes());
 
-        deviceService.getAvailableDevices(SWITCH).forEach(device -> {
+        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
+            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
+                continue;
+            }
+
             Group group = groupService.getGroup(device.id(), groupKey);
             if (group != null) {
                 outGroups.put(device.id(), group.id());
             }
-        });
+        }
 
         for (FlowRule flowRule : flowRuleService.getFlowRulesById(appId)) {
             IpPrefix dstIp = getDstIpFromSelector(flowRule);
@@ -368,11 +364,11 @@ public class CordVtnRuleInstaller {
         GroupKey groupKey = getGroupKey(service.id());
 
         for (Device device : deviceService.getAvailableDevices(SWITCH)) {
-            DeviceId deviceId = device.id();
-            if (!mastershipService.isLocalMaster(deviceId)) {
+            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
                 continue;
             }
 
+            DeviceId deviceId = device.id();
             Group group = groupService.getGroup(deviceId, groupKey);
             if (group == null) {
                 log.trace("No group exists for service {} in {}, do nothing.", service.id(), deviceId);
@@ -420,10 +416,6 @@ public class CordVtnRuleInstaller {
 
         DeviceId deviceId = host.location().deviceId();
         IpAddress hostIp = host.ipAddresses().stream().findFirst().get();
-
-        if (!mastershipService.isLocalMaster(deviceId)) {
-            return;
-        }
 
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_ARP)
@@ -520,10 +512,6 @@ public class CordVtnRuleInstaller {
      */
     public void removeManagementNetworkRules(Host host, CordService mService) {
         checkNotNull(mService);
-
-        if (!mastershipService.isLocalMaster(host.location().deviceId())) {
-            return;
-        }
         // TODO remove management network specific rules
     }
 
@@ -980,6 +968,10 @@ public class CordVtnRuleInstaller {
                 .build();
 
         for (Device device : deviceService.getAvailableDevices(SWITCH)) {
+            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
+                continue;
+            }
+
             FlowRule flowRuleDirect = DefaultFlowRule.builder()
                     .fromApp(appId)
                     .withSelector(selector)
@@ -1011,6 +1003,10 @@ public class CordVtnRuleInstaller {
                 .build();
 
         for (Device device : deviceService.getAvailableDevices(SWITCH)) {
+            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
+                continue;
+            }
+
             FlowRule flowRuleDirect = DefaultFlowRule.builder()
                     .fromApp(appId)
                     .withSelector(selector)
@@ -1138,6 +1134,10 @@ public class CordVtnRuleInstaller {
         processFlowRule(true, flowRule);
 
         for (Device device : deviceService.getAvailableDevices(SWITCH)) {
+            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
+                continue;
+            }
+
             if (device.id().equals(deviceId)) {
                 continue;
             }
