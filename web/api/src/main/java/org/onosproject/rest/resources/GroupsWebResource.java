@@ -36,12 +36,13 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 import static org.onlab.util.Tools.nullIsNotFound;
 
@@ -51,6 +52,10 @@ import static org.onlab.util.Tools.nullIsNotFound;
 
 @Path("groups")
 public class GroupsWebResource extends AbstractWebResource {
+
+    @Context
+    UriInfo uriInfo;
+
     public static final String DEVICE_INVALID = "Invalid deviceId in group creation request";
     public static final String GROUP_NOT_FOUND = "Group was not found";
 
@@ -135,8 +140,8 @@ public class GroupsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createGroup(@PathParam("deviceId") String deviceId,
                                 InputStream stream) {
-        URI location;
         try {
+
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             JsonNode specifiedDeviceId = jsonTree.get("deviceId");
 
@@ -150,14 +155,16 @@ public class GroupsWebResource extends AbstractWebResource {
                     group.deviceId(), group.type(), group.buckets(),
                     group.appCookie(), group.id().id(), group.appId());
             groupService.addGroup(description);
-            location = new URI(Long.toString(group.id().id()));
-        } catch (IOException | URISyntaxException ex) {
+            UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
+                    .path("groups")
+                    .path(deviceId)
+                    .path(Long.toString(group.id().id()));
+            return Response
+                    .created(locationBuilder.build())
+                    .build();
+        } catch (IOException ex) {
             throw new IllegalArgumentException(ex);
         }
-
-        return Response
-                .created(location)
-                .build();
     }
 
     /**

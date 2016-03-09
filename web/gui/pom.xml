@@ -62,8 +62,8 @@
             <artifactId>onos-incubator-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.sun.jersey.contribs</groupId>
-            <artifactId>jersey-multipart</artifactId>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
         </dependency>
     </dependencies>
 
@@ -96,11 +96,9 @@
                             javax.imageio.*,
                             javax.ws.rs,javax.ws.rs.core,javax.ws.rs.ext,
                             javax.servlet.*,
-                            com.sun.jersey.api,
-                            com.sun.jersey.spi.container.servlet,
-                            com.sun.jersey.server.impl.container.servlet,
-                            com.sun.jersey.multipart,
-                            com.sun.jersey.core.header,
+                            org.glassfish.jersey,
+                            org.glassfish.jersey.servlet,
+                            org.glassfish.jersey.media.multipart,
                             org.jvnet.mimepull,
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,

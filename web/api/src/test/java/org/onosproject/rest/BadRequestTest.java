@@ -17,8 +17,9 @@ package org.onosproject.rest;
 
 import org.junit.Test;
 
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
+import javax.ws.rs.NotAllowedException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.WebTarget;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
@@ -34,13 +35,12 @@ public class BadRequestTest extends ResourceTest {
      */
     @Test
     public void badUrl() {
-        WebResource rs = resource();
+        WebTarget wt = target();
         try {
-            rs.path("ThisIsABadURL").get(String.class);
+            wt.path("ThisIsABadURL").request().get(String.class);
             fail("Fetch of non-existent URL did not throw an exception");
-        } catch (UniformInterfaceException ex) {
-            assertThat(ex.getMessage(),
-                    containsString("returned a response status of 404 Not Found"));
+        } catch (NotFoundException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 404 Not Found"));
         }
     }
 
@@ -49,13 +49,13 @@ public class BadRequestTest extends ResourceTest {
      */
     @Test
     public void badMethod() {
-        WebResource rs = resource();
+        WebTarget wt = target();
         try {
-            rs.path("hosts").delete();
+            wt.path("hosts").request().delete(String.class);
             fail("Fetch of non-existent URL did not throw an exception");
-        } catch (UniformInterfaceException ex) {
+        } catch (NotAllowedException ex) {
             assertThat(ex.getMessage(),
-                    containsString("returned a response status of 405 Method Not Allowed"));
+                    containsString("HTTP 405 Method Not Allowed"));
         }
     }
 }

@@ -30,18 +30,22 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * Manage flow objectives.
  */
 @Path("flowobjectives")
 public class FlowObjectiveWebResource extends AbstractWebResource {
+
+    @Context
+    UriInfo uriInfo;
 
     public static final String DEVICE_INVALID =
             "Invalid deviceId in objective creation request";
@@ -65,23 +69,26 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFilteringObjective(@PathParam("deviceId") String deviceId,
                                              InputStream stream) {
-        URI location = null;
         try {
+            UriBuilder locationBuilder = null;
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             if (validateDeviceId(deviceId, jsonTree)) {
                 DeviceId did = DeviceId.deviceId(deviceId);
                 FilteringObjective filteringObjective =
                         codec(FilteringObjective.class).decode(jsonTree, this);
                 flowObjectiveService.filter(did, filteringObjective);
-                location = new URI(Integer.toString(filteringObjective.id()));
+                locationBuilder = uriInfo.getBaseUriBuilder()
+                        .path("flowobjectives")
+                        .path(did.toString())
+                        .path("filter")
+                        .path(Integer.toString(filteringObjective.id()));
             }
-        } catch (IOException | URISyntaxException e) {
+            return Response
+                    .created(locationBuilder.build())
+                    .build();
+        } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }
-
-        return Response
-                .created(location)
-                .build();
     }
 
     /**
@@ -99,23 +106,26 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createForwardingObjective(@PathParam("deviceId") String deviceId,
                                               InputStream stream) {
-        URI location = null;
         try {
+            UriBuilder locationBuilder = null;
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             if (validateDeviceId(deviceId, jsonTree)) {
                 DeviceId did = DeviceId.deviceId(deviceId);
                 ForwardingObjective forwardingObjective =
                         codec(ForwardingObjective.class).decode(jsonTree, this);
                 flowObjectiveService.forward(did, forwardingObjective);
-                location = new URI(Integer.toString(forwardingObjective.id()));
+                locationBuilder = uriInfo.getBaseUriBuilder()
+                        .path("flowobjectives")
+                        .path(did.toString())
+                        .path("forward")
+                        .path(Integer.toString(forwardingObjective.id()));
             }
-        } catch (IOException | URISyntaxException e) {
+            return Response
+                    .created(locationBuilder.build())
+                    .build();
+        } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }
-
-        return Response
-                .created(location)
-                .build();
     }
 
     /**
@@ -133,23 +143,26 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createNextObjective(@PathParam("deviceId") String deviceId,
                                         InputStream stream) {
-        URI location = null;
         try {
+            UriBuilder locationBuilder = null;
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             if (validateDeviceId(deviceId, jsonTree)) {
                 DeviceId did = DeviceId.deviceId(deviceId);
                 NextObjective nextObjective =
                         codec(NextObjective.class).decode(jsonTree, this);
                 flowObjectiveService.next(did, nextObjective);
-                location = new URI(Integer.toString(nextObjective.id()));
+                locationBuilder = uriInfo.getBaseUriBuilder()
+                        .path("flowobjectives")
+                        .path(did.toString())
+                        .path("next")
+                        .path(Integer.toString(nextObjective.id()));
             }
-        } catch (IOException | URISyntaxException e) {
+            return Response
+                    .created(locationBuilder.build())
+                    .build();
+        } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }
-
-        return Response
-                .created(location)
-                .build();
     }
 
     /**

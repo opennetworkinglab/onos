@@ -18,11 +18,6 @@ package org.onosproject.xosintegration;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.Maps;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -31,6 +26,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
@@ -49,6 +45,12 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Set;
@@ -207,7 +209,7 @@ public class OnosXosIntegrationManager implements VoltTenantService {
      * @deprecated in Cardinal Release
      */
     @Deprecated
-    private WebResource.Builder getClientBuilder() {
+    private Invocation.Builder getClientBuilder() {
         return getClientBuilder("");
     }
 
@@ -219,15 +221,14 @@ public class OnosXosIntegrationManager implements VoltTenantService {
      * @deprecated in Cardinal Release
      */
     @Deprecated
-    private WebResource.Builder getClientBuilder(String uri) {
+    private Invocation.Builder getClientBuilder(String uri) {
         String baseUrl = "http://" + xosServerAddress + ":"
                 + Integer.toString(xosServerPort);
-        Client client = Client.create();
-        client.addFilter(new HTTPBasicAuthFilter("padmin@vicci.org", "letmein"));
-        WebResource resource = client.resource(baseUrl
+        Client client = ClientBuilder.newClient();
+        client.register(HttpAuthenticationFeature.basic("padmin@vicci.org", "letmein"));
+        WebTarget wt = client.target(baseUrl
                 + XOS_TENANT_BASE_URI + uri);
-        return resource.accept(JSON_UTF_8.toString())
-                .type(JSON_UTF_8.toString());
+        return wt.request(JSON_UTF_8.toString());
     }
 
     /**
@@ -250,14 +251,14 @@ public class OnosXosIntegrationManager implements VoltTenantService {
      */
     @Deprecated
     private String getRest(String uri) {
-        WebResource.Builder builder = getClientBuilder(uri);
-        ClientResponse response = builder.get(ClientResponse.class);
+        Invocation.Builder builder = getClientBuilder(uri);
+        Response response = builder.get();
 
         if (response.getStatus() != HTTP_OK) {
             log.info("REST GET request returned error code {}",
                     response.getStatus());
         }
-        String jsonString = response.getEntity(String.class);
+        String jsonString = builder.get(String.class);
         log.info("JSON read:\n{}", jsonString);
 
         return jsonString;
@@ -272,21 +273,14 @@ public class OnosXosIntegrationManager implements VoltTenantService {
      */
     @Deprecated
     private String postRest(String json) {
-        WebResource.Builder builder = getClientBuilder();
-        ClientResponse response;
-
-        try {
-            response = builder.post(ClientResponse.class, json);
-        } catch (ClientHandlerException e) {
-            log.warn("Unable to contact REST server: {}", e.getMessage());
-            return "{ \"error\" : \"oops no one home\" }";
-        }
+        Invocation.Builder builder = getClientBuilder();
+        Response response = builder.post(Entity.json(json));
 
         if (response.getStatus() != HTTP_CREATED) {
             log.info("REST POST request returned error code {}",
                     response.getStatus());
         }
-        return response.getEntity(String.class);
+        return builder.post(Entity.json(json), String.class);
     }
 
     /**
@@ -298,8 +292,8 @@ public class OnosXosIntegrationManager implements VoltTenantService {
      */
     @Deprecated
     private void deleteRest(String uri) {
-        WebResource.Builder builder = getClientBuilder(uri);
-        ClientResponse response = builder.delete(ClientResponse.class);
+        Invocation.Builder builder = getClientBuilder(uri);
+        Response response = builder.delete();
 
         if (response.getStatus() != HTTP_NO_CONTENT) {
             log.info("REST DELETE request returned error code {}",
@@ -507,17 +501,11 @@ public class OnosXosIntegrationManager implements VoltTenantService {
 
         String baseUrl = "http://" + FABRIC_CONTROLLER_ADDRESS + ":"
                 + Integer.toString(FABRIC_SERVER_PORT);
-        Client client = Client.create();
-        WebResource resource = client.resource(baseUrl + FABRIC_BASE_URI);
-        WebResource.Builder builder = resource.accept(JSON_UTF_8.toString())
-                .type(JSON_UTF_8.toString());
+        Client client = ClientBuilder.newClient();
+        WebTarget wt = client.target(baseUrl + FABRIC_BASE_URI);
+        Invocation.Builder builder = wt.request(JSON_UTF_8.toString());
 
-        try {
-            builder.post(ClientResponse.class, node.toString());
-        } catch (ClientHandlerException e) {
-            log.warn("Unable to contact fabric REST server: {}", e.getMessage());
-            return;
-        }
+        builder.post(Entity.json(node.toString()));
     }
 
     /**

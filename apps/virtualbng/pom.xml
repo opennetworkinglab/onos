@@ -48,9 +48,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.sun.jersey</groupId>
+            <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>${jersey.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -68,8 +67,8 @@
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
-            <version>1.1.1</version>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0.1</version>
         </dependency>
     </dependencies>
 
@@ -93,9 +92,8 @@
                             org.slf4j,
                             javax.ws.rs,
                             javax.ws.rs.core,
-                            com.sun.jersey.api.core,
-                            com.sun.jersey.api.client,
-                            com.sun.jersey.spi.container.servlet,
+                            org.glassfish.jersey,
+                            org.glassfish.jersey.servlet,
                             com.sun.jersey.server.impl.container.servlet,
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,

@@ -15,9 +15,10 @@
  */
 package org.onosproject.rest;
 
-import java.util.Set;
-
 import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
@@ -37,10 +38,8 @@ import org.onosproject.net.topology.TopologyCluster;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.WebResource;
+import javax.ws.rs.client.WebTarget;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
@@ -166,8 +165,8 @@ public class TopologyResourceTest extends ResourceTest {
      */
     @Test
     public void getTopology() {
-        WebResource rs = resource();
-        String response = rs.path("topology").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("topology").request().get(String.class);
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -184,8 +183,8 @@ public class TopologyResourceTest extends ResourceTest {
      */
     @Test
     public void getTopologyClusters() {
-        WebResource rs = resource();
-        String response = rs.path("topology/clusters").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("topology/clusters").request().get(String.class);
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -200,8 +199,8 @@ public class TopologyResourceTest extends ResourceTest {
      */
     @Test
     public void getCluster() {
-        WebResource rs = resource();
-        String response = rs.path("topology/clusters/0").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("topology/clusters/0").request().get(String.class);
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -218,8 +217,8 @@ public class TopologyResourceTest extends ResourceTest {
      */
     @Test
     public void getClusterDevices() {
-        WebResource rs = resource();
-        String response = rs.path("topology/clusters/0/devices").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("topology/clusters/0/devices").request().get(String.class);
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -235,8 +234,8 @@ public class TopologyResourceTest extends ResourceTest {
      */
     @Test
     public void getClusterLinks() {
-        WebResource rs = resource();
-        String response = rs.path("topology/clusters/1/links").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("topology/clusters/1/links").request().get(String.class);
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -259,8 +258,8 @@ public class TopologyResourceTest extends ResourceTest {
      */
     @Test
     public void getBroadcast() {
-        WebResource rs = resource();
-        String response = rs.path("topology/broadcast/dev1:1").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("topology/broadcast/dev1:1").request().get(String.class);
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -272,8 +271,8 @@ public class TopologyResourceTest extends ResourceTest {
      */
     @Test
     public void getInfrastructure() {
-        WebResource rs = resource();
-        String response = rs.path("topology/infrastructure/dev2:1").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("topology/infrastructure/dev2:1").request().get(String.class);
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 

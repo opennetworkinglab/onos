@@ -16,13 +16,10 @@
 package org.onosproject.rest;
 
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.eclipsesource.json.Json;
-import com.sun.jersey.api.client.ClientResponse;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableSet;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -46,15 +43,23 @@ import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.ProviderId;
 
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.HashSet;
+import java.util.Set;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -242,8 +247,8 @@ public class HostResourceTest extends ResourceTest {
     @Test
     public void testHostsEmptyArray() {
         replay(mockHostService);
-        WebResource rs = resource();
-        String response = rs.path("hosts").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("hosts").request().get(String.class);
         assertThat(response, is("{\"hosts\":[]}"));
     }
 
@@ -270,8 +275,8 @@ public class HostResourceTest extends ResourceTest {
                         ips2);
         hosts.add(host1);
         hosts.add(host2);
-        WebResource rs = resource();
-        String response = rs.path("hosts").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("hosts").request().get(String.class);
         assertThat(response, containsString("{\"hosts\":["));
 
         final JsonObject result = Json.parse(response).asObject();
@@ -307,8 +312,8 @@ public class HostResourceTest extends ResourceTest {
                 .anyTimes();
         replay(mockHostService);
 
-        WebResource rs = resource();
-        String response = rs.path("hosts/00:00:11:00:00:01%2F1").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("hosts/00:00:11:00:00:01%2F1").request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, matchesHost(host1));
     }
@@ -333,8 +338,8 @@ public class HostResourceTest extends ResourceTest {
                 .anyTimes();
         replay(mockHostService);
 
-        WebResource rs = resource();
-        String response = rs.path("hosts/00:00:11:00:00:01/1").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("hosts/00:00:11:00:00:01/1").request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, matchesHost(host1));
     }
@@ -350,13 +355,13 @@ public class HostResourceTest extends ResourceTest {
                     .anyTimes();
             replay(mockHostService);
 
-            WebResource rs = resource();
+        WebTarget wt = target();
         try {
-            rs.path("hosts/00:00:11:00:00:01/1").get(String.class);
+            wt.path("hosts/00:00:11:00:00:01/1").request().get(String.class);
             fail("Fetch of non-existent host did not throw an exception");
-        } catch (UniformInterfaceException ex) {
+        } catch (NotFoundException ex) {
             assertThat(ex.getMessage(),
-                    containsString("returned a response status of"));
+                    containsString("HTTP 404 Not Found"));
         }
     }
 
@@ -378,11 +383,11 @@ public class HostResourceTest extends ResourceTest {
 
         InputStream jsonStream = HostResourceTest.class
                 .getResourceAsStream("post-host.json");
-        WebResource rs = resource();
+        WebTarget wt = target();
 
-        ClientResponse response = rs.path("hosts")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, jsonStream);
+        Response response = wt.path("hosts")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
         String location = response.getLocation().getPath();
         assertThat(location, Matchers.startsWith("/hosts/11:22:33:44:55:66/-1"));

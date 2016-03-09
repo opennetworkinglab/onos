@@ -19,9 +19,6 @@ package org.onosproject.rest;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -37,14 +34,29 @@ import org.onosproject.net.key.DeviceKeyAdminService;
 import org.onosproject.net.key.DeviceKeyId;
 import org.onosproject.net.key.DeviceKeyService;
 
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.HashSet;
 
-import static org.easymock.EasyMock.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Unit tests for device key REST APIs.
@@ -258,8 +270,8 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
     public void testGetDeviceKeysEmptyArray() {
         replay(mockDeviceKeyService);
 
-        WebResource rs = resource();
-        String response = rs.path("keys").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("keys").request().get(String.class);
         assertThat(response, is("{\"keys\":[]}"));
 
         verify(mockDeviceKeyService);
@@ -276,8 +288,8 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
         deviceKeySet.add(deviceKey3);
         deviceKeySet.add(deviceKey4);
 
-        WebResource rs = resource();
-        String response = rs.path("keys").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("keys").request().get(String.class);
         assertThat(response, containsString("{\"keys\":["));
 
         final JsonObject result = Json.parse(response).asObject();
@@ -310,8 +322,8 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
                 .anyTimes();
         replay(mockDeviceKeyService);
 
-        WebResource rs = resource();
-        String response = rs.path("keys/" + deviceKeyId1).get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("keys/" + deviceKeyId1).request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -331,13 +343,12 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
                 .anyTimes();
         replay(mockDeviceKeyService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
         try {
-            String response = rs.path("keys/" + deviceKeyId1).get(String.class);
+            wt.path("keys/" + deviceKeyId1).request().get(String.class);
             fail("GET of a non-existent device key did not throw an exception");
-        } catch (UniformInterfaceException ex) {
-            assertThat(ex.getMessage(),
-                       containsString("returned a response status of"));
+        } catch (NotFoundException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 404 Not Found"));
         }
 
         verify(mockDeviceKeyService);
@@ -354,13 +365,12 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
 
         replay(mockDeviceKeyAdminService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
         InputStream jsonStream = DeviceKeyWebResourceTest.class
                 .getResourceAsStream("post-device-key.json");
 
-        ClientResponse response = rs.path("keys")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, jsonStream);
+        Response response = wt.path("keys").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
 
         String location = response.getLocation().getPath();
@@ -377,15 +387,13 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
 
         replay(mockDeviceKeyAdminService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
         try {
-            String response = rs.path("keys")
-                    .type(MediaType.APPLICATION_JSON_TYPE)
-                    .post(String.class);
+            wt.path("keys").request(MediaType.APPLICATION_JSON_TYPE)
+                    .post(Entity.json(null), String.class);
             fail("POST of null device key did not throw an exception");
-        } catch (UniformInterfaceException ex) {
-            assertThat(ex.getMessage(),
-                       containsString("returned a response status of"));
+        } catch (BadRequestException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 400 Bad Request"));
         }
 
         verify(mockDeviceKeyAdminService);
@@ -405,11 +413,11 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
         replay(mockDeviceKeyService);
         replay(mockDeviceKeyAdminService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
 
-        ClientResponse response = rs.path("keys/" + deviceKeyId2)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .delete(ClientResponse.class);
+        Response response = wt.path("keys/" + deviceKeyId2)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
 
         verify(mockDeviceKeyService);
@@ -430,15 +438,14 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
         replay(mockDeviceKeyService);
         replay(mockDeviceKeyAdminService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
 
         try {
-            String response = rs.path("keys/" + "NON_EXISTENT_DEVICE_KEY")
+            wt.path("keys/" + "NON_EXISTENT_DEVICE_KEY").request()
                     .delete(String.class);
             fail("Delete of a non-existent device key did not throw an exception");
-        } catch (UniformInterfaceException ex) {
-            assertThat(ex.getMessage(),
-                       containsString("returned a response status of"));
+        } catch (NotFoundException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 404 Not Found"));
         }
 
         verify(mockDeviceKeyService);

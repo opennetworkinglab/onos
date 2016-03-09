@@ -22,13 +22,9 @@
 
     <servlet>
         <servlet-name>JAX-RS Service</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
-        </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.config.property.classnames</param-name>
+            <param-name>jersey.config.server.provider.classnames</param-name>
             <param-value>
                 org.onosproject.olt.rest.OltWebResource
             </param-value>

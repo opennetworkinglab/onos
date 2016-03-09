@@ -63,8 +63,8 @@
         </dependency>
 
         <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-servlet</artifactId>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -102,9 +102,8 @@
                             org.slf4j,
                             org.osgi.framework,
                             javax.ws.rs,javax.ws.rs.core,
-                            com.sun.jersey.api.core,
-                            com.sun.jersey.spi.container.servlet,
-                            com.sun.jersey.server.impl.container.servlet,
+                            org.glassfish.jersey,
+                            org.glassfish.jersey.servlet,
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,
                             org.apache.commons.lang.math.*,

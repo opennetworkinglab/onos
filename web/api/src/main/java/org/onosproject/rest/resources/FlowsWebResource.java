@@ -15,22 +15,9 @@
  */
 package org.onosproject.rest.resources;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.stream.StreamSupport;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -40,9 +27,21 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.rest.AbstractWebResource;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.stream.StreamSupport;
 
 /**
  * Query and program flow rules.
@@ -50,6 +49,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Path("flows")
 public class FlowsWebResource extends AbstractWebResource {
+
+    @Context
+    UriInfo uriInfo;
+
     public static final String DEVICE_NOT_FOUND = "Device is not found";
 
     final FlowRuleService service = get(FlowRuleService.class);
@@ -91,7 +94,7 @@ public class FlowsWebResource extends AbstractWebResource {
         final Iterable<FlowEntry> flowEntries =
                 service.getFlowEntries(DeviceId.deviceId(deviceId));
 
-        if (!flowEntries.iterator().hasNext()) {
+        if (flowEntries == null || !flowEntries.iterator().hasNext()) {
             throw new ItemNotFoundException(DEVICE_NOT_FOUND);
         }
         for (final FlowEntry entry : flowEntries) {
@@ -116,7 +119,7 @@ public class FlowsWebResource extends AbstractWebResource {
         final Iterable<FlowEntry> flowEntries =
                 service.getFlowEntries(DeviceId.deviceId(deviceId));
 
-        if (!flowEntries.iterator().hasNext()) {
+        if (flowEntries == null || !flowEntries.iterator().hasNext()) {
             throw new ItemNotFoundException(DEVICE_NOT_FOUND);
         }
         for (final FlowEntry entry : flowEntries) {
@@ -148,7 +151,6 @@ public class FlowsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFlow(@PathParam("deviceId") String deviceId,
                                InputStream stream) {
-        URI location;
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             JsonNode specifiedDeviceId = jsonTree.get("deviceId");
@@ -160,14 +162,17 @@ public class FlowsWebResource extends AbstractWebResource {
             jsonTree.put("deviceId", deviceId);
             FlowRule rule = codec(FlowRule.class).decode(jsonTree, this);
             service.applyFlowRules(rule);
-            location = new URI(Long.toString(rule.id().value()));
-        } catch (IOException | URISyntaxException ex) {
+            UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
+                    .path("flows")
+                    .path(deviceId)
+                    .path(rule.id().toString());
+
+            return Response
+                    .created(locationBuilder.build())
+                    .build();
+        } catch (IOException ex) {
             throw new IllegalArgumentException(ex);
         }
-
-        return Response
-                .created(location)
-                .build();
     }
 
     /**

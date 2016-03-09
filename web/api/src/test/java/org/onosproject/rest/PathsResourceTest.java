@@ -15,12 +15,10 @@
  */
 package org.onosproject.rest;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Set;
-
 import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableSet;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.After;
@@ -36,10 +34,11 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.topology.PathService;
 
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.WebResource;
+import javax.ws.rs.client.WebTarget;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -176,8 +175,8 @@ public class PathsResourceTest extends ResourceTest {
                                          StandardCharsets.UTF_8.name());
 
         String url = "paths/" + srcId + "/" + dstId;
-        WebResource rs = resource();
-        String response = rs.path(url).get(String.class);
+        WebTarget wt = target();
+        String response = wt.path(url).request().get(String.class);
         assertThat(response, containsString("{\"paths\":["));
 
         JsonObject result = Json.parse(response).asObject();

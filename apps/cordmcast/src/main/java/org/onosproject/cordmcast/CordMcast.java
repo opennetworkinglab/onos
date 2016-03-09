@@ -20,10 +20,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -32,6 +28,9 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
@@ -69,6 +68,12 @@ import org.onosproject.rest.AbstractWebResource;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.Dictionary;
@@ -200,7 +205,7 @@ public class CordMcast {
                 .map(r -> new ImmutablePair<>(r, mcastService.fetchSinks(r)))
                 .filter(pair -> pair.getRight() != null && !pair.getRight().isEmpty())
                 .forEach(pair -> pair.getRight().forEach(sink -> provisionGroup(pair.getLeft(),
-                                                                                sink)));
+                        sink)));
 
         log.info("Started");
     }
@@ -305,8 +310,8 @@ public class CordMcast {
                     public void onError(Objective objective, ObjectiveError error) {
                         //TODO: change to debug
                         log.info("Next Objective {} failed, because {}",
-                                 objective.id(),
-                                 error);
+                                objective.id(),
+                                error);
                     }
                 });
 
@@ -345,8 +350,8 @@ public class CordMcast {
                         public void onError(Objective objective, ObjectiveError error) {
                             //TODO: change to debug
                             log.info("Next Objective {} failed, because {}",
-                                     objective.id(),
-                                     error);
+                                    objective.id(),
+                                    error);
                         }
                     });
 
@@ -406,8 +411,8 @@ public class CordMcast {
                         public void onError(Objective objective, ObjectiveError error) {
                             //TODO: change to debug
                             log.info("Next Objective {} failed, because {}",
-                                     objective.id(),
-                                     error);
+                                    objective.id(),
+                                    error);
                         }
                     });
 
@@ -427,14 +432,14 @@ public class CordMcast {
 
         log.debug("Sending route {} to other ONOS {}", route, fabricOnosUrl);
 
-        WebResource.Builder builder = getClientBuilder(fabricOnosUrl);
+        Invocation.Builder builder = getClientBuilder(fabricOnosUrl);
 
         ObjectNode json = codecService.getCodec(McastRoute.class)
                 .encode(route, new AbstractWebResource());
 
         try {
-            builder.post(json.toString());
-        } catch (ClientHandlerException e) {
+            builder.post(Entity.json(json.toString()));
+        } catch (ProcessingException e) {
             log.warn("Unable to send route to remote controller: {}", e.getMessage());
         }
     }
@@ -447,15 +452,14 @@ public class CordMcast {
 
         log.debug("Removing route {} from other ONOS {}", route, fabricOnosUrl);
 
-        WebResource.Builder builder = getClientBuilder(fabricOnosUrl);
+        Invocation.Builder builder = getClientBuilder(fabricOnosUrl)
+                .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
 
         ObjectNode json = codecService.getCodec(McastRoute.class)
                 .encode(route, new AbstractWebResource());
-        try {
-            builder.delete(json.toString());
-        } catch (ClientHandlerException e) {
-            log.warn("Unable to delete route from remote controller: {}", e.getMessage());
-        }
+
+        builder.method("DELETE", Entity.entity(json.asText(),
+                MediaType.APPLICATION_OCTET_STREAM));
     }
 
     private void clearRemoteRoutes() {
@@ -466,7 +470,7 @@ public class CordMcast {
 
         log.debug("Clearing remote multicast routes from {}", fabricOnosUrl);
 
-        WebResource.Builder builder = getClientBuilder(fabricOnosUrl);
+        Invocation.Builder builder = getClientBuilder(fabricOnosUrl);
         List<McastRoute> mcastRoutes = Lists.newArrayList();
 
         try {
@@ -484,8 +488,6 @@ public class CordMcast {
             list.forEach(n -> mcastRoutes.add(
                     routeCodec.decode((ObjectNode) n, new AbstractWebResource())));
 
-        } catch (ClientHandlerException e) {
-            log.warn("Unable to clear routes from remote controller: {}", e.getMessage());
         } catch (IOException e) {
             log.warn("Error clearing remote routes", e);
         }
@@ -493,14 +495,16 @@ public class CordMcast {
         mcastRoutes.forEach(this::removeRemoteRoute);
     }
 
-    private WebResource.Builder getClientBuilder(String uri) {
-        Client client = Client.create();
-        client.setConnectTimeout(DEFAULT_REST_TIMEOUT_MS);
-        client.setReadTimeout(DEFAULT_REST_TIMEOUT_MS);
-        client.addFilter(new HTTPBasicAuthFilter(user, password));
-        WebResource resource = client.resource(uri);
-        return resource.accept(JSON_UTF_8.toString())
-                .type(JSON_UTF_8.toString());
+    private Invocation.Builder getClientBuilder(String uri) {
+        ClientConfig config = new ClientConfig();
+        Client client = ClientBuilder.newClient(config);
+
+        client.property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_REST_TIMEOUT_MS);
+        client.property(ClientProperties.READ_TIMEOUT,    DEFAULT_REST_TIMEOUT_MS);
+        client.register(HttpAuthenticationFeature.basic(user, password));
+
+        WebTarget wt = client.target(uri);
+        return wt.request(JSON_UTF_8.toString());
     }
 
     private class InternalNetworkConfigListener implements NetworkConfigListener {
@@ -532,8 +536,5 @@ public class CordMcast {
         public boolean isRelevant(NetworkConfigEvent event) {
             return event.configClass().equals(CONFIG_CLASS);
         }
-
-
     }
-
 }

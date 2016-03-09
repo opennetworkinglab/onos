@@ -15,13 +15,9 @@
  */
 package org.onosproject.rest;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-
-import com.sun.jersey.spi.container.servlet.ServletContainer;
-import com.sun.jersey.test.framework.AppDescriptor;
-import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.WebAppDescriptor;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
+import org.onosproject.rest.resources.CoreWebApplication;
 
 /**
  * Base class for REST API tests.  Performs common configuration operations.
@@ -32,41 +28,6 @@ public class ResourceTest extends JerseyTest {
      * Creates a new web-resource test.
      */
     public ResourceTest() {
-        super();
+        super(ResourceConfig.forApplicationClass(CoreWebApplication.class));
     }
-
-    /**
-     * Creates a new web-resource test initialized according to the specified
-     * web application class.
-     */
-    protected ResourceTest(Class<?> webAppClass) {
-        super(new WebAppDescriptor.Builder("javax.ws.rs.Application",
-                                           webAppClass.getCanonicalName())
-                      .servletClass(ServletContainer.class).build());
-    }
-
-    /**
-     * Assigns an available port for the test.
-     *
-     * @param defaultPort If a port cannot be determined, this one is used.
-     * @return free port
-     */
-    @Override
-    public int getPort(int defaultPort) {
-        try {
-            ServerSocket socket = new ServerSocket(0);
-            socket.setReuseAddress(true);
-            int port = socket.getLocalPort();
-            socket.close();
-            return port;
-        } catch (IOException ioe) {
-            return defaultPort;
-        }
-    }
-
-    @Override
-    public AppDescriptor configure() {
-        return new WebAppDescriptor.Builder("org.onosproject.rest").build();
-    }
-
 }

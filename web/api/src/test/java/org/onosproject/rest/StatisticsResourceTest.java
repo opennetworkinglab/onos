@@ -15,10 +15,11 @@
  */
 package org.onosproject.rest;
 
-import java.util.HashMap;
-import java.util.stream.IntStream;
-
 import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
@@ -31,11 +32,11 @@ import org.onosproject.net.link.LinkService;
 import org.onosproject.net.statistic.DefaultLoad;
 import org.onosproject.net.statistic.StatisticService;
 
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.WebResource;
+import javax.ws.rs.client.WebTarget;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.stream.IntStream;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -105,14 +106,14 @@ public class StatisticsResourceTest extends ResourceTest {
      * @param device expected device ID
      */
     private void checkValues(JsonObject load, int rate, int latest,
-                             boolean valid, String device) {
+                             boolean valid, String device) throws UnsupportedEncodingException {
         assertThat(load, notNullValue());
         assertThat(load.get("rate").asInt(), is(rate));
         assertThat(load.get("latest").asInt(), is(latest));
         assertThat(load.get("valid").asBoolean(), is(valid));
         assertThat(load.get("time").asLong(),
                 lessThanOrEqualTo((System.currentTimeMillis())));
-        assertThat(load.get("link").asString(),
+        assertThat(URLDecoder.decode(load.get("link").asString(), "UTF-8"),
                 containsString("device=of:" + device));
     }
 
@@ -120,11 +121,12 @@ public class StatisticsResourceTest extends ResourceTest {
      * Tests GET of a single Load statistics object.
      */
     @Test
-    public void testSingleLoadGet() {
-        final WebResource rs = resource();
-        final String response = rs.path("statistics/flows/link")
+    public void testSingleLoadGet() throws UnsupportedEncodingException {
+        final WebTarget wt = target();
+        final String response = wt.path("statistics/flows/link")
                 .queryParam("device", "of:0000000000000001")
                 .queryParam("port", "2")
+                .request()
                 .get(String.class);
 
         final JsonObject result = Json.parse(response).asObject();
@@ -145,9 +147,9 @@ public class StatisticsResourceTest extends ResourceTest {
      * Tests GET of all Load statistics objects.
      */
     @Test
-    public void testLoadsGet() {
-        final WebResource rs = resource();
-        final String response = rs.path("statistics/flows/link/").get(String.class);
+    public void testLoadsGet() throws UnsupportedEncodingException {
+        final WebTarget wt = target();
+        final String response = wt.path("statistics/flows/link/").request().get(String.class);
 
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());

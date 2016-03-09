@@ -23,7 +23,6 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableMap;
-import com.sun.jersey.api.client.WebResource;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
@@ -36,6 +35,7 @@ import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 
+import javax.ws.rs.client.WebTarget;
 import java.util.concurrent.TimeUnit;
 
 import static org.easymock.EasyMock.createMock;
@@ -106,8 +106,8 @@ public class MetricsResourceTest extends ResourceTest {
 
         replay(mockMetricsService);
 
-        WebResource rs = resource();
-        String response = rs.path("metrics").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("metrics").request().get(String.class);
         assertThat(response, containsString("{\"metrics\":["));
 
         JsonObject result = Json.parse(response).asObject();

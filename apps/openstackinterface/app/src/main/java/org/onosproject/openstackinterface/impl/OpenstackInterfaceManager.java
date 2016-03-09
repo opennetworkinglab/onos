@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -48,6 +46,12 @@ import org.onosproject.openstackinterface.web.OpenstackRouterCodec;
 import org.onosproject.openstackinterface.web.OpenstackSecurityGroupCodec;
 import org.onosproject.openstackinterface.web.OpenstackSubnetCodec;
 import org.slf4j.Logger;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.Collection;
@@ -146,7 +150,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
      */
     public Collection<OpenstackNetwork> getNetworks() {
 
-        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_NETWORKS);
+        Invocation.Builder builder = getClientBuilder(neutronUrl + URI_NETWORKS);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
@@ -176,7 +180,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
      */
     public Collection<OpenstackPort> getPorts() {
 
-        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_PORTS);
+        Invocation.Builder builder = getClientBuilder(neutronUrl + URI_PORTS);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
@@ -198,7 +202,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
     }
 
     public Collection<OpenstackRouter> getRouters() {
-        WebResource.Builder builder = getClientBuilder(neutronUrl + PATH_ROUTERS);
+        Invocation.Builder builder = getClientBuilder(neutronUrl + PATH_ROUTERS);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
@@ -227,8 +231,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
      * @return List of OpenstackSubnet
      */
     public Collection<OpenstackSubnet> getSubnets() {
-
-        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_SUBNETS);
+        Invocation.Builder builder = getClientBuilder(neutronUrl + URI_SUBNETS);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
@@ -256,7 +259,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
      * @return OpenstackSecurityGroup object or null if fails
      */
     public OpenstackSecurityGroup getSecurityGroup(String id) {
-        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_SECURITY_GROUPS + "/" + id);
+        Invocation.Builder builder = getClientBuilder(neutronUrl + URI_SECURITY_GROUPS + "/" + id);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
@@ -273,11 +276,10 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
         return securityGroup;
     }
 
-    private WebResource.Builder getClientBuilder(String uri) {
-        Client client = Client.create();
-        WebResource resource = client.resource(uri);
-        return resource.accept(JSON_UTF_8.toString())
-                .type(JSON_UTF_8.toString());
+    private Invocation.Builder getClientBuilder(String uri) {
+        Client client = ClientBuilder.newClient();
+        WebTarget wt = client.target(uri);
+        return wt.request(JSON_UTF_8.toString());
     }
 
     private String getToken() {
@@ -285,8 +287,8 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
             String request = "{\"auth\": {\"tenantName\": \"admin\", " +
                     "\"passwordCredentials\":  {\"username\": \"" +
                     userName + "\",\"password\": \"" + pass + "\"}}}";
-            WebResource.Builder builder = getClientBuilder(keystoneUrl + URI_TOKENS);
-            String response = builder.accept(MediaType.APPLICATION_JSON).post(String.class, request);
+            Invocation.Builder builder = getClientBuilder(keystoneUrl + URI_TOKENS);
+            String response = builder.accept(MediaType.APPLICATION_JSON).post(Entity.json(request), String.class);
 
             ObjectMapper mapper = new ObjectMapper();
             try {

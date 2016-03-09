@@ -20,7 +20,6 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.WebResource;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
@@ -43,11 +42,19 @@ import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.Version;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Optional;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
@@ -218,8 +225,8 @@ public class ApplicationsResourceTest extends ResourceTest {
                 .andReturn(ImmutableSet.of());
         replay(service);
 
-        WebResource rs = resource();
-        String response = rs.path("applications").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("applications").request().get(String.class);
         assertThat(response, is("{\"applications\":[]}"));
     }
 
@@ -232,8 +239,8 @@ public class ApplicationsResourceTest extends ResourceTest {
                 .andReturn(ImmutableSet.of(app1, app2, app3, app4));
         replay(service);
 
-        WebResource rs = resource();
-        String response = rs.path("applications").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("applications").request().get(String.class);
         assertThat(response, containsString("{\"applications\":["));
 
         JsonObject result = Json.parse(response).asObject();
@@ -259,8 +266,8 @@ public class ApplicationsResourceTest extends ResourceTest {
     public void getSingleApplication() {
         replay(service);
 
-        WebResource rs = resource();
-        String response = rs.path("applications/three").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("applications/three").request().get(String.class);
 
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
@@ -279,8 +286,8 @@ public class ApplicationsResourceTest extends ResourceTest {
 
         replay(service);
 
-        WebResource rs = resource();
-        rs.path("applications/three").delete();
+        WebTarget wt = target();
+        wt.path("applications/three").request().delete();
     }
 
     /**
@@ -294,8 +301,8 @@ public class ApplicationsResourceTest extends ResourceTest {
 
         replay(service);
 
-        WebResource rs = resource();
-        rs.path("applications/three/active").delete();
+        WebTarget wt = target();
+        wt.path("applications/three/active").request().delete();
     }
 
     /**
@@ -309,8 +316,8 @@ public class ApplicationsResourceTest extends ResourceTest {
 
         replay(service);
 
-        WebResource rs = resource();
-        rs.path("applications/three/active").post();
+        WebTarget wt = target();
+        wt.path("applications/three/active").request().post(null);
     }
 
     /**
@@ -330,8 +337,9 @@ public class ApplicationsResourceTest extends ResourceTest {
                                        new MockCodecContextWithService(service))
                 .asText();
 
-        WebResource rs = resource();
-        String response = rs.path("applications").post(String.class, app4Json);
+        WebTarget wt = target();
+        String response = wt.path("applications").request().post(
+                Entity.entity(app4Json, MediaType.APPLICATION_OCTET_STREAM), String.class);
 
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());

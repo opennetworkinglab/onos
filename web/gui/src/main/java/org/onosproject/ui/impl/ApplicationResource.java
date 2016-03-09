@@ -15,7 +15,7 @@
  */
 package org.onosproject.ui.impl;
 
-import com.sun.jersey.multipart.FormDataParam;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.onlab.rest.BaseResource;
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.core.Application;

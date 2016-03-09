@@ -19,9 +19,6 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -56,9 +53,12 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
-import org.onosproject.rest.resources.CoreWebApplication;
 
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
@@ -251,10 +251,6 @@ public class FlowsResourceTest extends ResourceTest {
                 .andReturn(rules.get(deviceId1)).anyTimes();
         expect(mockFlowService.getFlowEntries(deviceId2))
                 .andReturn(rules.get(deviceId2)).anyTimes();
-    }
-
-    public FlowsResourceTest() {
-        super(CoreWebApplication.class);
     }
 
     /**
@@ -476,8 +472,8 @@ public class FlowsResourceTest extends ResourceTest {
                 .andReturn(null).anyTimes();
         replay(mockFlowService);
         replay(mockDeviceService);
-        final WebResource rs = resource();
-        final String response = rs.path("flows").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("flows").request().get(String.class);
         assertThat(response, is("{\"flows\":[]}"));
     }
 
@@ -489,8 +485,8 @@ public class FlowsResourceTest extends ResourceTest {
         setupMockFlows();
         replay(mockFlowService);
         replay(mockDeviceService);
-        final WebResource rs = resource();
-        final String response = rs.path("flows").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("flows").request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -517,8 +513,8 @@ public class FlowsResourceTest extends ResourceTest {
                 .andReturn(flows).anyTimes();
         replay(mockFlowService);
         replay(mockDeviceService);
-        final WebResource rs = resource();
-        final String response = rs.path("flows/" + deviceId3).get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("flows/" + deviceId3).request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -543,9 +539,9 @@ public class FlowsResourceTest extends ResourceTest {
                 .andReturn(flows).anyTimes();
         replay(mockFlowService);
         replay(mockDeviceService);
-        final WebResource rs = resource();
-        final String response = rs.path("flows/" + deviceId3 + "/"
-                + Long.toString(flow5.id().value())).get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("flows/" + deviceId3 + "/"
+                + Long.toString(flow5.id().value())).request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -562,20 +558,18 @@ public class FlowsResourceTest extends ResourceTest {
      */
     @Test
     public void testBadGet() {
-        expect(mockFlowService.getFlowEntries(deviceId1))
-                .andReturn(null).anyTimes();
-        expect(mockFlowService.getFlowEntries(deviceId2))
+        expect(mockFlowService.getFlowEntries(anyObject()))
                 .andReturn(null).anyTimes();
         replay(mockFlowService);
         replay(mockDeviceService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
         try {
-            rs.path("flows/0").get(String.class);
+            wt.path("flows/0").request().get(String.class);
             fail("Fetch of non-existent device did not throw an exception");
-        } catch (UniformInterfaceException ex) {
+        } catch (NotFoundException ex) {
             assertThat(ex.getMessage(),
-                    containsString("returned a response status of"));
+                    containsString("HTTP 404 Not Found"));
         }
     }
 
@@ -584,19 +578,17 @@ public class FlowsResourceTest extends ResourceTest {
      */
     @Test
     public void testPost() {
-
-
         mockFlowService.applyFlowRules(anyObject());
         expectLastCall();
         replay(mockFlowService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
         InputStream jsonStream = FlowsResourceTest.class
                 .getResourceAsStream("post-flow.json");
 
-        ClientResponse response = rs.path("flows/of:0000000000000001")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, jsonStream);
+        Response response = wt.path("flows/of:0000000000000001")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
         String location = response.getLocation().getPath();
         assertThat(location, Matchers.startsWith("/flows/of:0000000000000001/"));
@@ -612,13 +604,13 @@ public class FlowsResourceTest extends ResourceTest {
         expectLastCall();
         replay(mockFlowService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
 
         String location = "/flows/1/155";
 
-        ClientResponse deleteResponse = rs.path(location)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .delete(ClientResponse.class);
+        Response deleteResponse = wt.path(location)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
         assertThat(deleteResponse.getStatus(),
                 is(HttpURLConnection.HTTP_NO_CONTENT));
     }

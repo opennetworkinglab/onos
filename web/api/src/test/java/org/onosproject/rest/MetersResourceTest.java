@@ -20,9 +20,8 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 import org.hamcrest.Description;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
@@ -47,9 +46,11 @@ import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.meter.MeterState;
-import org.onosproject.rest.resources.CoreWebApplication;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
@@ -68,9 +69,9 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.onosproject.net.NetTestTools.APP_ID;
 
 /**
@@ -96,10 +97,6 @@ public class MetersResourceTest extends ResourceTest {
     final MockMeter meter3 = new MockMeter(deviceId2, 3, 333, 3);
     final MockMeter meter4 = new MockMeter(deviceId2, 4, 444, 4);
     final MockMeter meter5 = new MockMeter(deviceId3, 5, 555, 5);
-
-    public MetersResourceTest() {
-        super(CoreWebApplication.class);
-    }
 
     /**
      * Mock class for a meter.
@@ -371,8 +368,8 @@ public class MetersResourceTest extends ResourceTest {
         expect(mockMeterService.getAllMeters()).andReturn(null).anyTimes();
         replay(mockMeterService);
         replay(mockDeviceService);
-        final WebResource rs = resource();
-        final String response = rs.path("meters").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("meters").request().get(String.class);
         assertThat(response, is("{\"meters\":[]}"));
     }
 
@@ -384,8 +381,8 @@ public class MetersResourceTest extends ResourceTest {
         setupMockMeters();
         replay(mockMeterService);
         replay(mockDeviceService);
-        final WebResource rs = resource();
-        final String response = rs.path("meters").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("meters").request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -414,8 +411,8 @@ public class MetersResourceTest extends ResourceTest {
         replay(mockMeterService);
         replay(mockDeviceService);
 
-        final WebResource rs = resource();
-        final String response = rs.path("meters/" + deviceId1.toString()).get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("meters/" + deviceId1.toString()).request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -439,9 +436,9 @@ public class MetersResourceTest extends ResourceTest {
         replay(mockMeterService);
         replay(mockDeviceService);
 
-        final WebResource rs = resource();
-        final String response = rs.path("meters/" + deviceId3.toString()
-                + "/" + meter5.id().id()).get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("meters/" + deviceId3.toString()
+                + "/" + meter5.id().id()).request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -463,9 +460,9 @@ public class MetersResourceTest extends ResourceTest {
                 .andReturn(null).anyTimes();
         replay(mockMeterService);
 
-        final WebResource rs = resource();
-        final ClientResponse response = rs.path("meters/" + deviceId3.toString()
-                + "/" + "888").get(ClientResponse.class);
+        final WebTarget wt = target();
+        final Response response = wt.path("meters/" + deviceId3.toString()
+                + "/" + "888").request().get();
 
         assertEquals(404, response.getStatus());
     }
@@ -479,14 +476,16 @@ public class MetersResourceTest extends ResourceTest {
         expectLastCall().andReturn(meter5).anyTimes();
         replay(mockMeterService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
         InputStream jsonStream = MetersResourceTest.class
                 .getResourceAsStream("post-meter.json");
 
-        ClientResponse response = rs.path("meters/of:0000000000000001")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, jsonStream);
+        Response response = wt.path("meters/of:0000000000000001")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
+        String location = response.getLocation().getPath();
+        assertThat(location, Matchers.startsWith("/meters/of:0000000000000001/"));
     }
 
     /**
@@ -501,13 +500,13 @@ public class MetersResourceTest extends ResourceTest {
         expectLastCall();
         replay(mockMeterService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
 
         String location = "/meters/3/555";
 
-        ClientResponse deleteResponse = rs.path(location)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .delete(ClientResponse.class);
+        Response deleteResponse = wt.path(location)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
         assertThat(deleteResponse.getStatus(),
                 is(HttpURLConnection.HTTP_NO_CONTENT));
     }

@@ -17,10 +17,6 @@
 package org.onosproject.protocol.rest.ctl;
 
 import com.google.common.collect.ImmutableMap;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -32,6 +28,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.protocol.rest.RestSBController;
@@ -39,9 +36,12 @@ import org.onosproject.protocol.rest.RestSBDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -77,7 +77,7 @@ public class RestSBControllerImpl implements RestSBController {
 
     @Activate
     public void activate() {
-        client = Client.create();
+        client = ClientBuilder.newClient();
         log.info("Started");
     }
 
@@ -115,20 +115,19 @@ public class RestSBControllerImpl implements RestSBController {
 
     @Override
     public boolean post(DeviceId device, String request, InputStream payload, String mediaType) {
-        WebResource webResource = getWebResource(device, request);
+        WebTarget wt = getWebTarget(device, request);
 
-        ClientResponse response = null;
+        Response response = null;
         if (payload != null) {
             try {
-                response = webResource.accept(mediaType)
-                        .post(ClientResponse.class, IOUtils.toString(payload, StandardCharsets.UTF_8));
+                response = wt.request(mediaType)
+                        .post(Entity.entity(IOUtils.toString(payload, StandardCharsets.UTF_8), mediaType));
             } catch (IOException e) {
                 log.error("Cannot do POST {} request on device {} because can't read payload",
                           request, device);
             }
         } else {
-            response = webResource.accept(mediaType)
-                    .post(ClientResponse.class);
+            response = wt.request(mediaType).post(Entity.entity(null, mediaType));
         }
         return checkReply(response);
     }
@@ -136,26 +135,25 @@ public class RestSBControllerImpl implements RestSBController {
     @Override
     public boolean put(DeviceId device, String request, InputStream payload, String mediaType) {
 
-        WebResource webResource = getWebResource(device, request);
-        ClientResponse response = null;
+        WebTarget wt = getWebTarget(device, request);
+        Response response = null;
         if (payload != null) {
             try {
-                response = webResource.accept(mediaType)
-                        .put(ClientResponse.class, IOUtils.toString(payload, StandardCharsets.UTF_8));
+                response = wt.request(mediaType)
+                        .put(Entity.entity(IOUtils.toString(payload, StandardCharsets.UTF_8), mediaType));
             } catch (IOException e) {
                 log.error("Cannot do PUT {} request on device {} because can't read payload",
                           request, device);
             }
         } else {
-            response = webResource.accept(mediaType)
-                    .put(ClientResponse.class);
+            response = wt.request(mediaType).put(Entity.entity(null, mediaType));
         }
         return checkReply(response);
     }
 
     @Override
     public InputStream get(DeviceId device, String request, String mediaType) {
-        WebResource webResource = getWebResource(device, request);
+        WebTarget wt = getWebTarget(device, request);
         String type;
         switch (mediaType) {
             case XML:
@@ -169,10 +167,9 @@ public class RestSBControllerImpl implements RestSBController {
 
         }
 
-        ClientResponse s = webResource.accept(type).get(ClientResponse.class);
+        Response s = wt.request(type).get();
         if (checkReply(s)) {
-            return new ByteArrayInputStream(s.getEntity(String.class)
-                                                    .getBytes(StandardCharsets.UTF_8));
+            return (InputStream) s.getEntity();
         }
         return null;
     }
@@ -213,32 +210,24 @@ public class RestSBControllerImpl implements RestSBController {
 
     @Override
     public boolean delete(DeviceId device, String request, InputStream payload, String mediaType) {
-        WebResource webResource = getWebResource(device, request);
-        ClientResponse response = null;
-        if (payload != null) {
-            try {
-                response = webResource.accept(mediaType)
-                        .delete(ClientResponse.class, IOUtils.toString(payload, StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                log.error("Cannot do PUT {} request on device {} because can't read payload",
-                          request, device);
-            }
-        } else {
-            response = webResource.accept(mediaType)
-                    .delete(ClientResponse.class);
-        }
+        WebTarget wt = getWebTarget(device, request);
+
+        // FIXME: do we need to delete an entry by enclosing data in DELETE request?
+        // wouldn't it be nice to use PUT to implement the similar concept?
+        Response response = wt.request(mediaType).delete();
+
         return checkReply(response);
     }
 
-    private WebResource getWebResource(DeviceId device, String request) {
+    private WebTarget getWebTarget(DeviceId device, String request) {
         log.debug("Sending request to URL {} ", getUrlString(device, request));
-        WebResource webResource = client.resource(getUrlString(device, request));
+        WebTarget wt = client.target(getUrlString(device, request));
         if (deviceMap.containsKey(device) && deviceMap.get(device).username() != null) {
-            client.addFilter(new HTTPBasicAuthFilter(deviceMap.get(device).username(),
+            client.register(HttpAuthenticationFeature.basic(deviceMap.get(device).username(),
                                                      deviceMap.get(device).password() == null ?
                                                              "" : deviceMap.get(device).password()));
         }
-        return webResource;
+        return wt;
     }
 
     //FIXME security issue: this trusts every SSL certificate, even if is self-signed. Also deprecated methods.
@@ -263,7 +252,7 @@ public class RestSBControllerImpl implements RestSBController {
         }
     }
 
-    private boolean checkReply(ClientResponse response) {
+    private boolean checkReply(Response response) {
         if (response != null) {
             return checkStatusCode(response.getStatus());
         }

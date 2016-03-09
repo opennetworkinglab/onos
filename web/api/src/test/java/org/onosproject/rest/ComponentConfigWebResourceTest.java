@@ -16,8 +16,6 @@
 package org.onosproject.rest;
 
 import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
@@ -27,6 +25,9 @@ import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
 
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -45,7 +46,7 @@ public class ComponentConfigWebResourceTest extends ResourceTest {
     private TestConfigManager service;
 
     @Before
-    public void setUp() {
+    public void setUpMock() {
         service = new TestConfigManager();
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
@@ -55,26 +56,27 @@ public class ComponentConfigWebResourceTest extends ResourceTest {
 
     @Test
     public void getAllConfigs() {
-        WebResource rs = resource();
-        String response = rs.path("configuration").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("configuration").request().get(String.class);
         assertThat(response, containsString("\"foo\":"));
         assertThat(response, containsString("\"bar\":"));
     }
 
     @Test
     public void getConfigs() {
-        WebResource rs = resource();
-        String response = rs.path("configuration/foo").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("configuration/foo").request().get(String.class);
         assertThat(response, containsString("{\"foo\":"));
         assertThat(response, not(containsString("{\"bar\":")));
     }
 
     @Test
     public void setConfigs() {
-        WebResource rs = resource();
+        WebTarget wt = target();
         try {
-            rs.path("configuration/foo").post(String.class, "{ \"k\" : \"v\" }");
-        } catch (UniformInterfaceException e) {
+            wt.path("configuration/foo").request().post(
+                    Entity.json("{ \"k\" : \"v\" }"), String.class);
+        } catch (BadRequestException e) {
             assertEquals("incorrect key", "foo", service.component);
             assertEquals("incorrect key", "k", service.name);
             assertEquals("incorrect value", "v", service.value);
@@ -83,10 +85,12 @@ public class ComponentConfigWebResourceTest extends ResourceTest {
 
     @Test
     public void unsetConfigs() {
-        WebResource rs = resource();
+        WebTarget wt = target();
         try {
-            rs.path("configuration/foo").delete(String.class, "{ \"k\" : \"v\" }");
-        } catch (UniformInterfaceException e) {
+            // TODO: this needs to be revised later. Do you really need to
+            // contain any entry inside delete request? Why not just use put then?
+            wt.path("configuration/foo").request().delete();
+        } catch (BadRequestException e) {
             assertEquals("incorrect key", "foo", service.component);
             assertEquals("incorrect key", "k", service.name);
             assertEquals("incorrect value", null, service.value);

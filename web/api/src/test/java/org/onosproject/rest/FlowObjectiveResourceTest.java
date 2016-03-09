@@ -17,8 +17,6 @@ package org.onosproject.rest;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
@@ -31,9 +29,11 @@ import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.rest.resources.CoreWebApplication;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 
@@ -57,10 +57,6 @@ public class FlowObjectiveResourceTest extends ResourceTest {
     final FlowObjectiveService mockFlowObjectiveService = createMock(FlowObjectiveService.class);
     CoreService mockCoreService = createMock(CoreService.class);
     public static final String REST_APP_ID = "org.onosproject.rest";
-
-    public FlowObjectiveResourceTest() {
-        super(CoreWebApplication.class);
-    }
 
     /**
      * Sets up the global values for all the tests.
@@ -133,8 +129,8 @@ public class FlowObjectiveResourceTest extends ResourceTest {
         expect(mockFlowObjectiveService.allocateNextId()).andReturn(10).anyTimes();
         prepareService();
 
-        WebResource rs = resource();
-        final String response = rs.path("flowobjectives/next").get(String.class);
+        WebTarget wt = target();
+        final String response = wt.path("flowobjectives/next").request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -157,7 +153,7 @@ public class FlowObjectiveResourceTest extends ResourceTest {
      * @param method objective method
      */
     private void testObjectiveCreation(String jsonFile, String deviceId, String method) {
-        WebResource rs = resource();
+        WebTarget wt = target();
         InputStream jsonStream = FlowsResourceTest.class
                 .getResourceAsStream(jsonFile);
 
@@ -168,9 +164,9 @@ public class FlowObjectiveResourceTest extends ResourceTest {
         sb.append("/");
         sb.append(method);
 
-        ClientResponse response = rs.path(sb.toString())
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, jsonStream);
+        Response response = wt.path(sb.toString())
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
         String location = response.getLocation().getPath();
         assertThat(location, Matchers.startsWith("/" + sb.toString()));

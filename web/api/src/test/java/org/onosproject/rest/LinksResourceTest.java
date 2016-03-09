@@ -16,6 +16,10 @@
 package org.onosproject.rest;
 
 import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
@@ -31,11 +35,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.link.LinkService;
 
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.WebResource;
+import javax.ws.rs.client.WebTarget;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -181,8 +181,8 @@ public class LinksResourceTest extends ResourceTest {
         expect(mockLinkService.getLinks()).andReturn(ImmutableList.of());
         replay(mockLinkService);
 
-        WebResource rs = resource();
-        String response = rs.path("links").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("links").request().get(String.class);
         assertThat(response, is("{\"links\":[]}"));
     }
 
@@ -197,8 +197,8 @@ public class LinksResourceTest extends ResourceTest {
 
         replay(mockLinkService);
 
-        WebResource rs = resource();
-        String response = rs.path("links").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("links").request().get(String.class);
         assertThat(response, containsString("{\"links\":["));
 
         JsonObject result = Json.parse(response).asObject();
@@ -227,10 +227,11 @@ public class LinksResourceTest extends ResourceTest {
 
         replay(mockLinkService);
 
-        WebResource rs = resource();
-        String response = rs
+        WebTarget wt = target();
+        String response = wt
                 .path("links")
                 .queryParam("device", "src2")
+                .request()
                 .get(String.class);
         assertThat(response, containsString("{\"links\":["));
 
@@ -260,11 +261,12 @@ public class LinksResourceTest extends ResourceTest {
 
         replay(mockLinkService);
 
-        WebResource rs = resource();
-        String response = rs
+        WebTarget wt = target();
+        String response = wt
                 .path("links")
                 .queryParam("device", "src2")
                 .queryParam("port", "2")
+                .request()
                 .get(String.class);
         assertThat(response, containsString("{\"links\":["));
 
@@ -294,12 +296,13 @@ public class LinksResourceTest extends ResourceTest {
 
         replay(mockLinkService);
 
-        WebResource rs = resource();
-        String response = rs
+        WebTarget wt = target();
+        String response = wt
                 .path("links")
                 .queryParam("device", "src2")
                 .queryParam("port", "2")
                 .queryParam("direction", "INGRESS")
+                .request()
                 .get(String.class);
         assertThat(response, containsString("{\"links\":["));
 
@@ -329,11 +332,12 @@ public class LinksResourceTest extends ResourceTest {
 
         replay(mockLinkService);
 
-        WebResource rs = resource();
-        String response = rs
+        WebTarget wt = target();
+        String response = wt
                 .path("links")
                 .queryParam("device", "src2")
                 .queryParam("direction", "INGRESS")
+                .request()
                 .get(String.class);
         assertThat(response, containsString("{\"links\":["));
 

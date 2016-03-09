@@ -165,6 +165,9 @@ public class ApiDocResource extends AbstractInjectionResource {
     @GET
     @Path("{resource: .*}")
     public Response getResource(@PathParam("resource") String resource) throws IOException {
+        if (resource != null && resource.equals("")) {
+            return getIndex();
+        }
         InputStream stream = getClass().getClassLoader().getResourceAsStream(DOCS + resource);
         return ok(nullIsNotFound(stream, resource + " not found"))
                 .header(CONTENT_TYPE, contentType(resource)).build();

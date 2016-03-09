@@ -19,9 +19,6 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -44,16 +41,27 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
-import org.onosproject.rest.resources.CoreWebApplication;
 
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.HashSet;
 
-import static org.easymock.EasyMock.*;
-import static org.hamcrest.Matchers.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
@@ -67,10 +75,6 @@ public class IntentsResourceTest extends ResourceTest {
     final HashSet<Intent> intents = new HashSet<>();
     private static final ApplicationId APP_ID = new DefaultApplicationId(1, "test");
     private IdGenerator mockGenerator;
-
-    public IntentsResourceTest() {
-        super(CoreWebApplication.class);
-    }
 
     private class MockResource implements NetworkResource {
         int id;
@@ -270,8 +274,8 @@ public class IntentsResourceTest extends ResourceTest {
     @Test
     public void testIntentsEmptyArray() {
         replay(mockIntentService);
-        final WebResource rs = resource();
-        final String response = rs.path("intents").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("intents").request().get(String.class);
         assertThat(response, is("{\"intents\":[]}"));
     }
 
@@ -291,8 +295,8 @@ public class IntentsResourceTest extends ResourceTest {
 
         intents.add(intent1);
         intents.add(intent2);
-        final WebResource rs = resource();
-        final String response = rs.path("intents").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("intents").request().get(String.class);
         assertThat(response, containsString("{\"intents\":["));
 
         final JsonObject result = Json.parse(response).asObject();
@@ -337,17 +341,17 @@ public class IntentsResourceTest extends ResourceTest {
         expect(mockCoreService.getAppId(APP_ID.name()))
                 .andReturn(APP_ID).anyTimes();
         replay(mockCoreService);
-        final WebResource rs = resource();
+        final WebTarget wt = target();
 
         // Test get using key string
-        final String response = rs.path("intents/" + APP_ID.name()
-                + "/0").get(String.class);
+        final String response = wt.path("intents/" + APP_ID.name()
+                + "/0").request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, matchesIntent(intent));
 
         // Test get using numeric value
-        final String responseNumeric = rs.path("intents/" + APP_ID.name()
-                + "/0x0").get(String.class);
+        final String responseNumeric = wt.path("intents/" + APP_ID.name()
+                + "/0x0").request().get(String.class);
         final JsonObject resultNumeric = Json.parse(responseNumeric).asObject();
         assertThat(resultNumeric, matchesIntent(intent));
     }
@@ -363,13 +367,13 @@ public class IntentsResourceTest extends ResourceTest {
                 .anyTimes();
         replay(mockIntentService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
         try {
-            rs.path("intents/0").get(String.class);
+            wt.path("intents/0").request().get(String.class);
             fail("Fetch of non-existent intent did not throw an exception");
-        } catch (UniformInterfaceException ex) {
+        } catch (NotFoundException ex) {
             assertThat(ex.getMessage(),
-                    containsString("returned a response status of"));
+                    containsString("HTTP 404 Not Found"));
         }
     }
 
@@ -389,11 +393,11 @@ public class IntentsResourceTest extends ResourceTest {
 
         InputStream jsonStream = IntentsResourceTest.class
                 .getResourceAsStream("post-intent.json");
-        WebResource rs = resource();
+        WebTarget wt = target();
 
-        ClientResponse response = rs.path("intents")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, jsonStream);
+        Response response = wt.path("intents")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
         String location = response.getLocation().getPath();
         assertThat(location, Matchers.startsWith("/intents/myApp/"));
@@ -408,11 +412,11 @@ public class IntentsResourceTest extends ResourceTest {
         replay(mockIntentService);
 
         String json = "this is invalid!";
-        WebResource rs = resource();
+        WebTarget wt = target();
 
-        ClientResponse response = rs.path("intents")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, json);
+        Response response = wt.path("intents")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(json));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_BAD_REQUEST));
     }
 
@@ -449,11 +453,11 @@ public class IntentsResourceTest extends ResourceTest {
 
         replay(mockIntentService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
 
-        ClientResponse response = rs.path("intents/app/0x2")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .delete(ClientResponse.class);
+        Response response = wt.path("intents/app/0x2")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
     }
 
@@ -477,11 +481,11 @@ public class IntentsResourceTest extends ResourceTest {
 
         replay(mockIntentService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
 
-        ClientResponse response = rs.path("intents/app/0x2")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .delete(ClientResponse.class);
+        Response response = wt.path("intents/app/0x2")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
     }
 

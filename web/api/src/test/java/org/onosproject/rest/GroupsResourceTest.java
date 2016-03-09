@@ -20,9 +20,8 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableSet;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 import org.hamcrest.Description;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
@@ -50,9 +49,11 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
-import org.onosproject.rest.resources.CoreWebApplication;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
@@ -71,8 +72,8 @@ import static org.easymock.EasyMock.verify;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.onosproject.net.NetTestTools.APP_ID;
 
 /**
@@ -102,10 +103,6 @@ public class GroupsResourceTest extends ResourceTest {
 
     final MockGroup group5 = new MockGroup(deviceId3, 5, "555", 5);
     final MockGroup group6 = new MockGroup(deviceId3, 6, "666", 6);
-
-    public GroupsResourceTest() {
-        super(CoreWebApplication.class);
-    }
 
     /**
      * Mock class for a group.
@@ -396,8 +393,8 @@ public class GroupsResourceTest extends ResourceTest {
         expect(mockGroupService.getGroups(deviceId2)).andReturn(null).anyTimes();
         replay(mockGroupService);
         replay(mockDeviceService);
-        final WebResource rs = resource();
-        final String response = rs.path("groups").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("groups").request().get(String.class);
         assertThat(response, is("{\"groups\":[]}"));
     }
 
@@ -409,8 +406,8 @@ public class GroupsResourceTest extends ResourceTest {
         setupMockGroups();
         replay(mockGroupService);
         replay(mockDeviceService);
-        final WebResource rs = resource();
-        final String response = rs.path("groups").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("groups").request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -437,8 +434,8 @@ public class GroupsResourceTest extends ResourceTest {
                 .andReturn(groups).anyTimes();
         replay(mockGroupService);
         replay(mockDeviceService);
-        final WebResource rs = resource();
-        final String response = rs.path("groups/" + deviceId3).get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("groups/" + deviceId3).request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -459,8 +456,9 @@ public class GroupsResourceTest extends ResourceTest {
         expect(mockGroupService.getGroup(anyObject(), anyObject()))
                 .andReturn(group5).anyTimes();
         replay(mockGroupService);
-        final WebResource rs = resource();
-        final String response = rs.path("groups/" + deviceId3 + "/" + "111").get(String.class);
+        final WebTarget wt = target();
+        final String response = wt.path("groups/" + deviceId3 + "/" + "111")
+                .request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -480,8 +478,8 @@ public class GroupsResourceTest extends ResourceTest {
         expect(mockGroupService.getGroup(anyObject(), anyObject()))
                 .andReturn(null).anyTimes();
         replay(mockGroupService);
-        final WebResource rs = resource();
-        final ClientResponse response = rs.path("groups/" + deviceId3 + "/" + "222").get(ClientResponse.class);
+        final WebTarget wt = target();
+        final Response response = wt.path("groups/" + deviceId3 + "/" + "222").request().get();
 
         assertEquals(404, response.getStatus());
     }
@@ -495,14 +493,16 @@ public class GroupsResourceTest extends ResourceTest {
         expectLastCall();
         replay(mockGroupService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
         InputStream jsonStream = GroupsResourceTest.class
                 .getResourceAsStream("post-group.json");
 
-        ClientResponse response = rs.path("groups/of:0000000000000001")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, jsonStream);
+        Response response = wt.path("groups/of:0000000000000001")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
+        String location = response.getLocation().getPath();
+        assertThat(location, Matchers.startsWith("/groups/of:0000000000000001/"));
     }
 
     /**
@@ -515,13 +515,13 @@ public class GroupsResourceTest extends ResourceTest {
         expectLastCall();
         replay(mockGroupService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
 
         String location = "/groups/1/111";
 
-        ClientResponse deleteResponse = rs.path(location)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .delete(ClientResponse.class);
+        Response deleteResponse = wt.path(location)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
         assertThat(deleteResponse.getStatus(),
                 is(HttpURLConnection.HTTP_NO_CONTENT));
     }

@@ -44,7 +44,6 @@ import static org.onlab.util.Tools.nullIsNotFound;
 @Path("network/configuration")
 public class NetworkConfigWebResource extends AbstractWebResource {
 
-
     private String subjectClassNotFoundErrorString(String subjectClassKey) {
         return "Config for '" + subjectClassKey + "' not found";
     }

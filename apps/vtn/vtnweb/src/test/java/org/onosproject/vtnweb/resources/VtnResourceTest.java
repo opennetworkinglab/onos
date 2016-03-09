@@ -15,12 +15,8 @@
  */
 package org.onosproject.vtnweb.resources;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-
-import com.sun.jersey.test.framework.AppDescriptor;
-import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.WebAppDescriptor;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
 
 /**
  * Base class for VTN REST API tests.  Performs common configuration operations.
@@ -28,27 +24,9 @@ import com.sun.jersey.test.framework.WebAppDescriptor;
 public class VtnResourceTest extends JerseyTest {
 
     /**
-     * Assigns an available port for the test.
-     *
-     * @param defaultPort If a port cannot be determined, this one is used.
-     * @return free port
+     * Creates a new web-resource test.
      */
-    @Override
-    public int getPort(int defaultPort) {
-        try {
-            ServerSocket socket = new ServerSocket(0);
-            socket.setReuseAddress(true);
-            int port = socket.getLocalPort();
-            socket.close();
-            return port;
-        } catch (IOException ioe) {
-            return defaultPort;
-        }
+    public VtnResourceTest() {
+        super(ResourceConfig.forApplicationClass(VtnWebApplication.class));
     }
-
-    @Override
-    public AppDescriptor configure() {
-        return new WebAppDescriptor.Builder("org.onosproject.vtnweb.resources").build();
-    }
-
 }

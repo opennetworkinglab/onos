@@ -15,12 +15,8 @@
  */
 package org.onosproject.cpman.rest;
 
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
-import com.sun.jersey.test.framework.AppDescriptor;
-import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.WebAppDescriptor;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
@@ -31,11 +27,12 @@ import org.onosproject.cpman.SystemInfo;
 import org.onosproject.cpman.impl.SystemInfoFactory;
 import org.onosproject.net.DeviceId;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import java.io.IOException;
+import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.ServerSocket;
 import java.util.Optional;
 
 import static org.easymock.EasyMock.anyInt;
@@ -62,9 +59,7 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
      * Constructs a control metrics collector resource test instance.
      */
     public ControlMetricsCollectorResourceTest() {
-        super(new WebAppDescriptor.Builder("javax.ws.rs.Application",
-                CPManWebApplication.class.getCanonicalName())
-                .servletClass(ServletContainer.class).build());
+        super(ResourceConfig.forApplicationClass(CPManWebApplication.class));
     }
 
     /**
@@ -135,44 +130,20 @@ public class ControlMetricsCollectorResourceTest extends JerseyTest {
         assertThat(si.totalMemory(), is(4096));
     }
 
-    private ClientResponse baseTest(String jsonFile, String path) {
-        final WebResource rs = resource();
+    private Response baseTest(String jsonFile, String path) {
+        final WebTarget wt = target();
         InputStream jsonStream = ControlMetricsCollectorResourceTest.class
                 .getResourceAsStream(jsonFile);
 
         assertThat(jsonStream, notNullValue());
 
-        return rs.path(path)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, jsonStream);
+        return wt.path(path)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
     }
 
     private void basePostTest(String jsonFile, String path) {
-        ClientResponse response = baseTest(jsonFile, path);
+        Response response = baseTest(jsonFile, path);
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
-    }
-
-    /**
-     * Assigns an available port for the test.
-     *
-     * @param defaultPort If a port cannot be determined, this one is used.
-     * @return free port
-     */
-    @Override
-    public int getPort(int defaultPort) {
-        try {
-            ServerSocket socket = new ServerSocket(0);
-            socket.setReuseAddress(true);
-            int port = socket.getLocalPort();
-            socket.close();
-            return port;
-        } catch (IOException ioe) {
-            return defaultPort;
-        }
-    }
-
-    @Override
-    public AppDescriptor configure() {
-        return new WebAppDescriptor.Builder("org.onosproject.cpman.rest").build();
     }
 }

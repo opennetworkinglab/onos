@@ -83,7 +83,7 @@
         <onos-maven-plugin.version>1.9</onos-maven-plugin.version>
         <osgi.version>4.3.1</osgi.version>
         <karaf.version>3.0.5</karaf.version>
-        <jersey.version>1.19</jersey.version>
+        <jersey.version>2.22.2</jersey.version>
         <jackson.version>2.7.0</jackson.version>
         <slf4j.version>1.7.13</slf4j.version>
         <guava.version>19.0</guava.version>
@@ -202,33 +202,39 @@
 
             <!-- Web related -->
             <dependency>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-servlet</artifactId>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-client</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.containers</groupId>
+                <artifactId>jersey-container-servlet</artifactId>
                 <version>${jersey.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>com.sun.jersey.contribs</groupId>
-                <artifactId>jersey-multipart</artifactId>
+                <groupId>org.glassfish.jersey.containers</groupId>
+                <artifactId>jersey-container-servlet-core</artifactId>
                 <version>${jersey.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>com.sun.jersey.jersey-test-framework</groupId>
+                <groupId>org.glassfish.jersey.media</groupId>
+                <artifactId>jersey-media-multipart</artifactId>
+                <version>${jersey.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.test-framework</groupId>
                 <artifactId>jersey-test-framework-core</artifactId>
                 <version>${jersey.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>com.sun.jersey.jersey-test-framework</groupId>
-                <artifactId>jersey-test-framework-grizzly2</artifactId>
+                <groupId>org.glassfish.jersey.test-framework.providers</groupId>
+                <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
                 <version>${jersey.version}</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-client</artifactId>
-                <version>${jersey.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>

@@ -15,9 +15,10 @@
  */
 package org.onosproject.rest;
 
-import java.util.List;
-
 import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableList;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
@@ -35,11 +36,9 @@ import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.ImmutableList;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.WebTarget;
+import java.util.List;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -248,8 +247,8 @@ public class DevicesResourceTest extends ResourceTest {
         expect(mockDeviceService.getDevices()).andReturn(ImmutableList.of());
         replay(mockDeviceService);
 
-        WebResource rs = resource();
-        String response = rs.path("devices").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("devices").request().get(String.class);
         assertThat(response, is("{\"devices\":[]}"));
     }
 
@@ -268,8 +267,8 @@ public class DevicesResourceTest extends ResourceTest {
 
         replay(mockDeviceService);
 
-        WebResource rs = resource();
-        String response = rs.path("devices").get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("devices").request().get(String.class);
         assertThat(response, containsString("{\"devices\":["));
 
         JsonObject result = Json.parse(response).asObject();
@@ -302,8 +301,8 @@ public class DevicesResourceTest extends ResourceTest {
                 .once();
         replay(mockDeviceService);
 
-        WebResource rs = resource();
-        String response = rs.path("devices/" + deviceId).get(String.class);
+        WebTarget wt = target();
+        String response = wt.path("devices/" + deviceId).request().get(String.class);
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, matchesDevice(device));
     }
@@ -332,9 +331,9 @@ public class DevicesResourceTest extends ResourceTest {
                 .once();
         replay(mockDeviceService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
         String response =
-                rs.path("devices/" + deviceId + "/ports")
+                wt.path("devices/" + deviceId + "/ports").request()
                     .get(String.class);
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, matchesDevice(device));
@@ -366,13 +365,13 @@ public class DevicesResourceTest extends ResourceTest {
                 .anyTimes();
         replay(mockDeviceService);
 
-        WebResource rs = resource();
+        WebTarget wt = target();
         try {
-            rs.path("devices/0").get(String.class);
+            wt.path("devices/0").request().get(String.class);
             fail("Fetch of non-existent device did not throw an exception");
-        } catch (UniformInterfaceException ex) {
+        } catch (NotFoundException ex) {
             assertThat(ex.getMessage(),
-                    containsString("returned a response status of"));
+                    containsString("HTTP 404 Not Found"));
         }
     }
 }
