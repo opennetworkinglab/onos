@@ -94,7 +94,8 @@ public final class YangIoUtils {
      * @param baseDir generated directory in previous build
      */
     public static void clean(String baseDir) {
-        File generatedDirectory = new File(baseDir + File.separator + UtilConstants.YANG_GEN_DIR);
+        File generatedDirectory = new File(baseDir + File.separator + UtilConstants.YANG_GEN_DIR
+                + UtilConstants.DEFAULT_BASE_PKG.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
         if (generatedDirectory.exists()) {
             List<String> javafiles;
             try {
@@ -151,10 +152,11 @@ public final class YangIoUtils {
         String[] strArray = partString.split(UtilConstants.COMMA);
         String newString = "";
         for (int i = 0; i < strArray.length; i++) {
-            if (i % 4 != 0) {
+            if (i % 4 != 0 || i == 0) {
                 newString = newString + strArray[i] + UtilConstants.COMMA;
             } else {
-                newString = newString + UtilConstants.NEW_LINE + UtilConstants.TWELVE_SPACE_INDENTATION + strArray[i]
+                newString = newString + UtilConstants.NEW_LINE + UtilConstants.TWELVE_SPACE_INDENTATION
+                        + strArray[i]
                         + UtilConstants.COMMA;
             }
         }

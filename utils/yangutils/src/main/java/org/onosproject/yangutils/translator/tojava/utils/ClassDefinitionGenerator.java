@@ -84,7 +84,7 @@ public final class ClassDefinitionGenerator {
      */
     private static String getBuilderInterfaceDefinition(String yangName) {
         return UtilConstants.INTERFACE + UtilConstants.SPACE + yangName + UtilConstants.BUILDER + UtilConstants.SPACE
-                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE;
+                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE + UtilConstants.NEW_LINE;
     }
 
     /**
@@ -112,8 +112,7 @@ public final class ClassDefinitionGenerator {
         return UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.FINAL + UtilConstants.SPACE
                 + UtilConstants.CLASS + UtilConstants.SPACE + yangName + UtilConstants.IMPL + UtilConstants.SPACE
                 + UtilConstants.IMPLEMENTS + UtilConstants.SPACE + yangName + UtilConstants.SPACE
-                + UtilConstants.OPEN_CURLY_BRACKET
-                + UtilConstants.SPACE + UtilConstants.NEW_LINE;
+                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE + UtilConstants.NEW_LINE;
     }
 
     /**
@@ -126,7 +125,7 @@ public final class ClassDefinitionGenerator {
 
         return UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.FINAL + UtilConstants.SPACE
                 + UtilConstants.CLASS + UtilConstants.SPACE + yangName + UtilConstants.SPACE
-                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.SPACE + UtilConstants.NEW_LINE;
+                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE;
     }
 
 }

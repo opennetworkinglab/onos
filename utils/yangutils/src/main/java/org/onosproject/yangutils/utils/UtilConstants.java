@@ -119,7 +119,7 @@ public final class UtilConstants {
     /**
      * For directories.
      */
-    public static final String YANG_GEN_DIR = "src/main/yangmodel/";
+    public static final String YANG_GEN_DIR = "src/main/java/";
     public static final String DEFAULT_BASE_PKG = "org.onosproject.yang.gen";
     public static final String REVISION_PREFIX = "rev";
     public static final String VERSION_PREFIX = "v";

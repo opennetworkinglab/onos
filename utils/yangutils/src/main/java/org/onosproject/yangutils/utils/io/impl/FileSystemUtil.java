@@ -122,8 +122,14 @@ public final class FileSystemUtil {
             String line = bufferReader.readLine();
 
             while (line != null) {
-                stringBuilder.append(UtilConstants.FOUR_SPACE_INDENTATION + line);
-                stringBuilder.append("\n");
+                if (line.equals(UtilConstants.FOUR_SPACE_INDENTATION)
+                        || line.equals(UtilConstants.EIGHT_SPACE_INDENTATION)
+                        || line.equals(UtilConstants.SPACE) || line.equals("") || line.equals(UtilConstants.NEW_LINE)) {
+                    stringBuilder.append("\n");
+                } else {
+                    stringBuilder.append(UtilConstants.FOUR_SPACE_INDENTATION + line);
+                    stringBuilder.append("\n");
+                }
                 line = bufferReader.readLine();
             }
             return stringBuilder.toString();

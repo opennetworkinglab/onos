@@ -333,6 +333,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
             throw new IOException("Failed to create the source files.");
         }
         setFileHandle(handle);
+        getDerivedType().getDataTypeExtendedInfo().getBaseType().setJavaPackage(getPackage());
         addAttributeInfo();
         addAttributeInParent();
     }

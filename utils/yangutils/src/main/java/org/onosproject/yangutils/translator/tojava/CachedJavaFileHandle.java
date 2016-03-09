@@ -305,8 +305,8 @@ public class CachedJavaFileHandle implements CachedFileHandle {
     @Override
     public void close() throws IOException {
 
+        List<AttributeInfo> attrList = getCachedAttributeList();
         flushCacheAttrToTempFile();
-
         String className = getYangName();
         className = JavaIdentifierSyntax.getCaptialCase(className);
         String path = getRelativeFilePath();
@@ -322,11 +322,14 @@ public class CachedJavaFileHandle implements CachedFileHandle {
 
         for (ImportInfo importInfo : new ArrayList<ImportInfo>(getImportSet())) {
             importString = UtilConstants.IMPORT;
-            if (importInfo.getPkgInfo() != null) {
+            if (importInfo.getPkgInfo() != "" && importInfo.getClassInfo() != null
+                    && importInfo.getPkgInfo() != UtilConstants.JAVA_LANG) {
                 importString = importString + importInfo.getPkgInfo() + ".";
+                importString = importString + importInfo.getClassInfo() + UtilConstants.SEMI_COLAN
+                        + UtilConstants.NEW_LINE;
+
+                imports.add(importString);
             }
-            importString = importString + importInfo.getClassInfo() + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE;
-            imports.add(importString);
         }
         java.util.Collections.sort(imports);
 
@@ -342,7 +345,7 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             String interfaceFileName = className;
             File interfaceFile = JavaFileGenerator.getFileObject(path, interfaceFileName, JAVA_FILE_EXTENSION, this);
             interfaceFile = JavaFileGenerator.generateInterfaceFile(interfaceFile, className, imports,
-                    getCachedAttributeList(), path.replace('/', '.'), this);
+                    attrList, path.replace('/', '.'), this);
             /**
              * Create temp builder interface file.
              */
@@ -350,7 +353,7 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             File builderInterfaceFile = JavaFileGenerator.getFileObject(path, builderInterfaceFileName,
                     TEMP_FILE_EXTENSION, this);
             builderInterfaceFile = JavaFileGenerator.generateBuilderInterfaceFile(builderInterfaceFile, className,
-                    path.replace('/', '.'), getCachedAttributeList(), this);
+                    path.replace('/', '.'), attrList, this);
             /**
              * Append builder interface file to interface file and close it.
              */
@@ -369,9 +372,11 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             JavaFileGenerator.clean(builderInterfaceFile);
         }
 
-        imports.add(UtilConstants.MORE_OBJECT_IMPORT);
-        imports.add(UtilConstants.JAVA_UTIL_OBJECTS_IMPORT);
-        java.util.Collections.sort(imports);
+        if (!attrList.isEmpty()) {
+            imports.add(UtilConstants.MORE_OBJECT_IMPORT);
+            imports.add(UtilConstants.JAVA_UTIL_OBJECTS_IMPORT);
+            java.util.Collections.sort(imports);
+        }
 
         if ((fileType & GeneratedFileType.BUILDER_CLASS_MASK) != 0
                 || fileType == GeneratedFileType.GENERATE_INTERFACE_WITH_BUILDER) {
@@ -382,7 +387,7 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             String builderFileName = className + UtilConstants.BUILDER;
             File builderFile = JavaFileGenerator.getFileObject(path, builderFileName, JAVA_FILE_EXTENSION, this);
             builderFile = JavaFileGenerator.generateBuilderClassFile(builderFile, className, imports,
-                    path.replace('/', '.'), getCachedAttributeList(), this);
+                    path.replace('/', '.'), attrList, this);
             /**
              * Create temp impl class file.
              */
@@ -390,7 +395,7 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             String implFileName = className + UtilConstants.IMPL;
             File implTempFile = JavaFileGenerator.getFileObject(path, implFileName, TEMP_FILE_EXTENSION, this);
             implTempFile = JavaFileGenerator.generateImplClassFile(implTempFile, className,
-                    path.replace('/', '.'), getCachedAttributeList(), this);
+                    path.replace('/', '.'), attrList, this);
             /**
              * Append impl class to builder class and close it.
              */
@@ -418,7 +423,7 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             String typeDefFileName = className;
             File typeDefFile = JavaFileGenerator.getFileObject(path, typeDefFileName, JAVA_FILE_EXTENSION, this);
             typeDefFile = JavaFileGenerator.generateTypeDefClassFile(typeDefFile, className, imports,
-                    path.replace('/', '.'), getCachedAttributeList(), this);
+                    path.replace('/', '.'), attrList, this);
             JavaFileGenerator.insert(typeDefFile,
                     JavaFileGenerator.closeFile(GeneratedFileType.GENERATE_TYPEDEF_CLASS, typeDefFileName));
 
@@ -428,10 +433,17 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             JavaFileGenerator.closeFileHandles(typeDefFile);
         }
 
-        closeTempDataFileHandles(className, getCodeGenFilePath() + getRelativeFilePath());
-        JavaFileGenerator
-                .cleanTempFiles(new File(getCodeGenFilePath() + getRelativeFilePath() + File.separator + className
-                        + TEMP_FOLDER_NAME_SUFIX));
+        if (!getCachedAttributeList().isEmpty()) {
+            closeTempDataFileHandles(className, getCodeGenFilePath() + getRelativeFilePath());
+            JavaFileGenerator
+                    .cleanTempFiles(new File(getCodeGenFilePath() + getRelativeFilePath() + File.separator + className
+                            + TEMP_FOLDER_NAME_SUFIX));
+        }
+
+        /*
+         * clear the contents from the cached attribute list.
+         */
+        getCachedAttributeList().clear();
     }
 
     @Override
@@ -512,7 +524,12 @@ public class CachedJavaFileHandle implements CachedFileHandle {
                 + File.separator + className + TEMP_FOLDER_NAME_SUFIX + File.separator;
 
         try {
-            return readFile(path + fileName + TEMP_FILE_EXTENSION);
+            String file = path + fileName + TEMP_FILE_EXTENSION;
+            if (new File(file).exists()) {
+                return readFile(path + fileName + TEMP_FILE_EXTENSION);
+            } else {
+                return "";
+            }
 
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("No such file or directory.");
@@ -533,8 +550,14 @@ public class CachedJavaFileHandle implements CachedFileHandle {
             String line = bufferReader.readLine();
 
             while (line != null) {
-                stringBuilder.append(line);
-                stringBuilder.append("\n");
+                if (line.equals(UtilConstants.FOUR_SPACE_INDENTATION)
+                        || line.equals(UtilConstants.EIGHT_SPACE_INDENTATION)
+                        || line.equals(UtilConstants.SPACE) || line.equals("") || line.equals(UtilConstants.NEW_LINE)) {
+                    stringBuilder.append("\n");
+                } else {
+                    stringBuilder.append(line);
+                    stringBuilder.append("\n");
+                }
                 line = bufferReader.readLine();
             }
             return stringBuilder.toString();

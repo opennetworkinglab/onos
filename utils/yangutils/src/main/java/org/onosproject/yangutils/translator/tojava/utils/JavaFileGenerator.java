@@ -36,6 +36,7 @@ import org.onosproject.yangutils.utils.io.impl.CopyrightHeader;
 import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
 import org.onosproject.yangutils.utils.io.impl.JavaDocGen;
 import org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType;
+import org.onosproject.yangutils.utils.io.impl.YangIoUtils;
 import org.slf4j.Logger;
 
 /**
@@ -81,19 +82,21 @@ public final class JavaFileGenerator {
         String path = handle.getCodeGenFilePath() + pkg.replace(UtilConstants.PERIOD, UtilConstants.SLASH);
         initiateFile(file, className, INTERFACE_MASK, imports, pkg);
 
-        List<String> methods = new ArrayList<>();
-        try {
-            methods.add(handle.getTempData(TempDataStoreTypes.GETTER_METHODS, className, path));
-        } catch (ClassNotFoundException | IOException e) {
-            log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
-            throw new IOException("Fail to read data from temp file.");
-        }
+        if (!attrList.isEmpty()) {
+            List<String> methods = new ArrayList<>();
+            try {
+                methods.add(handle.getTempData(TempDataStoreTypes.GETTER_METHODS, className, path));
+            } catch (ClassNotFoundException | IOException e) {
+                log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
+                throw new IOException("Fail to read data from temp file.");
+            }
 
-        /**
-         * Add getter methods to interface file.
-         */
-        for (String method : methods) {
-            appendMethod(file, method);
+            /**
+             * Add getter methods to interface file.
+             */
+            for (String method : methods) {
+                appendMethod(file, method);
+            }
         }
         return file;
     }
@@ -115,14 +118,16 @@ public final class JavaFileGenerator {
         initiateFile(file, className, BUILDER_INTERFACE_MASK, null, pkg);
         List<String> methods = new ArrayList<>();
 
-        try {
-            methods.add(handle.getTempData(TempDataStoreTypes.GETTER_METHODS, className, path));
-            methods.add(handle.getTempData(TempDataStoreTypes.SETTER_METHODS, className, path));
-        } catch (ClassNotFoundException | IOException e) {
-            log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
-            throw new IOException("Fail to read data from temp file.");
-        }
+        if (!attrList.isEmpty()) {
 
+            try {
+                methods.add(handle.getTempData(TempDataStoreTypes.GETTER_METHODS, className, path));
+                methods.add(handle.getTempData(TempDataStoreTypes.SETTER_METHODS, className, path));
+            } catch (ClassNotFoundException | IOException e) {
+                log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
+                throw new IOException("Fail to read data from temp file.");
+            }
+        }
         /**
          * Add build method to builder interface file.
          */
@@ -156,38 +161,41 @@ public final class JavaFileGenerator {
         String path = handle.getCodeGenFilePath() + pkg.replace(UtilConstants.PERIOD, UtilConstants.SLASH);
         initiateFile(file, className, BUILDER_CLASS_MASK, imports, pkg);
 
-        /**
-         * Add attribute strings.
-         */
-        List<String> attributes = new ArrayList<>();
-        try {
-            attributes.add(handle.getTempData(TempDataStoreTypes.ATTRIBUTE, className, path));
-        } catch (ClassNotFoundException | IOException e) {
-            log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
-            throw new IOException("Fail to read data from temp file.");
-        }
-        /**
-         * Add attributes to the file.
-         */
-        for (String attribute : attributes) {
-            insert(file, UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + attribute);
-        }
-
         List<String> methods = new ArrayList<>();
-        try {
-            methods.add(handle.getTempData(TempDataStoreTypes.GETTER_METHODS_IMPL, className, path));
-            methods.add(handle.getTempData(TempDataStoreTypes.SETTER_METHODS_IMPL, className, path));
-        } catch (ClassNotFoundException | IOException e) {
-            log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
-            throw new IOException("Fail to read data from temp file.");
-        }
+        if (!attrList.isEmpty()) {
+            /**
+             * Add attribute strings.
+             */
+            List<String> attributes = new ArrayList<>();
+            try {
+                attributes.add(handle.getTempData(TempDataStoreTypes.ATTRIBUTE, className, path));
+            } catch (ClassNotFoundException | IOException e) {
+                log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
+                throw new IOException("Fail to read data from temp file.");
+            }
+            /**
+             * Add attributes to the file.
+             */
+            for (String attribute : attributes) {
+                insert(file, UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + attribute);
+            }
 
+            try {
+                methods.add(handle.getTempData(TempDataStoreTypes.GETTER_METHODS_IMPL, className, path));
+                methods.add(handle.getTempData(TempDataStoreTypes.SETTER_METHODS_IMPL, className, path));
+            } catch (ClassNotFoundException | IOException e) {
+                log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
+                throw new IOException("Fail to read data from temp file.");
+            }
+
+        }
         /**
          * Add default constructor and build method impl.
          */
-        methods.add(UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
-                + MethodsGenerator.getDefaultConstructorString(className + UtilConstants.BUILDER,
-                        UtilConstants.PUBLIC));
+        methods.add(
+                UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
+                        + MethodsGenerator.getDefaultConstructorString(className + UtilConstants.BUILDER,
+                                UtilConstants.PUBLIC));
         methods.add(MethodsGenerator.getBuildString(className));
 
         /**
@@ -216,47 +224,55 @@ public final class JavaFileGenerator {
         String path = handle.getCodeGenFilePath() + pkg.replace(UtilConstants.PERIOD, UtilConstants.SLASH);
         initiateFile(file, className, IMPL_CLASS_MASK, null, path);
 
-        List<String> attributes = new ArrayList<>();
-        try {
-            attributes.add(handle.getTempData(TempDataStoreTypes.ATTRIBUTE, className, path));
-        } catch (ClassNotFoundException | IOException e) {
-            log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
-            throw new IOException("Fail to read data from temp file.");
-        }
-
-        /**
-         * Add attributes to the file.
-         */
-        for (String attribute : attributes) {
-            insert(file, UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + attribute);
-        }
-
         List<String> methods = new ArrayList<>();
+        if (!attrList.isEmpty()) {
+            List<String> attributes = new ArrayList<>();
+            try {
+                attributes.add(handle.getTempData(TempDataStoreTypes.ATTRIBUTE, className, path));
+            } catch (ClassNotFoundException | IOException e) {
+                log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
+                throw new IOException("Fail to read data from temp file.");
+            }
+
+            /**
+             * Add attributes to the file.
+             */
+            for (String attribute : attributes) {
+                insert(file, UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + attribute);
+            }
+
+            try {
+
+                methods.add(handle.getTempData(TempDataStoreTypes.GETTER_METHODS_IMPL, className, path));
+
+                methods.add(MethodsGenerator.getHashCodeMethodClose(MethodsGenerator.getHashCodeMethodOpen()
+                        + YangIoUtils
+                                .partString(handle.getTempData(TempDataStoreTypes.HASH_CODE, className, path).replace(
+                                        UtilConstants.NEW_LINE, ""))));
+
+                methods.add(MethodsGenerator
+                        .getEqualsMethodClose(MethodsGenerator.getEqualsMethodOpen(className + UtilConstants.IMPL)
+                                + handle.getTempData(TempDataStoreTypes.EQUALS, className, path)));
+
+                methods.add(MethodsGenerator.getToStringMethodOpen()
+                        + handle.getTempData(TempDataStoreTypes.TO_STRING, className, path)
+                        + MethodsGenerator.getToStringMethodClose());
+
+            } catch (ClassNotFoundException | IOException e) {
+                log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
+                throw new IOException("Fail to read data from temp file.");
+            }
+
+        }
+
         try {
-
-            methods.add(handle.getTempData(TempDataStoreTypes.GETTER_METHODS_IMPL, className, path));
-
             methods.add(getConstructorString(className)
                     + handle.getTempData(TempDataStoreTypes.CONSTRUCTOR, className, path)
                     + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.CLOSE_CURLY_BRACKET);
-
-            methods.add(MethodsGenerator.getHashCodeMethodClose(MethodsGenerator.getHashCodeMethodOpen()
-                    + handle.getTempData(TempDataStoreTypes.HASH_CODE, className, path).replace(UtilConstants.NEW_LINE,
-                            "")));
-
-            methods.add(MethodsGenerator
-                    .getEqualsMethodClose(MethodsGenerator.getEqualsMethodOpen(className + UtilConstants.IMPL)
-                            + handle.getTempData(TempDataStoreTypes.EQUALS, className, path)));
-
-            methods.add(MethodsGenerator.getToStringMethodOpen()
-                    + handle.getTempData(TempDataStoreTypes.TO_STRING, className, path)
-                    + MethodsGenerator.getToStringMethodClose());
-
         } catch (ClassNotFoundException | IOException e) {
             log.info("There is no attribute info of " + className + " YANG file in the temporary files.");
             throw new IOException("Fail to read data from temp file.");
         }
-
         /**
          * Add methods in impl class.
          */
@@ -315,8 +331,9 @@ public final class JavaFileGenerator {
         String javadoc = MethodsGenerator.getConstructorString(yangName);
         String constructor = UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.PUBLIC + UtilConstants.SPACE
                 + yangName + UtilConstants.IMPL + UtilConstants.OPEN_PARENTHESIS + yangName + UtilConstants.BUILDER
-                + UtilConstants.SPACE + builderAttribute + UtilConstants.OBJECT + UtilConstants.CLOSE_PARENTHESIS
-                + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE;
+                + UtilConstants.SPACE + builderAttribute + UtilConstants.BUILDER + UtilConstants.OBJECT
+                + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET
+                + UtilConstants.NEW_LINE;
         return javadoc + constructor;
     }
 
@@ -514,15 +531,16 @@ public final class JavaFileGenerator {
                         + MethodsGenerator.getSetterForTypeDefClass(attr)
                         + UtilConstants.NEW_LINE;
 
-                hashCodeString = hashCodeString + MethodsGenerator.getHashCodeMethodOpen()
-                        + MethodsGenerator.getHashCodeMethod(attr).replace(UtilConstants.NEW_LINE, "");
+                hashCodeString = MethodsGenerator.getHashCodeMethodOpen()
+                        + YangIoUtils.partString(
+                                MethodsGenerator.getHashCodeMethod(attr).replace(UtilConstants.NEW_LINE, ""));
                 hashCodeString = MethodsGenerator.getHashCodeMethodClose(hashCodeString) + UtilConstants.NEW_LINE;
 
-                equalsString = equalsString + MethodsGenerator.getEqualsMethodOpen(className) + UtilConstants.NEW_LINE
+                equalsString = MethodsGenerator.getEqualsMethodOpen(className) + UtilConstants.NEW_LINE
                         + MethodsGenerator.getEqualsMethod(attr);
                 equalsString = MethodsGenerator.getEqualsMethodClose(equalsString) + UtilConstants.NEW_LINE;
 
-                toString = toString + MethodsGenerator.getToStringMethodOpen()
+                toString = MethodsGenerator.getToStringMethodOpen()
                         + MethodsGenerator.getToStringMethod(attr) + UtilConstants.NEW_LINE
                         + MethodsGenerator.getToStringMethodClose()
                         + UtilConstants.NEW_LINE;
@@ -568,7 +586,6 @@ public final class JavaFileGenerator {
                 for (String imports : importsList) {
                     insert(file, imports);
                 }
-                insert(file, UtilConstants.NEW_LINE);
             }
             write(file, fileName, type, JavaDocType.IMPL_CLASS);
         } else {
@@ -581,7 +598,6 @@ public final class JavaFileGenerator {
                     for (String imports : importsList) {
                         insert(file, imports);
                     }
-                    insert(file, UtilConstants.NEW_LINE);
                 }
                 write(file, fileName, type, JavaDocType.INTERFACE);
             } else if ((type & BUILDER_CLASS_MASK) != 0) {

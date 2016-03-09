@@ -17,7 +17,6 @@
 package org.onosproject.yangutils.plugin.manager;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -54,6 +53,12 @@ public class YangUtilManager extends AbstractMojo {
      */
     @Parameter(property = "yangFilesDir", defaultValue = "src/main/yang")
     private String yangFilesDir;
+
+    /**
+     * Source directory for generated files.
+     */
+    @Parameter(property = "genFilesDir", defaultValue = "src/main/java")
+    private String genFilesDir;
 
     /**
      * Base directory for project.
@@ -105,7 +110,7 @@ public class YangUtilManager extends AbstractMojo {
             YangIoUtils.clean(baseDir);
 
             searchDir = baseDir + File.separator + yangFilesDir;
-            codeGenDir = baseDir + File.separator + UtilConstants.YANG_GEN_DIR;
+            codeGenDir = baseDir + File.separator + genFilesDir + File.separator;
 
             List<String> yangFiles = YangFileScanner.getYangFiles(searchDir);
             Iterator<String> yangFileIterator = yangFiles.iterator();
@@ -129,8 +134,8 @@ public class YangUtilManager extends AbstractMojo {
             }
 
             YangIoUtils.addToSource(baseDir + File.separator + UtilConstants.YANG_GEN_DIR, project, context);
-        } catch (final IOException e) {
-            getLog().info("IOException occured");
+        } catch (Exception e) {
+            getLog().info(e);
         }
     }
 

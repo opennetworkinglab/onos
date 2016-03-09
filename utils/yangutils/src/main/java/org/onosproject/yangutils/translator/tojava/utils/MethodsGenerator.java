@@ -434,7 +434,7 @@ public final class MethodsGenerator {
         String constructor = UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.THIS
                 + UtilConstants.PERIOD + JavaIdentifierSyntax.getCamelCase(attributeName)
                 + UtilConstants.SPACE + UtilConstants.EQUAL + UtilConstants.SPACE + builderAttribute
-                + UtilConstants.OBJECT + UtilConstants.PERIOD + UtilConstants.GET_METHOD_PREFIX
+                + UtilConstants.BUILDER + UtilConstants.OBJECT + UtilConstants.PERIOD + UtilConstants.GET_METHOD_PREFIX
                 + JavaIdentifierSyntax.getCaptialCase(JavaIdentifierSyntax.getCamelCase(attributeName))
                 + UtilConstants.OPEN_PARENTHESIS + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SEMI_COLAN
                 + UtilConstants.NEW_LINE;
@@ -539,7 +539,6 @@ public final class MethodsGenerator {
     public static String getHashCodeMethodClose(String hashcodeString) {
         hashcodeString = YangIoUtils.trimAtLast(hashcodeString, UtilConstants.COMMA);
         hashcodeString = YangIoUtils.trimAtLast(hashcodeString, UtilConstants.SPACE);
-        hashcodeString = YangIoUtils.partString(hashcodeString);
         return hashcodeString + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE
                 + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.CLOSE_CURLY_BRACKET;
     }
