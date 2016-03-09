@@ -124,20 +124,29 @@ public class DriverViewMessageHandler extends UiMessageHandler {
             drivers.forEach(d -> array.add(d.name()));
         }
 
+        private Set<Driver> findLineage(Driver driver) {
+            ImmutableSet.Builder<Driver> lineage = ImmutableSet.builder();
+            lineage.add(driver);
+            List<Driver> parents = driver.parents();
+            if (parents != null) {
+                parents.forEach(p -> lineage.addAll(findLineage(p)));
+            }
+            return lineage.build();
+        }
+
         private void addMatrixCells(ObjectNode root, List<Driver> drivers) {
             ObjectNode matrix = objectNode();
             root.set(MATRIX, matrix);
 
-            drivers.forEach(d -> {
+            drivers.forEach(driver -> {
                 ObjectNode dnode = objectNode();
-                matrix.set(d.name(), dnode);
-
-                d.behaviours().forEach(b -> {
+                matrix.set(driver.name(), dnode);
+                Set<Driver> lineage = findLineage(driver);
+                lineage.forEach(d -> d.behaviours().forEach(b -> {
                     // TODO: can put a payload here, rather than a '1' marker
                     dnode.put(b.getSimpleName(), ONE);
-                });
+                }));
             });
         }
     }
-
 }
