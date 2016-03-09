@@ -52,6 +52,7 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
     protected static final String TABLE_ID = "tableId";
     protected static final String GROUP_ID = "groupId";
     protected static final String METER_ID = "meterId";
+    protected static final String QUEUE_ID = "queueId";
     protected static final String TRIBUTARY_PORT_NUMBER = "tributaryPortNumber";
     protected static final String TRIBUTARY_SLOT_LEN = "tributarySlotLength";
     protected static final String TRIBUTARY_SLOT_BITMAP = "tributarySlotBitmap";

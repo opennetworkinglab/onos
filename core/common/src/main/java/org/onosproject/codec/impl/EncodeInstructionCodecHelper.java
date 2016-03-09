@@ -256,6 +256,13 @@ public final class EncodeInstructionCodecHelper {
                 result.put(InstructionCodec.METER_ID, meterInstruction.meterId().toString());
                 break;
 
+            case QUEUE:
+                final Instructions.SetQueueInstruction setQueueInstruction =
+                        (Instructions.SetQueueInstruction) instruction;
+                result.put(InstructionCodec.QUEUE_ID, setQueueInstruction.queueId());
+                result.put(InstructionCodec.PORT, setQueueInstruction.port().toString());
+                break;
+
             case L0MODIFICATION:
                 encodeL0(result);
                 break;

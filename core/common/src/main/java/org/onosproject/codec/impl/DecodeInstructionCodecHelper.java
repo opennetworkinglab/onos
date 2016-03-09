@@ -233,6 +233,32 @@ public final class DecodeInstructionCodecHelper {
     }
 
     /**
+     * Extracts port number of the given json node.
+     *
+     * @param jsonNode json node
+     * @return port number
+     */
+    private PortNumber getPortNumber(ObjectNode jsonNode) {
+        PortNumber portNumber;
+        if (jsonNode.get(InstructionCodec.PORT).isLong() || jsonNode.get(InstructionCodec.PORT).isInt()) {
+            portNumber = PortNumber
+                    .portNumber(nullIsIllegal(jsonNode.get(InstructionCodec.PORT)
+                            .asLong(), InstructionCodec.PORT
+                            + InstructionCodec.MISSING_MEMBER_MESSAGE));
+        } else if (jsonNode.get(InstructionCodec.PORT).isTextual()) {
+            portNumber = PortNumber
+                    .fromString(nullIsIllegal(jsonNode.get(InstructionCodec.PORT)
+                            .textValue(), InstructionCodec.PORT
+                            + InstructionCodec.MISSING_MEMBER_MESSAGE));
+        } else {
+            throw new IllegalArgumentException("Port value "
+                    + jsonNode.get(InstructionCodec.PORT).toString()
+                    + " is not supported");
+        }
+        return portNumber;
+    }
+
+    /**
      * Decodes the JSON into an instruction object.
      *
      * @return Criterion object
@@ -242,23 +268,7 @@ public final class DecodeInstructionCodecHelper {
         String type = json.get(InstructionCodec.TYPE).asText();
 
         if (type.equals(Instruction.Type.OUTPUT.name())) {
-            PortNumber portNumber;
-            if (json.get(InstructionCodec.PORT).isLong() || json.get(InstructionCodec.PORT).isInt()) {
-                portNumber = PortNumber
-                        .portNumber(nullIsIllegal(json.get(InstructionCodec.PORT)
-                                                          .asLong(), InstructionCodec.PORT
-                                                          + InstructionCodec.MISSING_MEMBER_MESSAGE));
-            } else if (json.get(InstructionCodec.PORT).isTextual()) {
-                portNumber = PortNumber
-                        .fromString(nullIsIllegal(json.get(InstructionCodec.PORT)
-                                                          .textValue(), InstructionCodec.PORT
-                                                          + InstructionCodec.MISSING_MEMBER_MESSAGE));
-            } else {
-                throw new IllegalArgumentException("Port value "
-                                                           + json.get(InstructionCodec.PORT).toString()
-                                                           + " is not supported");
-            }
-            return Instructions.createOutput(portNumber);
+            return Instructions.createOutput(getPortNumber(json));
         } else if (type.equals(Instruction.Type.NOACTION.name())) {
             return Instructions.createNoAction();
         } else if (type.equals(Instruction.Type.TABLE.name())) {
@@ -272,6 +282,10 @@ public final class DecodeInstructionCodecHelper {
             MeterId meterId = MeterId.meterId(nullIsIllegal(json.get(InstructionCodec.METER_ID)
                     .asLong(), InstructionCodec.METER_ID + InstructionCodec.MISSING_MEMBER_MESSAGE));
             return Instructions.meterTraffic(meterId);
+        } else if (type.equals(Instruction.Type.QUEUE.name())) {
+            long queueId = nullIsIllegal(json.get(InstructionCodec.QUEUE_ID)
+                    .asLong(), InstructionCodec.QUEUE_ID + InstructionCodec.MISSING_MEMBER_MESSAGE);
+            return Instructions.setQueue(queueId, getPortNumber(json));
         } else if (type.equals(Instruction.Type.L0MODIFICATION.name())) {
             return decodeL0();
         } else if (type.equals(Instruction.Type.L1MODIFICATION.name())) {
