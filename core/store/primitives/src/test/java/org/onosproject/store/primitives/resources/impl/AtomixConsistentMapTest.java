@@ -26,6 +26,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.util.Tools;
 import org.onosproject.store.primitives.MapUpdate;
@@ -41,6 +42,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for {@link AtomixConsistentMap}.
  */
+@Ignore
 public class AtomixConsistentMapTest extends AtomixTestBase {
 
     @Override
