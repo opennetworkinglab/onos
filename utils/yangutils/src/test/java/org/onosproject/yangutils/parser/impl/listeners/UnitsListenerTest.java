@@ -79,8 +79,8 @@ public class UnitsListenerTest {
         thrown.expect(ParserException.class);
         thrown.expectMessage("mismatched input 'type' expecting {'augment', 'choice', 'contact', 'container', "
                 + "'description', 'extension', 'deviation', 'feature', 'grouping', 'identity', 'import', "
-                + "'include', 'leaf', 'leaf-list', 'list', 'namespace', 'notification', 'organization', "
-                + "'prefix', 'reference', 'revision', 'rpc', 'typedef', 'uses', 'yang-version', '}'}");
+                + "'include', 'leaf', 'leaf-list', 'list', 'notification', 'organization', "
+                + "'reference', 'revision', 'rpc', 'typedef', 'uses', '}'}");
         YangNode node = manager.getDataModel("src/test/resources/ModuleSubStatementUnits.yang");
     }
 

@@ -79,7 +79,7 @@ public final class ModuleListener {
         YangModule yangModule = new YangModule();
         yangModule.setName(identifier);
 
-        if (ctx.moduleBody(0).moduleHeaderStatement().yangVersionStatement() == null) {
+        if (ctx.moduleBody().moduleHeaderStatement().yangVersionStatement() == null) {
             yangModule.setVersion((byte) 1);
         }
 

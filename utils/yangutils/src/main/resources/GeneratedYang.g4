@@ -40,7 +40,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                       "}" optsep
      */
 
-    moduleStatement : MODULE_KEYWORD identifier LEFT_CURLY_BRACE moduleBody* RIGHT_CURLY_BRACE;
+    moduleStatement : MODULE_KEYWORD identifier LEFT_CURLY_BRACE moduleBody RIGHT_CURLY_BRACE;
 
     moduleBody : moduleHeaderStatement linkageStatements metaStatements revisionStatements bodyStatements;
 
@@ -210,7 +210,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                                 body-stmts
      *                             "}" optsep
      */
-    subModuleStatement : SUBMODULE_KEYWORD identifier LEFT_CURLY_BRACE submoduleBody* RIGHT_CURLY_BRACE;
+    subModuleStatement : SUBMODULE_KEYWORD identifier LEFT_CURLY_BRACE submoduleBody RIGHT_CURLY_BRACE;
     submoduleBody : submoduleHeaderStatement linkageStatements metaStatements revisionStatements bodyStatements;
 
     /** submodule-header-stmts =

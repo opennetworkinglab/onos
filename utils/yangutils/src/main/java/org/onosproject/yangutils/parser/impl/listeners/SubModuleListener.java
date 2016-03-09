@@ -82,7 +82,7 @@ public final class SubModuleListener {
         YangSubModule yangSubModule = new YangSubModule();
         yangSubModule.setName(identifier);
 
-        if (ctx.submoduleBody(0).submoduleHeaderStatement().yangVersionStatement() == null) {
+        if (ctx.submoduleBody().submoduleHeaderStatement().yangVersionStatement() == null) {
             yangSubModule.setVersion((byte) 1);
         }
 
