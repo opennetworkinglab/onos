@@ -233,6 +233,7 @@ public class CordVtnNodeManager {
                                                  deviceService,
                                                  driverService,
                                                  groupService,
+                                                 configRegistry,
                                                  DEFAULT_TUNNEL);
 
         deviceService.addListener(deviceListener);

@@ -17,6 +17,7 @@ package org.onosproject.cordvtn;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -30,12 +31,12 @@ import org.onlab.util.ItemNotFoundException;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
-import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
@@ -82,7 +83,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.Device.Type.SWITCH;
 import static org.onosproject.net.flow.criteria.Criterion.Type.IN_PORT;
 import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_DST;
 import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_SRC;
@@ -119,13 +119,13 @@ public class CordVtnRuleInstaller {
     private static final String PORT_NAME = "portName";
     private static final String DATA_PLANE_INTF = "dataPlaneIntf";
     private static final String S_TAG = "stag";
-    private static final String OVS_HW_VERSION = "Open vSwitch";
 
     private final ApplicationId appId;
     private final FlowRuleService flowRuleService;
     private final DeviceService deviceService;
     private final DriverService driverService;
     private final GroupService groupService;
+    private final NetworkConfigRegistry configRegistry;
     private final String tunnelType;
 
     /**
@@ -143,12 +143,14 @@ public class CordVtnRuleInstaller {
                                 DeviceService deviceService,
                                 DriverService driverService,
                                 GroupService groupService,
+                                NetworkConfigRegistry configRegistry,
                                 String tunnelType) {
         this.appId = appId;
         this.flowRuleService = flowRuleService;
         this.deviceService = deviceService;
         this.driverService = driverService;
         this.groupService = groupService;
+        this.configRegistry = configRegistry;
         this.tunnelType = checkNotNull(tunnelType);
     }
 
@@ -278,21 +280,17 @@ public class CordVtnRuleInstaller {
         Map<DeviceId, GroupId> outGroups = Maps.newHashMap();
         Map<DeviceId, Set<PortNumber>> inPorts = Maps.newHashMap();
 
-        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
-            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
-                continue;
-            }
-
-            GroupId groupId = createServiceGroup(device.id(), pService);
-            outGroups.put(device.id(), groupId);
+        getVirtualSwitches().stream().forEach(deviceId -> {
+            GroupId groupId = createServiceGroup(deviceId, pService);
+            outGroups.put(deviceId, groupId);
 
             Set<PortNumber> vms = tService.hosts().keySet()
                     .stream()
-                    .filter(host -> host.location().deviceId().equals(device.id()))
+                    .filter(host -> host.location().deviceId().equals(deviceId))
                     .map(host -> host.location().port())
                     .collect(Collectors.toSet());
-            inPorts.put(device.id(), vms);
-        }
+            inPorts.put(deviceId, vms);
+        });
 
         populateIndirectAccessRule(srcRange, serviceIp, outGroups);
         populateDirectAccessRule(srcRange, dstRange);
@@ -319,16 +317,12 @@ public class CordVtnRuleInstaller {
         Map<DeviceId, GroupId> outGroups = Maps.newHashMap();
         GroupKey groupKey = new DefaultGroupKey(pService.id().id().getBytes());
 
-        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
-            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
-                continue;
-            }
-
-            Group group = groupService.getGroup(device.id(), groupKey);
+        getVirtualSwitches().stream().forEach(deviceId -> {
+            Group group = groupService.getGroup(deviceId, groupKey);
             if (group != null) {
-                outGroups.put(device.id(), group.id());
+                outGroups.put(deviceId, group.id());
             }
-        }
+        });
 
         for (FlowRule flowRule : flowRuleService.getFlowRulesById(appId)) {
             IpPrefix dstIp = getDstIpFromSelector(flowRule);
@@ -370,12 +364,7 @@ public class CordVtnRuleInstaller {
 
         GroupKey groupKey = getGroupKey(service.id());
 
-        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
-            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
-                continue;
-            }
-
-            DeviceId deviceId = device.id();
+        for (DeviceId deviceId : getVirtualSwitches()) {
             Group group = groupService.getGroup(deviceId, groupKey);
             if (group == null) {
                 log.trace("No group exists for service {} in {}, do nothing.", service.id(), deviceId);
@@ -974,23 +963,20 @@ public class CordVtnRuleInstaller {
                 .transition(TABLE_DST_IP)
                 .build();
 
-        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
-            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
-                continue;
-            }
 
+        getVirtualSwitches().stream().forEach(deviceId -> {
             FlowRule flowRuleDirect = DefaultFlowRule.builder()
                     .fromApp(appId)
                     .withSelector(selector)
                     .withTreatment(treatment)
                     .withPriority(DEFAULT_PRIORITY)
-                    .forDevice(device.id())
+                    .forDevice(deviceId)
                     .forTable(TABLE_ACCESS_TYPE)
                     .makePermanent()
                     .build();
 
             processFlowRule(true, flowRuleDirect);
-        }
+        });
     }
 
     /**
@@ -1009,23 +995,19 @@ public class CordVtnRuleInstaller {
                 .drop()
                 .build();
 
-        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
-            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
-                continue;
-            }
-
+        getVirtualSwitches().stream().forEach(deviceId -> {
             FlowRule flowRuleDirect = DefaultFlowRule.builder()
                     .fromApp(appId)
                     .withSelector(selector)
                     .withTreatment(treatment)
                     .withPriority(LOW_PRIORITY)
-                    .forDevice(device.id())
+                    .forDevice(deviceId)
                     .forTable(TABLE_ACCESS_TYPE)
                     .makePermanent()
                     .build();
 
             processFlowRule(true, flowRuleDirect);
-        }
+        });
     }
 
     /**
@@ -1140,16 +1122,12 @@ public class CordVtnRuleInstaller {
 
         processFlowRule(true, flowRule);
 
-        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
-            if (!device.hwVersion().equals(OVS_HW_VERSION)) {
+        for (DeviceId vSwitchId : getVirtualSwitches()) {
+            if (vSwitchId.equals(deviceId)) {
                 continue;
             }
 
-            if (device.id().equals(deviceId)) {
-                continue;
-            }
-
-            ExtensionTreatment tunnelDst = getTunnelDst(device.id(), tunnelIp.getIp4Address());
+            ExtensionTreatment tunnelDst = getTunnelDst(vSwitchId, tunnelIp.getIp4Address());
             if (tunnelDst == null) {
                 continue;
             }
@@ -1157,8 +1135,8 @@ public class CordVtnRuleInstaller {
             treatment = DefaultTrafficTreatment.builder()
                     .setEthDst(dstMac)
                     .setTunnelId(tunnelId)
-                    .extension(tunnelDst, device.id())
-                    .setOutput(getTunnelPort(device.id()))
+                    .extension(tunnelDst, vSwitchId)
+                    .setOutput(getTunnelPort(vSwitchId))
                     .build();
 
             flowRule = DefaultFlowRule.builder()
@@ -1166,7 +1144,7 @@ public class CordVtnRuleInstaller {
                     .withSelector(selector)
                     .withTreatment(treatment)
                     .withPriority(DEFAULT_PRIORITY)
-                    .forDevice(device.id())
+                    .forDevice(vSwitchId)
                     .forTable(TABLE_DST_IP)
                     .makePermanent()
                     .build();
@@ -1535,6 +1513,22 @@ public class CordVtnRuleInstaller {
             log.error("Failed to get extension instruction {}", deviceId);
             return null;
         }
+    }
+
+    /**
+     * Returns integration bridges configured in the system.
+     *
+     * @return set of device ids
+     */
+    private Set<DeviceId> getVirtualSwitches() {
+        CordVtnConfig config = configRegistry.getConfig(appId, CordVtnConfig.class);
+        if (config == null) {
+            log.debug("No configuration found for {}", appId.name());
+            return Sets.newHashSet();
+        }
+
+        return config.cordVtnNodes().stream()
+                .map(CordVtnNode::intBrId).collect(Collectors.toSet());
     }
 }
 

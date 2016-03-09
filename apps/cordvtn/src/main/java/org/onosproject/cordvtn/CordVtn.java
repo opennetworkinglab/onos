@@ -176,6 +176,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                                                  deviceService,
                                                  driverService,
                                                  groupService,
+                                                 configRegistry,
                                                  DEFAULT_TUNNEL);
 
         arpProxy = new CordVtnArpProxy(appId, packetService, hostService);
