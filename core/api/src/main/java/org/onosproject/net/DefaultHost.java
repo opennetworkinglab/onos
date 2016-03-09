@@ -99,7 +99,8 @@ public class DefaultHost extends AbstractElement implements Host {
                     Objects.equals(this.mac, other.mac) &&
                     Objects.equals(this.vlan, other.vlan) &&
                     Objects.equals(this.location, other.location) &&
-                    Objects.equals(this.ipAddresses(), other.ipAddresses());
+                    Objects.equals(this.ipAddresses(), other.ipAddresses()) &&
+                    Objects.equals(this.annotations(), other.annotations());
         }
         return false;
     }
@@ -107,11 +108,12 @@ public class DefaultHost extends AbstractElement implements Host {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("id", id)
-                .add("mac", mac)
-                .add("vlan", vlan)
-                .add("location", location)
-                .add("ipAddresses", ips)
+                .add("id", id())
+                .add("mac", mac())
+                .add("vlan", vlan())
+                .add("location", location())
+                .add("ipAddresses", ipAddresses())
+                .add("annotations", annotations())
                 .toString();
     }
 
