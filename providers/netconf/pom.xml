@@ -29,7 +29,7 @@
     <artifactId>onos-netconf-providers</artifactId>
     <packaging>pom</packaging>
 
-    <description>ONOS Netconf protocol adapters</description>
+    <description>ONOS NETCONF protocol adapters</description>
 
     <modules>
         <module>device</module>

@@ -36,6 +36,9 @@
         <onos.app.category>Drivers</onos.app.category>
         <onos.app.title>NETCONF Device Drivers</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.requires>
+            org.onosproject.netconf
+        </onos.app.requires>
     </properties>
 
     <dependencies>

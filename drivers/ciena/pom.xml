@@ -36,6 +36,9 @@
         <onos.app.title>Ciena Device Drivers</onos.app.title>
         <onos.app.category>Drivers</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.requires>
+            org.onosproject.restsb
+        </onos.app.requires>
     </properties>
 
     <dependencies>

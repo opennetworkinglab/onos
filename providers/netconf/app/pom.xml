@@ -29,7 +29,7 @@
     <artifactId>onos-netconf-app</artifactId>
     <packaging>pom</packaging>
 
-    <description>NetConf protocol southbound providers</description>
+    <description>NETCONF protocol southbound providers</description>
 
     <dependencies>
         <dependency>
