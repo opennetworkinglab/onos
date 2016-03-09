@@ -30,6 +30,7 @@ import org.onosproject.ui.table.TableRequestHandler;
 
 import java.util.Collection;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.app.ApplicationState.ACTIVE;
 
 /**
@@ -113,15 +114,15 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
             String iconId = state == ACTIVE ? ICON_ID_ACTIVE : ICON_ID_INACTIVE;
 
             row.cell(STATE, state)
-                .cell(STATE_IID, iconId)
-                .cell(ID, id.name())
-                .cell(ICON, id.name())
-                .cell(VERSION, app.version())
-                .cell(CATEGORY, app.category())
-                .cell(ORIGIN, app.origin())
-                .cell(TITLE, app.title())
-                .cell(DESC, app.description())
-                .cell(URL, app.url());
+                    .cell(STATE_IID, iconId)
+                    .cell(ID, id.name())
+                    .cell(ICON, id.name())
+                    .cell(VERSION, app.version())
+                    .cell(CATEGORY, app.category())
+                    .cell(ORIGIN, app.origin())
+                    .cell(TITLE, app.title())
+                    .cell(DESC, app.description())
+                    .cell(URL, app.url());
         }
     }
 
@@ -160,6 +161,13 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
         public void process(long sid, ObjectNode payload) {
             String id = string(payload, ID);
             ApplicationService as = get(ApplicationService.class);
+
+            // If the ID was not specified in the payload, use the name of the
+            // most recently uploaded app.
+            if (isNullOrEmpty(id)) {
+                id = ApplicationResource.lastInstalledAppName;
+            }
+
             ApplicationId appId = as.getId(id);
             ApplicationState state = as.getState(appId);
             Application app = as.getApplication(appId);
@@ -198,5 +206,6 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
             rootNode.set(DETAILS, data);
             sendMessage(APP_DETAILS_RESP, 0, rootNode);
         }
+
     }
 }

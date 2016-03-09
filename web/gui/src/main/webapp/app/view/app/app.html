@@ -1,5 +1,5 @@
 <!-- app partial HTML -->
-<div id="ov-app">
+<div id="ov-app" filedrop on-file-drop="appDropped()">
     <div class="tabular-header">
         <h2>Applications ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
@@ -14,6 +14,7 @@
                        type="file" size="50" accept=".oar"
                        file-model="appFile">
             </form>
+
             <div icon icon-size="36" icon-id="plus"
                  class="active" trigger-form
                  tooltip tt-msg="uploadTip">

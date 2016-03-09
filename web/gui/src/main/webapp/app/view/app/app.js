@@ -25,13 +25,14 @@
     var $log, $scope, wss, fs, ks, ps, is;
 
     // internal state
-    var  detailsPanel,
-         pStartY,
-         pHeight,
-         top,
-         middle,
-         bottom,
-         wSize = false;
+    var detailsPanel,
+        pStartY,
+        pHeight,
+        top,
+        middle,
+        bottom,
+        wSize = false,
+        activateImmediately;
 
     // constants
     var INSTALLED = 'INSTALLED',
@@ -43,6 +44,7 @@
         detailsReq = 'appDetailsRequest',
         detailsResp = 'appDetailsResponse',
         fileUploadUrl = 'applications/upload',
+        activateOption = '?activate=true',
         iconUrlPrefix = 'rs/applications/',
         iconUrlSuffix = '/icon',
         dialogId = 'app-dialog',
@@ -200,16 +202,18 @@
 
     function respDetailsCb(data) {
         $scope.panelData = data.details;
+        $scope.selId = data.details.id;
+        $scope.ctrlBtnState.selection = data.details.id;
         $scope.$apply();
     }
 
     angular.module('ovApp', [])
     .controller('OvAppCtrl',
-        ['$log', '$scope', '$http',
+        ['$log', '$scope', '$http', '$timeout',
          'WebSocketService', 'FnService', 'KeyService', 'PanelService',
          'IconService', 'UrlFnService', 'DialogService', 'TableBuilderService',
 
-    function (_$log_, _$scope_, $http, _wss_, _fs_, _ks_, _ps_, _is_, ufs, ds, tbs) {
+    function (_$log_, _$scope_, $http, $timeout, _wss_, _fs_, _ks_, _ps_, _is_, ufs, ds, tbs) {
         $log = _$log_;
         $scope = _$scope_;
         wss = _wss_;
@@ -302,6 +306,11 @@
                     sortCol: spar.sortCol,
                     sortDir: spar.sortDir
                 });
+                if (action == 'uninstall') {
+                    detailsPanel.hide();
+                } else {
+                    wss.sendEvent(detailsReq, {id: itemId});
+                }
             }
 
             function dCancel() {
@@ -323,21 +332,31 @@
         };
 
         $scope.$on('FileChanged', function () {
-            var formData = new FormData();
+            var formData = new FormData(),
+                url;
             if ($scope.appFile) {
                 formData.append('file', $scope.appFile);
-                $http.post(ufs.rsUrl(fileUploadUrl), formData, {
+                url = fileUploadUrl + (activateImmediately || '');
+                $http.post(ufs.rsUrl(url), formData, {
                     transformRequest: angular.identity,
                     headers: {
                         'Content-Type': undefined
                     }
                 })
                     .finally(function () {
+                        activateImmediately = null;
                         $scope.sortCallback($scope.sortParams);
                         document.getElementById('inputFileForm').reset();
+                        $timeout(function () { wss.sendEvent(detailsReq); }, 250);
                     });
             }
         });
+
+        $scope.appDropped = function() {
+            activateImmediately = activateOption;
+            $scope.$emit('FileChanged');
+            $scope.appFile = null;
+        };
 
         $scope.$on('$destroy', function () {
             ks.unbindKeys();
@@ -379,6 +398,42 @@
             }
         };
     }])
+
+    .directive("filedrop", function ($parse, $document) {
+        return {
+            restrict: "A",
+            link: function (scope, element, attrs) {
+                var onAppDrop = $parse(attrs.onFileDrop);
+
+                // When an item is dragged over the document
+                var onDragOver = function (e) {
+                    e.preventDefault();
+                };
+
+                // When the user leaves the window, cancels the drag or drops the item
+                var onDragEnd = function (e) {
+                    e.preventDefault();
+                };
+
+                // When a file is dropped
+                var loadFile = function (file) {
+                    scope.appFile = file;
+                    scope.$apply(onAppDrop(scope));
+                };
+
+                // Dragging begins on the document
+                $document.bind("dragover", onDragOver);
+
+                // Dragging ends on the overlay, which takes the whole window
+                element.bind("dragleave", onDragEnd)
+                    .bind("drop", function (e) {
+                        $log.info('Drag leave', e);
+                        loadFile(e.dataTransfer.files[0]);
+                        onDragEnd(e);
+                    });
+            }
+        };
+    })
 
     .directive('applicationDetailsPanel',
         ['$rootScope', '$window', '$timeout', 'KeyService',

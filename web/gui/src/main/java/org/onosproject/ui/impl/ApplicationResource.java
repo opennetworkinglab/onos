@@ -22,15 +22,18 @@ import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * Application upload resource.
@@ -38,11 +41,20 @@ import java.io.InputStream;
 @Path("applications")
 public class ApplicationResource extends BaseResource {
 
+    static String lastInstalledAppName = null;
+
+
     @Path("upload")
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response upload(@FormDataParam("file") InputStream stream) throws IOException {
-        get(ApplicationAdminService.class).install(stream);
+    public Response upload(@QueryParam("activate") @DefaultValue("false") String activate,
+                           @FormDataParam("file") InputStream stream) throws IOException {
+        ApplicationAdminService service = get(ApplicationAdminService.class);
+        Application app = service.install(stream);
+        lastInstalledAppName = app.id().name();
+        if (Objects.equals(activate, "true")) {
+            service.activate(app.id());
+        }
         return Response.ok().build();
     }
 
