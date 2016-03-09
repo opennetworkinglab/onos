@@ -88,11 +88,9 @@ public final class BgpDpid {
      */
     private String isoNodeIdString(byte[] isoNodeId) {
         if (isoNodeId != null) {
-            int p1 = (int) isoNodeId[0] << 8 | (int) isoNodeId[1];
-            int p2 = (int) isoNodeId[2] << 8 | (int) isoNodeId[3];
-            int p3 = (int) isoNodeId[4] << 8 | (int) isoNodeId[5];
-
-            return String.format("%1$d.%2$d.%3$d", p1, p2, p3);
+            return String.format("%02x%02x.%02x%02x.%02x%02x", isoNodeId[0], isoNodeId[1],
+                                 isoNodeId[2], isoNodeId[3],
+                                 isoNodeId[4], isoNodeId[5]);
         }
         return null;
     }
