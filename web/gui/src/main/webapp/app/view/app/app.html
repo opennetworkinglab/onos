@@ -42,11 +42,11 @@
                 <tr>
                     <td colId="state" class="table-icon" sortable></td>
                     <td colId="icon" class="table-icon">Icon </td>
-                    <td colId="id" sortable col-width="250px">App ID </td>
+                    <td colId="title" sortable col-width="240px">Title </td>
+                    <td colId="id" sortable col-width="240px">App ID </td>
                     <td colId="version" sortable col-width="120px">Version </td>
                     <td colId="category" sortable col-width="100px">Category </td>
-                    <td colId="origin" sortable col-width="100px">Origin </td>
-                    <td colId="desc">Description </td>
+                    <td colId="origin" sortable>Origin </td>
                 </tr>
             </table>
         </div>
@@ -68,11 +68,11 @@
                     </td>
                     <td><img data-ng-src="./rs/applications/{{app.icon}}/icon"
                              height="28px" width="28px" /></td>
+                    <td>{{app.title}}</td>
                     <td>{{app.id}}</td>
                     <td>{{app.version}}</td>
                     <td>{{app.category}}</td>
                     <td>{{app.origin}}</td>
-                    <td>{{app.desc}}</td>
                 </tr>
             </table>
         </div>

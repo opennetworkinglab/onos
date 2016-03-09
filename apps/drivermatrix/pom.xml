@@ -33,7 +33,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.drivermatrix</onos.app.name>
-        <onos.app.title>Driver Behaviour Support Matrix App</onos.app.title>
+        <onos.app.title>Driver Support Matrix</onos.app.title>
         <onos.app.category>Utility</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Driver behaviour support matrix.</onos.app.readme>

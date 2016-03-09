@@ -108,6 +108,7 @@
             }
         }
 
+        ndiv('app-title');
         ndiv('left app-icon');
         ndiv('right', 'app-props');
         ndiv('app-url');
@@ -155,6 +156,8 @@
     function populateTop(details) {
         var propsBody = top.select('.app-props').append('tbody'),
             url = details.url;
+
+        top.select('.app-title').text(details.title);
 
         addIcon(top.select('.app-icon'), details.id);
 
@@ -263,7 +266,7 @@
             sortParams: {
                 firstCol: 'state',
                 firstDir: 'desc',
-                secondCol: 'id',
+                secondCol: 'title',
                 secondDir: 'asc'
             }
         });
