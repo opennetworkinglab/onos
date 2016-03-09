@@ -3,48 +3,37 @@
     'use strict';
 
     // injected refs
-    var $log, $scope, fs, wss;
+    var $log, $scope, fs, wss, mast;
 
     // constants
     var detailsReq = 'driverDataRequest',
         detailsResp = 'driverDataResponse',
-        // TODO: deal with details panel
-        pName = 'ov-driver-matrix-item-details-panel',
-        propOrder = ['id', 'label', 'code'],
-        friendlyProps = ['Item ID', 'Item Label', 'Special Code'];
+        topPad = 13,
+        labelFudge = 14;
 
+    // d3 selections
+    var tabular, dMatrix, tabHdRot, tabGrid, first;
 
-    function addProp(tbody, index, value) {
-        var tr = tbody.append('tr');
+    function fixSizes() {
+        var dy = fs.noPxStyle(tabular, 'height') +
+                fs.noPxStyle(tabHdRot, 'height') + mast.mastHeight() + topPad,
+            tHeight = fs.windowSize(dy).height + 'px',
+            rowHdr = tabGrid.select('.row-header'),
+            w;
 
-        function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+        tabGrid.style('height', tHeight);
+        if (!rowHdr.empty()) {
+            w = fs.noPxStyle(rowHdr, 'width') + labelFudge;
+            first.style('width', w + 'px');
         }
-        addCell('label', friendlyProps[index] + ' :');
-        addCell('value', value);
-    }
-
-    function populatePanel(panel) {
-        var title = panel.append('h3'),
-            tbody = panel.append('table').append('tbody');
-
-        title.text('Item Details');
-
-        propOrder.forEach(function (prop, i) {
-            addProp(tbody, i, $scope.panelDetails[prop]);
-        });
-
-        panel.append('hr');
-        panel.append('h4').text('Comments');
-        panel.append('p').text($scope.panelDetails.comment);
     }
 
     function respDetailsCb(data) {
-        //$log.debug('Matrix Data', data);
         $scope.behaviours = data.behaviours;
         $scope.drivers = data.drivers;
         $scope.matrix = data.matrix;
         $scope.$apply();
+        fixSizes();
     }
 
     angular.module('ovDriverMatrix', [])
@@ -53,106 +42,60 @@
             is.registerIconMapping('nav_drivers', 'cog');
         }])
         .controller('OvDriverMatrixCtrl',
-        ['$log', '$scope', 'TableBuilderService',
-            'FnService', 'WebSocketService',
+            ['$rootScope', '$window', '$log', '$scope', '$sce',
+                'FnService', 'WebSocketService', 'MastService',
 
-            function (_$log_, _$scope_, tbs, _fs_, _wss_) {
-                $log = _$log_;
-                $scope = _$scope_;
-                fs = _fs_;
-                wss = _wss_;
+        function ($rootScope, $window, _$log_, _$scope_, $sce,
+                  _fs_, _wss_, _mast_) {
+            $log = _$log_;
+            $scope = _$scope_;
+            fs = _fs_;
+            wss = _wss_;
+            mast = _mast_;
 
-                var handlers = {};
-                $scope.behaviours = [];
-                $scope.drivers = [];
-                $scope.matrix = {};
+            var handlers = {},
+                unbindWatch;
 
-                // details response handler
-                handlers[detailsResp] = respDetailsCb;
-                wss.bindHandlers(handlers);
+            tabular = d3.select('.tabular-header');
+            dMatrix = d3.select('.driver-matrix');
+            tabHdRot = d3.select('.table-header-rotated');
+            tabGrid = d3.select('.table-grid');
+            first = tabHdRot.select('.first');
 
-                wss.sendEvent(detailsReq);
+            unbindWatch = $rootScope.$watchCollection(
+                function () {
+                    return {
+                        h: $window.innerHeight,
+                        w: $window.innerWidth
+                    };
+                }, fixSizes
+            );
 
-                //// custom selection callback
-                //function selCb($event, row) {
-                //    if ($scope.selId) {
-                //        wss.sendEvent(detailsReq, { id: row.id });
-                //    } else {
-                //        $scope.hidePanel();
-                //    }
-                //    $log.debug('Got a click on:', row);
-                //}
+            $scope.behaviours = [];
+            $scope.drivers = [];
+            $scope.matrix = {};
 
-                function cellHit(d, b) {
-                    var drec = $scope.matrix[d],
-                        brec = drec && drec[b];
-                    return !!brec;
-                }
+            handlers[detailsResp] = respDetailsCb;
+            wss.bindHandlers(handlers);
 
-                $scope.cellMarked = cellHit;
+            wss.sendEvent(detailsReq);
 
-                $scope.cellValue = function(d, b) {
-                    return cellHit(d, b) ? 'x' : '';
-                };
+            function cellHit(d, b) {
+                var drec = $scope.matrix[d],
+                    brec = drec && drec[b];
+                return !!brec;
+            }
 
-                // cleanup
-                $scope.$on('$destroy', function () {
-                    wss.unbindHandlers(handlers);
-                    $log.log('OvDriverMatrixCtrl has been destroyed');
-                });
+            $scope.cellMarked = cellHit;
+            $scope.checkmark = $sce.trustAsHtml("&check;");
 
-                $log.log('OvDriverMatrixCtrl has been created');
-            }])
+            // cleanup
+            $scope.$on('$destroy', function () {
+                unbindWatch();
+                wss.unbindHandlers(handlers);
+                $log.log('OvDriverMatrixCtrl has been destroyed');
+            });
 
-        // TODO: implement row selection to show details panel
-        .directive('ovDriverMatrixItemDetailsPanel', ['PanelService', 'KeyService',
-            function (ps, ks) {
-            return {
-                restrict: 'E',
-                link: function (scope, element, attrs) {
-                    // insert details panel with PanelService
-                    // create the panel
-                    var panel = ps.createPanel(pName, {
-                        width: 200,
-                        margin: 20,
-                        hideMargin: 0
-                    });
-                    panel.hide();
-                    scope.hidePanel = function () { panel.hide(); };
-
-                    function closePanel() {
-                        if (panel.isVisible()) {
-                            $scope.selId = null;
-                            panel.hide();
-                            return true;
-                        }
-                        return false;
-                    }
-
-                    // create key bindings to handle panel
-                    ks.keyBindings({
-                        esc: [closePanel, 'Close the details panel'],
-                        _helpFormat: ['esc']
-                    });
-                    ks.gestureNotes([
-                        ['click', 'Select a row to show item details']
-                    ]);
-
-                    // update the panel's contents when the data is changed
-                    scope.$watch('panelDetails', function () {
-                        if (!fs.isEmptyObject(scope.panelDetails)) {
-                            panel.empty();
-                            populatePanel(panel);
-                            panel.show();
-                        }
-                    });
-
-                    // cleanup on destroyed scope
-                    scope.$on('$destroy', function () {
-                        ks.unbindKeys();
-                        ps.destroyPanel(pName);
-                    });
-                }
-            };
+            $log.log('OvDriverMatrixCtrl has been created');
         }]);
 }());
