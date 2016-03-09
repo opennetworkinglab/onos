@@ -8,7 +8,7 @@
 
 JDVUE_ROOT=${JDVUE_ROOT:-$(dirname $0)/..}
 cd $JDVUE_ROOT
-VER=1.5.0-rc3
+VER=1.5.0-SNAPSHOT
 JAR=$PWD/target/jdvue-${VER}.jar # start with the dev jar first
 cd - >/dev/null
 
