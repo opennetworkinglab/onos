@@ -140,12 +140,12 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
     private static final String DEFAULT_TUNNEL = "vxlan";
     private static final String SERVICE_ID = "serviceId";
-    private static final String OPENSTACK_VM_ID = "openstackVmId";
     private static final String OPENSTACK_PORT_ID = "openstackPortId";
     private static final String DATA_PLANE_IP = "dataPlaneIp";
     private static final String DATA_PLANE_INTF = "dataPlaneIntf";
     private static final String S_TAG = "stag";
     private static final String VSG_HOST_ID = "vsgHostId";
+    private static final String CREATED_TIME = "createdTime";
 
     private static final Ip4Address DEFAULT_DNS = Ip4Address.valueOf("8.8.8.8");
 
@@ -188,7 +188,6 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
         configRegistry.registerConfigFactory(configFactory);
         configService.addListener(configListener);
-        readConfiguration();
 
         log.info("Started");
     }
@@ -256,26 +255,26 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         MacAddress mac = vPort.macAddress();
         HostId hostId = HostId.hostId(mac);
 
-        Host host = hostService.getHost(hostId);
-        if (host != null) {
-            // Host is already known to the system, no HOST_ADDED event is triggered in this case.
-            // It happens when the application is restarted.
-            String vmId = host.annotations().value(OPENSTACK_VM_ID);
-            if (vmId != null && vmId.equals(vPort.deviceId())) {
-                serviceVmAdded(host);
-                return;
-            } else {
-                hostProvider.hostVanished(host.id());
+        Host existingHost = hostService.getHost(hostId);
+        if (existingHost != null) {
+            String serviceId = existingHost.annotations().value(SERVICE_ID);
+            if (serviceId == null || !serviceId.equals(vPort.networkId())) {
+                // this host is not injected by cordvtn or a stale host, remove it
+                hostProvider.hostVanished(existingHost.id());
             }
         }
 
+        // Included CREATED_TIME to annotation intentionally to trigger HOST_UPDATED
+        // event so that the flow rule population for this host can happen.
+        // This ensures refreshing data plane by pushing network config always make
+        // the data plane synced.
         Set<IpAddress> fixedIp = Sets.newHashSet(vPort.fixedIps().values());
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                 .set(SERVICE_ID, vPort.networkId())
-                .set(OPENSTACK_VM_ID, vPort.deviceId())
                 .set(OPENSTACK_PORT_ID, vPort.id())
                 .set(DATA_PLANE_IP, node.dpIp().ip().toString())
-                .set(DATA_PLANE_INTF, node.dpIntf());
+                .set(DATA_PLANE_INTF, node.dpIntf())
+                .set(CREATED_TIME, String.valueOf(System.currentTimeMillis()));
 
         String serviceVlan = getServiceVlan(vPort);
         if (serviceVlan != null) {
@@ -341,7 +340,8 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         HostId hostId = HostId.hostId(vSgMac);
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                 .set(S_TAG, serviceVlan)
-                .set(VSG_HOST_ID, vSgHost.id().toString());
+                .set(VSG_HOST_ID, vSgHost.id().toString())
+                .set(CREATED_TIME, String.valueOf(System.currentTimeMillis()));
 
         HostDescription hostDesc = new DefaultHostDescription(
                 vSgMac,
@@ -537,14 +537,12 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
         OpenstackNetwork vNet = openstackService.network(vNetId);
         if (vNet == null) {
-            log.warn("Failed to get OpenStack network {} for VM {}({}).",
-                     vNetId, host.id(),
-                     host.annotations().value(OPENSTACK_VM_ID));
+            log.warn("Failed to get OpenStack network {} for VM {}.",
+                     vNetId, host.id());
             return;
         }
 
-        log.info("VM {} is detected, MAC: {} IP: {}",
-                 host.annotations().value(OPENSTACK_VM_ID),
+        log.info("VM is detected, MAC: {} IP: {}",
                  host.mac(),
                  host.ipAddresses().stream().findFirst().get());
 
@@ -592,14 +590,12 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
         OpenstackNetwork vNet = openstackService.network(vNetId);
         if (vNet == null) {
-            log.warn("Failed to get OpenStack network {} for VM {}({}).",
-                     vNetId, host.id(),
-                     host.annotations().value(OPENSTACK_VM_ID));
+            log.warn("Failed to get OpenStack network {} for VM {}",
+                     vNetId, host.id());
             return;
         }
 
-        log.info("VM {} is vanished, MAC: {} IP: {}",
-                 host.annotations().value(OPENSTACK_VM_ID),
+        log.info("VM is vanished, MAC: {} IP: {}",
                  host.mac(),
                  host.ipAddresses().stream().findFirst().get());
 
@@ -747,17 +743,18 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         @Override
         public void event(HostEvent event) {
             Host host = event.subject();
+            if (!mastershipService.isLocalMaster(host.location().deviceId())) {
+                // do not allow to proceed without mastership
+                return;
+            }
 
             switch (event.type()) {
+                case HOST_UPDATED:
                 case HOST_ADDED:
-                    if (mastershipService.isLocalMaster(host.location().deviceId())) {
-                        eventExecutor.submit(() -> serviceVmAdded(host));
-                    }
+                    eventExecutor.submit(() -> serviceVmAdded(host));
                     break;
                 case HOST_REMOVED:
-                    if (mastershipService.isLocalMaster(host.location().deviceId())) {
-                        eventExecutor.submit(() -> serviceVmRemoved(host));
-                    }
+                    eventExecutor.submit(() -> serviceVmRemoved(host));
                     break;
                 default:
                     break;
