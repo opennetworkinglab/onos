@@ -69,9 +69,11 @@ public class ApplicationsListCommand extends AbstractShellCommand {
                 boolean isActive = service.getState(app.id()) == ACTIVE;
                 if (activeOnly && isActive || !activeOnly) {
                     if (shortOnly) {
+                        String shortDescription = app.title().equals(app.id().name()) ?
+                                app.description().replaceAll("[\\r\\n]", " ").replaceAll(" +", " ") :
+                                app.title();
                         print(SHORT_FMT, isActive ? "*" : " ",
-                              app.id().id(), app.id().name(), app.version(),
-                              app.description().replaceAll("[\\r\\n]", " ").replaceAll(" +", " "));
+                              app.id().id(), app.id().name(), app.version(), shortDescription);
                     } else {
                         print(FMT, isActive ? "*" : " ",
                               app.id().id(), app.id().name(), app.version(), app.origin(),
