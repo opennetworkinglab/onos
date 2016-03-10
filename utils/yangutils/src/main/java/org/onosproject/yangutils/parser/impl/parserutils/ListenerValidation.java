@@ -16,18 +16,19 @@
 
 package org.onosproject.yangutils.parser.impl.parserutils;
 
-import java.util.List;
-
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.utils.YangConstructType;
-
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import org.onosproject.yangutils.utils.YangConstructType;
 import static org.onosproject.yangutils.utils.YangConstructType.getYangConstructType;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * It's a utility to carry out listener validation.
@@ -123,14 +124,18 @@ public final class ListenerValidation {
      * @param parentName parent name
      * @throws ParserException exception if cardinality check fails
      */
-    public static void validateCardinality(List<?> childContext, YangConstructType yangChildConstruct,
-            YangConstructType yangParentConstruct, String parentName)
-                    throws ParserException {
+    public static void validateCardinalityMaxOne(List<?> childContext, YangConstructType yangChildConstruct,
+                                                 YangConstructType yangParentConstruct, String parentName)
+            throws ParserException {
 
         if (!childContext.isEmpty() && childContext.size() != 1) {
-            ParserException parserException = new ParserException("YANG file error: Invalid cardinality of "
-                    + getYangConstructType(yangChildConstruct) + " in " + getYangConstructType(yangParentConstruct)
-                    + " \"" + parentName + "\".");
+            ParserException parserException = new ParserException("YANG file error: \""
+                    + getYangConstructType(yangChildConstruct) + "\" is defined more than once in \""
+                    + getYangConstructType(yangParentConstruct) + " " + parentName + "\".");
+
+            Iterator<?> context = childContext.iterator();
+            parserException.setLine(((ParserRuleContext) context.next()).getStart().getLine());
+            parserException.setCharPosition(((ParserRuleContext) context.next()).getStart().getCharPositionInLine());
             throw parserException;
         }
     }
@@ -140,18 +145,32 @@ public final class ListenerValidation {
      *
      * @param childContext child's context
      * @param yangChildConstruct child construct for whom cardinality is to be
-     *            validated
+     *                           validated
      * @param yangParentConstruct parent construct
      * @param parentName parent name
+     * @param parentContext parents's context
      * @throws ParserException exception if cardinality check fails
      */
     public static void validateCardinalityEqualsOne(List<?> childContext, YangConstructType yangChildConstruct,
-            YangConstructType yangParentConstruct, String parentName) throws ParserException {
+                                                    YangConstructType yangParentConstruct, String parentName,
+                                                    ParserRuleContext parentContext)
+            throws ParserException {
 
-        if (childContext.isEmpty() || childContext.size() != 1) {
-            ParserException parserException = new ParserException("YANG file error: Invalid cardinality of "
-                    + getYangConstructType(yangChildConstruct) + " in " + getYangConstructType(yangParentConstruct)
-                    + " \"" + parentName + "\".");
+        if (childContext.isEmpty()) {
+            ParserException parserException = new ParserException("YANG file error: Missing \""
+                    + getYangConstructType(yangChildConstruct) + "\" in \"" + getYangConstructType(yangParentConstruct)
+                    + " " + parentName + "\".");
+            parserException.setLine(parentContext.getStart().getLine());
+            parserException.setCharPosition(parentContext.getStart().getCharPositionInLine());
+            throw parserException;
+        } else if (!childContext.isEmpty() && childContext.size() != 1) {
+            Iterator<?> childcontext = childContext.iterator();
+            ParserException parserException = new ParserException("YANG file error: \""
+                    + getYangConstructType(yangChildConstruct) + "\" is present more than once in \""
+                    + getYangConstructType(yangParentConstruct) + " " + parentName + "\".");
+            parserException.setLine(((ParserRuleContext) childcontext.next()).getStart().getLine());
+            parserException.setCharPosition(((ParserRuleContext) childcontext.next()).getStart()
+                    .getCharPositionInLine());
             throw parserException;
         }
     }
@@ -161,18 +180,54 @@ public final class ListenerValidation {
      *
      * @param childContext child's context
      * @param yangChildConstruct child construct for whom cardinality is to be
-     *            validated
+     *                           validated
+     * @param yangParentConstruct parent construct
+     * @param parentName parent name
+     * @param parentContext parents's context
+     * @throws ParserException exception if cardinality check fails
+     */
+    public static void validateCardinalityNonZero(List<?> childContext, YangConstructType yangChildConstruct,
+                                                  YangConstructType yangParentConstruct, String parentName,
+                                                  ParserRuleContext parentContext)
+            throws ParserException {
+
+        if (childContext.isEmpty()) {
+            ParserException parserException = new ParserException("YANG file error: Missing \""
+                    + getYangConstructType(yangChildConstruct) + "\" in \"" + getYangConstructType(yangParentConstruct)
+                    + " " + parentName + "\".");
+
+            parserException.setLine(parentContext.getStart().getLine());
+            parserException.setCharPosition(parentContext.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+    }
+
+    /**
+     * Checks if a either of one construct occurrence.
+     *
+     * @param child1Context first optional child's context
+     * @param yangChild1Construct first child construct for whom cardinality is
+     *                            to be validated
+     * @param child2Context second optional child's context
+     * @param yangChild2Construct second child construct for whom cardinality is
+     *                            to be validated
      * @param yangParentConstruct parent construct
      * @param parentName parent name
      * @throws ParserException exception if cardinality check fails
      */
-    public static void validateCardinalityNonNull(List<?> childContext, YangConstructType yangChildConstruct,
-            YangConstructType yangParentConstruct, String parentName) throws ParserException {
+    public static void validateMutuallyExclusiveChilds(List<?> child1Context, YangConstructType yangChild1Construct,
+                                                       List<?> child2Context, YangConstructType yangChild2Construct,
+                                                       YangConstructType yangParentConstruct, String parentName)
+            throws ParserException {
 
-        if (childContext.isEmpty()) {
-            ParserException parserException = new ParserException("YANG file error: Invalid cardinality of "
-                    + getYangConstructType(yangChildConstruct) + " in " + getYangConstructType(yangParentConstruct)
-                    + " \"" + parentName + "\".");
+        if (!child1Context.isEmpty() && !child2Context.isEmpty()) {
+            ParserException parserException = new ParserException("YANG file error: \""
+                    + getYangConstructType(yangChild1Construct) + "\" & \"" + getYangConstructType(yangChild2Construct)
+                    + "\" should be mutually exclusive in \"" + getYangConstructType(yangParentConstruct) + " "
+                    + parentName + "\".");
+
+            parserException.setLine(((ParserRuleContext) child2Context).getStart().getLine());
+            parserException.setCharPosition(((ParserRuleContext) child2Context).getStart().getCharPositionInLine());
             throw parserException;
         }
     }

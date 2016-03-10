@@ -36,8 +36,8 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinality;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityEqualsOne;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
 import static org.onosproject.yangutils.utils.YangConstructType.CONFIG_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.LEAF_DATA;
@@ -153,13 +153,13 @@ public final class LeafListener {
      */
     private static void validateSubStatementsCardinality(GeneratedYangParser.LeafStatementContext ctx) {
 
-        validateCardinalityEqualsOne(ctx.typeStatement(), TYPE_DATA, LEAF_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.unitsStatement(), UNITS_DATA, LEAF_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.configStatement(), CONFIG_DATA, LEAF_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.mandatoryStatement(), MANDATORY_DATA, LEAF_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, LEAF_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, LEAF_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.statusStatement(), STATUS_DATA, LEAF_DATA, ctx.identifier().getText());
+        validateCardinalityEqualsOne(ctx.typeStatement(), TYPE_DATA, LEAF_DATA, ctx.identifier().getText(), ctx);
+        validateCardinalityMaxOne(ctx.unitsStatement(), UNITS_DATA, LEAF_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.configStatement(), CONFIG_DATA, LEAF_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.mandatoryStatement(), MANDATORY_DATA, LEAF_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.descriptionStatement(), DESCRIPTION_DATA, LEAF_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, LEAF_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.statusStatement(), STATUS_DATA, LEAF_DATA, ctx.identifier().getText());
         //TODO when.
     }
 }

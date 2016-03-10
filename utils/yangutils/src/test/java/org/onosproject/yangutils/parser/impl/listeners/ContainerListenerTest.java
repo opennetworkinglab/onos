@@ -206,7 +206,7 @@ public class ContainerListenerTest {
     @Test
     public void processContainerSubStatementCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("YANG file error: Invalid cardinality of reference in container \"valid\".");
+        thrown.expectMessage("YANG file error: \"reference\" is defined more than once in \"container valid\".");
         YangNode node = manager.getDataModel("src/test/resources/ContainerSubStatementCardinality.yang");
     }
 

@@ -120,7 +120,7 @@ public class LeafListenerTest {
     @Test
     public void processLeafConfigInvalidCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("YANG file error: Invalid cardinality of config in leaf \"invalid-interval\".");
+        thrown.expectMessage("YANG file error: \"config\" is defined more than once in \"leaf invalid-interval\".");
         YangNode node = manager.getDataModel("src/test/resources/LeafConfigInvalidCardinality.yang");
     }
 
@@ -131,7 +131,7 @@ public class LeafListenerTest {
     @Test
     public void processLeafMandatoryInvalidCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("YANG file error: Invalid cardinality of mandatory in leaf \"invalid-interval\".");
+        thrown.expectMessage("YANG file error: \"mandatory\" is defined more than once in \"leaf invalid-interval\".");
         YangNode node = manager.getDataModel("src/test/resources/LeafMandatoryInvalidCardinality.yang");
     }
 

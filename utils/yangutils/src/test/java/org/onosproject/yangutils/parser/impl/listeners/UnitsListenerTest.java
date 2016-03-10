@@ -157,7 +157,7 @@ public class UnitsListenerTest {
     @Test
     public void processUnitsStatementCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("YANG file error: Invalid cardinality of units in leaf \"invalid-interval\".");
+        thrown.expectMessage("YANG file error: \"units\" is defined more than once in \"leaf invalid-interval\".");
         YangNode node = manager.getDataModel("src/test/resources/UnitsStatementCardinality.yang");
     }
 

@@ -38,7 +38,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinality;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
 import static org.onosproject.yangutils.utils.YangConstructType.CONFIG_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.CONTAINER_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
@@ -174,11 +174,12 @@ public final class ContainerListener {
      */
     private static void validateSubStatementsCardinality(GeneratedYangParser.ContainerStatementContext ctx) {
 
-        validateCardinality(ctx.presenceStatement(), PRESENCE_DATA, CONTAINER_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.configStatement(), CONFIG_DATA, CONTAINER_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, CONTAINER_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, CONTAINER_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.statusStatement(), STATUS_DATA, CONTAINER_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.presenceStatement(), PRESENCE_DATA, CONTAINER_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.configStatement(), CONFIG_DATA, CONTAINER_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.descriptionStatement(), DESCRIPTION_DATA, CONTAINER_DATA,
+                ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, CONTAINER_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.statusStatement(), STATUS_DATA, CONTAINER_DATA, ctx.identifier().getText());
         // TODO when, grouping, typedef.
     }
 }

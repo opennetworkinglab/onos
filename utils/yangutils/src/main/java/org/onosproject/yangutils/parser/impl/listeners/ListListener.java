@@ -38,8 +38,8 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinality;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityNonNull;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityNonZero;
 import static org.onosproject.yangutils.utils.YangConstructType.CONFIG_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.DATA_DEF_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
@@ -180,14 +180,14 @@ public final class ListListener {
      */
     private static void validateSubStatementsCardinality(GeneratedYangParser.ListStatementContext ctx) {
 
-        validateCardinality(ctx.keyStatement(), KEY_DATA, LIST_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.configStatement(), CONFIG_DATA, LIST_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.maxElementsStatement(), MAX_ELEMENT_DATA, LIST_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.minElementsStatement(), MIN_ELEMENT_DATA, LIST_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.descriptionStatement(), DESCRIPTION_DATA, LIST_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.referenceStatement(), REFERENCE_DATA, LIST_DATA, ctx.identifier().getText());
-        validateCardinality(ctx.statusStatement(), STATUS_DATA, LIST_DATA, ctx.identifier().getText());
-        validateCardinalityNonNull(ctx.dataDefStatement(), DATA_DEF_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.keyStatement(), KEY_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.configStatement(), CONFIG_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.maxElementsStatement(), MAX_ELEMENT_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.minElementsStatement(), MIN_ELEMENT_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.descriptionStatement(), DESCRIPTION_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinalityMaxOne(ctx.statusStatement(), STATUS_DATA, LIST_DATA, ctx.identifier().getText());
+        validateCardinalityNonZero(ctx.dataDefStatement(), DATA_DEF_DATA, LIST_DATA, ctx.identifier().getText(), ctx);
         //TODO when, typedef, grouping, unique
     }
 }

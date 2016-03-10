@@ -122,7 +122,8 @@ public class MaxElementsListenerTest {
     @Test
     public void processMaxElementsCardinality() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("YANG file error: Invalid cardinality of max-elements in leaf-list \"invalid-interval\".");
+        thrown.expectMessage("YANG file error: \"max-elements\" is defined more than once in \"leaf-list " +
+                "invalid-interval\".");
         YangNode node = manager.getDataModel("src/test/resources/MaxElementsCardinality.yang");
     }
 
