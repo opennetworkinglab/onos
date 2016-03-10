@@ -718,7 +718,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                 .stream()
                 .forEach(entry -> {
                     arpProxy.addGateway(entry.getKey(), entry.getValue());
-                    log.debug("Added public gateway IP {}, MAC {}",
+                    log.info("Added public gateway IP {}, MAC {}",
                               entry.getKey().toString(), entry.getValue().toString());
                 });
         // TODO notice gateway MAC change to VMs holds this gateway IP

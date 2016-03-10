@@ -51,7 +51,7 @@ public class CordVtnNodeInitCommand extends AbstractShellCommand {
                 continue;
             }
 
-            nodeManager.initNode(node);
+            nodeManager.addOrUpdateNode(node);
         }
     }
 }

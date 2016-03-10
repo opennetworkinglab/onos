@@ -97,7 +97,6 @@ public class CordVtnConfig extends Config<ApplicationId> {
                         getConfig(jsonNode, DATA_PLANE_INTF),
                         CordVtnNodeState.noState());
 
-                log.info("Successfully read {} from the config", hostname);
                 nodes.add(newNode);
             } catch (IllegalArgumentException | NullPointerException e) {
                 log.error("{}", e.toString());
@@ -121,7 +120,6 @@ public class CordVtnConfig extends Config<ApplicationId> {
             log.error("{} is not configured", path);
             return null;
         } else {
-            log.debug("{} : {}", path, jsonNode.asText());
             return jsonNode.asText();
         }
     }

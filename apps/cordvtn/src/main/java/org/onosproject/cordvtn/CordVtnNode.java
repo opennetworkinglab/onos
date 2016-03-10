@@ -181,11 +181,16 @@ public final class CordVtnNode {
             return true;
         }
 
-        // hostname here is a network hostname and it is intended to be
-        // unique throughout the service.
         if (obj instanceof CordVtnNode) {
             CordVtnNode that = (CordVtnNode) obj;
-            if (Objects.equals(hostname, that.hostname)) {
+            if (Objects.equals(hostname, that.hostname) &&
+                    Objects.equals(hostMgmtIp, that.hostMgmtIp) &&
+                    Objects.equals(localMgmtIp, that.localMgmtIp) &&
+                    Objects.equals(dpIp, that.dpIp) &&
+                    Objects.equals(ovsdbPort, that.ovsdbPort) &&
+                    Objects.equals(sshInfo, that.sshInfo) &&
+                    Objects.equals(bridgeId, that.bridgeId) &&
+                    Objects.equals(dpIntf, that.dpIntf)) {
                 return true;
             }
         }
@@ -194,7 +199,8 @@ public final class CordVtnNode {
 
     @Override
     public int hashCode() {
-        return Objects.hash(hostname);
+        return Objects.hash(hostname, hostMgmtIp, localMgmtIp, dpIp,
+                            ovsdbPort, sshInfo, bridgeId, dpIntf);
     }
 
     @Override

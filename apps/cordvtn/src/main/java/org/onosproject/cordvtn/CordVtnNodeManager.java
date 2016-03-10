@@ -62,6 +62,8 @@ import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
@@ -164,6 +166,7 @@ public class CordVtnNodeManager {
 
     private final NetworkConfigListener configListener = new InternalConfigListener();
     private final DeviceListener deviceListener = new InternalDeviceListener();
+    private final MapEventListener<String, CordVtnNode> nodeStoreListener = new InternalMapListener();
 
     private final OvsdbHandler ovsdbHandler = new OvsdbHandler();
     private final BridgeHandler bridgeHandler = new BridgeHandler();
@@ -236,6 +239,7 @@ public class CordVtnNodeManager {
                                                  configRegistry,
                                                  DEFAULT_TUNNEL);
 
+        nodeStore.addListener(nodeStoreListener);
         deviceService.addListener(deviceListener);
         configService.addListener(configListener);
     }
@@ -245,22 +249,21 @@ public class CordVtnNodeManager {
         configService.removeListener(configListener);
         deviceService.removeListener(deviceListener);
 
-        eventExecutor.shutdown();
+        nodeStore.removeListener(nodeStoreListener);
         nodeStore.clear();
+
         leadershipService.withdraw(appId.name());
+        eventExecutor.shutdown();
     }
 
     /**
-     * Adds a new node to the service.
+     * Adds or updates a new node to the service.
      *
      * @param node cordvtn node
      */
-    public void addNode(CordVtnNode node) {
+    public void addOrUpdateNode(CordVtnNode node) {
         checkNotNull(node);
-
-        // allow update node attributes
         nodeStore.put(node.hostname(), CordVtnNode.getUpdatedNode(node, getNodeState(node)));
-        initNode(node);
     }
 
     /**
@@ -283,23 +286,12 @@ public class CordVtnNodeManager {
      *
      * @param node cordvtn node
      */
-    public void initNode(CordVtnNode node) {
+    private void initNode(CordVtnNode node) {
         checkNotNull(node);
 
-        if (!nodeStore.containsKey(node.hostname())) {
-            log.warn("Node {} does not exist, add node first", node.hostname());
-            return;
-        }
+        NodeState state = (NodeState) node.state();
+        log.debug("Processing node: {} state: {}", node.hostname(), state);
 
-        NodeId leaderNodeId = leadershipService.getLeader(appId.name());
-        log.debug("Node init requested, local: {} leader: {}", localNodeId, leaderNodeId);
-        if (!Objects.equals(localNodeId, leaderNodeId)) {
-            // only the leader performs node init
-            return;
-        }
-
-        NodeState state = getNodeState(node);
-        log.debug("Init node: {} state: {}", node.hostname(), state.toString());
         state.process(this, node);
     }
 
@@ -432,9 +424,8 @@ public class CordVtnNodeManager {
     private void setNodeState(CordVtnNode node, NodeState newState) {
         checkNotNull(node);
 
-        log.debug("Changed {} state: {}", node.hostname(), newState.toString());
+        log.debug("Changed {} state: {}", node.hostname(), newState);
         nodeStore.put(node.hostname(), CordVtnNode.getUpdatedNode(node, newState));
-        newState.process(this, node);
     }
 
     /**
@@ -812,7 +803,7 @@ public class CordVtnNodeManager {
                 return;
             }
 
-            log.debug("Port {} is added to {}", portName, node.hostname());
+            log.info("Port {} is added to {}", portName, node.hostname());
 
             if (portName.startsWith(VPORT_PREFIX)) {
                 if (isNodeStateComplete(node)) {
@@ -840,7 +831,7 @@ public class CordVtnNodeManager {
                 return;
             }
 
-            log.debug("Port {} is removed from {}", portName, node.hostname());
+            log.info("Port {} is removed from {}", portName, node.hostname());
 
             if (portName.startsWith(VPORT_PREFIX)) {
                 if (isNodeStateComplete(node)) {
@@ -861,7 +852,7 @@ public class CordVtnNodeManager {
 
             NodeId leaderNodeId = leadershipService.getLeader(appId.name());
             if (!Objects.equals(localNodeId, leaderNodeId)) {
-                // only the leader processes events
+                // do not allow to proceed without leadership
                 return;
             }
 
@@ -871,19 +862,19 @@ public class CordVtnNodeManager {
 
             switch (event.type()) {
                 case PORT_ADDED:
-                    eventExecutor.submit(() -> bridgeHandler.portAdded(event.port()));
+                    eventExecutor.execute(() -> bridgeHandler.portAdded(event.port()));
                     break;
                 case PORT_UPDATED:
                     if (!event.port().isEnabled()) {
-                        eventExecutor.submit(() -> bridgeHandler.portRemoved(event.port()));
+                        eventExecutor.execute(() -> bridgeHandler.portRemoved(event.port()));
                     }
                     break;
                 case DEVICE_ADDED:
                 case DEVICE_AVAILABILITY_CHANGED:
                     if (deviceService.isAvailable(device.id())) {
-                        eventExecutor.submit(() -> handler.connected(device));
+                        eventExecutor.execute(() -> handler.connected(device));
                     } else {
-                        eventExecutor.submit(() -> handler.disconnected(device));
+                        eventExecutor.execute(() -> handler.disconnected(device));
                     }
                     break;
                 default:
@@ -902,14 +893,19 @@ public class CordVtnNodeManager {
             return;
         }
 
-        config.cordVtnNodes().forEach(this::addNode);
-        // TODO remove nodes if needed
+        config.cordVtnNodes().forEach(this::addOrUpdateNode);
     }
 
     private class InternalConfigListener implements NetworkConfigListener {
 
         @Override
         public void event(NetworkConfigEvent event) {
+            NodeId leaderNodeId = leadershipService.getLeader(appId.name());
+            if (!Objects.equals(localNodeId, leaderNodeId)) {
+                // do not allow to proceed without leadership
+                return;
+            }
+
             if (!event.configClass().equals(CordVtnConfig.class)) {
                 return;
             }
@@ -918,6 +914,48 @@ public class CordVtnNodeManager {
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:
                     eventExecutor.execute(CordVtnNodeManager.this::readConfiguration);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private class InternalMapListener implements MapEventListener<String, CordVtnNode> {
+
+        @Override
+        public void event(MapEvent<String, CordVtnNode> event) {
+            NodeId leaderNodeId = leadershipService.getLeader(appId.name());
+            if (!Objects.equals(localNodeId, leaderNodeId)) {
+                // do not allow to proceed without leadership
+                return;
+            }
+
+            CordVtnNode oldNode;
+            CordVtnNode newNode;
+
+            switch (event.type()) {
+                case UPDATE:
+                    oldNode = event.oldValue().value();
+                    newNode = event.newValue().value();
+
+                    if (!newNode.equals(oldNode)) {
+                        log.info("{} has been updated", newNode.hostname());
+                        log.debug("New node: {}", newNode);
+                    }
+                    // perform init procedure based on current state on any updates,
+                    // insert, or even if the node is the same for robustness since
+                    // it's no harm to run the init procedure multiple times
+                    eventExecutor.execute(() -> initNode(newNode));
+                    break;
+                case INSERT:
+                    newNode = event.newValue().value();
+                    log.info("Added {}", newNode.hostname());
+                    eventExecutor.execute(() -> initNode(newNode));
+                    break;
+                case REMOVE:
+                    oldNode = event.oldValue().value();
+                    log.info("{} is removed", oldNode.hostname());
                     break;
                 default:
                     break;
