@@ -422,29 +422,23 @@ public final class DecodeCriterionCodecHelper {
     private class OchSigIdDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            if (json.get(CriterionCodec.LAMBDA) != null) {
-                Lambda lambda = Lambda.indexedLambda(nullIsIllegal(json.get(CriterionCodec.LAMBDA),
-                        CriterionCodec.LAMBDA + MISSING_MEMBER_MESSAGE).asInt());
-                return Criteria.matchLambda(lambda);
-            } else {
-                JsonNode ochSignalId = nullIsIllegal(json.get(CriterionCodec.OCH_SIGNAL_ID),
-                        CriterionCodec.GRID_TYPE + MISSING_MEMBER_MESSAGE);
-                GridType gridType =
-                        GridType.valueOf(
-                                nullIsIllegal(ochSignalId.get(CriterionCodec.GRID_TYPE),
-                                CriterionCodec.GRID_TYPE + MISSING_MEMBER_MESSAGE).asText());
-                ChannelSpacing channelSpacing =
-                        ChannelSpacing.valueOf(
-                                nullIsIllegal(ochSignalId.get(CriterionCodec.CHANNEL_SPACING),
-                                CriterionCodec.CHANNEL_SPACING + MISSING_MEMBER_MESSAGE).asText());
-                int spacingMultiplier = nullIsIllegal(ochSignalId.get(CriterionCodec.SPACING_MULIPLIER),
-                        CriterionCodec.SPACING_MULIPLIER + MISSING_MEMBER_MESSAGE).asInt();
-                int slotGranularity = nullIsIllegal(ochSignalId.get(CriterionCodec.SLOT_GRANULARITY),
-                        CriterionCodec.SLOT_GRANULARITY + MISSING_MEMBER_MESSAGE).asInt();
-                return Criteria.matchLambda(
-                        Lambda.ochSignal(gridType, channelSpacing,
-                                spacingMultiplier, slotGranularity));
-            }
+            JsonNode ochSignalId = nullIsIllegal(json.get(CriterionCodec.OCH_SIGNAL_ID),
+                    CriterionCodec.GRID_TYPE + MISSING_MEMBER_MESSAGE);
+            GridType gridType =
+                    GridType.valueOf(
+                            nullIsIllegal(ochSignalId.get(CriterionCodec.GRID_TYPE),
+                            CriterionCodec.GRID_TYPE + MISSING_MEMBER_MESSAGE).asText());
+            ChannelSpacing channelSpacing =
+                    ChannelSpacing.valueOf(
+                            nullIsIllegal(ochSignalId.get(CriterionCodec.CHANNEL_SPACING),
+                            CriterionCodec.CHANNEL_SPACING + MISSING_MEMBER_MESSAGE).asText());
+            int spacingMultiplier = nullIsIllegal(ochSignalId.get(CriterionCodec.SPACING_MULIPLIER),
+                    CriterionCodec.SPACING_MULIPLIER + MISSING_MEMBER_MESSAGE).asInt();
+            int slotGranularity = nullIsIllegal(ochSignalId.get(CriterionCodec.SLOT_GRANULARITY),
+                    CriterionCodec.SLOT_GRANULARITY + MISSING_MEMBER_MESSAGE).asInt();
+            return Criteria.matchLambda(
+                    Lambda.ochSignal(gridType, channelSpacing,
+                            spacingMultiplier, slotGranularity));
         }
     }
 

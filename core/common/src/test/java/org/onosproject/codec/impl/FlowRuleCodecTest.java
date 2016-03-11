@@ -214,7 +214,7 @@ public class FlowRuleCodecTest {
                             instruction.type().name() + "/" + subType, instruction);
                 });
 
-        assertThat(rule.treatment().allInstructions().size(), is(24));
+        assertThat(rule.treatment().allInstructions().size(), is(23));
 
         Instruction instruction;
 
@@ -318,13 +318,6 @@ public class FlowRuleCodecTest {
         assertThat(((L3ModificationInstruction.ModIPv6FlowLabelInstruction) instruction)
                 .flowLabel(),
                 is(8));
-
-        instruction = getInstruction(Instruction.Type.L0MODIFICATION,
-                L0ModificationInstruction.L0SubType.LAMBDA.name());
-        assertThat(instruction.type(), is(Instruction.Type.L0MODIFICATION));
-        assertThat(((L0ModificationInstruction.ModLambdaInstruction) instruction)
-                        .lambda(),
-                is((short) 7));
 
         instruction = getInstruction(Instruction.Type.L0MODIFICATION,
                 L0ModificationInstruction.L0SubType.OCH.name());

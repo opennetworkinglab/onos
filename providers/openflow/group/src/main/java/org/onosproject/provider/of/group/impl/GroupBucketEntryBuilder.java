@@ -25,7 +25,6 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
@@ -34,7 +33,6 @@ import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
@@ -43,7 +41,6 @@ import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
 import org.projectfloodlight.openflow.protocol.OFBucket;
 import org.projectfloodlight.openflow.protocol.OFGroupType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
-import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
 import org.projectfloodlight.openflow.protocol.action.OFActionCopyTtlIn;
 import org.projectfloodlight.openflow.protocol.action.OFActionCopyTtlOut;
 import org.projectfloodlight.openflow.protocol.action.OFActionDecMplsTtl;
@@ -61,7 +58,6 @@ import org.projectfloodlight.openflow.protocol.action.OFActionSetNwSrc;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanPcp;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanVid;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
-import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.U32;
@@ -199,14 +195,7 @@ public class GroupBucketEntryBuilder {
                     break;
                 case EXPERIMENTER:
                     OFActionExperimenter exp = (OFActionExperimenter) act;
-                    if (exp.getExperimenter() == 0x80005A06 ||
-                            exp.getExperimenter() == 0x748771) {
-                        OFActionCircuit ct = (OFActionCircuit) exp;
-                        short lambda = ((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber();
-                        builder.add(Instructions.modL0Lambda(Lambda.indexedLambda(lambda)));
-                    } else {
-                        log.warn("Unsupported OFActionExperimenter {}", exp.getExperimenter());
-                    }
+                    log.warn("Unsupported OFActionExperimenter {}", exp.getExperimenter());
                     break;
                 case SET_FIELD:
                     OFActionSetField setField = (OFActionSetField) act;
