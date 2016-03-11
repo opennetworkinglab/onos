@@ -50,14 +50,7 @@ import org.onosproject.protocol.rest.RestSBController;
 import org.onosproject.protocol.rest.RestSBDevice;
 import org.slf4j.Logger;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import javax.ws.rs.ProcessingException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -189,9 +182,8 @@ public class RestDeviceProvider extends AbstractProvider
                 UNKNOWN, UNKNOWN,
                 cid,
                 annotations);
-        providerService.deviceConnected(deviceId, deviceDescription);
         nodeId.setActive(true);
-        controller.addDevice(nodeId);
+        providerService.deviceConnected(deviceId, deviceDescription);
         addedDevices.add(deviceId);
     }
 
@@ -210,7 +202,11 @@ public class RestDeviceProvider extends AbstractProvider
                 toBeRemoved.removeAll(cfg.getDevicesAddresses());
                 //Adding new devices
                 cfg.getDevicesAddresses().stream()
-                        .filter(device -> testDeviceConnection(device))
+                        .filter(device -> {
+                            device.setActive(false);
+                            controller.addDevice(device);
+                            return testDeviceConnection(device);
+                        })
                         .forEach(device -> {
                             deviceAdded(device);
                         });
@@ -237,40 +233,9 @@ public class RestDeviceProvider extends AbstractProvider
 
     private boolean testDeviceConnection(RestSBDevice device) {
         try {
-            URL url;
-            if (device.url() == null) {
-                url = new URL(device.protocol(), device.ip().toString(), device.port(), "");
-            } else {
-                url = new URL(device.protocol() + URL_SEPARATOR + device.url());
-            }
-            HttpURLConnection urlConn;
-            if (device.protocol().equals(HTTPS)) {
-                //FIXME this method provides no security accepting all SSL certs.
-                RestDeviceProviderUtilities.enableSslCert();
-
-                urlConn = (HttpsURLConnection) url.openConnection();
-            } else {
-                urlConn = (HttpURLConnection) url.openConnection();
-            }
-            if (device.username() != null) {
-                String pwd = device.password() == null ? "" : ":" + device.password();
-                String userPassword = device.username() + pwd;
-                String basicAuth = Base64.getEncoder()
-                        .encodeToString(userPassword.getBytes(StandardCharsets.UTF_8));
-                urlConn.setRequestProperty(AUTHORIZATION_PROPERTY, BASIC_AUTH_PREFIX + basicAuth);
-            }
-            urlConn.setConnectTimeout(TEST_CONNECT_TIMEOUT);
-            boolean open = urlConn.getResponseCode() == (HttpsURLConnection.HTTP_OK);
-            if (!open) {
-                log.error("Device {} not accessibile, response code {} ", device,
-                          urlConn.getResponseCode());
-            }
-            urlConn.disconnect();
-            return open;
-
-        } catch (IOException | NoSuchAlgorithmException | KeyManagementException e) {
-            log.error("Device {} not reachable, error creating {} connection", device,
-                      device.protocol(), e);
+            return controller.get(device.deviceId(), "", "json") != null;
+        } catch (ProcessingException e) {
+            log.warn("Cannot connect to device {}", device, e);
         }
         return false;
     }

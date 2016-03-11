@@ -36,18 +36,24 @@ import org.onosproject.protocol.rest.RestSBDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,16 +79,16 @@ public class RestSBControllerImpl implements RestSBController {
     private static final String BASIC_AUTH_PREFIX = "Basic ";
 
     private final Map<DeviceId, RestSBDevice> deviceMap = new ConcurrentHashMap<>();
-    Client client;
+    private final Map<DeviceId, Client> clientMap = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
-        client = ClientBuilder.newClient();
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        clientMap.clear();
         deviceMap.clear();
         log.info("Stopped");
     }
@@ -105,11 +111,24 @@ public class RestSBControllerImpl implements RestSBController {
 
     @Override
     public void addDevice(RestSBDevice device) {
-        deviceMap.put(device.deviceId(), device);
+        if (!deviceMap.containsKey(device.deviceId())) {
+            Client client = ignoreSslClient();
+            if (device.username() != null) {
+                String username = device.username();
+                String password = device.password() == null ? "" : device.password();
+                authenticate(client, username, password);
+            }
+            clientMap.put(device.deviceId(), client);
+            deviceMap.put(device.deviceId(), device);
+        } else {
+            log.warn("Trying to add a device that is already existing {}", device.deviceId());
+        }
+
     }
 
     @Override
     public void removeDevice(DeviceId deviceId) {
+        clientMap.remove(deviceId);
         deviceMap.remove(deviceId);
     }
 
@@ -169,7 +188,8 @@ public class RestSBControllerImpl implements RestSBController {
 
         Response s = wt.request(type).get();
         if (checkReply(s)) {
-            return (InputStream) s.getEntity();
+            return new ByteArrayInputStream(wt.request(type)
+                    .get(String.class).getBytes(StandardCharsets.UTF_8));
         }
         return null;
     }
@@ -219,15 +239,13 @@ public class RestSBControllerImpl implements RestSBController {
         return checkReply(response);
     }
 
+    private void authenticate(Client client, String username, String password) {
+        client.register(HttpAuthenticationFeature.basic(username, password));
+    }
+
     private WebTarget getWebTarget(DeviceId device, String request) {
         log.debug("Sending request to URL {} ", getUrlString(device, request));
-        WebTarget wt = client.target(getUrlString(device, request));
-        if (deviceMap.containsKey(device) && deviceMap.get(device).username() != null) {
-            client.register(HttpAuthenticationFeature.basic(deviceMap.get(device).username(),
-                                                     deviceMap.get(device).password() == null ?
-                                                             "" : deviceMap.get(device).password()));
-        }
-        return wt;
+        return clientMap.get(device).target(getUrlString(device, request));
     }
 
     //FIXME security issue: this trusts every SSL certificate, even if is self-signed. Also deprecated methods.
@@ -270,5 +288,29 @@ public class RestSBControllerImpl implements RestSBController {
                               + statusCode);
             return false;
         }
+    }
+
+    private Client ignoreSslClient() {
+        SSLContext sslcontext = null;
+
+        try {
+            sslcontext = SSLContext.getInstance("TLS");
+            sslcontext.init(null, new TrustManager[]{new X509TrustManager() {
+                public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                }
+
+                public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                }
+
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+
+            } }, new java.security.SecureRandom());
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            e.printStackTrace();
+        }
+
+        return ClientBuilder.newBuilder().sslContext(sslcontext).hostnameVerifier((s1, s2) -> true).build();
     }
 }
