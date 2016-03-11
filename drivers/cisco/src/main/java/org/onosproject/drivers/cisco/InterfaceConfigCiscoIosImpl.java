@@ -58,8 +58,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
                                  .data().deviceId()).getSession();
         String reply;
         try {
-            //TODO remove XML triming if preceeds in Session
-            reply = session.requestSync(addInterfaceToVlanBuilder(intf, vlanId)).trim();
+            reply = session.requestSync(addInterfaceToVlanBuilder(intf, vlanId));
         } catch (NetconfException e) {
             log.error("Failed to configure VLAN ID {} on device {} interface {}.",
                       vlanId, deviceId, intf, e);
@@ -122,8 +121,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
                                  .data().deviceId()).getSession();
         String reply;
         try {
-            //TODO remove XML triming if preceeds in Session
-            reply = session.requestSync(removeInterfaceFromVlanBuilder(intf, vlanId)).trim();
+            reply = session.requestSync(removeInterfaceFromVlanBuilder(intf, vlanId));
         } catch (NetconfException e) {
             log.error("Failed to remove VLAN ID {} from device {} interface {}.",
                       vlanId, deviceId, intf, e);
@@ -185,8 +183,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
                                  .data().deviceId()).getSession();
         String reply;
         try {
-            //TODO remove XML triming if preceeds in Session
-            reply = session.requestSync(addTrunkInterfaceBuilder(intf, vlanId)).trim();
+            reply = session.requestSync(addTrunkInterfaceBuilder(intf, vlanId));
         } catch (NetconfException e) {
             log.error("Failed to configure trunk mode for VLAN ID {} on device {} interface {}.",
                       vlanId, deviceId, intf, e);
@@ -250,8 +247,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
                              .data().deviceId()).getSession();
     String reply;
     try {
-        //TODO remove XML triming if preceeds in Session
-        reply = session.requestSync(removeTrunkInterfaceBuilder(intf, vlanId)).trim();
+        reply = session.requestSync(removeTrunkInterfaceBuilder(intf, vlanId));
     } catch (NetconfException e) {
         log.error("Failed to remove trunk mode for VLAN ID {} on device {} interface {}.",
                   vlanId, deviceId, intf, e);
