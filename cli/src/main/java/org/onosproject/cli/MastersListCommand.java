@@ -24,6 +24,7 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.utils.Comparators;
 
 import java.util.Collections;
 import java.util.List;

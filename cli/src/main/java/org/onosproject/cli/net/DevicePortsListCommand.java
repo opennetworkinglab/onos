@@ -23,7 +23,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.util.Frequency;
-import org.onosproject.cli.Comparators;
+import org.onosproject.utils.Comparators;
 import org.onosproject.net.Device;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;

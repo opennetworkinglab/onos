@@ -52,12 +52,6 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <version>${project.version}</version>
-            <artifactId>onos-cli</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onos-core-common</artifactId>
             <version>${project.version}</version>
             <classifier>tests</classifier>
