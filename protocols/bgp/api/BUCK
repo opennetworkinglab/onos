@@ -1,0 +1,16 @@
+SRC = 'src/main/java/org/onosproject/**/'
+
+CURRENT_NAME = 'onos-bgp-api'
+CURRENT_TARGET = ':' + CURRENT_NAME
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/bgp/bgpio:onos-bgpio',
+]
+
+java_library(
+    name = CURRENT_NAME,
+    srcs = glob([SRC + '/*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)

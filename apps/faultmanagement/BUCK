@@ -1,0 +1,91 @@
+SRC = 'src/main/java/org/onosproject/**/'
+TEST = 'src/main/java/org/onosproject/**/'
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//incubator/api:onos-incubator-api',
+    '//cli:onos-cli',
+    '//utils/rest:onlab-rest',
+    '//lib:javax.ws.rs-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+]
+
+java_library(
+   name = 'onos-app-fm',
+   visibility = ['PUBLIC'],
+   deps = [':fmcli', ':fmgui', ':fmmgr', ':fmweb'],
+)
+
+java_library(
+    name = 'fmcli',
+    srcs = glob(['fmcli/' + SRC + '*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+    resources_root = 'fmcli/src/main/resources',
+    resources = glob(['fmcli/src/main/resources/**']),
+)
+
+java_test(
+    name = 'fmcli-tests',
+    srcs = glob(['fmcli/' + TEST + '*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':fmcli'],
+    source_under_test = [':fmcli'],
+)
+
+java_library(
+    name = 'fmgui',
+    srcs = glob(['fmgui/' + SRC + '*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+    resources_root = 'fmgui/src/main/resources',
+    resources = glob(['fmgui/src/main/resources/**']),
+)
+
+java_test(
+    name = 'fmgui-tests',
+    srcs = glob(['fmgui/' + TEST + '*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':fmgui'],
+    source_under_test = [':fmgui'],
+)
+
+java_library(
+    name = 'fmmgr',
+    srcs = glob(['fmmgr/' + SRC + '*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)
+
+java_test(
+    name = 'fmmgr-tests',
+    srcs = glob(['fmmgr/' + TEST + '*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':fmmgr'],
+    source_under_test = [':fmmgr'],
+)
+
+java_library(
+    name = 'fmweb',
+    srcs = glob(['fmweb/' + SRC + '*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)
+
+java_test(
+    name = 'fmweb-tests',
+    srcs = glob(['fmweb/' + TEST + '*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':fmweb'],
+    source_under_test = [':fmweb'],
+    resources_root = 'fmweb/src/test/resources',
+    resources = glob(['fmweb/src/test/resources/**']),
+)

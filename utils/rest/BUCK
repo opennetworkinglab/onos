@@ -1,0 +1,32 @@
+SRC = 'src/main/java/org/onlab/**/'
+TEST = 'src/test/java/org/onlab/**/'
+CURRENT_NAME = 'onlab-rest'
+CURRENT_TARGET = ':' + CURRENT_NAME
+
+COMPILE_DEPS = [
+    '//lib:COMPILE',
+    '//utils/osgi:onlab-osgi',
+    '//utils/misc:onlab-misc',
+    '//lib:javax.ws.rs-api',
+    '//lib:jersey-server',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+]
+
+java_library(
+    name = CURRENT_NAME,
+    srcs = glob([SRC + '/*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)
+
+java_test(
+    name = 'tests',
+    srcs = glob([TEST + '/*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [CURRENT_TARGET],
+    source_under_test = [CURRENT_TARGET],
+)

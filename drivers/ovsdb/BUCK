@@ -1,0 +1,20 @@
+SRC = 'src/main/java/org/onosproject/**/'
+
+CURRENT_NAME = 'onos-drivers-ovsdb'
+CURRENT_TARGET = ':' + CURRENT_NAME
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//drivers/utilities:onos-drivers-utilities',
+    '//protocols/ovsdb/api:onos-ovsdb-api',
+    '//protocols/ovsdb/rfc:onos-ovsdb-rfc',
+]
+
+java_library(
+    name = CURRENT_NAME,
+    srcs = glob([SRC + '/*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)

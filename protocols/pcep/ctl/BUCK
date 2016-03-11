@@ -1,0 +1,18 @@
+SRC = 'src/main/java/org/onosproject/**/'
+
+CURRENT_NAME = 'onos-pcep-ctl'
+CURRENT_TARGET = ':' + CURRENT_NAME
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/pcep/pcepio:onos-pcep-pcepio',
+    '//protocols/pcep/api:onos-pcep-controller-api',
+]
+
+java_library(
+    name = CURRENT_NAME,
+    srcs = glob([SRC + '/*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)
+

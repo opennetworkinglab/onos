@@ -1,0 +1,44 @@
+SRC = 'src/main/java/org/onosproject/**/'
+TEST = 'src/main/java/org/onosproject/**/'
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:jersey-client',
+    '//lib:javax.ws.rs-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+]
+
+java_library(
+    name = 'onos-app-openstackinterface-api',
+    srcs = glob(['api/' + SRC + '*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)
+
+java_test(
+    name = 'onos-app-openstackinterface-api-tests',
+    srcs = glob([TEST + '/*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':onos-app-openstackinterface-api'],
+    source_under_test = [':onos-app-openstackinterface-api'],
+)
+
+java_library(
+    name = 'onos-app-openstackinterface-app',
+    srcs = glob(['app/' + SRC + '*.java']),
+    deps = COMPILE_DEPS + [':onos-app-openstackinterface-api'],
+    visibility = ['PUBLIC'],
+)
+
+java_test(
+    name = 'onos-app-openstackinterface-app-tests',
+    srcs = glob([TEST + '/*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':onos-app-openstackinterface-api', ':onos-app-openstackinterface-app'],
+    source_under_test = [':onos-app-openstackinterface-app'],
+)

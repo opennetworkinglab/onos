@@ -1,0 +1,21 @@
+SRC = 'src/main/java/org/onosproject/**/'
+
+CURRENT_NAME = 'onos-drivers-ciena'
+CURRENT_TARGET = ':' + CURRENT_NAME
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+    '//utils/rest:onlab-rest',
+    '//drivers/utilities:onos-drivers-utilities',
+    '//protocols/rest/api:onos-restsb-api',
+]
+
+java_library(
+    name = CURRENT_NAME,
+    srcs = glob([SRC + '/*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)

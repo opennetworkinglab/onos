@@ -144,7 +144,7 @@ public class OpenFlowControllerImplTest {
         replay(mockConfigService);
 
         ComponentContext mockContext = EasyMock.createMock(ComponentContext.class);
-        Dictionary<String, String> properties = new Hashtable<>();
+        Dictionary<String, Object> properties = new Hashtable<>();
         properties.put("openflowPorts",
                        Integer.toString(TestTools.findAvailablePort(0)));
         expect(mockContext.getProperties()).andReturn(properties);

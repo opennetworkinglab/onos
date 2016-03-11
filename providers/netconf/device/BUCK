@@ -1,0 +1,17 @@
+SRC = 'src/main/java/org/onosproject/**/'
+
+CURRENT_NAME = 'onos-netconf-provider-device'
+CURRENT_TARGET = ':' + CURRENT_NAME
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+    '//protocols/netconf/api:onos-netconf-api',
+]
+
+java_library(
+    name = CURRENT_NAME,
+    srcs = glob([SRC + '/*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)

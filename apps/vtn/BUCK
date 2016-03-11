@@ -1,0 +1,104 @@
+SRC = 'src/main/java/org/onosproject/**/'
+TEST = 'src/main/java/org/onosproject/**/'
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//utils/rest:onlab-rest',
+    '//lib:javax.ws.rs-api',
+    '//core/store/serializers:onos-core-serializers',
+    '//incubator/api:onos-incubator-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+]
+
+java_library(
+   name = 'onos-app-vtn',
+   visibility = ['PUBLIC'],
+   deps = [':onos-app-sfc-mgr',
+           ':onos-app-vtn-mgr',
+           ':onos-app-vtn-rsc',
+           ':onos-app-vtn-web',
+   ],
+)
+
+# sfcmgr
+
+java_library(
+    name = 'onos-app-sfc-mgr',
+    srcs = glob(['sfcmgr/' + SRC + '*.java']),
+    deps = COMPILE_DEPS + [':onos-app-vtn-rsc'],
+    visibility = ['PUBLIC'],
+)
+
+java_test(
+    name = 'onos-app-sfc-mgr-tests',
+    srcs = glob(['sfcmgr/' + TEST + '*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':onos-app-sfc-mgr', ':onos-app-vtn-rsc'],
+    source_under_test = [':onos-app-sfc-mgr'],
+)
+
+# vtnmgr
+
+java_library(
+    name = 'onos-app-vtn-mgr',
+    srcs = glob(['vtnmgr/' + SRC + '*.java']),
+    deps = COMPILE_DEPS + [':onos-app-vtn-rsc'],
+    visibility = ['PUBLIC'],
+    resources_root = 'vtnmgr/src/main/resources',
+    resources = glob(['vtnmgr/src/main/resources/**']),
+)
+
+java_test(
+    name = 'onos-app-vtn-mgr-tests',
+    srcs = glob(['vtnmgr/' + TEST + '*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':onos-app-vtn-mgr', ':onos-app-vtn-rsc'],
+    source_under_test = [':onos-app-vtn-mgr'],
+)
+
+# vtnrsc
+
+java_library(
+    name = 'onos-app-vtn-rsc',
+    srcs = glob(['vtnrsc/' + SRC + '*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+    resources_root = 'vtnrsc/src/main/resources',
+    resources = glob(['vtnrsc/src/main/resources/**']),
+)
+
+java_test(
+    name = 'onos-app-vtn-rsc-tests',
+    srcs = glob(['vtnrsc/' + TEST + '*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':onos-app-vtn-rsc'],
+    source_under_test = [':onos-app-vtn-rsc'],
+)
+
+# vtnweb
+
+java_library(
+    name = 'onos-app-vtn-web',
+    srcs = glob(['vtnweb/' + SRC + '*.java']),
+    deps = COMPILE_DEPS + [':onos-app-vtn-rsc'],
+    visibility = ['PUBLIC'],
+)
+
+java_test(
+    name = 'onos-app-vtn-web-tests',
+    srcs = glob(['vtnweb/' + TEST + '*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':onos-app-vtn-web', ':onos-app-vtn-rsc'],
+    source_under_test = [':onos-app-vtn-web'],
+    resources_root = 'vtnweb/src/test/resources',
+    resources = glob(['vtnweb/src/test/resources/**']),
+)

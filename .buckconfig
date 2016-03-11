@@ -1,0 +1,7 @@
+[buildfile]
+  includes = //buck-tools/default.defs
+
+[java]
+  source_level = 8
+  target_level = 8
+

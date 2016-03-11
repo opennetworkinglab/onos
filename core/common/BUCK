@@ -1,0 +1,33 @@
+SRC = 'src/main/java/org/onosproject/**/'
+TEST = 'src/test/java/org/onosproject/**/'
+CURRENT_NAME = 'onos-core-common'
+CURRENT_TARGET = ':' + CURRENT_NAME
+
+SRC_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+    '//core/api:onos-api-tests',
+]
+
+java_library(
+    name = CURRENT_NAME,
+    srcs = glob([SRC + '/*.java']),
+    deps = SRC_DEPS,
+    visibility = ['PUBLIC'],
+)
+
+java_test(
+    name = 'onos-core-common-tests',
+    visibility = ['PUBLIC'],
+    srcs = glob([TEST + '/*.java']),
+    resources_root = 'src/test/resources',
+    resources = glob(['src/test/resources/**']),
+    deps = SRC_DEPS +
+           TEST_DEPS +
+           [CURRENT_TARGET],
+    source_under_test = [CURRENT_TARGET],
+)

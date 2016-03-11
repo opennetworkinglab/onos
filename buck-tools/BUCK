@@ -1,0 +1,38 @@
+python_binary(
+  name = 'download_file',
+  main = 'download_file.py',
+  deps = [':util'],
+  visibility = ['PUBLIC'],
+)
+
+python_binary(
+  name = 'pack_war',
+  main = 'pack_war.py',
+  deps = [':util'],
+  visibility = ['PUBLIC'],
+)
+
+python_library(
+  name = 'util',
+  srcs = [
+    'util.py',
+    '__init__.py'
+  ],
+  visibility = ['PUBLIC'],
+)
+
+def shquote(s):
+  return s.replace("'", "'\\''")
+
+def os_path():
+  from os import environ
+  return environ.get('PATH')
+
+genrule(
+  name = 'buck',
+  cmd = 'echo buck=`which buck`>$OUT;' +
+    ("echo PATH=\''%s'\' >>$OUT;" % shquote(os_path())),
+  out = 'buck.properties',
+  visibility = ['PUBLIC'],
+)
+

@@ -1,0 +1,40 @@
+SRC = 'src/main/java/org/onosproject/**/'
+TEST = 'src/main/java/org/onosproject/**/'
+
+CURRENT_NAME = 'onos-gui'
+CURRENT_TARGET = ':' + CURRENT_NAME
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:javax.ws.rs-api',
+    '//lib:servlet-api',
+    '//lib:jetty-websocket',
+    '//lib:jetty-util',
+    '//lib:jersey-media-multipart',
+    '//incubator/api:onos-incubator-api',
+    '//incubator/net:onos-incubator-net',
+    '//utils/rest:onlab-rest',
+    '//core/store/serializers:onos-core-serializers',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+]
+
+java_library(
+    name = CURRENT_NAME,
+    srcs = glob([SRC + '/*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
+
+java_test(
+    name = 'tests',
+    srcs = glob([TEST + '/*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [CURRENT_TARGET],
+    source_under_test = [CURRENT_TARGET],
+)

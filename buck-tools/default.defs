@@ -1,0 +1,8 @@
+include_defs('//bucklets/maven_jar.bucklet')
+
+BASE_DEPS = [
+    '//lib:junit',
+    '//lib:hamcrest-all',
+    '//lib:slf4j-api',
+    '//lib:guava-testlib',
+]
