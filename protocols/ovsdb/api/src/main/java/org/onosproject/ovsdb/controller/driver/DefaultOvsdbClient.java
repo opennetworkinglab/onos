@@ -926,8 +926,7 @@ public class DefaultOvsdbClient
         DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
         TableSchema tableSchema = dbSchema.getTableSchema(childTableName);
 
-        String namedUuid = childTableName;
-        Insert insert = new Insert(tableSchema, namedUuid, row);
+        Insert insert = new Insert(tableSchema, childTableName, row);
 
         ArrayList<Operation> operations = Lists.newArrayList();
         operations.add(insert);
@@ -940,7 +939,7 @@ public class DefaultOvsdbClient
 
             List<Mutation> mutations = Lists.newArrayList();
             Mutation mutation = MutationUtil.insert(parentColumnSchema.name(),
-                                                    Uuid.uuid(namedUuid));
+                                                    Uuid.uuid(childTableName));
             mutations.add(mutation);
 
             List<Condition> conditions = Lists.newArrayList();
