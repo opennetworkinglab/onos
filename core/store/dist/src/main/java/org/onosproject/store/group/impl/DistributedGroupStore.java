@@ -537,6 +537,19 @@ public class DistributedGroupStore
             // Get a new group identifier
             id = new DefaultGroupId(getFreeGroupIdValue(groupDesc.deviceId()));
         } else {
+            // we need to use the identifier passed in by caller, but check if
+            // already used
+            Group existing = getGroup(groupDesc.deviceId(),
+                                      new DefaultGroupId(groupDesc.givenGroupId()));
+            if (existing != null) {
+                log.warn("Group already exists with the same id: 0x{} in dev:{} "
+                        + "but with different key: {} (request gkey: {})",
+                        Integer.toHexString(groupDesc.givenGroupId()),
+                        groupDesc.deviceId(),
+                        existing.appCookie(),
+                        groupDesc.appCookie());
+                return;
+            }
             id = new DefaultGroupId(groupDesc.givenGroupId());
         }
         // Create a group entry object
@@ -621,7 +634,8 @@ public class DistributedGroupStore
         // Check if a group is existing with the provided key
         Group oldGroup = getGroup(deviceId, oldAppCookie);
         if (oldGroup == null) {
-            log.warn("updateGroupDescriptionInternal: Group not found...strange");
+            log.warn("updateGroupDescriptionInternal: Group not found...strange. "
+                    + "GroupKey:{} DeviceId:{}", oldAppCookie, deviceId);
             return;
         }
 
@@ -940,6 +954,19 @@ public class DistributedGroupStore
             log.warn("Current extraneous groups in device:{} are: {}",
                      deviceId,
                      getExtraneousGroups(deviceId));
+            if (operation.buckets().equals(existing.buckets())) {
+                if (existing.state() == GroupState.PENDING_ADD) {
+                    log.info("GROUP_EXISTS: GroupID and Buckets match for group in pending "
+                            + "add state - moving to ADDED for group {} in device {}",
+                            existing.id(), deviceId);
+                    addOrUpdateGroupEntry(existing);
+                    return;
+                } else {
+                    log.warn("GROUP EXISTS: Group ID matched but buckets did not. "
+                            + "Operation: {} Existing: {}", operation.buckets(),
+                            existing.buckets());
+                }
+            }
         }
         switch (operation.opType()) {
             case ADD:

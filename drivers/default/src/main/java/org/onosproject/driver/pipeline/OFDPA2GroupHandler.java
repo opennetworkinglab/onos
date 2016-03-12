@@ -36,6 +36,8 @@ import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
+import org.onosproject.store.service.AtomicCounter;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.util.ArrayDeque;
@@ -87,6 +89,7 @@ public class OFDPA2GroupHandler {
     private final Logger log = getLogger(getClass());
     private ServiceDirectory serviceDirectory;
     protected GroupService groupService;
+    protected StorageService storageService;
 
     private DeviceId deviceId;
     private FlowObjectiveStore flowObjectiveStore;
@@ -96,7 +99,7 @@ public class OFDPA2GroupHandler {
             Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner", "ofdpa2-%d"));
 
     // index number for group creation
-    private AtomicInteger l3VpnIndex = new AtomicInteger(0);
+    private AtomicCounter nextIndex;
 
     // local stores for port-vlan mapping
     protected Map<PortNumber, VlanId> port2Vlan = new ConcurrentHashMap<>();
@@ -111,6 +114,11 @@ public class OFDPA2GroupHandler {
         this.flowObjectiveStore = context.store();
         this.serviceDirectory = context.directory();
         this.groupService = serviceDirectory.get(GroupService.class);
+        this.storageService = serviceDirectory.get(StorageService.class);
+        this.nextIndex = storageService.atomicCounterBuilder()
+                            .withName("group-id-index-counter")
+                            .build()
+                            .asAtomicCounter();
 
         pendingNextObjectives = CacheBuilder.newBuilder()
                 .expireAfterWrite(20, TimeUnit.SECONDS)
@@ -128,6 +136,10 @@ public class OFDPA2GroupHandler {
 
         groupService.addListener(new InnerGroupListener());
     }
+
+    //////////////////////////////////////
+    //  Group Creation
+    //////////////////////////////////////
 
     protected void addGroup(NextObjective nextObjective) {
         switch (nextObjective.type()) {
@@ -190,8 +202,8 @@ public class OFDPA2GroupHandler {
 
         // break up simple next objective to GroupChain objects
         GroupInfo groupInfo = createL2L3Chain(treatment, nextObj.id(),
-                nextObj.appId(), false,
-                nextObj.meta());
+                                              nextObj.appId(), false,
+                                              nextObj.meta());
         if (groupInfo == null) {
             log.error("Could not process nextObj={} in dev:{}", nextObj.id(), deviceId);
             return;
@@ -211,26 +223,6 @@ public class OFDPA2GroupHandler {
         // that will get async replies have been updated. By waiting to update
         // the stores, we prevent nasty race conditions.
         groupService.addGroup(groupInfo.innerGrpDesc);
-    }
-
-    private void updatePendingNextObjective(GroupKey key, OfdpaNextGroup value) {
-        List<OfdpaNextGroup> nextList = new CopyOnWriteArrayList<OfdpaNextGroup>();
-        nextList.add(value);
-        List<OfdpaNextGroup> ret = pendingNextObjectives.asMap()
-                .putIfAbsent(key, nextList);
-        if (ret != null) {
-            ret.add(value);
-        }
-    }
-
-    private void updatePendingGroups(GroupKey gkey, GroupChainElem gce) {
-        Set<GroupChainElem> gceSet = Collections.newSetFromMap(
-                new ConcurrentHashMap<GroupChainElem, Boolean>());
-        gceSet.add(gce);
-        Set<GroupChainElem> retval = pendingGroups.putIfAbsent(gkey, gceSet);
-        if (retval != null) {
-            retval.add(gce);
-        }
     }
 
     /**
@@ -324,8 +316,8 @@ public class OFDPA2GroupHandler {
      *         error in processing the chain
      */
     private GroupInfo createL2L3Chain(TrafficTreatment treatment, int nextId,
-            ApplicationId appId, boolean mpls,
-            TrafficSelector meta) {
+                                      ApplicationId appId, boolean mpls,
+                                      TrafficSelector meta) {
         // for the l2interface group, get vlan and port info
         // for the outer group, get the src/dst mac, and vlan info
         TrafficTreatment.Builder outerTtb = DefaultTrafficTreatment.builder();
@@ -403,7 +395,7 @@ public class OFDPA2GroupHandler {
 
         // assemble information for ofdpa l2interface group
         int l2groupId = L2_INTERFACE_TYPE | (vlanid.toShort() << 16) | (int) portNum;
-        // a globally unique groupkey that is different for ports in the same devices
+        // a globally unique groupkey that is different for ports in the same device,
         // but different for the same portnumber on different devices. Also different
         // for the various group-types created out of the same next objective.
         int l2gk = l2InterfaceGroupKey(deviceId, vlanid, portNum);
@@ -413,10 +405,10 @@ public class OFDPA2GroupHandler {
         GroupDescription outerGrpDesc = null;
         if (mpls) {
             // outer group is MPLSInteface
-            int mplsgroupId = MPLS_INTERFACE_TYPE | (int) portNum;
-            // using mplsinterfacemask in groupkey to differentiate from l2interface
-            int mplsgk = MPLS_INTERFACE_TYPE | (SUBTYPE_MASK & (deviceId.hashCode() << 8 | (int) portNum));
-            final GroupKey mplsgroupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(mplsgk));
+            int mplsInterfaceIndex = getNextAvailableIndex();
+            int mplsgroupId = MPLS_INTERFACE_TYPE | (SUBTYPE_MASK & mplsInterfaceIndex);
+            final GroupKey mplsgroupkey = new DefaultGroupKey(
+                               OFDPA2Pipeline.appKryo.serialize(mplsInterfaceIndex));
             outerTtb.group(new DefaultGroupId(l2groupId));
             // create the mpls-interface group description to wait for the
             // l2 interface group to be processed
@@ -435,11 +427,10 @@ public class OFDPA2GroupHandler {
                     mplsgroupkey, nextId);
         } else {
             // outer group is L3Unicast
-            int l3GroupIdHash = Objects.hash(srcMac, dstMac, portNum);
-            int l3groupId = L3_UNICAST_TYPE | (TYPE_MASK & l3GroupIdHash);
-            int l3GroupKeyHash = Objects.hash(deviceId, srcMac, dstMac, portNum);
-            int l3gk = L3_UNICAST_TYPE | (TYPE_MASK & l3GroupKeyHash);
-            final GroupKey l3groupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l3gk));
+            int l3unicastIndex = getNextAvailableIndex();
+            int l3groupId = L3_UNICAST_TYPE | (TYPE_MASK & l3unicastIndex);
+            final GroupKey l3groupkey = new DefaultGroupKey(
+                               OFDPA2Pipeline.appKryo.serialize(l3unicastIndex));
             outerTtb.group(new DefaultGroupId(l2groupId));
             // create the l3unicast group description to wait for the
             // l2 interface group to be processed
@@ -558,7 +549,7 @@ public class OFDPA2GroupHandler {
         // assemble info for l2 flood group
         // since there can be only one flood group for a vlan, its index is always the same - 0
         Integer l2floodgroupId = L2_FLOOD_TYPE | (vlanId.toShort() << 16);
-        int l2floodgk = L2_FLOOD_TYPE | nextObj.id() << 12;
+        int l2floodgk = getNextAvailableIndex();
         final GroupKey l2floodgroupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l2floodgk));
         // collection of group buckets pointing to all the l2 interface groups
         List<GroupBucket> l2floodBuckets = new ArrayList<>();
@@ -633,8 +624,10 @@ public class OFDPA2GroupHandler {
                     .createSelectGroupBucket(ttb.build());
             l3ecmpGroupBuckets.add(sbucket);
         }
-        int l3ecmpGroupId = L3_ECMP_TYPE | nextObj.id() << 12;
-        GroupKey l3ecmpGroupKey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l3ecmpGroupId));
+        int l3ecmpIndex = getNextAvailableIndex();
+        int l3ecmpGroupId = L3_ECMP_TYPE | (TYPE_MASK & l3ecmpIndex);
+        GroupKey l3ecmpGroupKey = new DefaultGroupKey(
+                                          OFDPA2Pipeline.appKryo.serialize(l3ecmpIndex));
         GroupDescription l3ecmpGroupDesc =
                 new DefaultGroupDescription(
                         deviceId,
@@ -682,8 +675,8 @@ public class OFDPA2GroupHandler {
      * @param unsentGroups  a list to store GroupInfo for each bucket-group-chain
      */
     private void createHashBucketChains(NextObjective nextObj,
-            List<Deque<GroupKey>> allGroupKeys,
-            List<GroupInfo> unsentGroups) {
+                                        List<Deque<GroupKey>> allGroupKeys,
+                                        List<GroupInfo> unsentGroups) {
         // break up hashed next objective to multiple groups
         Collection<TrafficTreatment> buckets = nextObj.next();
 
@@ -742,9 +735,10 @@ public class OFDPA2GroupHandler {
                                 onelabelGroupInfo.outerGrpDesc.givenGroupId()));
                 GroupBucket l3vpnGrpBkt  =
                         DefaultGroupBucket.createIndirectGroupBucket(l3vpnTtb.build());
-                int l3vpngroupId = MPLS_L3VPN_SUBTYPE | l3VpnIndex.incrementAndGet();
-                int l3vpngk = MPLS_L3VPN_SUBTYPE | nextObj.id() << 12 | l3VpnIndex.get();
-                GroupKey l3vpngroupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l3vpngk));
+                int l3vpnIndex = getNextAvailableIndex();
+                int l3vpngroupId = MPLS_L3VPN_SUBTYPE | (SUBTYPE_MASK & l3vpnIndex);
+                GroupKey l3vpngroupkey = new DefaultGroupKey(
+                             OFDPA2Pipeline.appKryo.serialize(l3vpnIndex));
                 GroupDescription l3vpnGroupDesc =
                         new DefaultGroupDescription(
                                 deviceId,
@@ -782,6 +776,10 @@ public class OFDPA2GroupHandler {
             allGroupKeys.add(gkeyChain);
         }
     }
+
+    //////////////////////////////////////
+    //  Group Editing
+    //////////////////////////////////////
 
     /**
      *  Adds a bucket to the top level group of a group-chain, and creates the chain.
@@ -954,6 +952,30 @@ public class OFDPA2GroupHandler {
         flowObjectiveStore.removeNextGroup(nextObjective.id());
     }
 
+    //////////////////////////////////////
+    //  Helper Methods and Classes
+    //////////////////////////////////////
+
+    private void updatePendingNextObjective(GroupKey key, OfdpaNextGroup value) {
+        List<OfdpaNextGroup> nextList = new CopyOnWriteArrayList<OfdpaNextGroup>();
+        nextList.add(value);
+        List<OfdpaNextGroup> ret = pendingNextObjectives.asMap()
+                .putIfAbsent(key, nextList);
+        if (ret != null) {
+            ret.add(value);
+        }
+    }
+
+    private void updatePendingGroups(GroupKey gkey, GroupChainElem gce) {
+        Set<GroupChainElem> gceSet = Collections.newSetFromMap(
+                new ConcurrentHashMap<GroupChainElem, Boolean>());
+        gceSet.add(gce);
+        Set<GroupChainElem> retval = pendingGroups.putIfAbsent(gkey, gceSet);
+        if (retval != null) {
+            retval.add(gce);
+        }
+    }
+
     /**
      * Processes next element of a group chain. Assumption is that if this
      * group points to another group, the latter has already been created
@@ -1002,6 +1024,17 @@ public class OFDPA2GroupHandler {
         }
     }
 
+    private class InnerGroupListener implements GroupListener {
+        @Override
+        public void event(GroupEvent event) {
+            log.trace("received group event of type {}", event.type());
+            if (event.type() == GroupEvent.Type.GROUP_ADDED) {
+                GroupKey key = event.subject().appCookie();
+                processPendingGroupsOrNextObjectives(key, true);
+            }
+        }
+    }
+
     private void processPendingGroupsOrNextObjectives(GroupKey key, boolean added) {
         //first check for group chain
         Set<GroupChainElem> gceSet = pendingGroups.remove(key);
@@ -1046,6 +1079,10 @@ public class OFDPA2GroupHandler {
                 ? null : ((VlanIdCriterion) criterion).vlanId();
     }
 
+    private int getNextAvailableIndex() {
+        return (int) nextIndex.incrementAndGet();
+    }
+
     /**
      * Returns a hash as the L2 Interface Group Key.
      *
@@ -1063,17 +1100,6 @@ public class OFDPA2GroupHandler {
         long portHigherBits = portNumber & PORT_HIGHER_BITS_MASK;
         int hash = Objects.hash(deviceId, vlanId, portHigherBits);
         return L2_INTERFACE_TYPE | (TYPE_MASK & hash << 6) | portLowerBits;
-    }
-
-    private class InnerGroupListener implements GroupListener {
-        @Override
-        public void event(GroupEvent event) {
-            log.trace("received group event of type {}", event.type());
-            if (event.type() == GroupEvent.Type.GROUP_ADDED) {
-                GroupKey key = event.subject().appCookie();
-                processPendingGroupsOrNextObjectives(key, true);
-            }
-        }
     }
 
     /**

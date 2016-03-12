@@ -337,11 +337,11 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                                         GroupMsgErrorCode.values()[(code.ordinal())];
                                 GroupOperation failedOperation = GroupOperation
                                         .createFailedGroupOperation(operation, failureCode);
+                                log.warn("Received a group mod error {}", msg);
                                 providerService.groupOperationFailed(deviceId,
                                         failedOperation);
                                 pendingGroupOperations.remove(pendingGroupId);
                                 pendingXidMaps.remove(pendingGroupId);
-                                log.warn("Received a group mod error {}", msg);
                             } else {
                                 log.error("Cannot find pending group operation with group ID: {}",
                                         pendingGroupId);
