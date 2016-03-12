@@ -20,10 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.onosproject.event.ListenerService;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -31,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Service for allocating/releasing resource(s) and retrieving allocation(s) and availability.
  */
 @Beta
-public interface ResourceService extends ListenerService<ResourceEvent, ResourceListener> {
+public interface ResourceService extends ResourceQueryService, ListenerService<ResourceEvent, ResourceListener> {
     /**
      * Allocates the specified resource to the specified user.
      *
@@ -62,7 +60,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * Transactionally allocates the specified resources to the specified user.
      * All allocations are made when this method succeeds, or no allocation is made when this method fails.
      *
-     * @param consumer resource user which the resources are allocated to
+     * @param consumer  resource user which the resources are allocated to
      * @param resources resources to be allocated
      * @return non-empty list of allocation information if succeeded, otherwise empty list
      */
@@ -72,7 +70,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * Transactionally allocates the specified resources to the specified user.
      * All allocations are made when this method succeeds, or no allocation is made when this method fails.
      *
-     * @param consumer resource user which the resources are allocated to
+     * @param consumer  resource user which the resources are allocated to
      * @param resources resources to be allocated
      * @return non-empty list of allocation information if succeeded, otherwise empty list
      */
@@ -125,79 +123,6 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @return true if succeeded, otherwise false
      */
     boolean release(ResourceConsumer consumer);
-
-    /**
-     * Returns resource allocations of the specified resource.
-     *
-     * @param id ID of the resource to check the allocation
-     * @return list of allocation information.
-     * If the resource is not allocated, the return value is an empty list.
-     */
-    List<ResourceAllocation> getResourceAllocations(ResourceId id);
-
-    /**
-     * Returns allocated resources being as children of the specified parent and being the specified resource type.
-     *
-     * @param parent parent resource ID
-     * @param cls class to specify a type of resource
-     * @param <T> type of the resource
-     * @return non-empty collection of resource allocations if resources are allocated with the subject and type,
-     * empty collection if no resource is allocated with the subject and type
-     */
-    <T> Collection<ResourceAllocation> getResourceAllocations(DiscreteResourceId parent, Class<T> cls);
-
-    /**
-     * Returns resources allocated to the specified consumer.
-     *
-     * @param consumer consumer whose allocated resources are to be returned
-     * @return resources allocated to the consumer
-     */
-    Collection<ResourceAllocation> getResourceAllocations(ResourceConsumer consumer);
-
-    /**
-     * Returns resources that point available child resources under the specified resource.
-     *
-     * @param parent parent resource ID
-     * @return available resources under the specified resource
-     */
-    Set<Resource> getAvailableResources(DiscreteResourceId parent);
-
-    /**
-     * Returns available resources which are child resources of the specified parent and
-     * whose type is the specified type.
-     *
-     * @param parent parent resource ID
-     * @param cls class to specify a type of resource
-     * @param <T> type of the resource
-     * @return available resources of the specified type under the specified parent resource
-     */
-    <T> Set<Resource> getAvailableResources(DiscreteResourceId parent, Class<T> cls);
-
-    /**
-     * Returns available resource values which are the values of the child resource of
-     * the specified parent and whose type is the specified type.
-     *
-     * @param parent parent resource ID
-     * @param cls class to specify a type of resource
-     * @param <T> type of the resource
-     * @return available resource value of the specified type under the specified parent resource
-     */
-    <T> Set<T> getAvailableResourceValues(DiscreteResourceId parent, Class<T> cls);
-    /**
-     * Returns resources registered under the specified resource.
-     *
-     * @param parent parent resource ID
-     * @return registered resources under the specified resource
-     */
-    Set<Resource> getRegisteredResources(DiscreteResourceId parent);
-
-    /**
-     * Returns the availability of the specified resource.
-     *
-     * @param resource resource to check the availability
-     * @return true if available, otherwise false
-     */
-    boolean isAvailable(Resource resource);
 
     // TODO: listener and event mechanism need to be considered
 }

@@ -38,7 +38,7 @@ import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.Resources;
-import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.resource.ResourceQueryService;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
@@ -75,11 +75,11 @@ public class ResourcesCommand extends AbstractShellCommand {
     String portNumberStr = null;
 
 
-    private ResourceService resourceService;
+    private ResourceQueryService resourceService;
 
     @Override
     protected void execute() {
-        resourceService = get(ResourceService.class);
+        resourceService = get(ResourceQueryService.class);
 
         if (typeStrings != null) {
             typesToPrint = new HashSet<>(Arrays.asList(typeStrings));

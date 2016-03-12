@@ -27,7 +27,7 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.impl.PathNotFoundException;
-import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.resource.ResourceQueryService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
@@ -55,7 +55,7 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
     protected PathService pathService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ResourceService resourceService;
+    protected ResourceQueryService resourceService;
 
     /**
      * Returns an edge-weight capable of evaluating links on the basis of the

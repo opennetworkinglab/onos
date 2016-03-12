@@ -43,8 +43,8 @@ import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.ResourceAdminService;
 import org.onosproject.net.resource.BandwidthCapacity;
 import org.onosproject.net.resource.Resource;
+import org.onosproject.net.resource.ResourceQueryService;
 import org.onosproject.net.resource.Resources;
-import org.onosproject.net.resource.ResourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +66,7 @@ final class ResourceDeviceListener implements DeviceListener {
     private static final Logger log = LoggerFactory.getLogger(ResourceDeviceListener.class);
 
     private final ResourceAdminService adminService;
-    private final ResourceService resourceService;
+    private final ResourceQueryService resourceService;
     private final DeviceService deviceService;
     private final MastershipService mastershipService;
     private final DriverService driverService;
@@ -78,14 +78,14 @@ final class ResourceDeviceListener implements DeviceListener {
      * Creates an instance with the specified ResourceAdminService and ExecutorService.
      *
      * @param adminService instance invoked to register resources
-     * @param resourceService {@link ResourceService} to be used
+     * @param resourceService {@link ResourceQueryService} to be used
      * @param deviceService {@link DeviceService} to be used
      * @param mastershipService {@link MastershipService} to be used
      * @param driverService {@link DriverService} to be used
      * @param netcfgService {@link NetworkConfigService} to be used.
      * @param executor executor used for processing resource registration
      */
-    ResourceDeviceListener(ResourceAdminService adminService, ResourceService resourceService,
+    ResourceDeviceListener(ResourceAdminService adminService, ResourceQueryService resourceService,
                            DeviceService deviceService, MastershipService mastershipService,
                            DriverService driverService, NetworkConfigService netcfgService,
                            ExecutorService executor) {
