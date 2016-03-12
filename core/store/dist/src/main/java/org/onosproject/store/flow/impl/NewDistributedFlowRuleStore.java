@@ -305,7 +305,7 @@ public class NewDistributedFlowRuleStore
             msgHandlerPoolSize = newPoolSize;
             ExecutorService oldMsgHandler = messageHandlingExecutor;
             messageHandlingExecutor = Executors.newFixedThreadPool(
-                    msgHandlerPoolSize, groupedThreads("onos/store/flow", "message-handlers"));
+                    msgHandlerPoolSize, groupedThreads("onos/store/flow", "message-handlers", log));
 
             // replace previously registered handlers.
             registerMessageHandlers(messageHandlingExecutor);

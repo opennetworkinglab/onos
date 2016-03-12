@@ -138,11 +138,11 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private void registerDeviceResource(Device device) {
-        executor.submit(() -> adminService.register(Resources.discrete(device.id()).resource()));
+        executor.execute(() -> adminService.register(Resources.discrete(device.id()).resource()));
     }
 
     private void unregisterDeviceResource(Device device) {
-        executor.submit(() -> {
+        executor.execute(() -> {
             DiscreteResource devResource = Resources.discrete(device.id()).resource();
             List<Resource> allResources = getDescendantResources(devResource);
             adminService.unregister(Lists.transform(allResources, Resource::id));
@@ -151,7 +151,7 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private void registerPortResource(Device device, Port port) {
         Resource portPath = Resources.discrete(device.id(), port.number()).resource();
-        executor.submit(() -> {
+        executor.execute(() -> {
             adminService.register(portPath);
 
             queryBandwidth(device.id(), port.number())
@@ -198,7 +198,7 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private void unregisterPortResource(Device device, Port port) {
-        executor.submit(() -> {
+        executor.execute(() -> {
             DiscreteResource portResource = Resources.discrete(device.id(), port.number()).resource();
             List<Resource> allResources = getDescendantResources(portResource);
             adminService.unregister(Lists.transform(allResources, Resource::id));

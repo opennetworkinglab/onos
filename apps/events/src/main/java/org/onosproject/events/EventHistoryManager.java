@@ -115,7 +115,8 @@ public class EventHistoryManager
         appId = coreService.registerApplication("org.onosproject.events");
         log.debug("Registered as {}", appId);
 
-        pruner = newSingleThreadScheduledExecutor(minPriority(groupedThreads("onos/events", "history-pruner")));
+        pruner = newSingleThreadScheduledExecutor(
+                  minPriority(groupedThreads("onos/events", "history-pruner", log)));
 
         pruner.scheduleWithFixedDelay(this::pruneEventHistoryTask,
                                       pruneInterval, pruneInterval, TimeUnit.SECONDS);

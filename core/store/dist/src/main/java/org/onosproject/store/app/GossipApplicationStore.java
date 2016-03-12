@@ -68,6 +68,7 @@ import java.util.function.Function;
 import static com.google.common.collect.Multimaps.newSetMultimap;
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static com.google.common.io.ByteStreams.toByteArray;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.randomDelay;
@@ -138,10 +139,10 @@ public class GossipApplicationStore extends ApplicationArchive
                 .register(MultiValuedTimestamp.class)
                 .register(InternalState.class);
 
-        executor = Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/app", "store"));
+        executor = newSingleThreadScheduledExecutor(groupedThreads("onos/app", "store", log));
 
         messageHandlingExecutor = Executors.newSingleThreadExecutor(
-                groupedThreads("onos/store/app", "message-handler"));
+                groupedThreads("onos/store/app", "message-handler", log));
 
         clusterCommunicator.<String, byte[]>addSubscriber(APP_BITS_REQUEST,
                                                           bytes -> new String(bytes, Charsets.UTF_8),

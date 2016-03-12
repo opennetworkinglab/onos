@@ -84,7 +84,7 @@ public final class ResourceRegistrar {
     private DeviceListener deviceListener;
 
     private final ExecutorService executor =
-            Executors.newSingleThreadExecutor(groupedThreads("onos/resource", "registrar"));
+            Executors.newSingleThreadExecutor(groupedThreads("onos/resource", "registrar", log));
 
     private NetworkConfigListener cfgListener;
 

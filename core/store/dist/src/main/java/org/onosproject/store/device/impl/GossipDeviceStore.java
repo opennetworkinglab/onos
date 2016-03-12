@@ -96,13 +96,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Verify.verify;
+import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.apache.commons.lang3.concurrent.ConcurrentUtils.createIfAbsentUnchecked;
 import static org.onlab.util.Tools.groupedThreads;
@@ -200,10 +200,10 @@ public class GossipDeviceStore
 
     @Activate
     public void activate() {
-        executor = Executors.newCachedThreadPool(groupedThreads("onos/device", "fg-%d"));
+        executor = newCachedThreadPool(groupedThreads("onos/device", "fg-%d", log));
 
         backgroundExecutor =
-                newSingleThreadScheduledExecutor(minPriority(groupedThreads("onos/device", "bg-%d")));
+                newSingleThreadScheduledExecutor(minPriority(groupedThreads("onos/device", "bg-%d", log)));
 
         clusterCommunicator.addSubscriber(
                 GossipDeviceStoreMessageSubjects.DEVICE_UPDATE, new InternalDeviceEventListener(), executor);

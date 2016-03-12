@@ -118,7 +118,7 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
 
         messageHandlingExecutor = Executors.newFixedThreadPool(
                 messageHandlerThreadPoolSize,
-                groupedThreads("onos/store/statistic", "message-handlers"));
+                groupedThreads("onos/store/statistic", "message-handlers", log));
 
         clusterCommunicator.addSubscriber(
                 GET_CURRENT, SERIALIZER::decode, this::getCurrentStatisticInternal, SERIALIZER::encode,
@@ -200,6 +200,7 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
         previous.computeIfPresent(cp, (c, e) -> { e.remove(rule); return e; });
     }
 
+    @Override
     public synchronized void updateFlowStatistic(FlowEntry rule) {
         ConnectPoint cp = buildConnectPoint(rule);
         if (cp == null) {

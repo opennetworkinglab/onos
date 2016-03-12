@@ -122,10 +122,10 @@ public class FlowRuleManager
     private final FlowRuleDriverProvider defaultProvider = new FlowRuleDriverProvider();
 
     protected ExecutorService deviceInstallers =
-            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "device-installer-%d"));
+            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "device-installer-%d", log));
 
     protected ExecutorService operationsService =
-            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "operations-%d"));
+            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "operations-%d, log"));
 
     private IdGenerator idGenerator;
 

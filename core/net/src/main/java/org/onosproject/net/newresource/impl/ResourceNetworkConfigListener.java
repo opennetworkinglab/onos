@@ -89,7 +89,7 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
     @Override
     public void event(NetworkConfigEvent event) {
         if (event.configClass() == BandwidthCapacity.class) {
-            executor.submit(() -> {
+            executor.execute(() -> {
             try {
                 handleBandwidthCapacity(event);
             } catch (Exception e) {

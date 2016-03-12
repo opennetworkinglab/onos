@@ -123,10 +123,10 @@ public class ConsistentDeviceMastershipStore
     public void activate() {
         messageHandlingExecutor =
                 Executors.newSingleThreadExecutor(
-                        groupedThreads("onos/store/device/mastership", "message-handler"));
+                        groupedThreads("onos/store/device/mastership", "message-handler", log));
         transferExecutor =
                 Executors.newSingleThreadScheduledExecutor(
-                        groupedThreads("onos/store/device/mastership", "mastership-transfer-executor"));
+                        groupedThreads("onos/store/device/mastership", "mastership-transfer-executor", log));
         clusterCommunicator.addSubscriber(ROLE_RELINQUISH_SUBJECT,
                 SERIALIZER::decode,
                 this::relinquishLocalRole,

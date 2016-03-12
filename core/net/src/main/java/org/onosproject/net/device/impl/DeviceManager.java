@@ -125,7 +125,8 @@ public class DeviceManager
 
     @Activate
     public void activate() {
-        backgroundService = newSingleThreadScheduledExecutor(groupedThreads("onos/device", "manager-background"));
+        backgroundService = newSingleThreadScheduledExecutor(
+                             groupedThreads("onos/device", "manager-background", log));
         localNodeId = clusterService.getLocalNode().id();
 
         store.setDelegate(delegate);
@@ -499,7 +500,7 @@ public class DeviceManager
                              deviceId, response, mastershipService.getLocalRole(deviceId));
                     // roleManager got the device to comply, but doesn't agree with
                     // the store; use the store's view, then try to reassert.
-                    backgroundService.submit(() -> reassertRole(deviceId, mastershipService.getLocalRole(deviceId)));
+                    backgroundService.execute(() -> reassertRole(deviceId, mastershipService.getLocalRole(deviceId)));
                     return;
                 }
             } else {
@@ -684,7 +685,7 @@ public class DeviceManager
 
         @Override
         public void event(MastershipEvent event) {
-            backgroundService.submit(() -> {
+            backgroundService.execute(() -> {
                 try {
                     handleMastershipEvent(event);
                 } catch (Exception e) {

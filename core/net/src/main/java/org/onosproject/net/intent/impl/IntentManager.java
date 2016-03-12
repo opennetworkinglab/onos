@@ -200,7 +200,7 @@ public class IntentManager
         if (newNumThreads != numThreads) {
             numThreads = newNumThreads;
             ExecutorService oldWorkerExecutor = workerExecutor;
-            workerExecutor = newFixedThreadPool(numThreads, groupedThreads("onos/intent", "worker-%d"));
+            workerExecutor = newFixedThreadPool(numThreads, groupedThreads("onos/intent", "worker-%d", log));
             if (oldWorkerExecutor != null) {
                 oldWorkerExecutor.shutdown();
             }
