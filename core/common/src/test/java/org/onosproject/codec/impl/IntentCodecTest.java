@@ -35,7 +35,6 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.HostId;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.OchSignalType;
@@ -45,7 +44,6 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
-import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -170,7 +168,6 @@ public class IntentCodecTest extends AbstractIntentTest {
                 .matchIPDst(IpPrefix.valueOf("1.2.3.4/24"))
                 .build();
         final TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .add(Instructions.modL0Lambda(new IndexedLambda(33)))
                 .setMpls(MplsLabel.mplsLabel(44))
                 .setOutput(PortNumber.CONTROLLER)
                 .setEthDst(MacAddress.BROADCAST)

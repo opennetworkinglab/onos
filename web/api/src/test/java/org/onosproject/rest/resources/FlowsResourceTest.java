@@ -38,7 +38,6 @@ import org.onosproject.core.GroupId;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -52,7 +51,6 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
-import org.onosproject.net.flow.instructions.Instructions;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Entity;
@@ -225,8 +223,6 @@ public class FlowsResourceTest extends ResourceTest {
      */
     private void setupMockFlows() {
         flow2.treatment = DefaultTrafficTreatment.builder()
-                .add(Instructions.modL0Lambda(new IndexedLambda((short) 4)))
-                .add(Instructions.modL0Lambda(new IndexedLambda((short) 5)))
                 .setEthDst(MacAddress.BROADCAST)
                 .build();
         flow2.selector = DefaultTrafficSelector.builder()
@@ -234,7 +230,6 @@ public class FlowsResourceTest extends ResourceTest {
                 .matchIPProtocol((byte) 9)
                 .build();
         flow4.treatment = DefaultTrafficTreatment.builder()
-                .add(Instructions.modL0Lambda(new IndexedLambda((short) 6)))
                 .build();
         final Set<FlowEntry> flows1 = new HashSet<>();
         flows1.add(flow1);

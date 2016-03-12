@@ -29,7 +29,6 @@ import org.onosproject.core.GroupId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
@@ -196,48 +195,6 @@ public class InstructionsTest {
     }
 
     //  ModLambdaInstruction
-
-    private final IndexedLambda lambda1 = new IndexedLambda(1);
-    private final IndexedLambda lambda2 = new IndexedLambda(2);
-    private final Instruction lambdaInstruction1 = Instructions.modL0Lambda(lambda1);
-    private final Instruction sameAsLambdaInstruction1 = Instructions.modL0Lambda(lambda1);
-    private final Instruction lambdaInstruction2 = Instructions.modL0Lambda(lambda2);
-
-    /**
-     * Test the modL0Lambda method.
-     */
-    @Test
-    public void testCreateLambdaMethod() {
-        final Instruction instruction = Instructions.modL0Lambda(lambda1);
-        final L0ModificationInstruction.ModLambdaInstruction lambdaInstruction =
-                checkAndConvert(instruction,
-                        Instruction.Type.L0MODIFICATION,
-                        L0ModificationInstruction.ModLambdaInstruction.class);
-        assertThat(lambdaInstruction.lambda(), is(equalTo((short) lambda1.index())));
-    }
-
-    /**
-     * Test the equals() method of the ModLambdaInstruction class.
-     */
-
-    @Test
-    public void testModLambdaInstructionEquals() throws Exception {
-        checkEqualsAndToString(lambdaInstruction1,
-                               sameAsLambdaInstruction1,
-                               lambdaInstruction2);
-    }
-
-    /**
-     * Test the hashCode() method of the ModLambdaInstruction class.
-     */
-
-    @Test
-    public void testModLambdaInstructionHashCode() {
-        assertThat(lambdaInstruction1.hashCode(),
-                   is(equalTo(sameAsLambdaInstruction1.hashCode())));
-        assertThat(lambdaInstruction1.hashCode(),
-                is(not(equalTo(lambdaInstruction2.hashCode()))));
-    }
 
     private final Lambda och1 = Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 4, 8);
     private final Lambda och2 = Lambda.ochSignal(GridType.CWDM, ChannelSpacing.CHL_100GHZ, 4, 8);
