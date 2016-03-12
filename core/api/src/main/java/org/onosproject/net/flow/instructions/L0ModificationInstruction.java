@@ -21,7 +21,7 @@ import java.util.Objects;
 
 public abstract class L0ModificationInstruction implements Instruction {
 
-    public static final String SEPARATOR = ":";
+    private static final String SEPARATOR = ":";
 
     /**
      * Represents the type of traffic treatment.
