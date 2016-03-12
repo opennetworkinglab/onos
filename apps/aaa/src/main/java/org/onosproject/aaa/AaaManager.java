@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -165,7 +166,9 @@ public class AaaManager {
 
     private void initializeLocalState() {
         try {
-            radiusSocket = new DatagramSocket(radiusServerPort);
+            radiusSocket = new DatagramSocket(null);
+            radiusSocket.setReuseAddress(true);
+            radiusSocket.bind(new InetSocketAddress(radiusServerPort));
         } catch (Exception ex) {
             log.error("Can't open RADIUS socket", ex);
         }
