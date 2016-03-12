@@ -21,7 +21,6 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
-import org.onosproject.net.flow.criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
@@ -177,17 +176,6 @@ public final class FlowObjectiveCompositionUtil {
                 case L0MODIFICATION: {
                     L0ModificationInstruction l0 = (L0ModificationInstruction) instruction;
                     switch (l0.subtype()) {
-                        case LAMBDA:
-                            if (criterionMap.containsKey(Criterion.Type.OCH_SIGID)) {
-                                if (((LambdaCriterion) criterionMap.get((Criterion.Type.OCH_SIGID))).lambda()
-                                        == ((L0ModificationInstruction.ModLambdaInstruction) l0).lambda()) {
-                                    criterionMap.remove(Criterion.Type.OCH_SIGID);
-                                } else {
-                                    return null;
-                                }
-                            } else {
-                                break;
-                            }
                         case OCH:
                             if (criterionMap.containsKey(Criterion.Type.OCH_SIGID)) {
                                 if (((OchSignalCriterion) criterionMap.get((Criterion.Type.OCH_SIGID))).lambda()

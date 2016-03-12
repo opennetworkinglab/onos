@@ -28,10 +28,6 @@ public abstract class L0ModificationInstruction implements Instruction {
      */
     public enum L0SubType {
         /**
-         * Lambda modification.
-         */
-        LAMBDA,
-        /**
          * OCh (Optical Channel) modification.
          */
         OCH,

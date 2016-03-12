@@ -60,12 +60,6 @@ public final class EncodeInstructionCodecHelper {
         result.put(InstructionCodec.SUBTYPE, l0Instruction.subtype().name());
 
         switch (l0Instruction.subtype()) {
-            case LAMBDA:
-                final L0ModificationInstruction.ModLambdaInstruction modLambdaInstruction =
-                        (L0ModificationInstruction.ModLambdaInstruction) l0Instruction;
-                result.put(InstructionCodec.LAMBDA, modLambdaInstruction.lambda());
-                break;
-
             case OCH:
                 L0ModificationInstruction.ModOchSignalInstruction ochSignalInstruction =
                         (L0ModificationInstruction.ModOchSignalInstruction) l0Instruction;

@@ -34,7 +34,6 @@ import org.onosproject.net.flow.instructions.Instructions.GroupInstruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.Instructions.SetQueueInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
-import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction.ModOduSignalIdInstruction;
@@ -311,8 +310,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         L0ModificationInstruction l0m = (L0ModificationInstruction) i;
         OFOxm<?> oxm = null;
         switch (l0m.subtype()) {
-            case LAMBDA:
-                return buildModLambdaInstruction((ModLambdaInstruction) i);
             case OCH:
                 try {
                     ModOchSignalInstruction modOchSignalInstruction = (ModOchSignalInstruction) l0m;
@@ -335,11 +332,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             return factory().actions().buildSetField().setField(oxm).build();
         }
         return null;
-    }
-
-    private OFAction buildModLambdaInstruction(ModLambdaInstruction instruction) {
-        return factory().actions().circuit(factory().oxms().expOchSigId(
-                new CircuitSignalID((byte) 1, (byte) 2, instruction.lambda(), (short) 1)));
     }
 
     private OFAction buildModOchSignalInstruction(ModOchSignalInstruction instruction) {

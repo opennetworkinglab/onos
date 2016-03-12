@@ -53,7 +53,6 @@ import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
-import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
@@ -278,11 +277,6 @@ public final class GroupModBuilder {
     private OFAction buildL0Modification(Instruction i) {
         L0ModificationInstruction l0m = (L0ModificationInstruction) i;
         switch (l0m.subtype()) {
-            case LAMBDA:
-                L0ModificationInstruction.ModLambdaInstruction ml =
-                        (L0ModificationInstruction.ModLambdaInstruction) i;
-                return factory.actions().circuit(factory.oxms().ochSigidBasic(
-                        new CircuitSignalID((byte) 1, (byte) 2, ml.lambda(), (short) 1)));
             default:
                 log.warn("Unimplemented action type {}.", l0m.subtype());
                 break;
