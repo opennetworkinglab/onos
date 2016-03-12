@@ -41,52 +41,6 @@ public abstract class L0ModificationInstruction implements Instruction {
     }
 
     /**
-     * Represents a L0 lambda modification instruction.
-     */
-    public static final class ModLambdaInstruction extends L0ModificationInstruction {
-
-        private final L0SubType subtype;
-        private final short lambda;
-
-        ModLambdaInstruction(L0SubType subType, short lambda) {
-            this.subtype = subType;
-            this.lambda = lambda;
-        }
-
-        @Override
-        public L0SubType subtype() {
-            return this.subtype;
-        }
-
-        public short lambda() {
-            return this.lambda;
-        }
-
-        @Override
-        public String toString() {
-            return subtype().toString() + SEPARATOR + lambda;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(type(), subtype, lambda);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj instanceof ModLambdaInstruction) {
-                ModLambdaInstruction that = (ModLambdaInstruction) obj;
-                return  Objects.equals(lambda, that.lambda) &&
-                        Objects.equals(subtype, that.subtype);
-            }
-            return false;
-        }
-    }
-
-    /**
      * Represents an L0 OCh (Optical Channel) modification instruction.
      */
     public static final class ModOchSignalInstruction extends L0ModificationInstruction {

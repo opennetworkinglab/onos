@@ -26,7 +26,6 @@ import org.onosproject.net.flow.instructions.Instructions.MeterInstruction;
 import org.onosproject.net.flow.instructions.Instructions.NoActionInstruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.Instructions.SetQueueInstruction;
-import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction.ModOduSignalIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
@@ -214,38 +213,6 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
             description.appendText("Unmatching types ");
             description.appendText("instructionToMatch " + instructionToMatch.port().toString());
             description.appendText("jsonPort " + jsonPort);
-        }
-
-        return true;
-    }
-
-    /**
-     * Matches the contents of a mod lambda instruction.
-     *
-     * @param instructionJson JSON instruction to match
-     * @param description Description object used for recording errors
-     * @return true if contents match, false otherwise
-     */
-    private boolean matchModLambdaInstruction(JsonNode instructionJson,
-                                              Description description) {
-        ModLambdaInstruction instructionToMatch =
-                (ModLambdaInstruction) instruction;
-        final String jsonSubtype = instructionJson.get("subtype").textValue();
-        if (!instructionToMatch.subtype().name().equals(jsonSubtype)) {
-            description.appendText("subtype was " + jsonSubtype);
-            return false;
-        }
-
-        final String jsonType = instructionJson.get("type").textValue();
-        if (!instructionToMatch.type().name().equals(jsonType)) {
-            description.appendText("type was " + jsonType);
-            return false;
-        }
-
-        final long jsonLambda = instructionJson.get("lambda").shortValue();
-        if (instructionToMatch.lambda() != jsonLambda) {
-            description.appendText("lambda was " + jsonLambda);
-            return false;
         }
 
         return true;
@@ -556,8 +523,6 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
             return matchMeterInstruction(jsonInstruction, description);
         } else if (instruction instanceof SetQueueInstruction) {
             return matchSetQueueInstruction(jsonInstruction, description);
-        } else if (instruction instanceof ModLambdaInstruction) {
-            return matchModLambdaInstruction(jsonInstruction, description);
         } else if (instruction instanceof ModOchSignalInstruction) {
             return matchModOchSingalInstruction(jsonInstruction, description);
         } else if (instruction instanceof ModEtherInstruction) {

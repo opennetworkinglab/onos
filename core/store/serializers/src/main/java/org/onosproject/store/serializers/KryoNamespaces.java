@@ -370,7 +370,6 @@ public final class KryoNamespaces {
                     Instructions.TableTypeTransition.class,
                     L0ModificationInstruction.class,
                     L0ModificationInstruction.L0SubType.class,
-                    L0ModificationInstruction.ModLambdaInstruction.class,
                     L0ModificationInstruction.ModOchSignalInstruction.class,
                     L1ModificationInstruction.class,
                     L1ModificationInstruction.L1SubType.class,

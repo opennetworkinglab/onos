@@ -101,7 +101,6 @@ public class InstructionsTest {
     @Test
     public void testImmutabilityOfInstructions() {
         assertThatClassIsImmutable(Instructions.OutputInstruction.class);
-        assertThatClassIsImmutable(L0ModificationInstruction.ModLambdaInstruction.class);
         assertThatClassIsImmutable(L0ModificationInstruction.ModOchSignalInstruction.class);
         assertThatClassIsImmutable(L1ModificationInstruction.ModOduSignalIdInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModEtherInstruction.class);
