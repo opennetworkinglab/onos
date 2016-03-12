@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.MetricsService;
 import org.onlab.util.SharedExecutors;
+import org.onlab.util.Tools;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -48,9 +49,9 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.*;
+import static org.onosproject.security.AppPermission.Type.APP_READ;
+import static org.onosproject.security.AppPermission.Type.APP_WRITE;
 
 
 /**
@@ -172,7 +173,7 @@ public class CoreManager implements CoreService {
     @Modified
     public void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
-        Integer poolSize = getIntegerProperty(properties, "sharedThreadPoolSize");
+        Integer poolSize = Tools.getIntegerProperty(properties, "sharedThreadPoolSize");
 
         if (poolSize != null && poolSize > 1) {
             sharedThreadPoolSize = poolSize;
@@ -181,7 +182,7 @@ public class CoreManager implements CoreService {
             log.warn("sharedThreadPoolSize must be greater than 1");
         }
 
-        Integer timeLimit = getIntegerProperty(properties, "maxEventTimeLimit");
+        Integer timeLimit = Tools.getIntegerProperty(properties, "maxEventTimeLimit");
         if (timeLimit != null && timeLimit > 1) {
             maxEventTimeLimit = timeLimit;
             eventDeliveryService.setDispatchTimeLimit(maxEventTimeLimit);
@@ -189,7 +190,7 @@ public class CoreManager implements CoreService {
             log.warn("maxEventTimeLimit must be greater than 1");
         }
 
-        Boolean performanceCheck = isPropertyEnabled(properties, "sharedThreadPerformanceCheck");
+        Boolean performanceCheck = Tools.isPropertyEnabled(properties, "sharedThreadPerformanceCheck");
         if (performanceCheck != null) {
             calculatePoolPerformance = performanceCheck;
             SharedExecutors.setCalculatePoolPerformance(calculatePoolPerformance, metricsService);
@@ -198,48 +199,4 @@ public class CoreManager implements CoreService {
         log.info("Settings: sharedThreadPoolSize={}, maxEventTimeLimit={}, calculatePoolPerformance={}",
                  sharedThreadPoolSize, maxEventTimeLimit, calculatePoolPerformance);
     }
-
-
-    /**
-     * Get Integer property from the propertyName
-     * Return null if propertyName is not found.
-     *
-     * @param properties   properties to be looked up
-     * @param propertyName the name of the property to look up
-     * @return value when the propertyName is defined or return null
-     */
-    private static Integer getIntegerProperty(Dictionary<?, ?> properties,
-                                              String propertyName) {
-        Integer value;
-        try {
-            String s = (String) properties.get(propertyName);
-            value = isNullOrEmpty(s) ? null : Integer.parseInt(s.trim());
-        } catch (NumberFormatException | ClassCastException e) {
-            value = null;
-        }
-        return value;
-    }
-
-    /**
-     * Check property name is defined and set to true.
-     *
-     * @param properties   properties to be looked up
-     * @param propertyName the name of the property to look up
-     * @return value when the propertyName is defined or return null
-     */
-    private static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
-                                             String propertyName) {
-        Boolean value = null;
-        try {
-            String s = (String) properties.get(propertyName);
-            value = isNullOrEmpty(s) ? null : s.trim().equals("true");
-        } catch (ClassCastException e) {
-            // No propertyName defined.
-            value = null;
-        }
-        return value;
-    }
-
-
-
 }

@@ -275,6 +275,84 @@ public abstract class Tools {
     }
 
     /**
+     * Get Integer property from the propertyName
+     * Return null if propertyName is not found.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    public static Integer getIntegerProperty(Dictionary<?, ?> properties,
+                                             String propertyName) {
+        Integer value;
+        try {
+            String s = get(properties, propertyName);
+            value = Strings.isNullOrEmpty(s) ? null : Integer.valueOf(s);
+        } catch (NumberFormatException | ClassCastException e) {
+            value = null;
+        }
+        return value;
+    }
+
+    /**
+     * Get Integer property from the propertyName
+     * Return default value if propertyName is not found.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @param defaultValue the default value that to be assigned
+     * @return value when the propertyName is defined or return default value
+     */
+    public static int getIntegerProperty(Dictionary<?, ?> properties,
+                                         String propertyName,
+                                         int defaultValue) {
+        try {
+            String s = get(properties, propertyName);
+            return Strings.isNullOrEmpty(s) ? defaultValue : Integer.valueOf(s);
+        } catch (NumberFormatException | ClassCastException e) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Check property name is defined and set to true.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    public static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
+                                             String propertyName) {
+        Boolean value;
+        try {
+            String s = get(properties, propertyName);
+            value = Strings.isNullOrEmpty(s) ? null : Boolean.valueOf(s);
+        } catch (ClassCastException e) {
+            value = null;
+        }
+        return value;
+    }
+
+    /**
+     * Check property name is defined as set to true.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @param defaultValue the default value that to be assigned
+     * @return value when the propertyName is defined or return the default value
+     */
+    public static boolean isPropertyEnabled(Dictionary<?, ?> properties,
+                                            String propertyName,
+                                            boolean defaultValue) {
+        try {
+            String s = get(properties, propertyName);
+            return Strings.isNullOrEmpty(s) ? defaultValue : Boolean.valueOf(s);
+        } catch (ClassCastException e) {
+            return defaultValue;
+        }
+    }
+
+    /**
      * Suspends the current thread for a specified number of millis.
      *
      * @param ms number of millis

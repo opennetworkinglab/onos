@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -190,7 +191,7 @@ public class FlowRuleManager
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = isPropertyEnabled(properties, "allowExtraneousRules");
+        flag = Tools.isPropertyEnabled(properties, "allowExtraneousRules");
         if (flag == null) {
             log.info("AllowExtraneousRules is not configured, " +
                     "using current value of {}", allowExtraneousRules);
@@ -200,7 +201,7 @@ public class FlowRuleManager
                     allowExtraneousRules ? "enabled" : "disabled");
         }
 
-        flag = isPropertyEnabled(properties, "purgeOnDisconnection");
+        flag = Tools.isPropertyEnabled(properties, "purgeOnDisconnection");
         if (flag == null) {
             log.info("PurgeOnDisconnection is not configured, " +
                     "using current value of {}", purgeOnDisconnection);
@@ -215,24 +216,6 @@ public class FlowRuleManager
             fallbackFlowPollFrequency = isNullOrEmpty(s) ? DEFAULT_POLL_FREQUENCY : Integer.parseInt(s);
         } catch (NumberFormatException e) {
             fallbackFlowPollFrequency = DEFAULT_POLL_FREQUENCY;
-        }
-    }
-
-    /**
-     * Check property name is defined and set to true.
-     *
-     * @param properties   properties to be looked up
-     * @param propertyName the name of the property to look up
-     * @return value when the propertyName is defined or return null
-     */
-    private static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
-            String propertyName) {
-        try {
-            String s = (String) properties.get(propertyName);
-            return  isNullOrEmpty(s) ? null : s.trim().equals("true");
-        } catch (ClassCastException e) {
-            // No propertyName defined.
-            return null;
         }
     }
 

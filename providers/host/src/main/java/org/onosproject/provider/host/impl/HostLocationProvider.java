@@ -35,6 +35,7 @@ import org.onlab.packet.ndp.NeighborAdvertisement;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.packet.ndp.RouterAdvertisement;
 import org.onlab.packet.ndp.RouterSolicitation;
+import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -69,7 +70,6 @@ import java.util.Dictionary;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -228,7 +228,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = isPropertyEnabled(properties, "hostRemovalEnabled");
+        flag = Tools.isPropertyEnabled(properties, "hostRemovalEnabled");
         if (flag == null) {
             log.info("Host removal on port/device down events is not configured, " +
                              "using current value of {}", hostRemovalEnabled);
@@ -238,7 +238,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                      hostRemovalEnabled ? "enabled" : "disabled");
         }
 
-        flag = isPropertyEnabled(properties, "ipv6NeighborDiscovery");
+        flag = Tools.isPropertyEnabled(properties, "ipv6NeighborDiscovery");
         if (flag == null) {
             log.info("Using IPv6 Neighbor Discovery is not configured, " +
                              "using current value of {}", ipv6NeighborDiscovery);
@@ -248,7 +248,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                      ipv6NeighborDiscovery ? "enabled" : "disabled");
         }
 
-        flag = isPropertyEnabled(properties, "requestInterceptsEnabled");
+        flag = Tools.isPropertyEnabled(properties, "requestInterceptsEnabled");
         if (flag == null) {
             log.info("Request intercepts is not configured, " +
                     "using current value of {}", requestInterceptsEnabled);
@@ -257,26 +257,6 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             log.info("Configured. Request intercepts is {}",
                     requestInterceptsEnabled ? "enabled" : "disabled");
         }
-    }
-
-    /**
-     * Check property name is defined and set to true.
-     *
-     * @param properties   properties to be looked up
-     * @param propertyName the name of the property to look up
-     * @return value when the propertyName is defined or return null
-     */
-    private static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
-                                             String propertyName) {
-        Boolean value = null;
-        try {
-            String s = (String) properties.get(propertyName);
-            value = isNullOrEmpty(s) ? null : s.trim().equals("true");
-        } catch (ClassCastException e) {
-            // No propertyName defined.
-            value = null;
-        }
-        return value;
     }
 
     @Override
