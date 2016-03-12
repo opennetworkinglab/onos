@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2016 Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -612,6 +612,53 @@
                 <ref component-id="regionIdCompleter"/>
                 <ref component-id="deviceIdCompleter"/>
             </completers>
+        </command>
+
+        <!--virtual network commands -->
+        <command>
+            <action class="org.onosproject.cli.net.vnet.TenantListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.TenantAddCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.TenantRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualNetworkListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualNetworkCreateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualNetworkRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualDeviceListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualDeviceCreateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualDeviceRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualLinkListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualLinkCreateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualLinkRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualPortListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualPortCreateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualPortRemoveCommand"/>
         </command>
     </command-bundle>
 

@@ -146,17 +146,30 @@ public class VirtualNetworkManagerTest {
         assertNotNull("The virtual network set should not be null", virtualNetworks);
         assertEquals("The virtual network set size did not match.", 2, virtualNetworks.size());
 
+        int remaining = virtualNetworks.size();
         for (VirtualNetwork virtualNetwork : virtualNetworks) {
             manager.removeVirtualNetwork(virtualNetwork.id());
+            assertEquals("The expected virtual network size does not match",
+                         --remaining, manager.getVirtualNetworks(TenantId.tenantId(tenantIdValue1)).size());
             // attempt to remove the same virtual network again.
             manager.removeVirtualNetwork(virtualNetwork.id());
+            assertEquals("The expected virtual network size does not match",
+                         remaining, manager.getVirtualNetworks(TenantId.tenantId(tenantIdValue1)).size());
         }
+        virtualNetworks = manager.getVirtualNetworks(TenantId.tenantId(tenantIdValue1));
+        assertTrue("The virtual network set should be empty.", virtualNetworks.isEmpty());
+
+        // Create/remove a virtual network.
+        VirtualNetwork virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+        manager.removeVirtualNetwork(virtualNetwork.id());
+
         virtualNetworks = manager.getVirtualNetworks(TenantId.tenantId(tenantIdValue1));
         assertTrue("The virtual network set should be empty.", virtualNetworks.isEmpty());
 
         // Validate that the events were all received in the correct order.
         validateEvents(VirtualNetworkEvent.Type.TENANT_REGISTERED, VirtualNetworkEvent.Type.NETWORK_ADDED,
                        VirtualNetworkEvent.Type.NETWORK_ADDED, VirtualNetworkEvent.Type.NETWORK_REMOVED,
+                       VirtualNetworkEvent.Type.NETWORK_REMOVED, VirtualNetworkEvent.Type.NETWORK_ADDED,
                        VirtualNetworkEvent.Type.NETWORK_REMOVED);
     }
 
@@ -209,6 +222,13 @@ public class VirtualNetworkManagerTest {
         virtualDevices1 = manager.getVirtualDevices(virtualNetwork1.id());
         assertTrue("The virtual device set should be empty.", virtualDevices1.isEmpty());
 
+        // Add/remove the virtual device again.
+        VirtualDevice virtualDevice = manager.createVirtualDevice(virtualNetwork1.id(),
+                                                                  DeviceId.deviceId(deviceIdValue1));
+        manager.removeVirtualDevice(virtualDevice.networkId(), virtualDevice.id());
+        virtualDevices1 = manager.getVirtualDevices(virtualNetwork1.id());
+        assertTrue("The virtual device set should be empty.", virtualDevices1.isEmpty());
+
         // Validate that the events were all received in the correct order.
         validateEvents(VirtualNetworkEvent.Type.TENANT_REGISTERED, VirtualNetworkEvent.Type.NETWORK_ADDED,
                        VirtualNetworkEvent.Type.NETWORK_ADDED);
@@ -241,6 +261,12 @@ public class VirtualNetworkManagerTest {
         }
         virtualLinks = manager.getVirtualLinks(virtualNetwork1.id());
         assertTrue("The virtual link set should be empty.", virtualLinks.isEmpty());
+
+        // Add/remove the virtual link again.
+        VirtualLink virtualLink = manager.createVirtualLink(virtualNetwork1.id(), src, dst, TunnelId.valueOf(0));
+        manager.removeVirtualLink(virtualLink.networkId(), virtualLink.src(), virtualLink.dst());
+        virtualLinks = manager.getVirtualLinks(virtualNetwork1.id());
+        assertTrue("The virtual link set should be empty.", virtualLinks.isEmpty());
     }
 
     /**
@@ -250,18 +276,17 @@ public class VirtualNetworkManagerTest {
     public void testAddRemoveVirtualPort() {
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
         VirtualNetwork virtualNetwork1 = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
-        VirtualDevice srcVirtualDevice =
+        VirtualDevice virtualDevice =
                 manager.createVirtualDevice(virtualNetwork1.id(), DeviceId.deviceId(deviceIdValue1));
-        VirtualDevice dstVirtualDevice =
-                manager.createVirtualDevice(virtualNetwork1.id(), DeviceId.deviceId(deviceIdValue2));
-        Port port = new DefaultPort(srcVirtualDevice, PortNumber.portNumber(1), true);
+        Port port = new DefaultPort(virtualDevice, PortNumber.portNumber(1), true);
 
-        manager.createVirtualPort(virtualNetwork1.id(), srcVirtualDevice.id(), PortNumber.portNumber(1), port);
-        manager.createVirtualPort(virtualNetwork1.id(), dstVirtualDevice.id(), PortNumber.portNumber(1), port);
+        manager.createVirtualPort(virtualNetwork1.id(), virtualDevice.id(), PortNumber.portNumber(1), port);
+        manager.createVirtualPort(virtualNetwork1.id(), virtualDevice.id(), PortNumber.portNumber(2), port);
 
-        Set<VirtualPort> virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), srcVirtualDevice.id());
+        Set<VirtualPort> virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), virtualDevice.id());
         assertNotNull("The virtual port set should not be null", virtualPorts);
         assertEquals("The virtual port set size did not match.", 2, virtualPorts.size());
+
 
         for (VirtualPort virtualPort : virtualPorts) {
             manager.removeVirtualPort(virtualNetwork1.id(),
@@ -270,7 +295,14 @@ public class VirtualNetworkManagerTest {
             manager.removeVirtualPort(virtualNetwork1.id(),
                                       (DeviceId) virtualPort.element().id(), virtualPort.number());
         }
-        virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), srcVirtualDevice.id());
+        virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), virtualDevice.id());
+        assertTrue("The virtual port set should be empty.", virtualPorts.isEmpty());
+
+        // Add/remove the virtual port again.
+        VirtualPort virtualPort = manager.createVirtualPort(virtualNetwork1.id(), virtualDevice.id(),
+                                                            PortNumber.portNumber(1), port);
+        manager.removeVirtualPort(virtualNetwork1.id(), (DeviceId) virtualPort.element().id(), virtualPort.number());
+        virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), virtualDevice.id());
         assertTrue("The virtual port set should be empty.", virtualPorts.isEmpty());
     }
 
@@ -306,6 +338,9 @@ public class VirtualNetworkManagerTest {
 
     }
 
+    /**
+     * Core service test class.
+     */
     private class TestCoreService extends CoreServiceAdapter {
 
         @Override

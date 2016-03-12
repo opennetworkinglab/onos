@@ -19,6 +19,10 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.virtual.TenantId;
+import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualNetwork;
+import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.key.DeviceKey;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Element;
@@ -147,6 +151,34 @@ public final class Comparators {
         @Override
         public int compare(Region region1, Region region2) {
             return region1.id().toString().compareTo(region2.id().toString());
+        }
+    };
+
+    public static final Comparator<TenantId> TENANT_ID_COMPARATOR = new Comparator<TenantId>() {
+        @Override
+        public int compare(TenantId tenant1, TenantId tenant2) {
+            return tenant1.id().toString().compareTo(tenant2.id().toString());
+        }
+    };
+
+    public static final Comparator<VirtualNetwork> VIRTUAL_NETWORK_COMPARATOR = new Comparator<VirtualNetwork>() {
+        @Override
+        public int compare(VirtualNetwork virtualNetwork1, VirtualNetwork virtualNetwork2) {
+            return virtualNetwork1.tenantId().toString().compareTo(virtualNetwork2.tenantId().toString());
+        }
+    };
+
+    public static final Comparator<VirtualDevice> VIRTUAL_DEVICE_COMPARATOR = new Comparator<VirtualDevice>() {
+        @Override
+        public int compare(VirtualDevice virtualDevice1, VirtualDevice virtualDevice2) {
+            return virtualDevice1.id().toString().compareTo(virtualDevice2.id().toString());
+        }
+    };
+
+    public static final Comparator<VirtualPort> VIRTUAL_PORT_COMPARATOR = new Comparator<VirtualPort>() {
+        @Override
+        public int compare(VirtualPort virtualPort1, VirtualPort virtualPort2) {
+            return virtualPort1.number().toString().compareTo(virtualPort2.number().toString());
         }
     };
 }
