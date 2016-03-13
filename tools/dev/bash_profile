@@ -41,8 +41,8 @@ export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 # Convenience utility to warp to various ONOS source projects
 # e.g. 'o api', 'o dev', 'o'
 function o {
-    cd $(find $ONOS_ROOT/ -type d | egrep -v '\.git|target|gen-src' | \
-        egrep "${1:-$ONOS_ROOT}" | egrep -v "$ONOS_ROOT/.+/src/" | head -n 1)
+    cd $(find $ONOS_ROOT/ -type d -and \( -name '.git' -o -name 'target' -o -name 'gen-src' -o -name 'src' \) -prune -o -type d | \
+        egrep "${1:-$ONOS_ROOT}" | head -n 1)
 }
 
 # Short-hand for 'mvn clean install' for us lazy folk
