@@ -15,6 +15,7 @@
  */
 package org.onosproject.incubator.net.meter.impl;
 
+import org.apache.commons.lang3.tuple.Pair;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -210,19 +211,19 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
         public void pushMeterMetrics(DeviceId deviceId, Collection<Meter> meterEntries) {
             //FIXME: FOLLOWING CODE CANNOT BE TESTED UNTIL SOMETHING THAT
             //FIXME: IMPLEMENTS METERS EXISTS
-            Map<MeterId, Meter> storedMeterMap = store.getAllMeters().stream()
-                    .collect(Collectors.toMap(Meter::id, m -> m));
+            Map<Pair<DeviceId, MeterId>, Meter> storedMeterMap = store.getAllMeters().stream()
+                    .collect(Collectors.toMap(m -> Pair.of(m.deviceId(), m.id()), m -> m));
 
             meterEntries.stream()
-                    .filter(m -> storedMeterMap.remove(m.id()) != null)
+                    .filter(m -> storedMeterMap.remove(Pair.of(m.deviceId(), m.id())) != null)
                     .forEach(m -> store.updateMeterState(m));
 
             storedMeterMap.values().stream().forEach(m -> {
                 if (m.state() == MeterState.PENDING_ADD) {
                     provider().performMeterOperation(m.deviceId(),
                                                      new MeterOperation(m,
-                                                                        MeterOperation.Type.ADD));
-                } else if ((m.state() == MeterState.PENDING_REMOVE)) {
+                                                                        MeterOperation.Type.MODIFY));
+                } else if (m.state() == MeterState.PENDING_REMOVE) {
                     store.deleteMeterNow(m);
                 }
             });
