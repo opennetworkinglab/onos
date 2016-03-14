@@ -165,6 +165,7 @@ public class GrpcRemoteServiceServer {
      * Unregisters all registered LinkProviders.
      */
     private synchronized void unregisterLinkProviders() {
+        // TODO remove all links registered by these providers
         linkProviders.values().forEach(linkProviderRegistry::unregister);
         linkProviders.clear();
         linkProviderServices.clear();
@@ -250,6 +251,7 @@ public class GrpcRemoteServiceServer {
                 // TODO Do we care about provider name?
                 pairedProvider.setProviderId(new ProviderId(registerProvider.getProviderScheme(), RPC_PROVIDER_NAME));
                 registeredProviders.add(pairedProvider);
+                log.info("registering DeviceProvider {} via gRPC", pairedProvider.id());
                 deviceProviderService = deviceProviderRegistry.register(pairedProvider);
                 break;
 
@@ -319,8 +321,13 @@ public class GrpcRemoteServiceServer {
         @Override
         public void onError(Throwable e) {
             log.error("DeviceProviderServiceServerProxy#onError", e);
-            deviceProviderRegistry.unregister(pairedProvider);
-            registeredProviders.remove(pairedProvider);
+            if (pairedProvider != null) {
+                // TODO call deviceDisconnected against all devices
+                // registered for this provider scheme
+                log.info("unregistering DeviceProvider {} via gRPC", pairedProvider.id());
+                deviceProviderRegistry.unregister(pairedProvider);
+                registeredProviders.remove(pairedProvider);
+            }
             // TODO What is the proper clean up for bi-di stream on error?
             // sample suggests no-op
             toDeviceProvider.onError(e);
@@ -364,6 +371,7 @@ public class GrpcRemoteServiceServer {
 
         /**
          * Registers RPC stream in other direction.
+         *
          * @param deviceProviderServiceProxy {@link DeviceProviderServiceServerProxy}
          */
         void pair(DeviceProviderServiceServerProxy deviceProviderServiceProxy) {

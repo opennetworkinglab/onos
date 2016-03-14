@@ -51,6 +51,9 @@ final class LinkProviderServiceServerProxy
 
     private final GrpcRemoteServiceServer server;
 
+    // TODO implement aging mechanism to automatically remove
+    // stale links reported by dead client, etc.
+
     LinkProviderServiceServerProxy(GrpcRemoteServiceServer server) {
         this.server = checkNotNull(server);
     }
