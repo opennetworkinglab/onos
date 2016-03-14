@@ -539,7 +539,7 @@ public class SfcManager implements SfcService {
         @Override
         public void process(PacketContext context) {
             Ethernet packet = context.inPacket().parsed();
-            if (packet == null) {
+            if (packet == null || portChainService.getPortChainCount() == 0) {
                 return;
             }
             // get the five tuple parameters for the packet
@@ -565,6 +565,11 @@ public class SfcManager implements SfcService {
                     UDP udpPacket = (UDP) ipv4Packet.getPayload();
                     portSrc = udpPacket.getSourcePort();
                     portDst = udpPacket.getDestinationPort();
+                } else if (protocol == IPv4.PROTOCOL_ICMP) {
+                    // do nothing
+                } else {
+                    // No need to process other packets received by controller.
+                    return;
                 }
             } else if (ethType == Ethernet.TYPE_IPV6) {
                 return;
