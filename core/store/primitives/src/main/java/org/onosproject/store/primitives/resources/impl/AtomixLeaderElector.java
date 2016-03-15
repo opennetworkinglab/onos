@@ -17,11 +17,12 @@ package org.onosproject.store.primitives.resources.impl;
 
 import io.atomix.catalyst.util.Listener;
 import io.atomix.copycat.client.CopycatClient;
-import io.atomix.resource.Resource;
+import io.atomix.resource.AbstractResource;
 import io.atomix.resource.ResourceTypeInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -45,10 +46,8 @@ import com.google.common.collect.Sets;
 /**
  * Distributed resource providing the {@link AsyncLeaderElector} primitive.
  */
-@ResourceTypeInfo(id = -152,
-                  stateMachine = AtomixLeaderElectorState.class,
-                  typeResolver = AtomixLeaderElectorCommands.TypeResolver.class)
-public class AtomixLeaderElector extends Resource<AtomixLeaderElector>
+@ResourceTypeInfo(id = -151, factory = AtomixLeaderElectorFactory.class)
+public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
     implements AsyncLeaderElector {
     private final Set<Consumer<Change<Leadership>>> leadershipChangeListeners =
             Sets.newConcurrentHashSet();
@@ -56,8 +55,8 @@ public class AtomixLeaderElector extends Resource<AtomixLeaderElector>
     public static final String CHANGE_SUBJECT = "leadershipChangeEvents";
     private Listener<Change<Leadership>> listener;
 
-    public AtomixLeaderElector(CopycatClient client, Resource.Options options) {
-        super(client, options);
+    public AtomixLeaderElector(CopycatClient client, Properties properties) {
+        super(client, properties);
     }
 
     @Override

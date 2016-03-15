@@ -26,7 +26,6 @@ import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.storage.Storage;
 import io.atomix.copycat.server.storage.StorageLevel;
 import io.atomix.manager.state.ResourceManagerState;
-import io.atomix.resource.ResourceRegistry;
 import io.atomix.resource.ResourceType;
 
 import java.io.File;
@@ -90,7 +89,7 @@ public abstract class AtomixTestBase {
 
         for (int i = 0; i < nodes; i++) {
             CopycatServer server = createCopycatServer(members.get(i));
-            server.open().thenRun(latch::countDown);
+            server.start().thenRun(latch::countDown);
             servers.add(server);
         }
 
@@ -103,15 +102,13 @@ public abstract class AtomixTestBase {
      * Creates a Copycat server.
      */
     protected CopycatServer createCopycatServer(Address address) {
-        ResourceRegistry resourceRegistry = new ResourceRegistry();
-        resourceRegistry.register(resourceType());
         CopycatServer server = CopycatServer.builder(address, members)
                 .withTransport(new LocalTransport(registry))
                 .withStorage(Storage.builder()
                         .withStorageLevel(StorageLevel.DISK)
                         .withDirectory(TEST_DIR + "/" + address.port())
                         .build())
-                .withStateMachine(() -> new ResourceManagerState(resourceRegistry))
+                .withStateMachine(ResourceManagerState::new)
                 .withSerializer(serializer.clone())
                 .withHeartbeatInterval(Duration.ofMillis(25))
                 .withElectionTimeout(Duration.ofMillis(50))
@@ -134,7 +131,7 @@ public abstract class AtomixTestBase {
                                                      .toArray(CompletableFuture[]::new));
 
         closeClients.thenCompose(v -> CompletableFuture.allOf(copycatServers.stream()
-                .map(CopycatServer::close)
+                .map(CopycatServer::stop)
                 .toArray(CompletableFuture[]::new))).join();
 
         deleteDirectory(TEST_DIR);
@@ -171,7 +168,6 @@ public abstract class AtomixTestBase {
         Atomix client = AtomixClient.builder(members)
                 .withTransport(new LocalTransport(registry))
                 .withSerializer(serializer.clone())
-                .withResourceResolver(r -> r.register(resourceType()))
                 .build();
         client.open().thenRun(latch::countDown);
         atomixClients.add(client);

@@ -41,10 +41,4 @@ public interface Managed<T> {
      * @return {@code true} if open
      */
     boolean isOpen();
-
-    /**
-     * Return {@code true} if the managed object is closed.
-     * @return {@code true} if closed
-     */
-    boolean isClosed();
 }

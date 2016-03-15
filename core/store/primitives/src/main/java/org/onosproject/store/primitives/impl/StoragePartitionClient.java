@@ -19,10 +19,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 import io.atomix.Atomix;
 import io.atomix.AtomixClient;
 import io.atomix.catalyst.transport.Transport;
-import io.atomix.resource.ResourceType;
 import io.atomix.variables.DistributedLong;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -43,7 +41,6 @@ import org.slf4j.Logger;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * StoragePartition client.
@@ -55,7 +52,6 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     private final StoragePartition partition;
     private final Transport transport;
     private final io.atomix.catalyst.serializer.Serializer serializer;
-    private final Collection<ResourceType> resourceTypes;
     private Atomix client;
     private static final String ATOMIC_VALUES_CONSISTENT_MAP_NAME = "onos-atomic-values";
     private final Supplier<AsyncConsistentMap<String, byte[]>> onosAtomicValuesMap =
@@ -64,12 +60,10 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     public StoragePartitionClient(StoragePartition partition,
             io.atomix.catalyst.serializer.Serializer serializer,
-            Transport transport,
-            Collection<ResourceType> resourceTypes) {
+            Transport transport) {
         this.partition = partition;
         this.serializer = serializer;
         this.transport = transport;
-        this.resourceTypes = ImmutableSet.copyOf(resourceTypes);
     }
 
     @Override
@@ -79,10 +73,8 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
         }
         synchronized (StoragePartitionClient.this) {
             client = AtomixClient.builder(partition.getMemberAddresses())
+                                .withResourceTypes(StoragePartition.RESOURCE_TYPES)
                                 .withSerializer(serializer.clone())
-                                .withResourceResolver(r -> {
-                                    resourceTypes.forEach(r::register);
-                                })
                                 .withTransport(transport)
                                 .build();
         }
@@ -103,7 +95,8 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     @Override
     public <K, V> AsyncConsistentMap<K, V> newAsyncConsistentMap(String name, Serializer serializer) {
         AsyncConsistentMap<String, byte[]> rawMap =
-                new DelegatingAsyncConsistentMap<String, byte[]>(client.get(name, AtomixConsistentMap.class).join()) {
+                new DelegatingAsyncConsistentMap<String, byte[]>(client.getResource(name, AtomixConsistentMap.class)
+                                                                       .join()) {
                     @Override
                     public String name() {
                         return name;
@@ -125,7 +118,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public AsyncAtomicCounter newAsyncCounter(String name) {
-        DistributedLong distributedLong = client.get(name, DistributedLong.class).join();
+        DistributedLong distributedLong = client.getLong(name).join();
         return new AtomixCounter(name, distributedLong);
     }
 
@@ -144,7 +137,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public AsyncLeaderElector newAsyncLeaderElector(String name) {
-        return client.get(name, AtomixLeaderElector.class).join();
+        return client.getResource(name, AtomixLeaderElector.class).join();
     }
 
     @Override
@@ -160,10 +153,5 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     @Override
     public boolean isOpen() {
         return client.isOpen();
-    }
-
-    @Override
-    public boolean isClosed() {
-        return client.isClosed();
     }
 }

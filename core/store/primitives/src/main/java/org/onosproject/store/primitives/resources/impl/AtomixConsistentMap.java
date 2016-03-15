@@ -16,13 +16,14 @@
 package org.onosproject.store.primitives.resources.impl;
 
 import io.atomix.copycat.client.CopycatClient;
-import io.atomix.resource.Resource;
+import io.atomix.resource.AbstractResource;
 import io.atomix.resource.ResourceTypeInfo;
 
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -57,18 +58,16 @@ import com.google.common.collect.Sets;
 /**
  * Distributed resource providing the {@link AsyncConsistentMap} primitive.
  */
-@ResourceTypeInfo(id = -151,
-                  stateMachine = AtomixConsistentMapState.class,
-                  typeResolver = AtomixConsistentMapCommands.TypeResolver.class)
-public class AtomixConsistentMap extends Resource<AtomixConsistentMap>
+@ResourceTypeInfo(id = -151, factory = AtomixConsistentMapFactory.class)
+public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     implements AsyncConsistentMap<String, byte[]> {
 
     private final Set<MapEventListener<String, byte[]>> mapEventListeners = Sets.newCopyOnWriteArraySet();
 
     public static final String CHANGE_SUBJECT = "changeEvents";
 
-    public AtomixConsistentMap(CopycatClient client, Resource.Options options) {
-        super(client, options);
+    public AtomixConsistentMap(CopycatClient client, Properties properties) {
+        super(client, properties);
     }
 
     @Override

@@ -116,7 +116,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
         final byte[] rawFooValue = Tools.getBytesUtf8("Hello foo!");
         final byte[] rawBarValue = Tools.getBytesUtf8("Hello bar!");
 
-        AtomixConsistentMap map = createAtomixClient().get("test", AtomixConsistentMap.class).join();
+        AtomixConsistentMap map = createAtomixClient().getResource("test", AtomixConsistentMap.class).join();
 
         map.isEmpty().thenAccept(result -> {
             assertTrue(result);
@@ -246,7 +246,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
         final byte[] value2 = Tools.getBytesUtf8("value2");
         final byte[] value3 = Tools.getBytesUtf8("value3");
 
-        AtomixConsistentMap map = createAtomixClient().get("test", AtomixConsistentMap.class).join();
+        AtomixConsistentMap map = createAtomixClient().getResource("test", AtomixConsistentMap.class).join();
 
         map.computeIfAbsent("foo", k -> value1).thenAccept(result -> {
             assertTrue(Arrays.equals(Versioned.valueOrElse(result, null), value1));
@@ -284,7 +284,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
         final byte[] value2 = Tools.getBytesUtf8("value2");
         final byte[] value3 = Tools.getBytesUtf8("value3");
 
-        AtomixConsistentMap map = createAtomixClient().get("test", AtomixConsistentMap.class).join();
+        AtomixConsistentMap map = createAtomixClient().getResource("test", AtomixConsistentMap.class).join();
         TestMapEventListener listener = new TestMapEventListener();
 
         // add listener; insert new value into map and verify an INSERT event is received.
@@ -343,7 +343,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
         final byte[] value1 = Tools.getBytesUtf8("value1");
         final byte[] value2 = Tools.getBytesUtf8("value2");
 
-        AtomixConsistentMap map = createAtomixClient().get("test", AtomixConsistentMap.class).join();
+        AtomixConsistentMap map = createAtomixClient().getResource("test", AtomixConsistentMap.class).join();
         TestMapEventListener listener = new TestMapEventListener();
 
         map.addListener(listener).join();
@@ -398,7 +398,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
         final byte[] value1 = Tools.getBytesUtf8("value1");
         final byte[] value2 = Tools.getBytesUtf8("value2");
 
-        AtomixConsistentMap map = createAtomixClient().get("test", AtomixConsistentMap.class).join();
+        AtomixConsistentMap map = createAtomixClient().getResource("test", AtomixConsistentMap.class).join();
         TestMapEventListener listener = new TestMapEventListener();
 
         map.addListener(listener).join();

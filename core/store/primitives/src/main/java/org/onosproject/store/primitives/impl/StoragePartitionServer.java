@@ -22,12 +22,8 @@ import io.atomix.catalyst.transport.Transport;
 import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.storage.Storage;
 import io.atomix.copycat.server.storage.StorageLevel;
-import io.atomix.manager.ResourceManagerTypeResolver;
 import io.atomix.manager.state.ResourceManagerState;
-import io.atomix.resource.ResourceRegistry;
-import io.atomix.resource.ResourceType;
-import io.atomix.resource.ResourceTypeResolver;
-import io.atomix.resource.ServiceLoaderResourceResolver;
+import io.atomix.manager.util.ResourceManagerTypeResolver;
 
 import java.io.File;
 import java.util.Collection;
@@ -36,8 +32,6 @@ import java.util.function.Supplier;
 
 import org.onosproject.store.service.PartitionInfo;
 import org.slf4j.Logger;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * {@link StoragePartition} server.
@@ -52,20 +46,17 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
     private final Supplier<Transport> transport;
     private final Serializer serializer;
     private final File dataFolder;
-    private final Collection<ResourceType> resourceTypes;
     private CopycatServer server;
 
     public StoragePartitionServer(Address localAddress,
             StoragePartition partition,
             Serializer serializer,
             Supplier<Transport> transport,
-            Collection<ResourceType> resourceTypes,
             File dataFolder) {
         this.partition = partition;
         this.localAddress = localAddress;
         this.serializer = serializer;
         this.transport = transport;
-        this.resourceTypes = ImmutableSet.copyOf(resourceTypes);
         this.dataFolder = dataFolder;
     }
 
@@ -73,13 +64,13 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
     public CompletableFuture<Void> open() {
         CompletableFuture<CopycatServer> serverOpenFuture;
         if (partition.getMemberAddresses().contains(localAddress)) {
-            if (server != null && server.isOpen()) {
+            if (server != null && server.isRunning()) {
                 return CompletableFuture.completedFuture(null);
             }
             synchronized (this) {
                 server = buildServer(partition.getMemberAddresses());
             }
-            serverOpenFuture = server.open();
+            serverOpenFuture = server.start();
         } else {
             serverOpenFuture = CompletableFuture.completedFuture(null);
         }
@@ -106,19 +97,15 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
      * @return future that is completed when the operation is complete
      */
     public CompletableFuture<Void> closeAndExit() {
-        return server.close();
+        return server.stop();
     }
 
     private CopycatServer buildServer(Collection<Address> clusterMembers) {
-        ResourceTypeResolver resourceResolver = new ServiceLoaderResourceResolver();
-        ResourceRegistry registry = new ResourceRegistry();
-        resourceTypes.forEach(registry::register);
-        resourceResolver.resolve(registry);
         CopycatServer server = CopycatServer.builder(localAddress, clusterMembers)
                 .withName("partition-" + partition.getId())
                 .withSerializer(serializer.clone())
                 .withTransport(transport.get())
-                .withStateMachine(() -> new ResourceManagerState(registry))
+                .withStateMachine(ResourceManagerState::new)
                 .withStorage(Storage.builder()
                         .withStorageLevel(StorageLevel.DISK)
                         .withCompactionThreads(1)
@@ -126,14 +113,14 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
                         .withMaxEntriesPerSegment(MAX_ENTRIES_PER_LOG_SEGMENT)
                         .build())
                 .build();
-        server.serializer().resolve(new ResourceManagerTypeResolver(registry));
+        server.serializer().resolve(new ResourceManagerTypeResolver());
         return server;
     }
 
     public CompletableFuture<Void> join(Collection<Address> otherMembers) {
         server = buildServer(otherMembers);
 
-        return server.open().whenComplete((r, e) -> {
+        return server.start().whenComplete((r, e) -> {
             if (e == null) {
                 log.info("Successfully joined partition {}", partition.getId());
             } else {
@@ -144,12 +131,7 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
 
     @Override
     public boolean isOpen() {
-        return server.isOpen();
-    }
-
-    @Override
-    public boolean isClosed() {
-        return server.isClosed();
+        return server.isRunning();
     }
 
     /**

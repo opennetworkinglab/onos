@@ -20,6 +20,8 @@ import java.util.Arrays;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.serializer.TypeSerializerFactory;
 import io.atomix.copycat.Query;
+import io.atomix.manager.util.ResourceManagerTypeResolver;
+import io.atomix.variables.state.LongCommands;
 
 import org.onlab.util.Match;
 import org.onosproject.cluster.Leader;
@@ -28,6 +30,10 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.event.Change;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapFactory;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorCommands;
+import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorFactory;
 import org.onosproject.store.primitives.resources.impl.CommitResult;
 import org.onosproject.store.primitives.resources.impl.MapEntryUpdateResult;
 import org.onosproject.store.primitives.resources.impl.PrepareResult;
@@ -78,6 +84,14 @@ public final class CatalystSerializers {
         serializer.register(Versioned.class, factory);
         serializer.register(MapEvent.class, factory);
         serializer.register(Maps.immutableEntry("a", "b").getClass(), factory);
+
+        serializer.resolve(new LongCommands.TypeResolver());
+        serializer.resolve(new AtomixConsistentMapCommands.TypeResolver());
+        serializer.resolve(new AtomixLeaderElectorCommands.TypeResolver());
+        serializer.resolve(new ResourceManagerTypeResolver());
+
+        serializer.registerClassLoader(AtomixConsistentMapFactory.class)
+                  .registerClassLoader(AtomixLeaderElectorFactory.class);
 
         return serializer;
     }

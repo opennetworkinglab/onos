@@ -24,7 +24,6 @@ import io.atomix.copycat.server.session.SessionListener;
 import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
 import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
 import io.atomix.resource.ResourceStateMachine;
-import io.atomix.resource.ResourceType;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
@@ -75,8 +75,8 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                                                            ElectionState.class,
                                                            Registration.class);
 
-    public AtomixLeaderElectorState() {
-        super(new ResourceType(AtomixLeaderElector.class));
+    public AtomixLeaderElectorState(Properties properties) {
+        super(properties);
     }
 
     @Override
