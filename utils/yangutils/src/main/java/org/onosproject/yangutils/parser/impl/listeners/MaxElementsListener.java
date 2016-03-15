@@ -22,11 +22,13 @@ import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.YangConstructType.MAX_ELEMENT_DATA;
 
@@ -40,7 +42,8 @@ import static org.onosproject.yangutils.utils.YangConstructType.MAX_ELEMENT_DATA
  *                          max-value-arg >
  *
  * ANTLR grammar rule
- * maxElementsStatement :  MAX_ELEMENTS_KEYWORD maxValueArgument STMTEND;
+ * maxElementsStatement : MAX_ELEMENTS_KEYWORD maxValue STMTEND;
+ * maxValue             : string;
  */
 
 /**
@@ -49,6 +52,9 @@ import static org.onosproject.yangutils.utils.YangConstructType.MAX_ELEMENT_DATA
  * in RFC 6020.
  */
 public final class MaxElementsListener {
+
+    private static final String POSITIVE_INTEGER_PATTERN = "[1-9][0-9]*";
+    private static final String UNBOUNDED_KEYWORD = "unbounded";
 
     /**
      * Creates a new max-elements listener.
@@ -65,16 +71,11 @@ public final class MaxElementsListener {
      */
     public static void processMaxElementsEntry(TreeWalkListener listener,
             GeneratedYangParser.MaxElementsStatementContext ctx) {
-        int maxElementsValue;
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, MAX_ELEMENT_DATA, "", ENTRY);
 
-        if (ctx.maxValueArgument().UNBOUNDED_KEYWORD() != null) {
-            maxElementsValue = Integer.MAX_VALUE;
-        } else {
-            maxElementsValue = Integer.parseInt(ctx.maxValueArgument().INTEGER().getText());
-        }
+        int maxElementsValue = getValidMaxElementValue(ctx);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
         switch (tmpData.getYangConstructType()) {
@@ -89,5 +90,32 @@ public final class MaxElementsListener {
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, MAX_ELEMENT_DATA, "", ENTRY));
         }
+    }
+
+    /**
+     * Validates max element value and returns the value from context.
+     *
+     * @param ctx context object of the grammar rule
+     * @return max element's value
+     */
+    private static int getValidMaxElementValue(GeneratedYangParser.MaxElementsStatementContext ctx) {
+
+        int maxElementsValue;
+
+        String value = removeQuotesAndHandleConcat(ctx.maxValue().getText());
+        if (value.equals(UNBOUNDED_KEYWORD)) {
+            maxElementsValue = Integer.MAX_VALUE;
+        } else if (value.matches(POSITIVE_INTEGER_PATTERN)) {
+            maxElementsValue = Integer.parseInt(value);
+        } else {
+            ParserException parserException = new ParserException("YANG file error : " +
+                    YangConstructType.getYangConstructType(MAX_ELEMENT_DATA) + " value " + value + " is not " +
+                    "valid.");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+
+        return maxElementsValue;
     }
 }

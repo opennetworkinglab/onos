@@ -64,7 +64,6 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                       *(import-stmt stmtsep)
      *                       *(include-stmt stmtsep)
      */
-
     linkageStatements : (importStatement
                   | includeStatement)*;
 
@@ -75,7 +74,6 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                       [description-stmt stmtsep]
      *                       [reference-stmt stmtsep]
      */
-
     metaStatements : organizationStatement? contactStatement? descriptionStatement? referenceStatement?
                | organizationStatement? contactStatement? referenceStatement? descriptionStatement?
                | organizationStatement? descriptionStatement? contactStatement? referenceStatement?
@@ -117,7 +115,6 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                          notification-stmt /
      *                          deviation-stmt) stmtsep)
      */
-
     bodyStatements : (extensionStatement
                | featureStatement
                | identityStatement
@@ -134,8 +131,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      * yang-version-stmt   = yang-version-keyword sep yang-version-arg-str
      *                       optsep stmtend
      */
-
-    yangVersionStatement :   YANG_VERSION_KEYWORD string STMTEND;
+    yangVersionStatement :   YANG_VERSION_KEYWORD version STMTEND;
 
 
     /**
@@ -455,7 +451,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                             [reference-stmt stmtsep]
      *                          "}")
      */
-    rangeStatement : RANGE_KEYWORD string (STMTEND | LEFT_CURLY_BRACE commonStatements RIGHT_CURLY_BRACE);
+    rangeStatement : RANGE_KEYWORD range (STMTEND | LEFT_CURLY_BRACE commonStatements RIGHT_CURLY_BRACE);
 
     commonStatements : errorMessageStatement? errorAppTagStatement? descriptionStatement? referenceStatement?
                  | errorMessageStatement? errorAppTagStatement? referenceStatement? descriptionStatement?
@@ -501,7 +497,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                             [reference-stmt stmtsep]
      *                          "}")
      */
-    lengthStatement : LENGTH_KEYWORD string
+    lengthStatement : LENGTH_KEYWORD length
                   (STMTEND | LEFT_CURLY_BRACE commonStatements RIGHT_CURLY_BRACE);
 
     /**
@@ -577,7 +573,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
     /**
      *  path-stmt           = path-keyword sep path-arg-str stmtend
      */
-    pathStatement : PATH_KEYWORD string STMTEND;
+    pathStatement : PATH_KEYWORD path STMTEND;
 
     /**
      *  require-instance-stmt = require-instance-keyword sep
@@ -657,7 +653,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                              position-value-arg >
      *  position-value-arg  = non-negative-integer-value
      */
-    positionStatement : POSITION_KEYWORD string STMTEND;
+    positionStatement : POSITION_KEYWORD position STMTEND;
 
     /**
      *  status-stmt         = status-keyword sep status-arg-str stmtend
@@ -667,7 +663,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                        obsolete-keyword /
      *                        deprecated-keyword
      */
-    statusStatement : STATUS_KEYWORD (CURRENT_KEYWORD | OBSOLETE_KEYWORD | DEPRECATED_KEYWORD) STMTEND;
+    statusStatement : STATUS_KEYWORD status STMTEND;
 
     /**
      *  config-stmt         = config-keyword sep
@@ -676,7 +672,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                          config-arg >
      *  config-arg          = true-keyword / false-keyword
      */
-    configStatement : CONFIG_KEYWORD (TRUE_KEYWORD | FALSE_KEYWORD) STMTEND;
+    configStatement : CONFIG_KEYWORD config STMTEND;
 
     /**
      *  mandatory-stmt      = mandatory-keyword sep
@@ -687,7 +683,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *
      *  mandatory-arg       = true-keyword / false-keyword
      */
-    mandatoryStatement : MANDATORY_KEYWORD (TRUE_KEYWORD | FALSE_KEYWORD) STMTEND;
+    mandatoryStatement : MANDATORY_KEYWORD mandatory STMTEND;
 
     /**
      *  presence-stmt       = presence-keyword sep string stmtend
@@ -703,7 +699,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *
      *  ordered-by-arg      = user-keyword / system-keyword
      */
-    orderedByStatement : ORDERED_BY_KEYWORD (USER_KEYWORD | SYSTEM_KEYWORD) STMTEND;
+    orderedByStatement : ORDERED_BY_KEYWORD orderedBy STMTEND;
 
     /**
      *  must-stmt           = must-keyword sep string optsep
@@ -735,22 +731,17 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                          min-value-arg >
      *  min-value-arg       = non-negative-integer-value
      */
-    minElementsStatement : MIN_ELEMENTS_KEYWORD INTEGER STMTEND;
+    minElementsStatement : MIN_ELEMENTS_KEYWORD minValue STMTEND;
 
     /**
      *  max-elements-stmt   = max-elements-keyword sep
      *                        max-value-arg-str stmtend
      *  max-value-arg-str   = < a string that matches the rule
      *                          max-value-arg >
-
-     */
-    maxElementsStatement :  MAX_ELEMENTS_KEYWORD maxValueArgument STMTEND;
-
-    /**
      *  max-value-arg       = unbounded-keyword /
      *                        positive-integer-value
      */
-    maxValueArgument : UNBOUNDED_KEYWORD | INTEGER;
+    maxElementsStatement :  MAX_ELEMENTS_KEYWORD maxValue STMTEND;
 
     /**
      *  value-stmt          = value-keyword sep integer-value stmtend
@@ -873,12 +864,12 @@ package org.onosproject.yangutils.parser.antlrgencode;
     /**
      *  key-stmt            = key-keyword sep key-arg-str stmtend
      */
-    keyStatement : KEY_KEYWORD string STMTEND;
+    keyStatement : KEY_KEYWORD key STMTEND;
 
     /**
      *  unique-stmt         = unique-keyword sep unique-arg-str stmtend
      */
-    uniqueStatement: UNIQUE_KEYWORD string STMTEND;
+    uniqueStatement: UNIQUE_KEYWORD unique STMTEND;
 
     /**
      *  choice-stmt         = choice-keyword sep identifier-arg-str optsep
@@ -958,9 +949,9 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                              refine-anyxml-stmts)
      *                         "}")
      */
-    refineStatement : REFINE_KEYWORD string (STMTEND  | LEFT_CURLY_BRACE (refineContainerStatements | refineLeafStatements
-                  | refineLeafListStatements | refineListStatements | refineChoiceStatements | refineCaseStatements)
-                  RIGHT_CURLY_BRACE);
+    refineStatement : REFINE_KEYWORD refine (STMTEND  | LEFT_CURLY_BRACE (refineContainerStatements
+                    | refineLeafStatements | refineLeafListStatements | refineListStatements | refineChoiceStatements
+                    | refineCaseStatements) RIGHT_CURLY_BRACE);
 
     /**
      *  refine-container-stmts =
@@ -1046,8 +1037,9 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                         "}"
      * TODO : 0..1 occurance to be checked in listener
      */
-    usesAugmentStatement : AUGMENT_KEYWORD string LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | statusStatement
-                        | descriptionStatement | referenceStatement | dataDefStatement | caseStatement)* RIGHT_CURLY_BRACE;
+    usesAugmentStatement : AUGMENT_KEYWORD augment LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement
+                         | statusStatement | descriptionStatement | referenceStatement | dataDefStatement
+                         | caseStatement)* RIGHT_CURLY_BRACE;
 
     /**
      *  augment-stmt        = augment-keyword sep augment-arg-str optsep
@@ -1158,9 +1150,9 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                        "}"
      * TODO : 0..1 occurance to be checked in listener
      */
-    deviationStatement: DEVIATION_KEYWORD string LEFT_CURLY_BRACE (descriptionStatement | referenceStatement
-                    | deviateNotSupportedStatement | deviateAddStatement | deviateReplaceStatement | deviateDeleteStatement)*
-                    RIGHT_CURLY_BRACE;
+    deviationStatement: DEVIATION_KEYWORD deviation LEFT_CURLY_BRACE (descriptionStatement | referenceStatement
+                      | deviateNotSupportedStatement | deviateAddStatement | deviateReplaceStatement
+                      | deviateDeleteStatement)* RIGHT_CURLY_BRACE;
 
     /**
      * deviate-not-supported-stmt =
@@ -1222,10 +1214,61 @@ package org.onosproject.yangutils.parser.antlrgencode;
 
     string : STRING (PLUS STRING)*
            | IDENTIFIER
-           | INTEGER;
+           | INTEGER
+           | yangConstruct;
 
     identifier : STRING (PLUS STRING)*
-               | IDENTIFIER;
+               | IDENTIFIER
+               | yangConstruct;
 
     dateArgumentString : DATE_ARG
                        | STRING (PLUS STRING)*;
+
+    version : string;
+
+    range : string;
+
+    length : string;
+
+    path : string;
+
+    position : string;
+
+    status : string;
+
+    config : string;
+
+    mandatory : string;
+
+    orderedBy : string;
+
+    minValue : string;
+
+    maxValue : string;
+
+    key : string;
+
+    unique : string;
+
+    refine : string;
+
+    augment : string;
+
+    deviation : string;
+
+    yangConstruct : ANYXML_KEYWORD | ARGUMENT_KEYWORD | AUGMENT_KEYWORD | BASE_KEYWORD | BELONGS_TO_KEYWORD
+                  | BIT_KEYWORD | CASE_KEYWORD | CHOICE_KEYWORD | CONFIG_KEYWORD | CONTACT_KEYWORD | CONTAINER_KEYWORD
+                  | DEFAULT_KEYWORD | DESCRIPTION_KEYWORD | ENUM_KEYWORD ERROR_APP_TAG_KEYWORD | ERROR_MESSAGE_KEYWORD
+                  | EXTENSION_KEYWORD | DEVIATION_KEYWORD | DEVIATE_KEYWORD | FEATURE_KEYWORD
+                  | FRACTION_DIGITS_KEYWORD | GROUPING_KEYWORD | IDENTITY_KEYWORD | IF_FEATURE_KEYWORD
+                  | IMPORT_KEYWORD | INCLUDE_KEYWORD | INPUT_KEYWORD | KEY_KEYWORD | LEAF_KEYWORD | LEAF_LIST_KEYWORD
+                  | LENGTH_KEYWORD | LIST_KEYWORD | MANDATORY_KEYWORD | MAX_ELEMENTS_KEYWORD | MIN_ELEMENTS_KEYWORD
+                  | MODULE_KEYWORD | MUST_KEYWORD | NAMESPACE_KEYWORD | NOTIFICATION_KEYWORD | ORDERED_BY_KEYWORD
+                  | ORGANIZATION_KEYWORD | OUTPUT_KEYWORD | PATH_KEYWORD | PATTERN_KEYWORD |POSITION_KEYWORD
+                  | PREFIX_KEYWORD | PRESENCE_KEYWORD | RANGE_KEYWORD | REFERENCE_KEYWORD | REFINE_KEYWORD
+                  | REQUIRE_INSTANCE_KEYWORD | REVISION_KEYWORD | REVISION_DATE_KEYWORD | RPC_KEYWORD
+                  | STATUS_KEYWORD | SUBMODULE_KEYWORD | TYPE_KEYWORD | TYPEDEF_KEYWORD | UNIQUE_KEYWORD
+                  | UNITS_KEYWORD | USES_KEYWORD | VALUE_KEYWORD | WHEN_KEYWORD | YANG_VERSION_KEYWORD
+                  | YIN_ELEMENT_KEYWORD | ADD_KEYWORD | CURRENT_KEYWORD | DELETE_KEYWORD | DEPRECATED_KEYWORD
+                  | FALSE_KEYWORD | MAX_KEYWORD | MIN_KEYWORD | NOT_SUPPORTED_KEYWORD | OBSOLETE_KEYWORD
+                  | REPLACE_KEYWORD | SYSTEM_KEYWORD | TRUE_KEYWORD | UNBOUNDED_KEYWORD | USER_KEYWORD;

@@ -141,7 +141,7 @@ public class StatusListenerTest {
     @Test
     public void processStatusInvalidValue() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input 'invalid' expecting {'current', 'deprecated', 'obsolete'}");
+        thrown.expectMessage("Invalid content in status \"invalid\" before processing.");
         YangNode node = manager.getDataModel("src/test/resources/StatusInvalidValue.yang");
     }
 

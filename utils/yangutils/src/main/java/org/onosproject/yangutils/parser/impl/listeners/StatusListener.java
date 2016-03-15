@@ -23,10 +23,12 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
 import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_CONTENT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
@@ -51,6 +53,10 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
  */
 public final class StatusListener {
 
+    private static final String CURRENT_KEYWORD = "current";
+    private static final String DEPRECATED_KEYWORD = "deprecated";
+    private static final String OBSOLETE_KEYWORD = "obsolete";
+
     /**
      * Creates a new status listener.
      */
@@ -67,18 +73,11 @@ public final class StatusListener {
      */
     public static void processStatusEntry(TreeWalkListener listener,
                                           GeneratedYangParser.StatusStatementContext ctx) {
-        YangStatusType status;
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, STATUS_DATA, "", ENTRY);
 
-        if (ctx.CURRENT_KEYWORD() != null) {
-            status = YangStatusType.CURRENT;
-        } else if (ctx.DEPRECATED_KEYWORD() != null) {
-            status = YangStatusType.DEPRECATED;
-        } else {
-            status = YangStatusType.OBSOLETE;
-        }
+        YangStatusType status = getValidStatus(ctx);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
         if (tmpData instanceof YangStatus) {
@@ -87,5 +86,29 @@ public final class StatusListener {
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, STATUS_DATA, "", ENTRY));
         }
+    }
+
+    /**
+     * Validates status value and returns the value from context.
+     *
+     * @param ctx context object of the grammar rule
+     * @return status current/deprecated/obsolete
+     */
+    private static YangStatusType getValidStatus(GeneratedYangParser.StatusStatementContext ctx) {
+
+        YangStatusType status;
+
+        String value = removeQuotesAndHandleConcat(ctx.status().getText());
+        if (value.equals(CURRENT_KEYWORD)) {
+            status = YangStatusType.CURRENT;
+        } else if (value.equals(DEPRECATED_KEYWORD)) {
+            status = YangStatusType.DEPRECATED;
+        } else if (value.equals(OBSOLETE_KEYWORD)) {
+            status = YangStatusType.OBSOLETE;
+        } else {
+            throw new ParserException(constructListenerErrorMessage(INVALID_CONTENT, STATUS_DATA, value, ENTRY));
+        }
+
+        return status;
     }
 }

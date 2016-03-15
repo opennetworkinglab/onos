@@ -22,6 +22,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidBooleanValue;
 import static org.onosproject.yangutils.utils.YangConstructType.MANDATORY_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -42,7 +43,8 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
  *  mandatory-arg       = true-keyword / false-keyword
  *
  * ANTLR grammar rule
- *  mandatoryStatement : MANDATORY_KEYWORD (TRUE_KEYWORD | FALSE_KEYWORD) STMTEND;
+ *  mandatoryStatement : MANDATORY_KEYWORD mandatory STMTEND;
+ *  mandatory          : string;
  */
 
 /**
@@ -71,15 +73,13 @@ public final class MandatoryListener {
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, MANDATORY_DATA, "", ENTRY);
 
+        boolean isMandatory = getValidBooleanValue(ctx.mandatory().getText(), MANDATORY_DATA, ctx);
+
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getYangConstructType()) {
             case LEAF_DATA:
                 YangLeaf leaf = (YangLeaf) tmpNode;
-                if (ctx.TRUE_KEYWORD() != null) {
-                    leaf.setMandatory(true);
-                } else {
-                    leaf.setMandatory(false);
-                }
+                leaf.setMandatory(isMandatory);
                 break;
             case CHOICE_DATA: // TODO
                 break;

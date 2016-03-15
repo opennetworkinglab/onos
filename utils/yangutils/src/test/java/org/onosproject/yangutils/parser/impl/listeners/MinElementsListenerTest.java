@@ -111,7 +111,7 @@ public class MinElementsListenerTest {
     @Test
     public void processMinElementsInvalidValue() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input 'asd' expecting INTEGER");
+        thrown.expectMessage("YANG file error : min-elements value asd is not valid.");
         YangNode node = manager.getDataModel("src/test/resources/MinElementsInvalidValue.yang");
     }
 

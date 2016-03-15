@@ -23,6 +23,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidNonNegativeIntegerValue;
 import static org.onosproject.yangutils.utils.YangConstructType.MIN_ELEMENT_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -41,7 +42,8 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
  *  min-value-arg       = non-negative-integer-value
  *
  * ANTLR grammar rule
- * minElementsStatement : MIN_ELEMENTS_KEYWORD INTEGER STMTEND;
+ * minElementsStatement : MIN_ELEMENTS_KEYWORD minValue STMTEND;
+ * minValue             : string;
  */
 
 /**
@@ -68,21 +70,23 @@ public final class MinElementsListener {
                                                GeneratedYangParser.MinElementsStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, MIN_ELEMENT_DATA, ctx.INTEGER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, MIN_ELEMENT_DATA, ctx.minValue().getText(), ENTRY);
+
+        int minElementValue = getValidNonNegativeIntegerValue(ctx.minValue().getText(), MIN_ELEMENT_DATA, ctx);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
         switch (tmpData.getYangConstructType()) {
             case LEAF_LIST_DATA:
                 YangLeafList leafList = (YangLeafList) tmpData;
-                leafList.setMinElements(Integer.parseInt(ctx.INTEGER().getText()));
+                leafList.setMinElements(minElementValue);
                 break;
             case LIST_DATA:
                 YangList yangList = (YangList) tmpData;
-                yangList.setMinElements(Integer.parseInt(ctx.INTEGER().getText()));
+                yangList.setMinElements(minElementValue);
                 break;
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, MIN_ELEMENT_DATA,
-                        ctx.INTEGER().getText(), ENTRY));
+                        ctx.minValue().getText(), ENTRY));
         }
     }
 }

@@ -25,6 +25,7 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidBooleanValue;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
@@ -42,7 +43,8 @@ import static org.onosproject.yangutils.utils.YangConstructType.CONFIG_DATA;
  * config-arg          = true-keyword / false-keyword
  *
  * ANTLR grammar rule
- * configStatement : CONFIG_KEYWORD (TRUE_KEYWORD | FALSE_KEYWORD) STMTEND;
+ * configStatement : CONFIG_KEYWORD config STMTEND;
+ * config          : string;
  */
 
 /**
@@ -66,14 +68,11 @@ public final class ConfigListener {
      */
     public static void processConfigEntry(TreeWalkListener listener,
             GeneratedYangParser.ConfigStatementContext ctx) {
-        boolean isConfig = false;
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, CONFIG_DATA, "", ENTRY);
 
-        if (ctx.TRUE_KEYWORD() != null) {
-            isConfig = true;
-        }
+        boolean isConfig = getValidBooleanValue(ctx.config().getText(), CONFIG_DATA, ctx);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
         switch (tmpData.getYangConstructType()) {

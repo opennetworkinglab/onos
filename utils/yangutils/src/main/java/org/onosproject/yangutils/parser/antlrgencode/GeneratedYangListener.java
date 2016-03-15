@@ -1178,22 +1178,6 @@ public interface GeneratedYangListener extends ParseTreeListener {
 
     /**
      * Enter a parse tree produced by GeneratedYangParser for grammar rule
-     * maxValueArgument.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void enterMaxValueArgument(GeneratedYangParser.MaxValueArgumentContext currentContext);
-
-    /**
-     * Exit a parse tree produced by GeneratedYangParser for grammar rule
-     * maxValueArgument.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void exitMaxValueArgument(GeneratedYangParser.MaxValueArgumentContext currentContext);
-
-    /**
-     * Enter a parse tree produced by GeneratedYangParser for grammar rule
      * valueStatement.
      *
      * @param currentContext current context in the parsed tree
@@ -1720,6 +1704,37 @@ public interface GeneratedYangListener extends ParseTreeListener {
      */
     void exitIdentifier(GeneratedYangParser.IdentifierContext currentContext);
 
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * version.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterVersion(GeneratedYangParser.VersionContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * version.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitVersion(GeneratedYangParser.VersionContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * range.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterRange(GeneratedYangParser.RangeContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * range.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitRange(GeneratedYangParser.RangeContext currentContext);
 
     /**
      * Enter a parse tree produced by GeneratedYangParser for grammar rule
@@ -1736,4 +1751,244 @@ public interface GeneratedYangListener extends ParseTreeListener {
      * @param currentContext current context in the parsed tree
      */
     void exitDateArgumentString(GeneratedYangParser.DateArgumentStringContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * length.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterLength(GeneratedYangParser.LengthContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * length.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitLength(GeneratedYangParser.LengthContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * path.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterPath(GeneratedYangParser.PathContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * path.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitPath(GeneratedYangParser.PathContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * position.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterPosition(GeneratedYangParser.PositionContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * position.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitPosition(GeneratedYangParser.PositionContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * status.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterStatus(GeneratedYangParser.StatusContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * status.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitStatus(GeneratedYangParser.StatusContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * config.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterConfig(GeneratedYangParser.ConfigContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * config.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitConfig(GeneratedYangParser.ConfigContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * mandatory.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterMandatory(GeneratedYangParser.MandatoryContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * mandatory.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitMandatory(GeneratedYangParser.MandatoryContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * ordered-by.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterOrderedBy(GeneratedYangParser.OrderedByContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * ordered-by.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitOrderedBy(GeneratedYangParser.OrderedByContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * min elements value.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterMinValue(GeneratedYangParser.MinValueContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * min elements value.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitMinValue(GeneratedYangParser.MinValueContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * max elements value.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterMaxValue(GeneratedYangParser.MaxValueContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * max elements value.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitMaxValue(GeneratedYangParser.MaxValueContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * key.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterKey(GeneratedYangParser.KeyContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * key.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitKey(GeneratedYangParser.KeyContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * unique.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterUnique(GeneratedYangParser.UniqueContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * unique.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitUnique(GeneratedYangParser.UniqueContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * refine.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterRefine(GeneratedYangParser.RefineContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * refine.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitRefine(GeneratedYangParser.RefineContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * augment.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterAugment(GeneratedYangParser.AugmentContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * augment.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitAugment(GeneratedYangParser.AugmentContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * deviation.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterDeviation(GeneratedYangParser.DeviationContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * deviation.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitDeviation(GeneratedYangParser.DeviationContext currentContext);
+
+    /**
+     * Enter a parse tree produced by GeneratedYangParser for grammar rule
+     * yang construct.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void enterYangConstruct(GeneratedYangParser.YangConstructContext currentContext);
+
+    /**
+     * Exit a parse tree produced by GeneratedYangParser for grammar rule
+     * yang construct.
+     *
+     * @param currentContext current context in the parsed tree
+     */
+    void exitYangConstruct(GeneratedYangParser.YangConstructContext currentContext);
 }

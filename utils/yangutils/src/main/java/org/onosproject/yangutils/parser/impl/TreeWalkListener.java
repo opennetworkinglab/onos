@@ -833,16 +833,6 @@ public class TreeWalkListener implements GeneratedYangListener {
     }
 
     @Override
-    public void enterMaxValueArgument(GeneratedYangParser.MaxValueArgumentContext ctx) {
-        // TODO: implement the method.
-    }
-
-    @Override
-    public void exitMaxValueArgument(GeneratedYangParser.MaxValueArgumentContext ctx) {
-        // TODO: implement the method.
-    }
-
-    @Override
     public void enterValueStatement(GeneratedYangParser.ValueStatementContext ctx) {
         ValueListener.processValueEntry(this, ctx);
     }
@@ -1179,6 +1169,176 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void exitDateArgumentString(GeneratedYangParser.DateArgumentStringContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterRange(GeneratedYangParser.RangeContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitRange(GeneratedYangParser.RangeContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterLength(GeneratedYangParser.LengthContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitLength(GeneratedYangParser.LengthContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterPath(GeneratedYangParser.PathContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitPath(GeneratedYangParser.PathContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterPosition(GeneratedYangParser.PositionContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitPosition(GeneratedYangParser.PositionContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterStatus(GeneratedYangParser.StatusContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitStatus(GeneratedYangParser.StatusContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterConfig(GeneratedYangParser.ConfigContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitConfig(GeneratedYangParser.ConfigContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterMandatory(GeneratedYangParser.MandatoryContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitMandatory(GeneratedYangParser.MandatoryContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterOrderedBy(GeneratedYangParser.OrderedByContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitOrderedBy(GeneratedYangParser.OrderedByContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterMinValue(GeneratedYangParser.MinValueContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitMinValue(GeneratedYangParser.MinValueContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterMaxValue(GeneratedYangParser.MaxValueContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitMaxValue(GeneratedYangParser.MaxValueContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterKey(GeneratedYangParser.KeyContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitKey(GeneratedYangParser.KeyContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterUnique(GeneratedYangParser.UniqueContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitUnique(GeneratedYangParser.UniqueContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterRefine(GeneratedYangParser.RefineContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitRefine(GeneratedYangParser.RefineContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterAugment(GeneratedYangParser.AugmentContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitAugment(GeneratedYangParser.AugmentContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterDeviation(GeneratedYangParser.DeviationContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitDeviation(GeneratedYangParser.DeviationContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterYangConstruct(GeneratedYangParser.YangConstructContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitYangConstruct(GeneratedYangParser.YangConstructContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void enterVersion(GeneratedYangParser.VersionContext ctx) {
+        // TODO: implement the method.
+    }
+
+    @Override
+    public void exitVersion(GeneratedYangParser.VersionContext ctx) {
         // TODO: implement the method.
     }
 

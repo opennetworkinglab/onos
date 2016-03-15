@@ -115,7 +115,7 @@ public class ConfigListenerTest {
     @Test
     public void processConfigInvalidValue() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input 'invalid' expecting {'false', 'true'}");
+        thrown.expectMessage("YANG file error : config value invalid is not valid.");
         YangNode node = manager.getDataModel("src/test/resources/ConfigInvalidValue.yang");
     }
 
@@ -125,7 +125,7 @@ public class ConfigListenerTest {
     @Test
     public void processConfigEmptyValue() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("missing {'false', 'true'} at ';'");
+        thrown.expectMessage("no viable alternative at input ';'");
         YangNode node = manager.getDataModel("src/test/resources/ConfigEmptyValue.yang");
     }
 

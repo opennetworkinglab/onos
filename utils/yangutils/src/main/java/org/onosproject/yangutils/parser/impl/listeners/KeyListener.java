@@ -24,6 +24,7 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 import static org.onosproject.yangutils.utils.YangConstructType.KEY_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
@@ -39,7 +40,8 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
  * key-stmt            = key-keyword sep key-arg-str stmtend
  *
  * ANTLR grammar rule
- * keyStatement : KEY_KEYWORD string STMTEND;
+ * keyStatement : KEY_KEYWORD key STMTEND;
+ * key          : string;
  */
 
 /**
@@ -66,12 +68,12 @@ public final class KeyListener {
                                          GeneratedYangParser.KeyStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, KEY_DATA, ctx.string().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, KEY_DATA, ctx.key().getText(), ENTRY);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
         if (listener.getParsedDataStack().peek() instanceof YangList) {
             YangList yangList = (YangList) tmpData;
-            String tmpKeyValue = ctx.string().getText().replace("\"", "");
+            String tmpKeyValue = removeQuotesAndHandleConcat(ctx.key().getText());
             if (tmpKeyValue.contains(" ")) {
                 String[] keyValues = tmpKeyValue.split(" ");
                 for (String keyValue : keyValues) {
@@ -79,7 +81,7 @@ public final class KeyListener {
                         yangList.addKey(keyValue);
                     } catch (DataModelException e) {
                         throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA, KEY_DATA,
-                                ctx.string().getText(), ENTRY, e.getMessage()));
+                                ctx.key().getText(), ENTRY, e.getMessage()));
                     }
                 }
             } else {
@@ -87,11 +89,11 @@ public final class KeyListener {
                     yangList.addKey(tmpKeyValue);
                 } catch (DataModelException e) {
                     throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA, KEY_DATA,
-                            ctx.string().getText(), ENTRY, e.getMessage()));
+                            ctx.key().getText(), ENTRY, e.getMessage()));
                 }
             }
         } else {
-            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, KEY_DATA, ctx.string().getText(),
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, KEY_DATA, ctx.key().getText(),
                             ENTRY));
         }
     }

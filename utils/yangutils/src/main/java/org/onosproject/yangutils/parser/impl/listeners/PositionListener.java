@@ -30,7 +30,8 @@ package org.onosproject.yangutils.parser.impl.listeners;
  * zero-integer-value  = 1*DIGIT
  *
  * ANTLR grammar rule
- * positionStatement : POSITION_KEYWORD string STMTEND;
+ * positionStatement : POSITION_KEYWORD position STMTEND;
+ * position          : string;
  */
 
 import org.onosproject.yangutils.datamodel.YangBit;
@@ -44,7 +45,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLoc
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidNonNegativeIntegerValue;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.YangConstructType.POSITION_DATA;
 
@@ -53,9 +54,6 @@ import static org.onosproject.yangutils.utils.YangConstructType.POSITION_DATA;
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class PositionListener {
-
-    // Exact message in case position is invalid.
-    private static String errMsg;
 
     /**
      * Creates a new position listener.
@@ -74,27 +72,20 @@ public final class PositionListener {
             GeneratedYangParser.PositionStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, POSITION_DATA, ctx.string().getText(), ENTRY);
-
-        String position = removeQuotesAndHandleConcat(ctx.string().getText());
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, POSITION_DATA, ctx.position().getText(), ENTRY);
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getYangConstructType()) {
             case BIT_DATA: {
                 YangBit bitNode = (YangBit) tmpNode;
-                if (!isBitPositionValid(listener, ctx, position)) {
-                    ParserException parserException = new ParserException(errMsg);
-                    parserException.setLine(ctx.getStart().getLine());
-                    parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
-                    throw parserException;
-                }
-                bitNode.setPosition(Integer.valueOf(position));
+                int positionValue = getValidBitPosition(listener, ctx);
+                bitNode.setPosition(positionValue);
                 break;
             }
             default:
                 throw new ParserException(
-                        constructListenerErrorMessage(INVALID_HOLDER, POSITION_DATA, ctx.string().getText(), ENTRY));
+                        constructListenerErrorMessage(INVALID_HOLDER, POSITION_DATA, ctx.position().getText(), ENTRY));
         }
     }
 
@@ -103,39 +94,38 @@ public final class PositionListener {
      *
      * @param listener Listener's object
      * @param ctx context object of the grammar rule
-     * @return validation result
+     * @return position value
      */
-    private static boolean isBitPositionValid(TreeWalkListener listener,
-            GeneratedYangParser.PositionStatementContext ctx, String position) {
+    private static int getValidBitPosition(TreeWalkListener listener,
+            GeneratedYangParser.PositionStatementContext ctx) {
         Parsable bitNode = listener.getParsedDataStack().pop();
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, POSITION_DATA, ctx.string().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, POSITION_DATA, ctx.position().getText(), ENTRY);
 
-        if (Integer.valueOf(position) < 0) {
-            errMsg = "YANG file error: Negative value of position is invalid.";
-            listener.getParsedDataStack().push(bitNode);
-            return false;
-        }
+        int positionValue = getValidNonNegativeIntegerValue(ctx.position().getText(), POSITION_DATA, ctx);
 
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getYangConstructType()) {
             case BITS_DATA: {
                 YangBits yangBits = (YangBits) tmpNode;
                 for (YangBit curBit : yangBits.getBitSet()) {
-                    if (Integer.valueOf(position) == curBit.getPosition()) {
-                        errMsg = "YANG file error: Duplicate value of position is invalid.";
+                    if (positionValue == curBit.getPosition()) {
                         listener.getParsedDataStack().push(bitNode);
-                        return false;
+                        ParserException parserException = new ParserException("YANG file error: Duplicate value of " +
+                                "position is invalid.");
+                        parserException.setLine(ctx.getStart().getLine());
+                        parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+                        throw parserException;
                     }
                 }
                 listener.getParsedDataStack().push(bitNode);
-                return true;
+                return positionValue;
             }
             default:
                 listener.getParsedDataStack().push(bitNode);
                 throw new ParserException(
-                        constructListenerErrorMessage(INVALID_HOLDER, POSITION_DATA, ctx.string().getText(), ENTRY));
+                        constructListenerErrorMessage(INVALID_HOLDER, POSITION_DATA, ctx.position().getText(), ENTRY));
         }
     }
 }
