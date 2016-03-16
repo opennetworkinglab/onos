@@ -23,7 +23,7 @@ import static org.easymock.EasyMock.verify;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -32,7 +32,6 @@ import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.EthType;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -41,7 +40,10 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceEvent;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.incubator.net.intf.InterfaceServiceAdapter;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.ConnectPoint;
@@ -85,7 +87,6 @@ import com.google.common.collect.Sets;
 public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
 
     private final Logger log = getLogger(getClass());
-
     private DeviceService deviceService;
     private FlowObjectiveService flowObjectiveService;
     private NetworkConfigService networkConfigService;
@@ -118,28 +119,25 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
     private DeviceListener deviceListener;
     private MastershipService mastershipService = new InternalMastershipServiceTest();
     private HostListener hostListener;
-
-    /**
-     * @throws java.lang.Exception
-     */
+    private InterfaceListener interfaceListener;
     @Override
     @Before
-    public void setUp() throws Exception {
-        super.setUp();
-        interfaceService = createMock(InterfaceService.class);
+    public void setUp() {
         networkConfigListener = createMock(NetworkConfigListener.class);
         hostService = new TestHostService();
         deviceService = new TestDeviceService();
         deviceListener = createMock(DeviceListener.class);
         hostListener = createMock(HostListener.class);
+        interfaceListener = createMock(InterfaceListener.class);
         hostService.addListener(hostListener);
         deviceService.addListener(deviceListener);
         setUpInterfaceService();
+        interfaceService = new InternalInterfaceService();
+        interfaceService.addListener(interfaceListener);
         networkConfigService = new TestNetworkConfigService();
         networkConfigService.addListener(networkConfigListener);
         flowObjectiveService = createMock(FlowObjectiveService.class);
         setUpFlowObjectiveService();
-
         controlPlaneRedirectManager.coreService = coreService;
         controlPlaneRedirectManager.flowObjectiveService = flowObjectiveService;
         controlPlaneRedirectManager.networkConfigService = networkConfigService;
@@ -150,98 +148,167 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
         controlPlaneRedirectManager.activate();
         verify(flowObjectiveService);
     }
+
     /**
-     * setup flow Configuration for all configured Interfaces.
+     * Tests adding new Device to a openflow router.
+     */
+    @Test
+    public void testAddDevice() {
+        ConnectPoint sw1eth4 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"), PortNumber.portNumber(4));
+        Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
+        interfaceIpAddresses4
+                .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
+
+        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses4,
+                MacAddress.valueOf("00:00:00:00:00:04"), VlanId.NONE);
+        interfaces.add(sw1Eth4);
+        EasyMock.reset(flowObjectiveService);
+        setUpFlowObjectiveService();
+        deviceListener.event(new DeviceEvent(DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED, dev3));
+        verify(flowObjectiveService);
+    }
+
+    /**
+     * Tests adding while updating the networkConfig.
+     */
+    @Test
+    public void testUpdateNetworkConfig() {
+        ConnectPoint sw1eth4 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"), PortNumber.portNumber(4));
+        Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
+        interfaceIpAddresses4
+                .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
+
+        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses4,
+                MacAddress.valueOf("00:00:00:00:00:04"), VlanId.NONE);
+        interfaces.add(sw1Eth4);
+        EasyMock.reset(flowObjectiveService);
+        setUpFlowObjectiveService();
+        networkConfigListener
+                .event(new NetworkConfigEvent(Type.CONFIG_UPDATED, dev3, RoutingService.ROUTER_CONFIG_CLASS));
+        networkConfigService.addListener(networkConfigListener);
+        verify(flowObjectiveService);
+    }
+
+    /**
+     * Tests adding while updating the networkConfig.
+     */
+    @Test
+    public void testAddInterface() {
+        ConnectPoint sw1eth4 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"), PortNumber.portNumber(4));
+        Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
+        interfaceIpAddresses4
+                .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
+
+        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses4,
+                MacAddress.valueOf("00:00:00:00:00:04"), VlanId.NONE);
+        interfaces.add(sw1Eth4);
+
+        EasyMock.reset(flowObjectiveService);
+        expect(flowObjectiveService.allocateNextId()).andReturn(1).anyTimes();
+
+        setUpInterfaceConfiguration(sw1Eth4, true);
+        replay(flowObjectiveService);
+        interfaceListener.event(new InterfaceEvent(
+                org.onosproject.incubator.net.intf.InterfaceEvent.Type.INTERFACE_ADDED, sw1Eth4, 500L));
+        verify(flowObjectiveService);
+    }
+
+    @Test
+    public void testRemoveInterface() {
+        ConnectPoint sw1eth4 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"), PortNumber.portNumber(4));
+        Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
+        interfaceIpAddresses4
+                .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
+
+        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses4,
+                MacAddress.valueOf("00:00:00:00:00:04"), VlanId.NONE);
+        EasyMock.reset(flowObjectiveService);
+        expect(flowObjectiveService.allocateNextId()).andReturn(1).anyTimes();
+
+        setUpInterfaceConfiguration(sw1Eth4, false);
+        replay(flowObjectiveService);
+        interfaceListener.event(new InterfaceEvent(
+                org.onosproject.incubator.net.intf.InterfaceEvent.Type.INTERFACE_REMOVED, sw1Eth4, 500L));
+        verify(flowObjectiveService);
+    }
+
+    /**
+     * Setup flow Configuration for all configured Interfaces.
      *
      **/
     private void setUpFlowObjectiveService() {
-
         expect(flowObjectiveService.allocateNextId()).andReturn(1).anyTimes();
-        DeviceId deviceId = controlPlaneConnectPoint.deviceId();
-        PortNumber controlPlanePort = controlPlaneConnectPoint.port();
-        int cpNextId, intfNextId;
         for (Interface intf : interfaceService.getInterfaces()) {
-            for (InterfaceIpAddress ip : intf.ipAddresses()) {
-                if (intf.vlan() == VlanId.NONE) {
-                    // cpNextId = 1;
-                    // intfNextId = 1;
-                    cpNextId = createNextObjective(deviceId, controlPlanePort,
-                            VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN), true);
-                    intfNextId = createNextObjective(deviceId, intf.connectPoint().port(),
-                            VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN), true);
-                } else {
-                    // cpNextId = 1;
-                    // intfNextId = 1;
-
-                    cpNextId = createNextObjective(deviceId, controlPlanePort, intf.vlan(), false);
-                    intfNextId = createNextObjective(deviceId, intf.connectPoint().port(), intf.vlan(), false);
-                }
-                TrafficSelector toSelector = DefaultTrafficSelector.builder().matchInPort(intf.connectPoint().port())
-                        .matchEthDst(intf.mac()).matchEthType(EthType.EtherType.IPV4.ethType().toShort())
-                        .matchVlanId(intf.vlan()).matchIPDst(ip.ipAddress().toIpPrefix()).build();
-                flowObjectiveService.forward(deviceId, buildForwardingObjective(toSelector, null, cpNextId, true));
-                expectLastCall().once();
-                // IPv4 from router
-                TrafficSelector fromSelector = DefaultTrafficSelector.builder().matchInPort(controlPlanePort)
-                        .matchEthSrc(intf.mac()).matchVlanId(intf.vlan())
-                        .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
-                        .matchIPSrc(ip.ipAddress().toIpPrefix()).build();
-                flowObjectiveService.forward(deviceId, buildForwardingObjective(fromSelector, null, intfNextId, true));
-                expectLastCall().once();
-                // ARP to router
-                toSelector = DefaultTrafficSelector.builder().matchInPort(intf.connectPoint().port())
-                        .matchEthType(EthType.EtherType.ARP.ethType().toShort()).matchVlanId(intf.vlan()).build();
-
-                TrafficTreatment puntTreatment = DefaultTrafficTreatment.builder().punt().build();
-                flowObjectiveService.forward(deviceId,
-                        buildForwardingObjective(toSelector, puntTreatment, cpNextId, true));
-                expectLastCall().once();
-                // ARP from router
-                fromSelector = DefaultTrafficSelector.builder().matchInPort(controlPlanePort).matchEthSrc(intf.mac())
-                        .matchVlanId(intf.vlan()).matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                        .matchArpSpa(ip.ipAddress().getIp4Address()).build();
-                flowObjectiveService.forward(deviceId,
-                        buildForwardingObjective(fromSelector, puntTreatment, intfNextId, true));
-                expectLastCall().once();
-
-            }
-            updateOspfForwarding(intf);
+            setUpInterfaceConfiguration(intf, true);
         }
-
         replay(flowObjectiveService);
     }
 
     /**
-     * setup expectations on flowobjectService.forward for ospfForwarding.
-     *
+     * Setting up flowobjective expectations for basic forwarding and ospf.
      **/
-    private void updateOspfForwarding(Interface intf) {
-        // OSPF to router
+    private void setUpInterfaceConfiguration(Interface intf, boolean install) {
+        DeviceId deviceId = controlPlaneConnectPoint.deviceId();
+        PortNumber controlPlanePort = controlPlaneConnectPoint.port();
+
+        for (InterfaceIpAddress ip : intf.ipAddresses()) {
+            int cpNextId, intfNextId;
+
+            cpNextId = modifyNextObjective(deviceId, controlPlanePort,
+                    VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN), true, install);
+            intfNextId = modifyNextObjective(deviceId, intf.connectPoint().port(),
+                    VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN), true, install);
+
+            // IPv4 to router
+            TrafficSelector toSelector = DefaultTrafficSelector.builder().matchInPort(intf.connectPoint().port())
+                    .matchEthDst(intf.mac()).matchEthType(EthType.EtherType.IPV4.ethType().toShort())
+                    .matchVlanId(intf.vlan()).matchIPDst(ip.ipAddress().toIpPrefix()).build();
+
+            flowObjectiveService.forward(deviceId, buildForwardingObjective(toSelector, null, cpNextId, install));
+            expectLastCall().once();
+            // IPv4 from router
+            TrafficSelector fromSelector = DefaultTrafficSelector.builder().matchInPort(controlPlanePort)
+                    .matchEthSrc(intf.mac()).matchVlanId(intf.vlan())
+                    .matchEthType(EthType.EtherType.IPV4.ethType().toShort()).matchIPSrc(ip.ipAddress().toIpPrefix())
+                    .build();
+
+            flowObjectiveService.forward(deviceId, buildForwardingObjective(fromSelector, null, intfNextId, install));
+            expectLastCall().once();
+            // ARP to router
+            toSelector = DefaultTrafficSelector.builder().matchInPort(intf.connectPoint().port())
+                    .matchEthType(EthType.EtherType.ARP.ethType().toShort()).matchVlanId(intf.vlan()).build();
+
+            TrafficTreatment puntTreatment = DefaultTrafficTreatment.builder().punt().build();
+
+            flowObjectiveService.forward(deviceId,
+                    buildForwardingObjective(toSelector, puntTreatment, cpNextId, install));
+            expectLastCall().once();
+            // ARP from router
+            fromSelector = DefaultTrafficSelector.builder().matchInPort(controlPlanePort).matchEthSrc(intf.mac())
+                    .matchVlanId(intf.vlan()).matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                    .matchArpSpa(ip.ipAddress().getIp4Address()).build();
+
+            flowObjectiveService.forward(deviceId,
+                    buildForwardingObjective(fromSelector, puntTreatment, intfNextId, install));
+            expectLastCall().once();
+        }
+        // setting expectations for ospf forwarding.
         TrafficSelector toSelector = DefaultTrafficSelector.builder().matchInPort(intf.connectPoint().port())
                 .matchEthType(EthType.EtherType.IPV4.ethType().toShort()).matchVlanId(intf.vlan())
                 .matchIPProtocol((byte) OSPF_IP_PROTO).build();
 
-        PortNumber controlPlanePort = controlPlaneConnectPoint.port();
-        DeviceId deviceId = controlPlaneConnectPoint.deviceId();
-        int cpNextId;
-        if (intf.vlan() == VlanId.NONE) {
-            cpNextId = createNextObjective(deviceId, controlPlanePort,
-                    VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN), true);
-        } else {
-            cpNextId = createNextObjective(deviceId, controlPlanePort, intf.vlan(), false);
-        }
-        log.debug("ospf flows intf:{} nextid:{}", intf, cpNextId);
+        modifyNextObjective(deviceId, controlPlanePort, VlanId.vlanId((short) 4094), true, install);
         flowObjectiveService.forward(controlPlaneConnectPoint.deviceId(),
-                buildForwardingObjective(toSelector, null, cpNextId, true));
+                buildForwardingObjective(toSelector, null, 1, install));
         expectLastCall().once();
     }
 
     /**
-     * setup expectations on flowObjectiveService.next for NextObjective.
+     * Setup expectations on flowObjectiveService.next for NextObjective.
      *
      **/
-    private int createNextObjective(DeviceId deviceId, PortNumber portNumber, VlanId vlanId, boolean popVlan) {
-
+    private int modifyNextObjective(DeviceId deviceId, PortNumber portNumber, VlanId vlanId, boolean popVlan,
+            boolean modifyFlag) {
         NextObjective.Builder nextObjBuilder = DefaultNextObjective.builder().withId(1)
                 .withType(NextObjective.Type.SIMPLE).fromApp(APPID);
 
@@ -251,25 +318,25 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
         }
         ttBuilder.setOutput(portNumber);
 
-        // setup metadata to pass to nextObjective - indicate the vlan on egress
-        // if needed by the switch pipeline.
         TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder();
         metabuilder.matchVlanId(vlanId);
 
         nextObjBuilder.withMeta(metabuilder.build());
         nextObjBuilder.addTreatment(ttBuilder.build());
-        log.debug("Submited next objective {} in device {} for port/vlan {}/{}", 1, deviceId, portNumber, vlanId);
-        flowObjectiveService.next(deviceId, nextObjBuilder.add());
-        expectLastCall().once();
+        if (modifyFlag) {
+            flowObjectiveService.next(deviceId, nextObjBuilder.add());
+            expectLastCall().once();
+        } else {
+            flowObjectiveService.next(deviceId, nextObjBuilder.remove());
+            expectLastCall().once();
+        }
         return 1;
     }
 
     /**
-     * setup Interface expectation for all Testcases.
-     *
+     * Setup Interface expectation for all Testcases.
      **/
     private void setUpInterfaceService() {
-
         Set<InterfaceIpAddress> interfaceIpAddresses1 = Sets.newHashSet();
         interfaceIpAddresses1
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.10.101"), IpPrefix.valueOf("192.168.10.0/24")));
@@ -291,89 +358,7 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
                 MacAddress.valueOf("00:00:00:00:00:03"), VlanId.NONE);
         interfaces.add(sw1Eth3);
 
-        expect(interfaceService.getInterfacesByPort(SW1_ETH1)).andReturn(Collections.singleton(sw1Eth1)).anyTimes();
-        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.10.1"))).andReturn(sw1Eth1).anyTimes();
-        expect(interfaceService.getInterfacesByPort(SW1_ETH2)).andReturn(Collections.singleton(sw1Eth2)).anyTimes();
-        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.20.1"))).andReturn(sw1Eth2).anyTimes();
-
-        expect(interfaceService.getInterfacesByPort(SW1_ETH3)).andReturn(Collections.singleton(sw1Eth3)).anyTimes();
-        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.30.1"))).andReturn(sw1Eth3).anyTimes();
-        expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
-        replay(interfaceService);
-        interfaceService.getInterfaces();
-        verify(interfaceService);
     }
-
-    /**
-     * Tests adding new Device to a  controlplane.
-     *
-     * @throws SecurityException
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
-     * @throws IllegalArgumentException
-     */
-
-    @Test
-    public void testAddDevice()
-            throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-
-        ConnectPoint sw1eth4 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"), PortNumber.portNumber(4));
-        Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
-        interfaceIpAddresses4
-                .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
-
-        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses4,
-                MacAddress.valueOf("00:00:00:00:00:04"), VlanId.NONE);
-        interfaces.add(sw1Eth4);
-        EasyMock.reset(interfaceService);
-        expect(interfaceService.getInterfacesByPort(sw1eth4)).andReturn(Collections.singleton(sw1Eth4)).anyTimes();
-        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.40.1"))).andReturn(sw1Eth4).anyTimes();
-        expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
-        replay(interfaceService);
-        interfaceService.getInterfaces();
-        EasyMock.reset(flowObjectiveService);
-        setUpFlowObjectiveService();
-        deviceListener.event(new DeviceEvent(DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED, dev3));
-        deviceService.addListener(deviceListener);
-
-        verify(flowObjectiveService);
-    }
-
-    /**
-     * Tests adding while updating the networkConfig.
-     *
-     * @throws SecurityException
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
-     * @throws IllegalArgumentException
-     */
-    @Test
-    public void testUpdateNetworkConfig()
-            throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-
-        ConnectPoint sw1eth4 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"), PortNumber.portNumber(4));
-        Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
-        interfaceIpAddresses4
-                .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
-
-        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses4,
-                MacAddress.valueOf("00:00:00:00:00:04"), VlanId.NONE);
-        interfaces.add(sw1Eth4);
-        EasyMock.reset(interfaceService);
-        expect(interfaceService.getInterfacesByPort(sw1eth4)).andReturn(Collections.singleton(sw1Eth4)).anyTimes();
-        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.40.1"))).andReturn(sw1Eth4).anyTimes();
-        expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
-        replay(interfaceService);
-        interfaceService.getInterfaces();
-        EasyMock.reset(flowObjectiveService);
-        setUpFlowObjectiveService();
-        networkConfigListener
-                .event(new NetworkConfigEvent(Type.CONFIG_UPDATED, dev3, RoutingService.ROUTER_CONFIG_CLASS));
-        // deviceService.addListener(deviceListener);
-        networkConfigService.addListener(networkConfigListener);
-        verify(flowObjectiveService);
-    }
-
 
     private ForwardingObjective buildForwardingObjective(TrafficSelector selector, TrafficTreatment treatment,
             int nextId, boolean add) {
@@ -390,11 +375,8 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
         return add ? fobBuilder.add() : fobBuilder.remove();
     }
 
-    /**
-     * @param intf
-     */
-
     private class TestCoreService extends CoreServiceAdapter {
+
         @Override
         public ApplicationId getAppId(String name) {
             return APPID;
@@ -402,7 +384,6 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
 
         @Override
         public ApplicationId registerApplication(String name) {
-            // TODO Auto-generated method stub
             return new TestApplicationId(name);
         }
 
@@ -412,7 +393,6 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
 
         @Override
         public boolean isAvailable(DeviceId deviceId) {
-            // TODO Auto-generated method stub
             boolean flag = false;
             if (deviceId.equals(controlPlaneConnectPoint.deviceId())) {
                 flag = true;
@@ -422,7 +402,6 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
 
         @Override
         public void addListener(DeviceListener listener) {
-            // TODO Auto-generated method stub
             ControlPlaneRedirectManagerTest.this.deviceListener = listener;
         }
 
@@ -432,7 +411,6 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
 
         @Override
         public void addListener(HostListener listener) {
-            // TODO Auto-generated method stub
             ControlPlaneRedirectManagerTest.this.hostListener = listener;
         }
 
@@ -442,20 +420,16 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
 
         @Override
         public ConnectPoint getControlPlaneConnectPoint() {
-            // TODO Auto-generated method stub
             return controlPlaneConnectPoint;
         }
 
         @Override
         public boolean getOspfEnabled() {
-            // TODO Auto-generated method stub
             return true;
         }
 
         @Override
         public List<String> getInterfaces() {
-            // TODO Auto-generated method stub
-
             ArrayList<String> interfaces = new ArrayList<>();
             interfaces.add("of:0000000000000001");
             interfaces.add("of:0000000000000001/2");
@@ -469,14 +443,11 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
 
         @Override
         public void addListener(NetworkConfigListener listener) {
-            // TODO Auto-generated method stub
             ControlPlaneRedirectManagerTest.this.networkConfigListener = listener;
         }
 
         @Override
         public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
-            // TODO Auto-generated method stub
-
             return (C) ControlPlaneRedirectManagerTest.this.routerConfig;
         }
 
@@ -533,7 +504,7 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
             if (name == null) {
                 if (other.name != null) {
                     return false;
-            }
+                }
             } else if (!name.equals(other.name)) {
                 return false;
             }
@@ -545,9 +516,48 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
 
         @Override
         public boolean isLocalMaster(DeviceId deviceId) {
-            // TODO Auto-generated method stub
             boolean flag = deviceId.equals(controlPlaneConnectPoint.deviceId());
             return flag;
+        }
+
+    }
+
+    private class InternalInterfaceService extends InterfaceServiceAdapter {
+
+        @Override
+        public void addListener(InterfaceListener listener) {
+            ControlPlaneRedirectManagerTest.this.interfaceListener = listener;
+        }
+
+        @Override
+        public Set<Interface> getInterfaces() {
+            return interfaces;
+        }
+
+        @Override
+        public Set<Interface> getInterfacesByPort(ConnectPoint port) {
+            Set<Interface> setIntf = new HashSet<Interface>();
+            for (Interface intf : interfaces) {
+                if (intf.connectPoint().equals(port)) {
+                    setIntf.add(intf);
+                }
+            }
+            return setIntf;
+        }
+
+        @Override
+        public Interface getMatchingInterface(IpAddress ip) {
+            Interface intff = null;
+            for (Interface intf : interfaces) {
+                for (InterfaceIpAddress address : intf.ipAddresses()) {
+                    if (address.ipAddress().equals(ip)) {
+                        intff = intf;
+                        break;
+                    }
+                }
+            }
+
+            return intff;
         }
 
     }
