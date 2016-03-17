@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package test;
+package org.onosproject.persistence.impl;
 
 import com.google.common.collect.Sets;
 import org.junit.After;
@@ -22,7 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
-import org.onosproject.persistence.impl.PersistentSet;
 import org.onosproject.store.service.Serializer;
 
 import java.nio.file.Paths;
@@ -34,6 +33,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -143,7 +143,7 @@ public class PersistentSetTest {
         Object[] arr = set.toArray();
         assertEquals("The array should be of length 10.", 10, arr.length);
         for (int i = 0; i < 10; i++) {
-            assertTrue("All elements of the array should be in the set.", set.contains((Integer) arr[i]));
+            assertTrue("All elements of the array should be in the set.", set.contains(arr[i]));
         }
     }
 
@@ -154,7 +154,7 @@ public class PersistentSetTest {
         fillSet(9, set);
         //Test the case where the array and set match in size
         Object[] retArray = set.toArray(originalArray);
-        assertEquals("If the set can fit the array should be the one passed in.", originalArray, retArray);
+        assertSame("If the set can fit the array should be the one passed in.", originalArray, retArray);
         //Test the case where the passe array is too small to fit the set
         set.add(9);
         assertNotEquals("A new set should be generated if the contents will not fit in the passed set",

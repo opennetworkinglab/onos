@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package test;
+package org.onosproject.persistence.impl;
 
 import com.google.common.collect.Maps;
 import org.junit.After;
@@ -22,7 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
-import org.onosproject.persistence.impl.PersistentMap;
 import org.onosproject.store.service.Serializer;
 
 import java.nio.file.Paths;
