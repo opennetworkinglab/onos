@@ -38,6 +38,7 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
     protected static final String VLAN_ID = "vlanId";
     protected static final String VLAN_PCP = "vlanPcp";
     protected static final String MPLS_LABEL = "label";
+    protected static final String MPLS_BOS = "bos";
     protected static final String IP = "ip";
     protected static final String FLOW_LABEL = "flowLabel";
     protected static final String LAMBDA = "lambda";
