@@ -37,10 +37,10 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import io.atomix.catalyst.serializer.SerializationException;
 import io.atomix.catalyst.transport.Address;
 import io.atomix.catalyst.transport.Connection;
 import io.atomix.catalyst.transport.MessageHandler;
-import io.atomix.catalyst.transport.TransportException;
 import io.atomix.catalyst.util.Assert;
 import io.atomix.catalyst.util.Listener;
 import io.atomix.catalyst.util.Listeners;
@@ -127,8 +127,8 @@ public class CopycatTransportConnection implements Connection {
                         }
                         handleResponse(r, e, result, context);
                     });
-        } catch (Exception e) {
-            result.completeExceptionally(new TransportException("Failed to send request", e));
+        } catch (SerializationException | IOException e) {
+            result.completeExceptionally(e);
         }
         return result;
     }
