@@ -375,13 +375,12 @@ public class NetconfSessionImpl implements NetconfSession {
 
     private boolean close(boolean force) throws NetconfException {
         StringBuilder rpc = new StringBuilder();
-        rpc.append("<rpc>");
+        rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
         if (force) {
-            rpc.append("<kill-configuration/>");
+            rpc.append("<kill-session/>");
         } else {
-            rpc.append("<close-configuration/>");
+            rpc.append("<close-session/>");
         }
-        rpc.append("<close-configuration/>");
         rpc.append("</rpc>");
         rpc.append(ENDPATTERN);
         return checkReply(sendRequest(rpc.toString())) || close(true);

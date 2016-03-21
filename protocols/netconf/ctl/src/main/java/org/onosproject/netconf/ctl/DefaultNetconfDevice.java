@@ -35,7 +35,7 @@ public class DefaultNetconfDevice implements NetconfDevice {
             .getLogger(DefaultNetconfDevice.class);
 
     private NetconfDeviceInfo netconfDeviceInfo;
-    private boolean deviceState = false;
+    private boolean deviceState = true;
     protected NetconfSessionFactory sessionFactory = new SshNetconfSessionFactory();
     private NetconfSession netconfSession;
 
@@ -53,10 +53,10 @@ public class DefaultNetconfDevice implements NetconfDevice {
         try {
             netconfSession = sessionFactory.createNetconfSession(deviceInfo);
         } catch (IOException e) {
+            deviceState = false;
             throw new NetconfException("Cannot create connection and session for device " +
                                                deviceInfo, e);
         }
-        deviceState = true;
     }
 
     @Override
