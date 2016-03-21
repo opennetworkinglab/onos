@@ -70,6 +70,7 @@
         <module>openstacknode</module>
         <module>openstacknetworking</module>
         <module>openstackinterface</module>
+        <module>influxdbmetrics</module>
   </modules>
 
     <properties>
