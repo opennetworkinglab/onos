@@ -56,9 +56,10 @@ import static org.onosproject.security.AppPermission.Type.UI_WRITE;
 @Service
 public class UiExtensionManager implements UiExtensionService, SpriteService {
 
-    private static final ClassLoader CL =
-            UiExtensionManager.class.getClassLoader();
+    private static final ClassLoader CL = UiExtensionManager.class.getClassLoader();
     private static final String CORE = "core";
+    private static final String GUI_ADDED = "guiAdded";
+    private static final String GUI_REMOVED = "guiRemoved";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -146,6 +147,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
             for (UiView view : extension.views()) {
                 views.put(view.id(), extension);
             }
+            UiWebSocketServlet.sendToAll(GUI_ADDED, null);
         }
     }
 
@@ -153,8 +155,8 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
     public synchronized void unregister(UiExtension extension) {
         checkPermission(UI_WRITE);
         extensions.remove(extension);
-        extension.views().stream()
-                .map(UiView::id).collect(toSet()).forEach(views::remove);
+        extension.views().stream().map(UiView::id).collect(toSet()).forEach(views::remove);
+        UiWebSocketServlet.sendToAll(GUI_REMOVED, null);
     }
 
     @Override

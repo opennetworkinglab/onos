@@ -170,9 +170,8 @@ public class UiWebSocket
         if (sid > 0) {
             message.put("sid", sid);
         }
-        message.set("payload", payload);
+        message.set("payload", payload != null ? payload : mapper.createObjectNode());
         sendMessage(message);
-
     }
 
     // Creates new message handlers.

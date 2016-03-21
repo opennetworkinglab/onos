@@ -27,14 +27,52 @@
     var mastHeight = 36,
         padMobile = 16;
 
-    angular.module('onosMast', ['onosNav'])
-        .controller('MastCtrl', ['$log', 'NavService', function (_$log_, ns) {
+    var dialogId = 'app-dialog',
+        dialogOpts = {
+            edge: 'left'
+        };
+
+        angular.module('onosMast', ['onosNav'])
+        .controller('MastCtrl', ['$log', '$window', 'NavService',
+                                    'DialogService', 'WebSocketService',
+
+        function (_$log_, $window, ns, ds, wss) {
             var self = this;
 
             $log = _$log_;
 
             // initialize mast controller here...
             self.radio = null;
+
+            function triggerRefresh(action) {
+                function createConfirmationText() {
+                    var content = ds.createDiv();
+                    content.append('p').text(action + ' Press OK to update the GUI.');
+                    return content;
+                }
+
+
+                function dOk() {
+                    $log.debug('Refreshing GUI');
+                    $window.location.reload();
+                }
+
+                function dCancel() {
+                    $log.debug('Canceling GUI refresh');
+                }
+
+                ds.openDialog(dialogId, dialogOpts)
+                    .setTitle('Confirm GUI Refresh')
+                    .addContent(createConfirmationText())
+                    .addOk(dOk)
+                    .addCancel(dCancel)
+                    .bindKeys();
+            }
+
+            wss.bindHandlers({
+                'guiAdded': function () { triggerRefresh('New GUI components were added.') },
+                'guiRemoved': function () { triggerRefresh('Some GUI components were removed.') }
+            });
 
             // delegate to NavService
             self.toggleNav = function () {
