@@ -25,10 +25,12 @@ import org.onosproject.pcepio.protocol.PcepOpenObject;
 import org.onosproject.pcepio.protocol.PcepType;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.onosproject.pcepio.types.GmplsCapabilityTlv;
+import org.onosproject.pcepio.types.NodeAttributesTlv;
 import org.onosproject.pcepio.types.PceccCapabilityTlv;
 import org.onosproject.pcepio.types.PcepLabelDbVerTlv;
 import org.onosproject.pcepio.types.PcepObjectHeader;
 import org.onosproject.pcepio.types.PcepValueType;
+import org.onosproject.pcepio.types.SrPceCapabilityTlv;
 import org.onosproject.pcepio.types.StatefulLspDbVerTlv;
 import org.onosproject.pcepio.types.StatefulPceCapabilityTlv;
 import org.onosproject.pcepio.types.LsCapabilityTlv;
@@ -267,6 +269,20 @@ public class PcepOpenObjectVer1 implements PcepOpenObject {
                 }
                 lValue = cb.readLong();
                 tlv = new PcepLabelDbVerTlv(lValue);
+                break;
+            case NodeAttributesTlv.TYPE:
+                log.debug("NodeAttributesTlv");
+                if (cb.readableBytes() < hLength) {
+                    throw new PcepParseException("Invalid length for NodeAttributesTlv.");
+                }
+                tlv = NodeAttributesTlv.read(cb.readBytes(hLength), hLength);
+                break;
+            case SrPceCapabilityTlv.TYPE:
+                log.debug("SrPceCapabilityTlv");
+                if (SrPceCapabilityTlv.LENGTH != hLength) {
+                    throw new PcepParseException("Invalid length received for SrPceCapabilityTlv.");
+                }
+                tlv = SrPceCapabilityTlv.read(cb);
                 break;
             default:
                 log.debug("Unsupported TLV: " + hType);

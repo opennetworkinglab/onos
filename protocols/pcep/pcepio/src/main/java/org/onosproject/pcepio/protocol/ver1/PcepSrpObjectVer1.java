@@ -22,6 +22,7 @@ import java.util.ListIterator;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcepSrpObject;
+import org.onosproject.pcepio.types.PathSetupTypeTlv;
 import org.onosproject.pcepio.types.PcepObjectHeader;
 import org.onosproject.pcepio.types.PcepValueType;
 import org.onosproject.pcepio.types.SymbolicPathNameTlv;
@@ -221,12 +222,18 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
             short hLength = cb.readShort();
 
             switch (hType) {
-
             case SymbolicPathNameTlv.TYPE:
+                if (cb.readableBytes() < hLength) {
+                    throw new PcepParseException("Length is not valid in SymbolicPathNameTlv");
+                }
                 tlv = SymbolicPathNameTlv.read(cb, hLength);
-                cb.skipBytes(hLength);
                 break;
-
+            case PathSetupTypeTlv.TYPE:
+                if (cb.readableBytes() != PathSetupTypeTlv.LENGTH) {
+                    throw new PcepParseException("Length is not valid in PathSetupTypeTlv");
+                }
+                tlv = PathSetupTypeTlv.of(cb.readInt());
+                break;
             default:
                 throw new PcepParseException("Unsupported TLV received in SRP Object.");
             }

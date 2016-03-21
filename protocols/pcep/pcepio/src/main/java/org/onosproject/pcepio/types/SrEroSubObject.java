@@ -30,7 +30,8 @@ import java.util.Objects;
  */
 public class SrEroSubObject implements PcepValueType {
     /*
-    SR-ERO subobject: (draft-ietf-pce-segment-routing-00)
+    SR-ERO subobject: (draft-ietf-pce-segment-routing-06)
+
     0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -40,7 +41,8 @@ public class SrEroSubObject implements PcepValueType {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     //                        NAI (variable)                       //
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
+    When M bit is reset, SID is 32 bit Index.
+    When M bit is set, SID is 20 bit Label.
 
 
     NAI
@@ -98,7 +100,8 @@ public class SrEroSubObject implements PcepValueType {
     private final boolean bMFlag;
     private final byte st;
 
-    private final int sID;
+    //If m bit is set SID will store label else store 32 bit value
+    private final int sid;
     private final PcepNai nai;
 
     /**
@@ -109,17 +112,17 @@ public class SrEroSubObject implements PcepValueType {
      * @param bSFlag S flag
      * @param bCFlag C flag
      * @param bMFlag M flag
-     * @param sID segment identifier value
+     * @param sid segment identifier value
      * @param nai NAI associated with SID
      */
-    public SrEroSubObject(byte st, boolean bFFlag, boolean bSFlag, boolean bCFlag, boolean bMFlag, int sID,
+    public SrEroSubObject(byte st, boolean bFFlag, boolean bSFlag, boolean bCFlag, boolean bMFlag, int sid,
             PcepNai nai) {
         this.st = st;
         this.bFFlag = bFFlag;
         this.bSFlag = bSFlag;
         this.bCFlag = bCFlag;
         this.bMFlag = bMFlag;
-        this.sID = sID;
+        this.sid = sid;
         this.nai = nai;
     }
 
@@ -131,18 +134,19 @@ public class SrEroSubObject implements PcepValueType {
      * @param bSFlag S flag
      * @param bCFlag C flag
      * @param bMFlag M flag
-     * @param sID segment identifier value
+     * @param sid segment identifier value
      * @param nai NAI associated with SID
      * @return object of SrEroSubObject
      */
-    public static SrEroSubObject of(byte st, boolean bFFlag, boolean bSFlag, boolean bCFlag, boolean bMFlag, int sID,
+    public static SrEroSubObject of(byte st, boolean bFFlag, boolean bSFlag, boolean bCFlag, boolean bMFlag, int sid,
             PcepNai nai) {
-        return new SrEroSubObject(st, bFFlag, bSFlag, bCFlag, bMFlag, sID, nai);
+        return new SrEroSubObject(st, bFFlag, bSFlag, bCFlag, bMFlag, sid, nai);
     }
 
     /**
      * Returns SID type.
-     * @return st sid type
+     *
+     * @return st SID type
      */
     public byte getSt() {
         return st;
@@ -150,6 +154,7 @@ public class SrEroSubObject implements PcepValueType {
 
     /**
      * Returns bFFlag.
+     *
      * @return bFFlag
      */
     public boolean getFFlag() {
@@ -158,6 +163,7 @@ public class SrEroSubObject implements PcepValueType {
 
     /**
      * Returns bSFlag.
+     *
      * @return bSFlag
      */
     public boolean getSFlag() {
@@ -166,6 +172,7 @@ public class SrEroSubObject implements PcepValueType {
 
     /**
      * Returns bCFlag.
+     *
      * @return bCFlag
      */
     public boolean getCFlag() {
@@ -174,6 +181,7 @@ public class SrEroSubObject implements PcepValueType {
 
     /**
      * Returns bMFlag.
+     *
      * @return bMFlag
      */
     public boolean getMFlag() {
@@ -182,10 +190,11 @@ public class SrEroSubObject implements PcepValueType {
 
     /**
      * Returns sID.
-     * @return sID
+     *
+     * @return sid
      */
     public int getSid() {
-        return sID;
+        return sid;
     }
 
     /**
@@ -213,7 +222,7 @@ public class SrEroSubObject implements PcepValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(st, bFFlag, bSFlag, bCFlag, bMFlag, sID, nai);
+        return Objects.hash(st, bFFlag, bSFlag, bCFlag, bMFlag, sid, nai);
     }
 
     @Override
@@ -225,7 +234,7 @@ public class SrEroSubObject implements PcepValueType {
             SrEroSubObject other = (SrEroSubObject) obj;
             return Objects.equals(this.st, other.st) && Objects.equals(this.bFFlag, other.bFFlag)
                     && Objects.equals(this.bSFlag, other.bSFlag) && Objects.equals(this.bCFlag, other.bCFlag)
-                    && Objects.equals(this.bMFlag, other.bMFlag) && Objects.equals(this.sID, other.sID)
+                    && Objects.equals(this.bMFlag, other.bMFlag) && Objects.equals(this.sid, other.sid)
                     && Objects.equals(this.nai, other.nai);
         }
         return false;
@@ -254,7 +263,12 @@ public class SrEroSubObject implements PcepValueType {
         short tempST = (short) (st << SHIFT_ST);
         temp = (short) (temp | tempST);
         c.writeShort(temp);
-        c.writeInt(sID);
+        if (bMFlag) {
+            int tempSid = (int) sid << 12;
+            c.writeInt(tempSid);
+        } else {
+            c.writeInt(sid);
+        }
         nai.write(c);
 
         return c.writerIndex() - iLenStartIndex;
@@ -281,21 +295,24 @@ public class SrEroSubObject implements PcepValueType {
 
         st = (byte) (temp >> SHIFT_ST);
 
-        int sID = c.readInt();
+        int sid = c.readInt();
+        if (bMFlag) {
+            sid = sid >> 12;
+        }
         switch (st) {
-        case 0x01:
+        case PcepNaiIpv4NodeId.ST_TYPE:
             nai = PcepNaiIpv4NodeId.read(c);
             break;
-        case 0x02:
+        case PcepNaiIpv6NodeId.ST_TYPE:
             nai = PcepNaiIpv6NodeId.read(c);
             break;
-        case 0x03:
+        case PcepNaiIpv4Adjacency.ST_TYPE:
             nai = PcepNaiIpv4Adjacency.read(c);
             break;
-        case 0x04:
+        case PcepNaiIpv6Adjacency.ST_TYPE:
             nai = PcepNaiIpv6Adjacency.read(c);
             break;
-        case 0x05:
+        case PcepNaiUnnumberedAdjacencyIpv4.ST_TYPE:
             nai = PcepNaiUnnumberedAdjacencyIpv4.read(c);
             break;
         default:
@@ -303,7 +320,7 @@ public class SrEroSubObject implements PcepValueType {
             break;
         }
 
-        return new SrEroSubObject(st, bFFlag, bSFlag, bCFlag, bMFlag, sID, nai);
+        return new SrEroSubObject(st, bFFlag, bSFlag, bCFlag, bMFlag, sid, nai);
     }
 
     @Override
@@ -316,7 +333,7 @@ public class SrEroSubObject implements PcepValueType {
                 .add("bSFlag", bSFlag)
                 .add("bCFlag", bCFlag)
                 .add("bMFlag", bMFlag)
-                .add("sID", sID)
+                .add("sid", sid)
                 .add("nAI", nai)
                 .toString();
     }
