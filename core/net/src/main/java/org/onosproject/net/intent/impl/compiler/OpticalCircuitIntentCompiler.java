@@ -16,6 +16,7 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.base.Strings;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -78,6 +79,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -184,20 +186,18 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         // TODO: try to release intent resources in IntentManager.
         resourceService.release(intent.id());
 
-        // Reserve OduClt ports
+        // Check OduClt ports availability
         Resource srcPortResource = Resources.discrete(src.deviceId(), src.port()).resource();
         Resource dstPortResource = Resources.discrete(dst.deviceId(), dst.port()).resource();
-        List<ResourceAllocation> allocation = resourceService.allocate(intent.id(), srcPortResource, dstPortResource);
-        if (allocation.isEmpty()) {
-            throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
+        // If ports are not available, compilation fails
+        if (!Stream.of(srcPortResource, dstPortResource).allMatch(resourceService::isAvailable)) {
+            throw new IntentCompilationException("Ports for the intent are not available. Intent: " + intent);
         }
+        List<Resource> ports = ImmutableList.of(srcPortResource, dstPortResource);
 
         // Check if both devices support multiplexing (usage of TributarySlots)
         boolean multiplexingSupported = isMultiplexingSupported(intent.getSrc())
                 && isMultiplexingSupported(intent.getDst());
-
-        // slots are used only for devices supporting multiplexing
-        List<Resource> ports = ImmutableList.of(srcPortResource, dstPortResource);
 
         OpticalConnectivityIntent connIntent = findOpticalConnectivityIntent(intent.getSrc(), intent.getDst(),
                 intent.getSignalType(), multiplexingSupported);
