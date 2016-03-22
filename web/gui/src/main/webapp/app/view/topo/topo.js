@@ -30,7 +30,7 @@
 
     // references to injected services
     var $scope, $log, $cookies, fs, ks, zs, gs, ms, sus, flash, wss, ps, th,
-        tds, tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, tspr, ttip, tov;
+        tds, t3s, tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, tspr, ttip, tov;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
@@ -369,16 +369,14 @@
 
     function setUpMap($loc) {
         var qp = $loc.search(),
-            pr = ps.getPrefs('topo_mapid'),
-            mi1 = qp.mapid,
-            mi2 = pr && pr.id,
-            mapId = mi1 || mi2 || 'usa',
-            ms1 = qp.mapscale,
-            ms2 = pr && pr.scale,
-            mapScale = ms1 || ms2 || 1,
-            t1 = qp.tint,
-            t2 = pr && pr.tint,
-            tint = t1 || t2 || 'off',
+            pr = ps.getPrefs('topo_mapid', {
+                id: qp.mapid || 'usa',
+                scale: qp.mapscale || 1,
+                tint: qp.tint || 'off'
+            }),
+            mapId = pr.id,
+            mapScale = pr.scale,
+            tint = pr.tint,
             promise,
             cfilter;
 
@@ -441,8 +439,8 @@
 
     function setUpSprites($loc, tspr) {
         var s1 = $loc.search().sprites,
-            s2 = ps.getPrefs('topo_sprites'),
-            sprId = s1 || (s2 && s2.id);
+            s2 = ps.getPrefs('topo_sprites', { id: s1 }),
+            sprId = s2.id;
 
         spriteG = zoomLayer.append ('g').attr('id', 'topo-sprites');
         if (sprId) {
@@ -463,7 +461,7 @@
 
     function restoreConfigFromPrefs() {
         // NOTE: toolbar will have set this for us..
-        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs'));
+        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs', ttbs.defaultPrefs));
 
         $log.debug('TOPO- Prefs State:', prefsState);
 
@@ -476,6 +474,7 @@
         togglePorts(prefsState.porthl);
         toggleMap(prefsState.bg);
         toggleSprites(prefsState.spr);
+        t3s.setDevLabIndex(prefsState.dlbls);
         flash.enable(true);
     }
 
@@ -484,7 +483,7 @@
     //  have opened the websocket to the server; hence this extra function
     // invoked after tes.start()
     function restoreSummaryFromPrefs() {
-        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs'));
+        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs', ttbs.defaultPrefs));
         $log.debug('TOPO- Prefs SUMMARY State:', prefsState.summary);
 
         flash.enable(false);
@@ -506,7 +505,7 @@
             '$cookies', 'FnService', 'MastService', 'KeyService', 'ZoomService',
             'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
             'WebSocketService', 'PrefsService', 'ThemeService',
-            'TopoDialogService',
+            'TopoDialogService', 'TopoD3Service',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoLinkService',
             'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
@@ -515,7 +514,7 @@
 
         function (_$scope_, _$log_, $loc, $timeout, _$cookies_, _fs_, mast, _ks_,
                   _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _th_,
-                  _tds_, _tes_,
+                  _tds_, _t3s_, _tes_,
                   _tfs_, _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_,
                   _ttbs_, _tspr_, _ttip_, _tov_) {
             var params = $loc.search(),
@@ -545,6 +544,7 @@
             ps = _ps_;
             th = _th_;
             tds = _tds_;
+            t3s = _t3s_;
             tes = _tes_;
             tfs = _tfs_;
             // TODO: consider funnelling actions through TopoForceService...
@@ -601,7 +601,7 @@
             setUpNoDevs();
             setUpMap($loc).then(
                 function (proj) {
-                    var z = ps.getPrefs('topo_zoom') || {tx:0, ty:0, sc:1};
+                    var z = ps.getPrefs('topo_zoom', { tx:0, ty:0, sc:1 });
                     zoomer.panZoom([z.tx, z.ty], z.sc);
                     $log.debug('** Zoom restored:', z);
 

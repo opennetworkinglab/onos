@@ -23,6 +23,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public interface UiConnection {
 
     /**
+     * Returns the name of the logged-in user for which this connection exists.
+     *
+     * @return logged in user name
+     */
+    String userName();
+
+    /**
      * Sends the specified JSON message to the user interface client.
      *
      * @param message message to send

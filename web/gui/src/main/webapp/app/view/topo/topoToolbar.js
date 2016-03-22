@@ -70,11 +70,12 @@
 
     // initial toggle state: default settings and tag to key mapping
     var defaultPrefsState = {
-            summary: 1,
             insts: 1,
+            summary: 1,
             detail: 1,
             hosts: 0,
             offdev: 1,
+            dlbls: 0,
             porthl: 1,
             bg: 0,
             spr: 0,
@@ -104,7 +105,7 @@
     }
 
     function setInitToggleState() {
-        cachedState = ps.asNumbers(ps.getPrefs(cooktag));
+        cachedState = ps.asNumbers(ps.getPrefs(cooktag, defaultPrefsState));
         $log.debug('TOOLBAR---- read prefs state:', cachedState);
 
         if (!cachedState) {
@@ -264,6 +265,9 @@
 
     function toggleToolbar() {
         toolbar.toggle();
+        var prefs = ps.getPrefs(cooktag, defaultPrefsState);
+        prefs.toolbar = !prefs.toolbar;
+        ps.setPrefs('topo_prefs', prefs);
     }
 
     function setDefaultOverlay() {
@@ -298,6 +302,7 @@
                 keyListener: keyListener,
                 toggleToolbar: toggleToolbar,
                 setDefaultOverlay: setDefaultOverlay,
+                defaultPrefs: defaultPrefsState,
                 fnkey: fnkey
             };
         }]);

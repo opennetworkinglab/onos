@@ -529,6 +529,7 @@
 
                 showSummary: showSummary,
                 toggleSummary: toggleSummary,
+                hideSummary: hideSummaryPanel,
 
                 toggleUseDetailsFlag: toggleUseDetailsFlag,
                 displaySingle: displaySingle,
@@ -537,8 +538,6 @@
                 displayNothing: displayNothing,
                 displaySomething: displaySomething,
                 addAction: addAction,
-
-                hideSummaryPanel: hideSummaryPanel,
 
                 detailVisible: function () { return detail.panel().isVisible(); },
                 summaryVisible: function () { return summary.panel().isVisible(); }

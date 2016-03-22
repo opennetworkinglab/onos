@@ -54,6 +54,7 @@ public class UiWebSocket
 
     private Connection connection;
     private FrameConnection control;
+    private String userName;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -66,9 +67,16 @@ public class UiWebSocket
      * Creates a new web-socket for serving data to GUI.
      *
      * @param directory service directory
+     * @param userName user name of the logged-in user
      */
-    public UiWebSocket(ServiceDirectory directory) {
+    public UiWebSocket(ServiceDirectory directory, String userName) {
         this.directory = directory;
+        this.userName = userName;
+    }
+
+    @Override
+    public String userName() {
+        return userName;
     }
 
     /**

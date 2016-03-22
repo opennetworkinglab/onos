@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, sus, is, ts;
+    var $log, fs, sus, is, ts, ps, ttbs;
 
     // api to topoForce
     var api;
@@ -159,12 +159,19 @@
     // ====
 
     function incDevLabIndex() {
-        deviceLabelIndex = (deviceLabelIndex+1) % 3;
+        setDevLabIndex(deviceLabelIndex+1);
         switch(deviceLabelIndex) {
             case 0: return 'Hide device labels';
             case 1: return 'Show friendly device labels';
             case 2: return 'Show device ID labels';
         }
+    }
+
+    function setDevLabIndex(mode) {
+        deviceLabelIndex = mode % 3;
+        var p = ps.getPrefs('topo_prefs', ttbs.defaultPrefs);
+        p.dlbls = deviceLabelIndex;
+        ps.setPrefs('topo_prefs', p);
     }
 
     // Returns the newly computed bounding box of the rectangle
@@ -599,13 +606,16 @@
     angular.module('ovTopo')
     .factory('TopoD3Service',
         ['$log', 'FnService', 'SvgUtilService', 'IconService', 'ThemeService',
+            'PrefsService', 'TopoToolbarService',
 
-        function (_$log_, _fs_, _sus_, _is_, _ts_) {
+        function (_$log_, _fs_, _sus_, _is_, _ts_, _ps_, _ttbs_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
             is = _is_;
             ts = _ts_;
+            ps = _ps_;
+            ttbs = _ttbs_;
 
             icfg = is.iconConfig();
 
@@ -620,6 +630,7 @@
                 destroyD3: destroyD3,
 
                 incDevLabIndex: incDevLabIndex,
+                setDevLabIndex: setDevLabIndex,
                 adjustRectToFitText: adjustRectToFitText,
                 hostLabel: hostLabel,
                 deviceLabel: deviceLabel,

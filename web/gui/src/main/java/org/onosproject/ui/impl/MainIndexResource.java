@@ -15,17 +15,22 @@
  */
 package org.onosproject.ui.impl;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.rest.AbstractInjectionResource;
 import org.onosproject.ui.UiExtensionService;
+import org.onosproject.ui.UiPreferencesService;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
@@ -42,11 +47,20 @@ public class MainIndexResource extends AbstractInjectionResource {
     private static final String INDEX = "index.html";
     private static final String NOT_READY = "not-ready.html";
 
+    private static final String INJECT_USER_START = "<!-- {INJECTED-USER-START} -->";
+    private static final String INJECT_USER_END = "<!-- {INJECTED-USER-END} -->";
+
     private static final String INJECT_CSS_START = "<!-- {INJECTED-STYLESHEETS-START} -->";
     private static final String INJECT_CSS_END = "<!-- {INJECTED-STYLESHEETS-END} -->";
 
     private static final String INJECT_JS_START = "<!-- {INJECTED-JAVASCRIPT-START} -->";
     private static final String INJECT_JS_END = "<!-- {INJECTED-JAVASCRIPT-END} -->";
+
+    private static final byte[] SCRIPT_START = "\n<script>\n".getBytes();
+    private static final byte[] SCRIPT_END = "\n</script>\n\n".getBytes();
+
+    @Context
+    private SecurityContext ctx;
 
     @GET
     @Produces(MediaType.TEXT_HTML)
@@ -62,20 +76,40 @@ public class MainIndexResource extends AbstractInjectionResource {
         InputStream indexTemplate = classLoader.getResourceAsStream(INDEX);
         String index = new String(toByteArray(indexTemplate));
 
-        int p1s = split(index, 0, INJECT_JS_START) - INJECT_JS_START.length();
+        int p0s = split(index,   0, INJECT_USER_START) - INJECT_USER_START.length();
+        int p0e = split(index, p0s, INJECT_USER_END);
+        int p1s = split(index, p0e, INJECT_JS_START) - INJECT_JS_START.length();
         int p1e = split(index, p1s, INJECT_JS_END);
         int p2s = split(index, p1e, INJECT_CSS_START) - INJECT_CSS_START.length();
         int p2e = split(index, p2s, INJECT_CSS_END);
         int p3s = split(index, p2e, null);
 
+        // FIXME: use global opaque auth token to allow secure failover
+        String userName = ctx.getUserPrincipal().getName();
+        String auth = "var onosAuth='" + userName + "';\n";
+
         StreamEnumeration streams =
-                new StreamEnumeration(of(stream(index, 0, p1s),
+                new StreamEnumeration(of(stream(index, 0, p0s),
+                                         new ByteArrayInputStream(SCRIPT_START),
+                                         stream(auth, 0, auth.length()),
+                                         userPreferences(userName),
+                                         new ByteArrayInputStream(SCRIPT_END),
+                                         stream(index, p0e, p1s),
                                          includeJs(service),
                                          stream(index, p1e, p2s),
                                          includeCss(service),
                                          stream(index, p2e, p3s)));
 
         return Response.ok(new SequenceInputStream(streams)).build();
+    }
+
+    // Produces an input stream including user preferences.
+    private InputStream userPreferences(String userName) {
+        UiPreferencesService service = get(UiPreferencesService.class);
+        ObjectNode prefs = mapper().createObjectNode();
+        service.getPreferences(userName).forEach(prefs::set);
+        String string = "var userPrefs = " + prefs.toString() + ";";
+        return new ByteArrayInputStream(string.getBytes());
     }
 
     // Produces an input stream including JS injections from all extensions.

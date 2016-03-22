@@ -16,7 +16,19 @@
 package org.onosproject.ui.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.LongNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ShortNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -26,40 +38,49 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapEvent;
+import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
+import org.onosproject.ui.UiPreferencesService;
 import org.onosproject.ui.UiTopoOverlayFactory;
 import org.onosproject.ui.UiView;
 import org.onosproject.ui.UiViewHidden;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.of;
 import static java.util.stream.Collectors.toSet;
-import static org.onosproject.ui.UiView.Category.NETWORK;
-import static org.onosproject.ui.UiView.Category.PLATFORM;
-
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.UI_READ;
 import static org.onosproject.security.AppPermission.Type.UI_WRITE;
+import static org.onosproject.ui.UiView.Category.NETWORK;
+import static org.onosproject.ui.UiView.Category.PLATFORM;
 
 /**
  * Manages the user interface extensions.
  */
 @Component(immediate = true)
 @Service
-public class UiExtensionManager implements UiExtensionService, SpriteService {
+public class UiExtensionManager implements UiExtensionService, UiPreferencesService, SpriteService {
 
     private static final ClassLoader CL = UiExtensionManager.class.getClassLoader();
     private static final String CORE = "core";
     private static final String GUI_ADDED = "guiAdded";
     private static final String GUI_REMOVED = "guiRemoved";
+    private static final String UPDATE_PREFS = "updatePrefs";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -72,9 +93,18 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
     // Core views & core extension
     private final UiExtension core = createCoreExtension();
 
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
+    // User preferences
+    private EventuallyConsistentMap<String, ObjectNode> prefs;
+    private final EventuallyConsistentMapListener<String, ObjectNode> prefsListener =
+            new InternalPrefsListener();
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     // Creates core UI extension
     private UiExtension createCoreExtension() {
@@ -98,6 +128,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
 
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
+                        new UserPreferencesMessageHandler(),
                         new TopologyViewMessageHandler(),
                         new DeviceViewMessageHandler(),
                         new LinkViewMessageHandler(),
@@ -128,12 +159,28 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
 
     @Activate
     public void activate() {
+        KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
+                .register(KryoNamespaces.API)
+                .register(ObjectNode.class, ArrayNode.class,
+                          JsonNodeFactory.class, LinkedHashMap.class,
+                          TextNode.class, BooleanNode.class,
+                          LongNode.class, DoubleNode.class, ShortNode.class,
+                          IntNode.class, NullNode.class);
+
+        prefs = storageService.<String, ObjectNode>eventuallyConsistentMapBuilder()
+                .withName("onos-user-preferences")
+                .withSerializer(kryoBuilder)
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .withPersistence()
+                .build();
+        prefs.addListener(prefsListener);
         register(core);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        prefs.removeListener(prefsListener);
         UiWebSocketServlet.closeAll();
         unregister(core);
         log.info("Stopped");
@@ -171,6 +218,27 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
         return views.get(viewId);
     }
 
+    @Override
+    public Set<String> getUserNames() {
+        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+        prefs.keySet().forEach(k -> builder.add(userName(k)));
+        return builder.build();
+    }
+
+    @Override
+    public Map<String, ObjectNode> getPreferences(String userName) {
+        ImmutableMap.Builder<String, ObjectNode> builder = ImmutableMap.builder();
+        prefs.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(userName + "/"))
+                .forEach(e -> builder.put(keyName(e.getKey()), e.getValue()));
+        return builder.build();
+    }
+
+    @Override
+    public void setPreference(String userName, String preference, ObjectNode value) {
+        prefs.put(key(userName, preference), value);
+    }
+
     // =====================================================================
     // Provisional tracking of sprite definitions
 
@@ -192,4 +260,33 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
         return sprites.get(name);
     }
 
+    private String key(String userName, String keyName) {
+        return userName + "/" + keyName;
+    }
+
+    private String userName(String key) {
+        return key.split("/")[0];
+    }
+
+    private String keyName(String key) {
+        return key.split("/")[1];
+    }
+
+    // Auxiliary listener to preference map events.
+    private class InternalPrefsListener
+            implements EventuallyConsistentMapListener<String, ObjectNode> {
+        @Override
+        public void event(EventuallyConsistentMapEvent<String, ObjectNode> event) {
+            String userName = userName(event.key());
+            if (event.type() == EventuallyConsistentMapEvent.Type.PUT) {
+                UiWebSocketServlet.sendToUser(userName, UPDATE_PREFS, jsonPrefs());
+            }
+        }
+
+        private ObjectNode jsonPrefs() {
+            ObjectNode json = mapper.createObjectNode();
+            prefs.entrySet().forEach(e -> json.set(keyName(e.getKey()), e.getValue()));
+            return json;
+        }
+    }
 }

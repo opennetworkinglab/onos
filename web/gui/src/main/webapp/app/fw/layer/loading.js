@@ -122,9 +122,9 @@
 
     angular.module('onosLayer')
         .factory('LoadingService',
-        ['$log', '$timeout', 'ThemeService', 'FnService',
+        ['$log', '$timeout', 'ThemeService', 'FnService', 'WebSocketService',
 
-            function (_$log_, _$timeout_, _ts_, _fs_) {
+            function (_$log_, _$timeout_, _ts_, _fs_, wss) {
             $log = _$log_;
             $timeout = _$timeout_;
             ts = _ts_;
@@ -132,11 +132,13 @@
 
             preloadImages();
 
-            return {
+            var self = {
                 start: start,
                 stop: stop,
                 waiting: waiting
             };
+            wss._setLoadingDelegate(self);
+            return self;
         }]);
 
 }());

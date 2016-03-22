@@ -20,7 +20,7 @@
 (function () {
     'use strict';
 
-    var $log, fs;
+    var $log, fs, ps;
 
     var themes = ['light', 'dark'],
         themeStr = themes.join(' '),
@@ -29,7 +29,7 @@
         nextListenerId = 1;
 
     function init() {
-        thidx = 0;
+        thidx = ps.getPrefs('theme', { idx: 0 }).idx;
         updateBodyClass();
     }
 
@@ -37,10 +37,11 @@
         return themes[thidx];
     }
 
-    function setTheme(t) {
+    function setTheme(t, force) {
         var idx = themes.indexOf(t);
-        if (idx > -1 && idx !== thidx) {
+        if (force || idx > -1 && idx !== thidx) {
             thidx = idx;
+            ps.setPrefs('theme', { idx: thidx });
             updateBodyClass();
             themeEvent('set');
         }
@@ -49,6 +50,7 @@
     function toggleTheme() {
         var i = thidx + 1;
         thidx = (i===themes.length) ? 0 : i;
+        ps.setPrefs('theme', { idx: thidx });
         updateBodyClass();
         themeEvent('toggle');
         return getTheme();
@@ -97,11 +99,11 @@
     }
 
     angular.module('onosUtil')
-        .factory('ThemeService', ['$log', 'FnService',
-        function (_$log_, _fs_) {
+        .factory('ThemeService', ['$log', 'FnService', 'PrefsService',
+        function (_$log_, _fs_, _ps_) {
             $log = _$log_;
             fs = _fs_;
-            thidx = 0;
+            ps = _ps_;
 
             return {
                 init: init,

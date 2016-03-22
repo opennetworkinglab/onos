@@ -79,21 +79,23 @@
 
     angular.module('onosLayer')
     .factory('VeilService',
-        ['$log', '$route', 'FnService', 'KeyService', 'GlyphService',
+        ['$log', '$route', 'FnService', 'KeyService', 'GlyphService', 'WebSocketService',
 
-        function (_$log_, _$route_, _fs_, _ks_, _gs_) {
+        function (_$log_, _$route_, _fs_, _ks_, _gs_, wss) {
             $log = _$log_;
             $route = _$route_;
             fs = _fs_;
             ks = _ks_;
             gs = _gs_;
 
-            return {
+            var self = {
                 init: init,
                 show: show,
                 hide: hide,
                 lostServer: lostServer
             };
+            wss._setVeilDelegate(self);
+            return self;
     }]);
 
 }());

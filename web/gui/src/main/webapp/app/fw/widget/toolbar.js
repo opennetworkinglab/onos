@@ -219,6 +219,10 @@
             }
         }
 
+        function isVisible() {
+            return panel.isVisible();
+        }
+
         return {
             addButton: addButton,
             addToggle: addToggle,
@@ -228,7 +232,8 @@
 
             show: show,
             hide: hide,
-            toggle: toggle
+            toggle: toggle,
+            isVisible: isVisible
         };
     }
 

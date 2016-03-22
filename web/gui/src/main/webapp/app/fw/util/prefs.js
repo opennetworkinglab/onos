@@ -21,54 +21,14 @@
     'use strict';
 
     // injected refs
-    var $log, $cookies, fs;
+    var $log, fs, wss;
 
     // internal state
     var cache = {};
 
-    // NOTE: in Angular 1.3.5, $cookies is just a simple object, and
-    //       cookie values are just strings. From the 1.3.5 docs:
-    //
-    //       "Only a simple Object is exposed and by adding or removing
-    //        properties to/from this object, new cookies are created/deleted
-    //        at the end of current $eval. The object's properties can only
-    //        be strings."
-    //
-    //       We may want to upgrade the version of Angular sometime soon
-    //        since later version support objects as cookie values.
-
-    // NOTE: prefs represented as simple name/value pairs
-    //       => a temporary restriction while we are encoding into cookies
-    /*
-        {
-          foo: 1,
-          bar: 0,
-          goo: 2
-        }
-
-        stored as "foo:1,bar:0,goo:2"
-     */
-
-    // reads cookie with given name and returns an object rep of its value
-    // or null if no such cookie is set
-    function getPrefs(name) {
-        var cook = $cookies[name],
-            bits,
-            obj = {};
-
-        if (cook) {
-            bits = cook.split(',');
-            bits.forEach(function (value) {
-                var x = value.split(':');
-                obj[x[0]] = x[1];
-            });
-
-            // update the cache
-            cache[name] = obj;
-            return obj;
-        }
-        // perhaps we have a cached copy..
-        return cache[name];
+    // returns the preference by the specified name
+    function getPrefs(name, defaults) {
+        return cache[name] || defaults;
     }
 
     // converts string values to numbers for selected (or all) keys
@@ -89,34 +49,28 @@
     }
 
     function setPrefs(name, obj) {
-        var bits = [],
-            str;
-
-        angular.forEach(obj, function (value, key) {
-            bits.push(key + ':' + value);
-        });
-        str = bits.join(',');
-
-        // keep a cached copy of the object
+        // keep a cached copy of the object and send an update to server
         cache[name] = obj;
-
-        // The angular way of doing this...
-        // $cookies[name] = str;
-        //  ...but it appears that this gets delayed, and doesn't 'stick' ??
-
-        // FORCE cookie to be set by writing directly to document.cookie...
-        document.cookie = name + '=' + encodeURIComponent(str);
-        if (fs.debugOn('prefs')) {
-            $log.debug('<<>> Wrote cookie <'+name+'>:', str);
-        }
+        wss.sendEvent('updatePrefReq', { key: name, value: obj });
+    }
+    
+    function updatePrefs(data) {
+        $log.info('User properties updated');
+        cache[data.key] = data.value;
     }
 
     angular.module('onosUtil')
-    .factory('PrefsService', ['$log', '$cookies', 'FnService',
-        function (_$log_, _$cookies_, _fs_) {
+    .factory('PrefsService', ['$log', 'FnService', 'WebSocketService',
+        function (_$log_, _fs_, _wss_) {
             $log = _$log_;
-            $cookies = _$cookies_;
             fs = _fs_;
+            wss = _wss_;
+
+            cache = userPrefs;
+
+            wss.bindHandlers({
+                updatePrefs: updatePrefs
+            });
 
             return {
                 getPrefs: getPrefs,
