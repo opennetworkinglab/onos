@@ -38,14 +38,14 @@ import java.util.Map;
  */
 public class InfluxDbMetricsReporterTest {
 
-    private InfluxDbMetricsReporter influxReporter;
+    private DefaultInfluxDbMetricsReporter influxReporter;
 
     /**
      * Sets up the services required by influxDB metrics reporter.
      */
     @Before
     public void setUp() {
-        influxReporter = new InfluxDbMetricsReporter();
+        influxReporter = new DefaultInfluxDbMetricsReporter();
         influxReporter.coreService = new CoreServiceAdapter();
         influxReporter.cfgService = new ComponentConfigAdapter();
         influxReporter.clusterService = new ClusterServiceAdapter();
