@@ -38,6 +38,7 @@ import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.OduSignalType;
+import org.onosproject.net.OduSignalUtils;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TributarySlot;
@@ -429,7 +430,7 @@ public class OpticalCircuitIntentCompilerTest {
         TrafficTreatment.Builder treatmentBuilder1 = DefaultTrafficTreatment.builder();
         Set<TributarySlot> slots = new HashSet<>();
         slots.add(TributarySlot.of(1));
-        OduSignalId oduSignalId = sut.buildOduSignalId(D1P2.signalType(), slots);
+        OduSignalId oduSignalId = OduSignalUtils.buildOduSignalId(D1P2.signalType(), slots);
         treatmentBuilder1.add(Instructions.modL1OduSignalId(oduSignalId));
         treatmentBuilder1.setOutput(ochSrcCP.port());
         assertThat(rule1.treatment(), is(treatmentBuilder1.build()));

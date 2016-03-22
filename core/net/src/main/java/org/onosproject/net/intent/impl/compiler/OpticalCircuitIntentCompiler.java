@@ -36,6 +36,7 @@ import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.OduSignalType;
+import org.onosproject.net.OduSignalUtils;
 import org.onosproject.net.Port;
 import org.onosproject.net.TributarySlot;
 import org.onosproject.net.behaviour.TributarySlotQuery;
@@ -276,7 +277,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     }
 
     private List<Resource> availableSlotResources(ConnectPoint src, ConnectPoint dst, CltSignalType signalType) {
-        OduSignalType oduSignalType = mappingCltSignalTypeToOduSignalType(signalType);
+        OduSignalType oduSignalType = OduSignalUtils.mappingCltSignalTypeToOduSignalType(signalType);
         int requestedTsNum = oduSignalType.tributarySlots();
         Set<TributarySlot> commonTributarySlots = findCommonTributarySlotsOnCps(src, dst);
         if (commonTributarySlots.isEmpty()) {
@@ -339,7 +340,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                                                                     CltSignalType signalType,
                                                                     boolean multiplexingSupported) {
 
-        OduSignalType oduSignalType = mappingCltSignalTypeToOduSignalType(signalType);
+        OduSignalType oduSignalType = OduSignalUtils.mappingCltSignalTypeToOduSignalType(signalType);
 
         return Tools.stream(intentService.getIntents())
                 .filter(x -> x instanceof OpticalConnectivityIntent)
@@ -509,23 +510,25 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             OduSignalType ochPortOduSignalType;
 
             if (srcPort instanceof OduCltPort) {
-                oduCltPortOduSignalType = mappingCltSignalTypeToOduSignalType(((OduCltPort) srcPort).signalType());
+                oduCltPortOduSignalType =
+                        OduSignalUtils.mappingCltSignalTypeToOduSignalType(((OduCltPort) srcPort).signalType());
                 ochPortOduSignalType = ((OchPort) dstPort).signalType();
 
                 selectorBuilder.add(Criteria.matchOduSignalType(oduCltPortOduSignalType));
                 // use Instruction of OduSignalId only in case of ODU Multiplexing
                 if (oduCltPortOduSignalType != ochPortOduSignalType) {
-                    OduSignalId oduSignalId = buildOduSignalId(ochPortOduSignalType, slots);
+                    OduSignalId oduSignalId = OduSignalUtils.buildOduSignalId(ochPortOduSignalType, slots);
                     treatmentBuilder.add(Instructions.modL1OduSignalId(oduSignalId));
                 }
             } else { // srcPort is OchPort
-                oduCltPortOduSignalType = mappingCltSignalTypeToOduSignalType(((OduCltPort) dstPort).signalType());
+                oduCltPortOduSignalType =
+                        OduSignalUtils.mappingCltSignalTypeToOduSignalType(((OduCltPort) dstPort).signalType());
                 ochPortOduSignalType = ((OchPort) srcPort).signalType();
 
                 selectorBuilder.add(Criteria.matchOduSignalType(oduCltPortOduSignalType));
                 // use Criteria of OduSignalId only in case of ODU Multiplexing
                 if (oduCltPortOduSignalType != ochPortOduSignalType) {
-                    OduSignalId oduSignalId = buildOduSignalId(ochPortOduSignalType, slots);
+                    OduSignalId oduSignalId = OduSignalUtils.buildOduSignalId(ochPortOduSignalType, slots);
                     selectorBuilder.add(Criteria.matchOduSignalId(oduSignalId));
                 }
             }
@@ -544,46 +547,11 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return flowRule;
     }
 
-    OduSignalId buildOduSignalId(OduSignalType ochPortSignalType, Set<TributarySlot> slots) {
-        int tributaryPortNumber = findFirstTributarySlotIndex(slots);
-        int tributarySlotLen = ochPortSignalType.tributarySlots();
-        byte[] tributarySlotBitmap = new byte[OduSignalId.TRIBUTARY_SLOT_BITMAP_SIZE];
-
-        slots.forEach(ts -> tributarySlotBitmap[(byte) (ts.index() - 1) / 8] |= 0x1 << ((ts.index() - 1) % 8));
-        return OduSignalId.oduSignalId(tributaryPortNumber, tributarySlotLen, tributarySlotBitmap);
-    }
-
-    private int findFirstTributarySlotIndex(Set<TributarySlot> tributarySlots) {
-        return (int) tributarySlots.stream().findFirst().get().index();
-    }
-
     private boolean isMultiplexingSupported(ConnectPoint cp) {
         Driver driver = driverService.getDriver(cp.deviceId());
         return driver != null
                 && driver.hasBehaviour(TributarySlotQuery.class)
                 && staticPort(cp) == null;
-    }
-
-    /**
-     * Maps from Intent's OduClt SignalType to OduSignalType.
-     *
-     * @param cltSignalType OduClt port signal type
-     * @return OduSignalType the result of mapping CltSignalType to OduSignalType
-     */
-    OduSignalType mappingCltSignalTypeToOduSignalType(CltSignalType cltSignalType) {
-        switch (cltSignalType) {
-            case CLT_1GBE:
-                return OduSignalType.ODU0;
-            case CLT_10GBE:
-                return OduSignalType.ODU2;
-            case CLT_40GBE:
-                return OduSignalType.ODU3;
-            case CLT_100GBE:
-                return OduSignalType.ODU4;
-            default:
-                log.error("Unsupported CltSignalType {}", cltSignalType);
-                return OduSignalType.ODU0;
-        }
     }
 
     /**

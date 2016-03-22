@@ -20,6 +20,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.DeviceId;
@@ -30,6 +31,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
+import org.onosproject.net.intent.OpticalOduIntent;
 
 import java.util.List;
 
@@ -96,27 +98,52 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
         Port dstPort = deviceService.getPort(egress.deviceId(), egress.port());
 
         Intent intent;
-        // FIXME: Hardcoded signal types
+
         if (srcPort instanceof OduCltPort && dstPort instanceof OduCltPort) {
-            intent = OpticalCircuitIntent.builder()
-                    .appId(appId())
-                    .key(key())
-                    .src(ingress)
-                    .dst(egress)
-                    .signalType(CltSignalType.CLT_10GBE)
-                    .bidirectional(bidirectional)
-                    .build();
+            Device srcDevice = deviceService.getDevice(ingress.deviceId());
+            Device dstDevice = deviceService.getDevice(egress.deviceId());
+
+            // continue only if both OduClt port's Devices are of the same type
+            if (!(srcDevice.type().equals(dstDevice.type()))) {
+                print("Devices without same deviceType: SRC=%s and DST=%s", srcDevice.type(), dstDevice.type());
+                return;
+            }
+
+            CltSignalType signalType = ((OduCltPort) srcPort).signalType();
+            if (Device.Type.ROADM.equals(srcDevice.type())) {
+                intent = OpticalCircuitIntent.builder()
+                        .appId(appId())
+                        .key(key())
+                        .src(ingress)
+                        .dst(egress)
+                        .signalType(signalType)
+                        .bidirectional(bidirectional)
+                        .build();
+            } else if (Device.Type.OTN.equals(srcDevice.type())) {
+                intent = OpticalOduIntent.builder()
+                        .appId(appId())
+                        .key(key())
+                        .src(ingress)
+                        .dst(egress)
+                        .signalType(signalType)
+                        .bidirectional(bidirectional)
+                        .build();
+            } else {
+                print("Wrong Device Type for connect points %s and %s", ingress, egress);
+                return;
+            }
         } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
+            OduSignalType signalType = ((OchPort) srcPort).signalType();
             intent = OpticalConnectivityIntent.builder()
                     .appId(appId())
                     .key(key())
                     .src(ingress)
                     .dst(egress)
-                    .signalType(OduSignalType.ODU4)
+                    .signalType(signalType)
                     .bidirectional(bidirectional)
                     .build();
         } else {
-            print("Unable to create optical intent between connect points {} and {}", ingress, egress);
+            print("Unable to create optical intent between connect points %s and %s", ingress, egress);
             return;
         }
 

@@ -163,6 +163,7 @@ import org.onosproject.net.intent.MplsPathIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
+import org.onosproject.net.intent.OpticalOduIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
@@ -422,6 +423,7 @@ public final class KryoNamespaces {
                     OpticalConnectivityIntent.class,
                     OpticalPathIntent.class,
                     OpticalCircuitIntent.class,
+                    OpticalOduIntent.class,
                     DiscreteResource.class,
                     ContinuousResource.class,
                     DiscreteResourceId.class,
