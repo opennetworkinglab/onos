@@ -101,7 +101,7 @@ public class RouterManager implements RouterService {
                           TenantNetworkId.class, TenantId.class,
                           VirtualPortId.class, DefaultRouter.class,
                           RouterGateway.class, Router.Status.class,
-                          SubnetId.class);
+                          SubnetId.class, FixedIp.class);
         routerStore = storageService
                 .<RouterId, Router>eventuallyConsistentMapBuilder()
                 .withName(ROUTER).withSerializer(serializer)
