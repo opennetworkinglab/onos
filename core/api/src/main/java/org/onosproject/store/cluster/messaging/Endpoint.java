@@ -69,7 +69,7 @@ public final class Endpoint {
             return false;
         }
         Endpoint that = (Endpoint) obj;
-        return Objects.equals(this.port, that.port) &&
+        return this.port == that.port &&
                Objects.equals(this.ip, that.ip);
     }
 }
