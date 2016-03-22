@@ -19,12 +19,13 @@ package org.onosproject.persistence.impl;
 import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.onosproject.store.service.Serializer;
 
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,6 +42,8 @@ public class PersistentMapTest {
     private Map<Integer, Integer> map = null;
     private DB fakeDB = null;
 
+    @Rule
+    public TemporaryFolder tmpFolder = new TemporaryFolder();
 
     /**
      * Set up the database, create a map and a direct executor to handle it.
@@ -51,7 +54,7 @@ public class PersistentMapTest {
     public void setUp() throws Exception {
         //Creates a db, a map within it and a basic integer serializer (async writing is off)
         fakeDB = DBMaker
-                .newFileDB(Paths.get("../testDb").toFile())
+                .newFileDB(tmpFolder.newFile("testDb"))
                 .asyncWriteEnable()
                 .closeOnJvmShutdown()
                 .make();
@@ -99,10 +102,6 @@ public class PersistentMapTest {
         fakeDB.delete("map:map");
         fakeDB.commit();
         fakeDB.close();
-        //This is key to prevent artifacts persisting between tests.
-        Paths.get("../testDB").toFile().delete();
-
-
     }
 
     @Test
