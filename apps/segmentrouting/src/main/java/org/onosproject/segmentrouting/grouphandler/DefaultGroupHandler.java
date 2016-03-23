@@ -288,6 +288,7 @@ public class DefaultGroupHandler {
             return;
         }
 
+        @SuppressWarnings("unused")
         MacAddress dstMac;
         try {
             dstMac = deviceConfig.getDeviceMac(portDeviceMap.get(port));
@@ -312,9 +313,17 @@ public class DefaultGroupHandler {
         log.debug("portDown: nsNextObjStore contents for device {}:{}",
                   deviceId, nsSet);
         for (NeighborSet ns : nsSet) {
-            Integer nextId = nsNextObjStore.
-                    get(new NeighborSetNextObjectiveStoreKey(deviceId, ns));
+            NeighborSetNextObjectiveStoreKey nsStoreKey =
+                    new NeighborSetNextObjectiveStoreKey(deviceId, ns);
+            Integer nextId = nsNextObjStore.get(nsStoreKey);
             if (nextId != null && isMaster) {
+                // XXX This is a workaround for BUG (CORD-611) in current switches.
+                // Should be temporary because this workaround prevents correct
+                // functionality in LAG recovery.
+                log.info("**portDown port:{} in device {}: Invalidating nextId {}",
+                         port, deviceId, nextId);
+                nsNextObjStore.remove(nsStoreKey);
+                /*
                 log.info("**portDown in device {}: Removing Bucket "
                         + "with Port {} to next object id {}",
                         deviceId,
@@ -341,7 +350,7 @@ public class DefaultGroupHandler {
                         removeFromExisting(new SRNextObjectiveContext(deviceId));
 
                 flowObjectiveService.next(deviceId, nextObjective);
-
+                */
                 // the removal of a bucket may actually change the neighborset
                 // update the global store
                 /*

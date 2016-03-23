@@ -30,6 +30,7 @@ import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
@@ -138,6 +139,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry cfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService compCfgService;
 
     protected ArpHandler arpHandler = null;
     protected IcmpHandler icmpHandler = null;
@@ -322,6 +326,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .withSerializer(kryoBuilder)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
+
+        compCfgService.preSetProperty("org.onosproject.net.group.impl.GroupManager",
+                "purgeOnDisconnection", "true");
+        compCfgService.preSetProperty("org.onosproject.net.flow.impl.FlowRuleManager",
+                "purgeOnDisconnection", "true");
 
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();
@@ -676,15 +685,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                             log.info("Processing device event {} for available device {}",
                                      event.type(), ((Device) event.subject()).id());
                             processDeviceAdded((Device) event.subject());
-                        } /* else {
-                            if (event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED) {
-                                // availability changed and not available - dev gone
-                                DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
-                                if (groupHandler != null) {
-                                    groupHandler.removeAllGroups();
-                                }
-                            }
-                        }*/
+                        } else {
+                            log.info("Processing device event {} for unavailable device {}",
+                                    event.type(), ((Device) event.subject()).id());
+                            processDeviceRemoved((Device) event.subject());
+                        }
                     } else if (event.type() == DeviceEvent.Type.PORT_REMOVED) {
                         processPortRemoved((Device) event.subject(),
                                            ((DeviceEvent) event).port());
@@ -791,6 +796,42 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
 
         netcfgHandler.initVRouters(device.id());
+    }
+
+    private void processDeviceRemoved(Device device) {
+        nsNextObjStore.entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(device.id()))
+                .forEach(entry -> {
+                    nsNextObjStore.remove(entry.getKey());
+                });
+
+        subnetNextObjStore.entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(device.id()))
+                .forEach(entry -> {
+                    subnetNextObjStore.remove(entry.getKey());
+                });
+
+        portNextObjStore.entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(device.id()))
+                .forEach(entry -> {
+                    portNextObjStore.remove(entry.getKey());
+                });
+
+        xConnectNextObjStore.entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(device.id()))
+                .forEach(entry -> {
+                    xConnectNextObjStore.remove(entry.getKey());
+                });
+
+        subnetVidStore.entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(device.id()))
+                .forEach(entry -> {
+                    subnetVidStore.remove(entry.getKey());
+                });
+
+        groupHandlerMap.remove(device.id());
+
+        defaultRoutingHandler.purgeEcmpGraph(device.id());
     }
 
     private void processPortRemoved(Device device, Port port) {

@@ -561,4 +561,9 @@ public class DefaultRoutingHandler {
             statusLock.unlock();
         }
     }
+
+    public void purgeEcmpGraph(DeviceId deviceId) {
+        currentEcmpSpgMap.remove(deviceId);
+        updatedEcmpSpgMap.remove(deviceId);
+    }
 }
