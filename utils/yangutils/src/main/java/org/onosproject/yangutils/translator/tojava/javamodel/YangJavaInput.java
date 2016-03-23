@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
+
 import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
@@ -27,7 +28,6 @@ import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.utils.GenerateJavaCodeExitBuilder.generateJavaFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
@@ -180,7 +180,7 @@ public class YangJavaInput extends YangInput
     @Override
     public void generateCodeExit() throws IOException {
 
-        generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
-        getTempJavaCodeFragmentFiles().close();
+        getTempJavaCodeFragmentFiles().setCurYangNode(this);
+        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
     }
 }

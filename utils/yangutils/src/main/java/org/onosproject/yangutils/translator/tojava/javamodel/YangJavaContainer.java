@@ -27,12 +27,10 @@ import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.utils.GenerateJavaCodeExitBuilder.generateJavaFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
-import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPackage;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
@@ -162,7 +160,7 @@ public class YangJavaContainer extends YangContainer
         String absloutePath = getAbsolutePackagePath(
                 getJavaFileInfo().getBaseCodeGenPath(),
                 getJavaFileInfo().getPackageFilePath());
-        createPackage(absloutePath, getName());
+
         setTempJavaCodeFragmentFiles(new TempJavaCodeFragmentFiles(
                 getJavaFileInfo().getGeneratedFileTypes(), absloutePath,
                 getJavaFileInfo().getJavaName()));
@@ -180,8 +178,8 @@ public class YangJavaContainer extends YangContainer
     @Override
     public void generateCodeExit() throws IOException {
 
-        generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
-        getTempJavaCodeFragmentFiles().close();
+        getTempJavaCodeFragmentFiles().setCurYangNode(this);
+        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
     }
 
 }

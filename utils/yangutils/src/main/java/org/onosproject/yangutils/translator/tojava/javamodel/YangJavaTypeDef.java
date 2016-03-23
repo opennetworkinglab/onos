@@ -15,24 +15,29 @@
  */
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
+import java.io.IOException;
+
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
+import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
+import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
  * Type define information extended to support java code generation.
  */
 public class YangJavaTypeDef extends YangTypeDef
-        implements JavaCodeGenerator, HasJavaFileInfo, HasJavaImportData {
+        implements JavaCodeGenerator, HasJavaFileInfo, HasJavaImportData, HasTempJavaCodeFragmentFiles {
 
     /**
      * Contains the information of the java file being generated.
@@ -46,13 +51,19 @@ public class YangJavaTypeDef extends YangTypeDef
     private JavaImportData javaImportData;
 
     /**
+     * File handle to maintain temporary java code fragments as per the code
+     * snippet types.
+     */
+    private TempJavaCodeFragmentFiles tempFileHandle;
+
+    /**
      * Default constructor.
      */
     public YangJavaTypeDef() {
         super();
         setJavaFileInfo(new JavaFileInfo());
         setJavaImportData(new JavaImportData());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER);
+        getJavaFileInfo().setGeneratedFileTypes(GENERATE_TYPEDEF_CLASS);
     }
 
     /**
@@ -62,6 +73,7 @@ public class YangJavaTypeDef extends YangTypeDef
      */
     @Override
     public JavaFileInfo getJavaFileInfo() {
+
         if (javaFileInfo == null) {
             throw new RuntimeException("Missing java info in java datamodel node");
         }
@@ -75,6 +87,7 @@ public class YangJavaTypeDef extends YangTypeDef
      */
     @Override
     public void setJavaFileInfo(JavaFileInfo javaInfo) {
+
         javaFileInfo = javaInfo;
     }
 
@@ -85,6 +98,7 @@ public class YangJavaTypeDef extends YangTypeDef
      */
     @Override
     public JavaImportData getJavaImportData() {
+
         return javaImportData;
     }
 
@@ -96,7 +110,34 @@ public class YangJavaTypeDef extends YangTypeDef
      */
     @Override
     public void setJavaImportData(JavaImportData javaImportData) {
+
         this.javaImportData = javaImportData;
+    }
+
+    /**
+     * Get the temporary file handle.
+     *
+     * @return temporary file handle
+     */
+    @Override
+    public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
+
+        if (tempFileHandle == null) {
+            throw new RuntimeException("missing temp file hand for current node "
+                    + getJavaFileInfo().getJavaName());
+        }
+        return tempFileHandle;
+    }
+
+    /**
+     * Set temporary file handle.
+     *
+     * @param fileHandle temporary file handle
+     */
+    @Override
+    public void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle) {
+
+        tempFileHandle = fileHandle;
     }
 
     /**
@@ -104,24 +145,38 @@ public class YangJavaTypeDef extends YangTypeDef
      * container info.
      *
      * @param codeGenDir code generation directory
+     * @throws IOException IO operations fails
      */
     @Override
-    public void generateCodeEntry(String codeGenDir) {
+    public void generateCodeEntry(String codeGenDir) throws IOException {
+
         getJavaFileInfo().setJavaName(getCaptialCase(getCamelCase(getName())));
         getJavaFileInfo().setPackage(getCurNodePackage(this));
+
         getJavaFileInfo().setPackageFilePath(
                 getPackageDirPathFromJavaJPackage(getJavaFileInfo().getPackage()));
         getJavaFileInfo().setBaseCodeGenPath(codeGenDir);
-        // TODO: generate type define temporary files
+        String absloutePath = getAbsolutePackagePath(
+                getJavaFileInfo().getBaseCodeGenPath(),
+                getJavaFileInfo().getPackageFilePath());
+
+        setTempJavaCodeFragmentFiles(new TempJavaCodeFragmentFiles(
+                getJavaFileInfo().getGeneratedFileTypes(), absloutePath,
+                getJavaFileInfo().getJavaName()));
+
+        getTempJavaCodeFragmentFiles().addTypeDefAttributeToTempFiles(this);
+
     }
 
     /**
      * Create a java file using the YANG grouping info.
+     * @throws IOException IO operations fails
      */
     @Override
-    public void generateCodeExit() {
-        // TODO Auto-generated method stub
+    public void generateCodeExit() throws IOException {
 
+        getTempJavaCodeFragmentFiles().setCurYangNode(this);
+        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_TYPEDEF_CLASS, this);
     }
 
 }

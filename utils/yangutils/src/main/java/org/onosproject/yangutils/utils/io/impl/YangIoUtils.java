@@ -25,13 +25,27 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
-import org.onosproject.yangutils.utils.UtilConstants;
 import org.slf4j.Logger;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
+import static org.apache.commons.io.FileUtils.deleteDirectory;
+import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
+import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.ORG;
+import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
+import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
+import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
+import static org.onosproject.yangutils.utils.UtilConstants.TEMP;
+import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_RESOURCES;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.appendFileContents;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.PACKAGE_INFO;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -40,8 +54,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public final class YangIoUtils {
 
     private static final Logger log = getLogger(YangIoUtils.class);
-    private static final String TARGET_RESOURCE_PATH = UtilConstants.SLASH + UtilConstants.TEMP + UtilConstants.SLASH
-            + UtilConstants.YANG_RESOURCES + UtilConstants.SLASH;
+    private static final String TARGET_RESOURCE_PATH = SLASH + TEMP + SLASH + YANG_RESOURCES + SLASH;
 
     /**
      * Default constructor.
@@ -72,22 +85,24 @@ public final class YangIoUtils {
      */
     public static void addPackageInfo(File path, String classInfo, String pack) throws IOException {
 
-        if (pack.contains(UtilConstants.ORG)) {
-            String[] strArray = pack.split(UtilConstants.ORG);
-            pack = UtilConstants.ORG + strArray[1];
+        if (pack.contains(ORG)) {
+            String[] strArray = pack.split(ORG);
+            pack = ORG + strArray[1];
         }
         try {
 
-            File packageInfo = new File(path + File.separator + "package-info.java");
+            File packageInfo = new File(path + SLASH + "package-info.java");
             packageInfo.createNewFile();
-            FileWriter fileWriter = null;
-            BufferedWriter bufferedWriter = null;
-            fileWriter = new FileWriter(packageInfo);
-            bufferedWriter = new BufferedWriter(fileWriter);
+
+            FileWriter fileWriter = new FileWriter(packageInfo);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+
             bufferedWriter.write(CopyrightHeader.getCopyrightHeader());
-            bufferedWriter.write(JavaDocGen.getJavaDoc(JavaDocGen.JavaDocType.PACKAGE_INFO, classInfo, false));
-            bufferedWriter.write(UtilConstants.PACKAGE + UtilConstants.SPACE + pack + UtilConstants.SEMI_COLAN);
+            bufferedWriter.write(JavaDocGen.getJavaDoc(PACKAGE_INFO, classInfo, false));
+            bufferedWriter.write(PACKAGE + SPACE + pack + SEMI_COLAN);
+
             bufferedWriter.close();
+            fileWriter.close();
         } catch (IOException e) {
             throw new IOException("Exception occured while creating package info file.");
         }
@@ -97,15 +112,16 @@ public final class YangIoUtils {
      * Cleans the generated directory if already exist in source folder.
      *
      * @param dir generated directory in previous build
+     * @throws IOException when failed to delete directory
      */
-    public static void clean(String dir) {
+    public static void clean(String dir) throws IOException {
 
         File generatedDirectory = new File(dir);
         if (generatedDirectory.exists()) {
             try {
-                FileUtils.deleteDirectory(generatedDirectory);
+                deleteDirectory(generatedDirectory);
             } catch (IOException e) {
-                log.info("Failed to delete the generated files in " + generatedDirectory + " directory");
+                throw new IOException("Failed to delete the generated files in " + generatedDirectory + " directory");
             }
         }
     }
@@ -147,18 +163,17 @@ public final class YangIoUtils {
      */
     public static String partString(String partString) {
 
-        String[] strArray = partString.split(UtilConstants.COMMA);
-        String newString = "";
+        String[] strArray = partString.split(COMMA);
+        String newString = EMPTY_STRING;
         for (int i = 0; i < strArray.length; i++) {
             if (i % 4 != 0 || i == 0) {
-                newString = newString + strArray[i] + UtilConstants.COMMA;
+                newString = newString + strArray[i] + COMMA;
             } else {
-                newString = newString + UtilConstants.NEW_LINE + UtilConstants.TWELVE_SPACE_INDENTATION
-                        + strArray[i]
-                        + UtilConstants.COMMA;
+                newString = newString + NEW_LINE + TWELVE_SPACE_INDENTATION
+                        + strArray[i] + COMMA;
             }
         }
-        return trimAtLast(newString, UtilConstants.COMMA);
+        return trimAtLast(newString, COMMA);
     }
 
     /**
@@ -183,13 +198,13 @@ public final class YangIoUtils {
     public static String getDirectory(String baseCodeGenPath, String pathOfJavaPkg) {
 
         if (pathOfJavaPkg.charAt(pathOfJavaPkg.length() - 1) == File.separatorChar) {
-            pathOfJavaPkg = trimAtLast(pathOfJavaPkg, UtilConstants.SLASH);
+            pathOfJavaPkg = trimAtLast(pathOfJavaPkg, SLASH);
         }
-        String[] strArray = pathOfJavaPkg.split(UtilConstants.SLASH);
-        if (strArray[0].equals(UtilConstants.EMPTY_STRING)) {
+        String[] strArray = pathOfJavaPkg.split(SLASH);
+        if (strArray[0].equals(EMPTY_STRING)) {
             return pathOfJavaPkg;
         } else {
-            return baseCodeGenPath + File.separator + pathOfJavaPkg;
+            return baseCodeGenPath + SLASH + pathOfJavaPkg;
         }
     }
 
@@ -212,8 +227,7 @@ public final class YangIoUtils {
      * @param yangFiles list of YANG files
      * @param outputDir project's output directory
      * @param project maven project
-     * @throws IOException when fails to copy files to destination resource
-     *             directory
+     * @throws IOException when fails to copy files to destination resource directory
      */
     public static void copyYangFilesToTarget(List<String> yangFiles, String outputDir, MavenProject project)
             throws IOException {
@@ -226,11 +240,11 @@ public final class YangIoUtils {
 
         for (File file : files) {
             Files.copy(file.toPath(),
-                    new File(path + file.getName()).toPath(),
+                    (new File(path + file.getName())).toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
         }
         Resource rsc = new Resource();
-        rsc.setDirectory(outputDir + UtilConstants.SLASH + UtilConstants.TEMP + UtilConstants.SLASH);
+        rsc.setDirectory(outputDir + SLASH + TEMP + SLASH);
         project.addResource(rsc);
     }
 
@@ -247,5 +261,59 @@ public final class YangIoUtils {
             files.add(new File(file));
         }
         return files;
+    }
+
+    /**
+     * Merge the temp java files to main java files.
+     *
+     * @param appendFile temp file
+     * @param srcFile main file
+     * @throws IOException when fails to append contents
+     */
+    public static void mergeJavaFiles(File appendFile, File srcFile) throws IOException {
+
+        try {
+            appendFileContents(appendFile, srcFile);
+        } catch (IOException e) {
+            throw new IOException("Failed to append " + appendFile + " in " + srcFile);
+        }
+    }
+
+    /**
+     * Insert data in the generated file.
+     *
+     * @param file file in which need to be inserted
+     * @param data data which need to be inserted
+     * @throws IOException when fails to insert into file
+     */
+    public static void insertDataIntoJavaFile(File file, String data) throws IOException {
+
+        try {
+            updateFileHandle(file, data, false);
+        } catch (IOException e) {
+            throw new IOException("Failed to insert in " + file + "file");
+        }
+    }
+
+    /**
+     * Convert directory path in java package format.
+     *
+     * @param path directory path
+     * @return java package
+     */
+    public static String convertPathToPkg(String path) {
+
+        return path.replace(SLASH, PERIOD);
+    }
+
+    /**
+     * Convert java package in directory path format.
+     *
+     * @param pkg java package
+     * @return directory path
+     */
+    public static String convertPkgToPath(String pkg) {
+
+        return pkg.replace(PERIOD, SLASH);
     }
 }

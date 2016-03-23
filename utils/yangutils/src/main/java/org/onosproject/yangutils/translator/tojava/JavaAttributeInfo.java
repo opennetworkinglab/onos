@@ -18,6 +18,7 @@ package org.onosproject.yangutils.translator.tojava;
 
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
 
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getIsQualifiedAccessOrAddToImportList;
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
@@ -243,6 +244,42 @@ public final class JavaAttributeInfo {
         newAttr.setListAttr(isListNode);
         newAttr.setImportInfo(qualifiedTypeInfo);
         newAttr.setAttributeType(null);
+
+        return newAttr;
+    }
+
+    /**
+     * Create an attribute info object corresponding to the passed type def attribute
+     * information and return it.
+     *
+     * @param curNode current data model node for which the java file is being
+     *            generated
+     * @param attributeType leaf data type
+     * @param attributeName leaf name
+     * @param isListAttribute is the current added attribute needs to be a list
+     * @return AttributeInfo attribute details required to add in temporary
+     *         files
+     */
+    public static JavaAttributeInfo getAttributeInfoOfTypeDef(YangNode curNode,
+            YangType<?> attributeType, String attributeName,
+            boolean isListAttribute) {
+
+        JavaAttributeInfo newAttr = new JavaAttributeInfo();
+
+        /*
+         * Get the import info corresponding to the attribute for import in
+         * generated java files or qualified access
+         */
+        JavaQualifiedTypeInfo importInfo = getQualifiedTypeInfoOfLeafAttribute(curNode,
+                attributeType, attributeName, isListAttribute);
+        AttributesJavaDataType.addImportInfo(importInfo);
+        newAttr.setImportInfo(importInfo);
+        newAttr.setIsQualifiedAccess(getIsQualifiedAccessOrAddToImportList(
+                curNode, importInfo));
+        newAttr.setAttributeName(getCamelCase(attributeName));
+        newAttr.setListAttr(isListAttribute);
+        newAttr.setImportInfo(importInfo);
+        newAttr.setAttributeType(attributeType);
 
         return newAttr;
     }

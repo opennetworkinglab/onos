@@ -62,7 +62,7 @@ public final class JavaDocGenTest {
     @Test
     public void buildGenerationTest() {
 
-        String buildDoc = JavaDocGen.getJavaDoc(JavaDocType.BUILD, "testGeneration1", false);
+        String buildDoc = JavaDocGen.getJavaDoc(JavaDocType.BUILD_METHOD, "testGeneration1", false);
         assertTrue(buildDoc.contains("Builds object of") && buildDoc.contains(" */\n"));
     }
 
@@ -117,7 +117,7 @@ public final class JavaDocGenTest {
     @Test
     public void getterGenerationTest() {
 
-        String getterJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.GETTER, "testGeneration1", false);
+        String getterJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.GETTER_METHOD, "testGeneration1", false);
         assertTrue(getterJavaDoc.contains("Returns the attribute") && getterJavaDoc.contains(" */\n"));
     }
 
@@ -157,7 +157,7 @@ public final class JavaDocGenTest {
     @Test
     public void setterGenerationTest() {
 
-        String setterJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.SETTER, "testGeneration1", false);
+        String setterJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.SETTER_METHOD, "testGeneration1", false);
         assertTrue(setterJavaDoc.contains("Returns the builder object of") && setterJavaDoc.contains(" */\n"));
     }
 
@@ -167,7 +167,7 @@ public final class JavaDocGenTest {
     @Test
     public void typeDefSetterGenerationTest() {
 
-        String typeDefSetter = JavaDocGen.getJavaDoc(JavaDocType.TYPE_DEF_SETTER, "testGeneration1", false);
+        String typeDefSetter = JavaDocGen.getJavaDoc(JavaDocType.TYPE_DEF_SETTER_METHOD, "testGeneration1", false);
         assertTrue(typeDefSetter.contains("Sets the value of") && typeDefSetter.contains(" */\n"));
     }
 }

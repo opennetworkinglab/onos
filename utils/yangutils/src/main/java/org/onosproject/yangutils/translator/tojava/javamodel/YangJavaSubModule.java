@@ -75,6 +75,7 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public JavaFileInfo getJavaFileInfo() {
+
         if (javaFileInfo == null) {
             throw new RuntimeException("Missing java info in java datamodel node");
         }
@@ -88,6 +89,7 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public void setJavaFileInfo(JavaFileInfo javaInfo) {
+
         javaFileInfo = javaInfo;
     }
 
@@ -98,6 +100,7 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public JavaImportData getJavaImportData() {
+
         return javaImportData;
     }
 
@@ -109,6 +112,7 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public void setJavaImportData(JavaImportData javaImportData) {
+
         this.javaImportData = javaImportData;
     }
 
@@ -119,6 +123,7 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
+
         if (tempFileHandle == null) {
             throw new RuntimeException("missing temp file hand for current node "
                     + getJavaFileInfo().getJavaName());
@@ -133,6 +138,7 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle) {
+
         tempFileHandle = fileHandle;
     }
 
@@ -144,6 +150,7 @@ public class YangJavaSubModule extends YangSubModule
      * @return the name space string of the module.
      */
     private String getNameSpaceFromModule(YangBelongsTo belongsToInfo) {
+
         // TODO Auto-generated method stub
         return "";
     }
@@ -157,6 +164,7 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public void generateCodeEntry(String codeGenDir) throws IOException {
+
         getJavaFileInfo().setJavaName(getCaptialCase(getCamelCase(getName())));
         getJavaFileInfo().setPackage(getRootPackage(getVersion(),
                 getNameSpaceFromModule(getBelongsTo()),

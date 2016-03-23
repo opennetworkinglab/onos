@@ -23,7 +23,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.onosproject.yangutils.utils.UtilConstants;
+import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.MULTIPLE_NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
+import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.convertPathToPkg;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.convertPkgToPath;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirectories;
 
 /**
  * Utility to handle file system operations.
@@ -44,8 +54,8 @@ public final class FileSystemUtil {
      */
     public static boolean doesPackageExist(String pkg) {
 
-        File pkgDir = new File(pkg.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
-        File pkgWithFile = new File(pkgDir + File.separator + "package-info.java");
+        File pkgDir = new File(convertPkgToPath(pkg));
+        File pkgWithFile = new File(pkgDir + SLASH + "package-info.java");
         if (pkgDir.exists() && pkgWithFile.isFile()) {
             return true;
         }
@@ -63,8 +73,8 @@ public final class FileSystemUtil {
 
         if (!doesPackageExist(pkg)) {
             try {
-                File pack = YangIoUtils.createDirectories(pkg);
-                YangIoUtils.addPackageInfo(pack, pkgInfo, pkg.replace(UtilConstants.SLASH, UtilConstants.PERIOD));
+                File pack = createDirectories(pkg);
+                addPackageInfo(pack, pkgInfo, convertPathToPkg(pkg));
             } catch (IOException e) {
                 throw new IOException("failed to create package-info file");
             }
@@ -83,9 +93,7 @@ public final class FileSystemUtil {
      */
     public static void appendFileContents(File toAppend, File srcFile) throws IOException {
 
-        updateFileHandle(srcFile,
-                UtilConstants.NEW_LINE + readAppendFile(toAppend.toString(), UtilConstants.FOUR_SPACE_INDENTATION),
-                false);
+        updateFileHandle(srcFile, NEW_LINE + readAppendFile(toAppend.toString(), FOUR_SPACE_INDENTATION), false);
         return;
     }
 
@@ -106,15 +114,14 @@ public final class FileSystemUtil {
             String line = bufferReader.readLine();
 
             while (line != null) {
-                if (line.equals(UtilConstants.SPACE) | line.equals(UtilConstants.EMPTY_STRING)
-                        | line.equals(UtilConstants.EIGHT_SPACE_INDENTATION)
-                        | line.equals(UtilConstants.MULTIPLE_NEW_LINE)) {
-                    stringBuilder.append(UtilConstants.NEW_LINE);
-                } else if (line.equals(UtilConstants.FOUR_SPACE_INDENTATION)) {
-                    stringBuilder.append(UtilConstants.EMPTY_STRING);
+                if (line.equals(SPACE) | line.equals(EMPTY_STRING) | line.equals(EIGHT_SPACE_INDENTATION)
+                        | line.equals(MULTIPLE_NEW_LINE)) {
+                    stringBuilder.append(NEW_LINE);
+                } else if (line.equals(FOUR_SPACE_INDENTATION)) {
+                    stringBuilder.append(EMPTY_STRING);
                 } else {
                     stringBuilder.append(spaces + line);
-                    stringBuilder.append(UtilConstants.NEW_LINE);
+                    stringBuilder.append(NEW_LINE);
                 }
                 line = bufferReader.readLine();
             }
@@ -131,9 +138,8 @@ public final class FileSystemUtil {
      * @param inputFile input file
      * @param contentTobeAdded content to be appended to the file
      * @param isClose when close of file is called.
-     * @throws IOException if the named file exists but is a directory rather
-     *             than a regular file, does not exist but cannot be created, or
-     *             cannot be opened for any other reason
+     * @throws IOException if the named file exists but is a directory rather than a regular file,
+     * does not exist but cannot be created, or cannot be opened for any other reason
      */
     public static void updateFileHandle(File inputFile, String contentTobeAdded, boolean isClose) throws IOException {
 

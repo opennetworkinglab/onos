@@ -16,7 +16,6 @@
 
 package org.onosproject.yangutils.plugin.manager;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
@@ -24,31 +23,34 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.YangUtilsParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-import org.onosproject.yangutils.utils.UtilConstants;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
+import static org.apache.maven.plugins.annotations.LifecyclePhase.GENERATE_SOURCES;
+import static org.apache.maven.plugins.annotations.ResolutionScope.COMPILE;
 import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.generateJavaCode;
+import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT_BASE_PKG;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addToSource;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.clean;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.convertPkgToPath;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.copyYangFilesToTarget;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getDirectory;
 
 /**
- * ONOS YANG utility maven plugin. Goal of plugin is yang2java Execution phase
- * in generate-sources requiresDependencyResolution at compile time.
+ * ONOS YANG utility maven plugin.
+ * Goal of plugin is yang2java Execution phase in generate-sources requiresDependencyResolution at compile time.
  */
-@Mojo(name = "yang2java", defaultPhase = LifecyclePhase.GENERATE_SOURCES,
-        requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = true)
+@Mojo(name = "yang2java", defaultPhase = GENERATE_SOURCES, requiresDependencyResolution = COMPILE,
+        requiresProject = true)
 public class YangUtilManager extends AbstractMojo {
 
     /**
@@ -87,8 +89,7 @@ public class YangUtilManager extends AbstractMojo {
     @Component
     private BuildContext context;
 
-    private static final String DEFAULT_PKG = File.separator
-            + UtilConstants.DEFAULT_BASE_PKG.replace(UtilConstants.PERIOD, UtilConstants.SLASH);
+    private static final String DEFAULT_PKG = SLASH + convertPkgToPath(DEFAULT_BASE_PKG);
 
     private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
     private String searchDir;
@@ -116,7 +117,7 @@ public class YangUtilManager extends AbstractMojo {
             clean(getDirectory(baseDir, outputDirectory));
 
             searchDir = getDirectory(baseDir, yangFilesDir);
-            codeGenDir = getDirectory(baseDir, genFilesDir) + File.separator;
+            codeGenDir = getDirectory(baseDir, genFilesDir) + SLASH;
 
             List<String> yangFiles = YangFileScanner.getYangFiles(searchDir);
             Iterator<String> yangFileIterator = yangFiles.iterator();
@@ -133,7 +134,7 @@ public class YangUtilManager extends AbstractMojo {
 
                     }
                     if (e.getMessage() != null) {
-                        logInfo = logInfo + UtilConstants.NEW_LINE + e.getMessage();
+                        logInfo = logInfo + NEW_LINE + e.getMessage();
                     }
                     getLog().info(logInfo);
                 }
@@ -143,7 +144,7 @@ public class YangUtilManager extends AbstractMojo {
             copyYangFilesToTarget(yangFiles, getDirectory(baseDir, outputDirectory), project);
         } catch (Exception e) {
             getLog().info(e);
-            //throw new MojoExecutionException("Exception occured due to " + e.getLocalizedMessage());
+            throw new MojoExecutionException("Exception occured due to " + e.getLocalizedMessage());
         }
     }
 }

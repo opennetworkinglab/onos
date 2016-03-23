@@ -16,8 +16,22 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
-import org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType;
-import org.onosproject.yangutils.utils.UtilConstants;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
+import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
+import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.FINAL;
+import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
+import static org.onosproject.yangutils.utils.UtilConstants.IMPLEMENTS;
+import static org.onosproject.yangutils.utils.UtilConstants.INTERFACE;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
+import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 
 /**
  * Generates class definition for generated files.
@@ -44,19 +58,19 @@ public final class ClassDefinitionGenerator {
          * based on the file type and the YANG name of the file, generate the
          * class / interface definition start.
          */
-        if ((genFileTypes & GeneratedJavaFileType.INTERFACE_MASK) != 0) {
+        if ((genFileTypes & INTERFACE_MASK) != 0) {
 
             return getInterfaceDefinition(yangName);
-        } else if ((genFileTypes & GeneratedJavaFileType.BUILDER_CLASS_MASK) != 0) {
+        } else if ((genFileTypes & BUILDER_CLASS_MASK) != 0) {
 
             return getBuilderClassDefinition(yangName);
-        } else if ((genFileTypes & GeneratedJavaFileType.IMPL_CLASS_MASK) != 0) {
+        } else if ((genFileTypes & IMPL_CLASS_MASK) != 0) {
 
             return getImplClassDefinition(yangName);
-        } else if ((genFileTypes & GeneratedJavaFileType.BUILDER_INTERFACE_MASK) != 0) {
+        } else if ((genFileTypes & BUILDER_INTERFACE_MASK) != 0) {
 
             return getBuilderInterfaceDefinition(yangName);
-        } else if ((genFileTypes & GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS) != 0) {
+        } else if ((genFileTypes & GENERATE_TYPEDEF_CLASS) != 0) {
 
             return getTypeDefClassDefinition(yangName);
         }
@@ -71,8 +85,7 @@ public final class ClassDefinitionGenerator {
      */
     private static String getInterfaceDefinition(String yangName) {
 
-        return UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.INTERFACE + UtilConstants.SPACE + yangName
-                + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE;
+        return PUBLIC + SPACE + INTERFACE + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 
     /**
@@ -83,8 +96,8 @@ public final class ClassDefinitionGenerator {
      * @return definition
      */
     private static String getBuilderInterfaceDefinition(String yangName) {
-        return UtilConstants.INTERFACE + UtilConstants.SPACE + yangName + UtilConstants.BUILDER + UtilConstants.SPACE
-                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE + UtilConstants.NEW_LINE;
+
+        return INTERFACE + SPACE + yangName + BUILDER + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + NEW_LINE;
     }
 
     /**
@@ -95,10 +108,8 @@ public final class ClassDefinitionGenerator {
      */
     private static String getBuilderClassDefinition(String yangName) {
 
-        return UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.CLASS + UtilConstants.SPACE + yangName
-                + UtilConstants.BUILDER + UtilConstants.SPACE + UtilConstants.IMPLEMENTS + UtilConstants.SPACE
-                + yangName + UtilConstants.PERIOD + yangName + UtilConstants.BUILDER + UtilConstants.SPACE
-                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE;
+        return PUBLIC + SPACE + CLASS + SPACE + yangName + BUILDER + SPACE + IMPLEMENTS + SPACE + yangName + PERIOD
+                + yangName + BUILDER + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 
     /**
@@ -109,10 +120,8 @@ public final class ClassDefinitionGenerator {
      */
     private static String getImplClassDefinition(String yangName) {
 
-        return UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.FINAL + UtilConstants.SPACE
-                + UtilConstants.CLASS + UtilConstants.SPACE + yangName + UtilConstants.IMPL + UtilConstants.SPACE
-                + UtilConstants.IMPLEMENTS + UtilConstants.SPACE + yangName + UtilConstants.SPACE
-                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE;
+        return PUBLIC + SPACE + FINAL + SPACE + CLASS + SPACE + yangName + IMPL + SPACE + IMPLEMENTS + SPACE + yangName
+                + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 
     /**
@@ -123,9 +132,6 @@ public final class ClassDefinitionGenerator {
      */
     private static String getTypeDefClassDefinition(String yangName) {
 
-        return UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.FINAL + UtilConstants.SPACE
-                + UtilConstants.CLASS + UtilConstants.SPACE + yangName + UtilConstants.SPACE
-                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE;
+        return PUBLIC + SPACE + FINAL + SPACE + CLASS + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
-
 }

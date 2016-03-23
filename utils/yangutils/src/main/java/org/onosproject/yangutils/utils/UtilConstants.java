@@ -83,7 +83,7 @@ public final class UtilConstants {
     public static final String INSTANCE_OF = " instanceof ";
 
     public static final String VALUE = "value";
-    public static final String SUFIX_S = "s";
+    public static final String SUFFIX_S = "s";
 
     public static final String IF = "if";
     public static final String FOR = "for";
@@ -152,7 +152,7 @@ public final class UtilConstants {
     /**
      * String built in java type.
      */
-    public static final String STRING = "String";
+    public static final String STRING_DATA_TYPE = "String";
     /**
      * java.lang.* packages.
      */
@@ -161,7 +161,7 @@ public final class UtilConstants {
     /**
      * boolean built in java type.
      */
-    public static final String BOOLEAN = "boolean";
+    public static final String BOOLEAN_DATA_TYPE = "boolean";
 
     /**
      * byte java built in type.
@@ -229,8 +229,7 @@ public final class UtilConstants {
     public static final String DOUBLE_WRAPPER = "Double";
 
     /**
-     * List of keywords in java, this is used for checking if the input does not
-     * contain these keywords.
+     * List of keywords in java, this is used for checking if the input does not contain these keywords.
      */
     public static final List JAVA_KEY_WORDS = Arrays.asList("abstract", "assert", "boolean", "break", "byte", "case",
             "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "extends", "false",

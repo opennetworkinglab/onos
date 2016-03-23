@@ -17,7 +17,19 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
-import org.onosproject.yangutils.utils.UtilConstants;
+
+import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
+import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
+import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
+import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 
 /**
  * Utility class to generate the java snippet.
@@ -52,8 +64,7 @@ public final class JavaCodeSnippetGen {
      */
     public static String getImportText(JavaQualifiedTypeInfo importInfo) {
 
-        return UtilConstants.IMPORT + importInfo.getPkgInfo() + UtilConstants.PERIOD + importInfo.getClassInfo()
-                + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE;
+        return IMPORT + importInfo.getPkgInfo() + PERIOD + importInfo.getClassInfo() + SEMI_COLAN + NEW_LINE;
     }
 
     /**
@@ -69,8 +80,8 @@ public final class JavaCodeSnippetGen {
         /*
          * get the camel case name for java class / interface.
          */
-        yangName = JavaIdentifierSyntax.getCamelCase(yangName);
-        return ClassDefinitionGenerator.generateClassDefinition(genFileTypes, yangName);
+        yangName = getCamelCase(yangName);
+        return generateClassDefinition(genFileTypes, yangName);
     }
 
     /**
@@ -85,30 +96,23 @@ public final class JavaCodeSnippetGen {
     public static String getJavaAttributeDefination(String javaAttributeTypePkg, String javaAttributeType,
             String javaAttributeName, boolean isList) {
 
-        String attributeDefination = UtilConstants.PRIVATE
-                + UtilConstants.SPACE;
+        String attributeDefination = PRIVATE + SPACE;
 
         if (!isList) {
             if (javaAttributeTypePkg != null) {
-                attributeDefination = attributeDefination
-                        + javaAttributeTypePkg + UtilConstants.PERIOD;
+                attributeDefination = attributeDefination + javaAttributeTypePkg + PERIOD;
             }
 
-            attributeDefination = attributeDefination
-                    + javaAttributeType
-                    + UtilConstants.SPACE
-                    + javaAttributeName
-                    + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE;
+            attributeDefination = attributeDefination + javaAttributeType + SPACE + javaAttributeName + SEMI_COLAN
+                    + NEW_LINE;
         } else {
-            attributeDefination = attributeDefination + UtilConstants.LIST + UtilConstants.DIAMOND_OPEN_BRACKET;
+            attributeDefination = attributeDefination + LIST + DIAMOND_OPEN_BRACKET;
             if (javaAttributeTypePkg != null) {
-                attributeDefination = attributeDefination
-                        + javaAttributeTypePkg + UtilConstants.PERIOD;
+                attributeDefination = attributeDefination + javaAttributeTypePkg + PERIOD;
             }
 
-            attributeDefination = attributeDefination
-                    + javaAttributeType + UtilConstants.DIAMOND_CLOSE_BRACKET + UtilConstants.SPACE
-                    + javaAttributeName + UtilConstants.SUFIX_S + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE;
+            attributeDefination = attributeDefination + javaAttributeType + DIAMOND_CLOSE_BRACKET + SPACE
+                    + javaAttributeName + SEMI_COLAN + NEW_LINE;
         }
         return attributeDefination;
     }
@@ -121,7 +125,7 @@ public final class JavaCodeSnippetGen {
      */
     public static String getListAttribute(String type) {
 
-        return UtilConstants.LIST + UtilConstants.DIAMOND_OPEN_BRACKET + type + UtilConstants.DIAMOND_CLOSE_BRACKET;
+        return LIST + DIAMOND_OPEN_BRACKET + type + DIAMOND_CLOSE_BRACKET;
     }
 
     /**
@@ -132,7 +136,6 @@ public final class JavaCodeSnippetGen {
      */
     public static String getJavaClassDefClose() {
 
-        return UtilConstants.CLOSE_CURLY_BRACKET;
+        return CLOSE_CURLY_BRACKET;
     }
-
 }

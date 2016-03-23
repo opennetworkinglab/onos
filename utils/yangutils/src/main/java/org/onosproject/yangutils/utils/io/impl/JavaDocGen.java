@@ -19,6 +19,36 @@ package org.onosproject.yangutils.utils.io.impl;
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
 import org.onosproject.yangutils.utils.UtilConstants;
 
+import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
+import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_CLASS_JAVA_DOC;
+import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_INTERFACE_JAVA_DOC;
+import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_OBJECT;
+import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
+import static org.onosproject.yangutils.utils.UtilConstants.IMPL_CLASS_JAVA_DOC;
+import static org.onosproject.yangutils.utils.UtilConstants.INTERFACE_JAVA_DOC;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_BUILD;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_BUILD_RETURN;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_CONSTRUCTOR;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_DEFAULT_CONSTRUCTOR;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_END_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FIRST_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_GETTERS;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_OF;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_PARAM;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_RETURN;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_SETTERS;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_SETTERS_COMMON;
+import static org.onosproject.yangutils.utils.UtilConstants.LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE_ESTRIC;
+import static org.onosproject.yangutils.utils.UtilConstants.OBJECT;
+import static org.onosproject.yangutils.utils.UtilConstants.OF;
+import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE_INFO_JAVADOC;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
+import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
+
 /**
  * Provides javadoc for the generated classes.
  */
@@ -63,17 +93,17 @@ public final class JavaDocGen {
         /**
          * For getters.
          */
-        GETTER,
+        GETTER_METHOD,
 
         /**
          * For setters.
          */
-        SETTER,
+        SETTER_METHOD,
 
         /**
          * For type def's setters.
          */
-        TYPE_DEF_SETTER,
+        TYPE_DEF_SETTER_METHOD,
 
         /**
          * For type def's constructor.
@@ -83,7 +113,7 @@ public final class JavaDocGen {
         /**
          * For of method.
          */
-        OF,
+        OF_METHOD,
 
         /**
          * For default constructor.
@@ -98,7 +128,7 @@ public final class JavaDocGen {
         /**
          * For build.
          */
-        BUILD
+        BUILD_METHOD
     }
 
     /**
@@ -110,8 +140,9 @@ public final class JavaDocGen {
      * @return javadocs.
      */
     public static String getJavaDoc(JavaDocType type, String name, boolean isList) {
+
         name = JavaIdentifierSyntax.getLowerCase(JavaIdentifierSyntax.getCamelCase(name));
-        String javaDoc = "";
+        String javaDoc = UtilConstants.EMPTY_STRING;
         if (type.equals(JavaDocType.IMPL_CLASS)) {
             javaDoc = generateForImplClass(name);
         } else if (type.equals(JavaDocType.BUILDER_CLASS)) {
@@ -122,19 +153,19 @@ public final class JavaDocGen {
             javaDoc = generateForBuilderInterface(name);
         } else if (type.equals(JavaDocType.PACKAGE_INFO)) {
             javaDoc = generateForPackage(name);
-        } else if (type.equals(JavaDocType.GETTER)) {
+        } else if (type.equals(JavaDocType.GETTER_METHOD)) {
             javaDoc = generateForGetters(name, isList);
-        } else if (type.equals(JavaDocType.TYPE_DEF_SETTER)) {
+        } else if (type.equals(JavaDocType.TYPE_DEF_SETTER_METHOD)) {
             javaDoc = generateForTypeDefSetter(name);
         } else if (type.equals(JavaDocType.TYPE_DEF_CONSTRUCTOR)) {
             javaDoc = generateForTypeDefConstructor(name);
-        } else if (type.equals(JavaDocType.SETTER)) {
+        } else if (type.equals(JavaDocType.SETTER_METHOD)) {
             javaDoc = generateForSetters(name, isList);
-        } else if (type.equals(JavaDocType.OF)) {
+        } else if (type.equals(JavaDocType.OF_METHOD)) {
             javaDoc = generateForOf(name);
         } else if (type.equals(JavaDocType.DEFAULT_CONSTRUCTOR)) {
             javaDoc = generateForDefaultConstructors();
-        } else if (type.equals(JavaDocType.BUILD)) {
+        } else if (type.equals(JavaDocType.BUILD_METHOD)) {
             javaDoc = generateForBuild(name);
         } else {
             javaDoc = generateForConstructors(name);
@@ -150,19 +181,18 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForGetters(String attribute, boolean isList) {
-        String getter = UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.JAVA_DOC_FIRST_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_GETTERS + attribute
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_RETURN;
+
+        String getter = NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_GETTERS + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN;
         if (isList) {
-            String listAttribute = UtilConstants.LIST.toLowerCase() + UtilConstants.SPACE + UtilConstants.OF
-                    + UtilConstants.SPACE;
+            String listAttribute = LIST.toLowerCase() + SPACE + OF + SPACE;
             getter = getter + listAttribute;
+        } else {
+            getter = getter + VALUE + SPACE + OF + SPACE;
         }
 
-        getter = getter + attribute + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.JAVA_DOC_END_LINE;
+        getter = getter + attribute + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
         return getter;
     }
 
@@ -174,23 +204,18 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForSetters(String attribute, boolean isList) {
-        String setter = UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.JAVA_DOC_FIRST_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_SETTERS + attribute
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM;
+
+        String setter = NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_SETTERS + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + attribute + SPACE;
         if (isList) {
-            setter = setter + attribute + UtilConstants.SUFIX_S + UtilConstants.SPACE;
-            String listAttribute = UtilConstants.LIST.toLowerCase() + UtilConstants.SPACE + UtilConstants.OF
-                    + UtilConstants.SPACE;
+            String listAttribute = LIST.toLowerCase() + SPACE + OF + SPACE;
             setter = setter + listAttribute;
         } else {
-            setter = setter + attribute + UtilConstants.SPACE;
+            setter = setter + VALUE + SPACE + OF + SPACE;
         }
-
-        setter = setter + attribute + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.JAVA_DOC_RETURN + UtilConstants.BUILDER_OBJECT + attribute + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE;
+        setter = setter + attribute + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + BUILDER_OBJECT + attribute
+                + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
         return setter;
     }
 
@@ -201,14 +226,12 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForOf(String attribute) {
-        return UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_OF + attribute
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM
-                + UtilConstants.VALUE + UtilConstants.SPACE + UtilConstants.VALUE + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_RETURN + UtilConstants.OBJECT
-                + UtilConstants.SPACE + UtilConstants.OF + UtilConstants.SPACE + attribute + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE;
+
+        return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_OF
+                + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + OBJECT + SPACE + OF + SPACE + attribute + NEW_LINE
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -218,12 +241,11 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForTypeDefSetter(String attribute) {
-        return UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_SETTERS_COMMON + attribute
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM
-                + UtilConstants.VALUE + UtilConstants.SPACE + UtilConstants.VALUE + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE;
+
+        return (NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_SETTERS_COMMON + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute
+                + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE);
     }
 
     /**
@@ -233,12 +255,11 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForTypeDefConstructor(String attribute) {
-        return UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_CONSTRUCTOR + attribute
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.NEW_LINE_ESTRIC + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM
-                + UtilConstants.VALUE + UtilConstants.SPACE + UtilConstants.VALUE + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE;
+
+        return (NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR
+                + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE);
     }
 
     /**
@@ -248,8 +269,8 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForImplClass(String className) {
-        return UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.IMPL_CLASS_JAVA_DOC
-                + className + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
+
+        return NEW_LINE + JAVA_DOC_FIRST_LINE + IMPL_CLASS_JAVA_DOC + className + PERIOD + NEW_LINE + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -259,8 +280,9 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForBuilderClass(String className) {
-        return UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.BUILDER_CLASS_JAVA_DOC
-                + className + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
+
+        return NEW_LINE + JAVA_DOC_FIRST_LINE + BUILDER_CLASS_JAVA_DOC + className + PERIOD + NEW_LINE
+                + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -270,8 +292,9 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForInterface(String interfaceName) {
-        return UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.INTERFACE_JAVA_DOC
-                + interfaceName + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
+
+        return NEW_LINE + JAVA_DOC_FIRST_LINE + INTERFACE_JAVA_DOC + interfaceName + PERIOD + NEW_LINE
+                + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -281,8 +304,9 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForBuilderInterface(String builderforName) {
-        return UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.BUILDER_INTERFACE_JAVA_DOC + builderforName
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
+
+        return JAVA_DOC_FIRST_LINE + BUILDER_INTERFACE_JAVA_DOC + builderforName + PERIOD + NEW_LINE
+                + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -292,8 +316,8 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForPackage(String packageName) {
-        return UtilConstants.JAVA_DOC_FIRST_LINE + UtilConstants.PACKAGE_INFO_JAVADOC + packageName
-                + UtilConstants.PERIOD + UtilConstants.NEW_LINE + UtilConstants.JAVA_DOC_END_LINE;
+
+        return JAVA_DOC_FIRST_LINE + PACKAGE_INFO_JAVADOC + packageName + PERIOD + NEW_LINE + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -302,9 +326,9 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForDefaultConstructors() {
-        return UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_DEFAULT_CONSTRUCTOR
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE;
+
+        return FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_DEFAULT_CONSTRUCTOR
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -314,14 +338,12 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForConstructors(String className) {
-        return UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_CONSTRUCTOR + className
-                + UtilConstants.IMPL + UtilConstants.PERIOD + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.NEW_LINE_ESTRIC
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_PARAM
-                + UtilConstants.BUILDER.toLowerCase() + UtilConstants.OBJECT + UtilConstants.SPACE
-                + UtilConstants.BUILDER_OBJECT + UtilConstants.SPACE + className + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE;
+
+        return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR + className + IMPL + PERIOD + NEW_LINE
+                + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM
+                + BUILDER.toLowerCase() + OBJECT + SPACE + BUILDER_OBJECT + SPACE + className + NEW_LINE
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -331,11 +353,10 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForBuild(String buildName) {
-        return UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_FIRST_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_BUILD + buildName + UtilConstants.PERIOD
-                + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.NEW_LINE_ESTRIC
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_RETURN
-                + UtilConstants.JAVA_DOC_BUILD_RETURN + buildName + UtilConstants.PERIOD + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.JAVA_DOC_END_LINE;
+
+        return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_BUILD
+                + buildName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_RETURN + JAVA_DOC_BUILD_RETURN + buildName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_END_LINE;
     }
 }

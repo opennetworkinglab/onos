@@ -17,9 +17,70 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
-import org.onosproject.yangutils.utils.UtilConstants;
-import org.onosproject.yangutils.utils.io.impl.JavaDocGen;
-import org.onosproject.yangutils.utils.io.impl.YangIoUtils;
+
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getLowerCase;
+import static org.onosproject.yangutils.utils.UtilConstants.ADD_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.AND;
+import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
+import static org.onosproject.yangutils.utils.UtilConstants.BUILD;
+import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
+import static org.onosproject.yangutils.utils.UtilConstants.CHECK_NOT_NULL_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
+import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
+import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
+import static org.onosproject.yangutils.utils.UtilConstants.EQUALS_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.FALSE;
+import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.GET_METHOD_PREFIX;
+import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_METHOD_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.HASH;
+import static org.onosproject.yangutils.utils.UtilConstants.HASH_CODE_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.IF;
+import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
+import static org.onosproject.yangutils.utils.UtilConstants.INSTANCE_OF;
+import static org.onosproject.yangutils.utils.UtilConstants.INT;
+import static org.onosproject.yangutils.utils.UtilConstants.LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.OBJ;
+import static org.onosproject.yangutils.utils.UtilConstants.OBJECT;
+import static org.onosproject.yangutils.utils.UtilConstants.OBJECT_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.OF;
+import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
+import static org.onosproject.yangutils.utils.UtilConstants.OTHER;
+import static org.onosproject.yangutils.utils.UtilConstants.OVERRIDE;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
+import static org.onosproject.yangutils.utils.UtilConstants.QUOTES;
+import static org.onosproject.yangutils.utils.UtilConstants.RETURN;
+import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
+import static org.onosproject.yangutils.utils.UtilConstants.SET_METHOD_PREFIX;
+import static org.onosproject.yangutils.utils.UtilConstants.SIXTEEN_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
+import static org.onosproject.yangutils.utils.UtilConstants.STATIC;
+import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
+import static org.onosproject.yangutils.utils.UtilConstants.SUFFIX_S;
+import static org.onosproject.yangutils.utils.UtilConstants.THIS;
+import static org.onosproject.yangutils.utils.UtilConstants.TO;
+import static org.onosproject.yangutils.utils.UtilConstants.TRUE;
+import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
+import static org.onosproject.yangutils.utils.UtilConstants.VOID;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILD_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.CONSTRUCTOR;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.DEFAULT_CONSTRUCTOR;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.SETTER_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
 /**
  * Generated methods for generated files based on the file type.
@@ -40,7 +101,7 @@ public final class MethodsGenerator {
      */
     public static String parseBuilderInterfaceBuildMethodString(String name) {
 
-        return JavaDocGen.getJavaDoc(JavaDocGen.JavaDocType.BUILD, name, false) + getBuildForInterface(name);
+        return getJavaDoc(BUILD_METHOD, name, false) + getBuildForInterface(name);
     }
 
     /**
@@ -52,10 +113,10 @@ public final class MethodsGenerator {
     public static String getGetterString(JavaAttributeInfo attr) {
 
         String returnType = getReturnType(attr);
-        String attributeName = JavaIdentifierSyntax.getLowerCase(attr.getAttributeName());
+        String attributeName = getLowerCase(attr.getAttributeName());
 
-        return JavaDocGen.getJavaDoc(JavaDocGen.JavaDocType.GETTER, attributeName, attr.isListAttr()) +
-                getGetterForInterface(attributeName, returnType, attr.isListAttr());
+        return getJavaDoc(GETTER_METHOD, attributeName, attr.isListAttr())
+                + getGetterForInterface(attributeName, returnType, attr.isListAttr());
     }
 
     /**
@@ -68,9 +129,9 @@ public final class MethodsGenerator {
     public static String getSetterString(JavaAttributeInfo attr, String className) {
 
         String attrType = getReturnType(attr);
-        String attributeName = JavaIdentifierSyntax.getLowerCase(attr.getAttributeName());
+        String attributeName = getLowerCase(attr.getAttributeName());
 
-        return JavaDocGen.getJavaDoc(JavaDocGen.JavaDocType.SETTER, attributeName, attr.isListAttr())
+        return getJavaDoc(SETTER_METHOD, attributeName, attr.isListAttr())
                 + getSetterForInterface(attributeName, attrType, className, attr.isListAttr());
     }
 
@@ -82,7 +143,7 @@ public final class MethodsGenerator {
      */
     public static String getConstructorString(String name) {
 
-        return JavaDocGen.getJavaDoc(JavaDocGen.JavaDocType.CONSTRUCTOR, name, false);
+        return getJavaDoc(CONSTRUCTOR, name, false);
     }
 
     /**
@@ -94,8 +155,7 @@ public final class MethodsGenerator {
      */
     public static String getDefaultConstructorString(String name, String modifierType) {
 
-        return JavaDocGen.getJavaDoc(JavaDocGen.JavaDocType.DEFAULT_CONSTRUCTOR, name, false)
-                + getDefaultConstructor(name, modifierType);
+        return getJavaDoc(DEFAULT_CONSTRUCTOR, name, false) + getDefaultConstructor(name, modifierType);
     }
 
     /**
@@ -108,12 +168,12 @@ public final class MethodsGenerator {
     public static String getTypeDefConstructor(JavaAttributeInfo attr, String className) {
 
         String attrQuaifiedType = getReturnType(attr);
-        String attributeName = JavaIdentifierSyntax.getLowerCase(attr.getAttributeName());
+        String attributeName = getLowerCase(attr.getAttributeName());
 
         if (!attr.isListAttr()) {
             return getTypeDefConstructorString(attrQuaifiedType, attributeName, className);
         }
-        String listAttr = getListString() + attrQuaifiedType + UtilConstants.DIAMOND_CLOSE_BRACKET;
+        String listAttr = getListString() + attrQuaifiedType + DIAMOND_CLOSE_BRACKET;
         return getTypeDefConstructorString(listAttr, attributeName, className);
     }
 
@@ -127,13 +187,10 @@ public final class MethodsGenerator {
      */
     private static String getTypeDefConstructorString(String type, String name, String className) {
 
-        return UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.PUBLIC + UtilConstants.SPACE
-                + className + UtilConstants.OPEN_PARENTHESIS + type + UtilConstants.SPACE + UtilConstants.VALUE
-                + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET
-                + UtilConstants.NEW_LINE + UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.THIS
-                + UtilConstants.PERIOD + name + UtilConstants.SPACE + UtilConstants.EQUAL + UtilConstants.SPACE
-                + UtilConstants.VALUE + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.CLOSE_CURLY_BRACKET;
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + className + OPEN_PARENTHESIS + type + SPACE + VALUE
+                + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + THIS + PERIOD
+                + name + SPACE + EQUAL + SPACE + VALUE + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION
+                + CLOSE_CURLY_BRACKET;
     }
 
     /**
@@ -144,9 +201,8 @@ public final class MethodsGenerator {
      */
     public static String getCheckNotNull(String name) {
 
-        return UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.CHECK_NOT_NULL_STRING
-                + UtilConstants.OPEN_PARENTHESIS + name + UtilConstants.COMMA + UtilConstants.SPACE + name
-                + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE;
+        return EIGHT_SPACE_INDENTATION + CHECK_NOT_NULL_STRING + OPEN_PARENTHESIS + name + COMMA + SPACE + name
+                + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
     }
 
     /**
@@ -157,8 +213,7 @@ public final class MethodsGenerator {
      */
     public static String getBuildString(String name) {
 
-        return UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.OVERRIDE + UtilConstants.NEW_LINE
-                + getBuild(name);
+        return FOUR_SPACE_INDENTATION + OVERRIDE + NEW_LINE + getBuild(name);
     }
 
     /**
@@ -170,13 +225,13 @@ public final class MethodsGenerator {
     public static String getGetterForClass(JavaAttributeInfo attr) {
 
         String attrQuaifiedType = getReturnType(attr);
-        String attributeName = JavaIdentifierSyntax.getLowerCase(attr.getAttributeName());
+        String attributeName = getLowerCase(attr.getAttributeName());
 
         if (!attr.isListAttr()) {
             return getGetter(attrQuaifiedType, attributeName);
         }
-        String listAttr = getListString() + attrQuaifiedType + UtilConstants.DIAMOND_CLOSE_BRACKET;
-        return getGetter(listAttr, attributeName + UtilConstants.SUFIX_S);
+        String listAttr = getListString() + attrQuaifiedType + DIAMOND_CLOSE_BRACKET;
+        return getGetter(listAttr, attributeName);
     }
 
     /**
@@ -188,13 +243,9 @@ public final class MethodsGenerator {
      */
     private static String getGetter(String type, String name) {
 
-        return UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.PUBLIC + UtilConstants.SPACE
-                + type + UtilConstants.SPACE + UtilConstants.GET_METHOD_PREFIX
-                + JavaIdentifierSyntax.getCaptialCase(name) + UtilConstants.OPEN_PARENTHESIS
-                + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET
-                + UtilConstants.NEW_LINE + UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.RETURN
-                + UtilConstants.SPACE + name + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.CLOSE_CURLY_BRACKET;
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + type + SPACE + GET_METHOD_PREFIX + getCaptialCase(name)
+                + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
+                + RETURN + SPACE + name + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
     }
 
     /**
@@ -207,12 +258,12 @@ public final class MethodsGenerator {
     public static String getSetterForClass(JavaAttributeInfo attr, String className) {
 
         String attrQuaifiedType = getReturnType(attr);
-        String attributeName = JavaIdentifierSyntax.getLowerCase(attr.getAttributeName());
+        String attributeName = getLowerCase(attr.getAttributeName());
         if (!attr.isListAttr()) {
             return getSetter(className, attributeName, attrQuaifiedType);
         }
-        String listAttr = getListString() + attrQuaifiedType + UtilConstants.DIAMOND_CLOSE_BRACKET;
-        return getSetter(className, attributeName + UtilConstants.SUFIX_S, listAttr);
+        String listAttr = getListString() + attrQuaifiedType + DIAMOND_CLOSE_BRACKET;
+        return getSetter(className, attributeName, listAttr);
     }
 
     /**
@@ -225,16 +276,11 @@ public final class MethodsGenerator {
      */
     private static String getSetter(String className, String name, String type) {
 
-        return UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.PUBLIC + UtilConstants.SPACE
-                + className + UtilConstants.BUILDER + UtilConstants.SPACE + UtilConstants.SET_METHOD_PREFIX
-                + JavaIdentifierSyntax.getCaptialCase(name) + UtilConstants.OPEN_PARENTHESIS
-                + type + UtilConstants.SPACE + name + UtilConstants.CLOSE_PARENTHESIS
-                + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE
-                + UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.THIS + UtilConstants.PERIOD
-                + name + UtilConstants.SPACE + UtilConstants.EQUAL + UtilConstants.SPACE
-                + name + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE + UtilConstants.EIGHT_SPACE_INDENTATION
-                + UtilConstants.RETURN + UtilConstants.SPACE + UtilConstants.THIS + UtilConstants.SEMI_COLAN
-                + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.CLOSE_CURLY_BRACKET;
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + className + BUILDER + SPACE + SET_METHOD_PREFIX
+                + getCaptialCase(name) + OPEN_PARENTHESIS + type + SPACE + name + CLOSE_PARENTHESIS + SPACE
+                + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + THIS + PERIOD + name + SPACE + EQUAL + SPACE
+                + name + SEMI_COLAN + NEW_LINE + EIGHT_SPACE_INDENTATION + RETURN + SPACE + THIS + SEMI_COLAN
+                + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
     }
 
     /**
@@ -246,13 +292,8 @@ public final class MethodsGenerator {
     public static String getSetterForTypeDefClass(JavaAttributeInfo attr) {
 
         String attrQuaifiedType = getReturnType(attr);
-        String attributeName = JavaIdentifierSyntax.getLowerCase(attr.getAttributeName());
-
-        if (!attr.isListAttr()) {
-            return getTypeDefSetter(attrQuaifiedType, attributeName);
-        }
-        String listAttr = getListString() + attrQuaifiedType + UtilConstants.DIAMOND_CLOSE_BRACKET;
-        return getTypeDefSetter(listAttr, attributeName + UtilConstants.SUFIX_S);
+        String attributeName = getLowerCase(attr.getAttributeName());
+        return getTypeDefSetter(attrQuaifiedType, attributeName);
     }
 
     /**
@@ -264,15 +305,10 @@ public final class MethodsGenerator {
      */
     private static String getTypeDefSetter(String type, String name) {
 
-        return UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.PUBLIC + UtilConstants.SPACE
-                + UtilConstants.VOID + UtilConstants.SPACE + UtilConstants.SET_METHOD_PREFIX
-                + JavaIdentifierSyntax.getCaptialCase(name) + UtilConstants.OPEN_PARENTHESIS
-                + type + UtilConstants.SPACE + UtilConstants.VALUE + UtilConstants.CLOSE_PARENTHESIS
-                + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE
-                + UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.THIS + UtilConstants.PERIOD
-                + name + UtilConstants.SPACE + UtilConstants.EQUAL + UtilConstants.SPACE
-                + UtilConstants.VALUE + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.CLOSE_CURLY_BRACKET;
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + SET_METHOD_PREFIX + getCaptialCase(name)
+                + OPEN_PARENTHESIS + type + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
+                + EIGHT_SPACE_INDENTATION + THIS + PERIOD + name + SPACE + EQUAL + SPACE + VALUE + SEMI_COLAN + NEW_LINE
+                + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
     }
 
     /**
@@ -282,8 +318,7 @@ public final class MethodsGenerator {
      */
     public static String getOverRideString() {
 
-        return UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.OVERRIDE + UtilConstants.NEW_LINE;
+        return NEW_LINE + FOUR_SPACE_INDENTATION + OVERRIDE + NEW_LINE;
     }
 
     /**
@@ -299,8 +334,8 @@ public final class MethodsGenerator {
         if (!isList) {
             return getGetterInterfaceString(returnType, yangName);
         }
-        String listAttr = getListString() + returnType + UtilConstants.DIAMOND_CLOSE_BRACKET;
-        return getGetterInterfaceString(listAttr, yangName + UtilConstants.SUFIX_S);
+        String listAttr = getListString() + returnType + DIAMOND_CLOSE_BRACKET;
+        return getGetterInterfaceString(listAttr, yangName);
     }
 
     /**
@@ -312,12 +347,8 @@ public final class MethodsGenerator {
      */
     private static String getGetterInterfaceString(String returnType, String yangName) {
 
-        return UtilConstants.FOUR_SPACE_INDENTATION + returnType
-                + UtilConstants.SPACE + UtilConstants.GET_METHOD_PREFIX
-                + JavaIdentifierSyntax.getCaptialCase(yangName)
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.CLOSE_PARENTHESIS
-                + UtilConstants.SEMI_COLAN;
-
+        return FOUR_SPACE_INDENTATION + returnType + SPACE + GET_METHOD_PREFIX + getCaptialCase(yangName)
+                + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN;
     }
 
     /**
@@ -334,8 +365,8 @@ public final class MethodsGenerator {
         if (!isList) {
             return getSetterInterfaceString(className, attrName, attrType);
         }
-        String listAttr = getListString() + attrType + UtilConstants.DIAMOND_CLOSE_BRACKET;
-        return getSetterInterfaceString(className, attrName + UtilConstants.SUFIX_S, listAttr);
+        String listAttr = getListString() + attrType + DIAMOND_CLOSE_BRACKET;
+        return getSetterInterfaceString(className, attrName, listAttr);
     }
 
     /**
@@ -348,11 +379,8 @@ public final class MethodsGenerator {
      */
     private static String getSetterInterfaceString(String className, String attrName, String attrType) {
 
-        return UtilConstants.FOUR_SPACE_INDENTATION + className + UtilConstants.BUILDER
-                + UtilConstants.SPACE + UtilConstants.SET_METHOD_PREFIX
-                + JavaIdentifierSyntax.getCaptialCase(attrName) + UtilConstants.OPEN_PARENTHESIS
-                + attrType + UtilConstants.SPACE + attrName + UtilConstants.CLOSE_PARENTHESIS
-                + UtilConstants.SEMI_COLAN;
+        return FOUR_SPACE_INDENTATION + className + BUILDER + SPACE + SET_METHOD_PREFIX + getCaptialCase(attrName)
+                + OPEN_PARENTHESIS + attrType + SPACE + attrName + CLOSE_PARENTHESIS + SEMI_COLAN;
     }
 
     /**
@@ -362,7 +390,7 @@ public final class MethodsGenerator {
      */
     private static String getListString() {
 
-        return UtilConstants.LIST + UtilConstants.DIAMOND_OPEN_BRACKET;
+        return LIST + DIAMOND_OPEN_BRACKET;
     }
 
     /**
@@ -373,9 +401,9 @@ public final class MethodsGenerator {
      */
     private static String getReturnType(JavaAttributeInfo attr) {
 
-        String returnType = UtilConstants.EMPTY_STRING;
+        String returnType = EMPTY_STRING;
         if (attr.isQualifiedName() && (attr.getImportInfo().getPkgInfo() != null)) {
-            returnType = attr.getImportInfo().getPkgInfo() + UtilConstants.PERIOD;
+            returnType = attr.getImportInfo().getPkgInfo() + PERIOD;
         }
         returnType = returnType + attr.getImportInfo().getClassInfo();
         return returnType;
@@ -389,9 +417,8 @@ public final class MethodsGenerator {
      */
     public static String getBuildForInterface(String yangName) {
 
-        return UtilConstants.FOUR_SPACE_INDENTATION + yangName + UtilConstants.SPACE + UtilConstants.BUILD
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SEMI_COLAN
-                + UtilConstants.NEW_LINE;
+        return FOUR_SPACE_INDENTATION + yangName + SPACE + BUILD + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN
+                + NEW_LINE;
     }
 
     /**
@@ -402,12 +429,10 @@ public final class MethodsGenerator {
      */
     public static String getConstructorStart(String yangName) {
 
-        String javadoc = MethodsGenerator.getConstructorString(yangName);
-        String constructor = UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.PUBLIC + UtilConstants.SPACE
-                + yangName + UtilConstants.IMPL + UtilConstants.OPEN_PARENTHESIS + yangName + UtilConstants.BUILDER
-                + UtilConstants.SPACE + UtilConstants.BUILDER.toLowerCase() + UtilConstants.OBJECT
-                + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET
-                + UtilConstants.NEW_LINE;
+        String javadoc = getConstructorString(yangName);
+        String constructor = FOUR_SPACE_INDENTATION + PUBLIC + SPACE + yangName + IMPL + OPEN_PARENTHESIS + yangName
+                + BUILDER + SPACE + BUILDER.toLowerCase() + OBJECT + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET
+                + NEW_LINE;
         return javadoc + constructor;
     }
 
@@ -420,17 +445,12 @@ public final class MethodsGenerator {
      */
     public static String getConstructor(String yangName, JavaAttributeInfo attr) {
 
-        String attributeName = JavaIdentifierSyntax.getLowerCase(attr.getAttributeName());
-        if (attr.isListAttr()) {
-            attributeName = attributeName + UtilConstants.SUFIX_S;
-        }
-        String constructor = UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.THIS
-                + UtilConstants.PERIOD + JavaIdentifierSyntax.getCamelCase(attributeName)
-                + UtilConstants.SPACE + UtilConstants.EQUAL + UtilConstants.SPACE + UtilConstants.BUILDER.toLowerCase()
-                + UtilConstants.OBJECT + UtilConstants.PERIOD + UtilConstants.GET_METHOD_PREFIX
-                + JavaIdentifierSyntax.getCaptialCase(JavaIdentifierSyntax.getCamelCase(attributeName))
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SEMI_COLAN
-                + UtilConstants.NEW_LINE;
+        String attributeName = getLowerCase(attr.getAttributeName());
+
+        String constructor = EIGHT_SPACE_INDENTATION + THIS + PERIOD + getCamelCase(attributeName) + SPACE + EQUAL
+                + SPACE + BUILDER.toLowerCase() + OBJECT + PERIOD + GET_METHOD_PREFIX
+                + getCaptialCase(getCamelCase(attributeName)) + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN
+                + NEW_LINE;
 
         return constructor;
     }
@@ -443,14 +463,10 @@ public final class MethodsGenerator {
      */
     public static String getBuild(String yangName) {
 
-        return UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.PUBLIC + UtilConstants.SPACE
-                + yangName + UtilConstants.SPACE + UtilConstants.BUILD + UtilConstants.OPEN_PARENTHESIS
-                + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET
-                + UtilConstants.NEW_LINE + UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.RETURN
-                + UtilConstants.SPACE + UtilConstants.NEW + UtilConstants.SPACE + yangName + UtilConstants.IMPL
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.THIS + UtilConstants.CLOSE_PARENTHESIS
-                + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.CLOSE_CURLY_BRACKET;
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + yangName + SPACE + BUILD + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
+                + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + RETURN + SPACE + NEW + SPACE
+                + yangName + IMPL + OPEN_PARENTHESIS + THIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE
+                + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
     }
 
     /**
@@ -462,10 +478,8 @@ public final class MethodsGenerator {
      */
     private static String getDefaultConstructor(String name, String modifierType) {
 
-        return UtilConstants.FOUR_SPACE_INDENTATION + modifierType + UtilConstants.SPACE + name
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SPACE
-                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.CLOSE_CURLY_BRACKET;
+        return FOUR_SPACE_INDENTATION + modifierType + SPACE + name + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE
+                + OPEN_CURLY_BRACKET + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
     }
 
     /**
@@ -475,11 +489,9 @@ public final class MethodsGenerator {
      */
     public static String getToStringMethodOpen() {
 
-        return getOverRideString() + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.PUBLIC + UtilConstants.SPACE
-                + UtilConstants.STRING + UtilConstants.SPACE + UtilConstants.TO + UtilConstants.STRING
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SPACE
-                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE + UtilConstants.EIGHT_SPACE_INDENTATION
-                + UtilConstants.RETURN + UtilConstants.GOOGLE_MORE_OBJECT_METHOD_STRING + UtilConstants.NEW_LINE;
+        return getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STRING_DATA_TYPE + SPACE + TO
+                + STRING_DATA_TYPE + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
+                + EIGHT_SPACE_INDENTATION + RETURN + GOOGLE_MORE_OBJECT_METHOD_STRING + NEW_LINE;
     }
 
     /**
@@ -489,10 +501,8 @@ public final class MethodsGenerator {
      */
     public static String getToStringMethodClose() {
 
-        return UtilConstants.TWELVE_SPACE_INDENTATION + UtilConstants.PERIOD + UtilConstants.TO + UtilConstants.STRING
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SEMI_COLAN
-                + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.CLOSE_CURLY_BRACKET + UtilConstants.NEW_LINE;
+        return TWELVE_SPACE_INDENTATION + PERIOD + TO + STRING_DATA_TYPE + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
+                + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
     }
 
     /**
@@ -503,14 +513,10 @@ public final class MethodsGenerator {
      */
     public static String getToStringMethod(JavaAttributeInfo attr) {
 
-        String attributeName = JavaIdentifierSyntax.getLowerCase(attr.getAttributeName());
-        if (attr.isListAttr()) {
-            attributeName = attributeName + UtilConstants.SUFIX_S;
-        }
-        return UtilConstants.TWELVE_SPACE_INDENTATION + UtilConstants.PERIOD + UtilConstants.ADD_STRING
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.QUOTES
-                + attributeName + UtilConstants.QUOTES + UtilConstants.COMMA + UtilConstants.SPACE + attributeName
-                + UtilConstants.CLOSE_PARENTHESIS;
+        String attributeName = getLowerCase(attr.getAttributeName());
+
+        return TWELVE_SPACE_INDENTATION + PERIOD + ADD_STRING + OPEN_PARENTHESIS + QUOTES + attributeName + QUOTES
+                + COMMA + SPACE + attributeName + CLOSE_PARENTHESIS;
 
     }
 
@@ -521,12 +527,9 @@ public final class MethodsGenerator {
      */
     public static String getHashCodeMethodOpen() {
 
-        return getOverRideString() + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.PUBLIC + UtilConstants.SPACE
-                + UtilConstants.INT + UtilConstants.SPACE + UtilConstants.HASH_CODE_STRING
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SPACE
-                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE + UtilConstants.EIGHT_SPACE_INDENTATION
-                + UtilConstants.RETURN + UtilConstants.SPACE + UtilConstants.OBJECT_STRING + UtilConstants.SUFIX_S
-                + UtilConstants.PERIOD + UtilConstants.HASH + UtilConstants.OPEN_PARENTHESIS;
+        return getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + INT + SPACE + HASH_CODE_STRING
+                + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
+                + RETURN + SPACE + OBJECT_STRING + SUFFIX_S + PERIOD + HASH + OPEN_PARENTHESIS;
     }
 
     /**
@@ -537,10 +540,10 @@ public final class MethodsGenerator {
      */
     public static String getHashCodeMethodClose(String hashcodeString) {
 
-        hashcodeString = YangIoUtils.trimAtLast(hashcodeString, UtilConstants.COMMA);
-        hashcodeString = YangIoUtils.trimAtLast(hashcodeString, UtilConstants.SPACE);
-        return hashcodeString + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.CLOSE_CURLY_BRACKET + UtilConstants.NEW_LINE;
+        hashcodeString = trimAtLast(hashcodeString, COMMA);
+        hashcodeString = trimAtLast(hashcodeString, SPACE);
+        return hashcodeString + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET
+                + NEW_LINE;
     }
 
     /**
@@ -551,13 +554,7 @@ public final class MethodsGenerator {
      */
     public static String getHashCodeMethod(JavaAttributeInfo attr) {
 
-        String attributeName = JavaIdentifierSyntax.getLowerCase(attr.getAttributeName());
-        if (attr.isListAttr()) {
-            attributeName = attributeName + UtilConstants.SUFIX_S;
-        }
-        return attributeName
-                + UtilConstants.COMMA + UtilConstants.SPACE;
-
+        return getLowerCase(attr.getAttributeName()) + COMMA + SPACE;
     }
 
     /**
@@ -568,12 +565,9 @@ public final class MethodsGenerator {
      */
     public static String getEqualsMethodOpen(String className) {
 
-        return getOverRideString() + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.PUBLIC + UtilConstants.SPACE
-                + UtilConstants.BOOLEAN + UtilConstants.SPACE + UtilConstants.EQUALS_STRING
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.OBJECT_STRING + UtilConstants.SPACE + UtilConstants.OBJ
-                + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET
-                + UtilConstants.NEW_LINE + getEqualsMethodsCommonIfCondition()
-                + getEqualsMethodsSpecificIfCondition(className);
+        return getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + BOOLEAN_DATA_TYPE + SPACE + EQUALS_STRING
+                + OPEN_PARENTHESIS + OBJECT_STRING + SPACE + OBJ + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET
+                + NEW_LINE + getEqualsMethodsCommonIfCondition() + getEqualsMethodsSpecificIfCondition(className);
     }
 
     /**
@@ -583,13 +577,9 @@ public final class MethodsGenerator {
      */
     private static String getEqualsMethodsCommonIfCondition() {
 
-        return UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.IF + UtilConstants.SPACE
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.THIS + UtilConstants.SPACE + UtilConstants.EQUAL
-                + UtilConstants.EQUAL + UtilConstants.SPACE + UtilConstants.OBJ + UtilConstants.CLOSE_PARENTHESIS
-                + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE
-                + UtilConstants.TWELVE_SPACE_INDENTATION + UtilConstants.RETURN + UtilConstants.SPACE
-                + UtilConstants.TRUE + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE
-                + UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.CLOSE_CURLY_BRACKET + UtilConstants.NEW_LINE;
+        return EIGHT_SPACE_INDENTATION + IF + SPACE + OPEN_PARENTHESIS + THIS + SPACE + EQUAL + EQUAL + SPACE + OBJ
+                + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + TWELVE_SPACE_INDENTATION + RETURN + SPACE
+                + TRUE + SEMI_COLAN + NEW_LINE + EIGHT_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
     }
 
     /**
@@ -600,14 +590,10 @@ public final class MethodsGenerator {
      */
     private static String getEqualsMethodsSpecificIfCondition(String className) {
 
-        return UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.IF + UtilConstants.SPACE
-                + UtilConstants.OPEN_PARENTHESIS + UtilConstants.OBJ + UtilConstants.INSTANCE_OF + className
-                + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET
-                + UtilConstants.NEW_LINE + UtilConstants.TWELVE_SPACE_INDENTATION + className + UtilConstants.SPACE
-                + UtilConstants.OTHER + UtilConstants.SPACE + UtilConstants.EQUAL + UtilConstants.SPACE
-                + UtilConstants.OPEN_PARENTHESIS + className + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SPACE
-                + UtilConstants.OBJ + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE
-                + UtilConstants.TWELVE_SPACE_INDENTATION + UtilConstants.RETURN + UtilConstants.NEW_LINE;
+        return EIGHT_SPACE_INDENTATION + IF + SPACE + OPEN_PARENTHESIS + OBJ + INSTANCE_OF + className
+                + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + TWELVE_SPACE_INDENTATION + className
+                + SPACE + OTHER + SPACE + EQUAL + SPACE + OPEN_PARENTHESIS + className + CLOSE_PARENTHESIS + SPACE
+                + OBJ + SEMI_COLAN + NEW_LINE + TWELVE_SPACE_INDENTATION + RETURN + NEW_LINE;
     }
 
     /**
@@ -618,17 +604,13 @@ public final class MethodsGenerator {
      */
     public static String getEqualsMethodClose(String equalMethodString) {
 
-        equalMethodString = YangIoUtils.trimAtLast(equalMethodString, UtilConstants.AND);
-        equalMethodString = YangIoUtils.trimAtLast(equalMethodString, UtilConstants.AND);
-        equalMethodString = YangIoUtils.trimAtLast(equalMethodString, UtilConstants.SPACE);
-        equalMethodString = YangIoUtils.trimAtLast(equalMethodString, UtilConstants.NEW_LINE) + UtilConstants.SEMI_COLAN
-                + UtilConstants.NEW_LINE;
-        return equalMethodString + UtilConstants.EIGHT_SPACE_INDENTATION
-                + UtilConstants.CLOSE_CURLY_BRACKET + UtilConstants.NEW_LINE
-                + UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.RETURN + UtilConstants.SPACE
-                + UtilConstants.FALSE + UtilConstants.SEMI_COLAN
-                + UtilConstants.NEW_LINE + UtilConstants.FOUR_SPACE_INDENTATION
-                + UtilConstants.CLOSE_CURLY_BRACKET + UtilConstants.NEW_LINE;
+        equalMethodString = trimAtLast(equalMethodString, AND);
+        equalMethodString = trimAtLast(equalMethodString, AND);
+        equalMethodString = trimAtLast(equalMethodString, SPACE);
+        equalMethodString = trimAtLast(equalMethodString, NEW_LINE) + SEMI_COLAN + NEW_LINE;
+        return equalMethodString + EIGHT_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
+                + RETURN + SPACE + FALSE + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET
+                + NEW_LINE;
     }
 
     /**
@@ -639,15 +621,11 @@ public final class MethodsGenerator {
      */
     public static String getEqualsMethod(JavaAttributeInfo attr) {
 
-        String attributeName = JavaIdentifierSyntax.getLowerCase(attr.getAttributeName());
-        if (attr.isListAttr()) {
-            attributeName = attributeName + UtilConstants.SUFIX_S;
-        }
-        return UtilConstants.SIXTEEN_SPACE_INDENTATION + UtilConstants.SPACE + UtilConstants.OBJECT_STRING
-                + UtilConstants.SUFIX_S + UtilConstants.PERIOD + UtilConstants.EQUALS_STRING
-                + UtilConstants.OPEN_PARENTHESIS + attributeName + UtilConstants.COMMA + UtilConstants.SPACE
-                + UtilConstants.OTHER + UtilConstants.PERIOD + attributeName + UtilConstants.CLOSE_PARENTHESIS
-                + UtilConstants.SPACE + UtilConstants.AND + UtilConstants.AND;
+        String attributeName = getLowerCase(attr.getAttributeName());
+
+        return SIXTEEN_SPACE_INDENTATION + SPACE + OBJECT_STRING + SUFFIX_S + PERIOD + EQUALS_STRING + OPEN_PARENTHESIS
+                + attributeName + COMMA + SPACE + OTHER + PERIOD + attributeName + CLOSE_PARENTHESIS + SPACE + AND
+                + AND;
 
     }
 
@@ -662,14 +640,10 @@ public final class MethodsGenerator {
 
         String attrQuaifiedType = getReturnType(attr);
 
-        return UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.STATIC
-                + UtilConstants.SPACE + name + UtilConstants.SPACE + UtilConstants.OF + UtilConstants.OPEN_PARENTHESIS
-                + attrQuaifiedType + UtilConstants.SPACE + UtilConstants.VALUE + UtilConstants.CLOSE_PARENTHESIS
-                + UtilConstants.SPACE + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE
-                + UtilConstants.EIGHT_SPACE_INDENTATION + UtilConstants.RETURN + UtilConstants.SPACE + UtilConstants.NEW
-                + UtilConstants.SPACE + name + UtilConstants.OPEN_PARENTHESIS + UtilConstants.VALUE
-                + UtilConstants.CLOSE_PARENTHESIS + UtilConstants.SEMI_COLAN + UtilConstants.NEW_LINE
-                + UtilConstants.FOUR_SPACE_INDENTATION + UtilConstants.CLOSE_CURLY_BRACKET + UtilConstants.NEW_LINE;
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STATIC + SPACE + name + SPACE + OF + OPEN_PARENTHESIS
+                + attrQuaifiedType + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
+                + EIGHT_SPACE_INDENTATION + RETURN + SPACE + NEW + SPACE + name + OPEN_PARENTHESIS + VALUE
+                + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
     }
 
 }

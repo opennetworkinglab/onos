@@ -21,9 +21,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.utils.UtilConstants;
 
 import static org.junit.Assert.assertNotNull;
@@ -34,12 +32,12 @@ import static org.junit.Assert.assertTrue;
  */
 public final class FileSystemUtilTest {
 
-    public static final String BASE_DIR_PKG = "target.UnitTestCase.";
-    public static final String PKG_INFO_CONTENT = "testGeneration6";
-    public static final String BASE_PKG = "target/UnitTestCase";
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    private static final String BASE_DIR_PKG = "target.UnitTestCase.";
+    private static final String PKG_INFO_CONTENT = "testGeneration6";
+    private static final String BASE_PKG = "target/UnitTestCase";
+    private static final String TEST_DATA_1 = "This is to append a text to the file first1\n";
+    private static final String TEST_DATA_2 = "This is next second line\n";
+    private static final String TEST_DATA_3 = "This is next third line in the file";
 
     /**
      * A private constructor is tested.
@@ -47,20 +45,15 @@ public final class FileSystemUtilTest {
      * @throws SecurityException if any security violation is observed
      * @throws NoSuchMethodException if when the method is not found
      * @throws IllegalArgumentException if there is illegal argument found
-     * @throws InstantiationException if instantiation is provoked for the
-     *             private constructor
-     * @throws IllegalAccessException if instance is provoked or a method is
-     *             provoked
-     * @throws InvocationTargetException when an exception occurs by the method
-     *             or constructor
+     * @throws InstantiationException if instantiation is provoked for the private constructor
+     * @throws IllegalAccessException if instance is provoked or a method is provoked
+     * @throws InvocationTargetException when an exception occurs by the method or constructor
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        Class<?>[] classesToConstruct = {
-                FileSystemUtil.class
-        };
+        Class<?>[] classesToConstruct = {FileSystemUtil.class };
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -70,6 +63,8 @@ public final class FileSystemUtilTest {
 
     /**
      * This test case checks the contents to be written in the file.
+     *
+     * @throws IOException when fails to create a test file
      */
     @Test
     public void updateFileHandleTest() throws IOException {
@@ -80,15 +75,17 @@ public final class FileSystemUtilTest {
         createFile.createNewFile();
         File createSourceFile = new File(dir + "sourceTestFile");
         createSourceFile.createNewFile();
-        FileSystemUtil.updateFileHandle(createFile, "This is to append a text to the file first1\n", false);
-        FileSystemUtil.updateFileHandle(createFile, "This is next second line\n", false);
-        FileSystemUtil.updateFileHandle(createFile, "This is next third line in the file", false);
+        FileSystemUtil.updateFileHandle(createFile, TEST_DATA_1, false);
+        FileSystemUtil.updateFileHandle(createFile, TEST_DATA_2, false);
+        FileSystemUtil.updateFileHandle(createFile, TEST_DATA_3, false);
         FileSystemUtil.appendFileContents(createFile, createSourceFile);
         FileSystemUtil.updateFileHandle(createFile, null, true);
     }
 
     /**
-     * This test case checks whether the package is existing.
+     * This test  case checks whether the package is existing.
+     *
+     * @throws IOException when failed to create a test file
      */
     @Test
     public void packageExistTest() throws IOException {
@@ -104,21 +101,4 @@ public final class FileSystemUtilTest {
         createDir.delete();
     }
 
-    /**
-     * This test case checks the package does not exist.
-     */
-    //    @Test
-    //    public void packageNotExistTest() throws IOException {
-
-    //        String dirPath = "notexist1.notexist2";
-    //        String strPath = BASE_DIR_PKG + dirPath;
-    //        File createDir = new File(strPath.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
-    //        assertFalse(FileSystemUtil.doesPackageExist(strPath));
-    //        createDir.mkdirs();
-    //        assertFalse(FileSystemUtil.doesPackageExist(strPath));
-    //        CopyrightHeader.parseCopyrightHeader();
-    //        FileSystemUtil.createPackage(strPath, PKG_INFO_CONTENT);
-    //        assertTrue(FileSystemUtil.doesPackageExist(strPath));
-    //        createDir.delete();
-    //    }
 }

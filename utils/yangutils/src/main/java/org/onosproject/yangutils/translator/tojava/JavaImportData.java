@@ -15,10 +15,25 @@
  */
 package org.onosproject.yangutils.translator.tojava;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+
+import static org.onosproject.yangutils.utils.UtilConstants.COLLECTION_IMPORTS;
+import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_IMPORT_CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_IMPORT_PKG;
+import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_PKG;
+import static org.onosproject.yangutils.utils.UtilConstants.LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 
 /**
  * Generated Java file can contain imports.
@@ -49,6 +64,7 @@ public class JavaImportData {
      * @return true if any of the attribute needs to be maintained as a list.
      */
     public boolean getIfListImported() {
+
         return isListToImport;
     }
 
@@ -58,6 +74,7 @@ public class JavaImportData {
      * @param isList status to mention list is bing imported.
      */
     public void setIfListImported(boolean isList) {
+
         isListToImport = isList;
     }
 
@@ -67,6 +84,7 @@ public class JavaImportData {
      * @return the set containing the imported class/interface info
      */
     public SortedSet<JavaQualifiedTypeInfo> getImportSet() {
+
         return importSet;
     }
 
@@ -76,6 +94,7 @@ public class JavaImportData {
      * @param importSet the set containing the imported class/interface info
      */
     private void setImportSet(SortedSet<JavaQualifiedTypeInfo> importSet) {
+
         this.importSet = importSet;
     }
 
@@ -95,6 +114,7 @@ public class JavaImportData {
      * @return status of new addition of class/interface to the import set
      */
     public boolean addImportInfo(YangNode curNode, JavaQualifiedTypeInfo newImportInfo) {
+
         if (!(curNode instanceof HasJavaImportData)) {
             throw new RuntimeException("missing import info in data model node");
         }
@@ -107,5 +127,63 @@ public class JavaImportData {
         }
         ((HasJavaImportData) curNode).getJavaImportData().getImportSet().add(newImportInfo);
         return true;
+    }
+
+    /**
+     * Returns import for class.
+     *
+     * @param attr java attribute info
+     * @return imports for class
+     */
+    public List<String> getImports(JavaAttributeInfo attr) {
+
+        String importString;
+        List<String> imports = new ArrayList<>();
+
+        for (JavaQualifiedTypeInfo importInfo : getImportSet()) {
+            importString = IMPORT;
+            if (importInfo.getPkgInfo() != EMPTY_STRING && importInfo.getClassInfo() != null
+                    && importInfo.getPkgInfo() != JAVA_LANG) {
+                importString = importString + importInfo.getPkgInfo() + PERIOD + importInfo.getClassInfo() + SEMI_COLAN
+                        + NEW_LINE;
+
+                imports.add(importString);
+            }
+        }
+
+        if (attr.isListAttr()) {
+            imports.add(setImportForList());
+        }
+
+        java.util.Collections.sort(imports);
+        return imports;
+    }
+
+    /**
+     * Gets import for hash and equals method.
+     *
+     * @return import for hash and equals method
+     */
+    public String getImportForHashAndEquals() {
+
+        return IMPORT + JAVA_UTIL_OBJECTS_IMPORT_PKG + PERIOD + JAVA_UTIL_OBJECTS_IMPORT_CLASS;
+    }
+
+    /**
+     * Gets import for to string method.
+     *
+     * @return import for to string method
+     */
+    public String getImportForToString() {
+
+        return IMPORT + GOOGLE_MORE_OBJECT_IMPORT_PKG + PERIOD + GOOGLE_MORE_OBJECT_IMPORT_CLASS;
+    }
+
+    /**
+     * Sets import for to list.
+     */
+    private static String setImportForList() {
+
+        return IMPORT + COLLECTION_IMPORTS + PERIOD + LIST + SEMI_COLAN + NEW_LINE;
     }
 }

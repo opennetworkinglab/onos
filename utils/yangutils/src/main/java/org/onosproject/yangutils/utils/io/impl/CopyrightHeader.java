@@ -24,12 +24,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+
 /**
  * Provides the license header for the generated files.
  */
 public final class CopyrightHeader {
 
     private static final int EOF = -1;
+    private static final String COPYRIGHT_HEADER_FILE = "CopyrightHeader.txt";
+    private static final String TEMP_FILE = "temp.txt";
     private static ClassLoader classLoader = CopyrightHeader.class.getClassLoader();
 
     private static String copyrightHeader;
@@ -47,6 +51,7 @@ public final class CopyrightHeader {
      * @throws IOException when fails to parse copyright header
      */
     public static String getCopyrightHeader() throws IOException {
+
         if (copyrightHeader == null) {
             parseCopyrightHeader();
         }
@@ -59,6 +64,7 @@ public final class CopyrightHeader {
      * @param header copyright header
      */
     private static void setCopyrightHeader(String header) {
+
         copyrightHeader = header;
     }
 
@@ -69,11 +75,12 @@ public final class CopyrightHeader {
      */
     public static void parseCopyrightHeader() throws IOException {
 
-        File temp = new File("temp.txt");
+        File temp = new File(TEMP_FILE);
 
         try {
-            InputStream stream = classLoader.getResourceAsStream("CopyrightHeader.txt");
+            InputStream stream = classLoader.getResourceAsStream(COPYRIGHT_HEADER_FILE);
             OutputStream out = new FileOutputStream(temp);
+
             int index;
             while ((index = stream.read()) != EOF) {
                 out.write(index);
@@ -98,18 +105,20 @@ public final class CopyrightHeader {
      */
     private static String getStringFileContent(File toAppend) throws IOException {
 
-        BufferedReader bufferReader = new BufferedReader(new FileReader(toAppend));
+        FileReader fileReader = new FileReader(toAppend);
+        BufferedReader bufferReader = new BufferedReader(fileReader);
         try {
             StringBuilder stringBuilder = new StringBuilder();
             String line = bufferReader.readLine();
 
             while (line != null) {
                 stringBuilder.append(line);
-                stringBuilder.append("\n");
+                stringBuilder.append(NEW_LINE);
                 line = bufferReader.readLine();
             }
             return stringBuilder.toString();
         } finally {
+            fileReader.close();
             bufferReader.close();
         }
     }
