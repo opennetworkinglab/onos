@@ -29,6 +29,8 @@ import org.onosproject.yangutils.parser.impl.listeners.BaseFileListener;
 import org.onosproject.yangutils.parser.impl.listeners.BelongsToListener;
 import org.onosproject.yangutils.parser.impl.listeners.BitListener;
 import org.onosproject.yangutils.parser.impl.listeners.BitsListener;
+import org.onosproject.yangutils.parser.impl.listeners.CaseListener;
+import org.onosproject.yangutils.parser.impl.listeners.ChoiceListener;
 import org.onosproject.yangutils.parser.impl.listeners.ConfigListener;
 import org.onosproject.yangutils.parser.impl.listeners.ContactListener;
 import org.onosproject.yangutils.parser.impl.listeners.ContainerListener;
@@ -54,6 +56,7 @@ import org.onosproject.yangutils.parser.impl.listeners.PresenceListener;
 import org.onosproject.yangutils.parser.impl.listeners.ReferenceListener;
 import org.onosproject.yangutils.parser.impl.listeners.RevisionDateListener;
 import org.onosproject.yangutils.parser.impl.listeners.RevisionListener;
+import org.onosproject.yangutils.parser.impl.listeners.ShortCaseListener;
 import org.onosproject.yangutils.parser.impl.listeners.StatusListener;
 import org.onosproject.yangutils.parser.impl.listeners.SubModuleListener;
 import org.onosproject.yangutils.parser.impl.listeners.TypeDefListener;
@@ -914,32 +917,32 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterChoiceStatement(GeneratedYangParser.ChoiceStatementContext ctx) {
-        // TODO: implement the method.
+        ChoiceListener.processChoiceEntry(this, ctx);
     }
 
     @Override
     public void exitChoiceStatement(GeneratedYangParser.ChoiceStatementContext ctx) {
-        // TODO: implement the method.
+        ChoiceListener.processChoiceExit(this, ctx);
     }
 
     @Override
     public void enterShortCaseStatement(GeneratedYangParser.ShortCaseStatementContext ctx) {
-        // TODO: implement the method.
+        ShortCaseListener.processShortCaseEntry(this, ctx);
     }
 
     @Override
     public void exitShortCaseStatement(GeneratedYangParser.ShortCaseStatementContext ctx) {
-        // TODO: implement the method.
+        ShortCaseListener.processShortCaseExit(this, ctx);
     }
 
     @Override
     public void enterCaseStatement(GeneratedYangParser.CaseStatementContext ctx) {
-        // TODO: implement the method.
+        CaseListener.processCaseEntry(this, ctx);
     }
 
     @Override
     public void exitCaseStatement(GeneratedYangParser.CaseStatementContext ctx) {
-        // TODO: implement the method.
+        CaseListener.processCaseExit(this, ctx);
     }
 
     @Override

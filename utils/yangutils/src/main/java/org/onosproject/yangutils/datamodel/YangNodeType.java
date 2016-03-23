@@ -75,6 +75,26 @@ public enum YangNodeType {
     CONTAINER_NODE,
 
     /**
+     * Node contains "YANG's notification" information.
+     */
+    NOTIFICATION_NODE,
+
+    /**
+     * Node contains "YANG's input" information.
+     */
+    INPUT_NODE,
+
+    /**
+     * Node contains "YANG's output" information.
+     */
+    OUTPUT_NODE,
+
+    /**
+     * Node contains "YANG's rpc" information.
+     */
+    RPC_NODE,
+
+    /**
      * Node contains "YANG's list" information.
      */
     LIST_NODE

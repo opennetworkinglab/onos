@@ -235,6 +235,41 @@ public enum YangConstructType {
     DATA_DEF_DATA,
 
     /**
+     * Identifies the YANG union element parsed data.
+     */
+    UNION_DATA,
+
+    /**
+     * Identifies the YANG notification element parsed data.
+     */
+    NOTIFICATION_DATA,
+
+    /**
+     * Identifies the YANG when element parsed data.
+     */
+    WHEN_DATA,
+
+    /**
+     * Identifies the YANG input element parsed data.
+     */
+    INPUT_DATA,
+
+    /**
+     * Identifies the YANG output element parsed data.
+     */
+    OUTPUT_DATA,
+
+    /**
+     * Identifies the YANG rpc element parsed data.
+     */
+    RPC_DATA,
+
+    /**
+     * Identifies the YANG short case element parsed data.
+     */
+    SHORT_CASE_DATA,
+
+    /**
      * Identifies the derived data type.
      */
     DERIVED;
@@ -334,8 +369,22 @@ public enum YangConstructType {
                 return "default";
             case DATA_DEF_DATA:
                 return "data-def-substatements";
+            case WHEN_DATA:
+                return "when";
+            case INPUT_DATA:
+                return "input";
+            case OUTPUT_DATA:
+                return "ouput";
+            case RPC_DATA:
+                return "rpc";
+            case SHORT_CASE_DATA:
+                return "short-case";
             case DERIVED:
                 return "derived";
+            case NOTIFICATION_DATA:
+                return "notification";
+            case UNION_DATA:
+                return "union";
             default:
                 return "yang";
         }
