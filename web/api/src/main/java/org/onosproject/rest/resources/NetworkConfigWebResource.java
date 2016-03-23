@@ -15,9 +15,12 @@
  */
 package org.onosproject.rest.resources;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Set;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.SubjectFactory;
+import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -28,13 +31,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.onosproject.net.config.Config;
-import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.SubjectFactory;
-import org.onosproject.rest.AbstractWebResource;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Set;
 
 import static org.onlab.util.Tools.emptyIsNotFound;
 import static org.onlab.util.Tools.nullIsNotFound;
@@ -263,7 +262,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            @PathParam("configKey") String configKey,
                            InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
-        ObjectNode root = (ObjectNode) mapper().readTree(request);
+        JsonNode root = mapper().readTree(request);
         service.applyConfig(subjectClassKey,
                             service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
                             configKey, root);
