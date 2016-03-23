@@ -24,16 +24,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.slf4j.Logger;
-
-import static org.slf4j.LoggerFactory.getLogger;
-
 /**
  * Provides the license header for the generated files.
  */
 public final class CopyrightHeader {
 
-    private static final Logger log = getLogger(CopyrightHeader.class);
     private static final int EOF = -1;
     private static ClassLoader classLoader = CopyrightHeader.class.getClassLoader();
 
@@ -52,6 +47,9 @@ public final class CopyrightHeader {
      * @throws IOException when fails to parse copyright header
      */
     public static String getCopyrightHeader() throws IOException {
+        if (copyrightHeader == null) {
+            parseCopyrightHeader();
+        }
         return copyrightHeader;
     }
 

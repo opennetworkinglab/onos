@@ -16,16 +16,16 @@
 
 package org.onosproject.yangutils.datamodel;
 
-import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
-import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.translator.CachedFileHandle;
-import org.onosproject.yangutils.utils.YangConstructType;
-
 import java.util.LinkedList;
 import java.util.List;
 
-/*-
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.utils.YangConstructType;
+
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
+
+/*
  *  The "list" statement is used to define an interior data node in the
  *  schema tree.  A list node may exist in multiple instances in the data
  *  tree.  Each such instance is known as a list entry.  The "list"
@@ -164,11 +164,6 @@ public class YangList extends YangNode
      */
 
     private YangStatusType status = YangStatusType.CURRENT;
-
-    /**
-     * Package of the generated java code.
-     */
-    private String pkg;
 
     /**
      * Constructor.
@@ -619,61 +614,6 @@ public class YangList extends YangNode
         }
     }
 
-    /**
-     * Populate the cached handle with information about the list attributes to
-     * generate java code.
-     *
-     * @param codeGenDir code generated directory
-     */
-    @Override
-    public void generateJavaCodeEntry(String codeGenDir) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * Free the resources used to generate the java file corresponding to YANG
-     * list info.
-     */
-    @Override
-    public void generateJavaCodeExit() {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * Get the mapped java package.
-     *
-     * @return the java package
-     */
-    @Override
-    public String getPackage() {
-        return pkg;
-    }
-
-    /**
-     * Set the mapped java package.
-     *
-     * @param pakg the package to set
-     */
-    @Override
-    public void setPackage(String pakg) {
-        pkg = pakg;
-
-    }
-
-    @Override
-    public CachedFileHandle getFileHandle() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setFileHandle(CachedFileHandle fileHandle) {
-        // TODO Auto-generated method stub
-
-    }
-
     @Override
     public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
         // Asks helper to detect colliding child.
@@ -682,9 +622,9 @@ public class YangList extends YangNode
 
     @Override
     public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
-        if (this.getName().equals(identifierName)) {
+        if (getName().equals(identifierName)) {
             throw new DataModelException("YANG file error: Duplicate input identifier detected, same as list \"" +
-                    this.getName() + "\"");
+                    getName() + "\"");
         }
     }
 }

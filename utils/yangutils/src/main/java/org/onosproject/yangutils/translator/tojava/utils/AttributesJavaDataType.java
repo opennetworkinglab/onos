@@ -16,8 +16,12 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.utils.UtilConstants;
 
 /**
@@ -25,10 +29,30 @@ import org.onosproject.yangutils.utils.UtilConstants;
  */
 public final class AttributesJavaDataType {
 
+    private static Set<JavaQualifiedTypeInfo> importInfo = new TreeSet<>();
+
     /**
      * Default constructor.
      */
     private AttributesJavaDataType() {
+    }
+
+    /**
+     * Returns import info.
+     *
+     * @return import info
+     */
+    public static Set<JavaQualifiedTypeInfo> getImportInfo() {
+        return importInfo;
+    }
+
+    /**
+     * Adds import info to the import info set.
+     *
+     * @param importData import info
+     */
+    public static void addImportInfo(JavaQualifiedTypeInfo importData) {
+        getImportInfo().add(importData);
     }
 
     /**
@@ -134,7 +158,8 @@ public final class AttributesJavaDataType {
             } else if (type.equals(YangDataTypes.INSTANCE_IDENTIFIER)) {
                 //TODO:INSTANCE_IDENTIFIER
             } else if (type.equals(YangDataTypes.DERIVED)) {
-                //TODO:DERIVED
+                return JavaIdentifierSyntax
+                        .getCaptialCase(JavaIdentifierSyntax.getCamelCase(yangType.getDataTypeName()));
             }
         } else {
             if (type.equals(YangDataTypes.UINT64)) {
@@ -160,7 +185,8 @@ public final class AttributesJavaDataType {
             } else if (type.equals(YangDataTypes.INSTANCE_IDENTIFIER)) {
                 //TODO:INSTANCE_IDENTIFIER
             } else if (type.equals(YangDataTypes.DERIVED)) {
-                //TODO:DERIVED
+                return JavaIdentifierSyntax
+                        .getCaptialCase(JavaIdentifierSyntax.getCamelCase(yangType.getDataTypeName()));
             }
         }
         return null;
@@ -171,9 +197,10 @@ public final class AttributesJavaDataType {
      *
      * @param yangType YANG type
      * @param isListAttr if the attribute is of list type
+     * @param classInfo java import class info
      * @return java import package
      */
-    public static String getJavaImportPackage(YangType<?> yangType, boolean isListAttr) {
+    public static String getJavaImportPackage(YangType<?> yangType, boolean isListAttr, String classInfo) {
         YangDataTypes type = yangType.getDataType();
 
         if (isListAttr) {
@@ -208,7 +235,11 @@ public final class AttributesJavaDataType {
             } else if (type.equals(YangDataTypes.INSTANCE_IDENTIFIER)) {
                 //TODO:INSTANCE_IDENTIFIER
             } else if (type.equals(YangDataTypes.DERIVED)) {
-                //TODO:DERIVED
+                for (JavaQualifiedTypeInfo imports : getImportInfo()) {
+                    if (imports.getClassInfo().equals(classInfo)) {
+                        return imports.getPkgInfo();
+                    }
+                }
             }
         } else {
 
@@ -235,7 +266,11 @@ public final class AttributesJavaDataType {
             } else if (type.equals(YangDataTypes.INSTANCE_IDENTIFIER)) {
                 //TODO:INSTANCE_IDENTIFIER
             } else if (type.equals(YangDataTypes.DERIVED)) {
-                //TODO:DERIVED
+                for (JavaQualifiedTypeInfo imports : getImportInfo()) {
+                    if (imports.getClassInfo().equals(classInfo)) {
+                        return imports.getPkgInfo();
+                    }
+                }
             }
         }
         return null;

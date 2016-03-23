@@ -21,13 +21,15 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
+import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
+import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangModuleNode;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.YangConstructType.MODULE_DATA;
@@ -76,7 +78,7 @@ public final class ModuleListener {
 
         String identifier = getValidIdentifier(ctx.identifier().getText(), MODULE_DATA, ctx);
 
-        YangModule yangModule = new YangModule();
+        YangModule yangModule = getYangModuleNode(JAVA_GENERATION);
         yangModule.setName(identifier);
 
         if (ctx.moduleBody().moduleHeaderStatement().yangVersionStatement() == null) {
@@ -100,7 +102,7 @@ public final class ModuleListener {
 
         if (!(listener.getParsedDataStack().peek() instanceof YangModule)) {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, MODULE_DATA,
-                                                                    ctx.identifier().getText(), EXIT));
+                    ctx.identifier().getText(), EXIT));
         }
     }
 }

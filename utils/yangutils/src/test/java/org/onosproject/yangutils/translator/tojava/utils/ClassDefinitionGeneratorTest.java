@@ -16,17 +16,18 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
-import org.junit.Test;
-import org.onosproject.yangutils.translator.GeneratedFileType;
-import org.onosproject.yangutils.translator.tojava.GeneratedMethodTypes;
-import org.onosproject.yangutils.translator.tojava.TraversalType;
-import org.onosproject.yangutils.utils.UtilConstants;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import static org.junit.Assert.assertNotNull;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+
+import org.junit.Test;
+import org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType;
+import org.onosproject.yangutils.translator.tojava.GeneratedMethodTypes;
+import org.onosproject.yangutils.translator.tojava.TraversalType;
+import org.onosproject.yangutils.utils.UtilConstants;
 
 /**
  * Unit tests for class definition generator for generated files.
@@ -45,7 +46,8 @@ public final class ClassDefinitionGeneratorTest {
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
-    InstantiationException, IllegalAccessException, InvocationTargetException {
+            InstantiationException, IllegalAccessException, InvocationTargetException {
+
         Class<?>[] classesToConstruct = {ClassDefinitionGenerator.class };
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
@@ -61,7 +63,7 @@ public final class ClassDefinitionGeneratorTest {
     public void generateBuilderClassDefinitionTest() {
 
         String builderClassDefinition = ClassDefinitionGenerator
-                .generateClassDefinition(GeneratedFileType.BUILDER_CLASS_MASK, "BuilderClass");
+                .generateClassDefinition(GeneratedJavaFileType.BUILDER_CLASS_MASK, "BuilderClass");
         assertThat(true, is(builderClassDefinition.contains(UtilConstants.BUILDER)));
         assertThat(true, is(builderClassDefinition.contains(UtilConstants.CLASS)));
     }
@@ -73,7 +75,7 @@ public final class ClassDefinitionGeneratorTest {
     public void generateBuilderInterfaceDefinitionTest() {
 
         String builderInterfaceDefinition = ClassDefinitionGenerator
-                .generateClassDefinition(GeneratedFileType.BUILDER_INTERFACE_MASK, "BuilderInterfaceClass");
+                .generateClassDefinition(GeneratedJavaFileType.BUILDER_INTERFACE_MASK, "BuilderInterfaceClass");
         assertThat(true, is(builderInterfaceDefinition.contains(UtilConstants.BUILDER)));
     }
 
@@ -83,7 +85,7 @@ public final class ClassDefinitionGeneratorTest {
     @Test
     public void generateImplDefinitionTest() {
 
-        String implDefinition = ClassDefinitionGenerator.generateClassDefinition(GeneratedFileType.IMPL_CLASS_MASK,
+        String implDefinition = ClassDefinitionGenerator.generateClassDefinition(GeneratedJavaFileType.IMPL_CLASS_MASK,
                 "ImplClass");
         assertThat(true, is(implDefinition.contains(UtilConstants.IMPL)));
     }
@@ -94,7 +96,8 @@ public final class ClassDefinitionGeneratorTest {
     @Test
     public void generateinterfaceDefinitionTest() {
 
-        String interfaceDefinition = ClassDefinitionGenerator.generateClassDefinition(GeneratedFileType.INTERFACE_MASK,
+        String interfaceDefinition = ClassDefinitionGenerator.generateClassDefinition(
+                GeneratedJavaFileType.INTERFACE_MASK,
                 "InterfaceClass");
         assertThat(true, is(interfaceDefinition.contains(UtilConstants.INTERFACE)));
     }
@@ -105,7 +108,7 @@ public final class ClassDefinitionGeneratorTest {
     @Test
     public void generateTypeDefTest() {
 
-        String typeDef = ClassDefinitionGenerator.generateClassDefinition(GeneratedFileType.GENERATE_TYPEDEF_CLASS,
+        String typeDef = ClassDefinitionGenerator.generateClassDefinition(GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS,
                 "invalid");
         assertThat(true, is(typeDef.contains(UtilConstants.CLASS)));
     }

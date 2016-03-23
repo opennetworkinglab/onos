@@ -16,14 +16,15 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
-import org.junit.Test;
-import org.onosproject.yangutils.utils.UtilConstants;
-
-import static org.junit.Assert.assertNotNull;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+
+import org.junit.Test;
+import org.onosproject.yangutils.utils.UtilConstants;
 
 /**
  * Unit tests for java identifier syntax.
@@ -54,28 +55,22 @@ public final class JavaIdentifierSyntaxTest {
      * @throws SecurityException if any security violation is observed.
      * @throws NoSuchMethodException if when the method is not found.
      * @throws IllegalArgumentException if there is illegal argument found.
-     * @throws InstantiationException if instantiation is provoked for the private constructor.
-     * @throws IllegalAccessException if instance is provoked or a method is provoked.
-     * @throws InvocationTargetException when an exception occurs by the method or constructor.
+     * @throws InstantiationException if instantiation is provoked for the
+     *             private constructor.
+     * @throws IllegalAccessException if instance is provoked or a method is
+     *             provoked.
+     * @throws InvocationTargetException when an exception occurs by the method
+     *             or constructor.
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
-    InstantiationException, IllegalAccessException, InvocationTargetException {
+            InstantiationException, IllegalAccessException, InvocationTargetException {
         Class<?>[] classesToConstruct = {JavaIdentifierSyntax.class };
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
             assertNotNull(constructor.newInstance());
         }
-    }
-
-    /**
-     * Unit test for testing the package path generation from a parent package.
-     */
-    @Test
-    public void getPackageFromParentTest() {
-        String pkgFromParent = JavaIdentifierSyntax.getPackageFromParent(PARENT_PACKAGE, CHILD_PACKAGE);
-        assertThat(pkgFromParent.equals(PARENT_WITH_PERIOD + UtilConstants.PERIOD + CHILD_WITH_PERIOD), is(true));
     }
 
     /**

@@ -33,12 +33,15 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.YangUtilsParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.utils.UtilConstants;
-import org.onosproject.yangutils.utils.io.impl.CopyrightHeader;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
-import org.onosproject.yangutils.utils.io.impl.YangIoUtils;
 import org.sonatype.plexus.build.incremental.BuildContext;
+
+import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.generateJavaCode;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addToSource;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.clean;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.copyYangFilesToTarget;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getDirectory;
 
 /**
  * ONOS YANG utility maven plugin. Goal of plugin is yang2java Execution phase
@@ -70,7 +73,7 @@ public class YangUtilManager extends AbstractMojo {
      * Output directory.
      */
     @Parameter(property = "project.build.outputDirectory", required = true, defaultValue = "target/classes")
-    private File outputDirectory;
+    private String outputDirectory;
 
     /**
      * Current maven project.
@@ -84,6 +87,9 @@ public class YangUtilManager extends AbstractMojo {
     @Component
     private BuildContext context;
 
+    private static final String DEFAULT_PKG = File.separator
+            + UtilConstants.DEFAULT_BASE_PKG.replace(UtilConstants.PERIOD, UtilConstants.SLASH);
+
     private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
     private String searchDir;
     private String codeGenDir;
@@ -94,6 +100,7 @@ public class YangUtilManager extends AbstractMojo {
      * @param curProject maven project
      */
     public void setCurrentProject(final MavenProject curProject) {
+
         project = curProject;
     }
 
@@ -102,15 +109,14 @@ public class YangUtilManager extends AbstractMojo {
 
         try {
 
-            CopyrightHeader.parseCopyrightHeader();
-
             /**
              * For deleting the generated code in previous build.
              */
-            YangIoUtils.clean(baseDir);
+            clean(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG);
+            clean(getDirectory(baseDir, outputDirectory));
 
-            searchDir = baseDir + File.separator + yangFilesDir;
-            codeGenDir = baseDir + File.separator + genFilesDir + File.separator;
+            searchDir = getDirectory(baseDir, yangFilesDir);
+            codeGenDir = getDirectory(baseDir, genFilesDir) + File.separator;
 
             List<String> yangFiles = YangFileScanner.getYangFiles(searchDir);
             Iterator<String> yangFileIterator = yangFiles.iterator();
@@ -118,7 +124,7 @@ public class YangUtilManager extends AbstractMojo {
                 String yangFile = yangFileIterator.next();
                 try {
                     YangNode yangNode = yangUtilsParser.getDataModel(yangFile);
-                    JavaCodeGenerator.generateJavaCode(yangNode, codeGenDir);
+                    generateJavaCode(yangNode, codeGenDir);
                 } catch (ParserException e) {
                     String logInfo = "Error in file: " + e.getFileName();
                     if (e.getLineNumber() != 0) {
@@ -127,16 +133,17 @@ public class YangUtilManager extends AbstractMojo {
 
                     }
                     if (e.getMessage() != null) {
-                        logInfo = logInfo + "\n" + e.getMessage();
+                        logInfo = logInfo + UtilConstants.NEW_LINE + e.getMessage();
                     }
                     getLog().info(logInfo);
                 }
             }
 
-            YangIoUtils.addToSource(baseDir + File.separator + UtilConstants.YANG_GEN_DIR, project, context);
+            addToSource(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG, project, context);
+            copyYangFilesToTarget(yangFiles, getDirectory(baseDir, outputDirectory), project);
         } catch (Exception e) {
             getLog().info(e);
+            //throw new MojoExecutionException("Exception occured due to " + e.getLocalizedMessage());
         }
     }
-
 }

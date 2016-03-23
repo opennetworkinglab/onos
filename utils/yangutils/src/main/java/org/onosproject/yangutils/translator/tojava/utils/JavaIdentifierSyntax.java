@@ -16,9 +16,13 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
+import java.io.File;
 import java.util.ArrayList;
 
+import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.utils.UtilConstants;
 
 /**
@@ -61,12 +65,52 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
+     * Get the contained data model parent node.
+     *
+     * @param currentNode current node which parent contained node is required
+     * @return parent node in which the current node is an attribute
+     */
+    public static YangNode getParentNodeInGenCode(YangNode currentNode) {
+
+        /*
+         * TODO: recursive parent lookup to support choice/augment/uses. TODO:
+         * need to check if this needs to be updated for
+         * choice/case/augment/grouping
+         */
+        return currentNode.getParent();
+    }
+
+    /**
+     * Get the node package string.
+     *
+     * @param curNode current java node whose package string needs to be set
+     * @return returns the root package string
+     */
+    public static String getCurNodePackage(YangNode curNode) {
+
+        String pkg;
+        if (!(curNode instanceof HasJavaFileInfo)
+                || curNode.getParent() == null) {
+            throw new RuntimeException("missing parent node to get current node's package");
+        }
+
+        YangNode parentNode = getParentNodeInGenCode(curNode);
+        if (!(parentNode instanceof HasJavaFileInfo)) {
+            throw new RuntimeException("missing parent java node to get current node's package");
+        }
+        JavaFileInfo parentJavaFileHandle = ((HasJavaFileInfo) parentNode).getJavaFileInfo();
+        pkg = parentJavaFileHandle.getPackage() + UtilConstants.PERIOD + parentJavaFileHandle.getJavaName();
+        return pkg.toLowerCase();
+    }
+
+    /**
      * Returns version.
      *
      * @param ver YANG version
      * @return version
      */
     private static String getYangVersion(byte ver) {
+
         return "v" + ver;
     }
 
@@ -77,6 +121,7 @@ public final class JavaIdentifierSyntax {
      * @return java package name as per java rules
      */
     public static String getPkgFromNameSpace(String nameSpace) {
+
         ArrayList<String> pkgArr = new ArrayList<String>();
         nameSpace = nameSpace.replace(UtilConstants.QUOTES, UtilConstants.EMPTY_STRING);
         String properNameSpace = nameSpace.replaceAll(UtilConstants.REGEX_WITH_SPECIAL_CHAR, UtilConstants.COLAN);
@@ -96,12 +141,13 @@ public final class JavaIdentifierSyntax {
      * @throws TranslatorException when date is invalid.
      */
     public static String getYangRevisionStr(String date) throws TranslatorException {
+
         String[] revisionArr = date.split(UtilConstants.HYPHEN);
 
         String rev = "rev";
         rev = rev + revisionArr[INDEX_ZERO];
 
-        if ((Integer.parseInt(revisionArr[INDEX_ONE]) <= MAX_MONTHS)
+        if (Integer.parseInt(revisionArr[INDEX_ONE]) <= MAX_MONTHS
                 && Integer.parseInt(revisionArr[INDEX_TWO]) <= MAX_DAYS) {
             for (int i = INDEX_ONE; i < revisionArr.length; i++) {
 
@@ -131,7 +177,7 @@ public final class JavaIdentifierSyntax {
         int i = 0;
         for (String member : pkgArr) {
             boolean presenceOfKeyword = UtilConstants.JAVA_KEY_WORDS.contains(member);
-            if (presenceOfKeyword || (member.matches(UtilConstants.REGEX_FOR_FIRST_DIGIT))) {
+            if (presenceOfKeyword || member.matches(UtilConstants.REGEX_FOR_FIRST_DIGIT)) {
                 member = UtilConstants.UNDER_SCORE + member;
             }
             pkg = pkg + member;
@@ -144,23 +190,13 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Get the package from parent's package and string.
-     *
-     * @param parentPkg parent's package
-     * @param parentName parent's name
-     * @return package string
-     */
-    public static String getPackageFromParent(String parentPkg, String parentName) {
-        return (parentPkg + UtilConstants.PERIOD + getSubPkgFromName(parentName)).toLowerCase();
-    }
-
-    /**
      * Get package sub name from YANG identifier name.
      *
      * @param name YANG identifier name
      * @return java package sub name as per java rules
      */
     public static String getSubPkgFromName(String name) {
+
         ArrayList<String> pkgArr = new ArrayList<String>();
         String[] nameArr = name.split(UtilConstants.COLAN);
 
@@ -177,6 +213,7 @@ public final class JavaIdentifierSyntax {
      * @return corresponding java identifier
      */
     public static String getCamelCase(String yangIdentifier) {
+
         String[] strArray = yangIdentifier.split(UtilConstants.HYPHEN);
         String camelCase = strArray[0];
         for (int i = 1; i < strArray.length; i++) {
@@ -193,16 +230,41 @@ public final class JavaIdentifierSyntax {
      * @return corresponding java identifier
      */
     public static String getCaptialCase(String yangIdentifier) {
+
         return yangIdentifier.substring(0, 1).toUpperCase() + yangIdentifier.substring(1);
     }
 
     /**
-     * Translate the YANG identifier name to java identifier with first letter in small.
+     * Translate the YANG identifier name to java identifier with first letter
+     * in small.
      *
      * @param yangIdentifier identifier in YANG file.
      * @return corresponding java identifier
      */
     public static String getLowerCase(String yangIdentifier) {
+
         return yangIdentifier.substring(0, 1).toLowerCase() + yangIdentifier.substring(1);
+    }
+
+    /**
+     * Get the java Package from package path.
+     *
+     * @param packagePath package path
+     * @return java package
+     */
+    public static String getJavaPackageFromPackagePath(String packagePath) {
+
+        return packagePath.replace(File.separator, UtilConstants.PERIOD);
+    }
+
+    /**
+     * Get the directory path corresponding to java package.
+     *
+     * @param packagePath package path
+     * @return java package
+     */
+    public static String getPackageDirPathFromJavaJPackage(String packagePath) {
+
+        return packagePath.replace(UtilConstants.PERIOD, File.separator);
     }
 }

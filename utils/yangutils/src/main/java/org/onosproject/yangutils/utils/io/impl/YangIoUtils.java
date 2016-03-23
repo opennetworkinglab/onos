@@ -16,12 +16,13 @@
 
 package org.onosproject.yangutils.utils.io.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -31,12 +32,16 @@ import org.onosproject.yangutils.utils.UtilConstants;
 import org.slf4j.Logger;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Provides common utility functionalities for code generation.
  */
 public final class YangIoUtils {
 
     private static final Logger log = getLogger(YangIoUtils.class);
+    private static final String TARGET_RESOURCE_PATH = UtilConstants.SLASH + UtilConstants.TEMP + UtilConstants.SLASH
+            + UtilConstants.YANG_RESOURCES + UtilConstants.SLASH;
 
     /**
      * Default constructor.
@@ -67,9 +72,9 @@ public final class YangIoUtils {
      */
     public static void addPackageInfo(File path, String classInfo, String pack) throws IOException {
 
-        if (pack.contains(UtilConstants.YANG_GEN_DIR)) {
-            String[] strArray = pack.split(UtilConstants.YANG_GEN_DIR);
-            pack = strArray[1];
+        if (pack.contains(UtilConstants.ORG)) {
+            String[] strArray = pack.split(UtilConstants.ORG);
+            pack = UtilConstants.ORG + strArray[1];
         }
         try {
 
@@ -91,19 +96,13 @@ public final class YangIoUtils {
     /**
      * Cleans the generated directory if already exist in source folder.
      *
-     * @param baseDir generated directory in previous build
+     * @param dir generated directory in previous build
      */
-    public static void clean(String baseDir) {
-        File generatedDirectory = new File(baseDir + File.separator + UtilConstants.YANG_GEN_DIR
-                + UtilConstants.DEFAULT_BASE_PKG.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
+    public static void clean(String dir) {
+
+        File generatedDirectory = new File(dir);
         if (generatedDirectory.exists()) {
-            List<String> javafiles;
             try {
-                javafiles = YangFileScanner.getJavaFiles(generatedDirectory.toString());
-                for (String file : javafiles) {
-                    File currentFile = new File(file);
-                    currentFile.delete();
-                }
                 FileUtils.deleteDirectory(generatedDirectory);
             } catch (IOException e) {
                 log.info("Failed to delete the generated files in " + generatedDirectory + " directory");
@@ -121,9 +120,6 @@ public final class YangIoUtils {
     public static void addToSource(String source, MavenProject project, BuildContext context) {
 
         project.addCompileSourceRoot(source);
-        Resource rsc = new Resource();
-        rsc.setDirectory(source);
-        project.addResource(rsc);
         context.refresh(project.getBasedir());
         log.info("Source directory added to compilation root: " + source);
     }
@@ -136,6 +132,7 @@ public final class YangIoUtils {
      * @return new string
      */
     public static String trimAtLast(String valueString, String removealStirng) {
+
         StringBuilder stringBuilder = new StringBuilder(valueString);
         int index = valueString.lastIndexOf(removealStirng);
         stringBuilder.deleteCharAt(index);
@@ -149,6 +146,7 @@ public final class YangIoUtils {
      * @return parted string
      */
     public static String partString(String partString) {
+
         String[] strArray = partString.split(UtilConstants.COMMA);
         String newString = "";
         for (int i = 0; i < strArray.length; i++) {
@@ -163,4 +161,91 @@ public final class YangIoUtils {
         return trimAtLast(newString, UtilConstants.COMMA);
     }
 
+    /**
+     * Returns backspaced string.
+     *
+     * @param charString char string
+     * @return backspace string
+     */
+    public static String deleteLastChar(String charString) {
+
+        return charString.substring(0, charString.length() - 1);
+    }
+
+    /**
+     * Get the directory path of the package in canonical form.
+     *
+     * @param baseCodeGenPath base path where the generated files needs to be
+     *            put.
+     * @param pathOfJavaPkg java package of the file being generated
+     * @return absolute path of the package in canonical form
+     */
+    public static String getDirectory(String baseCodeGenPath, String pathOfJavaPkg) {
+
+        if (pathOfJavaPkg.charAt(pathOfJavaPkg.length() - 1) == File.separatorChar) {
+            pathOfJavaPkg = trimAtLast(pathOfJavaPkg, UtilConstants.SLASH);
+        }
+        String[] strArray = pathOfJavaPkg.split(UtilConstants.SLASH);
+        if (strArray[0].equals(UtilConstants.EMPTY_STRING)) {
+            return pathOfJavaPkg;
+        } else {
+            return baseCodeGenPath + File.separator + pathOfJavaPkg;
+        }
+    }
+
+    /**
+     * Get the absolute path of the package in canonical form.
+     *
+     * @param baseCodeGenPath base path where the generated files needs to be
+     *            put.
+     * @param pathOfJavaPkg java package of the file being generated
+     * @return absolute path of the package in canonical form
+     */
+    public static String getAbsolutePackagePath(String baseCodeGenPath, String pathOfJavaPkg) {
+
+        return baseCodeGenPath + pathOfJavaPkg;
+    }
+
+    /**
+     * Copy YANG files to the current project's output directory.
+     *
+     * @param yangFiles list of YANG files
+     * @param outputDir project's output directory
+     * @param project maven project
+     * @throws IOException when fails to copy files to destination resource
+     *             directory
+     */
+    public static void copyYangFilesToTarget(List<String> yangFiles, String outputDir, MavenProject project)
+            throws IOException {
+
+        List<File> files = getListOfFile(yangFiles);
+
+        String path = outputDir + TARGET_RESOURCE_PATH;
+        File targetDir = new File(path);
+        targetDir.mkdirs();
+
+        for (File file : files) {
+            Files.copy(file.toPath(),
+                    new File(path + file.getName()).toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+        }
+        Resource rsc = new Resource();
+        rsc.setDirectory(outputDir + UtilConstants.SLASH + UtilConstants.TEMP + UtilConstants.SLASH);
+        project.addResource(rsc);
+    }
+
+    /**
+     * Provides a list of files from list of strings.
+     *
+     * @param strings list of strings
+     * @return list of files
+     */
+    private static List<File> getListOfFile(List<String> strings) {
+
+        List<File> files = new ArrayList<>();
+        for (String file : strings) {
+            files.add(new File(file));
+        }
+        return files;
+    }
 }

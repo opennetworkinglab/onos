@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.onosproject.yangutils.translator;
-
-import java.io.IOException;
+package org.onosproject.yangutils.translator.tojava;
 
 /**
- * Abstraction of an entity which provides Code generator functionalities.
+ * Maintains the information of the java import data.
  */
-public interface CodeGenerator {
+public interface HasJavaImportData {
+    /**
+     * Get the data of java imports to be included in generated file.
+     *
+     * @return data of java imports to be included in generated file
+     */
+    public JavaImportData getJavaImportData();
 
     /**
-     * Traverse the schema of application and generate corresponding code.
+     * Set the data of java imports to be included in generated file.
      *
-     * @param codeGenDir code generation directory
-     * @throws IOException when fails to translate the data model tree
+     * @param javaImportData data of java imports to be included in generated
+     *            file
      */
-    void generateJavaCodeEntry(String codeGenDir) throws IOException;
-
-    /**
-     * Traverse the schema of application and generate corresponding code.
-     *
-     * @throws IOException when fails to generate java code
-     */
-    void generateJavaCodeExit() throws IOException;
-
+    public void setJavaImportData(JavaImportData javaImportData);
 }

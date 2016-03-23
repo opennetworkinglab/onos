@@ -16,6 +16,7 @@
 
 package org.onosproject.yangutils.utils;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public final class UtilConstants {
     public static final String BUILDER_CLASS_JAVA_DOC = " * Provides the builder implementation of ";
     public static final String INTERFACE_JAVA_DOC = " * Abstraction of an entity which provides functionalities of ";
     public static final String BUILDER_INTERFACE_JAVA_DOC = " * Builder for ";
-    public static final String PACKAGE_INFO_JAVADOC = " * Generated java code corresponding to YANG ";
+    public static final String PACKAGE_INFO_JAVADOC = " * Implementation of YANG file ";
     public static final String JAVA_DOC_FIRST_LINE = "/**\n";
     public static final String JAVA_DOC_END_LINE = " */\n";
     public static final String JAVA_DOC_PARAM = " * @param ";
@@ -56,6 +57,7 @@ public final class UtilConstants {
      * Basic requirements.
      */
     public static final String NEW_LINE = "\n";
+    public static final String MULTIPLE_NEW_LINE = "\n\n";
     public static final String EMPTY_STRING = "";
     public static final String NEW_LINE_ESTRIC = " *\n";
     public static final String PERIOD = ".";
@@ -66,7 +68,7 @@ public final class UtilConstants {
     public static final String SPACE = " ";
     public static final String TAB = "\t";
     public static final String EQUAL = "=";
-    public static final String SLASH = "/";
+    public static final String SLASH = File.separator;
     public static final String ADD = "+";
     public static final String ASTERISK = "*";
     public static final String AT = "@";
@@ -81,14 +83,22 @@ public final class UtilConstants {
     public static final String INSTANCE_OF = " instanceof ";
 
     public static final String VALUE = "value";
+    public static final String SUFIX_S = "s";
 
     public static final String IF = "if";
     public static final String FOR = "for";
     public static final String WHILE = "while";
     public static final String OF = "of";
+    public static final String OTHER = "other";
+    public static final String OBJ = "obj";
+    public static final String HASH = "hash";
+    public static final String TO = "to";
 
     public static final String TRUE = "true";
     public static final String FALSE = "false";
+    public static final String ORG = "org";
+    public static final String TEMP = "temp";
+    public static final String YANG_RESOURCES = "yang/resources";
 
     /**
      * For brackets.
@@ -219,7 +229,8 @@ public final class UtilConstants {
     public static final String DOUBLE_WRAPPER = "Double";
 
     /**
-     * List of keywords in java, this is used for checking if the input does not contain these keywords.
+     * List of keywords in java, this is used for checking if the input does not
+     * contain these keywords.
      */
     public static final List JAVA_KEY_WORDS = Arrays.asList("abstract", "assert", "boolean", "break", "byte", "case",
             "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "extends", "false",
@@ -262,8 +273,11 @@ public final class UtilConstants {
      * For collections.
      */
     public static final String COLLECTION_IMPORTS = "java.util";
-    public static final String MORE_OBJECT_IMPORT = "import com.google.common.base.MoreObjects;\n";
-    public static final String JAVA_UTIL_OBJECTS_IMPORT = "import java.util.Objects;\n";
+    public static final String GOOGLE_MORE_OBJECT_IMPORT_PKG = "com.google.common.base";
+    public static final String GOOGLE_MORE_OBJECT_IMPORT_CLASS = "MoreObjects;\n";
+    public static final String GOOGLE_MORE_OBJECT_METHOD_STRING = " MoreObjects.toStringHelper(getClass())";
+    public static final String JAVA_UTIL_OBJECTS_IMPORT_PKG = "java.util";
+    public static final String JAVA_UTIL_OBJECTS_IMPORT_CLASS = "Objects;\n";
     public static final String ABSTRACT_COLLECTION = "AbstractCollection";
 
     public static final String LIST = "List";

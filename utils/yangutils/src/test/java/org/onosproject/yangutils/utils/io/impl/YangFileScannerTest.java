@@ -47,12 +47,12 @@ public final class YangFileScannerTest {
     /**
      * A private constructor is tested.
      *
-     * @throws SecurityException if any security violation is observed.
-     * @throws NoSuchMethodException if when the method is not found.
-     * @throws IllegalArgumentException if there is illegal argument found.
-     * @throws InstantiationException if instantiation is provoked for the private constructor.
-     * @throws IllegalAccessException if instance is provoked or a method is provoked.
-     * @throws InvocationTargetException when an exception occurs by the method or constructor.
+     * @throws SecurityException if any security violation is observed
+     * @throws NoSuchMethodException if when the method is not found
+     * @throws IllegalArgumentException if there is illegal argument found
+     * @throws InstantiationException if instantiation is provoked for the private constructor
+     * @throws IllegalAccessException if instance is provoked or a method is provoked
+     * @throws InvocationTargetException when an exception occurs by the method or constructor
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
@@ -97,8 +97,8 @@ public final class YangFileScannerTest {
     /**
      * Method used for creating file inside the specified directory.
      *
-     * @param myDir the path where file has to be created inside.
-     * @param fileName the name of the file to be created.
+     * @param myDir the path where file has to be created inside
+     * @param fileName the name of the file to be created
      */
     public void createFile(File myDir, String fileName) throws IOException {
 

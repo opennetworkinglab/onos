@@ -148,7 +148,7 @@ public final class JavaDocGenTest {
     public void packageInfoGenerationTest() {
 
         String packageInfo = JavaDocGen.getJavaDoc(JavaDocType.PACKAGE_INFO, "testGeneration1", false);
-        assertTrue(packageInfo.contains("Generated java code corresponding to YANG") && packageInfo.contains(" */\n"));
+        assertTrue(packageInfo.contains("Implementation of YANG file") && packageInfo.contains(" */\n"));
     }
 
     /**

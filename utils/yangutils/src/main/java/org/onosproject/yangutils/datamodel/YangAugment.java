@@ -21,7 +21,6 @@ import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
-import org.onosproject.yangutils.translator.CachedFileHandle;
 
 /*-
  * Reference RFC 6020.
@@ -77,7 +76,8 @@ import org.onosproject.yangutils.translator.CachedFileHandle;
 /**
  * Data model node to maintain information defined in YANG augment.
  */
-public class YangAugment extends YangNode implements YangLeavesHolder, YangCommonInfo, Parsable {
+public class YangAugment extends YangNode
+        implements YangLeavesHolder, YangCommonInfo, Parsable {
 
     /**
      * Augment target node.
@@ -108,11 +108,6 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
      * Status of the node.
      */
     private YangStatusType status;
-
-    /**
-     * Package of the generated java code.
-     */
-    private String pkg;
 
     /**
      * Create a YANG augment node.
@@ -316,57 +311,4 @@ public class YangAugment extends YangNode implements YangLeavesHolder, YangCommo
 
     }
 
-    /**
-     * Get the mapped java package.
-     *
-     * @return the java package
-     */
-    @Override
-    public String getPackage() {
-        return pkg;
-    }
-
-    /**
-     * Set the mapped java package.
-     *
-     * @param pakg the package to set
-     */
-    @Override
-    public void setPackage(String pakg) {
-        pkg = pakg;
-
-    }
-
-    /**
-     * Prepare the information for java code generation corresponding to YANG
-     * grouping info.
-     *
-     * @param codeGenDir code generation directory
-     */
-    @Override
-    public void generateJavaCodeEntry(String codeGenDir) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * Create a java file using the YANG grouping info.
-     */
-    @Override
-    public void generateJavaCodeExit() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public CachedFileHandle getFileHandle() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setFileHandle(CachedFileHandle fileHandle) {
-        // TODO Auto-generated method stub
-
-    }
 }

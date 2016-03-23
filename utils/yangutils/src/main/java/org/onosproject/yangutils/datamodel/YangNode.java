@@ -16,13 +16,11 @@
 package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import org.onosproject.yangutils.translator.CachedFileHandle;
-import org.onosproject.yangutils.translator.CodeGenerator;
 
 /**
  * Base class of a node in data model tree.
  */
-public abstract class YangNode implements CodeGenerator {
+public abstract class YangNode {
 
     /**
      * Type of node.
@@ -48,6 +46,20 @@ public abstract class YangNode implements CodeGenerator {
      * Previous sibling reference.
      */
     private YangNode previousSibling;
+
+    /**
+     * Get the nodes name.
+     *
+     * @return nodes name
+     */
+    public abstract String getName();
+
+    /**
+     * Set the nodes name.
+     *
+     * @param name nodes name
+     */
+    public abstract void setName(String name);
 
     /**
      * Default constructor is made private to ensure node type is always set.
@@ -195,19 +207,25 @@ public abstract class YangNode implements CodeGenerator {
         YangNode curNode;
         curNode = getChild();
 
-        /* If the new node needs to be the first child */
+        /*-
+         *  If the new node needs to be the first child
         if (newChild.getNodeType().ordinal() < curNode.getNodeType().ordinal()) {
             newChild.setNextSibling(curNode);
             curNode.setPreviousSibling(newChild);
             setChild(newChild);
             return;
         }
+         */
 
         /*
          * Get the predecessor child of new child
          */
         while (curNode.getNextSibling() != null
-                && newChild.getNodeType().ordinal() >= curNode.getNextSibling().getNodeType().ordinal()) {
+        /*
+         * && newChild.getNodeType().ordinal() >=
+         * curNode.getNextSibling().getNodeType().ordinal()
+         */) {
+
             curNode = curNode.getNextSibling();
         }
 
@@ -218,54 +236,13 @@ public abstract class YangNode implements CodeGenerator {
             return;
         }
 
-        /* Insert the new node in child node list sorted by type */
+        /*-
+         *  Insert the new node in child node list sorted by type
         newChild.setNextSibling(curNode.getNextSibling());
         newChild.setPreviousSibling(curNode);
         curNode.getNextSibling().setPreviousSibling(newChild);
         curNode.setNextSibling(newChild);
         return;
+         */
     }
-
-    /**
-     * Get the YANG name of the node.
-     *
-     * @return the name of node as defined in YANG file.
-     */
-    public abstract String getName();
-
-    /**
-     * Set the YANG name of the node.
-     *
-     * @param name the name of node as defined in YANG file.
-     */
-    public abstract void setName(String name);
-
-    /**
-     * Get the mapped java package.
-     *
-     * @return the java package
-     */
-    public abstract String getPackage();
-
-    /**
-     * Set the mapped java package.
-     *
-     * @param pkg the package to set
-     */
-    public abstract void setPackage(String pkg);
-
-    /**
-     * Get the mapped java file handler.
-     *
-     * @return the file handle.
-     */
-    public abstract CachedFileHandle getFileHandle();
-
-    /**
-     * Set the mapped java file handle.
-     *
-     * @param fileHandle the file handle to set of current node.
-     */
-    public abstract void setFileHandle(CachedFileHandle fileHandle);
-
 }

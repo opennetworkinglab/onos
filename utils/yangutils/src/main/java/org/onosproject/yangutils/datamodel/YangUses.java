@@ -18,7 +18,6 @@ package org.onosproject.yangutils.datamodel;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
-import org.onosproject.yangutils.translator.CachedFileHandle;
 
 /*-
  * Reference RFC 6020.
@@ -213,51 +212,26 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
+    /**
+     * Get uses name.
+     *
+     * @return uses name
+     */
     @Override
     public String getName() {
         // TODO Auto-generated method stub
         return null;
     }
 
+    /**
+     * Set uses name.
+     *
+     * @param name uses name
+     */
     @Override
     public void setName(String name) {
         // TODO Auto-generated method stub
 
     }
 
-    @Override
-    public void generateJavaCodeEntry(String codeGenDir) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void generateJavaCodeExit() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public String getPackage() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setPackage(String pkg) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public CachedFileHandle getFileHandle() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setFileHandle(CachedFileHandle fileHandle) {
-        // TODO Auto-generated method stub
-
-    }
 }

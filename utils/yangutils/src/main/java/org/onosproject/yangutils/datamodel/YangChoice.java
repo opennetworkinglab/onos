@@ -17,8 +17,8 @@ package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.translator.CachedFileHandle;
 import org.onosproject.yangutils.utils.YangConstructType;
+
 import static org.onosproject.yangutils.utils.YangConstructType.CHOICE_DATA;
 
 /*-
@@ -140,11 +140,21 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
         super(YangNodeType.CHOICE_NODE);
     }
 
+    /**
+     * Get the choice name.
+     *
+     * @return choice name
+     */
     @Override
     public String getName() {
         return name;
     }
 
+    /**
+     * Set the choice name.
+     *
+     * @param name choice name
+     */
     @Override
     public void setName(String name) {
         this.name = name;
@@ -295,46 +305,13 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     @Override
-    public String getPackage() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setPackage(String pkg) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void generateJavaCodeEntry(String codeGenDir) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void generateJavaCodeExit() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public CachedFileHandle getFileHandle() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setFileHandle(CachedFileHandle fileHandle) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
 
-        YangNode node = this.getChild();
-        while ((node != null)) {
+        if (this.getParent() instanceof YangCase && dataType != YangConstructType.CASE_DATA) {
+            ((CollisionDetector) getParent()).detectCollidingChild(identifierName, dataType);
+        }
+        YangNode node = getChild();
+        while (node != null) {
             if (node instanceof CollisionDetector) {
                 ((CollisionDetector) node).detectSelfCollision(identifierName, dataType);
             }
@@ -346,15 +323,15 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
 
         if (dataType == CHOICE_DATA) {
-            if (this.getName().equals(identifierName)) {
+            if (getName().equals(identifierName)) {
                 throw new DataModelException("YANG file error: Identifier collision detected in choice \"" +
-                        this.getName() + "\"");
+                        getName() + "\"");
             }
             return;
         }
 
-        YangNode node = this.getChild();
-        while ((node != null)) {
+        YangNode node = getChild();
+        while (node != null) {
             if (node instanceof CollisionDetector) {
                 ((CollisionDetector) node).detectSelfCollision(identifierName, dataType);
             }

@@ -104,7 +104,7 @@ public final class YangIoUtilsTest {
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
-    InstantiationException, IllegalAccessException, InvocationTargetException {
+            InstantiationException, IllegalAccessException, InvocationTargetException {
 
         Class<?>[] classesToConstruct = {YangIoUtils.class };
         for (Class<?> clazz : classesToConstruct) {

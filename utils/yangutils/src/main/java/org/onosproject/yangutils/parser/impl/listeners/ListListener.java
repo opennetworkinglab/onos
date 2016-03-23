@@ -27,7 +27,8 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation;
 
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
+import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
+import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangListNode;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
@@ -37,6 +38,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityNonZero;
@@ -117,7 +119,7 @@ public final class ListListener {
         int charPositionInLine = ctx.getStart().getCharPositionInLine();
         detectCollidingChildUtil(listener, line, charPositionInLine, identifier, LIST_DATA);
 
-        YangList yangList = new YangList();
+        YangList yangList = getYangListNode(JAVA_GENERATION);
         yangList.setName(identifier);
 
         /*
@@ -142,7 +144,7 @@ public final class ListListener {
             listener.getParsedDataStack().push(yangList);
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, LIST_DATA,
-                            ctx.identifier().getText(), ENTRY));
+                    ctx.identifier().getText(), ENTRY));
         }
     }
 
@@ -169,7 +171,7 @@ public final class ListListener {
             listener.getParsedDataStack().pop();
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, LIST_DATA,
-                            ctx.identifier().getText(), EXIT));
+                    ctx.identifier().getText(), EXIT));
         }
     }
 

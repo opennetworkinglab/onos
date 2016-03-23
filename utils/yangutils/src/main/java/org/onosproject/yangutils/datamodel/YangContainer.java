@@ -16,20 +16,15 @@
 
 package org.onosproject.yangutils.datamodel;
 
-import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
-
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.translator.CachedFileHandle;
-import org.onosproject.yangutils.translator.GeneratedFileType;
-import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
-import org.onosproject.yangutils.utils.UtilConstants;
 import org.onosproject.yangutils.utils.YangConstructType;
-import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
+
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
+
 /*-
  * Reference RFC 6020.
  *
@@ -134,16 +129,6 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
      * Status of the node.
      */
     private YangStatusType status = YangStatusType.CURRENT;
-
-    /**
-     * Package of the generated java code.
-     */
-    private String pkg;
-
-    /**
-     * Cached Java File Handle.
-     */
-    private CachedFileHandle fileHandle;
 
     /**
      * Create a container node.
@@ -335,26 +320,6 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Get the cached file handle.
-     *
-     * @return the fileHandle
-     */
-    @Override
-    public CachedFileHandle getFileHandle() {
-        return fileHandle;
-    }
-
-    /**
-     * Set the cached file handle.
-     *
-     * @param handle the fileHandle to set
-     */
-    @Override
-    public void setFileHandle(CachedFileHandle handle) {
-        fileHandle = handle;
-    }
-
-    /**
      * Returns the type of the data.
      *
      * @return returns CONTAINER_DATA
@@ -435,7 +400,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
          * If a node has "config" set to "false", no node underneath it can have
          * "config" set to "true".
          */
-        if ((!isConfig) && (leaves != null)) {
+        if (!isConfig && leaves != null) {
             for (YangLeaf leaf : leaves) {
                 if (leaf.isConfig()) {
                     throw new DataModelException("If a container has \"config\" set to \"false\", no node underneath " +
@@ -444,7 +409,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
             }
         }
 
-        if ((!isConfig) && (leafLists != null)) {
+        if (!isConfig && leafLists != null) {
             for (YangLeafList leafList : leafLists) {
                 if (leafList.isConfig()) {
                     throw new DataModelException("If a container has \"config\" set to \"false\", no node underneath " +
@@ -452,98 +417,6 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
                 }
             }
         }
-    }
-
-    /**
-     * Get the mapped java package.
-     *
-     * @return the java package
-     */
-    @Override
-    public String getPackage() {
-        return pkg;
-    }
-
-    /**
-     * Set the mapped java package.
-     *
-     * @param pcg the package to set
-     */
-    @Override
-    public void setPackage(String pcg) {
-        pkg = pcg;
-    }
-
-    /**
-     * Generate the java code corresponding to YANG container.
-     *
-     * @param codeGenDir code generation directory
-     * @throws IOException when fails to generate the source files.
-     */
-    @Override
-    public void generateJavaCodeEntry(String codeGenDir) throws IOException {
-        YangNode parent = getParent();
-        String contPkg = JavaIdentifierSyntax.getPackageFromParent(parent.getPackage(), parent.getName());
-
-        contPkg = JavaIdentifierSyntax.getCamelCase(contPkg).toLowerCase();
-        setPackage(contPkg);
-
-        CachedFileHandle handle = null;
-        try {
-            FileSystemUtil.createPackage(codeGenDir + getPackage(), parent.getName() + UtilConstants.CHILDREN);
-            handle = FileSystemUtil.createSourceFiles(getPackage(), getName(),
-                    GeneratedFileType.GENERATE_INTERFACE_WITH_BUILDER);
-            handle.setRelativeFilePath(getPackage().replace(".", "/"));
-            handle.setCodeGenFilePath(codeGenDir);
-        } catch (IOException e) {
-            throw new IOException("Failed to create the source files.");
-        }
-        setFileHandle(handle);
-
-        addLeavesAttributes();
-        addLeafListAttributes();
-        addAttributeInParent();
-    }
-
-    /**
-     * Adds current node attribute to parent file.
-     */
-    private void addAttributeInParent() {
-        if (getParent() != null) {
-            getParent().getFileHandle().addAttributeInfo(null, getName(), false);
-        }
-    }
-
-    @Override
-    public void generateJavaCodeExit() throws IOException {
-        getFileHandle().close();
-        return;
-    }
-
-    /**
-     * Adds leaf attributes in generated files.
-     */
-    private void addLeavesAttributes() {
-
-        List<YangLeaf> leaves = getListOfLeaf();
-        if (leaves != null) {
-            for (YangLeaf leaf : leaves) {
-                getFileHandle().addAttributeInfo(leaf.getDataType(), leaf.getLeafName(), false);
-            }
-        }
-    }
-
-    /**
-     * Adds leaf list's attributes in generated files.
-     */
-    private void addLeafListAttributes() {
-        List<YangLeafList> leavesList = getListOfLeafList();
-        if (leavesList != null) {
-            for (YangLeafList leafList : leavesList) {
-                getFileHandle().addAttributeInfo(leafList.getDataType(), leafList.getLeafName(), true);
-            }
-        }
-        return;
     }
 
     @Override
@@ -554,9 +427,9 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
 
     @Override
     public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
-        if (this.getName().equals(identifierName)) {
+        if (getName().equals(identifierName)) {
             throw new DataModelException("YANG file error: Duplicate input identifier detected, same as container \""
-                    + this.getName() + "\"");
+                    + getName() + "\"");
         }
     }
 }

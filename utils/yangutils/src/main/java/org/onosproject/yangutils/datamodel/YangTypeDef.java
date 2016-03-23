@@ -15,16 +15,9 @@
  */
 package org.onosproject.yangutils.datamodel;
 
-import java.io.IOException;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.translator.CachedFileHandle;
-import org.onosproject.yangutils.translator.GeneratedFileType;
-import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
-import org.onosproject.yangutils.utils.UtilConstants;
 import org.onosproject.yangutils.utils.YangConstructType;
-import org.onosproject.yangutils.utils.io.impl.FileSystemUtil;
 
 /*-
  * Reference RFC 6020.
@@ -90,16 +83,6 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      * Units of the data type.
      */
     private String units;
-
-    /**
-     * package of the generated java code.
-     */
-    private String pkg;
-
-    /**
-     * Cached Java File Handle.
-     */
-    private CachedFileHandle fileHandle;
 
     /**
      * Create a typedef node.
@@ -307,103 +290,4 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
         getDerivedType().setDataType(YangDataTypes.DERIVED);
     }
 
-    /**
-     * Generate java code snippet corresponding to YANG typedef.
-     *
-     * @param codeGenDir code generation directory
-     * @throws IOException when fails to generate files for typedef
-     */
-    @Override
-    public void generateJavaCodeEntry(String codeGenDir) throws IOException {
-
-        YangNode parent = getParent();
-        String typeDefPkg = JavaIdentifierSyntax.getPackageFromParent(parent.getPackage(), parent.getName());
-
-        typeDefPkg = JavaIdentifierSyntax.getCamelCase(typeDefPkg).toLowerCase();
-        setPackage(typeDefPkg);
-
-        CachedFileHandle handle = null;
-        try {
-            FileSystemUtil.createPackage(codeGenDir + getPackage(), parent.getName() + UtilConstants.CHILDREN);
-            handle = FileSystemUtil.createSourceFiles(getPackage(), getName(),
-                    GeneratedFileType.GENERATE_TYPEDEF_CLASS);
-            handle.setRelativeFilePath(getPackage().replace(".", "/"));
-            handle.setCodeGenFilePath(codeGenDir);
-        } catch (IOException e) {
-            throw new IOException("Failed to create the source files.");
-        }
-        setFileHandle(handle);
-        getDerivedType().getDataTypeExtendedInfo().getBaseType().setJavaPackage(getPackage());
-        addAttributeInfo();
-        addAttributeInParent();
-    }
-
-    /**
-     * Adds current node attribute to parent file.
-     */
-    private void addAttributeInParent() {
-        if (getParent() != null) {
-            getParent().getFileHandle().addAttributeInfo(null, getName(), false);
-        }
-    }
-
-    /**
-     * Adds attribute to file handle.
-     */
-    private void addAttributeInfo() {
-        getFileHandle().addAttributeInfo(getDerivedType().getDataTypeExtendedInfo().getBaseType(),
-                JavaIdentifierSyntax.getCamelCase(getName()), false);
-    }
-
-    /**
-     * Free resource used for code generation of YANG typedef.
-     *
-     * @throws IOException when fails to generate files
-     */
-    @Override
-    public void generateJavaCodeExit() throws IOException {
-        getFileHandle().close();
-        return;
-    }
-
-    /**
-     * Get the mapped java package.
-     *
-     * @return the java package
-     */
-    @Override
-    public String getPackage() {
-        return pkg;
-    }
-
-    /**
-     * Set the mapped java package.
-     *
-     * @param pakg mapped java package
-     */
-    @Override
-    public void setPackage(String pakg) {
-        pkg = pakg;
-
-    }
-
-    /**
-     * Get the file handle of the cached file used during code generation.
-     *
-     * @return cached file handle
-     */
-    @Override
-    public CachedFileHandle getFileHandle() {
-        return fileHandle;
-    }
-
-    /**
-     * Set the file handle to be used used for code generation.
-     *
-     * @param handle cached file handle
-     */
-    @Override
-    public void setFileHandle(CachedFileHandle handle) {
-        fileHandle = handle;
-    }
 }

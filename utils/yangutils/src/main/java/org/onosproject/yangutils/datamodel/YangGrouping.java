@@ -21,7 +21,6 @@ import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
-import org.onosproject.yangutils.translator.CachedFileHandle;
 
 /*-
  * Reference RFC 6020.
@@ -108,11 +107,6 @@ public class YangGrouping extends YangNode
      * Status of the node.
      */
     private YangStatusType status;
-
-    /**
-     * Package of the generated java code.
-     */
-    private String pkg;
 
     /**
      * Creates the grouping node.
@@ -295,59 +289,5 @@ public class YangGrouping extends YangNode
     @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
-    }
-
-    /**
-     * Generate the code for YANG grouping.
-     *
-     * @param codeGenDir code generated directory.
-     */
-    @Override
-    public void generateJavaCodeEntry(String codeGenDir) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * Free the resources used to generate java files corresponding to YANG
-     * grouping info and generate valid java files.
-     */
-    @Override
-    public void generateJavaCodeExit() {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * Get the mapped java package.
-     *
-     * @return the java package
-     */
-    @Override
-    public String getPackage() {
-        return pkg;
-    }
-
-    /**
-     * Set the mapped java package.
-     *
-     * @param pakg the package to set
-     */
-    @Override
-    public void setPackage(String pakg) {
-        pkg = pakg;
-
-    }
-
-    @Override
-    public CachedFileHandle getFileHandle() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setFileHandle(CachedFileHandle fileHandle) {
-        // TODO Auto-generated method stub
-
     }
 }

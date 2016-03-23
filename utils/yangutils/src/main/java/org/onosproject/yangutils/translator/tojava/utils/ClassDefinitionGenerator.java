@@ -16,7 +16,7 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
-import org.onosproject.yangutils.translator.GeneratedFileType;
+import org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType;
 import org.onosproject.yangutils.utils.UtilConstants;
 
 /**
@@ -44,19 +44,19 @@ public final class ClassDefinitionGenerator {
          * based on the file type and the YANG name of the file, generate the
          * class / interface definition start.
          */
-        if ((genFileTypes & GeneratedFileType.INTERFACE_MASK) != 0) {
+        if ((genFileTypes & GeneratedJavaFileType.INTERFACE_MASK) != 0) {
 
             return getInterfaceDefinition(yangName);
-        } else if ((genFileTypes & GeneratedFileType.BUILDER_CLASS_MASK) != 0) {
+        } else if ((genFileTypes & GeneratedJavaFileType.BUILDER_CLASS_MASK) != 0) {
 
             return getBuilderClassDefinition(yangName);
-        } else if ((genFileTypes & GeneratedFileType.IMPL_CLASS_MASK) != 0) {
+        } else if ((genFileTypes & GeneratedJavaFileType.IMPL_CLASS_MASK) != 0) {
 
             return getImplClassDefinition(yangName);
-        } else if ((genFileTypes & GeneratedFileType.BUILDER_INTERFACE_MASK) != 0) {
+        } else if ((genFileTypes & GeneratedJavaFileType.BUILDER_INTERFACE_MASK) != 0) {
 
             return getBuilderInterfaceDefinition(yangName);
-        } else if ((genFileTypes & GeneratedFileType.GENERATE_TYPEDEF_CLASS) != 0) {
+        } else if ((genFileTypes & GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS) != 0) {
 
             return getTypeDefClassDefinition(yangName);
         }
@@ -112,7 +112,7 @@ public final class ClassDefinitionGenerator {
         return UtilConstants.PUBLIC + UtilConstants.SPACE + UtilConstants.FINAL + UtilConstants.SPACE
                 + UtilConstants.CLASS + UtilConstants.SPACE + yangName + UtilConstants.IMPL + UtilConstants.SPACE
                 + UtilConstants.IMPLEMENTS + UtilConstants.SPACE + yangName + UtilConstants.SPACE
-                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE + UtilConstants.NEW_LINE;
+                + UtilConstants.OPEN_CURLY_BRACKET + UtilConstants.NEW_LINE;
     }
 
     /**

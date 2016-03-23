@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.translator;
+package org.onosproject.yangutils.translator.tojava;
 
 /**
  * Type of files generated.
  */
-public final class GeneratedFileType {
+public final class GeneratedJavaFileType {
 
     /**
      * prevent creating attributes.
      */
-    private GeneratedFileType() {
+    private GeneratedJavaFileType() {
     }
 
     /**

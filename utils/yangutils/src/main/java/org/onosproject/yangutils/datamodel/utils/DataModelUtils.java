@@ -63,7 +63,7 @@ public final class DataModelUtils {
             }
         }
         node = node.getChild();
-        while ((node != null)) {
+        while (node != null) {
             if (node instanceof CollisionDetector) {
                 ((CollisionDetector) node).detectSelfCollision(identifierName, dataType);
             }

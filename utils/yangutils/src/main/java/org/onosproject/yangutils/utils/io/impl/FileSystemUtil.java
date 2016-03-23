@@ -23,15 +23,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import org.onosproject.yangutils.translator.CachedFileHandle;
-import org.onosproject.yangutils.translator.tojava.CachedJavaFileHandle;
-import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
 import org.onosproject.yangutils.utils.UtilConstants;
 
 /**
  * Utility to handle file system operations.
  */
 public final class FileSystemUtil {
+
     /**
      * Hiding constructor of a utility class.
      */
@@ -45,6 +43,7 @@ public final class FileSystemUtil {
      * @return existence status of package
      */
     public static boolean doesPackageExist(String pkg) {
+
         File pkgDir = new File(pkg.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
         File pkgWithFile = new File(pkgDir + File.separator + "package-info.java");
         if (pkgDir.exists() && pkgWithFile.isFile()) {
@@ -61,35 +60,15 @@ public final class FileSystemUtil {
      * @throws IOException any IO exception
      */
     public static void createPackage(String pkg, String pkgInfo) throws IOException {
+
         if (!doesPackageExist(pkg)) {
             try {
-                File pack = YangIoUtils
-                        .createDirectories(pkg.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
-                YangIoUtils.addPackageInfo(pack, pkgInfo, pkg);
+                File pack = YangIoUtils.createDirectories(pkg);
+                YangIoUtils.addPackageInfo(pack, pkgInfo, pkg.replace(UtilConstants.SLASH, UtilConstants.PERIOD));
             } catch (IOException e) {
                 throw new IOException("failed to create package-info file");
             }
         }
-    }
-
-    /**
-     * Create a java source file in the specified package.
-     *
-     * @param pkg java package under which the interface file needs to be
-     *            created
-     * @param yangName YANG name of the node for which java file needs to be
-     *            created
-     * @param types types of files to be created
-     * @throws IOException when fails to create interface file
-     * @return the cached java file handle, which can be used to further add
-     *         methods
-     */
-    public static CachedFileHandle createSourceFiles(String pkg, String yangName, int types)
-            throws IOException {
-        yangName = JavaIdentifierSyntax.getCamelCase(yangName);
-        CachedFileHandle handler = new CachedJavaFileHandle(pkg, yangName, types);
-
-        return handler;
     }
 
     /**
@@ -104,7 +83,9 @@ public final class FileSystemUtil {
      */
     public static void appendFileContents(File toAppend, File srcFile) throws IOException {
 
-        updateFileHandle(srcFile, UtilConstants.NEW_LINE + readAppendFile(toAppend.toString()), false);
+        updateFileHandle(srcFile,
+                UtilConstants.NEW_LINE + readAppendFile(toAppend.toString(), UtilConstants.FOUR_SPACE_INDENTATION),
+                false);
         return;
     }
 
@@ -112,28 +93,34 @@ public final class FileSystemUtil {
      * Reads file and convert it to string.
      *
      * @param toAppend file to be converted
+     * @param spaces spaces to be appended
      * @return string of file
      * @throws IOException when fails to convert to string
      */
-    private static String readAppendFile(String toAppend) throws IOException {
-        BufferedReader bufferReader = new BufferedReader(new FileReader(toAppend));
+    public static String readAppendFile(String toAppend, String spaces) throws IOException {
+
+        FileReader fileReader = new FileReader(toAppend);
+        BufferedReader bufferReader = new BufferedReader(fileReader);
         try {
             StringBuilder stringBuilder = new StringBuilder();
             String line = bufferReader.readLine();
 
             while (line != null) {
-                if (line.equals(UtilConstants.FOUR_SPACE_INDENTATION)
-                        || line.equals(UtilConstants.EIGHT_SPACE_INDENTATION)
-                        || line.equals(UtilConstants.SPACE) || line.equals("") || line.equals(UtilConstants.NEW_LINE)) {
-                    stringBuilder.append("\n");
+                if (line.equals(UtilConstants.SPACE) | line.equals(UtilConstants.EMPTY_STRING)
+                        | line.equals(UtilConstants.EIGHT_SPACE_INDENTATION)
+                        | line.equals(UtilConstants.MULTIPLE_NEW_LINE)) {
+                    stringBuilder.append(UtilConstants.NEW_LINE);
+                } else if (line.equals(UtilConstants.FOUR_SPACE_INDENTATION)) {
+                    stringBuilder.append(UtilConstants.EMPTY_STRING);
                 } else {
-                    stringBuilder.append(UtilConstants.FOUR_SPACE_INDENTATION + line);
-                    stringBuilder.append("\n");
+                    stringBuilder.append(spaces + line);
+                    stringBuilder.append(UtilConstants.NEW_LINE);
                 }
                 line = bufferReader.readLine();
             }
             return stringBuilder.toString();
         } finally {
+            fileReader.close();
             bufferReader.close();
         }
     }
@@ -144,11 +131,14 @@ public final class FileSystemUtil {
      * @param inputFile input file
      * @param contentTobeAdded content to be appended to the file
      * @param isClose when close of file is called.
-     * @throws IOException when fails to append content to the file
+     * @throws IOException if the named file exists but is a directory rather
+     *             than a regular file, does not exist but cannot be created, or
+     *             cannot be opened for any other reason
      */
     public static void updateFileHandle(File inputFile, String contentTobeAdded, boolean isClose) throws IOException {
+
         FileWriter fileWriter = new FileWriter(inputFile, true);
-        PrintWriter outputPrintWriter = new PrintWriter(fileWriter);
+        PrintWriter outputPrintWriter = new PrintWriter(fileWriter, true);
         if (!isClose) {
             outputPrintWriter.write(contentTobeAdded);
             outputPrintWriter.flush();

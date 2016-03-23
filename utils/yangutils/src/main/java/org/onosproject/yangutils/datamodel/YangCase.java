@@ -15,15 +15,15 @@
  */
 package org.onosproject.yangutils.datamodel;
 
-import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
-import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
-import org.onosproject.yangutils.parser.Parsable;
-import org.onosproject.yangutils.translator.CachedFileHandle;
-import org.onosproject.yangutils.utils.YangConstructType;
-import static org.onosproject.yangutils.utils.YangConstructType.CASE_DATA;
-
 import java.util.LinkedList;
 import java.util.List;
+
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.utils.YangConstructType;
+
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
+import static org.onosproject.yangutils.utils.YangConstructType.CASE_DATA;
 
 /*-
  * Reference RFC 6020.
@@ -125,11 +125,6 @@ public class YangCase extends YangNode
      * Status of the node.
      */
     private YangStatusType status;
-
-    /**
-     * Package of the generated java code.
-     */
-    private String pkg;
 
     /**
      * Create a choice node.
@@ -314,76 +309,23 @@ public class YangCase extends YangNode
         // TODO auto-generated method stub, to be implemented by parser
     }
 
-    /**
-     * Get the mapped java package.
-     *
-     * @return the java package
-     */
-    @Override
-    public String getPackage() {
-        return pkg;
-    }
-
-    /**
-     * Set the mapped java package.
-     *
-     * @param pakg the package to set
-     */
-    @Override
-    public void setPackage(String pakg) {
-        pkg = pakg;
-
-    }
-
-    /**
-     * Generate the code corresponding to YANG case info.
-     *
-     * @param codeGenDir code generation directory
-     */
-    @Override
-    public void generateJavaCodeEntry(String codeGenDir) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * Free resource used for generating code and generate valid java files
-     * corresponding to YANG case info.
-     */
-    @Override
-    public void generateJavaCodeExit() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public CachedFileHandle getFileHandle() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setFileHandle(CachedFileHandle fileHandle) {
-        // TODO Auto-generated method stub
-    }
-
     @Override
     public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
-        if ((this.getParent() == null) || (!(this.getParent() instanceof YangChoice))) {
+        if (getParent() == null || !(getParent() instanceof YangChoice)) {
             throw new DataModelException("Internal Data Model Tree Error: Invalid/Missing holder in case " +
-                    this.getName());
+                    getName());
         }
         // Traverse up in tree to ask parent choice start collision detection.
-        ((CollisionDetector) this.getParent()).detectCollidingChild(identifierName, dataType);
+        ((CollisionDetector) getParent()).detectCollidingChild(identifierName, dataType);
     }
 
     @Override
     public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
 
         if (dataType == CASE_DATA) {
-            if (this.getName().equals(identifierName)) {
+            if (getName().equals(identifierName)) {
                 throw new DataModelException("YANG File Error: Identifier collision detected in case \"" +
-                        this.getName() + "\"");
+                        getName() + "\"");
             }
             return;
         }

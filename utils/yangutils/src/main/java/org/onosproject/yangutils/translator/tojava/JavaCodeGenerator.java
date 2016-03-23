@@ -18,46 +18,24 @@ package org.onosproject.yangutils.translator.tojava;
 
 import java.io.IOException;
 
-import org.onosproject.yangutils.datamodel.YangNode;
-
 /**
- * Implementation of Java code generator based on application schema.
+ * Abstraction of an entity which provides Code generator functionalities.
  */
-public final class JavaCodeGenerator {
+public interface JavaCodeGenerator {
 
     /**
-     * Default constructor.
-     */
-    private JavaCodeGenerator() {
-    }
-
-    /**
-     * Generate Java code files corresponding to the YANG schema.
+     * Traverse the schema of application and generate corresponding code.
      *
-     * @param rootNode root node of the data model tree
      * @param codeGenDir code generation directory
-     * @throws IOException when fails to generate java code file the current node
+     * @throws IOException when fails to translate the data model tree
      */
-    public static void generateJavaCode(YangNode rootNode, String codeGenDir) throws IOException {
-        YangNode curNode = rootNode;
-        TraversalType curTraversal = TraversalType.ROOT;
+    void generateCodeEntry(String codeGenDir) throws IOException;
 
-        while (!(curNode == null)) {
-            if (curTraversal != TraversalType.PARENT) {
-                curNode.generateJavaCodeEntry(codeGenDir);
-            }
-            if (curTraversal != TraversalType.PARENT && curNode.getChild() != null) {
-                curTraversal = TraversalType.CHILD;
-                curNode = curNode.getChild();
-            } else if (curNode.getNextSibling() != null) {
-                curNode.generateJavaCodeExit();
-                curTraversal = TraversalType.SIBILING;
-                curNode = curNode.getNextSibling();
-            } else {
-                curNode.generateJavaCodeExit();
-                curTraversal = TraversalType.PARENT;
-                curNode = curNode.getParent();
-            }
-        }
-    }
+    /**
+     * Traverse the schema of application and generate corresponding code.
+     *
+     * @throws IOException when fails to generate java code
+     */
+    void generateCodeExit() throws IOException;
+
 }
