@@ -142,8 +142,8 @@ public class RegionsResourceTest extends ResourceTest {
     }
 
     /**
-     * Hamcrest matcher to check that a meter representation in JSON matches
-     * the actual meter.
+     * Hamcrest matcher to check that a region representation in JSON matches
+     * the actual region.
      */
     public static class RegionJsonMatcher extends TypeSafeMatcher<JsonObject> {
         private final Region region;
@@ -342,7 +342,7 @@ public class RegionsResourceTest extends ResourceTest {
         replay(mockRegionAdminService);
 
         WebResource rs = resource();
-        InputStream jsonStream = MetersResourceTest.class
+        InputStream jsonStream = RegionsResourceTest.class
                 .getResourceAsStream("post-region.json");
 
         ClientResponse response = rs.path("regions")
@@ -364,7 +364,7 @@ public class RegionsResourceTest extends ResourceTest {
         replay(mockRegionAdminService);
 
         WebResource rs = resource();
-        InputStream jsonStream = MetersResourceTest.class
+        InputStream jsonStream = RegionsResourceTest.class
                 .getResourceAsStream("post-region.json");
 
         ClientResponse response = rs.path("regions/" + region1.id().toString())
@@ -434,7 +434,7 @@ public class RegionsResourceTest extends ResourceTest {
         replay(mockRegionAdminService);
 
         WebResource rs = resource();
-        InputStream jsonStream = MetersResourceTest.class
+        InputStream jsonStream = RegionsResourceTest.class
                 .getResourceAsStream("region-deviceIds.json");
 
         ClientResponse response = rs.path("regions/" +
@@ -456,7 +456,7 @@ public class RegionsResourceTest extends ResourceTest {
         replay(mockRegionAdminService);
 
         WebResource rs = resource();
-        InputStream jsonStream = MetersResourceTest.class
+        InputStream jsonStream = RegionsResourceTest.class
                 .getResourceAsStream("region-deviceIds.json");
 
         ClientResponse response = rs.path("regions/" +
