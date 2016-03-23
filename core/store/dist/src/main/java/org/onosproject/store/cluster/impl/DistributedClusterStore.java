@@ -43,6 +43,7 @@ import org.onosproject.store.serializers.KryoSerializer;
 import org.slf4j.Logger;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,6 +54,9 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ACTIVATED;
+import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_DEACTIVATED;
+import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_READY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true)
@@ -196,8 +200,12 @@ public class DistributedClusterStore
     }
 
     private void updateState(NodeId nodeId, State newState) {
-        nodeStates.put(nodeId, newState);
-        nodeStateLastUpdatedTimes.put(nodeId, DateTime.now());
+        State currentState = nodeStates.get(nodeId);
+        if (!Objects.equals(currentState, newState)) {
+            nodeStates.put(nodeId, newState);
+            nodeStateLastUpdatedTimes.put(nodeId, DateTime.now());
+            notifyStateChange(nodeId, currentState, newState);
+        }
     }
 
     private void heartbeat() {
@@ -215,12 +223,10 @@ public class DistributedClusterStore
                 if (phi >= PHI_FAILURE_THRESHOLD) {
                     if (currentState.isActive()) {
                         updateState(node.id(), State.INACTIVE);
-                        notifyStateChange(node.id(), State.ACTIVE, State.INACTIVE);
                     }
                 } else {
                     if (currentState == State.INACTIVE) {
                         updateState(node.id(), State.ACTIVE);
-                        notifyStateChange(node.id(), State.INACTIVE, State.ACTIVE);
                     }
                 }
             });
@@ -230,11 +236,12 @@ public class DistributedClusterStore
     }
 
     private void notifyStateChange(NodeId nodeId, State oldState, State newState) {
-        ControllerNode node = allNodes.get(nodeId);
-        if (newState.isActive()) {
-            notifyDelegate(new ClusterEvent(ClusterEvent.Type.INSTANCE_ACTIVATED, node));
-        } else {
-            notifyDelegate(new ClusterEvent(ClusterEvent.Type.INSTANCE_DEACTIVATED, node));
+        if (oldState != newState) {
+            ControllerNode node = allNodes.get(nodeId);
+            ClusterEvent.Type type = newState == State.READY ? INSTANCE_READY :
+                    newState == State.ACTIVE ? INSTANCE_ACTIVATED :
+                            INSTANCE_DEACTIVATED;
+            notifyDelegate(new ClusterEvent(type, node));
         }
     }
 

@@ -155,8 +155,13 @@
     }
 
     function attachUiBadge(svg) {
-        gs.addGlyph(svg, 'uiAttached', 30, true, [12, instCfg.uiDy])
+        gs.addGlyph(svg, 'uiAttached', 24, true, [28, instCfg.uiDy])
             .classed('badgeIcon uiBadge', true);
+    }
+
+    function attachReadyBadge(svg) {
+        gs.addGlyph(svg, 'checkMark', 16, true, [12, instCfg.uiDy + 4])
+            .classed('badgeIcon readyBadge', true);
     }
 
     function instColor(id, online) {
@@ -183,12 +188,15 @@
 
             // update online state
             el.classed('online', d.online);
+            el.classed('notReady', !d.ready);
 
             // update ui-attached state
             svg.select('use.uiBadge').remove();
             if (d.uiAttached) {
                 attachUiBadge(svg);
             }
+
+            attachReadyBadge(svg, d.ready);
 
             function updAttr(id, value) {
                 svg.select('text.instLabel.'+id).text(value);
@@ -204,6 +212,7 @@
             .append('div')
             .attr('class', 'onosInst')
             .classed('online', function (d) { return d.online; })
+            .classed('notReady', function (d) { return !d.ready; })
             .on('click', clickInst);
 
         entering.each(function (d) {
@@ -227,6 +236,8 @@
             if (d.uiAttached) {
                 attachUiBadge(svg);
             }
+
+            attachReadyBadge(svg);
 
             var left = c.nodeOx + c.nodeDim,
                 len = rectAttr.width - left,

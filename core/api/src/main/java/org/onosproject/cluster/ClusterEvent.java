@@ -42,6 +42,11 @@ public class ClusterEvent extends AbstractEvent<ClusterEvent.Type, ControllerNod
         INSTANCE_ACTIVATED,
 
         /**
+         * Signifies that a cluster instance became ready.
+         */
+        INSTANCE_READY,
+
+        /**
          * Signifies that a cluster instance became inactive.
          */
         INSTANCE_DEACTIVATED

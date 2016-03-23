@@ -767,3 +767,7 @@ html[data-platform='iPad'] #topo-p-detail {
     fill: #447;
 }
 
+.notReady .readyBadge {
+    visibility: hidden;
+}
+
