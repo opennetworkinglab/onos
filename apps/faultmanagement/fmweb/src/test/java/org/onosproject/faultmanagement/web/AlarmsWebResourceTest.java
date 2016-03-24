@@ -23,7 +23,7 @@ import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
-import org.onosproject.rest.ResourceTest;
+import org.onosproject.rest.resources.ResourceTest;
 
 import javax.ws.rs.client.WebTarget;
 

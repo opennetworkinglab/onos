@@ -34,7 +34,6 @@ import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.config.SubjectFactory;
-import org.onosproject.rest.ResourceTest;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.WebTarget;

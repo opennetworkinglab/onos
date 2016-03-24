@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.rest;
+package org.onosproject.rest.resources;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
-import org.onosproject.rest.resources.CoreWebApplication;
 
 /**
  * Base class for REST API tests.  Performs common configuration operations.

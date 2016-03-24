@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.rest;
+package org.onosproject.rest.resources;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
