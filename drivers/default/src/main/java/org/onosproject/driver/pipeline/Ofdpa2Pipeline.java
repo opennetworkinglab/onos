@@ -89,7 +89,7 @@ import org.slf4j.Logger;
  * Driver for Broadcom's OF-DPA v2.0 TTP.
  *
  */
-public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeliner {
+public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeliner {
     protected static final int PORT_TABLE = 0;
     protected static final int VLAN_TABLE = 10;
     protected static final int TMAC_TABLE = 20;
@@ -119,12 +119,12 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         .register(KryoNamespaces.API)
         .register(GroupKey.class)
         .register(DefaultGroupKey.class)
-        .register(OFDPA2GroupHandler.OfdpaNextGroup.class)
+        .register(Ofdpa2GroupHandler.OfdpaNextGroup.class)
         .register(byte[].class)
         .register(ArrayDeque.class)
         .build();
 
-    protected OFDPA2GroupHandler ofdpa2GroupHandler;
+    protected Ofdpa2GroupHandler ofdpa2GroupHandler;
 
     protected Set<IPCriterion> sentIpFilters = Collections.newSetFromMap(
                                                new ConcurrentHashMap<>());
@@ -135,7 +135,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         this.deviceId = deviceId;
 
         // Initialize OFDPA group handler
-        ofdpa2GroupHandler = new OFDPA2GroupHandler();
+        ofdpa2GroupHandler = new Ofdpa2GroupHandler();
         ofdpa2GroupHandler.init(deviceId, context);
 
         coreService = serviceDirectory.get(CoreService.class);

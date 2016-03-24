@@ -63,7 +63,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Group handler for OFDPA2 pipeline.
  */
-public class OFDPA2GroupHandler {
+public class Ofdpa2GroupHandler {
     /*
      * OFDPA requires group-id's to have a certain form.
      * L2 Interface Groups have <4bits-0><12bits-vlanid><16bits-portid>
@@ -126,7 +126,7 @@ public class OFDPA2GroupHandler {
                         RemovalNotification<GroupKey, List<OfdpaNextGroup>> notification) -> {
                     if (notification.getCause() == RemovalCause.EXPIRED) {
                         notification.getValue().forEach(ofdpaNextGrp ->
-                                OFDPA2Pipeline.fail(ofdpaNextGrp.nextObj,
+                                Ofdpa2Pipeline.fail(ofdpaNextGrp.nextObj,
                                         ObjectiveError.GROUPINSTALLATIONFAILED));
 
                     }
@@ -149,7 +149,7 @@ public class OFDPA2GroupHandler {
                     log.error("Next Objectives of type Simple should only have a "
                                     + "single Traffic Treatment. Next Objective Id:{}",
                             nextObjective.id());
-                    OFDPA2Pipeline.fail(nextObjective, ObjectiveError.BADPARAMS);
+                    Ofdpa2Pipeline.fail(nextObjective, ObjectiveError.BADPARAMS);
                     return;
                 }
                 processSimpleNextObjective(nextObjective);
@@ -161,11 +161,11 @@ public class OFDPA2GroupHandler {
                 processHashedNextObjective(nextObjective);
                 break;
             case FAILOVER:
-                OFDPA2Pipeline.fail(nextObjective, ObjectiveError.UNSUPPORTED);
+                Ofdpa2Pipeline.fail(nextObjective, ObjectiveError.UNSUPPORTED);
                 log.warn("Unsupported next objective type {}", nextObjective.type());
                 break;
             default:
-                OFDPA2Pipeline.fail(nextObjective, ObjectiveError.UNKNOWN);
+                Ofdpa2Pipeline.fail(nextObjective, ObjectiveError.UNKNOWN);
                 log.warn("Unknown next objective type {}", nextObjective.type());
         }
     }
@@ -267,7 +267,7 @@ public class OFDPA2GroupHandler {
         // but different for the same portnumber on different devices. Also different
         // for the various group-types created out of the same next objective.
         int l2gk = l2InterfaceGroupKey(deviceId, vlanId, portNum.toLong());
-        final GroupKey l2groupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l2gk));
+        final GroupKey l2groupkey = new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(l2gk));
 
         // create group description for the l2interfacegroup
         GroupBucket l2interfaceGroupBucket =
@@ -399,7 +399,7 @@ public class OFDPA2GroupHandler {
         // but different for the same portnumber on different devices. Also different
         // for the various group-types created out of the same next objective.
         int l2gk = l2InterfaceGroupKey(deviceId, vlanid, portNum);
-        final GroupKey l2groupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l2gk));
+        final GroupKey l2groupkey = new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(l2gk));
 
         // assemble information for outer group
         GroupDescription outerGrpDesc = null;
@@ -408,7 +408,7 @@ public class OFDPA2GroupHandler {
             int mplsInterfaceIndex = getNextAvailableIndex();
             int mplsgroupId = MPLS_INTERFACE_TYPE | (SUBTYPE_MASK & mplsInterfaceIndex);
             final GroupKey mplsgroupkey = new DefaultGroupKey(
-                               OFDPA2Pipeline.appKryo.serialize(mplsInterfaceIndex));
+                               Ofdpa2Pipeline.appKryo.serialize(mplsInterfaceIndex));
             outerTtb.group(new DefaultGroupId(l2groupId));
             // create the mpls-interface group description to wait for the
             // l2 interface group to be processed
@@ -430,7 +430,7 @@ public class OFDPA2GroupHandler {
             int l3unicastIndex = getNextAvailableIndex();
             int l3groupId = L3_UNICAST_TYPE | (TYPE_MASK & l3unicastIndex);
             final GroupKey l3groupkey = new DefaultGroupKey(
-                               OFDPA2Pipeline.appKryo.serialize(l3unicastIndex));
+                               Ofdpa2Pipeline.appKryo.serialize(l3unicastIndex));
             outerTtb.group(new DefaultGroupId(l2groupId));
             // create the l3unicast group description to wait for the
             // l2 interface group to be processed
@@ -520,7 +520,7 @@ public class OFDPA2GroupHandler {
 
             // assemble info for l2 interface group
             int l2gk = l2InterfaceGroupKey(deviceId, vlanId, portNum.toLong());
-            final GroupKey l2groupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l2gk));
+            final GroupKey l2groupkey = new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(l2gk));
             int l2groupId = L2_INTERFACE_TYPE | (vlanId.toShort() << 16) |
                     (int) portNum.toLong();
             GroupBucket l2interfaceGroupBucket =
@@ -550,7 +550,7 @@ public class OFDPA2GroupHandler {
         // since there can be only one flood group for a vlan, its index is always the same - 0
         Integer l2floodgroupId = L2_FLOOD_TYPE | (vlanId.toShort() << 16);
         int l2floodgk = getNextAvailableIndex();
-        final GroupKey l2floodgroupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l2floodgk));
+        final GroupKey l2floodgroupkey = new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(l2floodgk));
         // collection of group buckets pointing to all the l2 interface groups
         List<GroupBucket> l2floodBuckets = new ArrayList<>();
         for (GroupDescription l2intGrpDesc : l2interfaceGroupDescs) {
@@ -627,7 +627,7 @@ public class OFDPA2GroupHandler {
         int l3ecmpIndex = getNextAvailableIndex();
         int l3ecmpGroupId = L3_ECMP_TYPE | (TYPE_MASK & l3ecmpIndex);
         GroupKey l3ecmpGroupKey = new DefaultGroupKey(
-                                          OFDPA2Pipeline.appKryo.serialize(l3ecmpIndex));
+                                          Ofdpa2Pipeline.appKryo.serialize(l3ecmpIndex));
         GroupDescription l3ecmpGroupDesc =
                 new DefaultGroupDescription(
                         deviceId,
@@ -738,7 +738,7 @@ public class OFDPA2GroupHandler {
                 int l3vpnIndex = getNextAvailableIndex();
                 int l3vpngroupId = MPLS_L3VPN_SUBTYPE | (SUBTYPE_MASK & l3vpnIndex);
                 GroupKey l3vpngroupkey = new DefaultGroupKey(
-                             OFDPA2Pipeline.appKryo.serialize(l3vpnIndex));
+                             Ofdpa2Pipeline.appKryo.serialize(l3vpnIndex));
                 GroupDescription l3vpnGroupDesc =
                         new DefaultGroupDescription(
                                 deviceId,
@@ -810,7 +810,7 @@ public class OFDPA2GroupHandler {
 
         // recreate the original L3 ECMP group id and description
         int l3ecmpGroupId = L3_ECMP_TYPE | nextObjective.id() << 12;
-        GroupKey l3ecmpGroupKey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l3ecmpGroupId));
+        GroupKey l3ecmpGroupKey = new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(l3ecmpGroupId));
 
         // Although GroupDescriptions are not necessary for adding buckets to
         // existing groups, we use one in the GroupChainElem. When the latter is
@@ -829,7 +829,7 @@ public class OFDPA2GroupHandler {
         // don't need to update pendingNextObjectives -- group already exists
         Deque<GroupKey> newBucketChain = allGroupKeys.get(0);
         newBucketChain.addFirst(l3ecmpGroupKey);
-        List<Deque<GroupKey>> allOriginalKeys = OFDPA2Pipeline.appKryo.deserialize(next.data());
+        List<Deque<GroupKey>> allOriginalKeys = Ofdpa2Pipeline.appKryo.deserialize(next.data());
         allOriginalKeys.add(newBucketChain);
         flowObjectiveStore.putNextGroup(nextObjective.id(),
                 new OfdpaNextGroup(allOriginalKeys, nextObjective));
@@ -875,7 +875,7 @@ public class OFDPA2GroupHandler {
             return;
         }
 
-        List<Deque<GroupKey>> allgkeys = OFDPA2Pipeline.appKryo.deserialize(next.data());
+        List<Deque<GroupKey>> allgkeys = Ofdpa2Pipeline.appKryo.deserialize(next.data());
         Deque<GroupKey> foundChain = null;
         int index = 0;
         for (Deque<GroupKey> gkeys : allgkeys) {
@@ -946,7 +946,7 @@ public class OFDPA2GroupHandler {
      *             this next objective
      */
     protected void removeGroup(NextObjective nextObjective, NextGroup next) {
-        List<Deque<GroupKey>> allgkeys = OFDPA2Pipeline.appKryo.deserialize(next.data());
+        List<Deque<GroupKey>> allgkeys = Ofdpa2Pipeline.appKryo.deserialize(next.data());
         allgkeys.forEach(groupChain -> groupChain.forEach(groupKey ->
                 groupService.removeGroup(deviceId, groupKey, nextObjective.appId())));
         flowObjectiveStore.removeNextGroup(nextObjective.id());
@@ -1059,7 +1059,7 @@ public class OFDPA2GroupHandler {
                             key, deviceId, nextGrp.nextObjective().id(),
                             Integer.toHexString(groupService.getGroup(deviceId, key)
                                     .givenGroupId()));
-                    OFDPA2Pipeline.pass(nextGrp.nextObjective());
+                    Ofdpa2Pipeline.pass(nextGrp.nextObjective());
                     flowObjectiveStore.putNextGroup(nextGrp.nextObjective().id(), nextGrp);
                     // check if addBuckets waiting for this completion
                     NextObjective pendBkt = pendingBuckets
@@ -1153,7 +1153,7 @@ public class OFDPA2GroupHandler {
 
         @Override
         public byte[] data() {
-            return OFDPA2Pipeline.appKryo.serialize(gkeys);
+            return Ofdpa2Pipeline.appKryo.serialize(gkeys);
         }
     }
 

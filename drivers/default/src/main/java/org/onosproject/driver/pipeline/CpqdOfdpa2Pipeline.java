@@ -70,7 +70,7 @@ import org.slf4j.Logger;
  * the cpqd switch when MPLS is required. As a result this driver works only
  * on incoming untagged packets.
  */
-public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
+public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
     private final Logger log = getLogger(getClass());
 

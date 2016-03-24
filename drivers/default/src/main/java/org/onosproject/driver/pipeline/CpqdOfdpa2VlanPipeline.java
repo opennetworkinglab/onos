@@ -59,7 +59,7 @@ import org.slf4j.Logger;
  * packets.
  *
  */
-public class CpqdOFDPA2VlanPipeline extends CpqdOFDPA2Pipeline {
+public class CpqdOfdpa2VlanPipeline extends CpqdOfdpa2Pipeline {
 
     private final Logger log = getLogger(getClass());
 
