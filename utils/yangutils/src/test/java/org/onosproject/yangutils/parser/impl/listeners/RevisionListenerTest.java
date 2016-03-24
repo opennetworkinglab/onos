@@ -25,6 +25,7 @@ import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import java.io.IOException;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -63,5 +64,15 @@ public class RevisionListenerTest {
     public void processRevisionInValidOrder() throws IOException, ParserException {
 
         YangNode node = manager.getDataModel("src/test/resources/RevisionInValidOrder.yang");
+    }
+
+    /**
+     * Checks the revision with current date is created for empty revision statement.
+     */
+    @Test
+    public void processWithoutRevision() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/RevisionAbsence.yang");
+        assertThat(((YangModule) node).getRevision().getRevDate(),   notNullValue());
     }
 }

@@ -16,6 +16,7 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangRevision;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
@@ -30,6 +31,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.setCurrentDateForRevision;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.YangConstructType.SUB_MODULE_DATA;
@@ -86,6 +88,13 @@ public final class SubModuleListener {
 
         if (ctx.submoduleBody().submoduleHeaderStatement().yangVersionStatement() == null) {
             yangSubModule.setVersion((byte) 1);
+        }
+
+        if (ctx.submoduleBody().revisionStatements().revisionStatement().isEmpty()) {
+            String currentDate = setCurrentDateForRevision();
+            YangRevision currentRevision = new YangRevision();
+            currentRevision.setRevDate(currentDate);
+            yangSubModule.setRevision(currentRevision);
         }
 
         listener.getParsedDataStack().push(yangSubModule);

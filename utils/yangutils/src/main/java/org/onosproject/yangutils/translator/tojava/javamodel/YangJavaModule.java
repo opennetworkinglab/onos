@@ -37,8 +37,8 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePac
  * Module information extended to support java code generation.
  */
 public class YangJavaModule extends YangModule
-        implements JavaCodeGenerator, HasJavaFileInfo,
-        HasJavaImportData, HasTempJavaCodeFragmentFiles {
+implements JavaCodeGenerator, HasJavaFileInfo,
+HasJavaImportData, HasTempJavaCodeFragmentFiles {
 
     /**
      * Contains the information of the java file being generated.
@@ -76,7 +76,7 @@ public class YangJavaModule extends YangModule
     public JavaFileInfo getJavaFileInfo() {
 
         if (javaFileInfo == null) {
-            throw new RuntimeException("Missing java info in java datamodel node");
+            throw new RuntimeException("Missing java info in java datamodel node.");
         }
         return javaFileInfo;
     }

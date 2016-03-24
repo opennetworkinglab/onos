@@ -26,6 +26,7 @@ import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import java.io.IOException;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -107,6 +108,8 @@ public class SubModuleListenerTest {
         assertThat(yangNode.getBelongsTo().getBelongsToModuleName(), is("ONOS"));
         // Checks for the version value in data model tree.
         assertThat(yangNode.getBelongsTo().getPrefix(), is("On1"));
+        //Checks the revision with current date is created for empty revision statement.
+        assertThat(((YangSubModule) node).getRevision().getRevDate(),   notNullValue());
     }
 
     /**

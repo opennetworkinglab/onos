@@ -20,6 +20,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.regex.Pattern;
 
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
@@ -37,6 +38,11 @@ public final class ListenerUtil {
     private static final String TRUE_KEYWORD = "true";
     private static final String FALSE_KEYWORD = "false";
     private static final int IDENTIFIER_LENGTH = 64;
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private static final String EMPTY_STRING = "";
+    private static final String HYPHEN = "-";
+    private static final String SLASH = "/";
+    private static final String SPACE = " ";
 
     /**
      * Creates a new listener util.
@@ -52,7 +58,7 @@ public final class ListenerUtil {
      */
     public static String removeQuotesAndHandleConcat(String yangStringData) {
 
-        yangStringData = yangStringData.replace("\"", "");
+        yangStringData = yangStringData.replace("\"", EMPTY_STRING);
         String[] tmpData = yangStringData.split(Pattern.quote(PLUS));
         StringBuilder builder = new StringBuilder();
         for (String yangString : tmpData) {
@@ -103,7 +109,7 @@ public final class ListenerUtil {
             return false;
         }
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
         sdf.setLenient(false);
 
         try {
@@ -183,5 +189,19 @@ public final class ListenerUtil {
             parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
             throw parserException;
         }
+    }
+
+    /**
+     * Sets current date and makes it in usable format for revision.
+     *
+     * @return usable current date format for revision
+     */
+    public static String setCurrentDateForRevision() {
+
+        Calendar date = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
+        String dateForRevision = ((dateFormat.format(date.getTime())).replaceAll(SLASH, HYPHEN)).replaceAll(SPACE,
+                EMPTY_STRING);
+        return dateForRevision;
     }
 }
