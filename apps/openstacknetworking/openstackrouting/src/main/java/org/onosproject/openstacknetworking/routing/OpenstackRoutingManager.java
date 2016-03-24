@@ -62,6 +62,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -108,6 +110,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
+
     private ApplicationId appId;
     private ConsistentMap<Integer, String> tpPortNumMap; // Map<PortNum, allocated VM`s Mac & destionation Ip address>
     private ConsistentMap<String, OpenstackFloatingIP> floatingIpMap; // Map<FloatingIp`s Id, FloatingIp object>
@@ -117,6 +120,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     private static final String DEVICE_OWNER_ROUTER_INTERFACE = "network:router_interface";
     private static final String FLOATING_IP_MAP_NAME = "openstackrouting-floatingip";
     private static final String TP_PORT_MAP_NAME = "openstackrouting-portnum";
+    private static final String COLON = ":";
     private static final int PNAT_PORT_EXPIRE_TIME = 1200 * 1000;
     private static final int TP_PORT_MINIMUM_NUM = 1024;
     private static final int TP_PORT_MAXIMUM_NUM = 65535;
@@ -154,6 +158,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     private OpenstackIcmpHandler openstackIcmpHandler;
     private OpenstackRoutingArpHandler openstackArpHandler;
     private OpenstackRoutingRulePopulator rulePopulator;
+    private Map<DeviceId, Ip4Address> computeNodeMap;
 
     @Activate
     protected void activate() {
@@ -314,7 +319,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     }
 
     private void reloadInitL3Rules() {
-        l3EventExecutorService.submit(() ->
+        l3EventExecutorService.execute(() ->
                         openstackService.ports()
                                 .stream()
                                 .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE))
@@ -359,7 +364,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                 switch (iPacket.getProtocol()) {
                     case IPv4.PROTOCOL_ICMP:
 
-                        icmpEventExecutorService.submit(() ->
+                        icmpEventExecutorService.execute(() ->
                                 openstackIcmpHandler.processIcmpPacket(context, ethernet));
                         break;
                     case IPv4.PROTOCOL_UDP:
@@ -371,20 +376,21 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                         }
                     default:
                         int portNum = getPortNum(ethernet.getSourceMAC(), iPacket.getDestinationAddress());
-                        Port port =
+                        Optional<Port> port =
                                 getExternalPort(pkt.receivedFrom().deviceId(), config.gatewayExternalInterfaceName());
-                        if (port == null) {
+
+                        if (!port.isPresent()) {
                             log.warn("There`s no external interface");
-                            break;
+                        } else {
+                            OpenstackPort openstackPort = getOpenstackPort(ethernet.getSourceMAC(),
+                                    Ip4Address.valueOf(iPacket.getSourceAddress()));
+                            l3EventExecutorService.execute(new OpenstackPnatHandler(rulePopulator, context,
+                                    portNum, openstackPort, port.get(), config));
                         }
-                        OpenstackPort openstackPort = getOpenstackPort(ethernet.getSourceMAC(),
-                                Ip4Address.valueOf(iPacket.getSourceAddress()));
-                        l3EventExecutorService.execute(new OpenstackPnatHandler(rulePopulator, context,
-                                portNum, openstackPort, port, config));
                         break;
                 }
             } else if (ethernet.getEtherType() == Ethernet.TYPE_ARP) {
-                arpEventExecutorService.submit(() ->
+                arpEventExecutorService.execute(() ->
                         openstackArpHandler.processArpPacketFromRouter(context, ethernet));
             }
         }
@@ -395,7 +401,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                 clearPortNumMap();
                 portNum = findUnusedPortNum();
             }
-            tpPortNumMap.put(portNum, sourceMac.toString().concat(":").concat(String.valueOf(destinationAddress)));
+            tpPortNumMap.put(portNum, sourceMac.toString().concat(COLON).concat(String.valueOf(destinationAddress)));
             return portNum;
         }
 
@@ -418,12 +424,11 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         });
     }
 
-    private Port getExternalPort(DeviceId deviceId, String interfaceName) {
+    private Optional<Port> getExternalPort(DeviceId deviceId, String interfaceName) {
         return deviceService.getPorts(deviceId)
                 .stream()
                 .filter(p -> p.annotations().value(PORT_NAME).equals(interfaceName))
-                .findAny()
-                .orElse(null);
+                .findAny();
     }
 
     private void checkExternalConnection(OpenstackRouter router,
@@ -436,33 +441,26 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
             log.debug("Not satisfied to set pnat configuration");
             return;
         }
-        if (router.id() == null) {
-            interfaces.forEach(i -> initiateL3Rule(getRouterfromExternalIp(externalIp), i));
-        } else {
-            interfaces.forEach(i -> initiateL3Rule(router, i));
-        }
-
+        interfaces.forEach(this::initiateL3Rule);
     }
 
-    private OpenstackRouter getRouterfromExternalIp(Ip4Address externalIp) {
-        OpenstackRouter router = getExternalRouter(true)
+    private Optional<OpenstackRouter> getRouterfromExternalIp(Ip4Address externalIp) {
+        return getExternalRouter(true)
                 .stream()
                 .filter(r -> r.gatewayExternalInfo()
                         .externalFixedIps()
                         .values()
                         .stream()
-                        .findFirst()
-                        .orElse(null)
+                        .findAny()
+                        .get()
                         .equals(externalIp))
-                .findAny()
-                .orElse(null);
-        return checkNotNull(router);
+                .findAny();
     }
 
-    private void initiateL3Rule(OpenstackRouter router, OpenstackRouterInterface routerInterface) {
+    private void initiateL3Rule(OpenstackRouterInterface routerInterface) {
         long vni = Long.parseLong(openstackService.network(openstackService
                 .port(routerInterface.portId()).networkId()).segmentId());
-        rulePopulator.populateExternalRules(vni, router, routerInterface);
+        rulePopulator.populateExternalRules(vni);
     }
 
     private Collection<OpenstackRouterInterface> getOpenstackRouterInterface(OpenstackRouter router) {
@@ -472,8 +470,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                 .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE))
                 .filter(p -> p.deviceId().equals(router.id()))
                 .forEach(p -> {
-                    OpenstackRouterInterface routerInterface = portToRouterInterface(p);
-                    interfaces.add(routerInterface);
+                    interfaces.add(portToRouterInterface(p));
                 });
         return interfaces;
     }
@@ -529,9 +526,6 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
             if (event.type().equals(NetworkConfigEvent.Type.CONFIG_ADDED) ||
                     event.type().equals(NetworkConfigEvent.Type.CONFIG_UPDATED)) {
                 l3EventExecutorService.execute(OpenstackRoutingManager.this::readConfiguration);
-                rulePopulator = new OpenstackRoutingRulePopulator(appId,
-                        openstackService, flowObjectiveService, deviceService, driverService, config);
-
             }
         }
     }

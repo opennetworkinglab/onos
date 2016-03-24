@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknetworking.routing;
+package org.onosproject.openstacknetworking.switching;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Maps;
@@ -28,19 +28,15 @@ import java.util.Map;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Configuration object for OpenstackRouting service.
+ * Configuration object for OpenstackSwitching service.
  */
-public class OpenstackRoutingConfig extends Config<ApplicationId> {
+public class OpenstackSwitchingConfig extends Config<ApplicationId> {
+
     protected final Logger log = getLogger(getClass());
 
-    public static final String PHYSICAL_ROUTER_MAC = "physicalRouterMac";
-    public static final String GATEWAY_BRIDGE_ID = "gatewayBridgeId";
-    public static final String GATEWAY_EXTERNAL_INTERFACE_NAME = "gatewayExternalInterfaceName";
-    public static final String GATEWAY_EXTERNAL_INTERFACE_MAC = "gatewayExternalInterfaceMac";
     public static final String NODES = "nodes";
     public static final String DATAPLANE_IP = "dataPlaneIp";
     public static final String BRIDGE_ID = "bridgeId";
-
 
     /**
      * Returns the data plane IP map of nodes read from network config.
@@ -61,45 +57,9 @@ public class OpenstackRoutingConfig extends Config<ApplicationId> {
                 nodeMap.putIfAbsent(DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText()),
                         Ip4Address.valueOf(jsonNode.path(DATAPLANE_IP).asText()));
             } catch (IllegalArgumentException | NullPointerException e) {
-                log.error("Failed to read {}", e.toString());
+                log.error("Failed to read {}", e.getMessage());
             }
         });
         return nodeMap;
-    }
-
-    /**
-     * Returns physical router mac.
-     *
-     * @return physical router mac
-     */
-    public String physicalRouterMac() {
-        return this.get(PHYSICAL_ROUTER_MAC, "");
-    }
-
-    /**
-     * Returns gateway's bridge id.
-     *
-     * @return bridge id
-     */
-    public String gatewayBridgeId() {
-        return this.get(GATEWAY_BRIDGE_ID, "");
-    }
-
-    /**
-     * Returns gateway's external interface name.
-     *
-     * @return external interface name
-     */
-    public String gatewayExternalInterfaceName() {
-        return this.get(GATEWAY_EXTERNAL_INTERFACE_NAME, "");
-    }
-
-    /**
-     * Returns gateway's external interface mac.
-     *
-     * @return external interface mac
-     */
-    public String gatewayExternalInterfaceMac() {
-        return this.get(GATEWAY_EXTERNAL_INTERFACE_MAC, "");
     }
 }

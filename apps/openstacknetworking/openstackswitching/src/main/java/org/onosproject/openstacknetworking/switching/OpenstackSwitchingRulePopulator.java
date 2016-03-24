@@ -59,11 +59,13 @@ public class OpenstackSwitchingRulePopulator {
             .getLogger(OpenstackSwitchingRulePopulator.class);
     private static final int SWITCHING_RULE_PRIORITY = 30000;
     private static final int TUNNELTAG_RULE_PRIORITY = 30000;
-
+    private static final String PORT_NAME = "portName";
+    private static final String TUNNEL_DST = "tunnelDst";
     private FlowObjectiveService flowObjectiveService;
     private DriverService driverService;
     private DeviceService deviceService;
     private ApplicationId appId;
+    private OpenstackSwitchingConfig config;
 
     private Collection<OpenstackNetwork> openstackNetworkList;
     private Collection<OpenstackPort> openstackPortList;
@@ -76,16 +78,19 @@ public class OpenstackSwitchingRulePopulator {
      * @param deviceService DeviceService reference
      * @param openstackService openstack interface service
      * @param driverService DriverService reference
+     * @param config OpenstackRoutingConfig
      */
     public OpenstackSwitchingRulePopulator(ApplicationId appId,
                                            FlowObjectiveService flowObjectiveService,
                                            DeviceService deviceService,
                                            OpenstackInterfaceService openstackService,
-                                           DriverService driverService) {
+                                           DriverService driverService,
+                                           OpenstackSwitchingConfig config) {
         this.flowObjectiveService = flowObjectiveService;
         this.deviceService = deviceService;
         this.driverService = driverService;
         this.appId = appId;
+        this.config = config;
 
         openstackNetworkList = openstackService.networks();
         openstackPortList = openstackService.ports();
@@ -111,8 +116,8 @@ public class OpenstackSwitchingRulePopulator {
      * @param port port info of the VM
      */
     private void populateFlowRulesForTunnelTag(Device device, Port port) {
-        Ip4Address vmIp = getFixedIpAddressForPort(port.annotations().value("portName"));
-        String portName = port.annotations().value("portName");
+        Ip4Address vmIp = getFixedIpAddressForPort(port.annotations().value(PORT_NAME));
+        String portName = port.annotations().value(PORT_NAME);
         String vni = getVniForPort(portName);
 
         if (vmIp != null) {
@@ -148,8 +153,8 @@ public class OpenstackSwitchingRulePopulator {
      * @param port port info of the VM
      */
     private void populateFlowRulesForTrafficToSameCnode(Device device, Port port) {
-        Ip4Address vmIp = getFixedIpAddressForPort(port.annotations().value("portName"));
-        String portName = port.annotations().value("portName");
+        Ip4Address vmIp = getFixedIpAddressForPort(port.annotations().value(PORT_NAME));
+        String portName = port.annotations().value(PORT_NAME);
         String vni = getVniForPort(portName);
 
         if (vmIp != null) {
@@ -197,24 +202,27 @@ public class OpenstackSwitchingRulePopulator {
      * @param port port information of the VM
      */
     private void populateFlowRulesForTrafficToDifferentCnode(Device device, Port port) {
-        String portName = port.annotations().value("portName");
-        String channelId = device.annotations().value("channelId");
-        Ip4Address hostIpAddress = Ip4Address.valueOf(channelId.split(":")[0]);
+        String portName = port.annotations().value(PORT_NAME);
         Ip4Address fixedIp = getFixedIpAddressForPort(portName);
         String vni = getVniForPort(portName);
+        Ip4Address hostDpIpAddress = config.nodes().get(device.id());
+
+        if (hostDpIpAddress == null) {
+            log.debug("There's no openstack node information for device id {}", device.id().toString());
+            return;
+        }
+
         deviceService.getAvailableDevices().forEach(d -> {
             if (!d.equals(device)) {
                 deviceService.getPorts(d.id()).forEach(p -> {
-                    String pName = p.annotations().value("portName");
+                    String pName = p.annotations().value(PORT_NAME);
                     if (!p.equals(port) && vni.equals(getVniForPort(pName))) {
-                        String cidx = d.annotations().value("channelId");
-                        Ip4Address hostIpx = Ip4Address.valueOf(cidx.split(":")[0]);
+                        Ip4Address hostxDpIpAddress = config.nodes().get(d.id());
+
                         Ip4Address fixedIpx = getFixedIpAddressForPort(pName);
-                        if (port.isEnabled() ||
-                                port.annotations().value("portName").startsWith(
-                                        OpenstackSwitchingManager.PORTNAME_PREFIX_ROUTER)) {
-                            setVxLanFlowRule(vni, device.id(), hostIpx, fixedIpx);
-                            setVxLanFlowRule(vni, d.id(), hostIpAddress, fixedIp);
+                        if (port.isEnabled()) {
+                            setVxLanFlowRule(vni, device.id(), hostxDpIpAddress, fixedIpx);
+                            setVxLanFlowRule(vni, d.id(), hostDpIpAddress, fixedIp);
                         }
                     }
                 });
@@ -259,7 +267,7 @@ public class OpenstackSwitchingRulePopulator {
      * @return OpenstackPort reference, or null when not found
      */
     public OpenstackPort openstackPort(Port port) {
-        String uuid = port.annotations().value("portName").substring(3);
+        String uuid = port.annotations().value(PORT_NAME).substring(3);
         return openstackPortList.stream().filter(p -> p.id().startsWith(uuid))
                 .findAny().orElse(null);
     }
@@ -273,7 +281,7 @@ public class OpenstackSwitchingRulePopulator {
     public void removeSwitchingRules(Port removedPort, Map<String,
             OpenstackPortInfo> openstackPortInfoMap) {
         OpenstackPortInfo openstackPortInfo = openstackPortInfoMap
-                .get(removedPort.annotations().value("portName"));
+                .get(removedPort.annotations().value(PORT_NAME));
 
         DeviceId deviceId = openstackPortInfo.deviceId();
         Ip4Address vmIp = openstackPortInfo.ip();
@@ -397,7 +405,7 @@ public class OpenstackSwitchingRulePopulator {
                                                     Map<String, OpenstackPortInfo> openstackPortInfoMap) {
 
         for (Map.Entry<String, OpenstackPortInfo> entry : openstackPortInfoMap.entrySet()) {
-            if (!removedPort.annotations().value("portName").equals(entry.getKey())) {
+            if (!removedPort.annotations().value(PORT_NAME).equals(entry.getKey())) {
                 if (entry.getValue().vni() == vni && entry.getValue().deviceId().equals(deviceId)) {
                     return true;
                 }
@@ -469,7 +477,7 @@ public class OpenstackSwitchingRulePopulator {
                         ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST.type());
 
         try {
-            extensionInstruction.setPropertyValue("tunnelDst", hostIp);
+            extensionInstruction.setPropertyValue(TUNNEL_DST, hostIp);
         } catch (ExtensionPropertyException e) {
             log.error("Error setting Nicira extension setting {}", e);
         }
@@ -479,7 +487,7 @@ public class OpenstackSwitchingRulePopulator {
 
     private PortNumber getTunnelPort(DeviceId deviceId) {
         Port port = deviceService.getPorts(deviceId).stream()
-                .filter(p -> p.annotations().value("portName").equals(
+                .filter(p -> p.annotations().value(PORT_NAME).equals(
                         OpenstackSwitchingManager.PORTNAME_PREFIX_TUNNEL))
                 .findAny().orElse(null);
 
