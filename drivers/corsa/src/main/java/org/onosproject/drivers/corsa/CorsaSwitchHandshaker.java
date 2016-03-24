@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.driver.handshaker;
+package org.onosproject.drivers.corsa;
 
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;

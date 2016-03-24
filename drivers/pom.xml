@@ -42,6 +42,7 @@
         <module>lumentum</module>
         <module>bti</module>
         <module>bmv2</module>
+        <module>corsa</module>
     </modules>
 
     <!--<properties>

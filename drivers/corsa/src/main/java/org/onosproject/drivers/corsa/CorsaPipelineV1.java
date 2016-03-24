@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.driver.pipeline;
-
-import static org.slf4j.LoggerFactory.getLogger;
+package org.onosproject.drivers.corsa;
 
 import org.onlab.packet.Ethernet;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -26,18 +24,15 @@ import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flowobjective.ForwardingObjective;
-import org.onosproject.net.flowobjective.ObjectiveError;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.Collections;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Driver for Corsa TTP.
  *
  */
-public class CorsaPipeline extends OVSCorsaPipeline {
+public class CorsaPipelineV1 extends OvsCorsaPipeline {
 
     private final Logger log = getLogger(getClass());
 
@@ -76,13 +71,4 @@ public class CorsaPipeline extends OVSCorsaPipeline {
             }
         }));
     }
-
-    @Override
-    protected Collection<FlowRule> processSpecificSwitch(ForwardingObjective fwd) {
-        /* Not supported by until CorsaPipelineV3 */
-        log.warn("Vlan switching not supported in corsa-v1 driver");
-        fail(fwd, ObjectiveError.UNSUPPORTED);
-        return Collections.emptySet();
-    }
-
 }
