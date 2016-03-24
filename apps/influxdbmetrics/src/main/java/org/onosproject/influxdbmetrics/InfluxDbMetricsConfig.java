@@ -43,7 +43,6 @@ public class InfluxDbMetricsConfig {
 
     private static final String DEFAULT_ADDRESS = "localhost";
     private static final int DEFAULT_PORT = 8086;
-
     private static final String DEFAULT_DATABASE = "onos";
     private static final String DEFAULT_USERNAME = "onos";
     private static final String DEFAULT_PASSWORD = "onos.password";
@@ -53,6 +52,9 @@ public class InfluxDbMetricsConfig {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InfluxDbMetricsReporter influxDbMetricsReporter;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected InfluxDbMetricsRetriever influxDbMetricsRetriever;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
@@ -86,6 +88,8 @@ public class InfluxDbMetricsConfig {
         configReporter(influxDbMetricsReporter);
         influxDbMetricsReporter.startReport();
 
+        configRetriever(influxDbMetricsRetriever);
+
         log.info("Started");
     }
 
@@ -103,10 +107,16 @@ public class InfluxDbMetricsConfig {
 
         configReporter(influxDbMetricsReporter);
         influxDbMetricsReporter.restartReport();
+
+        configRetriever(influxDbMetricsRetriever);
     }
 
     private void configReporter(InfluxDbMetricsReporter reporter) {
         reporter.config(address, port, database, username, password);
+    }
+
+    private void configRetriever(InfluxDbMetricsRetriever retriever) {
+        retriever.config(address, port, database, username, password);
     }
 
     /**

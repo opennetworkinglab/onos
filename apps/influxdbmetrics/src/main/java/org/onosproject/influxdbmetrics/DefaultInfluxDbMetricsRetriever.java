@@ -24,8 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -33,14 +31,10 @@ import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
-import org.onlab.util.Tools;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.CoreService;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,11 +52,6 @@ public class DefaultInfluxDbMetricsRetriever implements InfluxDbMetricsRetriever
     private final Logger log = getLogger(getClass());
 
     private static final String DEFAULT_PROTOCOL = "http";
-    private static final String DEFAULT_ADDRESS = "localhost";
-    private static final int DEFAULT_PORT = 8086;
-    private static final String DEFAULT_DATABASE = "onos";
-    private static final String DEFAULT_USERNAME = "onos";
-    private static final String DEFAULT_PASSWORD = "onos.password";
     private static final String DEFAULT_POLICY = "default";
     private static final String COLON_SEPARATOR = ":";
     private static final String SLASH_SEPARATOR = "//";
@@ -86,58 +75,24 @@ public class DefaultInfluxDbMetricsRetriever implements InfluxDbMetricsRetriever
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService cfgService;
-
-    @Property(name = "address", value = DEFAULT_ADDRESS,
-            label = "IP address of influxDB server; " +
-                    "default is localhost")
-    protected String address = DEFAULT_ADDRESS;
-
-    @Property(name = "port", intValue = DEFAULT_PORT,
-            label = "Port number of influxDB server; " +
-                    "default is 8086")
-    protected int port = DEFAULT_PORT;
-
-    @Property(name = "database", value = DEFAULT_DATABASE,
-            label = "Database name of influxDB server; " +
-                    "default is onos")
-    protected String database = DEFAULT_DATABASE;
-
-    @Property(name = "username", value = DEFAULT_USERNAME,
-            label = "Username of influxDB server; default is onos")
-    protected String username = DEFAULT_USERNAME;
-
-    @Property(name = "password", value = DEFAULT_PASSWORD,
-            label = "Password of influxDB server; default is onos.password")
-    protected String password = DEFAULT_PASSWORD;
+    protected String database;
 
     InfluxDB influxDB;
 
     @Activate
     public void activate() {
-        cfgService.registerProperties(getClass());
         coreService.registerApplication("org.onosproject.influxdbmetrics");
-
-        config();
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        cfgService.unregisterProperties(getClass(), false);
-
         log.info("Stopped");
     }
 
-    @Modified
-    public void modified(ComponentContext context) {
-        readComponentConfiguration(context);
-        config();
-    }
-
-    private void config() {
+    @Override
+    public void config(String address, int port, String database, String username, String password) {
         StringBuilder url = new StringBuilder();
         url.append(DEFAULT_PROTOCOL);
         url.append(COLON_SEPARATOR + SLASH_SEPARATOR);
@@ -145,7 +100,8 @@ public class DefaultInfluxDbMetricsRetriever implements InfluxDbMetricsRetriever
         url.append(COLON_SEPARATOR);
         url.append(port);
 
-        influxDB = InfluxDBFactory.connect(url.toString(), username, password);
+        this.influxDB = InfluxDBFactory.connect(url.toString(), username, password);
+        this.database = database;
     }
 
     @Override
@@ -425,40 +381,6 @@ public class DefaultInfluxDbMetricsRetriever implements InfluxDbMetricsRetriever
         } else {
             log.warn("Database {} contains malformed node id.", database);
             return null;
-        }
-    }
-
-    /**
-     * Extracts properties from the component configuration context.
-     *
-     * @param context the component context
-     */
-    private void readComponentConfiguration(ComponentContext context) {
-        Dictionary<?, ?> properties = context.getProperties();
-
-        String addressStr = Tools.get(properties, "address");
-        address = addressStr != null ? addressStr : DEFAULT_ADDRESS;
-        log.info("Configured. InfluxDB server address is {}", address);
-
-        String databaseStr = Tools.get(properties, "database");
-        database = databaseStr != null ? databaseStr : DEFAULT_DATABASE;
-        log.info("Configured. InfluxDB server database is {}", database);
-
-        String usernameStr = Tools.get(properties, "username");
-        username = usernameStr != null ? usernameStr : DEFAULT_USERNAME;
-        log.info("Configured. InfluxDB server username is {}", username);
-
-        String passwordStr = Tools.get(properties, "password");
-        password = passwordStr != null ? passwordStr : DEFAULT_PASSWORD;
-        log.info("Configured. InfluxDB server password is {}", password);
-
-        Integer portConfigured = Tools.getIntegerProperty(properties, "port");
-        if (portConfigured == null) {
-            port = DEFAULT_PORT;
-            log.info("InfluxDB port is not configured, default value is {}", port);
-        } else {
-            port = portConfigured;
-            log.info("Configured. InfluxDB port is configured to {}", port);
         }
     }
 }

@@ -97,4 +97,15 @@ public interface InfluxDbMetricsRetriever {
      * @return metric value of a node
      */
     List<InfluxMetric> metric(NodeId nodeId, String metricName, int period, TimeUnit unit);
+
+    /**
+     * Configures default parameters for influx database metrics retriever.
+     *
+     * @param address   IP address of influxDB server
+     * @param port      Port number of influxDB server
+     * @param database  Database name of influxDB server
+     * @param username  Username of influxDB server
+     * @param password  Password of influxDB server
+     */
+    void config(String address, int port, String database, String username, String password);
 }
