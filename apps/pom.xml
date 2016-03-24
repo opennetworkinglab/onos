@@ -46,7 +46,6 @@
         <module>bgprouter</module>
         <module>test</module>
         <module>segmentrouting</module>
-        <module>cordfabric</module>
         <module>xos-integration</module>
         <module>pcep-api</module>
         <module>iptopology-api</module>
