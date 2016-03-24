@@ -24,7 +24,7 @@
     var $log, fs, wss;
 
     // internal state
-    var cache = {};
+    var cache = {}, listeners = [];
 
     // returns the preference by the specified name
     function getPrefs(name, defaults) {
@@ -56,7 +56,16 @@
     
     function updatePrefs(data) {
         $log.info('User properties updated');
-        cache[data.key] = data.value;
+        cache = data;
+        listeners.forEach(function (l) { l(); });
+    }
+
+    function addListener(listener) {
+        listeners.push(listener);
+    }
+
+    function removeListener(listener) {
+        listeners = listeners.filter(function(obj) { return obj === listener; });
     }
 
     angular.module('onosUtil')
@@ -75,7 +84,9 @@
             return {
                 getPrefs: getPrefs,
                 asNumbers: asNumbers,
-                setPrefs: setPrefs
+                setPrefs: setPrefs,
+                addListener: addListener,
+                removeListener: removeListener
             };
         }]);
 

@@ -24,6 +24,7 @@
 
     var themes = ['light', 'dark'],
         themeStr = themes.join(' '),
+        currentTheme,
         thidx,
         listeners = {},
         nextListenerId = 1;
@@ -42,8 +43,7 @@
         if (force || idx > -1 && idx !== thidx) {
             thidx = idx;
             ps.setPrefs('theme', { idx: thidx });
-            updateBodyClass();
-            themeEvent('set');
+            applyTheme();
         }
     }
 
@@ -51,15 +51,24 @@
         var i = thidx + 1;
         thidx = (i===themes.length) ? 0 : i;
         ps.setPrefs('theme', { idx: thidx });
-        updateBodyClass();
-        themeEvent('toggle');
+        applyTheme('toggle');
         return getTheme();
+    }
+
+    function applyTheme(evt) {
+        thidx = ps.getPrefs('theme', { idx: thidx }).idx;
+        if (currentTheme != thidx) {
+            $log.info('Applying theme:', thidx);
+            updateBodyClass();
+            themeEvent(evt || 'set');
+        }
     }
 
     function updateBodyClass() {
         var body = d3.select('body');
         body.classed(themeStr, false);
         body.classed(getTheme(), true);
+        currentTheme = thidx;
     }
 
     function themeEvent(w) {
@@ -67,9 +76,8 @@
             m = 'Theme-Change-('+w+'): ' + t;
         $log.debug(m);
         angular.forEach(listeners, function(value) {
-            value.cb(
-                {
-                    event: 'themeChange',
+            value.cb({
+                event: 'themeChange',
                     value: t
                 }
             );
@@ -104,6 +112,8 @@
             $log = _$log_;
             fs = _fs_;
             ps = _ps_;
+
+            ps.addListener(applyTheme);
 
             return {
                 init: init,
