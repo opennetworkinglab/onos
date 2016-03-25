@@ -85,7 +85,7 @@ public interface NextObjective extends Objective {
     Type type();
 
     /**
-     * Auxiliary optional information provided to the device-driver.Typically
+     * Auxiliary optional information provided to the device driver. Typically
      * conveys information about selectors (matches) that are intended to
      * use this Next Objective.
      *

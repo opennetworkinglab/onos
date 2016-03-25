@@ -83,7 +83,7 @@ public interface FilteringObjective extends Objective {
     Collection<Criterion> conditions();
 
     /**
-     * Auxiliary optional information provided to the device-driver.Typically
+     * Auxiliary optional information provided to the device driver. Typically
      * conveys information about changes (treatments) to packets that are
      * permitted into the pipeline by the PERMIT filtering condition.
      *

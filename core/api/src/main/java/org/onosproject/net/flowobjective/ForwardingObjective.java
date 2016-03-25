@@ -87,6 +87,16 @@ public interface ForwardingObjective extends Objective {
     Flag flag();
 
     /**
+     * Auxiliary optional information provided to the device driver. Typically
+     * conveys information about selectors (matches) that are intended to
+     * use this Forwarding Objective.
+     *
+     * @return a selector intended to pass meta information to the device driver.
+     *         Value may be null if no meta information is provided.
+     */
+    TrafficSelector meta();
+
+    /**
      * A forwarding objective builder.
      */
     interface Builder extends Objective.Builder {
@@ -122,6 +132,14 @@ public interface ForwardingObjective extends Objective {
          * @return a forwarding objective builder
          */
         Builder withFlag(Flag flag);
+
+        /**
+         * Set meta information related to this forwarding objective.
+         *
+         * @param selector match conditions
+         * @return an objective builder
+         */
+        Builder withMeta(TrafficSelector selector);
 
         /**
          * Builds the forwarding objective that will be added.
