@@ -73,7 +73,6 @@ import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
@@ -105,9 +104,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private DeviceId deviceId;
     private ApplicationId appId;
-    // NOTE: OLT currently has some issue with cookie 0. Pick something larger
-    //       to avoid collision
-    private AtomicCounter counter;
+
 
     protected FlowObjectiveStore flowObjectiveStore;
 
@@ -132,18 +129,6 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         groupService = serviceDirectory.get(GroupService.class);
         flowObjectiveStore = context.store();
         storageService = serviceDirectory.get(StorageService.class);
-
-        counter = storageService.atomicCounterBuilder()
-                .withName(String.format(OLTCOOKIES, deviceId))
-                .build()
-                .asAtomicCounter();
-
-        /*
-        magic olt number to make sure we don't collide with it's internal
-        processing
-         */
-        counter.set(123);
-
 
         appId = coreService.registerApplication(
                 "org.onosproject.driver.OLTPipeline");
@@ -326,7 +311,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 buildTreatment(Instructions.createGroup(group.id()));
 
         FlowRule rule = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .forTable(0)
                 .makePermanent()
@@ -407,7 +392,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Criterion innerVid = Criteria.matchVlanId(((VlanIdCriterion) innerVlan).vlanId());
 
         FlowRule.Builder outer = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .makePermanent()
                 .withPriority(fwd.priority())
@@ -416,7 +401,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                                               Instructions.transition(QQ_TABLE)));
 
         FlowRule.Builder inner = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .forTable(QQ_TABLE)
                 .makePermanent()
@@ -449,7 +434,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Pair<Instruction, Instruction> outerPair = vlanOps.remove(0);
 
         FlowRule.Builder inner = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .makePermanent()
                 .withPriority(fwd.priority())
@@ -464,7 +449,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 innerPair.getRight()).vlanId();
 
         FlowRule.Builder outer = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .forTable(QQ_TABLE)
                 .makePermanent()
@@ -560,7 +545,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private void buildAndApplyRule(FilteringObjective filter, TrafficSelector selector,
                                    TrafficTreatment treatment) {
         FlowRule rule = DefaultFlowRule.builder()
-                .withCookie(counter.getAndIncrement())
+                .fromApp(filter.appId())
                 .forDevice(deviceId)
                 .forTable(0)
                 .makePermanent()
