@@ -55,17 +55,17 @@ import org.onosproject.yangutils.utils.YangConstructType;
 public class YangUses extends YangNode implements YangCommonInfo, Parsable {
 
     /**
-     * Name.
+     * Name of YANG uses.
      */
     private String name;
 
     /**
-     * referred group.
+     * Referred group.
      */
     private YangGrouping refGroup;
 
     /**
-     * description.
+     * Description of YANG uses.
      */
     private String description;
 
@@ -75,7 +75,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable {
     private String reference;
 
     /**
-     * Status.
+     * Status of YANG uses.
      */
     private YangStatusType status;
 
@@ -87,7 +87,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the name.
+     * Returns the name.
      *
      * @return the name
      */
@@ -105,7 +105,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the referred group.
+     * Returns the referred group.
      *
      * @return the referred group
      */
@@ -123,7 +123,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -143,7 +143,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -163,7 +163,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the status.
+     * Returns the status.
      *
      * @return the status
      */
@@ -212,26 +212,14 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
-    /**
-     * Get uses name.
-     *
-     * @return uses name
-     */
     @Override
     public String getName() {
-        // TODO Auto-generated method stub
-        return null;
+        return name;
     }
 
-    /**
-     * Set uses name.
-     *
-     * @param name uses name
-     */
     @Override
     public void setName(String name) {
-        // TODO Auto-generated method stub
-
+        this.name = name;
     }
 
 }

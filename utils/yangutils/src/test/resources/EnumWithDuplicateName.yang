@@ -4,11 +4,11 @@ module Test {
     prefix Ant;
     leaf speed {
         type enumeration {
-          enum 10m;
-          enum 100m;
-          enum 10m {
-	     value 11;
-          }
+            enum 10m;
+            enum 100m;
+            enum 10m {
+                value 11;
+            }
         }
     }
 }

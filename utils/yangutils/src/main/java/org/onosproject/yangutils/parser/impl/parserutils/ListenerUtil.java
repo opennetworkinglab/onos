@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.regex.Pattern;
 
+import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
@@ -43,6 +44,7 @@ public final class ListenerUtil {
     private static final String HYPHEN = "-";
     private static final String SLASH = "/";
     private static final String SPACE = " ";
+    private static final String COLON = ":";
 
     /**
      * Creates a new listener util.
@@ -203,5 +205,36 @@ public final class ListenerUtil {
         String dateForRevision = ((dateFormat.format(date.getTime())).replaceAll(SLASH, HYPHEN)).replaceAll(SPACE,
                 EMPTY_STRING);
         return dateForRevision;
+    }
+
+    /**
+     * Checks and return valid node identifier.
+     *
+     * @param nodeIdentifierString string from yang file
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @return valid node identifier
+     */
+    public static YangNodeIdentifier getValidNodeIdentifier(String nodeIdentifierString, YangConstructType
+            yangConstruct, ParserRuleContext ctx) {
+        String tmpIdentifierString = removeQuotesAndHandleConcat(nodeIdentifierString);
+        String[] tmpData = tmpIdentifierString.split(Pattern.quote(COLON));
+        if (tmpData.length == 1) {
+            YangNodeIdentifier nodeIdentifier = new YangNodeIdentifier();
+            nodeIdentifier.setName(getValidIdentifier(tmpData[0], yangConstruct, ctx));
+            return nodeIdentifier;
+        } else if (tmpData.length == 2) {
+            YangNodeIdentifier nodeIdentifier = new YangNodeIdentifier();
+            nodeIdentifier.setPrefix(getValidIdentifier(tmpData[0], yangConstruct, ctx));
+            nodeIdentifier.setName(getValidIdentifier(tmpData[1], yangConstruct, ctx));
+            return nodeIdentifier;
+        } else {
+            ParserException parserException = new ParserException("YANG file error : " +
+                    YangConstructType.getYangConstructType(yangConstruct) + " name " + nodeIdentifierString +
+                    " is not valid.");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
     }
 }

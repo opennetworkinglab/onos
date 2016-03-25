@@ -16,6 +16,7 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
@@ -133,7 +134,7 @@ public final class ListListener {
 
         Parsable curData = listener.getParsedDataStack().peek();
         if (curData instanceof YangModule || curData instanceof YangContainer
-                || curData instanceof YangList) {
+                || curData instanceof YangList || curData instanceof YangCase) {
             curNode = (YangNode) curData;
             try {
                 curNode.addChild(yangList);

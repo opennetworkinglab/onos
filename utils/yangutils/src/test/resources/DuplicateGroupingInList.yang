@@ -1,0 +1,33 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    list valid {
+        key address;
+        grouping endpoint {
+            description "grouping under test";
+            status current;
+            reference "RFC 6020";
+            leaf address {
+                type ip-address;
+            }
+            leaf port {
+                type port-number;
+            }
+        }
+        leaf address {
+            type ip;
+        }
+        grouping endpoint {
+            description "grouping under test";
+            status current;
+            reference "RFC 6020";
+            leaf address {
+                type ip-address;
+            }
+            leaf port {
+                type port-number;
+            }
+        }
+    }
+}

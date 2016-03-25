@@ -4,7 +4,7 @@ module Test {
     prefix Ant;
     container valid {
         config false;
-    	list valid {
+        list valid {
             key "invalid-interval";
             config true;
             leaf invalid-interval {

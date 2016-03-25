@@ -20,6 +20,7 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /*
@@ -52,13 +53,14 @@ public class YangUnion implements Parsable {
     // List of YANG type.
     private List<YangType<?>> typeList;
 
-    // Name of the union.
+    // Name of union.
     private String unionName;
 
     /**
      * Create a YANG union node.
      */
     public YangUnion() {
+        typeList = new LinkedList<>();
     }
 
     /**
@@ -86,6 +88,21 @@ public class YangUnion implements Parsable {
      */
     public void setTypeList(List<YangType<?>> typeList) {
         this.typeList = typeList;
+    }
+
+    /**
+     * Add YANG type to type list.
+     *
+     * @param yangType YANG type to be added to list
+     * @throws DataModelException union member type must not be one of the
+     * built-in types "empty" or "leafref"
+     */
+    public void addToTypeList(YangType<?> yangType) throws DataModelException {
+        if (yangType.getDataType() == YangDataTypes.EMPTY || yangType.getDataType() == YangDataTypes.LEAFREF) {
+            throw new DataModelException("Union member type must not be one of the built-in types \"empty\" or " +
+                    "\"leafref\"");
+        }
+        getTypeList().add(yangType);
     }
 
     /**

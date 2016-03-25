@@ -22,6 +22,8 @@ import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.datamodel.YangUnion;
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
@@ -115,6 +117,17 @@ public final class TypeListener {
             case LEAF_LIST_DATA:
                 YangLeafList leafList = (YangLeafList) tmpData;
                 leafList.setDataType((YangType<?>) type);
+                break;
+            case UNION_DATA:
+                YangUnion unionNode = (YangUnion) tmpData;
+                try {
+                    unionNode.addToTypeList((YangType<?>) type);
+                } catch (DataModelException e) {
+                    ParserException parserException = new ParserException(e.getMessage());
+                    parserException.setLine(ctx.getStart().getLine());
+                    parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+                    throw parserException;
+                }
                 break;
             case TYPEDEF_DATA:
 

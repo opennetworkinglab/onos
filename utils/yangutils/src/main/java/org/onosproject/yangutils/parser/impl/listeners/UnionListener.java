@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,18 +30,16 @@ package org.onosproject.yangutils.parser.impl.listeners;
  *                       bits-specification /
  *                       union-specification
  *
- * enum-specification  = 1*(enum-stmt stmtsep)
+ * union-specification = 1*(type-stmt stmtsep)
  *
  * ANTLR grammar rule
- *
  * typeBodyStatements : numericalRestrictions | stringRestrictions | enumSpecification
  *                 | leafrefSpecification | identityrefSpecification | instanceIdentifierSpecification
  *                 | bitsSpecification | unionSpecification;
  *
- * enumSpecification : enumStatement+;
+ * unionSpecification : typeStatement+;
  */
 
-import org.onosproject.yangutils.datamodel.YangEnumeration;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangType;
@@ -58,53 +56,51 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
-import static org.onosproject.yangutils.utils.YangConstructType.ENUMERATION_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.UNION_DATA;
 
 /**
- * Implements listener based call back function corresponding to the
- * "enumeration" rule defined in ANTLR grammar file for corresponding ABNF rule
- * in RFC 6020.
+ * Implements listener based call back function corresponding to the "union" rule
+ * defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
-public final class EnumerationListener {
-
+public final class UnionListener {
     /**
-     * Creates a new enumeration listener.
+     * Creates a new union listener.
      */
-    private EnumerationListener() {
+    private UnionListener() {
     }
 
     /**
-     * It is called when parser enters grammar rule (enumeration), it perform
+     * It is called when parser enters grammar rule (union), it perform
      * validations and updates the data model tree.
      *
      * @param listener listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
-    public static void processEnumerationEntry(TreeWalkListener listener,
-            GeneratedYangParser.EnumSpecificationContext ctx) {
+    public static void processUnionEntry(TreeWalkListener listener,
+                                         GeneratedYangParser.UnionSpecificationContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, ENUMERATION_DATA, "", ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, UNION_DATA, "", ENTRY);
 
         if (listener.getParsedDataStack().peek() instanceof YangType) {
-            YangEnumeration enumerationNode = new YangEnumeration();
+            YangUnion unionNode = new YangUnion();
             Parsable typeData = listener.getParsedDataStack().pop();
 
             // Check for stack to be non empty.
-            checkStackIsNotEmpty(listener, MISSING_HOLDER, ENUMERATION_DATA, "", ENTRY);
+            checkStackIsNotEmpty(listener, MISSING_HOLDER, UNION_DATA, "", ENTRY);
 
             Parsable tmpData = listener.getParsedDataStack().peek();
 
             switch (tmpData.getYangConstructType()) {
                 case LEAF_DATA:
-                    enumerationNode.setEnumerationName(((YangLeaf) tmpData).getLeafName());
+                    unionNode.setUnionName(((YangLeaf) tmpData).getLeafName());
                     break;
                 case LEAF_LIST_DATA:
-                    enumerationNode.setEnumerationName(((YangLeafList) tmpData).getLeafName());
+                    unionNode.setUnionName(((YangLeafList) tmpData).getLeafName());
                     break;
                 case UNION_DATA:
-                    enumerationNode.setEnumerationName(((YangUnion) tmpData).getUnionName());
+                    unionNode.setUnionName(((YangUnion) tmpData).getUnionName());
                     break;
                 // TODO typedef, deviate.
                 default:
@@ -112,47 +108,47 @@ public final class EnumerationListener {
                             ((YangType<?>) typeData).getDataTypeName(), ENTRY));
             }
             listener.getParsedDataStack().push(typeData);
-            listener.getParsedDataStack().push(enumerationNode);
+            listener.getParsedDataStack().push(unionNode);
         } else {
-            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, ENUMERATION_DATA, "", ENTRY));
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, UNION_DATA, "", ENTRY));
         }
     }
 
     /**
-     * It is called when parser exits from grammar rule (enumeration), it
-     * perform validations and update the data model tree.
+     * It is called when parser exits from grammar rule (union), it perform
+     * validations and update the data model tree.
      *
      * @param listener Listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
-    public static void processEnumerationExit(TreeWalkListener listener,
-            GeneratedYangParser.EnumSpecificationContext ctx) {
+    public static void processUnionExit(TreeWalkListener listener,
+                                       GeneratedYangParser.UnionSpecificationContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, ENUMERATION_DATA, "", EXIT);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, UNION_DATA, "", EXIT);
 
-        Parsable tmpEnumerationNode = listener.getParsedDataStack().peek();
-        if (tmpEnumerationNode instanceof YangEnumeration) {
-            YangEnumeration enumerationNode = (YangEnumeration) tmpEnumerationNode;
+        Parsable tmpUnionNode = listener.getParsedDataStack().peek();
+        if (tmpUnionNode instanceof YangUnion) {
+            YangUnion unionNode = (YangUnion) tmpUnionNode;
             listener.getParsedDataStack().pop();
 
             // Check for stack to be non empty.
-            checkStackIsNotEmpty(listener, MISSING_HOLDER, ENUMERATION_DATA, "", EXIT);
+            checkStackIsNotEmpty(listener, MISSING_HOLDER, UNION_DATA, "", EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getYangConstructType()) {
                 case TYPE_DATA: {
-                    YangType<YangEnumeration> typeNode = (YangType<YangEnumeration>) tmpNode;
-                    typeNode.setDataTypeExtendedInfo(enumerationNode);
+                    YangType<YangUnion> typeNode = (YangType<YangUnion>) tmpNode;
+                    typeNode.setDataTypeExtendedInfo(unionNode);
                     break;
                 }
                 default:
                     throw new ParserException(
-                            constructListenerErrorMessage(INVALID_HOLDER, ENUMERATION_DATA, "", EXIT));
+                            constructListenerErrorMessage(INVALID_HOLDER, UNION_DATA, "", EXIT));
             }
         } else {
             throw new ParserException(
-                    constructListenerErrorMessage(MISSING_CURRENT_HOLDER, ENUMERATION_DATA, "", EXIT));
+                    constructListenerErrorMessage(MISSING_CURRENT_HOLDER, UNION_DATA, "", EXIT));
         }
     }
 }

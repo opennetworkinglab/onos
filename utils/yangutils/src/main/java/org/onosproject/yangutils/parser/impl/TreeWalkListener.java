@@ -38,6 +38,7 @@ import org.onosproject.yangutils.parser.impl.listeners.DefaultListener;
 import org.onosproject.yangutils.parser.impl.listeners.DescriptionListener;
 import org.onosproject.yangutils.parser.impl.listeners.EnumListener;
 import org.onosproject.yangutils.parser.impl.listeners.EnumerationListener;
+import org.onosproject.yangutils.parser.impl.listeners.GroupingListener;
 import org.onosproject.yangutils.parser.impl.listeners.ImportListener;
 import org.onosproject.yangutils.parser.impl.listeners.IncludeListener;
 import org.onosproject.yangutils.parser.impl.listeners.KeyListener;
@@ -61,7 +62,9 @@ import org.onosproject.yangutils.parser.impl.listeners.StatusListener;
 import org.onosproject.yangutils.parser.impl.listeners.SubModuleListener;
 import org.onosproject.yangutils.parser.impl.listeners.TypeDefListener;
 import org.onosproject.yangutils.parser.impl.listeners.TypeListener;
+import org.onosproject.yangutils.parser.impl.listeners.UnionListener;
 import org.onosproject.yangutils.parser.impl.listeners.UnitsListener;
+import org.onosproject.yangutils.parser.impl.listeners.UsesListener;
 import org.onosproject.yangutils.parser.impl.listeners.ValueListener;
 import org.onosproject.yangutils.parser.impl.listeners.VersionListener;
 
@@ -687,12 +690,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterUnionSpecification(GeneratedYangParser.UnionSpecificationContext ctx) {
-        // TODO: implement the method.
+        UnionListener.processUnionEntry(this, ctx);
     }
 
     @Override
     public void exitUnionSpecification(GeneratedYangParser.UnionSpecificationContext ctx) {
-        // TODO: implement the method.
+        UnionListener.processUnionExit(this, ctx);
     }
 
     @Override
@@ -847,12 +850,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterGroupingStatement(GeneratedYangParser.GroupingStatementContext ctx) {
-        // TODO: implement the method.
+        GroupingListener.processGroupingEntry(this, ctx);
     }
 
     @Override
     public void exitGroupingStatement(GeneratedYangParser.GroupingStatementContext ctx) {
-        // TODO: implement the method.
+        GroupingListener.processGroupingExit(this, ctx);
     }
 
     @Override
@@ -947,12 +950,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterUsesStatement(GeneratedYangParser.UsesStatementContext ctx) {
-        // TODO: implement the method.
+        UsesListener.processUsesEntry(this, ctx);
     }
 
     @Override
     public void exitUsesStatement(GeneratedYangParser.UsesStatementContext ctx) {
-        // TODO: implement the method.
+        UsesListener.processUsesExit(this, ctx);
     }
 
     @Override

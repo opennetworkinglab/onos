@@ -11,7 +11,7 @@ module Test {
             status current;
             reference "RFC 6020";
         }
-        container valid { 
+        container valid {
             config true;
             leaf invalid-interval {
                 type "uint16";
@@ -19,6 +19,6 @@ module Test {
                 status current;
                 reference "RFC 6020";
             }
-        }        
+        }
     }
 }

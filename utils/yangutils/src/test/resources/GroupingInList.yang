@@ -1,0 +1,19 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    list valid {
+        key address;
+        leaf address {
+            type ip;
+        }
+        grouping endpoint {
+            leaf address {
+                type ip-address;
+            }
+            leaf port {
+                type port-number;
+            }
+        }
+    }
+}
