@@ -36,7 +36,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.ORG;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
-import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
@@ -293,27 +292,5 @@ public final class YangIoUtils {
         } catch (IOException e) {
             throw new IOException("Failed to insert in " + file + "file");
         }
-    }
-
-    /**
-     * Convert directory path in java package format.
-     *
-     * @param path directory path
-     * @return java package
-     */
-    public static String convertPathToPkg(String path) {
-
-        return path.replace(SLASH, PERIOD);
-    }
-
-    /**
-     * Convert java package in directory path format.
-     *
-     * @param pkg java package
-     * @return directory path
-     */
-    public static String convertPkgToPath(String pkg) {
-
-        return pkg.replace(PERIOD, SLASH);
     }
 }

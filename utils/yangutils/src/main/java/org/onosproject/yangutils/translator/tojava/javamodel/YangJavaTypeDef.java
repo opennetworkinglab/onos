@@ -175,7 +175,6 @@ public class YangJavaTypeDef extends YangTypeDef
     @Override
     public void generateCodeExit() throws IOException {
 
-        getTempJavaCodeFragmentFiles().setCurYangNode(this);
         getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_TYPEDEF_CLASS, this);
     }
 

@@ -16,23 +16,38 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Test;
-import org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType;
-import org.onosproject.yangutils.translator.tojava.GeneratedMethodTypes;
-import org.onosproject.yangutils.translator.tojava.TraversalType;
-import org.onosproject.yangutils.utils.UtilConstants;
+
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
+import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
+import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
+import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.FINAL;
+import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
+import static org.onosproject.yangutils.utils.UtilConstants.IMPLEMENTS;
+import static org.onosproject.yangutils.utils.UtilConstants.INTERFACE;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
+import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 
 /**
  * Unit tests for class definition generator for generated files.
  */
 public final class ClassDefinitionGeneratorTest {
+
+    private static final String CLASS_NAME = "testclass";
 
     /**
      * Unit test for private constructor.
@@ -62,10 +77,10 @@ public final class ClassDefinitionGeneratorTest {
     @Test
     public void generateBuilderClassDefinitionTest() {
 
-        String builderClassDefinition = ClassDefinitionGenerator
-                .generateClassDefinition(GeneratedJavaFileType.BUILDER_CLASS_MASK, "BuilderClass");
-        assertThat(true, is(builderClassDefinition.contains(UtilConstants.BUILDER)));
-        assertThat(true, is(builderClassDefinition.contains(UtilConstants.CLASS)));
+        String builderClassDefinition = generateClassDefinition(BUILDER_CLASS_MASK, CLASS_NAME);
+        assertThat(true, is(builderClassDefinition.equals(
+                PUBLIC + SPACE + CLASS + SPACE + CLASS_NAME + BUILDER + SPACE + IMPLEMENTS + SPACE + CLASS_NAME + PERIOD
+                        + CLASS_NAME + BUILDER + SPACE + OPEN_CURLY_BRACKET + NEW_LINE)));
     }
 
     /**
@@ -74,9 +89,9 @@ public final class ClassDefinitionGeneratorTest {
     @Test
     public void generateBuilderInterfaceDefinitionTest() {
 
-        String builderInterfaceDefinition = ClassDefinitionGenerator
-                .generateClassDefinition(GeneratedJavaFileType.BUILDER_INTERFACE_MASK, "BuilderInterfaceClass");
-        assertThat(true, is(builderInterfaceDefinition.contains(UtilConstants.BUILDER)));
+        String builderInterfaceDefinition = generateClassDefinition(BUILDER_INTERFACE_MASK, CLASS_NAME);
+        assertThat(true, is(builderInterfaceDefinition
+                .equals(INTERFACE + SPACE + CLASS_NAME + BUILDER + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + NEW_LINE)));
     }
 
     /**
@@ -85,9 +100,10 @@ public final class ClassDefinitionGeneratorTest {
     @Test
     public void generateImplDefinitionTest() {
 
-        String implDefinition = ClassDefinitionGenerator.generateClassDefinition(GeneratedJavaFileType.IMPL_CLASS_MASK,
-                "ImplClass");
-        assertThat(true, is(implDefinition.contains(UtilConstants.IMPL)));
+        String implDefinition = generateClassDefinition(IMPL_CLASS_MASK, CLASS_NAME);
+        assertThat(true, is(implDefinition.equals(
+                PUBLIC + SPACE + FINAL + SPACE + CLASS + SPACE + CLASS_NAME + IMPL + SPACE + IMPLEMENTS + SPACE
+                        + CLASS_NAME + SPACE + OPEN_CURLY_BRACKET + NEW_LINE)));
     }
 
     /**
@@ -96,10 +112,9 @@ public final class ClassDefinitionGeneratorTest {
     @Test
     public void generateinterfaceDefinitionTest() {
 
-        String interfaceDefinition = ClassDefinitionGenerator.generateClassDefinition(
-                GeneratedJavaFileType.INTERFACE_MASK,
-                "InterfaceClass");
-        assertThat(true, is(interfaceDefinition.contains(UtilConstants.INTERFACE)));
+        String interfaceDefinition = generateClassDefinition(INTERFACE_MASK, CLASS_NAME);
+        assertThat(true, is(interfaceDefinition
+                .equals(PUBLIC + SPACE + INTERFACE + SPACE + CLASS_NAME + SPACE + OPEN_CURLY_BRACKET + NEW_LINE)));
     }
 
     /**
@@ -108,19 +123,8 @@ public final class ClassDefinitionGeneratorTest {
     @Test
     public void generateTypeDefTest() {
 
-        String typeDef = ClassDefinitionGenerator.generateClassDefinition(GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS,
-                "invalid");
-        assertThat(true, is(typeDef.contains(UtilConstants.CLASS)));
-    }
-
-    /**
-     * Unit test for enum data types.
-     */
-    @Test
-    public void enumDataTypesTest() {
-
-        TraversalType.valueOf(TraversalType.CHILD.toString());
-        GeneratedMethodTypes.valueOf(GeneratedMethodTypes.CONSTRUCTOR.toString());
-        TempDataStoreTypes.valueOf(TempDataStoreTypes.CONSTRUCTOR.toString());
+        String typeDef = generateClassDefinition(GENERATE_TYPEDEF_CLASS, CLASS_NAME);
+        assertThat(true, is(typeDef.equals(
+                PUBLIC + SPACE + FINAL + SPACE + CLASS + SPACE + CLASS_NAME + SPACE + OPEN_CURLY_BRACKET + NEW_LINE)));
     }
 }

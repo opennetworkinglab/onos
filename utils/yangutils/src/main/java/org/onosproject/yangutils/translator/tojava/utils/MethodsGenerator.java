@@ -20,7 +20,7 @@ import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getLowerCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
 import static org.onosproject.yangutils.utils.UtilConstants.ADD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.AND;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
@@ -113,7 +113,7 @@ public final class MethodsGenerator {
     public static String getGetterString(JavaAttributeInfo attr) {
 
         String returnType = getReturnType(attr);
-        String attributeName = getLowerCase(attr.getAttributeName());
+        String attributeName = getSmallCase(attr.getAttributeName());
 
         return getJavaDoc(GETTER_METHOD, attributeName, attr.isListAttr())
                 + getGetterForInterface(attributeName, returnType, attr.isListAttr());
@@ -129,7 +129,7 @@ public final class MethodsGenerator {
     public static String getSetterString(JavaAttributeInfo attr, String className) {
 
         String attrType = getReturnType(attr);
-        String attributeName = getLowerCase(attr.getAttributeName());
+        String attributeName = getSmallCase(attr.getAttributeName());
 
         return getJavaDoc(SETTER_METHOD, attributeName, attr.isListAttr())
                 + getSetterForInterface(attributeName, attrType, className, attr.isListAttr());
@@ -168,7 +168,7 @@ public final class MethodsGenerator {
     public static String getTypeDefConstructor(JavaAttributeInfo attr, String className) {
 
         String attrQuaifiedType = getReturnType(attr);
-        String attributeName = getLowerCase(attr.getAttributeName());
+        String attributeName = getSmallCase(attr.getAttributeName());
 
         if (!attr.isListAttr()) {
             return getTypeDefConstructorString(attrQuaifiedType, attributeName, className);
@@ -225,7 +225,7 @@ public final class MethodsGenerator {
     public static String getGetterForClass(JavaAttributeInfo attr) {
 
         String attrQuaifiedType = getReturnType(attr);
-        String attributeName = getLowerCase(attr.getAttributeName());
+        String attributeName = getSmallCase(attr.getAttributeName());
 
         if (!attr.isListAttr()) {
             return getGetter(attrQuaifiedType, attributeName);
@@ -258,7 +258,7 @@ public final class MethodsGenerator {
     public static String getSetterForClass(JavaAttributeInfo attr, String className) {
 
         String attrQuaifiedType = getReturnType(attr);
-        String attributeName = getLowerCase(attr.getAttributeName());
+        String attributeName = getSmallCase(attr.getAttributeName());
         if (!attr.isListAttr()) {
             return getSetter(className, attributeName, attrQuaifiedType);
         }
@@ -292,7 +292,7 @@ public final class MethodsGenerator {
     public static String getSetterForTypeDefClass(JavaAttributeInfo attr) {
 
         String attrQuaifiedType = getReturnType(attr);
-        String attributeName = getLowerCase(attr.getAttributeName());
+        String attributeName = getSmallCase(attr.getAttributeName());
         return getTypeDefSetter(attrQuaifiedType, attributeName);
     }
 
@@ -445,7 +445,7 @@ public final class MethodsGenerator {
      */
     public static String getConstructor(String yangName, JavaAttributeInfo attr) {
 
-        String attributeName = getLowerCase(attr.getAttributeName());
+        String attributeName = getSmallCase(attr.getAttributeName());
 
         String constructor = EIGHT_SPACE_INDENTATION + THIS + PERIOD + getCamelCase(attributeName) + SPACE + EQUAL
                 + SPACE + BUILDER.toLowerCase() + OBJECT + PERIOD + GET_METHOD_PREFIX
@@ -513,7 +513,7 @@ public final class MethodsGenerator {
      */
     public static String getToStringMethod(JavaAttributeInfo attr) {
 
-        String attributeName = getLowerCase(attr.getAttributeName());
+        String attributeName = getSmallCase(attr.getAttributeName());
 
         return TWELVE_SPACE_INDENTATION + PERIOD + ADD_STRING + OPEN_PARENTHESIS + QUOTES + attributeName + QUOTES
                 + COMMA + SPACE + attributeName + CLOSE_PARENTHESIS;
@@ -554,7 +554,7 @@ public final class MethodsGenerator {
      */
     public static String getHashCodeMethod(JavaAttributeInfo attr) {
 
-        return getLowerCase(attr.getAttributeName()) + COMMA + SPACE;
+        return getSmallCase(attr.getAttributeName()) + COMMA + SPACE;
     }
 
     /**
@@ -621,7 +621,7 @@ public final class MethodsGenerator {
      */
     public static String getEqualsMethod(JavaAttributeInfo attr) {
 
-        String attributeName = getLowerCase(attr.getAttributeName());
+        String attributeName = getSmallCase(attr.getAttributeName());
 
         return SIXTEEN_SPACE_INDENTATION + SPACE + OBJECT_STRING + SUFFIX_S + PERIOD + EQUALS_STRING + OPEN_PARENTHESIS
                 + attributeName + COMMA + SPACE + OTHER + PERIOD + attributeName + CLOSE_PARENTHESIS + SPACE + AND

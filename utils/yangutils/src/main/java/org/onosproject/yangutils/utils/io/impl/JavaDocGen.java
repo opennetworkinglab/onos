@@ -41,7 +41,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_SETTERS;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_SETTERS_COMMON;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
-import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE_ESTRIC;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE_ASTERISK;
 import static org.onosproject.yangutils.utils.UtilConstants.OBJECT;
 import static org.onosproject.yangutils.utils.UtilConstants.OF;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE_INFO_JAVADOC;
@@ -141,7 +141,7 @@ public final class JavaDocGen {
      */
     public static String getJavaDoc(JavaDocType type, String name, boolean isList) {
 
-        name = JavaIdentifierSyntax.getLowerCase(JavaIdentifierSyntax.getCamelCase(name));
+        name = JavaIdentifierSyntax.getSmallCase(JavaIdentifierSyntax.getCamelCase(name));
         String javaDoc = UtilConstants.EMPTY_STRING;
         if (type.equals(JavaDocType.IMPL_CLASS)) {
             javaDoc = generateForImplClass(name);
@@ -183,7 +183,7 @@ public final class JavaDocGen {
     private static String generateForGetters(String attribute, boolean isList) {
 
         String getter = NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
-                + JAVA_DOC_GETTERS + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC
+                + JAVA_DOC_GETTERS + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN;
         if (isList) {
             String listAttribute = LIST.toLowerCase() + SPACE + OF + SPACE;
@@ -206,7 +206,7 @@ public final class JavaDocGen {
     private static String generateForSetters(String attribute, boolean isList) {
 
         String setter = NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
-                + JAVA_DOC_SETTERS + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC
+                + JAVA_DOC_SETTERS + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + attribute + SPACE;
         if (isList) {
             String listAttribute = LIST.toLowerCase() + SPACE + OF + SPACE;
@@ -228,7 +228,7 @@ public final class JavaDocGen {
     private static String generateForOf(String attribute) {
 
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_OF
-                + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC + FOUR_SPACE_INDENTATION
+                + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + OBJECT + SPACE + OF + SPACE + attribute + NEW_LINE
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
@@ -243,7 +243,7 @@ public final class JavaDocGen {
     private static String generateForTypeDefSetter(String attribute) {
 
         return (NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
-                + JAVA_DOC_SETTERS_COMMON + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC
+                + JAVA_DOC_SETTERS_COMMON + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute
                 + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE);
     }
@@ -257,7 +257,7 @@ public final class JavaDocGen {
     private static String generateForTypeDefConstructor(String attribute) {
 
         return (NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR
-                + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC + FOUR_SPACE_INDENTATION
+                + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE);
     }
@@ -341,8 +341,8 @@ public final class JavaDocGen {
 
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR + className + IMPL + PERIOD + NEW_LINE
-                + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM
-                + BUILDER.toLowerCase() + OBJECT + SPACE + BUILDER_OBJECT + SPACE + className + NEW_LINE
+                + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM
+                + BUILDER.toLowerCase() + OBJECT + SPACE + BUILDER_OBJECT + className + NEW_LINE
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
     }
 
@@ -355,7 +355,7 @@ public final class JavaDocGen {
     private static String generateForBuild(String buildName) {
 
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_BUILD
-                + buildName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ESTRIC + FOUR_SPACE_INDENTATION
+                + buildName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_RETURN + JAVA_DOC_BUILD_RETURN + buildName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_END_LINE;
     }

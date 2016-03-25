@@ -180,7 +180,6 @@ public class YangJavaInput extends YangInput
     @Override
     public void generateCodeExit() throws IOException {
 
-        getTempJavaCodeFragmentFiles().setCurYangNode(this);
         getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
     }
 }

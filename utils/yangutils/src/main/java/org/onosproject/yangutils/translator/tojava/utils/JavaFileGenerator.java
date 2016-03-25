@@ -78,10 +78,12 @@ public final class JavaFileGenerator {
      * @param file file
      * @param imports imports for the file
      * @param curNode current YANG node
+     * @param isAttrPresent  if any attribute is present or not
      * @return interface file
      * @throws IOException when fails to write in file
      */
-    public static File generateInterfaceFile(File file, List<String> imports, YangNode curNode) throws IOException {
+    public static File generateInterfaceFile(File file, List<String> imports, YangNode curNode, boolean isAttrPresent)
+            throws IOException {
 
         JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
 
@@ -89,18 +91,19 @@ public final class JavaFileGenerator {
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, INTERFACE_MASK, imports, path);
-
-        /**
-         * Add getter methods to interface file.
-         */
-        try {
+        if (isAttrPresent) {
             /**
-             * Getter methods.
+             * Add getter methods to interface file.
              */
-            insertDataIntoJavaFile(file, getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK, curNode));
-        } catch (IOException e) {
-            throw new IOException("No data found in temporary java code fragment files for " + className
-                    + " while interface file generation");
+            try {
+                /**
+                 * Getter methods.
+                 */
+                insertDataIntoJavaFile(file, getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK, curNode));
+            } catch (IOException e) {
+                throw new IOException("No data found in temporary java code fragment files for " + className
+                        + " while interface file generation");
+            }
         }
         return file;
     }
@@ -110,10 +113,12 @@ public final class JavaFileGenerator {
      *
      * @param file file
      * @param curNode current YANG node
+     * @param isAttrPresent  if any attribute is present or not
      * @return builder interface file
      * @throws IOException when fails to write in file
      */
-    public static File generateBuilderInterfaceFile(File file, YangNode curNode) throws IOException {
+    public static File generateBuilderInterfaceFile(File file, YangNode curNode, boolean isAttrPresent)
+            throws IOException {
 
         JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
 
@@ -122,22 +127,22 @@ public final class JavaFileGenerator {
 
         initiateJavaFileGeneration(file, className, BUILDER_INTERFACE_MASK, null, path);
         List<String> methods = new ArrayList<>();
-
-        try {
-            /**
-             * Getter methods.
-             */
-            methods.add(FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK, curNode));
-            /**
-             * Setter methods.
-             */
-            methods.add(NEW_LINE);
-            methods.add(FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(SETTER_FOR_INTERFACE_MASK, curNode));
-        } catch (IOException e) {
-            throw new IOException("No data found in temporary java code fragment files for " + className
-                    + " while builder interface file generation");
+        if (isAttrPresent) {
+            try {
+                /**
+                 * Getter methods.
+                 */
+                methods.add(FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK, curNode));
+                /**
+                 * Setter methods.
+                 */
+                methods.add(NEW_LINE);
+                methods.add(FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(SETTER_FOR_INTERFACE_MASK, curNode));
+            } catch (IOException e) {
+                throw new IOException("No data found in temporary java code fragment files for " + className
+                        + " while builder interface file generation");
+            }
         }
-
         /**
          * Add build method to builder interface file.
          */
@@ -161,10 +166,12 @@ public final class JavaFileGenerator {
      * @param file file
      * @param imports imports for the file
      * @param curNode current YANG node
+     * @param isAttrPresent  if any attribute is present or not
      * @return builder class file
      * @throws IOException when fails to write in file
      */
-    public static File generateBuilderClassFile(File file, List<String> imports, YangNode curNode) throws IOException {
+    public static File generateBuilderClassFile(File file, List<String> imports, YangNode curNode,
+            boolean isAttrPresent) throws IOException {
 
         JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
 
@@ -175,31 +182,34 @@ public final class JavaFileGenerator {
 
         List<String> methods = new ArrayList<>();
 
-        /**
-         * Add attribute strings.
-         */
-        try {
-            insertDataIntoJavaFile(file,
-                    NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK, curNode));
-        } catch (IOException e) {
-            throw new IOException("No data found in temporary java code fragment files for " + className
-                    + " while builder class file generation");
-        }
-
-        try {
+        if (isAttrPresent) {
             /**
-             * Getter methods.
+             * Add attribute strings.
              */
-            methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK, curNode));
-            /**
-             * Setter methods.
-             */
-            methods.add(getDataFromTempFileHandle(SETTER_FOR_CLASS_MASK, curNode) + NEW_LINE);
-        } catch (IOException e) {
-            throw new IOException("No data found in temporary java code fragment files for " + className
-                    + " while builder class file generation");
-        }
+            try {
+                insertDataIntoJavaFile(file,
+                        NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK, curNode));
+            } catch (IOException e) {
+                throw new IOException("No data found in temporary java code fragment files for " + className
+                        + " while builder class file generation");
+            }
 
+            try {
+                /**
+                 * Getter methods.
+                 */
+                methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK, curNode));
+                /**
+                 * Setter methods.
+                 */
+                methods.add(getDataFromTempFileHandle(SETTER_FOR_CLASS_MASK, curNode) + NEW_LINE);
+            } catch (IOException e) {
+                throw new IOException("No data found in temporary java code fragment files for " + className
+                        + " while builder class file generation");
+            }
+        } else {
+            insertDataIntoJavaFile(file, NEW_LINE);
+        }
         /**
          * Add default constructor and build method impl.
          */
@@ -221,10 +231,11 @@ public final class JavaFileGenerator {
      *
      * @param file file
      * @param curNode current YANG node
+     * @param isAttrPresent if any attribute is present or not
      * @return impl class file
      * @throws IOException when fails to write in file
      */
-    public static File generateImplClassFile(File file, YangNode curNode)
+    public static File generateImplClassFile(File file, YangNode curNode, boolean isAttrPresent)
             throws IOException {
 
         JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
@@ -235,45 +246,48 @@ public final class JavaFileGenerator {
         initiateJavaFileGeneration(file, className, IMPL_CLASS_MASK, null, path);
 
         List<String> methods = new ArrayList<>();
+        if (isAttrPresent) {
+            /**
+             * Add attribute strings.
+             */
+            try {
+                insertDataIntoJavaFile(file,
+                        NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK, curNode));
+            } catch (IOException e) {
+                throw new IOException("No data found in temporary java code fragment files for " + className
+                        + " while impl class file generation");
+            }
 
-        /**
-         * Add attribute strings.
-         */
-        try {
-            insertDataIntoJavaFile(file,
-                    NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK, curNode));
-        } catch (IOException e) {
-            throw new IOException("No data found in temporary java code fragment files for " + className
-                    + " while impl class file generation");
+            insertDataIntoJavaFile(file, NEW_LINE);
+            try {
+                /**
+                 * Getter methods.
+                 */
+                methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK, curNode));
+
+                /**
+                 * Hash code method.
+                 */
+                methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() + partString(
+                        getDataFromTempFileHandle(HASH_CODE_IMPL_MASK, curNode).replace(NEW_LINE, EMPTY_STRING))));
+                /**
+                 * Equals method.
+                 */
+                methods.add(getEqualsMethodClose(
+                        getEqualsMethodOpen(className + IMPL) + getDataFromTempFileHandle(EQUALS_IMPL_MASK, curNode)));
+                /**
+                 * To string method.
+                 */
+                methods.add(getToStringMethodOpen() + getDataFromTempFileHandle(TO_STRING_IMPL_MASK, curNode)
+                        + getToStringMethodClose());
+
+            } catch (IOException e) {
+                throw new IOException("No data found in temporary java code fragment files for " + className
+                        + " while impl class file generation");
+            }
+        } else {
+            insertDataIntoJavaFile(file, NEW_LINE);
         }
-
-        insertDataIntoJavaFile(file, NEW_LINE);
-        try {
-            /**
-             * Getter methods.
-             */
-            methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK, curNode));
-            /**
-             * Hash code method.
-             */
-            methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() + partString(
-                    getDataFromTempFileHandle(HASH_CODE_IMPL_MASK, curNode).replace(NEW_LINE, EMPTY_STRING))));
-            /**
-             * Equals method.
-             */
-            methods.add(getEqualsMethodClose(
-                    getEqualsMethodOpen(className + IMPL) + getDataFromTempFileHandle(EQUALS_IMPL_MASK, curNode)));
-            /**
-             * To string method.
-             */
-            methods.add(getToStringMethodOpen() + getDataFromTempFileHandle(TO_STRING_IMPL_MASK, curNode)
-                    + getToStringMethodClose());
-
-        } catch (IOException e) {
-            throw new IOException("No data found in temporary java code fragment files for " + className
-                    + " while impl class file generation");
-        }
-
         try {
             /**
              * Constructor.

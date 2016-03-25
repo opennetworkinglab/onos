@@ -42,6 +42,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaClassDefStart;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getJavaPackageFromPackagePath;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.ORG;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
@@ -53,7 +54,6 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUI
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.IMPL_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INTERFACE;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.convertPathToPkg;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
 
 /**
@@ -192,7 +192,7 @@ public final class JavaFileGeneratorUtils {
 
         if (javaPkg.contains(ORG)) {
             String[] strArray = javaPkg.split(ORG);
-            javaPkg = ORG + convertPathToPkg(strArray[1]);
+            javaPkg = ORG + getJavaPackageFromPackagePath(strArray[1]);
         }
         if (importsList != null) {
             if (!importsList.isEmpty()) {

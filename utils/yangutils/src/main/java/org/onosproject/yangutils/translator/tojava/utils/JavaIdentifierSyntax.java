@@ -32,8 +32,10 @@ import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.QUOTES;
 import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_FIRST_DIGIT;
 import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_SPECIAL_CHAR;
+import static org.onosproject.yangutils.utils.UtilConstants.REVISION_PREFIX;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.UNDER_SCORE;
+import static org.onosproject.yangutils.utils.UtilConstants.VERSION_PREFIX;
 
 /**
  * Utility Class for translating the name from YANG to java convention.
@@ -121,7 +123,7 @@ public final class JavaIdentifierSyntax {
      */
     private static String getYangVersion(byte ver) {
 
-        return "v" + ver;
+        return VERSION_PREFIX + ver;
     }
 
     /**
@@ -154,7 +156,7 @@ public final class JavaIdentifierSyntax {
 
         String[] revisionArr = date.split(HYPHEN);
 
-        String rev = "rev";
+        String rev = REVISION_PREFIX;
         rev = rev + revisionArr[INDEX_ZERO];
 
         if (Integer.parseInt(revisionArr[INDEX_ONE]) <= MAX_MONTHS
@@ -251,7 +253,7 @@ public final class JavaIdentifierSyntax {
      * @param yangIdentifier identifier in YANG file.
      * @return corresponding java identifier
      */
-    public static String getLowerCase(String yangIdentifier) {
+    public static String getSmallCase(String yangIdentifier) {
 
         return yangIdentifier.substring(0, 1).toLowerCase() + yangIdentifier.substring(1);
     }

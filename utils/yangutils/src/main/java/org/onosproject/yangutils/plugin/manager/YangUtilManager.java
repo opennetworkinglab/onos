@@ -36,12 +36,12 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 import static org.apache.maven.plugins.annotations.LifecyclePhase.GENERATE_SOURCES;
 import static org.apache.maven.plugins.annotations.ResolutionScope.COMPILE;
 import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.generateJavaCode;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT_BASE_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addToSource;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.clean;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.convertPkgToPath;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.copyYangFilesToTarget;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getDirectory;
 
@@ -89,7 +89,7 @@ public class YangUtilManager extends AbstractMojo {
     @Component
     private BuildContext context;
 
-    private static final String DEFAULT_PKG = SLASH + convertPkgToPath(DEFAULT_BASE_PKG);
+    private static final String DEFAULT_PKG = SLASH + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
 
     private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
     private String searchDir;

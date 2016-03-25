@@ -23,6 +23,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getJavaPackageFromPackagePath;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
@@ -31,8 +33,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.convertPathToPkg;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.convertPkgToPath;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirectories;
 
 /**
@@ -54,7 +54,7 @@ public final class FileSystemUtil {
      */
     public static boolean doesPackageExist(String pkg) {
 
-        File pkgDir = new File(convertPkgToPath(pkg));
+        File pkgDir = new File(getPackageDirPathFromJavaJPackage(pkg));
         File pkgWithFile = new File(pkgDir + SLASH + "package-info.java");
         if (pkgDir.exists() && pkgWithFile.isFile()) {
             return true;
@@ -74,7 +74,7 @@ public final class FileSystemUtil {
         if (!doesPackageExist(pkg)) {
             try {
                 File pack = createDirectories(pkg);
-                addPackageInfo(pack, pkgInfo, convertPathToPkg(pkg));
+                addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg));
             } catch (IOException e) {
                 throw new IOException("failed to create package-info file");
             }
