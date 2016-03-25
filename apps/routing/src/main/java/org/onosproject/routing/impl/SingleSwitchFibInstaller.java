@@ -37,6 +37,8 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceEvent;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -139,6 +141,8 @@ public class SingleSwitchFibInstaller {
     // Stores FIB updates that are waiting for groups to be set up
     private final Multimap<NextHopGroupKey, FibEntry> pendingUpdates = HashMultimap.create();
 
+    //interface object for event
+    private InternalInterfaceListener internalInterfaceList = new InternalInterfaceListener();
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -149,6 +153,8 @@ public class SingleSwitchFibInstaller {
 
         deviceListener = new InternalDeviceListener();
         deviceService.addListener(deviceListener);
+
+        interfaceService.addListener(internalInterfaceList);
 
         routingService.addFibListener(new InternalFibListener());
         routingService.start();
@@ -163,6 +169,8 @@ public class SingleSwitchFibInstaller {
         routingService.stop();
 
         deviceService.removeListener(deviceListener);
+
+        interfaceService.removeListener(internalInterfaceList);
 
         //processIntfFilters(false, configService.getInterfaces()); //TODO necessary?
 
@@ -393,47 +401,84 @@ public class SingleSwitchFibInstaller {
                 continue;
             }
 
-            FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
-            // first add filter for the interface
-            fob.withKey(Criteria.matchInPort(intf.connectPoint().port()))
-                .addCondition(Criteria.matchEthDst(intf.mac()))
-                .addCondition(Criteria.matchVlanId(intf.vlan()));
-            fob.withPriority(PRIORITY_OFFSET);
-            if (intf.vlan() == VlanId.NONE) {
-                TrafficTreatment tt = DefaultTrafficTreatment.builder()
-                        .pushVlan().setVlanId(VlanId.vlanId(ASSIGNED_VLAN)).build();
-                fob.withMeta(tt);
-            }
+            createFilteringObjective(install, intf);
+        }
+    }
 
-            fob.permit().fromApp(routerAppId);
+    //process filtering objective for interface add/remove.
+    private void processIntfFilter(boolean install, Interface intf) {
+
+        if (!intf.connectPoint().deviceId().equals(deviceId)) {
+            // Ignore interfaces if they are not on the router switch
+            return;
+        }
+
+        createFilteringObjective(install, intf);
+    }
+
+    //create filtering objective for interface
+    private void createFilteringObjective(boolean install, Interface intf) {
+
+        FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
+        // first add filter for the interface
+        fob.withKey(Criteria.matchInPort(intf.connectPoint().port()))
+            .addCondition(Criteria.matchEthDst(intf.mac()))
+            .addCondition(Criteria.matchVlanId(intf.vlan()));
+        fob.withPriority(PRIORITY_OFFSET);
+        if (intf.vlan() == VlanId.NONE) {
+            TrafficTreatment tt = DefaultTrafficTreatment.builder()
+                    .pushVlan().setVlanId(VlanId.vlanId(ASSIGNED_VLAN)).build();
+            fob.withMeta(tt);
+        }
+
+        fob.permit().fromApp(routerAppId);
+        sendFilteringObjective(install, fob, intf);
+        if (controlPlaneConnectPoint != null) {
+            // then add the same mac/vlan filters for control-plane connect point
+            fob.withKey(Criteria.matchInPort(controlPlaneConnectPoint.port()));
             sendFilteringObjective(install, fob, intf);
-            if (controlPlaneConnectPoint != null) {
-                // then add the same mac/vlan filters for control-plane connect point
-                fob.withKey(Criteria.matchInPort(controlPlaneConnectPoint.port()));
-                sendFilteringObjective(install, fob, intf);
-            }
         }
     }
 
     private void sendFilteringObjective(boolean install, FilteringObjective.Builder fob,
                                         Interface intf) {
-        flowObjectiveService.filter(
-            deviceId,
-            fob.add(new ObjectiveContext() {
-                @Override
-                public void onSuccess(Objective objective) {
-                    log.info("Successfully installed interface based "
-                            + "filtering objectives for intf {}", intf);
-                }
+        if (install) {
+            flowObjectiveService.filter(
+                deviceId,
+                fob.add(new ObjectiveContext() {
+                    @Override
+                    public void onSuccess(Objective objective) {
+                        log.info("Successfully installed interface based "
+                                + "filtering objectives for intf {}", intf);
+                    }
 
-                @Override
-                public void onError(Objective objective,
-                                    ObjectiveError error) {
-                    log.error("Failed to install interface filters for intf {}: {}",
-                              intf, error);
-                    // TODO something more than just logging
-                }
+                    @Override
+                    public void onError(Objective objective,
+                                        ObjectiveError error) {
+                        log.error("Failed to install interface filters for intf {}: {}",
+                                  intf, error);
+                        // TODO something more than just logging
+                    }
             }));
+        } else {
+            flowObjectiveService.filter(
+                deviceId,
+                fob.remove(new ObjectiveContext() {
+                    @Override
+                    public void onSuccess(Objective objective) {
+                        log.info("Successfully removed interface based "
+                                   + "filtering objectives for intf {}", intf);
+                    }
+
+                    @Override
+                    public void onError(Objective objective,
+                                        ObjectiveError error) {
+                        log.error("Failed to install interface filters for intf {}: {}",
+                                  intf, error);
+                            // TODO something more than just logging
+                    }
+            }));
+        }
     }
 
     private class InternalFibListener implements FibListener {
@@ -494,6 +539,30 @@ public class SingleSwitchFibInstaller {
                 default:
                     break;
                 }
+            }
+        }
+    }
+
+    private class InternalInterfaceListener implements InterfaceListener {
+
+        @Override
+        public void event(InterfaceEvent event) {
+            Interface intf = event.subject();
+            switch (event.type()) {
+            case INTERFACE_ADDED:
+                if (intf != null) {
+                    processIntfFilter(true, intf);
+                }
+                break;
+            case INTERFACE_UPDATED:
+                break;
+            case INTERFACE_REMOVED:
+                if (intf != null) {
+                    processIntfFilter(false, intf);
+                }
+                break;
+            default:
+                break;
             }
         }
     }

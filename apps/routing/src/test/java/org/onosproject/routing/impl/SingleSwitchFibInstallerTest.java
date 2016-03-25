@@ -25,6 +25,7 @@ import static org.easymock.EasyMock.verify;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -45,7 +46,9 @@ import org.onosproject.core.CoreServiceAdapter;
 import org.osgi.service.component.ComponentContext;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.incubator.net.intf.InterfaceServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -70,7 +73,6 @@ import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.RoutingServiceAdapter;
 import org.onosproject.routing.config.RouterConfig;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -108,7 +110,8 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
     private CoreService coreService;
     private RouterConfig routerConfig;
     private RoutingService routingService;
-    SingleSwitchFibInstaller sSfibInstaller;
+    private SingleSwitchFibInstaller sSfibInstaller;
+    private InterfaceListener interfaceListener;
 
     @Before
     public void setUp() throws Exception {
@@ -135,7 +138,8 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
         coreService = new TestCoreService();
         routingService = new TestRoutingService();
         routerConfig = new TestRouterConfig();
-        interfaceService = createMock(InterfaceService.class);
+        //interfaceService = createMock(InterfaceService.class);
+        interfaceService = new TestInterfaceService();
         networkConfigService = createMock(NetworkConfigService.class);
         flowObjectiveService = createMock(FlowObjectiveService.class);
         deviceService = new TestDeviceService();
@@ -158,7 +162,7 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
     private void setUpInterfaceService() {
         Set<InterfaceIpAddress> interfaceIpAddresses1 = Sets.newHashSet();
         interfaceIpAddresses1.add(new InterfaceIpAddress(
-                IpAddress.valueOf("192.168.10.101"),
+                IpAddress.valueOf("192.168.10.1"),
                 IpPrefix.valueOf("192.168.10.0/24")));
         Interface sw1Eth1 = new Interface(SW1_ETH1.deviceId().toString(), SW1_ETH1,
                   interfaceIpAddresses1, MacAddress.valueOf("00:00:00:00:00:01"),
@@ -166,7 +170,7 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
         interfaces.add(sw1Eth1);
 
         Set<InterfaceIpAddress> interfaceIpAddresses2 = Sets.newHashSet();
-        interfaceIpAddresses2.add(new InterfaceIpAddress(IpAddress.valueOf("192.168.20.101"),
+        interfaceIpAddresses2.add(new InterfaceIpAddress(IpAddress.valueOf("192.168.20.1"),
            IpPrefix.valueOf("192.168.20.0/24")));
         Interface sw2Eth1 = new Interface(SW2_ETH1.deviceId().toString(), SW2_ETH1,
            interfaceIpAddresses2, MacAddress.valueOf("00:00:00:00:00:02"),
@@ -182,35 +186,14 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
         interfaces.add(sw3Eth1);
 
         InterfaceIpAddress interfaceIpAddress4 =
-           new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"),
+           new InterfaceIpAddress(IpAddress.valueOf("192.168.40.1"),
            IpPrefix.valueOf("192.168.40.0/24"));
 
         Interface sw4Eth1 = new Interface(SW4_ETH1.deviceId().toString(), SW4_ETH1,
            Sets.newHashSet(interfaceIpAddress4),
            MacAddress.valueOf("00:00:00:00:00:04"),
            VlanId.vlanId((short) 1));
-
-        expect(interfaceService.getInterfacesByPort(SW4_ETH1)).andReturn(
-                Collections.singleton(sw4Eth1)).anyTimes();
-        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.40.1")))
-                .andReturn(sw4Eth1).anyTimes();
-
         interfaces.add(sw4Eth1);
-
-        expect(interfaceService.getInterfacesByPort(SW1_ETH1)).andReturn(
-                Collections.singleton(sw1Eth1)).anyTimes();
-        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.10.1")))
-                .andReturn(sw1Eth1).anyTimes();
-        expect(interfaceService.getInterfacesByPort(SW2_ETH1)).andReturn(
-                Collections.singleton(sw2Eth1)).anyTimes();
-        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.20.1")))
-                .andReturn(sw2Eth1).anyTimes();
-        expect(interfaceService.getInterfacesByPort(SW3_ETH1)).andReturn(
-                Collections.singleton(sw3Eth1)).anyTimes();
-        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.30.1")))
-                .andReturn(sw3Eth1).anyTimes();
-        expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
-        replay(interfaceService);
     }
 
     /*
@@ -480,6 +463,47 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
         fibListener.update(Collections.emptyList(), Collections.singletonList(fibUpdate));
 
         verify(flowObjectiveService);
+    }
+
+    private class TestInterfaceService extends InterfaceServiceAdapter {
+
+        @Override
+        public void addListener(InterfaceListener listener) {
+            SingleSwitchFibInstallerTest.this.interfaceListener = listener;
+        }
+
+        @Override
+        public Set<Interface> getInterfaces() {
+            return interfaces;
+        }
+
+        @Override
+        public Set<Interface> getInterfacesByPort(ConnectPoint port) {
+
+            Set<Interface> setIntf = new HashSet<Interface>();
+            for (Interface intf : interfaces) {
+                if (intf.connectPoint().equals(port)) {
+                    setIntf.add(intf);
+
+                }
+            }
+            return setIntf;
+        }
+
+        @Override
+        public Interface getMatchingInterface(IpAddress ip) {
+            Interface intff = null;
+            for (Interface intf : interfaces) {
+                for (InterfaceIpAddress address : intf.ipAddresses()) {
+                    if (address.ipAddress().equals(ip)) {
+                        intff = intf;
+                        break;
+                    }
+                }
+            }
+
+            return intff;
+        }
     }
 
     private class TestCoreService extends CoreServiceAdapter {
