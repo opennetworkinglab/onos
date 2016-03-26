@@ -17,6 +17,7 @@ package org.onosproject.net.device;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.Provider;
 
 /**
@@ -54,4 +55,14 @@ public interface DeviceProvider extends Provider {
      * @return true if reachable, false otherwise
      */
     boolean isReachable(DeviceId deviceId);
+
+    /**
+     * Administratively enables or disables a port.
+     *
+     * @param deviceId device identifier
+     * @param portNumber device identifier
+     * @param enable true if port is to be enabled, false to disable
+     */
+    void changePortState(DeviceId deviceId, PortNumber portNumber,
+                         boolean enable);
 }

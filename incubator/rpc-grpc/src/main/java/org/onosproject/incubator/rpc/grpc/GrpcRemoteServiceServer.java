@@ -51,6 +51,7 @@ import org.onosproject.grpc.DeviceProviderRegistryRpcGrpc.DeviceProviderRegistry
 import org.onosproject.grpc.LinkProviderServiceRpcGrpc;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
@@ -433,6 +434,13 @@ public class GrpcRemoteServiceServer {
         @Override
         public ProviderId id() {
             return checkNotNull(providerId, "not initialized yet");
+        }
+
+        @Override
+        public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                    boolean enable) {
+            // TODO if required
+
         }
 
     }

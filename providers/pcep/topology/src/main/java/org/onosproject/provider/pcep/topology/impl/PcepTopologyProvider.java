@@ -34,6 +34,7 @@ import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
@@ -317,5 +318,11 @@ public class PcepTopologyProvider extends AbstractProvider
     public boolean isReachable(DeviceId deviceId) {
         // TODO Auto-generated method stub
         return true;
+    }
+
+    @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                boolean enable) {
+        // TODO Auto-generated method stub
     }
 }

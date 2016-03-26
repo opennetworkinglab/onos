@@ -29,6 +29,7 @@ import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
@@ -121,5 +122,10 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
     public boolean isReachable(DeviceId deviceId) {
         // TODO Auto-generated method stub
         return true;
+    }
+
+    @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                boolean enable) {
     }
 }

@@ -37,6 +37,7 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.device.DefaultDeviceDescription;
@@ -426,5 +427,11 @@ public class SnmpDeviceProvider extends AbstractProvider
 
     protected ISnmpSessionFactory getSessionFactory(ISnmpConfigurationFactory configurationFactory) {
         return new SnmpSessionFactory(configurationFactory);
+    }
+
+    @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                boolean enable) {
+        // TODO if required
     }
 }

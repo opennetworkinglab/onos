@@ -568,6 +568,11 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     }
 
     @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                boolean enable) {
+    }
+
+    @Override
     public ProviderId id() {
         return PID;
     }
@@ -609,5 +614,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
             }
         }
     }
+
+
 
 }

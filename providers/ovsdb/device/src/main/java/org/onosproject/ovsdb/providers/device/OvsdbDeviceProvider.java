@@ -32,6 +32,7 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
@@ -147,5 +148,11 @@ public class OvsdbDeviceProvider extends AbstractProvider
             return null;
         }
         return new OvsdbNodeId(IpAddress.valueOf(strings[1]), 0);
+    }
+
+    @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                boolean enable) {
+        // TODO if required
     }
 }

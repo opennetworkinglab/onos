@@ -19,6 +19,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -71,6 +72,8 @@ import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFCalientPortDescProp;
 import org.projectfloodlight.openflow.protocol.OFCalientPortDescPropOptical;
 import org.projectfloodlight.openflow.protocol.OFCalientPortDescStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFErrorMsg;
+import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFExpPort;
 import org.projectfloodlight.openflow.protocol.OFExpPortDescPropOpticalTransport;
 import org.projectfloodlight.openflow.protocol.OFExpPortOpticalTransportLayerEntry;
@@ -81,6 +84,7 @@ import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescPropOpticalTransport;
 import org.projectfloodlight.openflow.protocol.OFPortFeatures;
+import org.projectfloodlight.openflow.protocol.OFPortMod;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
 import org.projectfloodlight.openflow.protocol.OFPortOpticalTransportLayerClass;
 import org.projectfloodlight.openflow.protocol.OFPortOpticalTransportSignalType;
@@ -93,6 +97,7 @@ import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.PortSpeed;
 import org.slf4j.Logger;
 
@@ -266,6 +271,34 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         }
         LOG.debug("Accepting mastership role change to {} for device {}", newRole, deviceId);
+    }
+
+    @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                boolean enable) {
+        final Dpid dpid = dpid(deviceId.uri());
+        OpenFlowSwitch sw = controller.getSwitch(dpid);
+        if (sw == null || !sw.isConnected()) {
+            LOG.error("Failed to change portState on device {}", deviceId);
+            return;
+        }
+        OFPortMod.Builder pmb = sw.factory().buildPortMod();
+        OFPort port = OFPort.of((int) portNumber.toLong());
+        pmb.setPortNo(port);
+        if (enable) {
+            pmb.setConfig(0x0); // port_down bit 0
+        } else {
+            pmb.setConfig(0x1); // port_down bit 1
+        }
+        pmb.setMask(0x1);
+        pmb.setAdvertise(0x0);
+        for (OFPortDesc pd : sw.getPorts()) {
+            if (pd.getPortNo().equals(port)) {
+                pmb.setHwAddr(pd.getHwAddr());
+                break;
+            }
+        }
+        sw.sendMsg(Collections.singletonList(pmb.build()));
     }
 
     private void pushPortMetrics(Dpid dpid, List<OFPortStatsEntry> portStatsEntries) {
@@ -756,9 +789,15 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                         }
                     }
                     break;
+                case ERROR:
+                    if (((OFErrorMsg) msg).getErrType() == OFErrorType.PORT_MOD_FAILED) {
+                        LOG.error("port mod failed");
+                    }
                 default:
                     break;
             }
         }
     }
+
+
 }

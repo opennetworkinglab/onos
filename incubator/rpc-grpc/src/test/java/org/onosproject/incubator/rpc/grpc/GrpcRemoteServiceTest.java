@@ -341,6 +341,10 @@ public class GrpcRemoteServiceTest {
         DeviceId isReachableDid;
         boolean isReachableReply = false;
 
+        final CountDownLatch portStateChanged = new CountDownLatch(1);
+        DeviceId portStateChangedDid;
+        PortNumber portStateChangedPort;
+
         @Override
         public ProviderId id() {
             return PID;
@@ -367,6 +371,17 @@ public class GrpcRemoteServiceTest {
             isReachableDid = deviceId;
             isReachable.countDown();
             return isReachableReply;
+        }
+
+        @Override
+        public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                    boolean enable) {
+            log.info("portState change to {} on ({},{}) on Client called", enable,
+                     deviceId, portNumber);
+            portStateChangedDid = deviceId;
+            portStateChangedPort = portNumber;
+            portStateChanged.countDown();
+
         }
 
     }

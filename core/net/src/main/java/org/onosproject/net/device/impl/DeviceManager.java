@@ -248,6 +248,22 @@ public class DeviceManager
     }
 
     @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                boolean enable) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        checkNotNull(deviceId, PORT_NUMBER_NULL);
+        DeviceProvider provider = getProvider(deviceId);
+        if (provider != null) {
+            log.warn("Port {} on device {} being administratively brought {}",
+                     portNumber, deviceId,
+                     (enable) ? "UP" : "DOWN");
+            provider.changePortState(deviceId, portNumber, enable);
+        } else {
+            log.warn("Provider not found for {}", deviceId);
+        }
+    }
+
+    @Override
     protected DeviceProviderService createProviderService(
             DeviceProvider provider) {
         return new InternalDeviceProviderService(provider);
@@ -340,6 +356,7 @@ public class DeviceManager
                 log.trace("event: {} {}", event.type(), event);
                 post(event);
             }
+
         }
 
         @Override
@@ -790,4 +807,5 @@ public class DeviceManager
             }
         }
     }
+
 }

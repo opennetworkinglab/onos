@@ -31,6 +31,7 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.config.ConfigFactory;
@@ -255,5 +256,11 @@ public class RestDeviceProvider extends AbstractProvider
                     (event.type() == CONFIG_ADDED ||
                             event.type() == CONFIG_UPDATED);
         }
+    }
+
+    @Override
+    public void changePortState(DeviceId deviceId, PortNumber portNumber,
+                                boolean enable) {
+        // TODO if required
     }
 }
