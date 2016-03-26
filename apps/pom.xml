@@ -70,6 +70,7 @@
         <module>openstackinterface</module>
         <module>influxdbmetrics</module>
         <module>gangliametrics</module>
+        <module>graphitemetrics</module>
     </modules>
 
     <properties>
