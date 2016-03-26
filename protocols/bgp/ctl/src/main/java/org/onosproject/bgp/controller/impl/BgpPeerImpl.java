@@ -425,8 +425,9 @@ public class BgpPeerImpl implements BgpPeer {
      *
      * @param peerImpl BGP peer instance
      * @param nlri NLRI information
+     * @throws BgpParseException BGP parse exception
      */
-    public void callRemove(BgpPeerImpl peerImpl, List<BgpLSNlri> nlri) {
+    public void callRemove(BgpPeerImpl peerImpl, List<BgpLSNlri> nlri) throws BgpParseException {
         ListIterator<BgpLSNlri> listIterator = nlri.listIterator();
         while (listIterator.hasNext()) {
             BgpLSNlri nlriInfo = listIterator.next();
@@ -479,8 +480,9 @@ public class BgpPeerImpl implements BgpPeer {
     /**
      * Update localRIB on peer disconnect.
      *
+     * @throws BgpParseException while updating local RIB
      */
-    public void updateLocalRibOnPeerDisconnect() {
+    public void updateLocalRibOnPeerDisconnect() throws BgpParseException {
         BgpLocalRibImpl localRib = (BgpLocalRibImpl) bgplocalRib;
         BgpLocalRibImpl localRibVpn = (BgpLocalRibImpl) bgplocalRibVpn;
 
@@ -490,7 +492,6 @@ public class BgpPeerImpl implements BgpPeer {
 
     /**
      * Update peer flow specification RIB on peer disconnect.
-     *
      */
     public void updateFlowSpecOnPeerDisconnect() {
 

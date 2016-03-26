@@ -12,24 +12,29 @@
  */
 package org.onosproject.bgp.controller;
 
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
 
 /**
- * Allows for providers interested in Link events to be notified.
+ * Allows for providers interested in link events to be notified.
  */
 public interface BgpLinkListener {
 
     /**
-     * Notify that got a packet of link from network and need do processing.
+     * Notify that got a packet of link from network and adds link.
      *
-     * @param linkNlri bgp link
+     * @param linkNlri BGP link NLRI
+     * @param details path attributes and NLRI information
+     * @throws BgpParseException BGP parse exception
      */
-    void addLink(BgpLinkLsNlriVer4 linkNlri);
+    void addLink(BgpLinkLsNlriVer4 linkNlri, PathAttrNlriDetails details) throws BgpParseException;
 
     /**
-     * Notify that got a packet of link from network and need do processing.
+     * Notify that got a packet of link from network and remove link.
      *
-     * @param linkNlri bgp link
+     * @param linkNlri BGP link NLRI
+     * @throws BgpParseException BGP parse exception
      */
-    void deleteLink(BgpLinkLsNlriVer4 linkNlri);
+    void deleteLink(BgpLinkLsNlriVer4 linkNlri) throws BgpParseException;
 }

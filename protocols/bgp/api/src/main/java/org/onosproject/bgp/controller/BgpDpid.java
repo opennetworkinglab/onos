@@ -20,12 +20,9 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
-import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSIdentifier;
 import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.NodeDescriptors;
-import org.onosproject.bgpio.types.AreaIDTlv;
 import org.onosproject.bgpio.types.AutonomousSystemTlv;
 import org.onosproject.bgpio.types.BgpLSIdentifierTlv;
 import org.onosproject.bgpio.types.BgpValueType;
@@ -49,9 +46,9 @@ public final class BgpDpid {
     public static final int NODE_DESCRIPTOR_REMOTE = 2;
 
     /**
-     * Initialize bgp id to generate URI.
+     * Initialize BGP id to generate URI.
      *
-     * @param linkNlri node Nlri.
+     * @param linkNlri node NLRI.
      * @param nodeDescriptorType node descriptor type, local/remote
      */
     public BgpDpid(final BgpLinkLsNlriVer4 linkNlri, int nodeDescriptorType) {
@@ -61,26 +58,13 @@ public final class BgpDpid {
             this.stringBuilder.append("RD=").append(linkNlri.getRouteDistinguisher()
                                             .getRouteDistinguisher()).append(":");
         }
+        this.stringBuilder.append(":ROUTINGUNIVERSE=").append(((BgpLinkLsNlriVer4) linkNlri).getIdentifier());
 
-        try {
-            if ((linkNlri.getProtocolId() == BgpNodeLSNlriVer4.ProtocolType.ISIS_LEVEL_ONE)
-                || (linkNlri.getProtocolId() == BgpNodeLSNlriVer4.ProtocolType.ISIS_LEVEL_TWO)) {
-                this.stringBuilder.append("PROTO=").append("ISIS").append(":ID=")
-                                                                               .append(linkNlri.getIdentifier());
-            } else {
-                this.stringBuilder.append("PROTO=").append(linkNlri.getProtocolId()).append(":ID=")
-                                                                               .append(linkNlri.getIdentifier());
-            }
-
-            if (nodeDescriptorType == NODE_DESCRIPTOR_LOCAL) {
-                add(linkNlri.localNodeDescriptors());
-            } else if (nodeDescriptorType == NODE_DESCRIPTOR_REMOTE) {
-                add(linkNlri.remoteNodeDescriptors());
-            }
-        } catch (BgpParseException e) {
-            log.info("Exception BgpId string: " + e.toString());
+        if (nodeDescriptorType == NODE_DESCRIPTOR_LOCAL) {
+            add(linkNlri.localNodeDescriptors());
+        } else if (nodeDescriptorType == NODE_DESCRIPTOR_REMOTE) {
+            add(linkNlri.remoteNodeDescriptors());
         }
-
     }
 
     /*
@@ -96,72 +80,52 @@ public final class BgpDpid {
     }
 
     /**
-     * Initialize bgp id to generate URI.
+     * Initialize BGP id to generate URI.
      *
-     * @param nodeNlri node Nlri.
+     * @param nlri node NLRI.
      */
-    public BgpDpid(final BgpNodeLSNlriVer4 nodeNlri) {
+    public BgpDpid(final BgpNodeLSNlriVer4 nlri) {
         this.stringBuilder = new StringBuilder("");
-
-        if (nodeNlri.getRouteDistinguisher() != null) {
-            this.stringBuilder.append("RD=").append(nodeNlri.getRouteDistinguisher()
-                                            .getRouteDistinguisher()).append(":");
+        if (((BgpNodeLSNlriVer4) nlri).getRouteDistinguisher() != null) {
+            this.stringBuilder.append("RD=")
+                    .append(((BgpNodeLSNlriVer4) nlri).getRouteDistinguisher().getRouteDistinguisher()).append(":");
         }
 
-        try {
-            if ((nodeNlri.getProtocolId() == BgpNodeLSNlriVer4.ProtocolType.ISIS_LEVEL_ONE)
-                || (nodeNlri.getProtocolId() == BgpNodeLSNlriVer4.ProtocolType.ISIS_LEVEL_TWO)) {
-
-                this.stringBuilder.append("PROTO=").append("ISIS").append(":ID=")
-                                                                               .append(nodeNlri.getIdentifier());
-            } else {
-                this.stringBuilder.append("PROTO=").append(nodeNlri.getProtocolId()).append(":ID=")
-                                                                               .append(nodeNlri.getIdentifier());
-            }
-            add(nodeNlri.getLocalNodeDescriptors());
-
-        } catch (BgpParseException e) {
-            log.info("Exception node string: " + e.toString());
-        }
+        this.stringBuilder.append(":ROUTINGUNIVERSE=").append(((BgpNodeLSNlriVer4) nlri).getIdentifier());
+        add(((BgpNodeLSNlriVer4) nlri).getLocalNodeDescriptors().getNodedescriptors());
+        log.info("BgpDpid :: add");
     }
 
-    BgpDpid add(final Object value) {
-      NodeDescriptors nodeDescriptors = null;
-        if (value instanceof  BgpNodeLSIdentifier) {
-            BgpNodeLSIdentifier nodeLsIdentifier = (BgpNodeLSIdentifier) value;
-            nodeDescriptors = nodeLsIdentifier.getNodedescriptors();
-        } else if (value instanceof  NodeDescriptors) {
-            nodeDescriptors = (NodeDescriptors) value;
-        }
-
-        if (nodeDescriptors != null) {
-            List<BgpValueType> subTlvs = nodeDescriptors.getSubTlvs();
+    /**
+     * Obtains instance of this class by appending stringBuilder with node descriptor value.
+     *
+     * @param value node descriptor
+     * @return instance of this class
+     */
+    public BgpDpid add(final NodeDescriptors value) {
+        log.info("BgpDpid :: add function");
+        if (value != null) {
+            List<BgpValueType> subTlvs = value.getSubTlvs();
             ListIterator<BgpValueType> listIterator = subTlvs.listIterator();
             while (listIterator.hasNext()) {
                 BgpValueType tlv = listIterator.next();
                 if (tlv.getType() == AutonomousSystemTlv.TYPE) {
-                    AutonomousSystemTlv autonomousSystem = (AutonomousSystemTlv) tlv;
-                    this.stringBuilder.append(":AS=").append(autonomousSystem.getAsNum());
+                    this.stringBuilder.append(":ASN=").append(((AutonomousSystemTlv) tlv).getAsNum());
                 } else if (tlv.getType() == BgpLSIdentifierTlv.TYPE) {
-                    BgpLSIdentifierTlv lsIdentifierTlv = (BgpLSIdentifierTlv) tlv;
-                    this.stringBuilder.append(":LSID=").append(lsIdentifierTlv.getBgpLsIdentifier());
-                } else if (tlv.getType() ==  AreaIDTlv.TYPE) {
-                    AreaIDTlv areaIdTlv = (AreaIDTlv) tlv;
-                    this.stringBuilder.append(":AREA=").append(areaIdTlv.getAreaID());
+                    this.stringBuilder.append(":DOMAINID=").append(((BgpLSIdentifierTlv) tlv).getBgpLsIdentifier());
                 } else if (tlv.getType() == NodeDescriptors.IGP_ROUTERID_TYPE) {
                     if (tlv instanceof IsIsNonPseudonode) {
-                        IsIsNonPseudonode isisNonPseudonode = (IsIsNonPseudonode) tlv;
-                        this.stringBuilder.append(":ISOID=").append(isoNodeIdString(isisNonPseudonode.getIsoNodeId()));
+                        this.stringBuilder.append(":ISOID=").append(
+                                isoNodeIdString(((IsIsNonPseudonode) tlv).getIsoNodeId()));
                     } else if (tlv instanceof IsIsPseudonode) {
-                        IsIsPseudonode isisPseudonode = (IsIsPseudonode) tlv;
-                        this.stringBuilder.append(":ISOID=").append(isoNodeIdString(isisPseudonode.getIsoNodeId()));
+                        IsIsPseudonode isisPseudonode = ((IsIsPseudonode) tlv);
+                        this.stringBuilder.append(":ISOID=").append(
+                                isoNodeIdString(((IsIsPseudonode) tlv).getIsoNodeId()));
                         this.stringBuilder.append(":PSN=").append(isisPseudonode.getPsnIdentifier());
                     } else if (tlv instanceof OspfNonPseudonode) {
-                        OspfNonPseudonode ospfNonPseudonode = (OspfNonPseudonode) tlv;
-                        this.stringBuilder.append(":RID=").append(ospfNonPseudonode.getrouterID());
+                        this.stringBuilder.append(":RID=").append(((OspfNonPseudonode) tlv).getrouterID());
                     } else if (tlv instanceof OspfPseudonode) {
-                        OspfPseudonode ospfPseudonode = (OspfPseudonode) tlv;
-                        this.stringBuilder.append(":RID=").append(ospfPseudonode.getrouterID());
+                        this.stringBuilder.append(":RID=").append(((OspfPseudonode) tlv).getrouterID());
                     }
                 }
             }

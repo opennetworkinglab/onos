@@ -13,6 +13,7 @@
 package org.onosproject.bgp.controller;
 
 import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
 
 /**
  * Allows for providers interested in node events to be notified.
@@ -22,14 +23,15 @@ public interface BgpNodeListener {
     /**
      * Notifies that the node was added.
      *
-     * @param nodeNlri node rechability info
+     * @param nodeNlri node reachability info
+     * @param details attributes and nlri details
      */
-    void addNode(BgpNodeLSNlriVer4 nodeNlri);
+    void addNode(BgpNodeLSNlriVer4 nodeNlri, PathAttrNlriDetails details);
 
     /**
      * Notifies that the node was removed.
      *
-     * @param nodeNlri node rechability info
+     * @param nodeNlri node reachability info
      */
     void deleteNode(BgpNodeLSNlriVer4 nodeNlri);
 }
