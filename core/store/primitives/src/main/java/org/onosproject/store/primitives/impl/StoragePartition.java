@@ -18,7 +18,6 @@ package org.onosproject.store.primitives.impl;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
 import io.atomix.resource.ResourceType;
-import io.atomix.variables.DistributedLong;
 
 import java.io.File;
 import java.util.Collection;
@@ -57,7 +56,6 @@ public class StoragePartition implements Managed<StoragePartition> {
     private StoragePartitionClient client;
 
     public static final Collection<ResourceType> RESOURCE_TYPES = ImmutableSet.of(
-                                                                   new ResourceType(DistributedLong.class),
                                                                     new ResourceType(AtomixLeaderElector.class),
                                                                     new ResourceType(AtomixConsistentMap.class));
 
