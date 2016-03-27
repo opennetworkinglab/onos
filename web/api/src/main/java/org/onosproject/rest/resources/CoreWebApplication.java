@@ -17,6 +17,7 @@
 package org.onosproject.rest.resources;
 
 import org.onlab.rest.AbstractWebApplication;
+import org.onosproject.rest.exceptions.InvalidConfigExceptionMapper;
 
 import java.util.Set;
 
@@ -49,7 +50,8 @@ public class CoreWebApplication extends AbstractWebApplication {
                 RegionsWebResource.class,
                 TenantWebResource.class,
                 VirtualNetworkWebResource.class,
-                MastershipWebResource.class
+                MastershipWebResource.class,
+                InvalidConfigExceptionMapper.class
         );
     }
 }

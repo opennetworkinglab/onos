@@ -40,6 +40,7 @@ import org.onlab.util.Tools;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.InvalidConfigException;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigStore;
 import org.onosproject.net.config.NetworkConfigStoreDelegate;
@@ -236,7 +237,17 @@ public class DistributedNetworkConfigStore
     public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, JsonNode json) {
         // Create the configuration and validate it.
         C config = createConfig(subject, configClass, json);
-        checkArgument(config.isValid(), INVALID_CONFIG_JSON);
+
+        try {
+            checkArgument(config.isValid(), INVALID_CONFIG_JSON);
+        } catch (RuntimeException e) {
+            ConfigFactory<S, C> configFactory = getConfigFactory(configClass);
+            String subjectKey = configFactory.subjectFactory().subjectClassKey();
+            String subjectString = configFactory.subjectFactory().subjectKey(config.subject());
+            String configKey = config.key();
+
+            throw new InvalidConfigException(subjectKey, subjectString, configKey, e);
+        }
 
         // Insert the validated configuration and get it back.
         Versioned<JsonNode> versioned = configs.putAndGet(key(subject, configClass), json);
