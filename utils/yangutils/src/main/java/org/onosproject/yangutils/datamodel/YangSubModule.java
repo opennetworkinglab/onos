@@ -17,12 +17,12 @@ package org.onosproject.yangutils.datamodel;
 
 import java.util.LinkedList;
 import java.util.List;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLinkingForResolutionList;
 
 /*
  *  Reference RFC 6020.
@@ -75,7 +75,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  * Data model node to maintain information defined in YANG sub-module.
  */
 public class YangSubModule extends YangNode
-        implements YangLeavesHolder, YangDesc, YangReference, Parsable, CollisionDetector {
+        implements YangLeavesHolder, YangDesc, YangReference, Parsable, CollisionDetector, HasResolutionInfo {
 
     /**
      * Name of sub module.
@@ -124,17 +124,17 @@ public class YangSubModule extends YangNode
     private List<YangLeafList> listOfLeafList;
 
     /**
-     * organization owner of the sub-module.
+     * Organization owner of the sub-module.
      */
     private String organization;
 
     /**
-     * reference of the sub-module.
+     * Reference of the sub-module.
      */
     private String reference;
 
     /**
-     * revision info of the sub-module.
+     * Revision info of the sub-module.
      */
     private YangRevision revision;
 
@@ -144,10 +144,54 @@ public class YangSubModule extends YangNode
     private byte version;
 
     /**
+     * Prefix of parent module.
+     */
+    private String prefix;
+    /*-
+     * Reference RFC 6020.
+     *
+     * Nested typedefs and groupings.
+     * Typedefs and groupings may appear nested under many YANG statements,
+     * allowing these to be lexically scoped by the hierarchy under which
+     * they appear.  This allows types and groupings to be defined near
+     * where they are used, rather than placing them at the top level of the
+     * hierarchy.  The close proximity increases readability.
+     *
+     * Scoping also allows types to be defined without concern for naming
+     * conflicts between types in different submodules.  Type names can be
+     * specified without adding leading strings designed to prevent name
+     * collisions within large modules.
+     *
+     * Finally, scoping allows the module author to keep types and groupings
+     * private to their module or submodule, preventing their reuse.  Since
+     * only top-level types and groupings (i.e., those appearing as
+     * sub-statements to a module or submodule statement) can be used outside
+     * the module or submodule, the developer has more control over what
+     * pieces of their module are presented to the outside world, supporting
+     * the need to hide internal information and maintaining a boundary
+     * between what is shared with the outside world and what is kept
+     * private.
+     *
+     * Scoped definitions MUST NOT shadow definitions at a higher scope.  A
+     * type or grouping cannot be defined if a higher level in the schema
+     * hierarchy has a definition with a matching identifier.
+     *
+     * A reference to an unprefixed type or grouping, or one which uses the
+     * prefix of the current module, is resolved by locating the closest
+     * matching "typedef" or "grouping" statement among the immediate
+     * sub-statements of each ancestor statement.
+     */
+    private List<YangResolutionInfo> unresolvedResolutionList;
+    /**
      * Create a sub module node.
      */
     public YangSubModule() {
         super(YangNodeType.SUB_MODULE_NODE);
+        unresolvedResolutionList = new LinkedList<YangResolutionInfo>();
+        importList = new LinkedList<YangImport>();
+        includeList = new LinkedList<YangInclude>();
+        listOfLeaf = new LinkedList<YangLeaf>();
+        listOfLeafList = new LinkedList<YangLeafList>();
     }
 
     /**
@@ -236,28 +280,17 @@ public class YangSubModule extends YangNode
     }
 
     /**
-     * prevent setting the import list from outside.
-     *
-     * @param importList the import list to set
-     */
-    private void setImportList(List<YangImport> importList) {
-        this.importList = importList;
-    }
-
-    /**
      * Add the imported module information to the import list.
      *
      * @param importedModule module being imported
      */
-    public void addImportedInfo(YangImport importedModule) {
-
-        if (getImportList() == null) {
-            setImportList(new LinkedList<YangImport>());
-        }
-
+    public void addToImportList(YangImport importedModule) {
         getImportList().add(importedModule);
+    }
 
-        return;
+    @Override
+    public void setImportList(List<YangImport> importList) {
+        this.importList = importList;
     }
 
     /**
@@ -270,27 +303,35 @@ public class YangSubModule extends YangNode
     }
 
     /**
-     * Set the list of included sub modules.
-     *
-     * @param includeList the included list to set
-     */
-    private void setIncludeList(List<YangInclude> includeList) {
-        this.includeList = includeList;
-    }
-
-    /**
      * Add the included sub module information to the include list.
      *
      * @param includeModule submodule being included
      */
-    public void addIncludedInfo(YangInclude includeModule) {
-
-        if (getIncludeList() == null) {
-            setIncludeList(new LinkedList<YangInclude>());
-        }
-
+    public void addToIncludeList(YangInclude includeModule) {
         getIncludeList().add(includeModule);
-        return;
+    }
+
+    @Override
+    public void setIncludeList(List<YangInclude> includeList) {
+        this.includeList = includeList;
+    }
+
+    @Override
+    public String getPrefix() {
+        return prefix;
+    }
+
+    @Override
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+    @Override
+    public void resolveSelfFileLinking() throws DataModelException {
+        // Get the list to be resolved.
+        List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList();
+        // Resolve linking for a resolution list.
+        resolveLinkingForResolutionList(resolutionList, this);
     }
 
     /**
@@ -304,25 +345,12 @@ public class YangSubModule extends YangNode
     }
 
     /**
-     * Set the list of leaves.
-     *
-     * @param leafsList the list of leaf to set
-     */
-    private void setListOfLeaf(List<YangLeaf> leafsList) {
-        listOfLeaf = leafsList;
-    }
-
-    /**
      * Add a leaf.
      *
      * @param leaf the leaf to be added
      */
     @Override
     public void addLeaf(YangLeaf leaf) {
-        if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf>());
-        }
-
         getListOfLeaf().add(leaf);
     }
 
@@ -337,25 +365,12 @@ public class YangSubModule extends YangNode
     }
 
     /**
-     * Set the list of leaf-list.
-     *
-     * @param listOfLeafList the list of leaf-list to set
-     */
-    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
-        this.listOfLeafList = listOfLeafList;
-    }
-
-    /**
      * Add a leaf-list.
      *
      * @param leafList the leaf-list to be added
      */
     @Override
     public void addLeafList(YangLeafList leafList) {
-        if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList>());
-        }
-
         getListOfLeafList().add(leafList);
     }
 
@@ -472,5 +487,20 @@ public class YangSubModule extends YangNode
     @Override
     public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
         // Not required as module doesn't have any parent.
+    }
+
+    @Override
+    public List<YangResolutionInfo> getUnresolvedResolutionList() {
+        return unresolvedResolutionList;
+    }
+
+    @Override
+    public void addToResolutionList(YangResolutionInfo resolutionInfo) {
+        this.unresolvedResolutionList.add(resolutionInfo);
+    }
+
+    @Override
+    public void setResolutionList(List<YangResolutionInfo> resolutionList) {
+        this.unresolvedResolutionList = resolutionList;
     }
 }

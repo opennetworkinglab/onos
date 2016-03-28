@@ -75,6 +75,11 @@ public class YangImport implements Parsable {
     private String prefixId;
 
     /**
+     * Resolution information root node which is also the data model root node.
+     */
+    private HasResolutionInfo resolutionInfoNode;
+
+    /**
      * Reference:RFC 6020.
      *
      * The import's "revision-date" statement is used to specify the exact
@@ -176,5 +181,23 @@ public class YangImport implements Parsable {
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
+    }
+
+    /**
+     * Returns the resolution information node.
+     *
+     * @return the resolution information node
+     */
+    public HasResolutionInfo getResolutionInfoNode() {
+        return resolutionInfoNode;
+    }
+
+    /**
+     * Set the dresolution information node.
+     *
+     * @param resolutionInfoNode the resolution information node
+     */
+    public void setResolutionInfoNode(HasResolutionInfo resolutionInfoNode) {
+        this.resolutionInfoNode = resolutionInfoNode;
     }
 }

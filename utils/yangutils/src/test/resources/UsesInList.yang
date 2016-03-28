@@ -5,7 +5,7 @@ module Test {
     list valid {
         key address;
         leaf address {
-            type ip;
+            type P:ip;
         }
         uses endpoint {
             description "grouping under test";

@@ -45,7 +45,7 @@ public class YangNodeIdentifier {
     /**
      * Set name of the node identifier.
      *
-     * @param name node identifier name
+     * @param name name of the node identifier
      */
     public void setName(String name) {
         this.name = name;
@@ -54,7 +54,7 @@ public class YangNodeIdentifier {
     /**
      * Returns prefix of the node identifier.
      *
-     * @return prefix of the node identifier
+     * @return name of the node identifier
      */
     public String getPrefix() {
         return prefix;

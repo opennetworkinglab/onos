@@ -17,18 +17,15 @@
 package org.onosproject.yangutils.parser.impl.listeners;
 
 import org.onosproject.yangutils.datamodel.YangContainer;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
-import org.onosproject.yangutils.datamodel.YangDerivedType;
+import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangSubModule;
-import org.onosproject.yangutils.datamodel.YangType;
-import org.onosproject.yangutils.datamodel.YangTypeDef;
-import org.onosproject.yangutils.datamodel.YangInput;
-import org.onosproject.yangutils.datamodel.YangOutput;
 import org.onosproject.yangutils.datamodel.YangNotification;
+import org.onosproject.yangutils.datamodel.YangOutput;
 import org.onosproject.yangutils.datamodel.YangRpc;
+import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
@@ -123,12 +120,8 @@ public final class TypeDefListener {
          * Create a derived type information, the base type must be set in type
          * listener.
          */
-        YangType<YangDerivedType> derivedType = new YangType<YangDerivedType>();
-        derivedType.setDataType(YangDataTypes.DERIVED);
-        derivedType.setDataTypeName(identifier);
-
         YangTypeDef typeDefNode = getYangTypeDefNode(JAVA_GENERATION);
-        typeDefNode.setDerivedType(derivedType);
+        typeDefNode.setName(identifier);
 
         Parsable curData = listener.getParsedDataStack().peek();
 

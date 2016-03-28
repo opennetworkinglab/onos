@@ -75,9 +75,14 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     private YangStatusType status;
 
     /**
-     * Maintain the derived type information.
+     * Name of the typedef.
      */
-    private YangType<YangDerivedType> derivedType;
+    private String name;
+
+    /**
+     * Maintain the data type information.
+     */
+    private YangType<?> dataType;
 
     /**
      * Units of the data type.
@@ -92,7 +97,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the default value.
+     * Returns the default value.
      *
      * @return the default value
      */
@@ -110,7 +115,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -130,7 +135,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -150,7 +155,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the status.
+     * Returns the status.
      *
      * @return the status
      */
@@ -170,25 +175,25 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the derived type.
+     * Returns the data type.
      *
-     * @return the derived type
+     * @return the data type
      */
-    public YangType<YangDerivedType> getDerivedType() {
-        return derivedType;
+    public YangType<?> getDataType() {
+        return dataType;
     }
 
     /**
-     * Set the derived type.
+     * Set the data type.
      *
-     * @param derivedType the derived type
+     * @param dataType the data type
      */
-    public void setDerivedType(YangType<YangDerivedType> derivedType) {
-        this.derivedType = derivedType;
+    public void setDataType(YangType<?> dataType) {
+        this.dataType = dataType;
     }
 
     /**
-     * Get the unit.
+     * Returns the unit.
      *
      * @return the units
      */
@@ -232,47 +237,17 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
-        YangType<YangDerivedType> type = getDerivedType();
-        if (type == null) {
-            throw new DataModelException("Typedef does not have type info.");
-        }
-        if (type.getDataType() != YangDataTypes.DERIVED
-                || type.getDataTypeName() == null) {
-            throw new DataModelException("Typedef type is not derived.");
-        }
-
-        YangDerivedType derivedTypeInfo = type.getDataTypeExtendedInfo();
-        if (derivedTypeInfo == null) {
-            throw new DataModelException("derrived type does not have derived info.");
-        }
-
-        YangType<?> baseType = derivedTypeInfo.getBaseType();
-        if (baseType == null) {
-            throw new DataModelException("Base type of a derived type is missing.");
-        }
-
-        if (derivedTypeInfo.getEffectiveYangBuiltInType() == null) {
-            /* resolve the effective type from the data tree. */
-            /*
-             * TODO: try to resolve the nested reference, if possible in the
-             * partial tree, otherwise we need to resolve finally when the
-             * complete module is created.
-             */
-            YangModule.addToResolveList(this);
-        }
+        // TODO auto-generated method stub, to be implemented by parser
     }
 
     /**
-     * Get the YANG name of the typedef.
+     * Returns the YANG name of the typedef.
      *
      * @return YANG name of the typedef
      */
     @Override
     public String getName() {
-        if (getDerivedType() != null) {
-            return getDerivedType().getDataTypeName();
-        }
-        return null;
+        return name;
     }
 
     /**
@@ -282,12 +257,6 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      */
     @Override
     public void setName(String name) {
-        if (getDerivedType() == null) {
-            throw new RuntimeException(
-                    "Derrived Type info needs to be set in parser when the typedef listner is processed");
-        }
-        getDerivedType().setDataTypeName(name);
-        getDerivedType().setDataType(YangDataTypes.DERIVED);
+        this.name = name;
     }
-
 }

@@ -52,12 +52,12 @@ import org.onosproject.yangutils.utils.YangConstructType;
  * Data model node to maintain information defined in YANG uses.
  *
  */
-public class YangUses extends YangNode implements YangCommonInfo, Parsable {
+public class YangUses extends YangNode implements YangCommonInfo, Parsable, Resolvable {
 
     /**
-     * Name of YANG uses.
+     * YANG node identifier.
      */
-    private String name;
+    private YangNodeIdentifier nodeIdentifier;
 
     /**
      * Referred group.
@@ -80,28 +80,20 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable {
     private YangStatusType status;
 
     /**
+     * Status of resolution. If completely resolved enum value is "RESOLVED",
+     * if not enum value is "UNRESOLVED", in case reference of grouping/typedef
+     * is added to uses/type but it's not resolved value of enum should be
+     * "PARTIALLY_RESOLVED".
+     */
+    private ResolvableStatus resolvableStatus;
+
+    /**
      * Create an YANG uses node.
      */
     public YangUses() {
         super(YangNodeType.USES_NODE);
-    }
-
-    /**
-     * Returns the name.
-     *
-     * @return the name
-     */
-    public String getRefGroupingName() {
-        return name;
-    }
-
-    /**
-     * Set the name.
-     *
-     * @param refGroupingName the referred grouping name to set
-     */
-    public void setRefGroupingName(String refGroupingName) {
-        name = refGroupingName;
+        nodeIdentifier = new YangNodeIdentifier();
+        resolvableStatus = ResolvableStatus.UNRESOLVED;
     }
 
     /**
@@ -214,12 +206,62 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable {
 
     @Override
     public String getName() {
-        return name;
+        return nodeIdentifier.getName();
     }
 
     @Override
     public void setName(String name) {
-        this.name = name;
+        nodeIdentifier.setName(name);
     }
 
+    /**
+     * Returns node identifier.
+     *
+     * @return node identifier
+     */
+    public YangNodeIdentifier getNodeIdentifier() {
+        return nodeIdentifier;
+    }
+
+    /**
+     * Set node identifier.
+     *
+     * @param nodeIdentifier the node identifier
+     */
+    public void setNodeIdentifier(YangNodeIdentifier nodeIdentifier) {
+        this.nodeIdentifier = nodeIdentifier;
+    }
+
+    /**
+     * Returns prefix associated with uses.
+     *
+     * @return prefix associated with uses
+     */
+    public String getPrefix() {
+        return nodeIdentifier.getPrefix();
+    }
+
+    /**
+     * Get prefix associated with uses.
+     *
+     * @param prefix prefix associated with uses
+     */
+    public void setPrefix(String prefix) {
+        nodeIdentifier.setPrefix(prefix);
+    }
+
+    @Override
+    public void resolve() {
+        //TODO: implement the method.
+    }
+
+    @Override
+    public ResolvableStatus getResolvableStatus() {
+        return resolvableStatus;
+    }
+
+    @Override
+    public void setResolvableStatus(ResolvableStatus resolvableStatus) {
+        this.resolvableStatus = resolvableStatus;
+    }
 }

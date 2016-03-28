@@ -17,12 +17,12 @@ package org.onosproject.yangutils.datamodel;
 
 import java.util.LinkedList;
 import java.util.List;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLinkingForResolutionList;
 
 /*-
  * Reference:RFC 6020.
@@ -68,7 +68,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  * Data model node to maintain information defined in YANG module.
  */
 public class YangModule extends YangNode
-        implements YangLeavesHolder, YangDesc, YangReference, Parsable, CollisionDetector {
+        implements YangLeavesHolder, YangDesc, YangReference, Parsable, CollisionDetector, HasResolutionInfo {
 
     /**
      * Name of the module.
@@ -185,16 +185,19 @@ public class YangModule extends YangNode
      * matching "typedef" or "grouping" statement among the immediate
      * sub-statements of each ancestor statement.
      */
-    /**
-     * List of nodes which require nested reference resolution.
-     */
-    private List<YangNode> nestedReferenceResoulutionList;
+    private List<YangResolutionInfo> unresolvedResolutionList;
 
     /**
      * Create a YANG node of module type.
      */
     public YangModule() {
+
         super(YangNodeType.MODULE_NODE);
+        unresolvedResolutionList = new LinkedList<YangResolutionInfo>();
+        importList = new LinkedList<YangImport>();
+        includeList = new LinkedList<YangInclude>();
+        listOfLeaf = new LinkedList<YangLeaf>();
+        listOfLeafList = new LinkedList<YangLeafList>();
     }
 
     /**
@@ -265,28 +268,17 @@ public class YangModule extends YangNode
     }
 
     /**
-     * prevent setting the import list from outside.
-     *
-     * @param importList the import list to set
-     */
-    private void setImportList(List<YangImport> importList) {
-        this.importList = importList;
-    }
-
-    /**
      * Add the imported module information to the import list.
      *
      * @param importedModule module being imported
      */
-    public void addImportedInfo(YangImport importedModule) {
-
-        if (getImportList() == null) {
-            setImportList(new LinkedList<YangImport>());
-        }
-
+    public void addToImportList(YangImport importedModule) {
         getImportList().add(importedModule);
+    }
 
-        return;
+    @Override
+    public void setImportList(List<YangImport> importList) {
+        this.importList = importList;
     }
 
     /**
@@ -299,27 +291,17 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the list of included sub modules.
-     *
-     * @param includeList the included list to set
-     */
-    private void setIncludeList(List<YangInclude> includeList) {
-        this.includeList = includeList;
-    }
-
-    /**
      * Add the included sub module information to the include list.
      *
      * @param includeModule submodule being included
      */
-    public void addIncludedInfo(YangInclude includeModule) {
-
-        if (getIncludeList() == null) {
-            setIncludeList(new LinkedList<YangInclude>());
-        }
-
+    public void addToIncludeList(YangInclude includeModule) {
         getIncludeList().add(includeModule);
-        return;
+    }
+
+    @Override
+    public void setIncludeList(List<YangInclude> includeList) {
+        this.includeList = includeList;
     }
 
     /**
@@ -333,25 +315,12 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the list of leaf in module.
-     *
-     * @param leafsList the list of leaf to set
-     */
-    private void setListOfLeaf(List<YangLeaf> leafsList) {
-        listOfLeaf = leafsList;
-    }
-
-    /**
      * Add a leaf in module.
      *
      * @param leaf the leaf to be added
      */
     @Override
     public void addLeaf(YangLeaf leaf) {
-        if (getListOfLeaf() == null) {
-            setListOfLeaf(new LinkedList<YangLeaf>());
-        }
-
         getListOfLeaf().add(leaf);
     }
 
@@ -366,25 +335,12 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the list of leaf-list in module.
-     *
-     * @param listOfLeafList the list of leaf-list to set
-     */
-    private void setListOfLeafList(List<YangLeafList> listOfLeafList) {
-        this.listOfLeafList = listOfLeafList;
-    }
-
-    /**
      * Add a leaf-list in module.
      *
      * @param leafList the leaf-list to be added
      */
     @Override
     public void addLeafList(YangLeafList leafList) {
-        if (getListOfLeafList() == null) {
-            setListOfLeafList(new LinkedList<YangLeafList>());
-        }
-
         getListOfLeafList().add(leafList);
     }
 
@@ -440,6 +396,14 @@ public class YangModule extends YangNode
      */
     public void setPrefix(String prefix) {
         this.prefix = prefix;
+    }
+
+    @Override
+    public void resolveSelfFileLinking() throws DataModelException {
+        // Get the list to be resolved.
+        List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList();
+        // Resolve linking for a resolution list.
+        resolveLinkingForResolutionList(resolutionList, this);
     }
 
     /**
@@ -499,37 +463,6 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the list of nested reference's which required resolution.
-     *
-     * @return list of nested reference's which required resolution
-     */
-    public List<YangNode> getNestedReferenceResoulutionList() {
-        return nestedReferenceResoulutionList;
-    }
-
-    /**
-     * Set list of nested reference's which requires resolution.
-     *
-     * @param nestedReferenceResoulutionList list of nested reference's which
-     *            requires resolution
-     */
-    private void setNestedReferenceResoulutionList(List<YangNode> nestedReferenceResoulutionList) {
-        this.nestedReferenceResoulutionList = nestedReferenceResoulutionList;
-    }
-
-    /**
-     * Set list of nested reference's which requires resolution.
-     *
-     * @param nestedReference nested reference which requires resolution
-     */
-    public void addToNestedReferenceResoulutionList(YangNode nestedReference) {
-        if (getNestedReferenceResoulutionList() == null) {
-            setNestedReferenceResoulutionList(new LinkedList<YangNode>());
-        }
-        getNestedReferenceResoulutionList().add(nestedReference);
-    }
-
-    /**
      * Returns the type of the parsed data.
      *
      * @return returns MODULE_DATA
@@ -565,31 +498,6 @@ public class YangModule extends YangNode
          */
     }
 
-    /**
-     * Add a type to resolve the nested references.
-     *
-     * @param node grouping or typedef node which needs to be resolved
-     * @throws DataModelException data model exception
-     */
-    public static void addToResolveList(YangNode node) throws DataModelException {
-        /* get the module node to add maintain the list of nested reference */
-        YangModule module;
-        YangNode curNode = node;
-        while (curNode.getNodeType() != YangNodeType.MODULE_NODE) {
-            curNode = curNode.getParent();
-            if (curNode == null) {
-                break;
-            }
-        }
-        if (curNode == null) {
-            throw new DataModelException("Datamodel tree is not correct");
-        }
-
-        module = (YangModule) curNode;
-        module.addToNestedReferenceResoulutionList(node);
-        return;
-    }
-
     @Override
     public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
         // Asks helper to detect colliding child.
@@ -601,4 +509,18 @@ public class YangModule extends YangNode
         // Not required as module doesn't have any parent.
     }
 
+    @Override
+    public List<YangResolutionInfo> getUnresolvedResolutionList() {
+        return unresolvedResolutionList;
+    }
+
+    @Override
+    public void addToResolutionList(YangResolutionInfo resolutionInfo) {
+        unresolvedResolutionList.add(resolutionInfo);
+    }
+
+    @Override
+    public void setResolutionList(List<YangResolutionInfo> resolutionList) {
+        unresolvedResolutionList = resolutionList;
+    }
 }

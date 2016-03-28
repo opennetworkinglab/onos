@@ -113,12 +113,12 @@ public final class ImportListener {
             switch (tmpNode.getYangConstructType()) {
             case MODULE_DATA: {
                 YangModule module = (YangModule) tmpNode;
-                module.addImportedInfo((YangImport) tmpImportNode);
+                module.addToImportList((YangImport) tmpImportNode);
                 break;
             }
             case SUB_MODULE_DATA: {
                 YangSubModule subModule = (YangSubModule) tmpNode;
-                subModule.addImportedInfo((YangImport) tmpImportNode);
+                subModule.addToImportList((YangImport) tmpImportNode);
                 break;
             }
             default:

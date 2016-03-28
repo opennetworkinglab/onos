@@ -16,20 +16,18 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
-import org.junit.Test;
-import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangModule;
-import org.onosproject.yangutils.datamodel.YangNotification;
-import org.onosproject.yangutils.datamodel.YangStatusType;
-import org.onosproject.yangutils.datamodel.YangNodeType;
-import org.onosproject.yangutils.datamodel.YangTypeDef;
-import org.onosproject.yangutils.datamodel.YangLeaf;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
-import org.onosproject.yangutils.parser.exceptions.ParserException;
-import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-
 import java.io.IOException;
 import java.util.ListIterator;
+import org.junit.Test;
+import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangNodeType;
+import org.onosproject.yangutils.datamodel.YangNotification;
+import org.onosproject.yangutils.datamodel.YangStatusType;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.parser.exceptions.ParserException;
+import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -63,8 +61,6 @@ public class NotificationListenerTest {
         YangTypeDef typeDef = (YangTypeDef) yangNotification.getChild();
         assertThat(typeDef.getName(), is("my-type"));
         assertThat(typeDef.getStatus(), is(YangStatusType.DEPRECATED));
-        assertThat(typeDef.getDerivedType().getDataTypeExtendedInfo()
-                .getBaseType().getDataType(), is(YangDataTypes.INT32));
 
         ListIterator<YangLeaf> leafIterator = yangNotification.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();

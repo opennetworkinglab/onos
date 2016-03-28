@@ -51,6 +51,11 @@ public class YangInclude implements Parsable {
     private String revision;
 
     /**
+     * Resolution information root node which is also the data model root node.
+     */
+    private HasResolutionInfo resolutionInfoNode;
+
+    /**
      * Default constructor.
      */
     public YangInclude() {
@@ -124,4 +129,21 @@ public class YangInclude implements Parsable {
 
     }
 
+    /**
+     * Returns the resolution information node.
+     *
+     * @return the resolution information node
+     */
+    public HasResolutionInfo getResolutionInfoNode() {
+        return resolutionInfoNode;
+    }
+
+    /**
+     * Set the dresolution information node.
+     *
+     * @param resolutionInfoNode the resolution information node
+     */
+    public void setResolutionInfoNode(HasResolutionInfo resolutionInfoNode) {
+        this.resolutionInfoNode = resolutionInfoNode;
+    }
 }

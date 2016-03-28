@@ -18,7 +18,6 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import java.io.IOException;
 import java.util.ListIterator;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -187,7 +186,7 @@ public class StatusListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
         assertThat(leafInfo.getUnits(), is("\"seconds\""));
         assertThat(leafInfo.getDescription(), is("\"Interval before a route is declared invalid\""));
@@ -224,7 +223,7 @@ public class StatusListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
         assertThat(leafInfo.getUnits(), is("\"seconds\""));
         assertThat(leafInfo.getDescription(), is("\"Interval before a route is declared invalid\""));

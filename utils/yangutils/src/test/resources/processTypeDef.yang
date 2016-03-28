@@ -2,7 +2,10 @@ module Test {
     yang-version 1;
     namespace http://huawei.com;
     prefix Ant;
+    typedef hello {
+        type String;
+    }
     leaf invalid-interval {
-        type P:hello;
+        type hello;
     }
 }

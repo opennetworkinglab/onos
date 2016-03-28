@@ -24,13 +24,13 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.YangConstructType.INCLUDE_DATA;
 
@@ -112,12 +112,12 @@ public final class IncludeListener {
             switch (tmpNode.getYangConstructType()) {
             case MODULE_DATA: {
                 YangModule module = (YangModule) tmpNode;
-                module.addIncludedInfo((YangInclude) tmpIncludeNode);
+                module.addToIncludeList((YangInclude) tmpIncludeNode);
                 break;
             }
             case SUB_MODULE_DATA: {
                 YangSubModule subModule = (YangSubModule) tmpNode;
-                subModule.addIncludedInfo((YangInclude) tmpIncludeNode);
+                subModule.addToIncludeList((YangInclude) tmpIncludeNode);
                 break;
             }
             default:

@@ -16,8 +16,10 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.HasResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangRevision;
 import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
@@ -117,6 +119,14 @@ public final class SubModuleListener {
         if (!(listener.getParsedDataStack().peek() instanceof YangSubModule)) {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, SUB_MODULE_DATA,
                     ctx.identifier().getText(), EXIT));
+        }
+        try {
+            ((HasResolutionInfo) listener.getParsedDataStack().peek()).resolveSelfFileLinking();
+        } catch (DataModelException e) {
+            ParserException parserException = new ParserException(e.getMessage());
+            parserException.setLine(e.getLineNumber());
+            parserException.setCharPosition(e.getCharPositionInLine());
+            throw parserException;
         }
     }
 }

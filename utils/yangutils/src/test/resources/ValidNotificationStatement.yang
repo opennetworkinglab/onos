@@ -16,10 +16,10 @@ module rock {
            }
         }
         leaf if-admin-status {
-           type admin-status;
+           type P:admin-status;
         }
         leaf if-oper-status {
-           type oper-status;
+           type P:oper-status;
         }
     }
 }

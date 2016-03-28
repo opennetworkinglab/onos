@@ -18,7 +18,6 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import java.io.IOException;
 import java.util.ListIterator;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -68,7 +67,7 @@ public class LeafListListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
-        assertThat(leafListInfo.getDataType().getDataTypeName(), is("\"uint16\""));
+        assertThat(leafListInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
         assertThat(leafListInfo.getUnits(), is("\"seconds\""));
         assertThat(leafListInfo.getDescription(), is("\"Interval before a route is declared invalid\""));
@@ -163,7 +162,7 @@ public class LeafListListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
-        assertThat(leafListInfo.getDataType().getDataTypeName(), is("\"uint16\""));
+        assertThat(leafListInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
         assertThat(leafListInfo.getUnits(), is("\"seconds\""));
         assertThat(leafListInfo.getDescription(), is("\"Interval before a route is declared invalid\""));
@@ -200,7 +199,7 @@ public class LeafListListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
-        assertThat(leafListInfo.getDataType().getDataTypeName(), is("\"uint16\""));
+        assertThat(leafListInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
         assertThat(leafListInfo.getUnits(), is("\"seconds\""));
         assertThat(leafListInfo.getDescription(), is("\"Interval before a route is declared invalid\""));

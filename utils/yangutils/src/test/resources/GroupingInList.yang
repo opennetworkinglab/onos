@@ -5,14 +5,14 @@ module Test {
     list valid {
         key address;
         leaf address {
-            type ip;
+            type P:ip;
         }
         grouping endpoint {
             leaf address {
-                type ip-address;
+                type P:ip-address;
             }
             leaf port {
-                type port-number;
+                type P:port-number;
             }
         }
     }

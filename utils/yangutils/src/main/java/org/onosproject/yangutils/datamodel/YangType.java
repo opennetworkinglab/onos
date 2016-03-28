@@ -49,12 +49,12 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *
  * @param <T> YANG data type info
  */
-public class YangType<T> implements Parsable {
+public class YangType<T> implements Parsable, Resolvable {
 
     /**
-     * YANG data type name.
+     * YANG node identifier.
      */
-    private String dataTypeName;
+    private YangNodeIdentifier nodeIdentifier;
 
     /**
      * Java package in which the Java type is defined.
@@ -74,9 +74,50 @@ public class YangType<T> implements Parsable {
     private T dataTypeExtendedInfo;
 
     /**
+     * Effective built-in type, requried in case type of typedef is again a
+     * derived type. This information is to be added during linking.
+     */
+    private YangDataTypes effectiveBuiltInType;
+
+    /**
+     * Effective pattern restriction, requried in case type of typedef is again
+     * a derived type. This information is to be added during linking.
+     */
+    private YangPatternRestriction effectivePatternRestriction;
+
+    /**
+     * Status of resolution. If completely resolved enum value is "RESOLVED",
+     * if not enum value is "UNRESOLVED", in case reference of grouping/typedef
+     * is added to uses/type but it's not resolved value of enum should be
+     * "PARTIALLY_RESOLVED".
+     */
+    private ResolvableStatus resolvableStatus;
+
+    /**
      * Default constructor.
      */
     public YangType() {
+
+        nodeIdentifier = new YangNodeIdentifier();
+        resolvableStatus = ResolvableStatus.UNRESOLVED;
+    }
+
+    /**
+     * Returns prefix associated with data type name.
+     *
+     * @return prefix associated with data type name
+     */
+    public String getPrefix() {
+        return nodeIdentifier.getPrefix();
+    }
+
+    /**
+     * Set prefix associated with data type name.
+     *
+     * @param prefix prefix associated with data type name
+     */
+    public void setPrefix(String prefix) {
+        nodeIdentifier.setPrefix(prefix);
     }
 
     /**
@@ -85,7 +126,7 @@ public class YangType<T> implements Parsable {
      * @return the name of data type
      */
     public String getDataTypeName() {
-        return dataTypeName;
+        return nodeIdentifier.getName();
     }
 
     /**
@@ -94,7 +135,7 @@ public class YangType<T> implements Parsable {
      * @param typeName the name to set
      */
     public void setDataTypeName(String typeName) {
-        dataTypeName = typeName;
+        nodeIdentifier.setName(typeName);
     }
 
     /**
@@ -152,6 +193,60 @@ public class YangType<T> implements Parsable {
     }
 
     /**
+     * Returns node identifier.
+     *
+     * @return node identifier
+     */
+    public YangNodeIdentifier getNodeIdentifier() {
+        return nodeIdentifier;
+    }
+
+    /**
+     * Set node identifier.
+     *
+     * @param nodeIdentifier the node identifier
+     */
+    public void setNodeIdentifier(YangNodeIdentifier nodeIdentifier) {
+        this.nodeIdentifier = nodeIdentifier;
+    }
+
+    /**
+     * Return effective built-in type.
+     *
+     * @return effective built-in type
+     */
+    public YangDataTypes getEffectiveBuiltInType() {
+        return effectiveBuiltInType;
+    }
+
+    /**
+     * Set effective built-in type.
+     *
+     * @param effectiveBuiltInType effective built-in type
+     */
+    public void setEffectiveBuiltInType(YangDataTypes effectiveBuiltInType) {
+        this.effectiveBuiltInType = effectiveBuiltInType;
+    }
+
+    /**
+     * Returns effective pattern restriction.
+     *
+     * @return effective pattern restriction
+     */
+    public YangPatternRestriction getEffectivePatternRestriction() {
+        return effectivePatternRestriction;
+    }
+
+    /**
+     * Set effective pattern restriction.
+     *
+     * @param effectivePatternRestriction effective pattern restriction
+     */
+    public void setEffectivePatternRestriction(YangPatternRestriction effectivePatternRestriction) {
+        this.effectivePatternRestriction = effectivePatternRestriction;
+    }
+
+    /**
      * Returns the type of the parsed data.
      *
      * @return returns TYPE_DATA
@@ -181,5 +276,20 @@ public class YangType<T> implements Parsable {
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
+    }
+
+    @Override
+    public ResolvableStatus getResolvableStatus() {
+        return resolvableStatus;
+    }
+
+    @Override
+    public void setResolvableStatus(ResolvableStatus resolvableStatus) {
+        this.resolvableStatus = resolvableStatus;
+    }
+
+    @Override
+    public void resolve() {
+        //TODO: implement the method.
     }
 }

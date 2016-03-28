@@ -21,6 +21,8 @@ package org.onosproject.yangutils.datamodel.exceptions;
 public class DataModelException extends Exception {
 
     private static final long serialVersionUID = 201601270658L;
+    private int lineNumber;
+    private int charPositionInLine;
 
     /**
      * Constructor to create a data model exception with message.
@@ -48,5 +50,41 @@ public class DataModelException extends Exception {
      */
     public DataModelException(final Throwable cause) {
         super(cause);
+    }
+
+    /**
+     * Returns line number of the exception.
+     *
+     * @return line number of the exception
+     */
+    public int getLineNumber() {
+        return this.lineNumber;
+    }
+
+    /**
+     * Returns position of the exception.
+     *
+     * @return position of the exception
+     */
+    public int getCharPositionInLine() {
+        return this.charPositionInLine;
+    }
+
+    /**
+     * Sets line number of YANG file.
+     *
+     * @param line line number of YANG file
+     */
+    public void setLine(int line) {
+        this.lineNumber = line;
+    }
+
+    /**
+     * Sets position of exception.
+     *
+     * @param charPosition position of exception
+     */
+    public void setCharPosition(int charPosition) {
+        this.charPositionInLine = charPosition;
     }
 }

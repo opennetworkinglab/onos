@@ -162,7 +162,7 @@ public class ListListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
         assertThat(leafInfo.getUnits(), is("\"seconds\""));
         assertThat(leafInfo.getStatus(), is(YangStatusType.CURRENT));

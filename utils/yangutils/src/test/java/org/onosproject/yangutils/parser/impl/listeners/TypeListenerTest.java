@@ -2,7 +2,6 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import java.io.IOException;
 import java.util.ListIterator;
-
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeaf;
@@ -45,7 +44,7 @@ public class TypeListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("\"hello\""));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("hello"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
     }
 
@@ -71,7 +70,7 @@ public class TypeListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         assertThat(leafInfo.getLeafName(), is("invalid-interval"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("\"uint16\""));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
     }
 
@@ -97,7 +96,7 @@ public class TypeListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
-        assertThat(leafListInfo.getDataType().getDataTypeName(), is("\"uint16\""));
+        assertThat(leafListInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
     }
 }
