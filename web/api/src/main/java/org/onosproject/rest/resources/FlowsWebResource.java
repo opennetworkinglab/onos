@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.stream.StreamSupport;
 
 import javax.ws.rs.Consumes;
@@ -50,11 +51,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Path("flows")
 public class FlowsWebResource extends AbstractWebResource {
+
     public static final String DEVICE_NOT_FOUND = "Device is not found";
+    public static final String FLOWS = "flows";
 
     final FlowRuleService service = get(FlowRuleService.class);
     final ObjectNode root = mapper().createObjectNode();
-    final ArrayNode flowsNode = root.putArray("flows");
+    final ArrayNode flowsNode = root.putArray(FLOWS);
 
     /**
      * Get all flow entries. Returns array of all flow rules in the system.
@@ -75,6 +78,34 @@ public class FlowsWebResource extends AbstractWebResource {
         }
 
         return ok(root).build();
+    }
+
+    /**
+     * Create new flow rules. Creates and installs a new flow rules.<br>
+     * Instructions description:
+     * https://wiki.onosproject.org/display/ONOS/Flow+Rule+Instructions
+     * <br>
+     * Criteria description:
+     * https://wiki.onosproject.org/display/ONOS/Flow+Rule+Criteria
+     *
+     * @onos.rsModel FlowsBatchPost
+     * @param stream   flow rules JSON
+     * @return status of the request - CREATED if the JSON is correct,
+     * BAD_REQUEST if the JSON is invalid
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createFlows(InputStream stream) {
+        try {
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ArrayNode flowsArray = (ArrayNode) jsonTree.get(FLOWS);
+            List<FlowRule> rules = codec(FlowRule.class).decode(flowsArray, this);
+            service.applyFlowRules(rules.toArray(new FlowRule[rules.size()]));
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+        return Response.ok().build();
     }
 
     /**
