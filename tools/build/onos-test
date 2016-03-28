@@ -3,9 +3,6 @@
 # Launches the ONOS tests on the current cell environment.
 # -----------------------------------------------------------------------------
 
-echo "This command has been deprecated and will be removed after Falcon release"
-echo "Please use the 'stc setup' command instead"
-
 set -e
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
@@ -14,12 +11,5 @@ set -e
 nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
 
 onos-package
-onos-verify-cell || exit 1
+stc setup
 
-for node in $nodes; do onos-install -f $node 1>/dev/null & done
-
-# Wait for shutdown before waiting for restart
-sleep 3
-
-for node in $nodes; do onos-wait-for-start $node; done
-for node in $nodes; do onos-check-logs $node; done
