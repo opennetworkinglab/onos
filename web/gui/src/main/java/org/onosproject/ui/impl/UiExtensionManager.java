@@ -74,13 +74,20 @@ import static org.onosproject.ui.UiView.Category.PLATFORM;
  */
 @Component(immediate = true)
 @Service
-public class UiExtensionManager implements UiExtensionService, UiPreferencesService, SpriteService {
+public class UiExtensionManager
+        implements UiExtensionService, UiPreferencesService, SpriteService {
 
     private static final ClassLoader CL = UiExtensionManager.class.getClassLoader();
+
+    private static final String ONOS_USER_PREFERENCES = "onos-user-preferences";
     private static final String CORE = "core";
     private static final String GUI_ADDED = "guiAdded";
     private static final String GUI_REMOVED = "guiRemoved";
     private static final String UPDATE_PREFS = "updatePrefs";
+    private static final String SLASH = "/";
+
+    private static final int IDX_USER = 0;
+    private static final int IDX_KEY = 1;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -162,13 +169,13 @@ public class UiExtensionManager implements UiExtensionService, UiPreferencesServ
         KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
                 .register(KryoNamespaces.API)
                 .register(ObjectNode.class, ArrayNode.class,
-                          JsonNodeFactory.class, LinkedHashMap.class,
-                          TextNode.class, BooleanNode.class,
-                          LongNode.class, DoubleNode.class, ShortNode.class,
-                          IntNode.class, NullNode.class);
+                        JsonNodeFactory.class, LinkedHashMap.class,
+                        TextNode.class, BooleanNode.class,
+                        LongNode.class, DoubleNode.class, ShortNode.class,
+                        IntNode.class, NullNode.class);
 
         prefs = storageService.<String, ObjectNode>eventuallyConsistentMapBuilder()
-                .withName("onos-user-preferences")
+                .withName(ONOS_USER_PREFERENCES)
                 .withSerializer(kryoBuilder)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .withPersistence()
@@ -229,7 +236,7 @@ public class UiExtensionManager implements UiExtensionService, UiPreferencesServ
     public Map<String, ObjectNode> getPreferences(String userName) {
         ImmutableMap.Builder<String, ObjectNode> builder = ImmutableMap.builder();
         prefs.entrySet().stream()
-                .filter(e -> e.getKey().startsWith(userName + "/"))
+                .filter(e -> e.getKey().startsWith(userName + SLASH))
                 .forEach(e -> builder.put(keyName(e.getKey()), e.getValue()));
         return builder.build();
     }
@@ -261,15 +268,16 @@ public class UiExtensionManager implements UiExtensionService, UiPreferencesServ
     }
 
     private String key(String userName, String keyName) {
-        return userName + "/" + keyName;
+        return userName + SLASH + keyName;
     }
 
+
     private String userName(String key) {
-        return key.split("/")[0];
+        return key.split(SLASH)[IDX_USER];
     }
 
     private String keyName(String key) {
-        return key.split("/")[1];
+        return key.split(SLASH)[IDX_KEY];
     }
 
     // Auxiliary listener to preference map events.
