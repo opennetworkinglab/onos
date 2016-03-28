@@ -26,14 +26,14 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-app-metrics-reporter</artifactId>
+    <artifactId>onos-app-ganglia</artifactId>
     <packaging>bundle</packaging>
 
     <description>Performance metric service reporter</description>
 
     <properties>
-        <onos.app.name>org.onosproject.metrics.reporter</onos.app.name>
-        <onos.app.title>Metric Service Reporter</onos.app.title>
+        <onos.app.name>org.onosproject.gangliametrics</onos.app.name>
+        <onos.app.title>Ganglia Report and Query App</onos.app.title>
         <onos.app.category>Monitoring</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <metrics.version>3.1.2</metrics.version>

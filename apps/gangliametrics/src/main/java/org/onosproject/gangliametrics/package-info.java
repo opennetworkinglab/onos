@@ -18,4 +18,4 @@
  * Contains various reporters that backup all of the collected metrics
  * to monitoring server.
  */
-package org.onosproject.metrics.reporter;
+package org.onosproject.gangliametrics;

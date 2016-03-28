@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.metrics.reporter;
+package org.onosproject.gangliametrics;
 
 /**
  * A metric report that reports all metrics value to third party monitor.
