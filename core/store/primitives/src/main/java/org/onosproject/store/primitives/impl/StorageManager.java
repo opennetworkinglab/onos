@@ -141,8 +141,7 @@ public class StorageManager implements StorageService, StorageAdminService {
     @Override
     public <E> DistributedQueueBuilder<E> queueBuilder() {
         checkPermission(STORAGE_WRITE);
-        // TODO: implement
-        throw new UnsupportedOperationException();
+        return new NewDefaultDistributedQueueBuilder<>(federatedPrimitiveCreator);
     }
 
     @Override
