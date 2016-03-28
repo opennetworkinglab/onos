@@ -8,7 +8,7 @@
     "flows": {
       "type": "array",
       "xml": {
-        "name": "hosts",
+        "name": "flows",
         "wrapped": true
       },
       "items": {
