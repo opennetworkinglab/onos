@@ -444,7 +444,7 @@ public class MastershipManager
             }
             // Create buckets reflecting current ownership.
             for (NodeId nodeId : masterSet) {
-                if (clusterService.getState(nodeId) == ACTIVE) {
+                if (clusterService.getState(nodeId).isActive()) {
                     ControllerNode controllerNode = clusterService.getNode(nodeId);
                     Set<DeviceId> devicesOf = new HashSet<>(allControllerDevices.get(controllerNode));
                     regionalControllerDevices.put(controllerNode, devicesOf);
