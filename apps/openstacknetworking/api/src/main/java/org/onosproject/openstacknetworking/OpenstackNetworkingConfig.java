@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknetworking.switching;
+package org.onosproject.openstacknetworking;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Maps;
 import org.onlab.packet.Ip4Address;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import org.slf4j.Logger;
@@ -28,15 +27,58 @@ import java.util.Map;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Configuration object for OpenstackSwitching service.
+ * Network Config for OpenstackNetworking application.
+ *
  */
-public class OpenstackSwitchingConfig extends Config<ApplicationId> {
+public class OpenstackNetworkingConfig extends Config<String> {
 
     protected final Logger log = getLogger(getClass());
+
+    public static final String PHYSICAL_ROUTER_MAC = "physicalRouterMac";
+    public static final String GATEWAY_BRIDGE_ID = "gatewayBridgeId";
+    public static final String GATEWAY_EXTERNAL_INTERFACE_NAME = "gatewayExternalInterfaceName";
+    public static final String GATEWAY_EXTERNAL_INTERFACE_MAC = "gatewayExternalInterfaceMac";
 
     public static final String NODES = "nodes";
     public static final String DATAPLANE_IP = "dataPlaneIp";
     public static final String BRIDGE_ID = "bridgeId";
+
+
+    /**
+     * Returns physical router mac.
+     *
+     * @return physical router mac
+     */
+    public String physicalRouterMac() {
+        return this.get(PHYSICAL_ROUTER_MAC, "");
+    }
+
+    /**
+     * Returns gateway's bridge id.
+     *
+     * @return bridge id
+     */
+    public String gatewayBridgeId() {
+        return this.get(GATEWAY_BRIDGE_ID, "");
+    }
+
+    /**
+     * Returns gateway's external interface name.
+     *
+     * @return external interface name
+     */
+    public String gatewayExternalInterfaceName() {
+        return this.get(GATEWAY_EXTERNAL_INTERFACE_NAME, "");
+    }
+
+    /**
+     * Returns gateway's external interface mac.
+     *
+     * @return external interface mac
+     */
+    public String gatewayExternalInterfaceMac() {
+        return this.get(GATEWAY_EXTERNAL_INTERFACE_MAC, "");
+    }
 
     /**
      * Returns the data plane IP map of nodes read from network config.
@@ -57,9 +99,10 @@ public class OpenstackSwitchingConfig extends Config<ApplicationId> {
                 nodeMap.putIfAbsent(DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText()),
                         Ip4Address.valueOf(jsonNode.path(DATAPLANE_IP).asText()));
             } catch (IllegalArgumentException | NullPointerException e) {
-                log.error("Failed to read {}", e.getMessage());
+                log.error("Failed to read {}", e.toString());
             }
         });
         return nodeMap;
     }
+
 }

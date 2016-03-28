@@ -33,6 +33,7 @@ import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -49,7 +50,7 @@ public class OpenstackRoutingArpHandler {
 
     private final PacketService packetService;
     private final OpenstackInterfaceService openstackService;
-    private final OpenstackRoutingConfig config;
+    private final OpenstackNetworkingConfig config;
     private static final String NETWORK_ROUTER_GATEWAY = "network:router_gateway";
 
     /**
@@ -60,7 +61,7 @@ public class OpenstackRoutingArpHandler {
      * @param config openstackRoutingConfig
      */
     OpenstackRoutingArpHandler(PacketService packetService, OpenstackInterfaceService openstackService,
-                               OpenstackRoutingConfig config) {
+                               OpenstackNetworkingConfig config) {
         this.packetService = packetService;
         this.openstackService = checkNotNull(openstackService);
         this.config = checkNotNull(config);

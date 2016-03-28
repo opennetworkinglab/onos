@@ -20,12 +20,12 @@ import org.onosproject.net.config.Config;
 import org.onosproject.net.config.basics.BasicElementConfig;
 
 /**
- * Handles configuration for OpenstackSwitching app.
+ * Handles configuration for OpenstackInterface app.
  */
-public class OpenstackNetworkingConfig extends Config<ApplicationId> {
-    public static final String NEUTRON_SERVER = "neutron_server";
-    public static final String KEYSTONE_SERVER = "keystone_server";
-    public static final String USER_NAME = "user_name";
+public class OpenstackInterfaceConfig extends Config<ApplicationId> {
+    public static final String NEUTRON_SERVER = "neutronServer";
+    public static final String KEYSTONE_SERVER = "keystoneServer";
+    public static final String USER_NAME = "userName";
     public static final String PASSWORD = "password";
     public static final String PHYSICAL_ROUTER_MAC = "physicalRouterMac";
 

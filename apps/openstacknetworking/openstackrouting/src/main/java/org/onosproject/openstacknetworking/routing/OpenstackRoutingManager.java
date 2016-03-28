@@ -37,7 +37,6 @@ import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
@@ -50,8 +49,10 @@ import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackRouter;
 import org.onosproject.openstackinterface.OpenstackRouterInterface;
+import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.onosproject.openstacknetworking.OpenstackPortInfo;
 import org.onosproject.openstacknetworking.OpenstackRoutingService;
+import org.onosproject.openstacknetworking.OpenstackSubjectFactories;
 import org.onosproject.openstacknetworking.OpenstackSwitchingService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -124,16 +125,19 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     private static final int PNAT_PORT_EXPIRE_TIME = 1200 * 1000;
     private static final int TP_PORT_MINIMUM_NUM = 1024;
     private static final int TP_PORT_MAXIMUM_NUM = 65535;
+
     private final ConfigFactory configFactory =
-            new ConfigFactory(SubjectFactories.APP_SUBJECT_FACTORY, OpenstackRoutingConfig.class, "openstackrouting") {
+            new ConfigFactory(OpenstackSubjectFactories.USER_DEFINED_SUBJECT_FACTORY, OpenstackNetworkingConfig.class,
+                    "config") {
                 @Override
-                public OpenstackRoutingConfig createConfig() {
-                    return new OpenstackRoutingConfig();
+                public OpenstackNetworkingConfig createConfig() {
+                    return new OpenstackNetworkingConfig();
                 }
             };
+
     private final NetworkConfigListener configListener = new InternalConfigListener();
 
-    private OpenstackRoutingConfig config;
+    private OpenstackNetworkingConfig config;
     private static final KryoNamespace.Builder FLOATING_IP_SERIALIZER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
             .register(KryoNamespaces.MISC)
@@ -167,8 +171,6 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         configRegistry.registerConfigFactory(configFactory);
         configService.addListener(configListener);
 
-        readConfiguration();
-
         floatingIpMap = storageService.<String, OpenstackFloatingIP>consistentMapBuilder()
                 .withSerializer(Serializer.using(FLOATING_IP_SERIALIZER.build()))
                 .withName(FLOATING_IP_MAP_NAME)
@@ -179,6 +181,8 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                 .withName(TP_PORT_MAP_NAME)
                 .withApplicationId(appId)
                 .build();
+
+        readConfiguration();
 
         log.info("onos-openstackrouting started");
     }
@@ -488,7 +492,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     }
 
     private void readConfiguration() {
-        config = configService.getConfig(appId, OpenstackRoutingConfig.class);
+        config = configService.getConfig("openstacknetworking", OpenstackNetworkingConfig.class);
         if (config == null) {
             log.error("No configuration found");
             return;
@@ -499,7 +503,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         checkNotNull(config.gatewayExternalInterfaceMac());
         checkNotNull(config.gatewayExternalInterfaceName());
 
-        log.debug("Configured info: {}, {}, {}, {}", config.physicalRouterMac(), config.gatewayBridgeId(),
+        log.warn("Configured info: {}, {}, {}, {}", config.physicalRouterMac(), config.gatewayBridgeId(),
                 config.gatewayExternalInterfaceMac(), config.gatewayExternalInterfaceName());
 
         rulePopulator = new OpenstackRoutingRulePopulator(appId,
@@ -512,6 +516,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         openstackIcmpHandler.requestPacket(appId);
         openstackArpHandler.requestPacket(appId);
         reloadInitL3Rules();
+
         log.info("OpenstackRouting configured");
     }
 
@@ -519,7 +524,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
 
         @Override
         public void event(NetworkConfigEvent event) {
-            if (!event.configClass().equals(OpenstackRoutingConfig.class)) {
+            if (!event.configClass().equals(OpenstackNetworkingConfig.class)) {
                 return;
             }
 

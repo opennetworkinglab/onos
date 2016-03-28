@@ -35,7 +35,7 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackNetwork;
-import org.onosproject.openstackinterface.OpenstackNetworkingConfig;
+import org.onosproject.openstackinterface.OpenstackInterfaceConfig;
 import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackRouter;
 import org.onosproject.openstackinterface.OpenstackSecurityGroup;
@@ -121,12 +121,12 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
             Executors.newSingleThreadExecutor(groupedThreads("onos/openstackinterface", "config-event"));
 
     private final Set<ConfigFactory> factories = ImmutableSet.of(
-            new ConfigFactory<ApplicationId, OpenstackNetworkingConfig>(APP_SUBJECT_FACTORY,
-                    OpenstackNetworkingConfig.class,
+            new ConfigFactory<ApplicationId, OpenstackInterfaceConfig>(APP_SUBJECT_FACTORY,
+                    OpenstackInterfaceConfig.class,
                     "openstackinterface") {
                 @Override
-                public OpenstackNetworkingConfig createConfig() {
-                    return new OpenstackNetworkingConfig();
+                public OpenstackInterfaceConfig createConfig() {
+                    return new OpenstackInterfaceConfig();
                 }
             }
     );
@@ -417,8 +417,8 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
     private class InternalConfigListener implements NetworkConfigListener {
 
         public void configureNetwork() {
-            OpenstackNetworkingConfig cfg =
-                    cfgService.getConfig(appId, OpenstackNetworkingConfig.class);
+            OpenstackInterfaceConfig cfg =
+                    cfgService.getConfig(appId, OpenstackInterfaceConfig.class);
             if (cfg == null) {
                 log.error("There is no openstack server information in config.");
                 return;
@@ -434,7 +434,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
         public void event(NetworkConfigEvent event) {
             if (((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                     event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)) &&
-                    event.configClass().equals(OpenstackNetworkingConfig.class)) {
+                    event.configClass().equals(OpenstackInterfaceConfig.class)) {
 
                 log.info("Network configuration changed");
                 networkEventExcutorService.execute(this::configureNetwork);

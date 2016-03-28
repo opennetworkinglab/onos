@@ -38,7 +38,6 @@ import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -57,6 +56,8 @@ import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackSecurityGroup;
 import org.onosproject.openstackinterface.OpenstackSubnet;
 import org.onosproject.openstacknetworking.OpenstackPortInfo;
+import org.onosproject.openstacknetworking.OpenstackSubjectFactories;
+import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.onosproject.openstacknetworking.OpenstackSwitchingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +100,9 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     protected DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry networkConfig;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackInterfaceService openstackService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -136,16 +140,16 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     private Map<String, OpenstackSecurityGroup> securityGroupMap = Maps.newConcurrentMap();
 
     private final ConfigFactory configFactory =
-            new ConfigFactory(SubjectFactories.APP_SUBJECT_FACTORY,
-                    OpenstackSwitchingConfig.class, "openstackswitching") {
+            new ConfigFactory(OpenstackSubjectFactories.USER_DEFINED_SUBJECT_FACTORY, OpenstackNetworkingConfig.class,
+                    "config") {
                 @Override
-                public OpenstackSwitchingConfig createConfig() {
-                    return new OpenstackSwitchingConfig();
+                public OpenstackNetworkingConfig createConfig() {
+                    return new OpenstackNetworkingConfig();
                 }
             };
     private final NetworkConfigListener configListener = new InternalConfigListener();
 
-    private OpenstackSwitchingConfig config;
+    private OpenstackNetworkingConfig config;
 
     @Activate
     protected void activate() {
@@ -157,6 +161,12 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         hostService.addListener(internalHostListener);
         configRegistry.registerConfigFactory(configFactory);
         configService.addListener(configListener);
+
+        arpHandler = new OpenstackArpHandler(openstackService, packetService, hostService);
+        sgRulePopulator = new OpenstackSecurityGroupRulePopulator(appId, openstackService, flowObjectiveService);
+
+        networkConfig.registerConfigFactory(configFactory);
+        networkConfig.addListener(configListener);
 
         readConfiguration();
 
@@ -484,7 +494,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     }
 
     private void readConfiguration() {
-        config = configService.getConfig(appId, OpenstackSwitchingConfig.class);
+        config = configService.getConfig("openstacknetworking", OpenstackNetworkingConfig.class);
         if (config == null) {
             log.error("No configuration found");
             return;
@@ -500,14 +510,13 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
         @Override
         public void event(NetworkConfigEvent event) {
-            if (!event.configClass().equals(OpenstackSwitchingConfig.class)) {
+            if (!event.configClass().equals(OpenstackNetworkingConfig.class)) {
                 return;
             }
 
             if (event.type().equals(NetworkConfigEvent.Type.CONFIG_ADDED) ||
                     event.type().equals(NetworkConfigEvent.Type.CONFIG_UPDATED)) {
                 configEventExecutorService.execute(OpenstackSwitchingManager.this::readConfiguration);
-
 
             }
         }

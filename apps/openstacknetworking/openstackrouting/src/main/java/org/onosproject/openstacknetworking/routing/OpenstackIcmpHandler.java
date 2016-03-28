@@ -37,6 +37,7 @@ import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.onosproject.openstacknetworking.OpenstackPortInfo;
 import org.onosproject.openstacknetworking.OpenstackSwitchingService;
 import org.slf4j.Logger;
@@ -61,7 +62,7 @@ public class OpenstackIcmpHandler {
     private final Map<String, OpenstackPortInfo> icmpInfoMap = Maps.newHashMap();
     private final OpenstackSwitchingService openstackSwitchingService;
     private final OpenstackInterfaceService openstackService;
-    private final OpenstackRoutingConfig config;
+    private final OpenstackNetworkingConfig config;
     private static final MacAddress GATEWAY_MAC = MacAddress.valueOf("1f:1f:1f:1f:1f:1f");
     private static final String NETWORK_ROUTER_INTERFACE = "network:router_interface";
     private static final String PORTNAME = "portName";
@@ -76,7 +77,7 @@ public class OpenstackIcmpHandler {
      * @param openstackSwitchingService openstackSwitching service
      */
     OpenstackIcmpHandler(PacketService packetService, DeviceService deviceService,
-                         OpenstackInterfaceService openstackService, OpenstackRoutingConfig config,
+                         OpenstackInterfaceService openstackService, OpenstackNetworkingConfig config,
                          OpenstackSwitchingService openstackSwitchingService) {
         this.packetService = packetService;
         this.deviceService = deviceService;

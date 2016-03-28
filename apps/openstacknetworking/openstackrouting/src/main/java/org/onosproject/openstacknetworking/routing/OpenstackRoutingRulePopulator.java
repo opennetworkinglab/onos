@@ -52,6 +52,7 @@ import org.onosproject.openstackinterface.OpenstackPort;
 import org.onosproject.openstackinterface.OpenstackRouterInterface;
 import org.onosproject.openstackinterface.OpenstackSubnet;
 import org.onosproject.openstackinterface.OpenstackFloatingIP;
+import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.onosproject.openstacknetworking.OpenstackPortInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +73,7 @@ public class OpenstackRoutingRulePopulator {
     private final OpenstackInterfaceService openstackService;
     private final DeviceService deviceService;
     private final DriverService driverService;
-    private final OpenstackRoutingConfig config;
+    private final OpenstackNetworkingConfig config;
 
     private static final String PORTNAME_PREFIX_TUNNEL = "vxlan";
     private static final String PORTNAME = "portName";
@@ -106,7 +107,7 @@ public class OpenstackRoutingRulePopulator {
      */
     public OpenstackRoutingRulePopulator(ApplicationId appId, OpenstackInterfaceService openstackService,
                                          FlowObjectiveService flowObjectiveService, DeviceService deviceService,
-                                         DriverService driverService, OpenstackRoutingConfig config) {
+                                         DriverService driverService, OpenstackNetworkingConfig config) {
         this.appId = appId;
         this.flowObjectiveService = flowObjectiveService;
         this.openstackService = checkNotNull(openstackService);

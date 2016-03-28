@@ -43,6 +43,7 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.openstackinterface.OpenstackInterfaceService;
 import org.onosproject.openstackinterface.OpenstackNetwork;
 import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.onosproject.openstacknetworking.OpenstackPortInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class OpenstackSwitchingRulePopulator {
     private DriverService driverService;
     private DeviceService deviceService;
     private ApplicationId appId;
-    private OpenstackSwitchingConfig config;
+    private OpenstackNetworkingConfig config;
 
     private Collection<OpenstackNetwork> openstackNetworkList;
     private Collection<OpenstackPort> openstackPortList;
@@ -85,7 +86,7 @@ public class OpenstackSwitchingRulePopulator {
                                            DeviceService deviceService,
                                            OpenstackInterfaceService openstackService,
                                            DriverService driverService,
-                                           OpenstackSwitchingConfig config) {
+                                           OpenstackNetworkingConfig config) {
         this.flowObjectiveService = flowObjectiveService;
         this.deviceService = deviceService;
         this.driverService = driverService;
