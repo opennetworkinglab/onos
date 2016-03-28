@@ -272,7 +272,6 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
 
     /**
      * Monitors the metadata url for any updates and notifies providerService accordingly.
-     * @throws IOException
      */
     private void watchUrl(String metadataUrl) {
         // TODO: We are merely polling the url.

@@ -1297,7 +1297,7 @@ public class GossipDeviceStore
 
     /**
      * Responds to anti-entropy advertisement message.
-     * <p/>
+     * <p>
      * Notify sender about out-dated information using regular replication message.
      * Send back advertisement to sender if not in sync.
      *

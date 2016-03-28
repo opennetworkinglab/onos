@@ -279,7 +279,7 @@ public class Catalog {
 
     /**
      * Extracts a fully qualified source class name from the given path.
-     * <p/>
+     * <p>
      * For now, this implementation assumes standard Maven source structure
      * and thus will look for start of package name under 'src/main/java/'.
      * If it will not find such a prefix, it will simply return the path as
