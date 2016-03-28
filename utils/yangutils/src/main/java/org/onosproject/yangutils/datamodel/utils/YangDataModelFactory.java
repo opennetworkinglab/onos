@@ -25,6 +25,7 @@ import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUses;
+import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaAugment;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaCase;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaChoice;
@@ -35,6 +36,7 @@ import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeDef;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUses;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaNotification;
 
 /**
  * Factory to create data model objects based on the target file type.
@@ -51,8 +53,8 @@ public final class YangDataModelFactory {
      * Based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
-     *            generated.
-     * @return the corresponding inherited node based on the target language.
+     *            generated
+     * @return the corresponding inherited node based on the target language
      */
     public static YangModule getYangModuleNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
@@ -69,8 +71,8 @@ public final class YangDataModelFactory {
      * Based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
-     *            generated.
-     * @return the corresponding inherited node based on the target language.
+     *            generated
+     * @return the corresponding inherited node based on the target language
      */
     public static YangAugment getYangAugmentNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
@@ -87,8 +89,8 @@ public final class YangDataModelFactory {
      * Based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
-     *            generated.
-     * @return the corresponding inherited node based on the target language.
+     *            generated
+     * @return the corresponding inherited node based on the target language
      */
     public static YangCase getYangCaseNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
@@ -105,8 +107,8 @@ public final class YangDataModelFactory {
      * Based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
-     *            generated.
-     * @return the corresponding inherited node based on the target language.
+     *            generated
+     * @return the corresponding inherited node based on the target language
      */
     public static YangChoice getYangChoiceNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
@@ -123,8 +125,8 @@ public final class YangDataModelFactory {
      * Based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
-     *            generated.
-     * @return the corresponding inherited node based on the target language.
+     *            generated
+     * @return the corresponding inherited node based on the target language
      */
     public static YangContainer getYangContainerNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
@@ -141,8 +143,8 @@ public final class YangDataModelFactory {
      * Based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
-     *            generated.
-     * @return the corresponding inherited node based on the target language.
+     *            generated
+     * @return the corresponding inherited node based on the target language
      */
     public static YangGrouping getYangGroupingNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
@@ -159,8 +161,8 @@ public final class YangDataModelFactory {
      * Based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
-     *            generated.
-     * @return the corresponding inherited node based on the target language.
+     *            generated
+     * @return the corresponding inherited node based on the target language
      */
     public static YangList getYangListNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
@@ -177,8 +179,8 @@ public final class YangDataModelFactory {
      * Based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
-     *            generated.
-     * @return the corresponding inherited node based on the target language.
+     *            generated
+     * @return the corresponding inherited node based on the target language
      */
     public static YangSubModule getYangSubModuleNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
@@ -195,8 +197,8 @@ public final class YangDataModelFactory {
      * Based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
-     *            generated.
-     * @return the corresponding inherited node based on the target language.
+     *            generated
+     * @return the corresponding inherited node based on the target language
      */
     public static YangTypeDef getYangTypeDefNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
@@ -213,13 +215,31 @@ public final class YangDataModelFactory {
      * Based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
-     *            generated.
-     * @return the corresponding inherited node based on the target language.
+     *            generated
+     * @return the corresponding inherited node based on the target language
      */
     public static YangUses getYangUsesNode(GeneratedLanguage targetLanguage) {
         switch (targetLanguage) {
             case JAVA_GENERATION: {
                 return new YangJavaUses();
+            }
+            default: {
+                throw new RuntimeException("Only YANG to Java is supported.");
+            }
+        }
+    }
+
+    /**
+     * Based on the target language generate the inherited data model node.
+     *
+     * @param targetLanguage target language in which YANG mapping needs to be
+     *            generated
+     * @return the corresponding inherited node based on the target language
+     */
+    public static YangNotification getYangNotificationNode(GeneratedLanguage targetLanguage) {
+        switch (targetLanguage) {
+            case JAVA_GENERATION: {
+                return new YangJavaNotification();
             }
             default: {
                 throw new RuntimeException("Only YANG to Java is supported.");

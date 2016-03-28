@@ -1132,9 +1132,9 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                         "}")
      * TODO : 0..1 occurance to be checked in listener
      */
-     notificationStatement : NOTIFICATION_KEYWORD IDENTIFIER (STMTEND | LEFT_CURLY_BRACE (ifFeatureStatement | statusStatement
-                        | descriptionStatement | referenceStatement | typedefStatement | groupingStatement | dataDefStatement)*
-                        RIGHT_CURLY_BRACE);
+     notificationStatement : NOTIFICATION_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE (ifFeatureStatement
+                           | statusStatement | descriptionStatement | referenceStatement | typedefStatement
+                           | groupingStatement | dataDefStatement)* RIGHT_CURLY_BRACE);
 
     /**
      *  deviation-stmt      = deviation-keyword sep

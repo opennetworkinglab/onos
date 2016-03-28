@@ -1,0 +1,25 @@
+module rock {
+    namespace "http://example.net/rock";
+    prefix "rock";
+
+    notification link-failure {
+        description "A link failure has been detected";
+        status deprecated;
+        reference "reference";
+        typedef my-type {
+           status deprecated;
+           type int32;
+        }
+        leaf if-name {
+           type leafref {
+               path "/interface/name";
+           }
+        }
+        leaf if-admin-status {
+           type admin-status;
+        }
+        leaf if-oper-status {
+           type oper-status;
+        }
+    }
+}

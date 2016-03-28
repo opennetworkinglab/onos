@@ -25,6 +25,10 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.datamodel.YangInput;
+import org.onosproject.yangutils.datamodel.YangOutput;
+import org.onosproject.yangutils.datamodel.YangNotification;
+import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
@@ -129,9 +133,11 @@ public final class TypeDefListener {
         Parsable curData = listener.getParsedDataStack().peek();
 
         if (curData instanceof YangModule || curData instanceof YangSubModule || curData instanceof YangContainer
-                || curData instanceof YangList) {
+                || curData instanceof YangList || curData instanceof YangNotification || curData instanceof YangRpc
+                || curData instanceof YangInput || curData instanceof YangOutput) {
+
             /*
-             * TODO YangGrouping, YangRpc, YangInput, YangOutput, Notification.
+             * TODO YangGrouping.
              */
             YangNode curNode = (YangNode) curData;
             try {

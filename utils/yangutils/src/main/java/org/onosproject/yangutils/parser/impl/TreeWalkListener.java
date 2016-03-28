@@ -49,6 +49,7 @@ import org.onosproject.yangutils.parser.impl.listeners.MandatoryListener;
 import org.onosproject.yangutils.parser.impl.listeners.MaxElementsListener;
 import org.onosproject.yangutils.parser.impl.listeners.MinElementsListener;
 import org.onosproject.yangutils.parser.impl.listeners.ModuleListener;
+import org.onosproject.yangutils.parser.impl.listeners.NotificationListener;
 import org.onosproject.yangutils.parser.impl.listeners.NamespaceListener;
 import org.onosproject.yangutils.parser.impl.listeners.OrganizationListener;
 import org.onosproject.yangutils.parser.impl.listeners.PositionListener;
@@ -1090,12 +1091,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterNotificationStatement(GeneratedYangParser.NotificationStatementContext ctx) {
-        // TODO: implement the method.
+        NotificationListener.processNotificationEntry(this, ctx);
     }
 
     @Override
     public void exitNotificationStatement(GeneratedYangParser.NotificationStatementContext ctx) {
-        // TODO: implement the method.
+        NotificationListener.processNotificationExit(this, ctx);
     }
 
     @Override
