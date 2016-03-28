@@ -63,6 +63,21 @@ public final class JavaAttributeInfo {
     }
 
     /**
+     * Construct object of java attribute info.
+     *
+     * @param attrType YANG type
+     * @param name attribute name
+     * @param isListAttr is list attribute
+     * @param isQualifiedName is qualified name
+     */
+    public JavaAttributeInfo(YangType<?> attrType, String name, boolean isListAttr, boolean isQualifiedName) {
+        this.attrType = attrType;
+        this.name = name;
+        this.isListAttr = isListAttr;
+        this.isQualifiedName = isQualifiedName;
+    }
+
+    /**
      * Get the data type info of attribute.
      *
      * @return the data type info of attribute

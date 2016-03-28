@@ -176,21 +176,10 @@ public final class YangIoUtils {
     }
 
     /**
-     * Returns backspaced string.
-     *
-     * @param charString char string
-     * @return backspace string
-     */
-    public static String deleteLastChar(String charString) {
-
-        return charString.substring(0, charString.length() - 1);
-    }
-
-    /**
      * Get the directory path of the package in canonical form.
      *
      * @param baseCodeGenPath base path where the generated files needs to be
-     *            put.
+     *            put
      * @param pathOfJavaPkg java package of the file being generated
      * @return absolute path of the package in canonical form
      */
@@ -211,7 +200,7 @@ public final class YangIoUtils {
      * Get the absolute path of the package in canonical form.
      *
      * @param baseCodeGenPath base path where the generated files needs to be
-     *            put.
+     *            put
      * @param pathOfJavaPkg java package of the file being generated
      * @return absolute path of the package in canonical form
      */

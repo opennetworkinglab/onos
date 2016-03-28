@@ -30,24 +30,19 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
-import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
-import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
-import static org.onosproject.yangutils.utils.UtilConstants.FINAL;
-import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
-import static org.onosproject.yangutils.utils.UtilConstants.IMPLEMENTS;
-import static org.onosproject.yangutils.utils.UtilConstants.INTERFACE;
-import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
-import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
-import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
-import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
-import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 
 /**
  * Unit tests for class definition generator for generated files.
  */
 public final class ClassDefinitionGeneratorTest {
 
-    private static final String CLASS_NAME = "testclass";
+    private static final String CLASS_NAME = "TestClass";
+    private static final String INTERFACE_CLASS_DEF = "public interface TestClass {\n";
+    private static final String BULDER_INTERFACE_CLASS_DEF = "interface TestClassBuilder {\n\n";
+    private static final String BUILDER_CLASS_DEF = "public class TestClassBuilder implements "
+            + "TestClass.TestClassBuilder {\n";
+    private static final String IMPL_CLASS_DEF = "public final class TestClassImpl implements TestClass {\n";
+    private static final String TYPE_DEF_CLASS_DEF = "public final class TestClass {\n";
 
     /**
      * Unit test for private constructor.
@@ -78,9 +73,7 @@ public final class ClassDefinitionGeneratorTest {
     public void generateBuilderClassDefinitionTest() {
 
         String builderClassDefinition = generateClassDefinition(BUILDER_CLASS_MASK, CLASS_NAME);
-        assertThat(true, is(builderClassDefinition.equals(
-                PUBLIC + SPACE + CLASS + SPACE + CLASS_NAME + BUILDER + SPACE + IMPLEMENTS + SPACE + CLASS_NAME + PERIOD
-                        + CLASS_NAME + BUILDER + SPACE + OPEN_CURLY_BRACKET + NEW_LINE)));
+        assertThat(true, is(builderClassDefinition.equals(BUILDER_CLASS_DEF)));
     }
 
     /**
@@ -90,8 +83,7 @@ public final class ClassDefinitionGeneratorTest {
     public void generateBuilderInterfaceDefinitionTest() {
 
         String builderInterfaceDefinition = generateClassDefinition(BUILDER_INTERFACE_MASK, CLASS_NAME);
-        assertThat(true, is(builderInterfaceDefinition
-                .equals(INTERFACE + SPACE + CLASS_NAME + BUILDER + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + NEW_LINE)));
+        assertThat(true, is(builderInterfaceDefinition.equals(BULDER_INTERFACE_CLASS_DEF)));
     }
 
     /**
@@ -101,9 +93,7 @@ public final class ClassDefinitionGeneratorTest {
     public void generateImplDefinitionTest() {
 
         String implDefinition = generateClassDefinition(IMPL_CLASS_MASK, CLASS_NAME);
-        assertThat(true, is(implDefinition.equals(
-                PUBLIC + SPACE + FINAL + SPACE + CLASS + SPACE + CLASS_NAME + IMPL + SPACE + IMPLEMENTS + SPACE
-                        + CLASS_NAME + SPACE + OPEN_CURLY_BRACKET + NEW_LINE)));
+        assertThat(true, is(implDefinition.equals(IMPL_CLASS_DEF)));
     }
 
     /**
@@ -113,8 +103,7 @@ public final class ClassDefinitionGeneratorTest {
     public void generateinterfaceDefinitionTest() {
 
         String interfaceDefinition = generateClassDefinition(INTERFACE_MASK, CLASS_NAME);
-        assertThat(true, is(interfaceDefinition
-                .equals(PUBLIC + SPACE + INTERFACE + SPACE + CLASS_NAME + SPACE + OPEN_CURLY_BRACKET + NEW_LINE)));
+        assertThat(true, is(interfaceDefinition.equals(INTERFACE_CLASS_DEF)));
     }
 
     /**
@@ -124,7 +113,6 @@ public final class ClassDefinitionGeneratorTest {
     public void generateTypeDefTest() {
 
         String typeDef = generateClassDefinition(GENERATE_TYPEDEF_CLASS, CLASS_NAME);
-        assertThat(true, is(typeDef.equals(
-                PUBLIC + SPACE + FINAL + SPACE + CLASS + SPACE + CLASS_NAME + SPACE + OPEN_CURLY_BRACKET + NEW_LINE)));
+        assertThat(true, is(typeDef.equals(TYPE_DEF_CLASS_DEF)));
     }
 }

@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2016 Open Networking Laboratory
  *
@@ -16,70 +17,78 @@
 
 package org.onosproject.yangutils.utils.io.impl;
 
-import org.junit.Test;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
-import org.onosproject.yangutils.utils.UtilConstants;
-
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 import org.apache.maven.project.MavenProject;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.onosproject.yangutils.utils.UtilConstants;
 import org.sonatype.plexus.build.incremental.BuildContext;
 import org.sonatype.plexus.build.incremental.DefaultBuildContext;
 
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertNotNull;
 import static org.hamcrest.core.Is.is;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addToSource;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.clean;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirectories;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
 /**
  * Unit tests for YANG io utils.
  */
 public final class YangIoUtilsTest {
 
-    public static String baseDir = "target/UnitTestCase";
+    private static final String BASE_DIR = "target/UnitTestCase";
+    private static final String CREATE_PATH = BASE_DIR + File.separator + "dir1/dir2/dir3/dir4/";
+    private static final String CHECK_STRING = "one, two, three, four, five, six";
+    private static final String TRIM_STRING = "one, two, three, four, five, ";
 
-    public static String createPath = baseDir + File.separator + "dir1/dir2/dir3/dir4/";
-
-    private final Logger log = getLogger(getClass());
-
+    /**
+     * Expected exceptions.
+     */
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     /**
      * This test case checks whether the package-info file is created.
+     *
+     * @throws IOException when fails to do IO operations for test case
      */
     @Test
     public void addPackageInfoTest() throws IOException {
 
-        File dirPath = new File(createPath);
+        File dirPath = new File(CREATE_PATH);
         dirPath.mkdirs();
-        CopyrightHeader.parseCopyrightHeader();
-        YangIoUtils.addPackageInfo(dirPath, "check1", createPath);
+        addPackageInfo(dirPath, "check1", CREATE_PATH);
         File filePath = new File(dirPath + File.separator + "package-info.java");
         assertThat(filePath.isFile(), is(true));
     }
 
     /**
      * This test case checks with an additional info in the path.
+     *
+     * @throws IOException when fails to do IO operations for test case
      */
     @Test
     public void addPackageInfoWithPathTest() throws IOException {
 
-        File dirPath = new File(createPath);
+        File dirPath = new File(CREATE_PATH);
         dirPath.mkdirs();
-        CopyrightHeader.parseCopyrightHeader();
-        YangIoUtils.addPackageInfo(dirPath, "check1", "src/main/yangmodel/" + createPath);
+        addPackageInfo(dirPath, "check1", "src/main/yangmodel/" + CREATE_PATH);
         File filePath = new File(dirPath + File.separator + "package-info.java");
         assertThat(filePath.isFile(), is(true));
     }
 
     /**
      * This test case checks whether the package-info file is created when invalid path is given.
+     *
+     * @throws IOException when fails to do IO operations for test case
      */
     @Test
     public void addPackageInfoWithEmptyPathTest() throws IOException {
@@ -87,7 +96,7 @@ public final class YangIoUtilsTest {
         File dirPath = new File("invalid/check");
         thrown.expect(IOException.class);
         thrown.expectMessage("Exception occured while creating package info file.");
-        YangIoUtils.addPackageInfo(dirPath, "check1", createPath);
+        addPackageInfo(dirPath, "check1", CREATE_PATH);
         File filePath1 = new File(dirPath + File.separator + "package-info.java");
         assertThat(filePath1.isFile(), is(false));
     }
@@ -116,26 +125,30 @@ public final class YangIoUtilsTest {
 
     /**
      * This test case checks if the directory is cleaned.
+     *
+     * @throws IOException when fails to do IO operations for test case
      */
     @Test
     public void cleanGeneratedDirTest() throws IOException {
 
-        File baseDirPath = new File(baseDir);
-        File createNewDir = new File(baseDir + File.separator + UtilConstants.YANG_GEN_DIR);
+        File baseDirPath = new File(BASE_DIR);
+        File createNewDir = new File(BASE_DIR + File.separator + UtilConstants.YANG_GEN_DIR);
         createNewDir.mkdirs();
         File createFile = new File(createNewDir + File.separator + "check1.java");
         createFile.createNewFile();
-        YangIoUtils.clean(baseDirPath.getAbsolutePath());
+        clean(baseDirPath.getAbsolutePath());
     }
 
     /**
      * This test case checks the cleaning method when an invalid path is provided.
+     *
+     * @throws IOException when fails to do IO operations for test case
      */
     @Test
     public void cleanWithInvalidDirTest() throws IOException {
 
-        File baseDirPath = new File(baseDir + "invalid");
-        YangIoUtils.clean(baseDirPath.getAbsolutePath());
+        File baseDirPath = new File(BASE_DIR + "invalid");
+        clean(baseDirPath.getAbsolutePath());
     }
 
     /**
@@ -144,20 +157,30 @@ public final class YangIoUtilsTest {
     @Test
     public void createDirectoryTest() {
 
-        File dirPath = YangIoUtils.createDirectories(createPath);
+        File dirPath = createDirectories(CREATE_PATH);
         assertThat(dirPath.isDirectory(), is(true));
     }
 
     /**
-     * This testcase checks whether the source is getting added.
+     * This test case checks whether the source is getting added.
      */
     @Test
     public void testForAddSource() {
 
         MavenProject project = new MavenProject();
         BuildContext context = new DefaultBuildContext();
-        File sourceDir = new File(baseDir + File.separator + "yang");
+        File sourceDir = new File(BASE_DIR + File.separator + "yang");
         sourceDir.mkdirs();
-        YangIoUtils.addToSource(sourceDir.toString(), project, context);
+        addToSource(sourceDir.toString(), project, context);
+    }
+
+    /*
+     * Unit test case for trim at last method.
+     */
+    @Test
+    public void testForTrimAtLast() {
+
+        String test = trimAtLast(CHECK_STRING, "six");
+        assertThat(test.contains(TRIM_STRING), is(true));
     }
 }
