@@ -37,7 +37,7 @@ import java.util.List;
         description = "Lists all BGP speakers")
 public class BgpSpeakersListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "port=%s/%s, peers=%s";
+    private static final String FORMAT = "port=%s/%s, vlan=%s, peers=%s";
     private static final String NAME_FORMAT = "%s: " + FORMAT;
 
     private static final Comparator<BgpConfig.BgpSpeakerConfig> SPEAKERS_COMPARATOR = (s1, s2) ->
@@ -67,10 +67,10 @@ public class BgpSpeakersListCommand extends AbstractShellCommand {
                 s -> {
                     if (s.name().isPresent()) {
                         print(NAME_FORMAT, s.name().get(), s.connectPoint().deviceId(),
-                                s.connectPoint().port(), s.peers());
+                                s.connectPoint().port(), s.vlan(), s.peers());
                     } else {
                         print(FORMAT, s.connectPoint().deviceId(),
-                                s.connectPoint().port(), s.peers());
+                                s.connectPoint().port(), s.vlan(), s.peers());
                     }
                 });
         }
