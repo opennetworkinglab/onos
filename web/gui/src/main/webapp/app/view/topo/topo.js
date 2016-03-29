@@ -30,7 +30,8 @@
 
     // references to injected services
     var $scope, $log, $cookies, fs, ks, zs, gs, ms, sus, flash, wss, ps, th,
-        tds, t3s, tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, tspr, ttip, tov;
+        tds, t3s, tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, tspr,
+        ttip, tov;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
@@ -368,15 +369,14 @@
     }
 
     function setUpMap($loc) {
-        var qp = $loc.search(),
-            pr = ps.getPrefs('topo_mapid', {
-                id: qp.mapid || 'usa',
-                scale: qp.mapscale || 1,
-                tint: qp.tint || 'off'
-            }),
-            mapId = pr.id,
-            mapScale = pr.scale,
-            tint = pr.tint,
+        var prefs = ps.getPrefs(
+                'topo_mapid',
+                { mapid: 'usa', mapscale: 1, tint: 'off'},
+                $loc.search()
+            ),
+            mapId = prefs.mapid,
+            mapScale = prefs.mapscale,
+            tint = prefs.tint,
             promise,
             cfilter;
 
@@ -415,7 +415,7 @@
                 shading: shading()
             });
         }
-        ps.setPrefs('topo_mapid', { id: mapId, scale: mapScale, tint: tint });
+        ps.setPrefs('topo_mapid', prefs);
         return promise;
     }
 
@@ -438,13 +438,12 @@
     }
 
     function setUpSprites($loc, tspr) {
-        var s1 = $loc.search().sprites,
-            s2 = ps.getPrefs('topo_sprites', { id: s1 }),
-            sprId = s2.id;
+        var prefs = ps.getPrefs('topo_sprites', { sprites: '' }, $loc.search()),
+            sprId = prefs.sprites;
 
         spriteG = zoomLayer.append ('g').attr('id', 'topo-sprites');
         if (sprId) {
-            ps.setPrefs('topo_sprites', {id:sprId});
+            ps.setPrefs('topo_sprites', prefs);
             tspr.loadSprites(spriteG, defs, sprId);
         }
     }

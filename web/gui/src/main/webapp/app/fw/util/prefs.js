@@ -26,9 +26,19 @@
     // internal state
     var cache = {}, listeners = [];
 
-    // returns the preference by the specified name
-    function getPrefs(name, defaults) {
-        return cache[name] || defaults;
+    // returns the preference settings for the specified key
+    function getPrefs(name, defaults, qparams) {
+        var obj = angular.extend({}, defaults || {}, cache[name] || {});
+
+        // if query params are specified, they override...
+        if (fs.isO(qparams)) {
+            angular.forEach(obj, function (v, k) {
+                if (qparams.hasOwnProperty(k)) {
+                    obj[k] = qparams[k];
+                }
+            });
+        }
+        return obj;
     }
 
     // converts string values to numbers for selected (or all) keys
@@ -57,7 +67,7 @@
     function updatePrefs(data) {
         $log.info('User properties updated');
         cache = data;
-        listeners.forEach(function (l) { l(); });
+        listeners.forEach(function (lsnr) { lsnr(); });
     }
 
     function addListener(listener) {
