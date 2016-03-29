@@ -24,7 +24,6 @@ import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
@@ -88,10 +87,7 @@ public class ArpHandler {
         ARP arp = (ARP) ethernet.getPayload();
 
         ConnectPoint connectPoint = pkt.receivedFrom();
-        PortNumber inPort = connectPoint.port();
         DeviceId deviceId = connectPoint.deviceId();
-        byte[] senderMacAddressByte = arp.getSenderHardwareAddress();
-        Ip4Address hostIpAddress = Ip4Address.valueOf(arp.getSenderProtocolAddress());
         if (arp.getOpCode() == ARP.OP_REQUEST) {
             handleArpRequest(deviceId, connectPoint, ethernet);
         } else {
@@ -254,15 +250,23 @@ public class ArpHandler {
                 ((ARP) packet.getPayload()).getTargetProtocolAddress()
         );
 
-        srManager.deviceConfiguration.getSubnetPortsMap(inPort.deviceId()).forEach((subnet, ports) -> {
-            if (subnet.contains(targetProtocolAddress)) {
-                ports.stream()
-                        .filter(port -> port != inPort.port())
-                        .forEach(port -> {
-                            removeVlanAndForward(packet, new ConnectPoint(inPort.deviceId(), port));
-                        });
-            }
-        });
+        try {
+            srManager.deviceConfiguration
+                 .getSubnetPortsMap(inPort.deviceId()).forEach((subnet, ports) -> {
+                     if (subnet.contains(targetProtocolAddress)) {
+                         ports.stream()
+                         .filter(port -> port != inPort.port())
+                         .forEach(port -> {
+                             removeVlanAndForward(packet,
+                                 new ConnectPoint(inPort.deviceId(), port));
+                         });
+                     }
+                 });
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage()
+                    + " Cannot flood in subnet as device config not available"
+                    + " for device: " + inPort.deviceId());
+        }
     }
 
     /**

@@ -264,12 +264,16 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     @Override
-    public Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId) {
-        Map<Ip4Prefix, List<PortNumber>> subnetPortMap = new HashMap<>();
-
+    public Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId)
+            throws DeviceConfigNotFoundException {
+        SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
+        if (srinfo == null) {
+            String message = "getSubnetPortsMap fails for device: " + deviceId + ".";
+            throw new DeviceConfigNotFoundException(message);
+        }
         // Construct subnet-port mapping from port-subnet mapping
-        SetMultimap<PortNumber, Ip4Prefix> portSubnetMap =
-                this.deviceConfigMap.get(deviceId).subnets;
+        SetMultimap<PortNumber, Ip4Prefix> portSubnetMap = srinfo.subnets;
+        Map<Ip4Prefix, List<PortNumber>> subnetPortMap = new HashMap<>();
 
         portSubnetMap.entries().forEach(entry -> {
             PortNumber port = entry.getKey();

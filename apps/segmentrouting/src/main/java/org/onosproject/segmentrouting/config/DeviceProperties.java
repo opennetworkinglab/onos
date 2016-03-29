@@ -93,8 +93,10 @@ public interface DeviceProperties {
      *
      * @param deviceId device identifier
      * @return a map that contains all subnet-to-ports mapping of given device
+     * @throws DeviceConfigNotFoundException
      */
-    Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId);
+    Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId)
+            throws DeviceConfigNotFoundException;
 
     /**
      * Returns the VLAN cross-connect configuration.

@@ -564,6 +564,8 @@ public class DefaultRoutingHandler {
 
     public void purgeEcmpGraph(DeviceId deviceId) {
         currentEcmpSpgMap.remove(deviceId);
-        updatedEcmpSpgMap.remove(deviceId);
+        if (updatedEcmpSpgMap != null) {
+            updatedEcmpSpgMap.remove(deviceId);
+        }
     }
 }

@@ -677,8 +677,14 @@ public class DefaultGroupHandler {
      * Creates broadcast groups for all ports in the same configured subnet.
      */
     public void createGroupsFromSubnetConfig() {
-        Map<Ip4Prefix, List<PortNumber>> subnetPortMap =
-                this.deviceConfig.getSubnetPortsMap(this.deviceId);
+        Map<Ip4Prefix, List<PortNumber>> subnetPortMap;
+        try {
+            subnetPortMap = this.deviceConfig.getSubnetPortsMap(this.deviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage()
+                     + " Not creating broadcast groups for device: " + deviceId);
+            return;
+        }
         // Construct a broadcast group for each subnet
         subnetPortMap.forEach((subnet, ports) -> {
             SubnetNextObjectiveStoreKey key =
