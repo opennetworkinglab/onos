@@ -16,13 +16,14 @@
 
 package org.onosproject.yangutils.parser.impl.parserutils;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Pattern;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.utils.YangConstructType;
@@ -45,6 +46,7 @@ public final class ListenerUtil {
     private static final String SLASH = "/";
     private static final String SPACE = " ";
     private static final String COLON = ":";
+    private static final String CARET = "^";
 
     /**
      * Creates a new listener util.
@@ -236,5 +238,37 @@ public final class ListenerUtil {
             parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
             throw parserException;
         }
+    }
+
+    /**
+     * Checks and return valid absolute schema node id.
+     *
+     * @param argumentString string from yang file
+     * @param yangConstructType yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @return target nodes list of absolute schema node id
+     */
+    public static List<YangNodeIdentifier> getValidAbsoluteSchemaNodeId(String argumentString,
+            YangConstructType yangConstructType, ParserRuleContext ctx) {
+
+        List<YangNodeIdentifier> targetNodes = new LinkedList<>();
+        YangNodeIdentifier yangNodeIdentifier;
+        String tmpSchemaNodeId = removeQuotesAndHandleConcat(argumentString);
+
+        // absolute-schema-nodeid = 1*("/" node-identifier)
+        if (!tmpSchemaNodeId.startsWith(SLASH)) {
+            ParserException parserException = new ParserException("YANG file error : " +
+                    YangConstructType.getYangConstructType(yangConstructType) + " name " + argumentString +
+                    "is not valid");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+        String[] tmpData = tmpSchemaNodeId.replaceFirst(CARET + SLASH, EMPTY_STRING).split(SLASH);
+        for (String nodeIdentifiers : tmpData) {
+            yangNodeIdentifier = getValidNodeIdentifier(nodeIdentifiers, yangConstructType, ctx);
+            targetNodes.add(yangNodeIdentifier);
+        }
+        return targetNodes;
     }
 }

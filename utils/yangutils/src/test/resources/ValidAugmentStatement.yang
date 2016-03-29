@@ -1,0 +1,15 @@
+module Test {
+    yang-version 1;
+    namespace http://example.com/schema/ds0;
+    prefix On;
+
+    import interface-module {
+        prefix "if";
+    }
+    augment "/if:interfaces/if:ifEntry" {
+        when "if:ifType='ds0'";
+        leaf ds0ChannelNumber {
+            type P:ChannelNumber;
+        }
+    }
+}

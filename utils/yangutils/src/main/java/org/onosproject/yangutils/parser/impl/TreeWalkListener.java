@@ -25,6 +25,7 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangListener;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
+import org.onosproject.yangutils.parser.impl.listeners.AugmentListener;
 import org.onosproject.yangutils.parser.impl.listeners.BaseFileListener;
 import org.onosproject.yangutils.parser.impl.listeners.BelongsToListener;
 import org.onosproject.yangutils.parser.impl.listeners.BitListener;
@@ -1041,12 +1042,12 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterAugmentStatement(GeneratedYangParser.AugmentStatementContext ctx) {
-        // TODO: implement the method.
+        AugmentListener.processAugmentEntry(this, ctx);
     }
 
     @Override
     public void exitAugmentStatement(GeneratedYangParser.AugmentStatementContext ctx) {
-        // TODO: implement the method.
+        AugmentListener.processAugmentExit(this, ctx);
     }
 
     @Override

@@ -1055,7 +1055,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                         "}"
      * TODO : 0..1 occurance to be checked in listener
      */
-    augmentStatement : AUGMENT_KEYWORD string LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | statusStatement
+    augmentStatement : AUGMENT_KEYWORD augment LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | statusStatement
                    | descriptionStatement | referenceStatement | dataDefStatement  | caseStatement)* RIGHT_CURLY_BRACE;
 
     /**
