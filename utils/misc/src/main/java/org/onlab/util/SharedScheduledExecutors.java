@@ -15,8 +15,6 @@
  */
 package org.onlab.util;
 
-import java.util.concurrent.ScheduledExecutorService;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -56,7 +54,7 @@ public final class SharedScheduledExecutors {
      *
      * @return shared scheduled single thread executor
      */
-    public static ScheduledExecutorService getSingleThreadExecutor() {
+    public static SharedScheduledExecutorService getSingleThreadExecutor() {
         return singleThreadExecutor;
     }
 
@@ -65,7 +63,7 @@ public final class SharedScheduledExecutors {
      *
      * @return shared scheduled executor pool
      */
-    public static ScheduledExecutorService getPoolThreadExecutor() {
+    public static SharedScheduledExecutorService getPoolThreadExecutor() {
         return poolThreadExecutor;
     }
 

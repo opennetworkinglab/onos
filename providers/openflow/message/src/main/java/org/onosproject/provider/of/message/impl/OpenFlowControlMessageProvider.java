@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.metrics.MetricsService;
+import org.onlab.util.SharedScheduledExecutorService;
 import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.cpman.message.ControlMessageProvider;
 import org.onosproject.cpman.message.ControlMessageProviderRegistry;
@@ -40,7 +41,6 @@ import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -77,7 +77,7 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
                     new InternalOutgoingMessageProvider();
 
     private HashMap<Dpid, OpenFlowControlMessageAggregator> aggregators = Maps.newHashMap();
-    private ScheduledExecutorService executor;
+    private SharedScheduledExecutorService executor;
     private static final int AGGR_INIT_DELAY = 1;
     private static final int AGGR_PERIOD = 1;
     private static final TimeUnit AGGR_TIME_UNIT = TimeUnit.MINUTES;
@@ -159,7 +159,7 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
                     new OpenFlowControlMessageAggregator(metricsService,
                             providerService, deviceId);
             ScheduledFuture result = executor.scheduleAtFixedRate(ofcma,
-                    AGGR_INIT_DELAY, AGGR_PERIOD, AGGR_TIME_UNIT);
+                    AGGR_INIT_DELAY, AGGR_PERIOD, AGGR_TIME_UNIT, true);
             aggregators.put(dpid, ofcma);
             executorResults.put(dpid, result);
         }
