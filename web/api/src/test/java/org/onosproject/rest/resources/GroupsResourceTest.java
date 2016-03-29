@@ -156,6 +156,11 @@ public class GroupsResourceTest extends ResourceTest {
         }
 
         @Override
+        public int age() {
+            return 0;
+        }
+
+        @Override
         public Type type() {
             return GroupDescription.Type.ALL;
         }

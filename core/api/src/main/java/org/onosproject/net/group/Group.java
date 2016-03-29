@@ -96,4 +96,12 @@ public interface Group extends GroupDescription {
      * @return number of flow rules or other groups pointing to this group
      */
     long referenceCount();
+
+    /**
+     * Obtains the age of a group. The age reflects the number of polling rounds
+     * the group has had a reference count of zero.
+     *
+     * @return the age of the group as an integer
+     */
+    int age();
 }

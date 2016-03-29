@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
@@ -129,6 +130,7 @@ public class DistributedGroupStoreTest {
         groupStoreImpl.storageService = new TestStorageService();
         groupStoreImpl.clusterCommunicator = new ClusterCommunicationServiceAdapter();
         groupStoreImpl.mastershipService = new MasterOfAll();
+        groupStoreImpl.cfgService = new ComponentConfigAdapter();
         groupStoreImpl.activate();
         groupStore = groupStoreImpl;
         auditPendingReqQueue =
