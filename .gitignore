@@ -14,6 +14,8 @@ dependency-reduced-pom.xml
 *.DS_Store
 localDB
 localDB.*
+.buckd
+buck-out
 
 core/store/trivial/data/
 core/store/apps
