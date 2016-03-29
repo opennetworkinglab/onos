@@ -92,7 +92,7 @@ DEPS = [
     '//apps/olt:onos-app-olt-app',
     '//apps/iptopology-api:onos-app-iptopology-api',
     '//apps/metrics:onos-app-metrics',
-    '//apps/metricsreporter:onos-app-metrics-reporter',
+    '//apps/gangliametrics:onos-app-ganglia',
     '//apps/mfwd:onos-app-mfwd',
     '//apps/mlb:onos-app-mlb',
     '//apps/mobility:onos-app-mobility',

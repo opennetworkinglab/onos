@@ -1,7 +1,7 @@
 SRC = 'src/main/java/org/onosproject/**/'
 TEST = 'src/main/java/org/onosproject/**/'
 
-CURRENT_NAME = 'onos-app-metrics-reporter'
+CURRENT_NAME = 'onos-app-ganglia'
 CURRENT_TARGET = ':' + CURRENT_NAME
 
 COMPILE_DEPS = [
