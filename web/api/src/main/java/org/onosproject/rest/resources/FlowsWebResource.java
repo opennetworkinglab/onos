@@ -18,6 +18,8 @@ package org.onosproject.rest.resources;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -41,8 +43,11 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.StreamSupport;
+
+import static org.onlab.util.Tools.nullIsNotFound;
 
 /**
  * Query and program flow rules.
@@ -55,7 +60,10 @@ public class FlowsWebResource extends AbstractWebResource {
     UriInfo uriInfo;
 
     public static final String DEVICE_NOT_FOUND = "Device is not found";
+    public static final String FLOW_NOT_FOUND = "Flow is not found";
     public static final String FLOWS = "flows";
+    public static final String DEVICE_ID = "deviceId";
+    public static final String FLOW_ID = "flowId";
 
     final FlowRuleService service = get(FlowRuleService.class);
     final ObjectNode root = mapper().createObjectNode();
@@ -104,10 +112,16 @@ public class FlowsWebResource extends AbstractWebResource {
             ArrayNode flowsArray = (ArrayNode) jsonTree.get(FLOWS);
             List<FlowRule> rules = codec(FlowRule.class).decode(flowsArray, this);
             service.applyFlowRules(rules.toArray(new FlowRule[rules.size()]));
+            rules.forEach(flowRule -> {
+                ObjectNode flowNode = mapper().createObjectNode();
+                flowNode.put(DEVICE_ID, flowRule.deviceId().toString())
+                        .put(FLOW_ID, flowRule.id().value());
+                flowsNode.add(flowNode);
+            });
         } catch (IOException ex) {
             throw new IllegalArgumentException(ex);
         }
-        return Response.ok().build();
+        return Response.ok(root).build();
     }
 
     /**
@@ -226,6 +240,47 @@ public class FlowsWebResource extends AbstractWebResource {
         StreamSupport.stream(flowEntries.spliterator(), false)
                 .filter(entry -> entry.id().value() == flowId)
                 .forEach(service::removeFlowRules);
+    }
+
+    /**
+     * Removes a batch of flow rules.
+     */
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteFlows(InputStream stream) {
+        ListMultimap<DeviceId, Long> deviceMap = ArrayListMultimap.create();
+        List<FlowEntry> rulesToRemove = new ArrayList<>();
+
+        try {
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+
+            JsonNode jsonFlows = jsonTree.get("flows");
+
+            jsonFlows.forEach(node -> {
+                DeviceId deviceId =
+                        DeviceId.deviceId(
+                                nullIsNotFound(node.get(DEVICE_ID),
+                                               DEVICE_NOT_FOUND).asText());
+                long flowId = nullIsNotFound(node.get(FLOW_ID),
+                                             FLOW_NOT_FOUND).asLong();
+                deviceMap.put(deviceId, flowId);
+
+            });
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+
+        deviceMap.keySet().forEach(deviceId -> {
+            List<Long> flowIds = deviceMap.get(deviceId);
+            Iterable<FlowEntry> entries = service.getFlowEntries(deviceId);
+            flowIds.forEach(flowId -> {
+                StreamSupport.stream(entries.spliterator(), false)
+                        .filter(entry -> flowId == entry.id().value())
+                        .forEach(rulesToRemove::add);
+            });
+        });
+
+        service.removeFlowRules(rulesToRemove.toArray(new FlowEntry[0]));
     }
 
 }
