@@ -21,6 +21,7 @@ import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
+import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.NetworkResource;
@@ -152,7 +153,7 @@ public class IntentTestsMocks {
                 System.arraycopy(reversePathHops, 0, allHops, 0, pathHops.length);
             }
 
-            result.add(createPath(allHops));
+            result.add(createPath(src instanceof HostId, dst instanceof HostId, allHops));
             return result;
         }
 
@@ -161,15 +162,17 @@ public class IntentTestsMocks {
             final Set<Path> paths = getPaths(src, dst);
 
             for (Path path : paths) {
-                final DeviceId srcDevice = path.src().deviceId();
-                final DeviceId dstDevice = path.dst().deviceId();
-                final TopologyVertex srcVertex = new DefaultTopologyVertex(srcDevice);
-                final TopologyVertex dstVertex = new DefaultTopologyVertex(dstDevice);
-                final Link link = link(src.toString(), 1, dst.toString(), 1);
+                final DeviceId srcDevice = path.src().elementId() instanceof DeviceId ? path.src().deviceId() : null;
+                final DeviceId dstDevice = path.dst().elementId() instanceof DeviceId ? path.dst().deviceId() : null;
+                if (srcDevice != null && dstDevice != null) {
+                    final TopologyVertex srcVertex = new DefaultTopologyVertex(srcDevice);
+                    final TopologyVertex dstVertex = new DefaultTopologyVertex(dstDevice);
+                    final Link link = link(src.toString(), 1, dst.toString(), 1);
 
-                final double weightValue = weight.weight(new DefaultTopologyEdge(srcVertex, dstVertex, link));
-                if (weightValue < 0) {
-                    return new HashSet<>();
+                    final double weightValue = weight.weight(new DefaultTopologyEdge(srcVertex, dstVertex, link));
+                    if (weightValue < 0) {
+                        return new HashSet<>();
+                    }
                 }
             }
             return paths;

@@ -93,6 +93,21 @@ public final class NetTestTools {
         return new DefaultPath(PID, links, ids.length);
     }
 
+    // Creates a path that leads through the given devices.
+    public static Path createPath(boolean srcIsEdge, boolean dstIsEdge, String... ids) {
+        List<Link> links = new ArrayList<>();
+        for (int i = 0; i < ids.length - 1; i++) {
+            if (i == 0 && srcIsEdge) {
+                links.add(DefaultEdgeLink.createEdgeLink(host(ids[i], ids[i + 1]), true));
+            } else if (i == ids.length - 2 && dstIsEdge) {
+                links.add(DefaultEdgeLink.createEdgeLink(host(ids[i + 1], ids[i]), false));
+            } else {
+                links.add(link(ids[i], i, ids[i + 1], i));
+            }
+        }
+        return new DefaultPath(PID, links, ids.length);
+    }
+
     // Creates OCh signal
     public static OchSignal createLambda() {
         return new OchSignal(GridType.DWDM, ChannelSpacing.CHL_6P25GHZ, 8, 4);
