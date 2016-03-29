@@ -178,6 +178,7 @@ public final class DefaultNextObjective implements NextObjective {
             this.type = objective.type();
             this.id = objective.id();
             this.treatments = ImmutableList.copyOf(objective.next());
+            this.listBuilder.addAll(objective.next());
             this.meta = objective.meta();
             this.appId = objective.appId();
             this.op = objective.op();
