@@ -7,6 +7,16 @@
 # If it is invoked by a boot system, environment variables will usually be
 # empty and the default values will be used.
 # -----------------------------------------------------------------------------
+### BEGIN INIT INFO
+# Provides:          onos
+# Required-Start:    $network $remote_fs $syslog
+# Required-Stop:     $network $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: ONOS network operating system
+# Description:       ONOS is a network operating system for controlling SDN networks, designed for high availablility, performance, and scale out.
+### END INIT INFO
+
 
 ONOS_HOME=${ONOS_HOME:-/opt/onos}
 [ -f $ONOS_HOME/options ] && . $ONOS_HOME/options
