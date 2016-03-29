@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.IpPrefix;
@@ -99,7 +100,8 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         // convert filtering conditions for switch-intfs into flowrules
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         for (Criterion criterion : filt.conditions()) {
-            if (criterion.type() == Criterion.Type.ETH_DST) {
+            if (criterion.type() == Criterion.Type.ETH_DST ||
+                    criterion.type() == Criterion.Type.ETH_DST_MASKED) {
                 ethCriterion = (EthCriterion) criterion;
             } else if (criterion.type() == Criterion.Type.VLAN_VID) {
                 vidCriterion = (VlanIdCriterion) criterion;
@@ -294,6 +296,11 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
             return processEthDstOnlyFilter(ethCriterion, applicationId);
         }
 
+        // Multicast MAC
+        if (ethCriterion.mask() != null) {
+            return processMcastEthDstFilter(ethCriterion, applicationId);
+        }
+
         //handling untagged packets via assigned VLAN
         if (vidCriterion.vlanId() == VlanId.NONE) {
             vidCriterion = (VlanIdCriterion) Criteria.matchVlanId(assignedVlan);
@@ -416,19 +423,37 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
          */
         if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
             IpPrefix ipv4Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV4_DST)).ip();
-            if (ipv4Dst.prefixLength() > 0) {
-                filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
-                        .matchIPDst(ipv4Dst);
+            if (ipv4Dst.isMulticast()) {
+                if (ipv4Dst.prefixLength() != 32) {
+                    log.warn("Multicast specific forwarding objective can only be /32");
+                    fail(fwd, ObjectiveError.BADPARAMS);
+                    return ImmutableSet.of();
+                }
+                VlanId assignedVlan = readVlanFromSelector(fwd.meta());
+                if (assignedVlan == null) {
+                    log.warn("VLAN ID required by multicast specific fwd obj is missing. Abort.");
+                    fail(fwd, ObjectiveError.BADPARAMS);
+                    return ImmutableSet.of();
+                }
+                filteredSelector.matchVlanId(assignedVlan);
+                filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
+                forTableId = MULTICAST_ROUTING_TABLE;
+                log.debug("processing IPv4 multicast specific forwarding objective {} -> next:{}"
+                        + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             } else {
-                filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
-                        .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
-                complementarySelector.matchEthType(Ethernet.TYPE_IPV4)
-                        .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
-                defaultRule = true;
+                if (ipv4Dst.prefixLength() > 0) {
+                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
+                } else {
+                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
+                            .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
+                    complementarySelector.matchEthType(Ethernet.TYPE_IPV4)
+                            .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
+                    defaultRule = true;
+                }
+                forTableId = UNICAST_ROUTING_TABLE;
+                log.debug("processing IPv4 unicast specific forwarding objective {} -> next:{}"
+                        + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             }
-            forTableId = UNICAST_ROUTING_TABLE;
-            log.debug("processing IPv4 specific forwarding objective {} -> next:{}"
-                    + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
         } else {
             filteredSelector
                 .matchEthType(Ethernet.MPLS_UNICAST)

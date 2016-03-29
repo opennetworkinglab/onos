@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
@@ -297,7 +298,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         // convert filtering conditions for switch-intfs into flowrules
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         for (Criterion criterion : filt.conditions()) {
-            if (criterion.type() == Criterion.Type.ETH_DST) {
+            if (criterion.type() == Criterion.Type.ETH_DST ||
+                    criterion.type() == Criterion.Type.ETH_DST_MASKED) {
                 ethCriterion = (EthCriterion) criterion;
             } else if (criterion.type() == Criterion.Type.VLAN_VID) {
                 vidCriterion = (VlanIdCriterion) criterion;
@@ -559,6 +561,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             return processEthDstOnlyFilter(ethCriterion, applicationId);
         }
 
+        // Multicast MAC
+        if (ethCriterion.mask() != null) {
+            return processMcastEthDstFilter(ethCriterion, applicationId);
+        }
+
         //handling untagged packets via assigned VLAN
         if (vidCriterion.vlanId() == VlanId.NONE) {
             vidCriterion = (VlanIdCriterion) Criteria.matchVlanId(assignedVlan);
@@ -624,6 +631,24 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         selector.matchEthType(Ethernet.TYPE_IPV4);
         selector.matchEthDst(ethCriterion.mac());
         treatment.transition(UNICAST_ROUTING_TABLE);
+        FlowRule rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DEFAULT_PRIORITY)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(TMAC_TABLE).build();
+        return ImmutableList.<FlowRule>builder().add(rule).build();
+    }
+
+    protected List<FlowRule> processMcastEthDstFilter(EthCriterion ethCriterion,
+            ApplicationId applicationId) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        selector.matchEthType(Ethernet.TYPE_IPV4);
+        selector.matchEthDstMasked(ethCriterion.mac(), ethCriterion.mask());
+        treatment.transition(MULTICAST_ROUTING_TABLE);
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
                 .withSelector(selector.build())
@@ -802,19 +827,38 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
          */
         if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
             IpPrefix ipv4Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV4_DST)).ip();
-            if (ipv4Dst.prefixLength() > 0) {
-                filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
-                        .matchIPDst(ipv4Dst);
+            if (ipv4Dst.isMulticast()) {
+                if (ipv4Dst.prefixLength() != 32) {
+                    log.warn("Multicast specific forwarding objective can only be /32");
+                    fail(fwd, ObjectiveError.BADPARAMS);
+                    return ImmutableSet.of();
+                }
+                VlanId assignedVlan = readVlanFromSelector(fwd.meta());
+                if (assignedVlan == null) {
+                    log.warn("VLAN ID required by multicast specific fwd obj is missing. Abort.");
+                    fail(fwd, ObjectiveError.BADPARAMS);
+                    return ImmutableSet.of();
+                }
+                OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
+                filteredSelector.extension(ofdpaMatchVlanVid, deviceId);
+                filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
+                forTableId = MULTICAST_ROUTING_TABLE;
+                log.debug("processing IPv4 multicast specific forwarding objective {} -> next:{}"
+                        + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             } else {
-                filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
-                        .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
-                complementarySelector.matchEthType(Ethernet.TYPE_IPV4)
-                        .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
-                defaultRule = true;
+                if (ipv4Dst.prefixLength() > 0) {
+                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
+                } else {
+                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
+                            .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
+                    complementarySelector.matchEthType(Ethernet.TYPE_IPV4)
+                            .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
+                    defaultRule = true;
+                }
+                forTableId = UNICAST_ROUTING_TABLE;
+                log.debug("processing IPv4 unicast specific forwarding objective {} -> next:{}"
+                        + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             }
-            forTableId = UNICAST_ROUTING_TABLE;
-            log.debug("processing IPv4 specific forwarding objective {} -> next:{}"
-                    + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
 
             if (fwd.treatment() != null) {
                 for (Instruction instr : fwd.treatment().allInstructions()) {
@@ -1056,5 +1100,16 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             mappings.add(gchain.toString());
         }
         return mappings;
+    }
+
+    protected static VlanId readVlanFromSelector(TrafficSelector selector) {
+        Criterion criterion = selector.getCriterion(Criterion.Type.VLAN_VID);
+        return (criterion == null)
+                ? null : ((VlanIdCriterion) criterion).vlanId();
+    }
+
+    protected static IpPrefix readIpDstFromSelector(TrafficSelector selector) {
+        Criterion criterion = selector.getCriterion(Criterion.Type.IPV4_DST);
+        return (criterion == null) ? null : ((IPCriterion) criterion).ip();
     }
 }
