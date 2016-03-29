@@ -49,8 +49,8 @@ import static org.onosproject.net.intent.LinksHaveEntryWithSourceDestinationPair
 public class HostToHostIntentCompilerTest extends AbstractIntentTest {
     private static final String HOST_ONE_MAC = "00:00:00:00:00:01";
     private static final String HOST_TWO_MAC = "00:00:00:00:00:02";
-    private static final String HOST_ONE_VLAN = "-1";
-    private static final String HOST_TWO_VLAN = "-1";
+    private static final String HOST_ONE_VLAN = "None";
+    private static final String HOST_TWO_VLAN = "None";
     private static final String HOST_ONE = HOST_ONE_MAC + "/" + HOST_ONE_VLAN;
     private static final String HOST_TWO = HOST_TWO_MAC + "/" + HOST_TWO_VLAN;
 

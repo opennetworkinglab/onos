@@ -83,7 +83,7 @@ public class ConnectPointTest {
         String cp = "16:3A:BD:6E:31:E4/-1/1";
 
         ConnectPoint connectPoint = ConnectPoint.hostConnectPoint(cp);
-        assertEquals("16:3A:BD:6E:31:E4/-1", connectPoint.hostId().toString());
+        assertEquals("16:3A:BD:6E:31:E4/None", connectPoint.hostId().toString());
         assertEquals("1", connectPoint.port().toString());
 
         expectHostParseException("");

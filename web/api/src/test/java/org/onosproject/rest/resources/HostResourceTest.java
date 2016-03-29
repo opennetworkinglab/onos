@@ -390,7 +390,7 @@ public class HostResourceTest extends ResourceTest {
                 .post(Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
         String location = response.getLocation().getPath();
-        assertThat(location, Matchers.startsWith("/hosts/11:22:33:44:55:66/-1"));
+        assertThat(location, Matchers.startsWith("/hosts/11:22:33:44:55:66/None"));
     }
 }
 
