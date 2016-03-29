@@ -22,7 +22,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.PIM;
 
-public class PIMPacket {
+public class PimPacket {
 
     // Ethernet header
     private Ethernet ethHeader = new Ethernet();
@@ -51,7 +51,7 @@ public class PIMPacket {
      *
      * @param type PIM.TYPE_XXXX where XXX is the PIM message type
      */
-    public PIMPacket(byte type) {
+    public PimPacket(byte type) {
         pimType = type;
         initDefaults();
     }
@@ -105,7 +105,7 @@ public class PIMPacket {
      *
      * @param payload the PIM payload
      */
-    public void setPIMPayload(IPacket payload) {
+    public void setPimPayload(IPacket payload) {
         pimHeader.setPayload(payload);
         payload.setParent(pimHeader);
     }

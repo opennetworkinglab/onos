@@ -42,7 +42,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * The main PIM controller class.
  */
 @Component(immediate = true)
-public class PIMApplication {
+public class PimApplication {
     private final Logger log = getLogger(getClass());
 
     // Used to get the appId
@@ -61,13 +61,13 @@ public class PIMApplication {
     protected MulticastRouteService ms;
 
     // Create an instance of the PIM packet handler
-    protected PIMPacketHandler pimPacketHandler;
+    protected PimPacketHandler pimPacketHandler;
 
     // Provide interfaces to the pimInterface manager as a result of Netconfig updates.
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PIMInterfaceService pimInterfaceManager;
+    protected PimInterfaceService pimInterfaceManager;
 
-    private final PIMPacketProcessor processor = new PIMPacketProcessor();
+    private final PimPacketProcessor processor = new PimPacketProcessor();
 
     /**
      * Activate the PIM component.
@@ -89,7 +89,7 @@ public class PIMApplication {
                 appId, Optional.empty());
 
         // Get a copy of the PIM Packet Handler
-        pimPacketHandler = new PIMPacketHandler();
+        pimPacketHandler = new PimPacketHandler();
 
         log.info("Started");
     }
@@ -108,7 +108,7 @@ public class PIMApplication {
      * The class that will receive PIM packets, sanitize them, determine the PIMInterface
      * they arrived on, then forward them on to be processed by the appropriate entity.
      */
-    public class PIMPacketProcessor implements PacketProcessor {
+    public class PimPacketProcessor implements PacketProcessor {
 
         @Override
         public void process(PacketContext context) {
@@ -135,7 +135,7 @@ public class PIMApplication {
             }
 
             // Get the PIM Interface the packet was received on.
-            PIMInterface pimi = pimInterfaceManager.getPIMInterface(pkt.receivedFrom());
+            PimInterface pimi = pimInterfaceManager.getPimInterface(pkt.receivedFrom());
             if (pimi == null) {
                 return;
             }

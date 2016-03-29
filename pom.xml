@@ -54,6 +54,7 @@
 
         <module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
+        <module>tools/build/conf</module>
     </modules>
 
     <url>http://onosproject.org/</url>
@@ -74,7 +75,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos-build-conf.version>1.2</onos-build-conf.version>
+        <onos-build-conf.version>1.3-SNAPSHOT</onos-build-conf.version>
         <netty4.version>4.0.33.Final</netty4.version>
         <!-- TODO: replace with final release version when it is out -->
         <atomix.version>1.0.0-rc3</atomix.version>

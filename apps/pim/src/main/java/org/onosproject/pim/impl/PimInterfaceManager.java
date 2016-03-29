@@ -62,7 +62,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class PIMInterfaceManager implements PIMInterfaceService {
+public class PimInterfaceManager implements PimInterfaceService {
 
     private final Logger log = getLogger(getClass());
 
@@ -104,9 +104,9 @@ public class PIMInterfaceManager implements PIMInterfaceService {
     protected RoutingService unicastRoutingService;
 
     // Store PIM Interfaces in a map key'd by ConnectPoint
-    private final Map<ConnectPoint, PIMInterface> pimInterfaces = Maps.newConcurrentMap();
+    private final Map<ConnectPoint, PimInterface> pimInterfaces = Maps.newConcurrentMap();
 
-    private final Map<McastRoute, PIMInterface> routes = Maps.newConcurrentMap();
+    private final Map<McastRoute, PimInterface> routes = Maps.newConcurrentMap();
 
     private final InternalNetworkConfigListener configListener =
             new InternalNetworkConfigListener();
@@ -147,18 +147,18 @@ public class PIMInterfaceManager implements PIMInterfaceService {
         // Schedule the periodic hello sender.
         scheduledExecutorService.scheduleAtFixedRate(
                 SafeRecurringTask.wrap(
-                        () -> pimInterfaces.values().forEach(PIMInterface::sendHello)),
+                        () -> pimInterfaces.values().forEach(PimInterface::sendHello)),
                 initialHelloDelay, pimHelloPeriod, TimeUnit.MILLISECONDS);
 
         // Schedule task to periodically time out expired neighbors
         scheduledExecutorService.scheduleAtFixedRate(
                 SafeRecurringTask.wrap(
-                        () -> pimInterfaces.values().forEach(PIMInterface::checkNeighborTimeouts)),
+                        () -> pimInterfaces.values().forEach(PimInterface::checkNeighborTimeouts)),
                 0, timeoutTaskPeriod, TimeUnit.MILLISECONDS);
 
         scheduledExecutorService.scheduleAtFixedRate(
                 SafeRecurringTask.wrap(
-                        () -> pimInterfaces.values().forEach(PIMInterface::sendJoins)),
+                        () -> pimInterfaces.values().forEach(PimInterface::sendJoins)),
                 0, joinTaskPeriod, TimeUnit.MILLISECONDS);
 
         log.info("Started");
@@ -178,8 +178,8 @@ public class PIMInterfaceManager implements PIMInterfaceService {
     }
 
     @Override
-    public PIMInterface getPIMInterface(ConnectPoint cp) {
-        PIMInterface pi = pimInterfaces.get(cp);
+    public PimInterface getPimInterface(ConnectPoint cp) {
+        PimInterface pi = pimInterfaces.get(cp);
         if (pi == null && log.isTraceEnabled()) {
             log.trace("We have been asked for an Interface we don't have: {}", cp);
         }
@@ -187,7 +187,7 @@ public class PIMInterfaceManager implements PIMInterfaceService {
     }
 
     @Override
-    public Set<PIMInterface> getPimInterfaces() {
+    public Set<PimInterface> getPimInterfaces() {
         return ImmutableSet.copyOf(pimInterfaces.values());
     }
 
@@ -216,8 +216,8 @@ public class PIMInterfaceManager implements PIMInterfaceService {
         pimInterfaces.remove(cp);
     }
 
-    private PIMInterface buildPimInterface(PimInterfaceConfig config, Interface intf) {
-        PIMInterface.Builder builder = PIMInterface.builder()
+    private PimInterface buildPimInterface(PimInterfaceConfig config, Interface intf) {
+        PimInterface.Builder builder = PimInterface.builder()
                 .withPacketService(packetService)
                 .withInterface(intf);
 
@@ -231,7 +231,7 @@ public class PIMInterfaceManager implements PIMInterfaceService {
     }
 
     private void addRoute(McastRoute route) {
-        PIMInterface pimInterface = getSourceInterface(route);
+        PimInterface pimInterface = getSourceInterface(route);
 
         if (pimInterface == null) {
             return;
@@ -241,7 +241,7 @@ public class PIMInterfaceManager implements PIMInterfaceService {
     }
 
     private void removeRoute(McastRoute route) {
-        PIMInterface pimInterface = routes.remove(route);
+        PimInterface pimInterface = routes.remove(route);
 
         if (pimInterface == null) {
             return;
@@ -250,7 +250,7 @@ public class PIMInterfaceManager implements PIMInterfaceService {
         pimInterface.removeRoute(route);
     }
 
-    private PIMInterface getSourceInterface(McastRoute route) {
+    private PimInterface getSourceInterface(McastRoute route) {
         RouteEntry routeEntry = unicastRoutingService.getLongestMatchableRouteEntry(route.source());
 
         if (routeEntry == null) {
@@ -265,7 +265,7 @@ public class PIMInterfaceManager implements PIMInterfaceService {
             return null;
         }
 
-        PIMInterface pimInterface = pimInterfaces.get(intf.connectPoint());
+        PimInterface pimInterface = pimInterfaces.get(intf.connectPoint());
 
         if (pimInterface == null) {
             log.warn("PIM is not enabled on interface {}", intf);

@@ -26,7 +26,7 @@ import java.util.Set;
  *
  * TODO: Do we need a PIMInterfaceListenerService?  Who sould listen to Interfaces changes?
  */
-public interface PIMInterfaceService {
+public interface PimInterfaceService {
 
     /**
      * Returns the PIM interface associated with the given connect point.
@@ -34,12 +34,12 @@ public interface PIMInterfaceService {
      * @param cp the connect point we want to get the PIM interface for
      * @return the PIM interface if it exists, otherwise null
      */
-    PIMInterface getPIMInterface(ConnectPoint cp);
+    PimInterface getPimInterface(ConnectPoint cp);
 
     /**
      * Retrieves the set of all interfaces running PIM.
      *
      * @return set of PIM interfaces
      */
-    Set<PIMInterface> getPimInterfaces();
+    Set<PimInterface> getPimInterfaces();
 }

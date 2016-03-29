@@ -27,14 +27,14 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * This class will process PIM packets.
  */
-public class PIMPacketHandler {
+public class PimPacketHandler {
 
     private final Logger log = getLogger(getClass());
 
     /**
      * Constructor for this class.
      */
-    public PIMPacketHandler() {
+    public PimPacketHandler() {
     }
 
     /**
@@ -44,7 +44,7 @@ public class PIMPacketHandler {
      * @param ethPkt the packet starting with the Ethernet header.
      * @param pimi the PIM Interface the packet arrived on.
      */
-    public void processPacket(Ethernet ethPkt, PIMInterface pimi) {
+    public void processPacket(Ethernet ethPkt, PimInterface pimi) {
         checkNotNull(ethPkt);
         checkNotNull(pimi);
 

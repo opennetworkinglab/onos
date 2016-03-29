@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Represents a PIM neighbor.
  */
-public class PIMNeighbor {
+public class PimNeighbor {
 
     // IP Address of this neighbor
     private final IpAddress ipAddr;
@@ -66,7 +66,7 @@ public class PIMNeighbor {
      * @param priority priority
      * @param genId generation ID
      */
-    public PIMNeighbor(IpAddress ipAddress, MacAddress macAddress,
+    public PimNeighbor(IpAddress ipAddress, MacAddress macAddress,
                        short holdTime, int pruneDelay, int priority, int genId) {
         this.ipAddr = checkNotNull(ipAddress);
         this.macAddr = checkNotNull(macAddress);
@@ -176,7 +176,7 @@ public class PIMNeighbor {
      * @param opts options from the PIM HELLO packet
      * @return new PIM neighbor
      */
-    public static PIMNeighbor createPimNeighbor(IpAddress ipAddress,
+    public static PimNeighbor createPimNeighbor(IpAddress ipAddress,
                                                 MacAddress macAddress,
                                                 Collection<PIMHelloOption> opts) {
 
@@ -202,16 +202,16 @@ public class PIMNeighbor {
             }
         }
 
-        return new PIMNeighbor(ipAddress, macAddress, holdTime, pruneDelay, priority, generationID);
+        return new PimNeighbor(ipAddress, macAddress, holdTime, pruneDelay, priority, generationID);
     }
 
     @Override
     public boolean equals(Object other) {
-        if (!(other instanceof PIMNeighbor)) {
+        if (!(other instanceof PimNeighbor)) {
             return false;
         }
 
-        PIMNeighbor that = (PIMNeighbor) other;
+        PimNeighbor that = (PimNeighbor) other;
 
         return this.ipAddr.equals(that.ipAddress()) &&
                 this.macAddr.equals(that.macAddress()) &&
