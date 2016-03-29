@@ -42,6 +42,7 @@ import org.onosproject.yangutils.parser.impl.listeners.EnumerationListener;
 import org.onosproject.yangutils.parser.impl.listeners.GroupingListener;
 import org.onosproject.yangutils.parser.impl.listeners.ImportListener;
 import org.onosproject.yangutils.parser.impl.listeners.IncludeListener;
+import org.onosproject.yangutils.parser.impl.listeners.InputListener;
 import org.onosproject.yangutils.parser.impl.listeners.KeyListener;
 import org.onosproject.yangutils.parser.impl.listeners.LeafListListener;
 import org.onosproject.yangutils.parser.impl.listeners.LeafListener;
@@ -53,12 +54,14 @@ import org.onosproject.yangutils.parser.impl.listeners.ModuleListener;
 import org.onosproject.yangutils.parser.impl.listeners.NotificationListener;
 import org.onosproject.yangutils.parser.impl.listeners.NamespaceListener;
 import org.onosproject.yangutils.parser.impl.listeners.OrganizationListener;
+import org.onosproject.yangutils.parser.impl.listeners.OutputListener;
 import org.onosproject.yangutils.parser.impl.listeners.PositionListener;
 import org.onosproject.yangutils.parser.impl.listeners.PrefixListener;
 import org.onosproject.yangutils.parser.impl.listeners.PresenceListener;
 import org.onosproject.yangutils.parser.impl.listeners.ReferenceListener;
 import org.onosproject.yangutils.parser.impl.listeners.RevisionDateListener;
 import org.onosproject.yangutils.parser.impl.listeners.RevisionListener;
+import org.onosproject.yangutils.parser.impl.listeners.RpcListener;
 import org.onosproject.yangutils.parser.impl.listeners.ShortCaseListener;
 import org.onosproject.yangutils.parser.impl.listeners.StatusListener;
 import org.onosproject.yangutils.parser.impl.listeners.SubModuleListener;
@@ -1062,32 +1065,48 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterRpcStatement(GeneratedYangParser.RpcStatementContext ctx) {
-        // TODO: implement the method.
+        RpcListener.processRpcEntry(this, ctx);
     }
 
     @Override
     public void exitRpcStatement(GeneratedYangParser.RpcStatementContext ctx) {
-        // TODO: implement the method.
+        RpcListener.processRpcExit(this, ctx);
     }
 
     @Override
     public void enterInputStatement(GeneratedYangParser.InputStatementContext ctx) {
-        // TODO: implement the method.
+        InputListener.processInputEntry(this, ctx);
     }
 
     @Override
     public void exitInputStatement(GeneratedYangParser.InputStatementContext ctx) {
-        // TODO: implement the method.
+        InputListener.processInputExit(this, ctx);
+    }
+
+    @Override
+    public void enterInputStatementBody(GeneratedYangParser.InputStatementBodyContext ctx) {
+    }
+
+    @Override
+    public void exitInputStatementBody(GeneratedYangParser.InputStatementBodyContext ctx) {
     }
 
     @Override
     public void enterOutputStatement(GeneratedYangParser.OutputStatementContext ctx) {
-        // TODO: implement the method.
+        OutputListener.processOutputEntry(this, ctx);
     }
 
     @Override
     public void exitOutputStatement(GeneratedYangParser.OutputStatementContext ctx) {
-        // TODO: implement the method.
+        OutputListener.processOutputExit(this, ctx);
+    }
+
+    @Override
+    public void enterOutputStatementBody(GeneratedYangParser.OutputStatementBodyContext ctx) {
+    }
+
+    @Override
+    public void exitOutputStatementBody(GeneratedYangParser.OutputStatementBodyContext ctx) {
     }
 
     @Override

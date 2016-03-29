@@ -1085,7 +1085,6 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                             [input-stmt stmtsep]
      *                             [output-stmt stmtsep]
      *                         "}")
-     * TODO : 0..1 occurance to be checked in listener
      */
     rpcStatement : RPC_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE (ifFeatureStatement | statusStatement | descriptionStatement
                 | referenceStatement | typedefStatement | groupingStatement | inputStatement | outputStatement)* RIGHT_CURLY_BRACE);
@@ -1099,9 +1098,12 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                           1*(data-def-stmt stmtsep)
      *                         "}"
      */
-    inputStatement : INPUT_KEYWORD LEFT_CURLY_BRACE
-                 ((typedefStatement | groupingStatement)* | dataDefStatement+)
-                 | (dataDefStatement+ | (typedefStatement | groupingStatement)*)RIGHT_CURLY_BRACE;
+    inputStatement : INPUT_KEYWORD LEFT_CURLY_BRACE inputStatementBody RIGHT_CURLY_BRACE;
+
+    inputStatementBody : typedefStatement* dataDefStatement+
+                       | dataDefStatement+ typedefStatement*
+                       | groupingStatement* dataDefStatement+
+                       | dataDefStatement+ groupingStatement*;
 
     /**
      *  output-stmt         = output-keyword optsep
@@ -1112,9 +1114,12 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                            1*(data-def-stmt stmtsep)
      *                        "}"
      */
-    outputStatement : OUTPUT_KEYWORD LEFT_CURLY_BRACE
-                 ((typedefStatement | groupingStatement)* | dataDefStatement+)
-                 | (dataDefStatement+ | (typedefStatement | groupingStatement)*)RIGHT_CURLY_BRACE;
+    outputStatement : OUTPUT_KEYWORD LEFT_CURLY_BRACE outputStatementBody RIGHT_CURLY_BRACE;
+
+    outputStatementBody : typedefStatement* dataDefStatement+
+                        | dataDefStatement+ typedefStatement*
+                        | groupingStatement* dataDefStatement+
+                        | dataDefStatement+ groupingStatement*;
 
     /**
      *  notification-stmt   = notification-keyword sep
