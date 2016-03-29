@@ -272,7 +272,12 @@ public enum YangConstructType {
     /**
      * Identifies the derived data type.
      */
-    DERIVED;
+    DERIVED,
+
+    /**
+     * Identifies the YANG range element parsed data.
+     */
+    RANGE_DATA;
 
     /**
      * Returns the YANG construct keyword corresponding to enum values.
@@ -385,6 +390,8 @@ public enum YangConstructType {
                 return "notification";
             case UNION_DATA:
                 return "union";
+            case RANGE_DATA:
+                return "range";
             default:
                 return "yang";
         }

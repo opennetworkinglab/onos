@@ -58,6 +58,7 @@ import org.onosproject.yangutils.parser.impl.listeners.OutputListener;
 import org.onosproject.yangutils.parser.impl.listeners.PositionListener;
 import org.onosproject.yangutils.parser.impl.listeners.PrefixListener;
 import org.onosproject.yangutils.parser.impl.listeners.PresenceListener;
+import org.onosproject.yangutils.parser.impl.listeners.RangeRestrictionListener;
 import org.onosproject.yangutils.parser.impl.listeners.ReferenceListener;
 import org.onosproject.yangutils.parser.impl.listeners.RevisionDateListener;
 import org.onosproject.yangutils.parser.impl.listeners.RevisionListener;
@@ -555,7 +556,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterRangeStatement(GeneratedYangParser.RangeStatementContext ctx) {
-        // TODO: implement the method.
+        RangeRestrictionListener.processRangeRestrictionEntry(this, ctx);
     }
 
     @Override
