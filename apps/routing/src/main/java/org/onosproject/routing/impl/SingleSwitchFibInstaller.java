@@ -60,9 +60,8 @@ import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
-import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
-import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
@@ -442,43 +441,15 @@ public class SingleSwitchFibInstaller {
 
     private void sendFilteringObjective(boolean install, FilteringObjective.Builder fob,
                                         Interface intf) {
-        if (install) {
-            flowObjectiveService.filter(
-                deviceId,
-                fob.add(new ObjectiveContext() {
-                    @Override
-                    public void onSuccess(Objective objective) {
-                        log.info("Successfully installed interface based "
-                                + "filtering objectives for intf {}", intf);
-                    }
 
-                    @Override
-                    public void onError(Objective objective,
-                                        ObjectiveError error) {
-                        log.error("Failed to install interface filters for intf {}: {}",
-                                  intf, error);
-                        // TODO something more than just logging
-                    }
-            }));
-        } else {
-            flowObjectiveService.filter(
-                deviceId,
-                fob.remove(new ObjectiveContext() {
-                    @Override
-                    public void onSuccess(Objective objective) {
-                        log.info("Successfully removed interface based "
-                                   + "filtering objectives for intf {}", intf);
-                    }
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.info("Installed filter for interface {}", intf),
+                (objective, error) ->
+                        log.error("Failed to install filter for interface {}: {}", intf, error));
 
-                    @Override
-                    public void onError(Objective objective,
-                                        ObjectiveError error) {
-                        log.error("Failed to install interface filters for intf {}: {}",
-                                  intf, error);
-                            // TODO something more than just logging
-                    }
-            }));
-        }
+        FilteringObjective filter = install ? fob.add(context) : fob.remove(context);
+
+        flowObjectiveService.filter(deviceId, filter);
     }
 
     private class InternalFibListener implements FibListener {

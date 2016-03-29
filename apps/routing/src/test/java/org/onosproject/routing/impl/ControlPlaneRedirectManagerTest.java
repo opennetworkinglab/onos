@@ -15,19 +15,7 @@
  */
 package org.onosproject.routing.impl;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,23 +58,29 @@ import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
-import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.host.HostServiceAdapter;
 import org.onosproject.net.host.InterfaceIpAddress;
-import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RouterConfig;
-import org.slf4j.Logger;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 /**
  * UnitTests for ControlPlaneRedirectManager.
  */
-public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
+public class ControlPlaneRedirectManagerTest {
 
-    private final Logger log = getLogger(getClass());
     private DeviceService deviceService;
     private FlowObjectiveService flowObjectiveService;
     private NetworkConfigService networkConfigService;
@@ -97,39 +91,34 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
     private InterfaceService interfaceService;
     private static final ApplicationId APPID = TestApplicationId.create("org.onosproject.cpredirect");
 
-    /**
-     * Interface Configuration.
-     *
-     **/
-    private ConnectPoint controlPlaneConnectPoint = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"),
-            PortNumber.portNumber(1));
-    private static final ConnectPoint SW1_ETH1 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"),
+    private static final DeviceId DEVICE_ID = DeviceId.deviceId("of:0000000000000001");
+
+    private ConnectPoint controlPlaneConnectPoint = new ConnectPoint(DEVICE_ID,
             PortNumber.portNumber(1));
 
-    private static final ConnectPoint SW1_ETH2 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"),
+    private static final ConnectPoint SW1_ETH1 = new ConnectPoint(DEVICE_ID,
+            PortNumber.portNumber(1));
+
+    private static final ConnectPoint SW1_ETH2 = new ConnectPoint(DEVICE_ID,
             PortNumber.portNumber(2));
 
-    private static final ConnectPoint SW1_ETH3 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"),
+    private static final ConnectPoint SW1_ETH3 = new ConnectPoint(DEVICE_ID,
             PortNumber.portNumber(3));
-    protected HostService hostService;
 
-    private ControlPlaneRedirectManager controlPlaneRedirectManager = new ControlPlaneRedirectManager();;
+    private ControlPlaneRedirectManager controlPlaneRedirectManager = new ControlPlaneRedirectManager();
     private RouterConfig routerConfig = new TestRouterConfig();
     private NetworkConfigListener networkConfigListener;
     private DeviceListener deviceListener;
     private MastershipService mastershipService = new InternalMastershipServiceTest();
-    private HostListener hostListener;
     private InterfaceListener interfaceListener;
-    @Override
+
     @Before
     public void setUp() {
         networkConfigListener = createMock(NetworkConfigListener.class);
-        hostService = new TestHostService();
         deviceService = new TestDeviceService();
         deviceListener = createMock(DeviceListener.class);
-        hostListener = createMock(HostListener.class);
+
         interfaceListener = createMock(InterfaceListener.class);
-        hostService.addListener(hostListener);
         deviceService.addListener(deviceListener);
         setUpInterfaceService();
         interfaceService = new InternalInterfaceService();
@@ -143,7 +132,7 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
         controlPlaneRedirectManager.networkConfigService = networkConfigService;
         controlPlaneRedirectManager.interfaceService = interfaceService;
         controlPlaneRedirectManager.deviceService = deviceService;
-        controlPlaneRedirectManager.hostService = hostService;
+        controlPlaneRedirectManager.hostService = createNiceMock(HostService.class);
         controlPlaneRedirectManager.mastershipService = mastershipService;
         controlPlaneRedirectManager.activate();
         verify(flowObjectiveService);
@@ -154,7 +143,7 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
      */
     @Test
     public void testAddDevice() {
-        ConnectPoint sw1eth4 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"), PortNumber.portNumber(4));
+        ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
         Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
         interfaceIpAddresses4
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
@@ -173,7 +162,7 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
      */
     @Test
     public void testUpdateNetworkConfig() {
-        ConnectPoint sw1eth4 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"), PortNumber.portNumber(4));
+        ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
         Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
         interfaceIpAddresses4
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
@@ -194,7 +183,7 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
      */
     @Test
     public void testAddInterface() {
-        ConnectPoint sw1eth4 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"), PortNumber.portNumber(4));
+        ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
         Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
         interfaceIpAddresses4
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
@@ -208,14 +197,13 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
 
         setUpInterfaceConfiguration(sw1Eth4, true);
         replay(flowObjectiveService);
-        interfaceListener.event(new InterfaceEvent(
-                org.onosproject.incubator.net.intf.InterfaceEvent.Type.INTERFACE_ADDED, sw1Eth4, 500L));
+        interfaceListener.event(new InterfaceEvent(InterfaceEvent.Type.INTERFACE_ADDED, sw1Eth4, 500L));
         verify(flowObjectiveService);
     }
 
     @Test
     public void testRemoveInterface() {
-        ConnectPoint sw1eth4 = new ConnectPoint(DeviceId.deviceId("of:0000000000000001"), PortNumber.portNumber(4));
+        ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
         Set<InterfaceIpAddress> interfaceIpAddresses4 = Sets.newHashSet();
         interfaceIpAddresses4
                 .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
@@ -227,8 +215,7 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
 
         setUpInterfaceConfiguration(sw1Eth4, false);
         replay(flowObjectiveService);
-        interfaceListener.event(new InterfaceEvent(
-                org.onosproject.incubator.net.intf.InterfaceEvent.Type.INTERFACE_REMOVED, sw1Eth4, 500L));
+        interfaceListener.event(new InterfaceEvent(InterfaceEvent.Type.INTERFACE_REMOVED, sw1Eth4, 500L));
         verify(flowObjectiveService);
     }
 
@@ -403,15 +390,6 @@ public class ControlPlaneRedirectManagerTest extends AbstractIntentTest {
         @Override
         public void addListener(DeviceListener listener) {
             ControlPlaneRedirectManagerTest.this.deviceListener = listener;
-        }
-
-    }
-
-    private class TestHostService extends HostServiceAdapter {
-
-        @Override
-        public void addListener(HostListener listener) {
-            ControlPlaneRedirectManagerTest.this.hostListener = listener;
         }
 
     }

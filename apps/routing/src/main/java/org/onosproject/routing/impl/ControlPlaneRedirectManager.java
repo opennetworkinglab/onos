@@ -16,16 +16,8 @@
 
 package org.onosproject.routing.impl;
 
-import static com.google.common.base.Preconditions.checkState;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -69,8 +61,15 @@ import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RouterConfig;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Maps;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkState;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages connectivity between peers redirecting control traffic to a routing
@@ -183,7 +182,7 @@ public class ControlPlaneRedirectManager {
         updateOspfForwarding(intf, true);
     }
     /**
-     * Install or removes the basic forwarding flows for each interface
+     * Installs or removes the basic forwarding flows for each interface
      * based on the flag used.
      *
      * @param intf the Interface on which event is received
@@ -266,9 +265,9 @@ public class ControlPlaneRedirectManager {
     }
 
     /**
-     * Install or removes ospf forwarding rules.
+     * Installs or removes OSPF forwarding rules.
      *
-     * @param intf the Interface on which event is received
+     * @param intf the interface on which event is received
      * @param install true to create an add objective, false to create a remove
      *            objective
      **/
@@ -293,7 +292,7 @@ public class ControlPlaneRedirectManager {
             cpNextId = modifyNextObjective(deviceId, controlPlanePort,
                                            intf.vlan(), false, install);
         }
-        log.debug("ospf flows intf:{} nextid:{}", intf, cpNextId);
+        log.debug("OSPF flows intf:{} nextid:{}", intf, cpNextId);
         flowObjectiveService.forward(controlPlaneConnectPoint.deviceId(),
                 buildForwardingObjective(toSelector, null, cpNextId, install ? ospfEnabled : install));
     }
@@ -331,7 +330,7 @@ public class ControlPlaneRedirectManager {
 
         nextObjBuilder.withMeta(metabuilder.build());
         nextObjBuilder.addTreatment(ttBuilder.build());
-        log.debug("Submited next objective {} in device {} for port/vlan {}/{}",
+        log.debug("Submitted next objective {} in device {} for port/vlan {}/{}",
                 nextId, deviceId, portNumber, vlanId);
         if (install) {
              flowObjectiveService.next(deviceId, nextObjBuilder.add());
@@ -385,7 +384,6 @@ public class ControlPlaneRedirectManager {
                         log.info("Device connected {}", event.subject().id());
                         updateDevice();
                     }
-
                     break;
                 case DEVICE_UPDATED:
                 case DEVICE_REMOVED:

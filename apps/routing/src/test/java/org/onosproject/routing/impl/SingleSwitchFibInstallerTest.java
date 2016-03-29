@@ -15,20 +15,8 @@
  */
 package org.onosproject.routing.impl;
 
-import static org.easymock.EasyMock.anyObject;
-import  static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,11 +28,10 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.TestApplicationId;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.CoreServiceAdapter;
-import org.osgi.service.component.ComponentContext;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
@@ -73,8 +60,21 @@ import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.RoutingServiceAdapter;
 import org.onosproject.routing.config.RouterConfig;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import org.osgi.service.component.ComponentContext;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 /**
  * Unit tests for SingleSwitchFibInstaller.
@@ -198,7 +198,7 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
 
     /*
      * Sets up NetworkConfigService.
-    */
+     */
     private void setUpNetworkConfigService() {
         ApplicationId routerAppId = coreService.registerApplication(RoutingService.ROUTER_APP_ID);
         expect(networkConfigService.getConfig(routerAppId, RoutingService.ROUTER_CONFIG_CLASS)).
@@ -423,13 +423,12 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
         verify(flowObjectiveService);
     }
 
-     /**
+    /**
      * Tests deleting a FIB entry.
      *
      * We verify that the flowObjectiveService records the correct state and that the
      * correct flow is withdrawn from the flowObjectiveService.
      */
-
     @Test
     public void testFibDelete() {
         // Firstly add a route
