@@ -25,8 +25,6 @@ import org.onosproject.ospf.controller.OspfLsaType;
 import org.onosproject.ospf.protocol.lsa.LsaHeader;
 import org.onosproject.ospf.protocol.lsa.subtypes.OspfExternalDestination;
 
-
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
 
@@ -38,6 +36,8 @@ import static org.hamcrest.Matchers.notNullValue;
  * Unit test class for ExternalLsa.
  */
 public class ExternalLsaTest {
+
+    private static final Ip4Address LOCAL_ADDRESS = Ip4Address.valueOf("127.0.0.1");
 
     private ExternalLsa externalLsa;
     private Vector<OspfExternalDestination> externalDestinations = new Vector<OspfExternalDestination>();
@@ -127,7 +127,7 @@ public class ExternalLsaTest {
         ospfExternalDestination.setMetric(50);
         ospfExternalDestination.setType1orType2Metric(true);
         externalLsa.addExternalDestination(ospfExternalDestination1);
-        ospfExternalDestination.setForwardingAddress(Ip4Address.valueOf(InetAddress.getLocalHost()));
+        ospfExternalDestination.setForwardingAddress(LOCAL_ADDRESS);
         inputByteArray = createByteForNetworkLsa();
         lsaHeader = createLsaHeader();
         externalLsa = new ExternalLsa(lsaHeader);
@@ -151,7 +151,7 @@ public class ExternalLsaTest {
         ospfExternalDestination.setMetric(50);
         ospfExternalDestination.setType1orType2Metric(true);
         externalLsa.addExternalDestination(ospfExternalDestination1);
-        ospfExternalDestination.setForwardingAddress(Ip4Address.valueOf(InetAddress.getLocalHost()));
+        ospfExternalDestination.setForwardingAddress(LOCAL_ADDRESS);
         byte[] temp = {0, 0, 0};
         inputByteArray = temp;
         lsaHeader = createLsaHeader();
@@ -261,7 +261,7 @@ public class ExternalLsaTest {
         ospfExternalDestination.setExternalRouterTag(1);
         ospfExternalDestination.setMetric(10);
         ospfExternalDestination.setType1orType2Metric(true);
-        ospfExternalDestination.setForwardingAddress(Ip4Address.valueOf(InetAddress.getLocalHost()));
+        ospfExternalDestination.setForwardingAddress(LOCAL_ADDRESS);
         return ospfExternalDestination;
     }
 }

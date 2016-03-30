@@ -24,8 +24,6 @@ import org.onlab.packet.Ip4Address;
 import org.onosproject.ospf.controller.OspfLsaType;
 import org.onosproject.ospf.protocol.lsa.LsaHeader;
 
-
-import java.net.InetAddress;
 import java.util.Vector;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -36,6 +34,8 @@ import static org.hamcrest.Matchers.notNullValue;
  * Unit test class for NetworkLsa.
  */
 public class NetworkLsaTest {
+
+    private static final Ip4Address LOCAL_ADDRESS = Ip4Address.valueOf("127.0.0.1");
 
     private Vector<String> attachedRouters = new Vector();
     private NetworkLsa networkLsa;
@@ -112,10 +112,8 @@ public class NetworkLsaTest {
      */
     @Test
     public void testAddAttachedRouter() throws Exception {
-        inetAddres = Ip4Address.valueOf(InetAddress.getLocalHost());
-        networkLsa.addAttachedRouter(inetAddres);
-        inetAddres = Ip4Address.valueOf(InetAddress.getLocalHost());
-        networkLsa.addAttachedRouter(inetAddres);
+        networkLsa.addAttachedRouter(LOCAL_ADDRESS);
+        networkLsa.addAttachedRouter(LOCAL_ADDRESS);
         assertThat(networkLsa, is(notNullValue()));
     }
 
