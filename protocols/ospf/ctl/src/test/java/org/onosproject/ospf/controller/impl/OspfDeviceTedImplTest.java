@@ -21,7 +21,6 @@ import org.junit.Test;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +31,8 @@ import static org.junit.Assert.assertThat;
  * Unit test class for OspfDeviceTedImpl.
  */
 public class OspfDeviceTedImplTest {
+    private static final Ip6Address LOCAL_ADDRESS = Ip6Address.valueOf("::1");
+
     private OspfDeviceTedImpl ospfDeviceTed;
 
     @Before
@@ -127,10 +128,10 @@ public class OspfDeviceTedImplTest {
     /**
      * Tests ipv6RouterIds() getter method.
      */
-    @Test(expected = Exception.class)
+    @Test
     public void testIpv6RouterIds() throws Exception {
         List list = new ArrayList();
-        list.add(Ip6Address.valueOf(InetAddress.getLocalHost()));
+        list.add(LOCAL_ADDRESS);
         ospfDeviceTed.setIpv6RouterIds(list);
         assertThat(ospfDeviceTed.ipv6RouterIds().size(), is(1));
     }
@@ -138,10 +139,10 @@ public class OspfDeviceTedImplTest {
     /**
      * Tests ipv6RouterIds() setter method.
      */
-    @Test(expected = Exception.class)
+    @Test
     public void testSetIpv6RouterIds() throws Exception {
         List list = new ArrayList();
-        list.add(Ip6Address.valueOf(InetAddress.getLocalHost()));
+        list.add(LOCAL_ADDRESS);
         ospfDeviceTed.setIpv6RouterIds(list);
         assertThat(ospfDeviceTed.ipv6RouterIds().size(), is(1));
     }

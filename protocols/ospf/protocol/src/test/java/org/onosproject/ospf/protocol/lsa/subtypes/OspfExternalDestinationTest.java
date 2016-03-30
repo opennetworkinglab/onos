@@ -20,8 +20,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
 
-import java.net.InetAddress;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -30,6 +28,8 @@ import static org.hamcrest.Matchers.notNullValue;
  * Unit test class for OspfRouterId.
  */
 public class OspfExternalDestinationTest {
+
+    private static final Ip4Address LOCAL_ADDRESS = Ip4Address.valueOf("127.0.0.1");
 
     private OspfExternalDestination ospfExternalDestination;
 
@@ -84,8 +84,8 @@ public class OspfExternalDestinationTest {
      */
     @Test
     public void testGetForwardingAddress() throws Exception {
-        ospfExternalDestination.setForwardingAddress(Ip4Address.valueOf(InetAddress.getLocalHost()));
-        assertThat(ospfExternalDestination.forwardingAddress(), is(Ip4Address.valueOf(InetAddress.getLocalHost())));
+        ospfExternalDestination.setForwardingAddress(LOCAL_ADDRESS);
+        assertThat(ospfExternalDestination.forwardingAddress(), is(LOCAL_ADDRESS));
 
     }
 
@@ -94,8 +94,8 @@ public class OspfExternalDestinationTest {
      */
     @Test
     public void testSetForwardingAddress() throws Exception {
-        ospfExternalDestination.setForwardingAddress(Ip4Address.valueOf(InetAddress.getLocalHost()));
-        assertThat(ospfExternalDestination.forwardingAddress(), is(Ip4Address.valueOf(InetAddress.getLocalHost())));
+        ospfExternalDestination.setForwardingAddress(LOCAL_ADDRESS);
+        assertThat(ospfExternalDestination.forwardingAddress(), is(LOCAL_ADDRESS));
     }
 
     /**
