@@ -1,0 +1,19 @@
+SRC = 'src/main/java/org/onosproject/**/'
+
+CURRENT_NAME = 'onos-drivers-bti'
+CURRENT_TARGET = ':' + CURRENT_NAME
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/netconf/api:onos-snmp-api',
+    '//incubator/api:onos-incubator-api'
+]
+
+java_library(
+    name = CURRENT_NAME,
+    srcs = glob([SRC + '/*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)

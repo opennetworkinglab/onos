@@ -11,9 +11,9 @@ COMPILE_DEPS = [
     '//lib:bti7000',
     '//lib:mibs-net-snmp',
     '//lib:mibs-rfc',
-    '//protocols/ovsdb/api:onos-ovsdb-api',
-    '//protocols/ovsdb/rfc:onos-ovsdb-rfc',
     '//incubator/api:onos-incubator-api',
+    '//protocols/snmp/api:onos-snmp-api',
+    '//protocols/snmp/ctl:onos-snmp-ctl',
 ]
 
 TEST_DEPS = [

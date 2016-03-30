@@ -19,9 +19,14 @@ package org.onosproject.drivers.lumentum;
 import com.google.common.collect.Lists;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
-import org.onosproject.net.behaviour.PortDiscovery;
+import org.onosproject.net.device.DefaultDeviceDescription;
+import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceDescriptionDiscovery;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -34,22 +39,37 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Discovers the ports of a Lumentum SDN ROADM device using SNMP.
+ * Device description behaviour for Lumentum Snmp devices.
  */
-public class PortDiscoveryLumentumRoadm extends AbstractHandlerBehaviour
-        implements PortDiscovery {
+public class LumentumRoadmDeviceDescription extends AbstractHandlerBehaviour implements DeviceDescriptionDiscovery  {
 
-    private final Logger log = getLogger(PortDiscoveryLumentumRoadm.class);
+    private final Logger log = getLogger(getClass());
 
     private static final String CTRL_PORT_STATE = ".1.3.6.1.4.1.46184.1.4.1.1.3.";
 
     private LumentumSnmpDevice snmp;
 
     @Override
-    public List<PortDescription> getPorts() {
+    public DeviceDescription discoverDeviceDetails() {
+        //TODO get device description
+        DeviceService deviceService = checkNotNull(handler().get(DeviceService.class));
+        DeviceId deviceId = handler().data().deviceId();
+        Device device = deviceService.getDevice(deviceId);
+        return new DefaultDeviceDescription(device.id().uri(), Device.Type.ROADM,
+                                            "Lumentum", "SDN ROADM", "1.0", "v1",
+                                            device.chassisId(), (SparseAnnotations) device.annotations());
+    }
+
+    @Override
+    public List<PortDescription> discoverPortDetails() {
+        return this.getPorts();
+    }
+
+    private List<PortDescription> getPorts() {
         try {
             snmp = new LumentumSnmpDevice(handler().data().deviceId());
         } catch (IOException e) {
@@ -119,5 +139,3 @@ public class PortDiscoveryLumentumRoadm extends AbstractHandlerBehaviour
         return ports;
     }
 }
-
-

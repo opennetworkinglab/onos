@@ -21,4 +21,12 @@
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/onos-snmp-provider-device/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-snmp-provider-alarm/${project.version}</artifact>
+
+    <artifact>mvn:${project.groupId}/onos-snmp-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-snmp-ctl/${project.version}</artifact>
+
+    <artifact>mvn:com.btisystems/snmp-core/1.3-SNAPSHOT</artifact>
+    <artifact>mvn:com.btisystems.mibbler.mibs/bti7000/1.0-SNAPSHOT</artifact>
+    <artifact>mvn:com.btisystems.mibbler.mibs/net-snmp/1.0-SNAPSHOT</artifact>
+
 </app>

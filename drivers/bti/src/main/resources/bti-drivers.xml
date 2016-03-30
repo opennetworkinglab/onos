@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ Copyright 2016 Open Networking Laboratory
   ~
@@ -14,13 +15,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="${project.artifactId}-${project.version}">
-    <feature name="${project.artifactId}" version="${project.version}"
-             description="${project.description}">
-        <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
+<drivers>
+    <driver name="bti7000" manufacturer="bti" hwVersion="1.0.0" swVersion="1.0.0">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.bti.Bti7000DeviceDescriptor"/>
+    </driver>
+    <driver name="NetSnmp" manufacturer="bti" hwVersion="1.0.0" swVersion="1.0.0">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.bti.NetSnmpDeviceDescriptor"/>
+    </driver>
+</drivers>
 
-        <bundle>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.snmp4j/2.3.4_1</bundle>
-
-    </feature>
-</features>

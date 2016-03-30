@@ -14,6 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -24,16 +25,14 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-drivers-lumentum</artifactId>
+    <artifactId>onos-drivers-bti</artifactId>
     <packaging>bundle</packaging>
 
-    <description>Lumentum device drivers</description>
-
     <properties>
-        <onos.app.name>org.onosproject.drivers.lumentum</onos.app.name>
+        <onos.app.name>org.onosproject.drivers.bti</onos.app.name>
         <onos.app.origin>ON.Lab</onos.app.origin>
         <onos.app.category>Drivers</onos.app.category>
-        <onos.app.title>Lumentum Device Drivers</onos.app.title>
+        <onos.app.title>Bti Device Drivers</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.requires>
             org.onosproject.snmp
@@ -42,9 +41,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.servicemix.bundles</groupId>
-            <artifactId>org.apache.servicemix.bundles.snmp4j</artifactId>
-            <version>2.3.4_1</version>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-snmp-api</artifactId>
+            <version>1.6.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-api</artifactId>
+            <version>1.6.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
+
 </project>

@@ -1,18 +1,17 @@
 SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/main/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-snmp-provider-alarm'
+TEST = 'src/test/java/org/onosproject/**/'
+CURRENT_NAME = 'onos-snmp-ctl'
 CURRENT_TARGET = ':' + CURRENT_NAME
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+    '//protocols/snmp/api:onos-snmp-api',
     '//lib:org.apache.servicemix.bundles.snmp4j',
     '//lib:snmp-core',
     '//lib:bti7000',
     '//lib:mibs-net-snmp',
     '//lib:mibs-rfc',
-    '//incubator/api:onos-incubator-api',
-    '//protocols/snmp/api:onos-snmp-api',
 ]
 
 TEST_DEPS = [

@@ -16,8 +16,8 @@
   -->
 <drivers>
     <driver name="lumentum" manufacturer="Lumentum" hwVersion="SDN ROADM" swVersion="1.0">
-        <behaviour api="org.onosproject.net.behaviour.PortDiscovery"
-                   impl="org.onosproject.drivers.lumentum.PortDiscoveryLumentumRoadm"/>
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.lumentum.LumentumRoadmDeviceDescription"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.drivers.lumentum.LambdaQueryLumentumRoadm"/>
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
