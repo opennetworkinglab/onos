@@ -39,6 +39,7 @@
         <module>bgp</module>
         <module>rest</module>
         <module>ospf</module>
+        <module>isis</module>
     </modules>
 
     <dependencies>
