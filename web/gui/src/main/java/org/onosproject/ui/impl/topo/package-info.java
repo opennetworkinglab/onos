@@ -15,6 +15,6 @@
  */
 
 /**
- * Topology resources for the ONOS GUI.
+ * Topology View server-side support.
  */
 package org.onosproject.ui.impl.topo;

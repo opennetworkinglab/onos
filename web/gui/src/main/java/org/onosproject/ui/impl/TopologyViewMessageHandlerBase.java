@@ -63,7 +63,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
-import org.onosproject.ui.impl.topo.ServicesBundle;
+import org.onosproject.ui.impl.topo.util.ServicesBundle;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
