@@ -149,6 +149,14 @@ public final class GroupOperation {
 
     }
 
+    /**
+     * Creates failure group operation object by setting failure code
+     * to inform the failure reason.
+     *
+     * @param groupOperation the original group operation
+     * @param failureCode failure code for a failed group operation
+     * @return failed group operation object
+     */
     public static GroupOperation createFailedGroupOperation(GroupOperation groupOperation,
                                                             GroupMsgErrorCode failureCode) {
         checkNotNull(groupOperation);
