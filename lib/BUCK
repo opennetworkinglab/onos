@@ -118,8 +118,6 @@ maven_jar(
   license = 'Apache2.0',
 )
 
-
-
 maven_jar(
   name = 'jackson-core',
   id = 'com.fasterxml.jackson.core:jackson-core:2.7.0',
@@ -728,6 +726,13 @@ maven_jar(
   name = 'metrics-ganglia',
   id = 'io.dropwizard.metrics:metrics-ganglia:3.1.2',
   sha1 = '2a4e2fcd6436f9b1771f0f9b6bab445dddcf704f',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'metrics-graphite',
+  id = 'io.dropwizard.metrics:metrics-graphite:3.1.2',
+  sha1 = '15a68399652c6123fe6e4c82ac4f0749e2eb6583',
   license = 'Apache2.0',
 )
 

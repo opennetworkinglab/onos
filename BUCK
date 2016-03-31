@@ -93,6 +93,7 @@ DEPS = [
     '//apps/iptopology-api:onos-app-iptopology-api',
     '//apps/metrics:onos-app-metrics',
     '//apps/gangliametrics:onos-app-ganglia',
+    '//apps/graphitemetrics:onos-app-graphite',
     '//apps/mfwd:onos-app-mfwd',
     '//apps/mlb:onos-app-mlb',
     '//apps/mobility:onos-app-mobility',
