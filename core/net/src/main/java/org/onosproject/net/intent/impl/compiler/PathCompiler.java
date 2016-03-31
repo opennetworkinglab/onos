@@ -264,7 +264,7 @@ public class PathCompiler<T> {
         List<ResourceAllocation> allocations =
                 creator.resourceService().allocate(intent.id(), ImmutableList.copyOf(resources));
         if (allocations.isEmpty()) {
-            Collections.emptyMap();
+            return Collections.emptyMap();
         }
 
         return labels;
