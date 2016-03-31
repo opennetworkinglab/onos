@@ -17,6 +17,7 @@
 package org.onosproject.driver.extensions;
 
 import org.onlab.packet.Ip4Address;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
@@ -28,6 +29,7 @@ import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionNicira;
 import org.projectfloodlight.openflow.protocol.action.OFActionNiciraMove;
+import org.projectfloodlight.openflow.protocol.action.OFActionNiciraResubmit;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmTunnelIpv4Dst;
@@ -40,11 +42,13 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         implements ExtensionTreatmentInterpreter, ExtensionTreatmentResolver {
 
     private static final int TYPE_NICIRA = 0x2320;
-    private static final int SUB_TYPE_MOVE = 6;
     private static final int SRC_ARP_SHA = 0x00012206;
     private static final int SRC_ARP_SPA = 0x00002004;
     private static final int SRC_ETH = 0x00000406;
     private static final int SRC_IP = 0x00000e04;
+
+    private static final int SUB_TYPE_RESUBMIT = 1;
+    private static final int SUB_TYPE_MOVE = 6;
 
     @Override
     public boolean supported(ExtensionTreatmentType extensionTreatmentType) {
@@ -175,26 +179,33 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             if (Long.valueOf(experimenter.getExperimenter())
                     .intValue() == TYPE_NICIRA) {
                 OFActionNicira nicira = (OFActionNicira) experimenter;
-                if (nicira.getSubtype() == SUB_TYPE_MOVE) {
-                    OFActionNiciraMove moveAction = (OFActionNiciraMove) nicira;
-                    switch (Long.valueOf(moveAction.getSrc()).intValue()) {
-                    case SRC_ARP_SHA:
-                        return NiciraMoveTreatmentFactory
-                                .createNiciraMovArpShaToTha();
-                    case SRC_ETH:
-                        return NiciraMoveTreatmentFactory
-                                .createNiciraMovEthSrcToDst();
-                    case SRC_IP:
-                        return NiciraMoveTreatmentFactory
-                                .createNiciraMovIpSrcToDst();
-                    case SRC_ARP_SPA:
-                        return NiciraMoveTreatmentFactory
-                                .createNiciraMovArpSpaToTpa();
+                switch (nicira.getSubtype()) {
+                    case SUB_TYPE_MOVE:
+                        OFActionNiciraMove moveAction = (OFActionNiciraMove) nicira;
+                        switch (Long.valueOf(moveAction.getSrc()).intValue()) {
+                            case SRC_ARP_SHA:
+                                return NiciraMoveTreatmentFactory
+                                        .createNiciraMovArpShaToTha();
+                            case SRC_ETH:
+                                return NiciraMoveTreatmentFactory
+                                        .createNiciraMovEthSrcToDst();
+                            case SRC_IP:
+                                return NiciraMoveTreatmentFactory
+                                        .createNiciraMovIpSrcToDst();
+                            case SRC_ARP_SPA:
+                                return NiciraMoveTreatmentFactory
+                                        .createNiciraMovArpSpaToTpa();
+                            default:
+                                throw new UnsupportedOperationException("Driver does not support move from "
+                                        + moveAction.getSrc() + " to "
+                                        + moveAction.getDst());
+                        }
+                    case SUB_TYPE_RESUBMIT:
+                        OFActionNiciraResubmit resubmitAction = (OFActionNiciraResubmit) nicira;
+                        return new NiciraResubmit(PortNumber.portNumber(resubmitAction.getInPort()));
                     default:
-                        throw new UnsupportedOperationException("Driver does not support move from "
-                                + moveAction.getSrc() + " to "
-                                + moveAction.getDst());
-                    }
+                        throw new UnsupportedOperationException("Driver does not support extension subtype "
+                                + nicira.getSubtype());
                 }
             }
         }

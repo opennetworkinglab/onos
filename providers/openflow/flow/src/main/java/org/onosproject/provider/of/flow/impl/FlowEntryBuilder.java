@@ -344,11 +344,8 @@ public class FlowEntryBuilder {
                                 lookupGridType(circuitSignalID.getGridType()),
                                 lookupChannelSpacing(circuitSignalID.getChannelSpacing()),
                                 circuitSignalID.getChannelNumber(), circuitSignalID.getSpectralWidth())));
-                    }  else if (exp.getExperimenter() == 0x2320) {
-                        if (treatmentInterpreter != null) {
-                            builder.extension(treatmentInterpreter.mapAction(exp),
-                                    deviceId);
-                        }
+                    } else if (treatmentInterpreter != null) {
+                        builder.extension(treatmentInterpreter.mapAction(exp), deviceId);
                     } else {
                         log.warn("Unsupported OFActionExperimenter {}", exp.getExperimenter());
                     }
