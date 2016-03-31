@@ -496,12 +496,22 @@ public class DeviceConfiguration implements DeviceProperties {
         return srinfo != null && srinfo.adjacencySids.containsKey(sid);
     }
 
+    /**
+     * Gets connect points for which segment routing does not install subnet rules.
+     *
+     * @return set of connect points
+     */
     public Set<ConnectPoint> suppressSubnet() {
         SegmentRoutingAppConfig appConfig =
                 cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
         return (appConfig != null) ? appConfig.suppressSubnet() : ImmutableSet.of();
     }
 
+    /**
+     * Gets connect points for which segment routing does not install host rules.
+     *
+     * @return set of connect points
+     */
     public Set<ConnectPoint> suppressHost() {
         SegmentRoutingAppConfig appConfig =
                 cfgService.getConfig(appId, SegmentRoutingAppConfig.class);

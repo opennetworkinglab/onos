@@ -22,8 +22,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -279,17 +277,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         }
 
         for (PortNumber pnum : portnums) {
-            // update storage
-            groupHandler.port2Vlan.put(pnum, storeVlan);
-            Set<PortNumber> vlanPorts = groupHandler.vlan2Port.get(storeVlan);
-            if (vlanPorts == null) {
-                vlanPorts = Collections.newSetFromMap(
-                                    new ConcurrentHashMap<PortNumber, Boolean>());
-                vlanPorts.add(pnum);
-                groupHandler.vlan2Port.put(storeVlan, vlanPorts);
-            } else {
-                vlanPorts.add(pnum);
-            }
             // create rest of flowrule
             selector.matchInPort(pnum);
             FlowRule rule = DefaultFlowRule.builder()

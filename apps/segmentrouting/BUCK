@@ -3,9 +3,9 @@ COMPILE_DEPS = [
     '//lib:org.apache.karaf.shell.console',
     '//lib:javax.ws.rs-api',
     '//cli:onos-cli',
+    '//core/store/serializers:onos-core-serializers',
     '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
-    '//core/store/serializers:onos-core-serializers',
 ]
 
 TEST_DEPS = [

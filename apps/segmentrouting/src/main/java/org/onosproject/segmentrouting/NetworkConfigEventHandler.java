@@ -73,8 +73,8 @@ public class NetworkConfigEventHandler {
         SegmentRoutingAppConfig config = (SegmentRoutingAppConfig) event.config().get();
         SegmentRoutingAppConfig prevConfig = (SegmentRoutingAppConfig) event.prevConfig().get();
         deviceService.getAvailableDevices().forEach(device -> {
-            Set<MacAddress> macAddresses = getMacAddresses(config);
-            Set<MacAddress> prevMacAddresses = getMacAddresses(prevConfig);
+            Set<MacAddress> macAddresses = new HashSet<>(getMacAddresses(config));
+            Set<MacAddress> prevMacAddresses = new HashSet<>(getMacAddresses(prevConfig));
             // Avoid removing and re-adding unchanged MAC addresses since
             // FlowObjective does not guarantee the execution order.
             Set<MacAddress> sameMacAddresses = new HashSet<>(macAddresses);

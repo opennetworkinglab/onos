@@ -40,6 +40,7 @@ import org.onosproject.incubator.net.routing.RouteServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -105,6 +106,7 @@ public class SingleSwitchFibInstallerTest {
     private final Set<Interface> interfaces = Sets.newHashSet();
     private InterfaceService interfaceService;
     private NetworkConfigService networkConfigService;
+    private NetworkConfigRegistry networkConfigRegistry;
     private FlowObjectiveService flowObjectiveService;
     private DeviceService deviceService;
     private static final ApplicationId APPID = TestApplicationId.create("foo");
@@ -128,13 +130,15 @@ public class SingleSwitchFibInstallerTest {
         interfaceService = createMock(InterfaceService.class);
 
         networkConfigService = createMock(NetworkConfigService.class);
+        networkConfigRegistry = createMock(NetworkConfigRegistry.class);
         flowObjectiveService = createMock(FlowObjectiveService.class);
         deviceService = new TestDeviceService();
         CoreService coreService = createNiceMock(CoreService.class);
-        expect(coreService.registerApplication(anyString())).andReturn(APPID);
+        expect(coreService.registerApplication(anyString())).andReturn(APPID).anyTimes();
         replay(coreService);
 
         sSfibInstaller.networkConfigService = networkConfigService;
+        sSfibInstaller.networkConfigRegistry = networkConfigRegistry;
         sSfibInstaller.interfaceService = interfaceService;
         sSfibInstaller.flowObjectiveService = flowObjectiveService;
         sSfibInstaller.coreService = coreService;

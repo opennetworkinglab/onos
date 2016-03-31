@@ -33,6 +33,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
+import org.onosproject.incubator.net.config.basics.McastConfig;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -60,23 +61,27 @@ import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
+import org.onosproject.net.mcast.McastEvent;
+import org.onosproject.net.mcast.McastListener;
+import org.onosproject.net.mcast.MulticastRouteService;
+import org.onosproject.net.packet.PacketPriority;
+import org.onosproject.net.topology.TopologyService;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
+import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
+import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
+import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
+import org.onosproject.segmentrouting.grouphandler.NeighborSet;
+import org.onosproject.segmentrouting.grouphandler.NeighborSetNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.grouphandler.PortNextObjectiveStoreKey;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
-import org.onosproject.segmentrouting.config.DeviceConfiguration;
-import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
-import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
-import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
-import org.onosproject.segmentrouting.grouphandler.NeighborSet;
-import org.onosproject.segmentrouting.grouphandler.NeighborSetNextObjectiveStoreKey;
-import org.onosproject.segmentrouting.grouphandler.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.grouphandler.SubnetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.grouphandler.XConnectNextObjectiveStoreKey;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -143,6 +148,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService compCfgService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MulticastRouteService multicastRouteService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TopologyService topologyService;
+
     protected ArpHandler arpHandler = null;
     protected IcmpHandler icmpHandler = null;
     protected IpHandler ipHandler = null;
@@ -157,8 +168,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private InternalLinkListener linkListener = null;
     private InternalDeviceListener deviceListener = null;
     private NetworkConfigEventHandler netcfgHandler = null;
+    private McastEventHandler mcastEventHandler = null;
     private InternalEventHandler eventHandler = new InternalEventHandler();
     private final InternalHostListener hostListener = new InternalHostListener();
+    private final InternalConfigListener cfgListener = new InternalConfigListener(this);
+    private final InternalMcastListener mcastListener = new InternalMcastListener();
 
     private ScheduledExecutorService executorService = Executors
             .newScheduledThreadPool(1);
@@ -196,26 +210,29 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
     private EventuallyConsistentMap<String, Policy> policyStore = null;
 
-    private final InternalConfigListener cfgListener =
-            new InternalConfigListener(this);
-
-    private final ConfigFactory<DeviceId, SegmentRoutingDeviceConfig> cfgDeviceFactory =
+    private final ConfigFactory<DeviceId, SegmentRoutingDeviceConfig> deviceConfigFactory =
             new ConfigFactory<DeviceId, SegmentRoutingDeviceConfig>(SubjectFactories.DEVICE_SUBJECT_FACTORY,
-                              SegmentRoutingDeviceConfig.class,
-                              "segmentrouting") {
+                    SegmentRoutingDeviceConfig.class, "segmentrouting") {
                 @Override
                 public SegmentRoutingDeviceConfig createConfig() {
                     return new SegmentRoutingDeviceConfig();
                 }
             };
-
-    private final ConfigFactory<ApplicationId, SegmentRoutingAppConfig> cfgAppFactory =
+    private final ConfigFactory<ApplicationId, SegmentRoutingAppConfig> appConfigFactory =
             new ConfigFactory<ApplicationId, SegmentRoutingAppConfig>(SubjectFactories.APP_SUBJECT_FACTORY,
-                    SegmentRoutingAppConfig.class,
-                    "segmentrouting") {
+                    SegmentRoutingAppConfig.class, "segmentrouting") {
                 @Override
                 public SegmentRoutingAppConfig createConfig() {
                     return new SegmentRoutingAppConfig();
+                }
+            };
+
+    private ConfigFactory<ApplicationId, McastConfig> mcastConfigFactory =
+            new ConfigFactory<ApplicationId, McastConfig>(SubjectFactories.APP_SUBJECT_FACTORY,
+                    McastConfig.class, "multicast") {
+                @Override
+                public McastConfig createConfig() {
+                    return new McastConfig();
                 }
             };
 
@@ -312,14 +329,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         linkListener = new InternalLinkListener();
         deviceListener = new InternalDeviceListener();
         netcfgHandler = new NetworkConfigEventHandler(this);
+        mcastEventHandler = new McastEventHandler(this);
 
         cfgService.addListener(cfgListener);
-        cfgService.registerConfigFactory(cfgDeviceFactory);
-        cfgService.registerConfigFactory(cfgAppFactory);
+        cfgService.registerConfigFactory(deviceConfigFactory);
+        cfgService.registerConfigFactory(appConfigFactory);
+        cfgService.registerConfigFactory(mcastConfigFactory);
         hostService.addListener(hostListener);
         packetService.addProcessor(processor, PacketProcessor.director(2));
         linkService.addListener(linkListener);
         deviceService.addListener(deviceListener);
+        multicastRouteService.addListener(mcastListener);
 
         // Request ARP packet-in
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -351,8 +371,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Deactivate
     protected void deactivate() {
         cfgService.removeListener(cfgListener);
-        cfgService.unregisterConfigFactory(cfgDeviceFactory);
-        cfgService.unregisterConfigFactory(cfgAppFactory);
+        cfgService.unregisterConfigFactory(deviceConfigFactory);
+        cfgService.unregisterConfigFactory(appConfigFactory);
+        cfgService.unregisterConfigFactory(mcastConfigFactory);
 
         // Withdraw ARP packet-in
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -362,12 +383,20 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         packetService.removeProcessor(processor);
         linkService.removeListener(linkListener);
         deviceService.removeListener(deviceListener);
+        multicastRouteService.removeListener(mcastListener);
+
         processor = null;
         linkListener = null;
-        deviceService = null;
-
+        deviceListener = null;
         groupHandlerMap.clear();
 
+        nsNextObjStore.destroy();
+        subnetNextObjStore.destroy();
+        portNextObjStore.destroy();
+        xConnectNextObjStore.destroy();
+        tunnelStore.destroy();
+        policyStore.destroy();
+        subnetVidStore.destroy();
         log.info("Stopped");
     }
 
@@ -1181,6 +1210,27 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     break;
                 default:
                     log.warn("Unsupported host event type: {}", event.type());
+                    break;
+            }
+        }
+    }
+
+    private class InternalMcastListener implements McastListener {
+        @Override
+        public void event(McastEvent event) {
+            switch (event.type()) {
+                case SOURCE_ADDED:
+                    mcastEventHandler.processSourceAdded(event);
+                    break;
+                case SINK_ADDED:
+                    mcastEventHandler.processSinkAdded(event);
+                    break;
+                case SINK_REMOVED:
+                    mcastEventHandler.processSinkRemoved(event);
+                    break;
+                case ROUTE_ADDED:
+                case ROUTE_REMOVED:
+                default:
                     break;
             }
         }

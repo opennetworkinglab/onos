@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -102,4 +103,13 @@ public final class McastRouteInfo {
         return sinks;
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("route", route())
+                .add("sink", sink())
+                .add("source", source())
+                .add("sinks", sinks())
+                .toString();
+    }
 }

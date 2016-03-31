@@ -313,31 +313,22 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         VlanId assignedVlan = null;
-        // For VLAN cross-connect packets, use the configured VLAN
         if (vidCriterion != null) {
-            if (vidCriterion.vlanId() != VlanId.NONE) {
+            // Use the VLAN in metadata whenever a metadata is provided
+            if (filt.meta() != null) {
+                assignedVlan = readVlanFromTreatment(filt.meta());
+            // Use the VLAN in criterion if metadata is not present and the traffic is tagged
+            } else if (!vidCriterion.vlanId().equals(VlanId.NONE)) {
                 assignedVlan = vidCriterion.vlanId();
+            }
 
-            // For untagged packets, assign a VLAN ID
-            } else {
-                if (filt.meta() == null) {
-                    log.error("Missing metadata in filtering objective required " +
-                            "for vlan assignment in dev {}", deviceId);
-                    fail(filt, ObjectiveError.BADPARAMS);
-                    return;
-                }
-                for (Instruction i : filt.meta().allInstructions()) {
-                    if (i instanceof ModVlanIdInstruction) {
-                        assignedVlan = ((ModVlanIdInstruction) i).vlanId();
-                    }
-                }
-                if (assignedVlan == null) {
-                    log.error("Driver requires an assigned vlan-id to tag incoming "
-                            + "untagged packets. Not processing vlan filters on "
-                            + "device {}", deviceId);
-                    fail(filt, ObjectiveError.BADPARAMS);
-                    return;
-                }
+            if (assignedVlan == null) {
+                log.error("Driver fails to extract VLAN information. "
+                        + "Not proccessing VLAN filters on device {}.", deviceId);
+                log.debug("VLAN ID in criterion={}, metadata={}",
+                        readVlanFromTreatment(filt.meta()), vidCriterion.vlanId());
+                fail(filt, ObjectiveError.BADPARAMS);
+                return;
             }
         }
 
@@ -457,22 +448,14 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         TrafficSelector.Builder preSelector = null;
         TrafficTreatment.Builder preTreatment = null;
 
-
         treatment.transition(TMAC_TABLE);
 
-        VlanId storeVlan = null;
         if (vidCriterion.vlanId() == VlanId.NONE) {
             // untagged packets are assigned vlans
             OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(VlanId.NONE);
             selector.extension(ofdpaMatchVlanVid, deviceId);
             OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(assignedVlan);
             treatment.extension(ofdpaSetVlanVid, deviceId);
-            // ofdpa requires an additional vlan match rule for the assigned vlan
-            // and it does not require the push when setting the assigned vlan.
-            // It also requires the extra rule to be sent to the switch before we
-            // send the untagged match rule.
-            // None of this in compliance with OF standard.
-            storeVlan = assignedVlan;
 
             preSelector = DefaultTrafficSelector.builder();
             OfdpaMatchVlanVid preOfdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
@@ -482,7 +465,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         } else {
             OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(vidCriterion.vlanId());
             selector.extension(ofdpaMatchVlanVid, deviceId);
-            storeVlan = vidCriterion.vlanId();
+
+            if (!assignedVlan.equals(vidCriterion.vlanId())) {
+                OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(assignedVlan);
+                treatment.extension(ofdpaSetVlanVid, deviceId);
+            }
         }
 
         // ofdpa cannot match on ALL portnumber, so we need to use separate
@@ -499,17 +486,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         for (PortNumber pnum : portnums) {
-            // update storage
-            groupHandler.port2Vlan.put(pnum, storeVlan);
-            Set<PortNumber> vlanPorts = groupHandler.vlan2Port.get(storeVlan);
-            if (vlanPorts == null) {
-                vlanPorts = Collections.newSetFromMap(
-                                    new ConcurrentHashMap<PortNumber, Boolean>());
-                vlanPorts.add(pnum);
-                groupHandler.vlan2Port.put(storeVlan, vlanPorts);
-            } else {
-                vlanPorts.add(pnum);
-            }
             // create rest of flowrule
             selector.matchInPort(pnum);
             FlowRule rule = DefaultFlowRule.builder()
@@ -1111,5 +1087,14 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static IpPrefix readIpDstFromSelector(TrafficSelector selector) {
         Criterion criterion = selector.getCriterion(Criterion.Type.IPV4_DST);
         return (criterion == null) ? null : ((IPCriterion) criterion).ip();
+    }
+
+    private static VlanId readVlanFromTreatment(TrafficTreatment treatment) {
+        for (Instruction i : treatment.allInstructions()) {
+            if (i instanceof ModVlanIdInstruction) {
+                return ((ModVlanIdInstruction) i).vlanId();
+            }
+        }
+        return null;
     }
 }

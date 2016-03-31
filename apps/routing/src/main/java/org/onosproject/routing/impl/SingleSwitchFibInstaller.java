@@ -29,11 +29,13 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.incubator.net.config.basics.McastConfig;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceEvent;
 import org.onosproject.incubator.net.intf.InterfaceListener;
@@ -44,9 +46,12 @@ import org.onosproject.incubator.net.routing.RouteListener;
 import org.onosproject.incubator.net.routing.RouteService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -102,6 +107,9 @@ public class SingleSwitchFibInstaller {
     protected NetworkConfigService networkConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry networkConfigRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService componentConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -123,6 +131,7 @@ public class SingleSwitchFibInstaller {
 
     private List<String> interfaces;
 
+    private ApplicationId coreAppId;
     private ApplicationId routerAppId;
 
     // Reference count for how many times a next hop is used by a route
@@ -138,12 +147,24 @@ public class SingleSwitchFibInstaller {
     private InternalInterfaceListener internalInterfaceList = new InternalInterfaceListener();
     private InternalRouteListener routeListener = new InternalRouteListener();
 
+    private ConfigFactory<ApplicationId, McastConfig> mcastConfigFactory =
+            new ConfigFactory<ApplicationId, McastConfig>(SubjectFactories.APP_SUBJECT_FACTORY,
+                    McastConfig.class, "multicast") {
+                @Override
+                public McastConfig createConfig() {
+                    return new McastConfig();
+                }
+            };
+
     @Activate
     protected void activate(ComponentContext context) {
         componentConfigService.registerProperties(getClass());
         modified(context);
 
+        coreAppId = coreService.registerApplication(CoreService.CORE_APP_NAME);
         routerAppId = coreService.registerApplication(RoutingService.ROUTER_APP_ID);
+
+        networkConfigRegistry.registerConfigFactory(mcastConfigFactory);
 
         deviceListener = new InternalDeviceListener();
         deviceService.addListener(deviceListener);
@@ -368,6 +389,7 @@ public class SingleSwitchFibInstaller {
             }
 
             createFilteringObjective(install, intf);
+            createMcastFilteringObjective(install, intf);
         }
     }
 
@@ -380,10 +402,14 @@ public class SingleSwitchFibInstaller {
         }
 
         createFilteringObjective(install, intf);
+        createMcastFilteringObjective(install, intf);
     }
 
     //create filtering objective for interface
     private void createFilteringObjective(boolean install, Interface intf) {
+        VlanId assignedVlan = (egressVlan().equals(VlanId.NONE)) ?
+                VlanId.vlanId(ASSIGNED_VLAN) :
+                egressVlan();
 
         FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
         // first add filter for the interface
@@ -393,17 +419,38 @@ public class SingleSwitchFibInstaller {
         fob.withPriority(PRIORITY_OFFSET);
         if (intf.vlan() == VlanId.NONE) {
             TrafficTreatment tt = DefaultTrafficTreatment.builder()
-                    .pushVlan().setVlanId(VlanId.vlanId(ASSIGNED_VLAN)).build();
+                    .pushVlan().setVlanId(assignedVlan).build();
             fob.withMeta(tt);
         }
-
         fob.permit().fromApp(routerAppId);
         sendFilteringObjective(install, fob, intf);
+
         if (controlPlaneConnectPoint != null) {
             // then add the same mac/vlan filters for control-plane connect point
             fob.withKey(Criteria.matchInPort(controlPlaneConnectPoint.port()));
             sendFilteringObjective(install, fob, intf);
         }
+    }
+
+    //create filtering objective for multicast traffic
+    private void createMcastFilteringObjective(boolean install, Interface intf) {
+        VlanId assignedVlan = (egressVlan().equals(VlanId.NONE)) ?
+                VlanId.vlanId(ASSIGNED_VLAN) :
+                egressVlan();
+
+        FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
+        // first add filter for the interface
+        fob.withKey(Criteria.matchInPort(intf.connectPoint().port()))
+                .addCondition(Criteria.matchEthDstMasked(MacAddress.IPV4_MULTICAST,
+                        MacAddress.IPV4_MULTICAST_MASK))
+                .addCondition(Criteria.matchVlanId(ingressVlan()));
+        fob.withPriority(PRIORITY_OFFSET);
+        TrafficTreatment tt = DefaultTrafficTreatment.builder()
+                .pushVlan().setVlanId(assignedVlan).build();
+        fob.withMeta(tt);
+
+        fob.permit().fromApp(routerAppId);
+        sendFilteringObjective(install, fob, intf);
     }
 
     private void sendFilteringObjective(boolean install, FilteringObjective.Builder fob,
@@ -417,6 +464,18 @@ public class SingleSwitchFibInstaller {
         FilteringObjective filter = install ? fob.add(context) : fob.remove(context);
 
         flowObjectiveService.filter(deviceId, filter);
+    }
+
+    private VlanId ingressVlan() {
+        McastConfig mcastConfig =
+                networkConfigService.getConfig(coreAppId, McastConfig.class);
+        return (mcastConfig != null) ? mcastConfig.ingressVlan() : VlanId.NONE;
+    }
+
+    private VlanId egressVlan() {
+        McastConfig mcastConfig =
+                networkConfigService.getConfig(coreAppId, McastConfig.class);
+        return (mcastConfig != null) ? mcastConfig.egressVlan() : VlanId.NONE;
     }
 
     private class InternalRouteListener implements RouteListener {
@@ -490,7 +549,6 @@ public class SingleSwitchFibInstaller {
     }
 
     private class InternalInterfaceListener implements InterfaceListener {
-
         @Override
         public void event(InterfaceEvent event) {
             Interface intf = event.subject();

@@ -65,7 +65,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -122,10 +121,6 @@ public class Ofdpa2GroupHandler {
 
     // index number for group creation
     private AtomicCounter nextIndex;
-
-    // local stores for port-vlan mapping
-    protected Map<PortNumber, VlanId> port2Vlan = new ConcurrentHashMap<>();
-    protected Map<VlanId, Set<PortNumber>> vlan2Port = new ConcurrentHashMap<>();
 
     // local store for pending bucketAdds - by design there can only be one
     // pending bucket for a group
