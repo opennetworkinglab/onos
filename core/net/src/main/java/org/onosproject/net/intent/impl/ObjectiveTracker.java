@@ -17,7 +17,6 @@ package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -26,7 +25,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.event.Event;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
@@ -315,27 +313,6 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     }
 
     //TODO consider adding flow rule event tracking
-
-    private void updateTrackedResources(ApplicationId appId, boolean track) {
-        if (intentService == null) {
-            log.warn("Intent service is not bound yet");
-            return;
-        }
-        intentService.getIntents().forEach(intent -> {
-            if (intent.appId().equals(appId)) {
-                Key key = intent.key();
-                Collection<NetworkResource> resources = Lists.newArrayList();
-                intentService.getInstallableIntents(key).stream()
-                        .map(installable -> installable.resources())
-                        .forEach(resources::addAll);
-                if (track) {
-                    addTrackedResources(key, resources);
-                } else {
-                    removeTrackedResources(key, resources);
-                }
-            }
-        });
-    }
 
     /*
      * Re-dispatcher of device and host events.
