@@ -118,20 +118,21 @@
 
     function reshade(sh) {
         var p = sh && sh.palette,
-            svg, paths, stroke, fill, bg;
+            paths, stroke, fill, bg,
+            svg = d3.select('#ov-topo').select('svg');
         if (sh) {
             stroke = p.outline;
             fill = sh.flip ? p.sea : p.land;
             bg = sh.flip ? p.land : p.sea;
 
-            svg = d3.select('#ov-topo').select('svg');
             paths = d3.select('#topo-map').selectAll('path');
-
             svg.style('background-color', bg);
             paths.attr({
                 stroke: stroke,
                 fill: fill
             });
+        } else {
+            svg.style('background-color', null);
         }
     }
 

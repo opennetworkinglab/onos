@@ -49,6 +49,7 @@
         M: { id: 'offline-tog', gid: 'switch', isel: true },
         P: { id: 'ports-tog', gid: 'ports', isel: true },
         B: { id: 'bkgrnd-tog', gid: 'map', isel: false },
+        G: { id: 'bkgrnd-sel', gid: 'filters' },
         S: { id: 'sprite-tog', gid: 'cloud', isel: false },
 
         // TODO: add reset-node-locations button to toolbar
@@ -151,6 +152,7 @@
         addToggle('M');
         addToggle('P', true);
         addToggle('B');
+        addButton('G');
         addToggle('S', true);
     }
 

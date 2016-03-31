@@ -771,3 +771,11 @@ html[data-platform='iPad'] #topo-p-detail {
     visibility: hidden;
 }
 
+.map-list {
+    padding: 10px;
+}
+
+.map-list select {
+    font-size: 20px;
+}
+

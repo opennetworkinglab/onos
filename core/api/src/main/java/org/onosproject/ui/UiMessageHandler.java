@@ -56,6 +56,7 @@ public abstract class UiMessageHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Map<String, RequestHandler> handlerMap = new HashMap<>();
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     private UiConnection connection;

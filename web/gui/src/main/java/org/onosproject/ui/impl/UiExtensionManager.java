@@ -137,6 +137,7 @@ public class UiExtensionManager
                 () -> ImmutableList.of(
                         new UserPreferencesMessageHandler(),
                         new TopologyViewMessageHandler(),
+                        new MapSelectorMessageHandler(),
                         new DeviceViewMessageHandler(),
                         new LinkViewMessageHandler(),
                         new HostViewMessageHandler(),

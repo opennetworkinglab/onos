@@ -29,8 +29,8 @@
     ];
 
     // references to injected services
-    var $scope, $log, $cookies, fs, ks, zs, gs, ms, sus, flash, wss, ps, th,
-        tds, t3s, tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, tspr,
+    var $scope, $log, $cookies, $loc, fs, ks, zs, gs, ms, sus, flash, wss, ps, th,
+        tds, t3s, tes, tfs, tps, tis, tms, tss, tls, tts, tos, fltr, ttbs, tspr,
         ttip, tov;
 
     // DOM elements
@@ -53,7 +53,8 @@
             M: [toggleOffline, 'Toggle offline visibility'],
             P: [togglePorts, 'Toggle Port Highlighting'],
             dash: [tfs.showBadLinks, 'Show bad links'],
-            B: [toggleMap, 'Toggle background map'],
+            B: [toggleMap, 'Toggle background geo map'],
+            G: [openMapSelection, 'Select background geo map'],
             S: [toggleSprites, 'Toggle sprite layer'],
 
             X: [tfs.resetAllLocations, 'Reset node locations'],
@@ -78,7 +79,7 @@
             _keyListener: ttbs.keyListener,
 
             _helpFormat: [
-                ['I', 'O', 'D', 'H', 'M', 'P', 'dash', 'B', 'S' ],
+                ['I', 'O', 'D', 'H', 'M', 'P', 'dash', 'B', 'G', 'S' ],
                 ['X', 'Z', 'N', 'L', 'U', 'R', '-', 'E', '-', 'dot'],
                 []   // this column reserved for overlay actions
             ]
@@ -155,6 +156,10 @@
 
     function toggleMap(x) {
         _togSvgLayer(x, mapG, 'bg', 'background map');
+    }
+
+    function openMapSelection() {
+        tms.openMapSelection();
     }
 
     function toggleSprites(x) {
@@ -368,12 +373,22 @@
         } : '';
     }
 
+    function setMap(map) {
+        ps.setPrefs('topo_mapid', map);
+        setUpMap($loc);
+        opacifyMap(true);
+    }
+
+    function currentMap() {
+        return ps.getPrefs(
+            'topo_mapid',
+            { mapid: 'usa', mapscale: 1, tint: 'off'},
+            $loc.search()
+        );
+    }
+
     function setUpMap($loc) {
-        var prefs = ps.getPrefs(
-                'topo_mapid',
-                { mapid: 'usa', mapscale: 1, tint: 'off'},
-                $loc.search()
-            ),
+        var prefs = currentMap(),
             mapId = prefs.mapid,
             mapScale = prefs.mapscale,
             tint = prefs.tint,
@@ -385,7 +400,14 @@
         $log.debug('setUpMap() mapId:', mapId, ', mapScale:', mapScale,
                    ', tint:', tint);
 
-        mapG = zoomLayer.append('g').attr('id', 'topo-map');
+        mapG = d3.select('#topo-map');
+        if (mapG.empty()) {
+            mapG = zoomLayer.append('g').attr('id', 'topo-map');
+        } else {
+            mapG.each(function(d,i) {
+                d3.selectAll(this.childNodes).remove();
+            });
+        }
         if (mapId === 'usa') {
             shadeFlip = 0;
             promise = ms.loadMapInto(mapG, '*continental_us', {
@@ -508,15 +530,15 @@
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoLinkService',
             'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
-            'TopoToolbarService', 'TopoSpriteService', 'TooltipService',
-            'TopoOverlayService',
+            'TopoToolbarService', 'TopoMapService', 'TopoSpriteService',
+            'TooltipService', 'TopoOverlayService',
 
-        function (_$scope_, _$log_, $loc, $timeout, _$cookies_, _fs_, mast, _ks_,
+        function (_$scope_, _$log_, _$loc_, $timeout, _$cookies_, _fs_, mast, _ks_,
                   _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _th_,
                   _tds_, _t3s_, _tes_,
                   _tfs_, _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_,
-                  _ttbs_, _tspr_, _ttip_, _tov_) {
-            var params = $loc.search(),
+                  _ttbs_, _tms_, _tspr_, _ttip_, _tov_) {
+            var params = _$loc_.search(),
                 projection,
                 dim,
                 uplink = {
@@ -531,6 +553,7 @@
 
             $scope = _$scope_;
             $log = _$log_;
+            $loc = _$loc_;
             $cookies = _$cookies_;
             fs = _fs_;
             ks = _ks_;
@@ -551,6 +574,7 @@
             //  just so we can invoke functions on them.
             tps = _tps_;
             tis = _tis_;
+            tms = _tms_;
             tss = _tss_;
             tls = _tls_;
             tts = _tts_;
@@ -560,6 +584,12 @@
             tspr = _tspr_;
             ttip = _ttip_;
             tov = _tov_;
+
+            tms.start({
+                toggleMap: toggleMap,
+                currentMap: currentMap,
+                setMap: setMap
+            });
 
             if (params.intentKey && params.intentAppId && params.intentAppName) {
                 $scope.intentData = {
@@ -577,6 +607,7 @@
             $scope.$on('$destroy', function () {
                 $log.log('OvTopoCtrl is saying Buh-Bye!');
                 tes.stop();
+                tms.stop();
                 ks.unbindKeys();
                 tps.destroyPanels();
                 tds.closeDialog();
