@@ -44,7 +44,7 @@ public class IntentData { //FIXME need to make this "immutable"
 
     private final IntentState request; //TODO perhaps we want a full fledged object for requests
     private IntentState state;
-    private Timestamp version;
+    private final Timestamp version;
     private NodeId origin;
     private int errorCount;
 
@@ -121,6 +121,7 @@ public class IntentData { //FIXME need to make this "immutable"
     protected IntentData() {
         intent = null;
         request = null;
+        version = null;
     }
 
     /**
