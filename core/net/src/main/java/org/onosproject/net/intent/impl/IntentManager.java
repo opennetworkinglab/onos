@@ -82,8 +82,8 @@ public class IntentManager
 
     private static final Logger log = getLogger(IntentManager.class);
 
-    public static final String INTENT_NULL = "Intent cannot be null";
-    public static final String INTENT_ID_NULL = "Intent key cannot be null";
+    private static final String INTENT_NULL = "Intent cannot be null";
+    private static final String INTENT_ID_NULL = "Intent key cannot be null";
 
     private static final EnumSet<IntentState> RECOMPILE
             = EnumSet.of(INSTALL_REQ, FAILED, WITHDRAW_REQ);
