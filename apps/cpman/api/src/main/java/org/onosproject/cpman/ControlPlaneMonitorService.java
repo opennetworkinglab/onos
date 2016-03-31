@@ -20,6 +20,7 @@ import org.onosproject.net.DeviceId;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static org.onosproject.cpman.ControlResource.*;
 
@@ -31,10 +32,10 @@ public interface ControlPlaneMonitorService {
     /**
      * Adds a new control metric value with a certain update interval.
      *
-     * @param controlMetric             control plane metric (e.g., control
-     *                                  message rate, cpu, memory, etc.)
-     * @param updateIntervalInMinutes   value update interval (in minute)
-     * @param deviceId                  device identifier
+     * @param controlMetric           control plane metric (e.g., control
+     *                                message rate, cpu, memory, etc.)
+     * @param updateIntervalInMinutes value update interval (in minute)
+     * @param deviceId                device identifier
      */
     void updateMetric(ControlMetric controlMetric, int updateIntervalInMinutes,
                       Optional<DeviceId> deviceId);
@@ -42,38 +43,59 @@ public interface ControlPlaneMonitorService {
     /**
      * Adds a new control metric value with a certain update interval.
      *
-     * @param controlMetric              control plane metric (e.g., disk and
-     *                                   network metrics)
-     * @param updateIntervalInMinutes    value update interval (in minute)
-     * @param resourceName               resource name
+     * @param controlMetric           control plane metric (e.g., disk and
+     *                                network metrics)
+     * @param updateIntervalInMinutes value update interval (in minute)
+     * @param resourceName            resource name
      */
     void updateMetric(ControlMetric controlMetric, int updateIntervalInMinutes,
                       String resourceName);
 
     /**
-     * Obtains the control plane load of a specific device.
+     * Obtains local control plane load of a specific device.
      * The metrics range from control messages and system metrics
      * (e.g., CPU and memory info)
      *
-     * @param nodeId                     node identifier
-     * @param type                       control metric type
-     * @param deviceId                   device identifier
+     * @param type     control metric type
+     * @param deviceId device identifier
      * @return control plane load
      */
-    ControlLoad getLoad(NodeId nodeId, ControlMetricType type,
-                        Optional<DeviceId> deviceId);
+    ControlLoad getLocalLoad(ControlMetricType type, Optional<DeviceId> deviceId);
 
     /**
-     * Obtains the control plane load of a specific device.
+     * Obtains local control plane load of a specific resource.
      * The metrics range from I/O device metrics
      * (e.g., disk and network interface)
      *
-     * @param nodeId                     node identifier
-     * @param type                       control metric type
-     * @param resourceName               resource name
+     * @param type         control metric type
+     * @param resourceName resource name
      * @return control plane load
      */
-    ControlLoad getLoad(NodeId nodeId, ControlMetricType type, String resourceName);
+    ControlLoad getLocalLoad(ControlMetricType type, String resourceName);
+
+    /**
+     * Obtains remote control plane load of a specific device.
+     *
+     * @param nodeId   node identifier
+     * @param type     control metric type
+     * @param deviceId device identifier
+     * @return completable future object of control load
+     */
+    CompletableFuture<ControlLoad> getRemoteLoad(NodeId nodeId,
+                                                 ControlMetricType type,
+                                                 Optional<DeviceId> deviceId);
+
+    /**
+     * Obtains remote control plane load of a specific resource.
+     *
+     * @param nodeId       node identifier
+     * @param type         control metric type
+     * @param resourceName resource name
+     * @return completable future object of control load
+     */
+    CompletableFuture<ControlLoad> getRemoteLoad(NodeId nodeId,
+                                                 ControlMetricType type,
+                                                 String resourceName);
 
     /**
      * Obtains a list of names of available resources.

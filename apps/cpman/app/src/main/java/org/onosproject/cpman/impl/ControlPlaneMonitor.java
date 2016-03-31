@@ -24,8 +24,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cpman.ControlLoad;
 import org.onosproject.cpman.ControlMetric;
@@ -33,15 +33,29 @@ import org.onosproject.cpman.ControlMetricType;
 import org.onosproject.cpman.ControlPlaneMonitorService;
 import org.onosproject.cpman.MetricsDatabase;
 import org.onosproject.net.DeviceId;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static org.onosproject.cpman.ControlResource.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.cpman.ControlResource.CONTROL_MESSAGE_METRICS;
+import static org.onosproject.cpman.ControlResource.CPU_METRICS;
+import static org.onosproject.cpman.ControlResource.DISK_METRICS;
+import static org.onosproject.cpman.ControlResource.MEMORY_METRICS;
+import static org.onosproject.cpman.ControlResource.NETWORK_METRICS;
+import static org.onosproject.cpman.ControlResource.Type;
 
 /**
  * Control plane monitoring service class.
@@ -60,8 +74,14 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterCommunicationService communicationService;
+
     private static final Set RESOURCE_TYPE_SET =
             ImmutableSet.of(Type.CONTROL_MESSAGE, Type.DISK, Type.NETWORK);
+
+    private static final MessageSubject CONTROL_STATS =
+                         new MessageSubject("control-plane-stats");
 
     private Map<ControlMetricType, Double> cpuBuf;
     private Map<ControlMetricType, Double> memoryBuf;
@@ -71,6 +91,19 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
 
     private Map<Type, Set<String>> availableResourceMap;
     private Set<DeviceId> availableDeviceIdSet;
+
+    private ExecutorService messageHandlingExecutor;
+
+    private static final String METRIC_TYPE_NULL = "Control metric type cannot be null";
+
+    private static final Serializer SERIALIZER = Serializer
+            .using(new KryoNamespace.Builder()
+                    .register(KryoNamespaces.API)
+                    .register(ControlMetricsRequest.class)
+                    .register(DefaultControlLoad.class)
+                    .register(DefaultMetricsDatabase.class)
+                    .register(ControlMetricType.class)
+                    .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID).build());
 
     @Activate
     public void activate() {
@@ -89,6 +122,12 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
         availableResourceMap = Maps.newConcurrentMap();
         availableDeviceIdSet = Sets.newConcurrentHashSet();
 
+        messageHandlingExecutor = Executors.newSingleThreadScheduledExecutor(
+                groupedThreads("onos/app/cpman", "message-handlers"));
+
+        communicationService.addSubscriber(CONTROL_STATS,
+                SERIALIZER::decode, this::handleRequest, messageHandlingExecutor);
+
         log.info("Started");
     }
 
@@ -101,6 +140,8 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
         diskBuf.clear();
         networkBuf.clear();
         ctrlMsgBuf.clear();
+
+        communicationService.removeSubscriber(CONTROL_STATS);
 
         log.info("Stopped");
     }
@@ -197,53 +238,57 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     }
 
     @Override
-    public ControlLoad getLoad(NodeId nodeId, ControlMetricType type,
-                               Optional<DeviceId> deviceId) {
-        ControllerNode node = clusterService.getNode(nodeId);
-        if (clusterService.getLocalNode().equals(node)) {
-
-            if (deviceId.isPresent()) {
-                if (CONTROL_MESSAGE_METRICS.contains(type) &&
-                        availableDeviceIdSet.contains(deviceId.get())) {
-                    return new DefaultControlLoad(controlMessageMap.get(deviceId.get()), type);
-                }
-            } else {
-                // returns controlLoad of CPU metrics
-                if (CPU_METRICS.contains(type)) {
-                    return new DefaultControlLoad(cpuMetrics, type);
-                }
-
-                // returns memoryLoad of memory metrics
-                if (MEMORY_METRICS.contains(type)) {
-                    return new DefaultControlLoad(memoryMetrics, type);
-                }
+    public ControlLoad getLocalLoad(ControlMetricType type,
+                                    Optional<DeviceId> deviceId) {
+        if (deviceId.isPresent()) {
+            if (CONTROL_MESSAGE_METRICS.contains(type) &&
+                    availableDeviceIdSet.contains(deviceId.get())) {
+                return new DefaultControlLoad(controlMessageMap.get(deviceId.get()), type);
             }
         } else {
-            // TODO: currently only query the metrics of local node
-            return null;
+            // returns controlLoad of CPU metrics
+            if (CPU_METRICS.contains(type)) {
+                return new DefaultControlLoad(cpuMetrics, type);
+            }
+
+            // returns memoryLoad of memory metrics
+            if (MEMORY_METRICS.contains(type)) {
+                return new DefaultControlLoad(memoryMetrics, type);
+            }
         }
         return null;
     }
 
     @Override
-    public ControlLoad getLoad(NodeId nodeId, ControlMetricType type,
-                               String resourceName) {
-        if (clusterService.getLocalNode().id().equals(nodeId)) {
-            if (DISK_METRICS.contains(type) &&
-                    availableResources(Type.DISK).contains(resourceName)) {
-                return new DefaultControlLoad(diskMetricsMap.get(resourceName), type);
-            }
+    public ControlLoad getLocalLoad(ControlMetricType type, String resourceName) {
+        if (DISK_METRICS.contains(type) &&
+                availableResources(Type.DISK).contains(resourceName)) {
+            return new DefaultControlLoad(diskMetricsMap.get(resourceName), type);
+        }
 
-            if (NETWORK_METRICS.contains(type) &&
-                    availableResources(Type.NETWORK).contains(resourceName)) {
-                return new DefaultControlLoad(networkMetricsMap.get(resourceName), type);
-            }
-        } else {
-            // TODO: currently only query the metrics of local node
-            return null;
+        if (NETWORK_METRICS.contains(type) &&
+                availableResources(Type.NETWORK).contains(resourceName)) {
+            return new DefaultControlLoad(networkMetricsMap.get(resourceName), type);
         }
         return null;
     }
+
+    @Override
+    public CompletableFuture<ControlLoad> getRemoteLoad(NodeId nodeId,
+                                                        ControlMetricType type,
+                                                        Optional<DeviceId> deviceId) {
+        return communicationService.sendAndReceive(createRequest(type, deviceId),
+                CONTROL_STATS, SERIALIZER::encode, SERIALIZER::decode, nodeId);
+    }
+
+    @Override
+    public CompletableFuture<ControlLoad> getRemoteLoad(NodeId nodeId,
+                                                        ControlMetricType type,
+                                                        String resourceName) {
+        return communicationService.sendAndReceive(createRequest(type, resourceName),
+                CONTROL_STATS, SERIALIZER::encode, SERIALIZER::decode, nodeId);
+    }
+
 
     @Override
     public Set<String> availableResources(Type resourceType) {
@@ -290,5 +335,28 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
         Map newMap = Maps.newConcurrentMap();
         map.forEach((k, v) -> newMap.putIfAbsent(k.toString(), v));
         return newMap;
+    }
+
+    private CompletableFuture<ControlLoad> handleRequest(ControlMetricsRequest request) {
+
+        checkArgument(request.getType() != null, METRIC_TYPE_NULL);
+
+        ControlLoad load;
+        if (request.getResourceName() != null) {
+            load = getLocalLoad(request.getType(), request.getResourceName());
+        } else {
+            load = getLocalLoad(request.getType(), request.getDeviceId());
+        }
+        return CompletableFuture.completedFuture(load);
+    }
+
+    private ControlMetricsRequest createRequest(ControlMetricType type,
+                                                Optional<DeviceId> deviceId) {
+        return new ControlMetricsRequest(type, deviceId);
+    }
+
+    private ControlMetricsRequest createRequest(ControlMetricType type,
+                                                String resourceName) {
+        return new ControlMetricsRequest(type, resourceName);
     }
 }

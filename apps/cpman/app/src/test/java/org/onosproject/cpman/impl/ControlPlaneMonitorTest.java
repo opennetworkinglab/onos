@@ -26,6 +26,8 @@ import org.onosproject.cpman.ControlMetric;
 import org.onosproject.cpman.ControlMetricType;
 import org.onosproject.cpman.MetricValue;
 import org.onosproject.net.DeviceId;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapter;
 
 import java.util.Optional;
 import java.util.Set;
@@ -36,8 +38,12 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-
-import static org.onosproject.cpman.ControlResource.*;
+import static org.onosproject.cpman.ControlResource.CONTROL_MESSAGE_METRICS;
+import static org.onosproject.cpman.ControlResource.CPU_METRICS;
+import static org.onosproject.cpman.ControlResource.DISK_METRICS;
+import static org.onosproject.cpman.ControlResource.MEMORY_METRICS;
+import static org.onosproject.cpman.ControlResource.NETWORK_METRICS;
+import static org.onosproject.cpman.ControlResource.Type;
 
 /**
  * Unit test of control plane monitoring service.
@@ -48,6 +54,7 @@ public class ControlPlaneMonitorTest {
     private static final Integer UPDATE_INTERVAL = 1;
     private ClusterService mockClusterService;
     private ControllerNode mockControllerNode;
+    private ClusterCommunicationService mockCommunicationService;
     private NodeId nodeId;
 
     /**
@@ -56,7 +63,9 @@ public class ControlPlaneMonitorTest {
     @Before
     public void setup() {
         monitor = new ControlPlaneMonitor();
-        monitor.activate();
+
+        mockCommunicationService = new ClusterCommunicationServiceAdapter();
+        monitor.communicationService = mockCommunicationService;
 
         nodeId = new NodeId("1");
         mockControllerNode = new MockControllerNode(nodeId);
@@ -68,6 +77,8 @@ public class ControlPlaneMonitorTest {
         expect(mockClusterService.getLocalNode())
                 .andReturn(mockControllerNode).anyTimes();
         replay(mockClusterService);
+
+        monitor.activate();
     }
 
     /**
@@ -102,7 +113,7 @@ public class ControlPlaneMonitorTest {
     }
 
     private void testLoadMetricWithoutId(ControlMetricType cmt, MetricValue mv) {
-        assertThat(monitor.getLoad(nodeId, cmt, Optional.ofNullable(null)).latest(), is(mv.getLoad()));
+        assertThat(monitor.getLocalLoad(cmt, Optional.ofNullable(null)).latest(), is(mv.getLoad()));
     }
 
     private void testUpdateMetricWithResource(ControlMetricType cmt, MetricValue mv, String resourceName) {
@@ -111,7 +122,7 @@ public class ControlPlaneMonitorTest {
     }
 
     private void testLoadMetricWithResource(ControlMetricType cmt, MetricValue mv, String resourceName) {
-        assertThat(monitor.getLoad(nodeId, cmt, resourceName).latest(), is(mv.getLoad()));
+        assertThat(monitor.getLocalLoad(cmt, resourceName).latest(), is(mv.getLoad()));
     }
 
     private void testUpdateMetricWithId(ControlMetricType cmt, MetricValue mv, DeviceId did) {
@@ -120,7 +131,7 @@ public class ControlPlaneMonitorTest {
     }
 
     private void testLoadMetricWithId(ControlMetricType cmt, MetricValue mv, DeviceId did) {
-        assertThat(monitor.getLoad(nodeId, cmt, Optional.of(did)).latest(), is(mv.getLoad()));
+        assertThat(monitor.getLocalLoad(cmt, Optional.of(did)).latest(), is(mv.getLoad()));
     }
 
     /**

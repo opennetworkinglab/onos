@@ -101,11 +101,11 @@ public class ControlMetricsStatsListCommand extends AbstractShellCommand {
     private void printMetricsStats(ControlPlaneMonitorService service, NodeId nodeId,
                                    Set<ControlMetricType> typeSet, String name, DeviceId did) {
         if (name == null && did == null) {
-            typeSet.forEach(s -> print(s, service.getLoad(nodeId, s, Optional.ofNullable(null))));
+            typeSet.forEach(s -> print(s, service.getLocalLoad(s, Optional.ofNullable(null))));
         } else if (name == null && did != null) {
-            typeSet.forEach(s -> print(s, service.getLoad(nodeId, s, Optional.of(did))));
+            typeSet.forEach(s -> print(s, service.getLocalLoad(s, Optional.of(did))));
         } else if (name != null && did == null) {
-            typeSet.forEach(s -> print(s, service.getLoad(nodeId, s, name)));
+            typeSet.forEach(s -> print(s, service.getLocalLoad(s, name)));
         }
     }
 

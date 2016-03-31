@@ -182,8 +182,8 @@ public class ControlMetricsResourceTest extends JerseyTest {
     public void testResourcePopulatedArray() {
         expect(mockControlPlaneMonitorService.availableResources(anyObject()))
                 .andReturn(resourceSet).once();
-        expect(mockControlPlaneMonitorService.getLoad(anyObject(), anyObject(),
-        anyString())).andReturn(null).times(4);
+        expect(mockControlPlaneMonitorService.getLocalLoad(anyObject(),
+                anyString())).andReturn(null).times(4);
         replay(mockControlPlaneMonitorService);
 
         final WebTarget wt = target();

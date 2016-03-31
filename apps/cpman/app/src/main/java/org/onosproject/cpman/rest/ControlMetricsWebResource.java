@@ -241,17 +241,17 @@ public class ControlMetricsWebResource extends AbstractWebResource {
         if (name == null && did == null) {
             typeSet.forEach(type -> {
                 ObjectNode metricNode = mapper().createObjectNode();
-                ControlLoad load = service.getLoad(nodeId, type, Optional.ofNullable(null));
+                ControlLoad load = service.getLocalLoad(type, Optional.ofNullable(null));
                 if (load != null) {
                     metricNode.set(type.toString().toLowerCase(), codec(ControlLoad.class)
-                            .encode(service.getLoad(nodeId, type, Optional.ofNullable(null)), this));
+                            .encode(service.getLocalLoad(type, Optional.ofNullable(null)), this));
                     metricsNode.add(metricNode);
                 }
             });
         } else if (name == null) {
             typeSet.forEach(type -> {
                 ObjectNode metricNode = mapper().createObjectNode();
-                ControlLoad load = service.getLoad(nodeId, type, Optional.of(did));
+                ControlLoad load = service.getLocalLoad(type, Optional.of(did));
                 if (load != null) {
                     metricNode.set(type.toString().toLowerCase(),
                             codec(ControlLoad.class).encode(load, this));
@@ -261,7 +261,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
         } else if (did == null) {
             typeSet.forEach(type -> {
                 ObjectNode metricNode = mapper().createObjectNode();
-                ControlLoad load = service.getLoad(nodeId, type, name);
+                ControlLoad load = service.getLocalLoad(type, name);
                 if (load != null) {
                     metricNode.set(type.toString().toLowerCase(),
                             codec(ControlLoad.class).encode(load, this));
