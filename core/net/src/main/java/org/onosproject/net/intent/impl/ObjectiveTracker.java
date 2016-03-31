@@ -414,7 +414,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         }
     }
 
-    protected void doIntentUpdate() {
+    private void doIntentUpdate() {
         updateScheduled.set(false);
         if (intentService == null) {
             log.warn("Intent service is not bound yet");
