@@ -195,7 +195,7 @@ public class FlowsWebResource extends AbstractWebResource {
             UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
                     .path("flows")
                     .path(deviceId)
-                    .path(rule.id().toString());
+                    .path(Long.toString(rule.id().value()));
 
             return Response
                     .created(locationBuilder.build())
