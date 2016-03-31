@@ -218,8 +218,6 @@ public class DistributedGroupStore
     public void deactivate() {
         cfgService.unregisterProperties(getClass(), false);
         clusterCommunicator.removeSubscriber(GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST);
-        groupStoreEntriesByKey.destroy();
-        auditPendingReqQueue.destroy();
         log.info("Stopped");
     }
 
