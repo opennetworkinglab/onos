@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.util.KryoNamespace;
@@ -347,7 +348,7 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
                 fail(fwd, ObjectiveError.UNKNOWN);
                 log.warn("Unknown forwarding flag {}", fwd.flag());
         }
-        return Collections.emptySet();
+        return ImmutableSet.of();
     }
 
     private Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
@@ -366,14 +367,14 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
         }
 
         fail(fwd, ObjectiveError.UNSUPPORTED);
-        return Collections.emptySet();
+        return ImmutableSet.of();
     }
 
     protected Collection<FlowRule> processSpecificSwitch(ForwardingObjective fwd) {
         /* Not supported by until CorsaPipelineV3 */
         log.warn("Vlan switching not supported in ovs-corsa driver");
         fail(fwd, ObjectiveError.UNSUPPORTED);
-        return Collections.emptySet();
+        return ImmutableSet.of();
     }
 
     private Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
@@ -385,7 +386,7 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
         if (ethType == null) {
             log.error("Versatile forwarding objective must include ethType");
             fail(fwd, ObjectiveError.UNKNOWN);
-            return Collections.emptySet();
+            return ImmutableSet.of();
         }
         Builder rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
@@ -404,7 +405,7 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
         }
         log.warn("Driver does not support given versatile forwarding objective");
         fail(fwd, ObjectiveError.UNSUPPORTED);
-        return Collections.emptySet();
+        return ImmutableSet.of();
     }
 
     protected abstract Collection<FlowRule> processArpTraffic(ForwardingObjective fwd, Builder rule);
@@ -430,9 +431,13 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
             if (group == null) {
                 log.warn("The group left!");
                 fail(fwd, ObjectiveError.GROUPMISSING);
-                return Collections.emptySet();
+                return ImmutableSet.of();
             }
             tb.group(group.id());
+        } else {
+            log.error("Missing NextObjective ID for ForwardingObjective {}", fwd.id());
+            fail(fwd, ObjectiveError.BADPARAMS);
+            return ImmutableSet.of();
         }
         Builder ruleBuilder = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())

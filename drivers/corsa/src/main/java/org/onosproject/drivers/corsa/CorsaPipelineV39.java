@@ -16,6 +16,7 @@
 
 package org.onosproject.drivers.corsa;
 
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.VlanId;
@@ -28,6 +29,8 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.IPProtocolCriterion;
+import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.slf4j.Logger;
@@ -36,6 +39,10 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static org.onosproject.net.flow.FlowRule.Builder;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.ETH_DST;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.ETH_SRC;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_ID;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_POP;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class CorsaPipelineV39 extends CorsaPipelineV3 {
@@ -55,13 +62,13 @@ public class CorsaPipelineV39 extends CorsaPipelineV3 {
         processL3IFMacDATable(true);       //Table 5
         processEtherTable(true);           //Table 6
         //TODO: to be implemented for intents
-        //processFibTable(true);           //Table 7
+        processFibTable(true);           //Table 7
         //processLocalTable(true);         //Table 9
     }
 
     @Override
     protected void processVlanCheckTable(boolean install) {
-        //FIXME: error
+        //current device pipeline reports errors, but it is a bug
         processTableMissGoTo(true, VLAN_CHECK_TABLE, VLAN_MAC_XLATE_TABLE, "Provisioned vlan tagged");
         //Tag untagged packets
         processUntaggedPackets(install);
@@ -197,7 +204,7 @@ public class CorsaPipelineV39 extends CorsaPipelineV3 {
         if (ipSrc != null) {
             log.warn("Driver does not currently handle matching Src IP");
             fail(fwd, ObjectiveError.UNSUPPORTED);
-            return Collections.emptySet();
+            return ImmutableSet.of();
         }
         IPCriterion ipDst = (IPCriterion) fwd.selector()
                 .getCriterion(Criterion.Type.IPV4_DST);
@@ -205,7 +212,7 @@ public class CorsaPipelineV39 extends CorsaPipelineV3 {
             log.error("Driver handles Dst IP matching as specific forwarding "
                     + "objective, not versatile");
             fail(fwd, ObjectiveError.UNSUPPORTED);
-            return Collections.emptySet();
+            return ImmutableSet.of();
         }
         IPProtocolCriterion ipProto = (IPProtocolCriterion) fwd.selector()
                 .getCriterion(Criterion.Type.IP_PROTO);
@@ -213,8 +220,33 @@ public class CorsaPipelineV39 extends CorsaPipelineV3 {
             log.warn("Driver automatically punts all packets reaching the "
                     + "LOCAL table to the controller");
             pass(fwd);
-            return Collections.emptySet();
+            return ImmutableSet.of();
         }
-        return Collections.emptySet();
+        return ImmutableSet.of();
+    }
+
+    @Override
+    protected TrafficTreatment processNextTreatment(TrafficTreatment treatment) {
+        TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
+        tb.add(Instructions.popVlan());
+        treatment.immediate().stream()
+                .filter(i -> {
+                    switch (i.type()) {
+                        case L2MODIFICATION:
+                            L2ModificationInstruction l2i = (L2ModificationInstruction) i;
+                            if (l2i.subtype() == VLAN_ID ||
+                                    l2i.subtype() == VLAN_POP ||
+                                    l2i.subtype() == VLAN_POP ||
+                                    l2i.subtype() == ETH_DST ||
+                                    l2i.subtype() == ETH_SRC) {
+                                return true;
+                            }
+                        case OUTPUT:
+                            return true;
+                        default:
+                            return false;
+                    }
+                }).forEach(i -> tb.add(i));
+        return tb.build();
     }
 }

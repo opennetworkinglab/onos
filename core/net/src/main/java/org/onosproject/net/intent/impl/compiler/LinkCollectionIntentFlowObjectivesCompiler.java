@@ -33,7 +33,10 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.DefaultNextObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.Intent;
@@ -57,6 +60,9 @@ public class LinkCollectionIntentFlowObjectivesCompiler implements IntentCompile
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveService flowObjectiveService;
 
     private ApplicationId appId;
 
@@ -133,16 +139,22 @@ public class LinkCollectionIntentFlowObjectivesCompiler implements IntentCompile
                 treatment = defaultTreatment;
             }
 
-            Objective objective = DefaultForwardingObjective.builder()
+            NextObjective nextObjective = DefaultNextObjective.builder()
+                    .withId(flowObjectiveService.allocateNextId())
+                    .addTreatment(treatment)
+                    .withType(NextObjective.Type.SIMPLE)
+                    .fromApp(appId)
+                    .makePermanent().add();
+            objectives.add(nextObjective);
+
+            objectives.add(DefaultForwardingObjective.builder()
                     .withSelector(selector)
-                    .withTreatment(treatment)
+                    .nextStep(nextObjective.id())
                     .withPriority(intent.priority())
                     .fromApp(appId)
                     .makePermanent()
                     .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                    .add();
-
-            objectives.add(objective);
+                    .add());
         }
 
         return objectives;

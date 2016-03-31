@@ -15,6 +15,7 @@
  */
 package org.onosproject.drivers.corsa;
 
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -129,24 +130,24 @@ public class CorsaPipelineV3 extends AbstractCorsaPipeline {
     @Override
     protected Collection<FlowRule> processArpTraffic(ForwardingObjective fwd, Builder rule) {
         //TODO
-        return Collections.emptyList();
+        return ImmutableSet.of();
     }
 
     @Override
     protected Collection<FlowRule> processLinkDiscovery(ForwardingObjective fwd, Builder rule) {
         //TODO
-        return Collections.emptyList();
+        return ImmutableSet.of();
     }
 
     @Override
     protected Collection<FlowRule> processIpTraffic(ForwardingObjective fwd, Builder rule) {
         //TODO
-        return Collections.emptyList();
+        return ImmutableSet.of();
     }
 
     @Override
     protected Builder processEthFiler(FilteringObjective filt, EthCriterion eth, PortCriterion port) {
-                         log.debug("adding rule for MAC: {}", eth.mac());
+        log.debug("adding rule for MAC: {}", eth.mac());
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         selector.matchEthDst(eth.mac());
@@ -338,7 +339,7 @@ public class CorsaPipelineV3 extends AbstractCorsaPipeline {
         processFlowRule(install, rule, "Provisioned ether type table ip");
     }
 
-    private void processFibTable(boolean install) {
+    protected void processFibTable(boolean install) {
         /* Default action */
         processTableMissDrop(install, FIB_TABLE, "Provisioned fib drop");
     }
