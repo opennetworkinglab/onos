@@ -91,6 +91,7 @@ import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -104,10 +105,9 @@ import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupCh
 import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupGridType;
 import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOchSignalType;
 import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOduSignalType;
-import static org.slf4j.LoggerFactory.getLogger;
 
 public class FlowEntryBuilder {
-    private final Logger log = getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(FlowEntryBuilder.class);
 
     private final OFFlowStatsEntry stat;
     private final OFFlowRemoved removed;
@@ -289,14 +289,24 @@ public class FlowEntryBuilder {
         return builder.build();
     }
 
-    private TrafficTreatment.Builder buildActions(List<OFAction> actions,
-                                                  TrafficTreatment.Builder builder) {
-        DriverHandler driverHandler = getDriver(deviceId);
-        ExtensionTreatmentInterpreter treatmentInterpreter;
+    /**
+     * Configures traffic treatment builder with a given collection of actions.
+     *
+     * @param actions a set of OpenFlow actions
+     * @param builder traffic treatment builder
+     * @param driverHandler driver handler
+     * @param deviceId device identifier
+     * @return configured traffic treatment builder
+     */
+    public static TrafficTreatment.Builder configureTreatmentBuilder(List<OFAction> actions,
+                                                                     TrafficTreatment.Builder builder,
+                                                                     DriverHandler driverHandler,
+                                                                     DeviceId deviceId) {
+        ExtensionTreatmentInterpreter interpreter;
         if (driverHandler.hasBehaviour(ExtensionTreatmentInterpreter.class)) {
-            treatmentInterpreter = driverHandler.behaviour(ExtensionTreatmentInterpreter.class);
+            interpreter = driverHandler.behaviour(ExtensionTreatmentInterpreter.class);
         } else {
-            treatmentInterpreter = null;
+            interpreter = null;
         }
 
         for (OFAction act : actions) {
@@ -344,15 +354,15 @@ public class FlowEntryBuilder {
                                 lookupGridType(circuitSignalID.getGridType()),
                                 lookupChannelSpacing(circuitSignalID.getChannelSpacing()),
                                 circuitSignalID.getChannelNumber(), circuitSignalID.getSpectralWidth())));
-                    } else if (treatmentInterpreter != null) {
-                        builder.extension(treatmentInterpreter.mapAction(exp), deviceId);
+                    } else if (interpreter != null) {
+                        builder.extension(interpreter.mapAction(exp), deviceId);
                     } else {
                         log.warn("Unsupported OFActionExperimenter {}", exp.getExperimenter());
                     }
                     break;
                 case SET_FIELD:
                     OFActionSetField setField = (OFActionSetField) act;
-                    handleSetField(builder, setField);
+                    handleSetField(builder, setField, driverHandler, deviceId);
                     break;
                 case POP_MPLS:
                     OFActionPopMpls popMpls = (OFActionPopMpls) act;
@@ -410,9 +420,18 @@ public class FlowEntryBuilder {
         return builder;
     }
 
-
-    private void handleSetField(TrafficTreatment.Builder builder, OFActionSetField action) {
+    private TrafficTreatment.Builder buildActions(List<OFAction> actions,
+                                                  TrafficTreatment.Builder builder) {
         DriverHandler driverHandler = getDriver(deviceId);
+
+        return configureTreatmentBuilder(actions, builder, driverHandler, deviceId);
+    }
+
+
+    private static void handleSetField(TrafficTreatment.Builder builder,
+                                       OFActionSetField action,
+                                       DriverHandler driverHandler,
+                                       DeviceId deviceId) {
         ExtensionTreatmentInterpreter treatmentInterpreter;
         if (driverHandler.hasBehaviour(ExtensionTreatmentInterpreter.class)) {
             treatmentInterpreter = driverHandler.behaviour(ExtensionTreatmentInterpreter.class);

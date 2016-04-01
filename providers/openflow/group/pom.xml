@@ -31,4 +31,12 @@
 
     <description>ONOS OpenFlow protocol group provider</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-of-provider-flow</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
 </project>
