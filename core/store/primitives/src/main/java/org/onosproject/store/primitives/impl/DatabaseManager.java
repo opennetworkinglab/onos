@@ -97,7 +97,7 @@ import com.google.common.util.concurrent.Futures;
 /**
  * Database manager.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true, enabled = false)
 @Service
 public class DatabaseManager implements StorageService, StorageAdminService {
 

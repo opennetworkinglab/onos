@@ -69,7 +69,7 @@ public interface DistributedPrimitive {
         TRANSACTION_CONTEXT
     }
 
-    static final long DEFAULT_OPERTATION_TIMEOUT_MILLIS = 5000L;
+    static final long DEFAULT_OPERTATION_TIMEOUT_MILLIS = 60000L;
 
     /**
      * Returns the name of this primitive.

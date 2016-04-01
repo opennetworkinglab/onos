@@ -68,7 +68,7 @@ import static org.onosproject.security.AppPermission.Type.*;
  * Implementation for {@code StorageService} and {@code StorageAdminService}.
  */
 @Service
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 public class StorageManager implements StorageService, StorageAdminService {
 
     private final Logger log = getLogger(getClass());
