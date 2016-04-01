@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "title": "vport",
+  "required": [
+    "networkId",
+    "deviceId",
+    "portNum",
+    "physDeviceId",
+    "physPortNum"
+  ],
+  "properties": {
+    "networkId": {
+      "type": "String",
+      "example": "Network identifier"
+    },
+    "deviceId": {
+      "type": "String",
+      "example": "Virtual device identifier"
+    },
+    "portNum": {
+      "type": "String",
+      "example": "Virtual device port number"
+    },
+    "physDeviceId": {
+      "type": "String",
+      "example": "Physical device identifier"
+    },
+    "physPortNum": {
+      "type": "String",
+      "example": "Physical device port number"
+    }
+  }
+}

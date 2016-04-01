@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "title": "tenants",
+  "required": [
+    "tenants"
+  ],
+  "properties": {
+    "tenants": {
+      "type": "array",
+      "xml": {
+        "name": "tenants",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "tenant",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "String",
+            "example": "Tenant unique identifier"
+          }
+        }
+      }
+    }
+  }
+}

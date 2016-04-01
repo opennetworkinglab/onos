@@ -22,7 +22,7 @@ import org.onosproject.net.Port;
  * Representation of a virtual port.
  */
 @Beta
-public interface VirtualPort extends Port {
+public interface VirtualPort extends VirtualElement, Port {
 
     /**
      * Returns the underlying port using which this port is realized.

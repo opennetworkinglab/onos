@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "title": "vdev",
+  "required": [
+    "networkId",
+    "deviceId"
+  ],
+  "properties": {
+    "networkId": {
+      "type": "String",
+      "example": "Network identifier"
+    },
+    "deviceId": {
+      "type": "String",
+      "example": "Device identifier"
+    }
+  }
+}

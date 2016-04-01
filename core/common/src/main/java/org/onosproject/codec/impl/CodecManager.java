@@ -26,6 +26,10 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.Application;
+import org.onosproject.incubator.net.virtual.TenantId;
+import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualNetwork;
+import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -126,6 +130,10 @@ public class CodecManager implements CodecService {
         registerCodec(McastRoute.class, new McastRouteCodec());
         registerCodec(DeviceKey.class, new DeviceKeyCodec());
         registerCodec(Region.class, new RegionCodec());
+        registerCodec(TenantId.class, new TenantIdCodec());
+        registerCodec(VirtualNetwork.class, new VirtualNetworkCodec());
+        registerCodec(VirtualDevice.class, new VirtualDeviceCodec());
+        registerCodec(VirtualPort.class, new VirtualPortCodec());
         log.info("Started");
     }
 
