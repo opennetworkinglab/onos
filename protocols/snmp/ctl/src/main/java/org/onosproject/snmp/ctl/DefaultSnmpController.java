@@ -52,10 +52,10 @@ public class DefaultSnmpController implements SnmpController {
     private final Logger log = LoggerFactory
             .getLogger(getClass());
 
-    private ISnmpSessionFactory sessionFactory;
+    protected ISnmpSessionFactory sessionFactory;
 
-    private final Map<DeviceId, ISnmpSession> sessionMap = new HashMap<>();
-    protected Map<DeviceId, SnmpDevice> snmpDeviceMap = new ConcurrentHashMap<>();
+    protected final Map<DeviceId, ISnmpSession> sessionMap = new HashMap<>();
+    protected final Map<DeviceId, SnmpDevice> snmpDeviceMap = new ConcurrentHashMap<>();
 
     @Activate
     public void activate(ComponentContext context) {
@@ -66,6 +66,7 @@ public class DefaultSnmpController implements SnmpController {
 
     @Deactivate
     public void deactivate() {
+        sessionMap.clear();
         snmpDeviceMap.clear();
         log.info("Stopped");
     }

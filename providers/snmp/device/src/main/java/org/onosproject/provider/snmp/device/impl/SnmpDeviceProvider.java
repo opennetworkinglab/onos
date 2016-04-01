@@ -74,8 +74,6 @@ public class SnmpDeviceProvider extends AbstractProvider
     private static final String APP_NAME = "org.onosproject.snmp";
     private static final String SCHEME = "snmp";
 
-    private DeviceProviderService providerService;
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected SnmpController controller;
 
@@ -94,14 +92,17 @@ public class SnmpDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry netCfgService;
 
+    protected DeviceProviderService providerService;
+
+    protected ApplicationId appId;
+
     private final ExecutorService deviceBuilderExecutor = Executors
             .newFixedThreadPool(5, groupedThreads("onos/snmp", "device-creator", log));
 
-    private final NetworkConfigListener cfgLister = new InternalNetworkConfigListener();
+    protected final NetworkConfigListener cfgLister = new InternalNetworkConfigListener();
 
-    private ApplicationId appId;
 
-    private final ConfigFactory factory =
+    protected final ConfigFactory factory =
             new ConfigFactory<ApplicationId, SnmpProviderConfig>(APP_SUBJECT_FACTORY,
                                                                  SnmpProviderConfig.class,
                                                                  "devices",
