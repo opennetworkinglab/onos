@@ -15,6 +15,6 @@
  */
 
 /**
- * PCE service application.
+ * PCE rest application.
  */
-package org.onosproject.pce.pceservice;
+package org.onosproject.pce.web;

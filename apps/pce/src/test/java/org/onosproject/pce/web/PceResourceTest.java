@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.pce.web;
+
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
 
 /**
- * PCE service application.
+ * Base class for pce rest api tests.  Performs common configuration operations.
  */
-package org.onosproject.pce.pceservice;
+public class PceResourceTest extends JerseyTest {
+
+    /**
+     * Creates a new web-resource test.
+     */
+    public PceResourceTest() {
+        super(ResourceConfig.forApplicationClass(PceWebApplication.class));
+    }
+}

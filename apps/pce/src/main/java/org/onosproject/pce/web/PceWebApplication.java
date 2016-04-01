@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 
+package org.onosproject.pce.web;
+
+import org.onlab.rest.AbstractWebApplication;
+
+import java.util.Set;
+
 /**
- * PCE service application.
+ * PCE rest api web application.
  */
-package org.onosproject.pce.pceservice;
+public class PceWebApplication extends AbstractWebApplication {
+    @Override
+    public Set<Class<?>> getClasses() {
+        return getClasses(PcePathWebResource.class);
+    }
+}
+

@@ -15,6 +15,6 @@
  */
 
 /**
- * PCE service application.
+ * PCE path console command-line extensions.
  */
-package org.onosproject.pce.pceservice;
+package org.onosproject.pce.cli;
