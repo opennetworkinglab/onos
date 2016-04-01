@@ -41,7 +41,7 @@ export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 # Convenience utility to warp to various ONOS source projects
 # e.g. 'o api', 'o dev', 'o'
 function o {
-    cd $(find $ONOS_ROOT/ -type d -and \( -name '.git' -o -name 'target' -o -name 'gen-src' -o -name 'src' \) -prune -o -type d | \
+    cd $(find $ONOS_ROOT/ -type d -and \( -name 'buck-out' -o -name '.git' -o -name 'target' -o -name 'gen-src' -o -name 'src' \) -prune -o -type d | \
         egrep "${1:-$ONOS_ROOT}" | head -n 1)
 }
 
