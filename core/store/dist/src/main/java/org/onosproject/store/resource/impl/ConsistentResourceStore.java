@@ -301,7 +301,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 }
 
                 boolean success = appendValue(continuousConsumerTxMap,
-                        continuous, new ResourceAllocation(continuous, consumer));
+                        continuous, new ResourceAllocation(resource, consumer));
                 if (!success) {
                     return abortTransaction(tx);
                 }
