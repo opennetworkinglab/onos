@@ -65,12 +65,31 @@
                 <configuration>
                     <artifactSet>
                         <excludes>
+                            <exclude>org.onosproject:onlab-misc</exclude>
+                            <exclude>org.onosproject:onos-api</exclude>
+                            <exclude>org.onosproject:onlab-osgi</exclude>
+                            <exclude>org.onosproject:onlab-rest</exclude>
                             <exclude>io.netty:netty</exclude>
+                            <exclude>joda-time:joda-time</exclude>
+                            <exclude>javax.ws.rs:javax.ws.rs-api</exclude>
                             <exclude>com.google.guava:guava</exclude>
                             <exclude>org.slf4j:slfj-api</exclude>
                             <exclude>ch.qos.logback:logback-core</exclude>
                             <exclude>ch.qos.logback:logback-classic</exclude>
                             <exclude>com.google.code.findbugs:annotations</exclude>
+                            <exclude>commons-configuration:commons-configuration</exclude>
+                            <exclude>commons-lang:commons-lang</exclude>
+                            <exclude>commons-logging:commons-logging</exclude>
+                            <exclude>commons-collections:commons-collections</exclude>
+                            <exclude>org.apache.commons:commons-lang3</exclude>
+                            <exclude>io.dropwizard.metrics:metrics-core</exclude>
+                            <exclude>io.dropwizard.metrics:metrics-json</exclude>
+                            <exclude>org.ow2.asm:asm</exclude>
+                            <exclude>com.esotericsoftware:kryo</exclude>
+                            <exclude>com.esotericsoftware:reflectasm</exclude>
+                            <exclude>com.eclipsesource.minimal-json:minimal-json</exclude>
+                            <exclude>org.objenesis:objenesis</exclude>
+                            <exclude>com.esotericsoftware:minlog</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>
