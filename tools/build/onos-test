@@ -10,6 +10,5 @@ set -e
 
 nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
 
-onos-package
-stc setup
+onos-package && stc prerequisites && stc setup
 
