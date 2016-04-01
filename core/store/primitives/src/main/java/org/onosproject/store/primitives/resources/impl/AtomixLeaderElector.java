@@ -46,7 +46,7 @@ import com.google.common.collect.Sets;
 /**
  * Distributed resource providing the {@link AsyncLeaderElector} primitive.
  */
-@ResourceTypeInfo(id = -151, factory = AtomixLeaderElectorFactory.class)
+@ResourceTypeInfo(id = -152, factory = AtomixLeaderElectorFactory.class)
 public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
     implements AsyncLeaderElector {
     private final Set<Consumer<Change<Leadership>>> leadershipChangeListeners =
