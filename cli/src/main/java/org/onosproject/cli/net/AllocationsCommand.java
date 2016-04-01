@@ -30,6 +30,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Bandwidth;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -134,6 +135,7 @@ public class AllocationsCommand extends AbstractShellCommand {
                 .add(OchSignal.class)
                 .add(VlanId.class)
                 .add(MplsLabel.class)
+                .add(Bandwidth.class)
                 .build();
 
         DiscreteResourceId resourceId = Resources.discrete(did, num).id();
