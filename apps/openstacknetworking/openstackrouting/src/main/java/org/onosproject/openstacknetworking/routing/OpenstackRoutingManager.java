@@ -37,6 +37,8 @@ import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
@@ -115,12 +117,15 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     private ApplicationId appId;
     private ConsistentMap<Integer, String> tpPortNumMap; // Map<PortNum, allocated VM`s Mac & destionation Ip address>
     private ConsistentMap<String, OpenstackFloatingIP> floatingIpMap; // Map<FloatingIp`s Id, FloatingIp object>
+    // Map<RouterInterface`s portId, Corresponded port`s network id>
+    private ConsistentMap<String, String> routerInterfaceMap;
     private static final String APP_ID = "org.onosproject.openstackrouting";
     private static final String PORT_NAME = "portName";
     private static final String PORTNAME_PREFIX_VM = "tap";
     private static final String DEVICE_OWNER_ROUTER_INTERFACE = "network:router_interface";
     private static final String FLOATING_IP_MAP_NAME = "openstackrouting-floatingip";
-    private static final String TP_PORT_MAP_NAME = "openstackrouting-portnum";
+    private static final String TP_PORT_MAP_NAME = "openstackrouting-tpportnum";
+    private static final String ROUTER_INTERFACE_MAP_NAME = "openstackrouting-routerinterface";
     private static final String COLON = ":";
     private static final int PNAT_PORT_EXPIRE_TIME = 1200 * 1000;
     private static final int TP_PORT_MINIMUM_NUM = 1024;
@@ -152,7 +157,13 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
             .register(Integer.class)
             .register(String.class);
 
+    private static final KryoNamespace.Builder ROUTER_INTERFACE_SERIALIZER = KryoNamespace.newBuilder()
+            .register(KryoNamespaces.API)
+            .register(KryoNamespaces.MISC)
+            .register(String.class);
+
     private InternalPacketProcessor internalPacketProcessor = new InternalPacketProcessor();
+    private InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
     private ExecutorService l3EventExecutorService =
             Executors.newSingleThreadExecutor(groupedThreads("onos/openstackrouting", "L3-event"));
     private ExecutorService icmpEventExecutorService =
@@ -170,6 +181,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         packetService.addProcessor(internalPacketProcessor, PacketProcessor.director(1));
         configRegistry.registerConfigFactory(configFactory);
         configService.addListener(configListener);
+        deviceService.addListener(internalDeviceListener);
 
         floatingIpMap = storageService.<String, OpenstackFloatingIP>consistentMapBuilder()
                 .withSerializer(Serializer.using(FLOATING_IP_SERIALIZER.build()))
@@ -181,52 +193,59 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                 .withName(TP_PORT_MAP_NAME)
                 .withApplicationId(appId)
                 .build();
+        routerInterfaceMap = storageService.<String, String>consistentMapBuilder()
+                .withSerializer(Serializer.using(ROUTER_INTERFACE_SERIALIZER.build()))
+                .withName(ROUTER_INTERFACE_MAP_NAME)
+                .withApplicationId(appId)
+                .build();
 
         readConfiguration();
 
-        log.info("onos-openstackrouting started");
+        log.info("started");
     }
 
     @Deactivate
     protected void deactivate() {
         packetService.removeProcessor(internalPacketProcessor);
+        deviceService.removeListener(internalDeviceListener);
         l3EventExecutorService.shutdown();
         icmpEventExecutorService.shutdown();
         arpEventExecutorService.shutdown();
 
         floatingIpMap.clear();
         tpPortNumMap.clear();
+        routerInterfaceMap.clear();
 
-        log.info("onos-openstackrouting stopped");
+        log.info("stopped");
     }
 
 
     @Override
-    public void createFloatingIP(OpenstackFloatingIP openstackFloatingIP) {
-        floatingIpMap.put(openstackFloatingIP.id(), openstackFloatingIP);
+    public void createFloatingIP(OpenstackFloatingIP openstackFloatingIp) {
+        floatingIpMap.put(openstackFloatingIp.id(), openstackFloatingIp);
     }
 
     @Override
-    public void updateFloatingIP(OpenstackFloatingIP openstackFloatingIP) {
-        if (!floatingIpMap.containsKey(openstackFloatingIP.id())) {
-            log.warn("There`s no information about {} in FloatingIpMap", openstackFloatingIP.id());
+    public void updateFloatingIP(OpenstackFloatingIP openstackFloatingIp) {
+        if (!floatingIpMap.containsKey(openstackFloatingIp.id())) {
+            log.warn("There`s no information about {} in FloatingIpMap", openstackFloatingIp.id());
             return;
         }
-        if (openstackFloatingIP.portId() == null || openstackFloatingIP.portId().equals("null")) {
-            OpenstackFloatingIP floatingIP = floatingIpMap.get(openstackFloatingIP.id()).value();
+        if (openstackFloatingIp.portId() == null || openstackFloatingIp.portId().equals("null")) {
+            OpenstackFloatingIP floatingIp = floatingIpMap.get(openstackFloatingIp.id()).value();
             OpenstackPortInfo portInfo = openstackSwitchingService.openstackPortInfo()
-                    .get(PORTNAME_PREFIX_VM.concat(floatingIP.portId().substring(0, 11)));
+                    .get(PORTNAME_PREFIX_VM.concat(floatingIp.portId().substring(0, 11)));
             if (portInfo == null) {
-                log.warn("There`s no portInfo information about portId {}", floatingIP.portId());
+                log.warn("There`s no portInfo information about portId {}", floatingIp.portId());
                 return;
             }
             l3EventExecutorService.execute(
-                    new OpenstackFloatingIPHandler(rulePopulator, floatingIP, false, portInfo));
-            floatingIpMap.replace(floatingIP.id(), openstackFloatingIP);
+                    new OpenstackFloatingIPHandler(rulePopulator, floatingIp, false, portInfo));
+            floatingIpMap.replace(floatingIp.id(), openstackFloatingIp);
         } else {
-            floatingIpMap.put(openstackFloatingIP.id(), openstackFloatingIP);
+            floatingIpMap.put(openstackFloatingIp.id(), openstackFloatingIp);
             l3EventExecutorService.execute(
-                    new OpenstackFloatingIPHandler(rulePopulator, openstackFloatingIP, true, null));
+                    new OpenstackFloatingIPHandler(rulePopulator, openstackFloatingIp, true, null));
         }
     }
 
@@ -280,11 +299,69 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         List<OpenstackRouterInterface> routerInterfaces = Lists.newArrayList();
         routerInterfaces.add(routerInterface);
         checkExternalConnection(getOpenstackRouter(routerInterface.id()), routerInterfaces);
+        setL3Connection(getOpenstackRouter(routerInterface.id()), null);
+        routerInterfaceMap.put(routerInterface.portId(), openstackService.port(routerInterface.portId()).networkId());
+    }
+
+    private void setL3Connection(OpenstackRouter openstackRouter, OpenstackPort openstackPort) {
+        Collection<OpenstackRouterInterface> interfaceList = getOpenstackRouterInterface(openstackRouter);
+        if (interfaceList.size() < 2) {
+            return;
+        }
+        if (openstackPort == null) {
+            interfaceList.forEach(i -> {
+                OpenstackPort interfacePort = openstackService.port(i.portId());
+                openstackService.ports()
+                        .stream()
+                        .filter(p -> p.networkId().equals(interfacePort.networkId())
+                                && !p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE))
+                        .forEach(p -> rulePopulator.populateL3Rules(p,
+                                getL3ConnectionList(p.networkId(), interfaceList)));
+            });
+        } else {
+            rulePopulator.populateL3Rules(openstackPort, getL3ConnectionList(openstackPort.networkId(), interfaceList));
+        }
+
+    }
+
+    private List<OpenstackRouterInterface> getL3ConnectionList(String networkId,
+                                                               Collection<OpenstackRouterInterface> interfaceList) {
+        List<OpenstackRouterInterface> targetList = Lists.newArrayList();
+        interfaceList.forEach(i -> {
+            OpenstackPort port = openstackService.port(i.portId());
+            if (!port.networkId().equals(networkId)) {
+                targetList.add(i);
+            }
+        });
+        return targetList;
     }
 
     @Override
     public void removeRouterInterface(OpenstackRouterInterface routerInterface) {
+        OpenstackRouter router = openstackService.router(routerInterface.id());
+        Collection<OpenstackRouterInterface> interfaceList = getOpenstackRouterInterface(router);
+        if (interfaceList.size() == 1) {
+            List<OpenstackRouterInterface> newList = Lists.newArrayList();
+            newList.add(routerInterface);
+            interfaceList.forEach(i -> removeL3RulesForRouterInterface(i, router, newList));
+        }
+        removeL3RulesForRouterInterface(routerInterface, router, null);
         rulePopulator.removeExternalRules(routerInterface);
+        routerInterfaceMap.remove(routerInterface.portId());
+    }
+
+    private void removeL3RulesForRouterInterface(OpenstackRouterInterface routerInterface, OpenstackRouter router,
+                                                 List<OpenstackRouterInterface> newList) {
+        openstackService.ports(routerInterfaceMap.get(routerInterface.portId()).value()).forEach(p -> {
+                    Ip4Address vmIp = (Ip4Address) p.fixedIps().values().toArray()[0];
+                    if (newList == null) {
+                        rulePopulator.removeL3Rules(vmIp,
+                                getL3ConnectionList(p.networkId(), getOpenstackRouterInterface(router)));
+                    } else {
+                        rulePopulator.removeL3Rules(vmIp, newList);
+                    }
+                }
+        );
     }
 
     @Override
@@ -313,6 +390,11 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         }
     }
 
+    @Override
+    public String networkIdForRouterInterface(String portId) {
+        return routerInterfaceMap.get(portId).value();
+    }
+
     private Collection<OpenstackFloatingIP> associatedFloatingIps() {
         List<OpenstackFloatingIP> fIps = Lists.newArrayList();
         floatingIpMap.values()
@@ -327,10 +409,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                         openstackService.ports()
                                 .stream()
                                 .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE))
-                                .forEach(p -> {
-                                    OpenstackRouterInterface routerInterface = portToRouterInterface(p);
-                                    updateRouterInterface(routerInterface);
-                                })
+                                .forEach(p -> updateRouterInterface(portToRouterInterface(p)))
         );
 
     }
@@ -382,14 +461,13 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                         int portNum = getPortNum(ethernet.getSourceMAC(), iPacket.getDestinationAddress());
                         Optional<Port> port =
                                 getExternalPort(pkt.receivedFrom().deviceId(), config.gatewayExternalInterfaceName());
-
-                        if (!port.isPresent()) {
-                            log.warn("There`s no external interface");
-                        } else {
+                        if (port.isPresent()) {
                             OpenstackPort openstackPort = getOpenstackPort(ethernet.getSourceMAC(),
                                     Ip4Address.valueOf(iPacket.getSourceAddress()));
                             l3EventExecutorService.execute(new OpenstackPnatHandler(rulePopulator, context,
                                     portNum, openstackPort, port.get(), config));
+                        } else {
+                            log.warn("There`s no external interface");
                         }
                         break;
                 }
@@ -471,22 +549,20 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
         List<OpenstackRouterInterface> interfaces = Lists.newArrayList();
         openstackService.ports()
                 .stream()
-                .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE))
-                .filter(p -> p.deviceId().equals(router.id()))
-                .forEach(p -> {
-                    interfaces.add(portToRouterInterface(p));
-                });
+                .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE)
+                        && p.deviceId().equals(router.id()))
+                .forEach(p -> interfaces.add(portToRouterInterface(p)));
         return interfaces;
     }
 
     private OpenstackRouter getOpenstackRouter(String id) {
         return openstackService.routers().stream().filter(r ->
-                r.id().equals(id)).findAny().orElse(null);
+                r.id().equals(id)).iterator().next();
     }
 
     private OpenstackPort getOpenstackPort(MacAddress sourceMac, Ip4Address ip4Address) {
         OpenstackPort openstackPort = openstackService.ports().stream()
-                .filter(p -> p.macAddress().equals(sourceMac)).findFirst().orElse(null);
+                .filter(p -> p.macAddress().equals(sourceMac)).iterator().next();
         return openstackPort.fixedIps().values().stream().filter(ip ->
                 ip.equals(ip4Address)).count() > 0 ? openstackPort : null;
     }
@@ -534,4 +610,38 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
             }
         }
     }
+
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent deviceEvent) {
+            if (deviceEvent.type() == DeviceEvent.Type.PORT_UPDATED) {
+                Port port = deviceEvent.port();
+                OpenstackPortInfo portInfo = openstackSwitchingService.openstackPortInfo()
+                        .get(port.annotations().value(PORT_NAME));
+                OpenstackPort openstackPort = openstackService.port(port);
+                OpenstackPort interfacePort = openstackService.ports()
+                        .stream()
+                        .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE)
+                                && p.networkId().equals(openstackPort.networkId()))
+                        .findAny()
+                        .orElse(null);
+                if (portInfo == null && openstackPort == null) {
+                    log.warn("As delete event timing issue between routing and switching, Can`t delete L3 rules");
+                    return;
+                }
+                if ((port.isEnabled()) && (interfacePort != null)) {
+                    OpenstackRouterInterface routerInterface = portToRouterInterface(interfacePort);
+                    l3EventExecutorService.execute(() ->
+                            setL3Connection(getOpenstackRouter(routerInterface.id()), openstackPort));
+                } else if (interfacePort != null) {
+                    OpenstackRouterInterface routerInterface = portToRouterInterface(interfacePort);
+                    l3EventExecutorService.execute(() -> rulePopulator.removeL3Rules(portInfo.ip(),
+                            getL3ConnectionList(portInfo.networkId(),
+                                    getOpenstackRouterInterface(getOpenstackRouter(routerInterface.id())))));
+                }
+            }
+        }
+    }
+
 }
