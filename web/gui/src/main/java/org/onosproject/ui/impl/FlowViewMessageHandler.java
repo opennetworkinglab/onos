@@ -163,6 +163,12 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 for (Instruction i : instructions) {
                     sb.append(i).append(COMMA);
                 }
+                if (flow.treatment().metered() != null) {
+                    sb.append(flow.treatment().metered().toString()).append(COMMA);
+                }
+                if (flow.treatment().tableTransition() != null) {
+                    sb.append(flow.treatment().tableTransition().toString()).append(COMMA);
+                }
                 removeTrailingComma(sb);
 
                 return sb.toString();
