@@ -1,0 +1,183 @@
+{
+  "type": "object",
+  "title": "devices",
+  "required": [
+    "devices"
+  ],
+  "properties": {
+    "devices": {
+      "type": "object",
+      "required": [
+        "name",
+        "value"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "object",
+          "title": "metrics",
+          "required": [
+            "metrics"
+          ],
+          "properties": {
+            "metrics": {
+              "type": "array",
+              "xml": {
+                "name": "metrics",
+                "wrapped": true
+              },
+              "items": {
+                "type": "object",
+                "title": "metrics",
+                "required": [
+                  "inboundPacket",
+                  "outboundPacket",
+                  "flowModPacket",
+                  "flowRemovedPacket",
+                  "requestPacket",
+                  "replyPacket"
+                ],
+                "properties": {
+                  "inboundPacket": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  },
+                  "outboundPacket": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  },
+                  "flowModPacket": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  },
+                  "flowRemovedPacket": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  },
+                  "requestPacket": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  },
+                  "replyPacket": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

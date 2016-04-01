@@ -59,6 +59,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
      * Returns control message metrics of all devices.
      *
      * @return array of all control message metrics
+     * @onos.rsModel ControlMessageMetrics
      */
     @GET
     @Path("messages")
@@ -86,6 +87,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
      *
      * @param deviceId device identification
      * @return control message metrics of a given device
+     * @onos.rsModel ControlMessageMetric
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -102,6 +104,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
      * Returns cpu metrics.
      *
      * @return cpu metrics
+     * @onos.rsModel CpuMetrics
      */
     @GET
     @Path("cpu_metrics")
@@ -116,6 +119,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
      * Returns memory metrics.
      *
      * @return memory metrics
+     * @onos.rsModel MemoryMetrics
      */
     @GET
     @Path("memory_metrics")
@@ -130,6 +134,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
      * Returns disk metrics of all resources.
      *
      * @return disk metrics of all resources
+     * @onos.rsModel DiskMetrics
      */
     @GET
     @Path("disk_metrics")
@@ -155,6 +160,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
      * Returns network metrics of all resources.
      *
      * @return network metrics of all resources
+     * @onos.rsModel NetworkMetrics
      */
     @GET
     @Path("network_metrics")

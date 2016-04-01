@@ -1,0 +1,116 @@
+{
+  "type": "object",
+  "title": "metrics",
+  "required": [
+    "metrics"
+  ],
+  "properties": {
+    "metrics": {
+      "type": "array",
+      "xml": {
+        "name": "metrics",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "metrics",
+        "required": [
+          "memoryUsedRatio",
+          "memoryFreeRatio",
+          "memoryUsed",
+          "memoryFree"
+        ],
+        "properties": {
+          "memoryUsedRatio": {
+            "type": "object",
+            "required": [
+              "time",
+              "latest",
+              "average"
+            ],
+            "properties": {
+              "time": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "latest": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "average": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          },
+          "memoryFreeRatio": {
+            "type": "object",
+            "required": [
+              "time",
+              "latest",
+              "average"
+            ],
+            "properties": {
+              "time": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "latest": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "average": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          },
+          "memoryUsed": {
+            "type": "object",
+            "required": [
+              "time",
+              "latest",
+              "average"
+            ],
+            "properties": {
+              "time": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "latest": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "average": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          },
+          "memoryFree": {
+            "type": "object",
+            "required": [
+              "time",
+              "latest",
+              "average"
+            ],
+            "properties": {
+              "time": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "latest": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "average": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

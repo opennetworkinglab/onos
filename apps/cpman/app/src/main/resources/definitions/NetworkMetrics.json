@@ -1,0 +1,137 @@
+{
+  "type": "object",
+  "title": "networks",
+  "required": [
+    "networks"
+  ],
+  "properties": {
+    "networks": {
+      "type": "object",
+      "required": [
+        "name",
+        "value"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "object",
+          "title": "metrics",
+          "required": [
+            "metrics"
+          ],
+          "properties": {
+            "metrics": {
+              "type": "array",
+              "xml": {
+                "name": "metrics",
+                "wrapped": true
+              },
+              "items": {
+                "type": "object",
+                "title": "metrics",
+                "required": [
+                  "incomingBytes",
+                  "outgoingBytes",
+                  "incomingPackets",
+                  "outgoingPackets"
+                ],
+                "properties": {
+                  "incomingBytes": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  },
+                  "outgoingBytes": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  },
+                  "incomingPackets": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  },
+                  "outgoingPackets": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

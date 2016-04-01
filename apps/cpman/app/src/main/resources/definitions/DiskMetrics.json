@@ -1,0 +1,91 @@
+{
+  "type": "object",
+  "title": "disks",
+  "required": [
+    "disks"
+  ],
+  "properties": {
+    "disks": {
+      "type": "object",
+      "required": [
+        "name",
+        "value"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "object",
+          "title": "metrics",
+          "required": [
+            "metrics"
+          ],
+          "properties": {
+            "metrics": {
+              "type": "array",
+              "xml": {
+                "name": "metrics",
+                "wrapped": true
+              },
+              "items": {
+                "type": "object",
+                "title": "metrics",
+                "required": [
+                  "readBytes",
+                  "writeBytes"
+                ],
+                "properties": {
+                  "readBytes": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  },
+                  "writeBytes": {
+                    "type": "object",
+                    "required": [
+                      "time",
+                      "latest",
+                      "average"
+                    ],
+                    "properties": {
+                      "time": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "latest": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "average": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
