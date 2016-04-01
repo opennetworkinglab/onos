@@ -49,4 +49,10 @@ public class MessagingException extends IOException {
      */
     public static class RemoteHandlerFailure extends MessagingException {
     }
+
+    /**
+     * Exception indicating failure due to invalid message strucuture such as an incorrect preamble.
+     */
+    public static class ProcotolException extends MessagingException {
+    }
 }
