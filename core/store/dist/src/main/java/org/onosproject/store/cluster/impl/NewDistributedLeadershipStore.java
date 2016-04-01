@@ -47,7 +47,7 @@ import com.google.common.collect.Maps;
  * primitive.
  */
 @Service
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 public class NewDistributedLeadershipStore
     extends AbstractStore<LeadershipEvent, LeadershipStoreDelegate>
     implements LeadershipStore {

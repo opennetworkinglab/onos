@@ -56,7 +56,7 @@ import com.google.common.collect.Sets;
  * Implementation of {@code LeadershipStore} backed by {@link ConsistentMap}.
  */
 @Service
-@Component(immediate = true, enabled = true)
+@Component(immediate = true, enabled = false)
 public class DistributedLeadershipStore
     extends AbstractStore<LeadershipEvent, LeadershipStoreDelegate>
     implements LeadershipStore {
