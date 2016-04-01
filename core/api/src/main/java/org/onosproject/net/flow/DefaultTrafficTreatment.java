@@ -188,6 +188,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 .add("immediate", immediate)
                 .add("deferred", deferred)
                 .add("transition", table == null ? "None" : table.toString())
+                .add("meter", meter == null ? "None" : meter.toString())
                 .add("cleared", hasClear)
                 .add("metadata", meta)
                 .toString();
