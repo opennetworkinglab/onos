@@ -16,6 +16,7 @@
 
 package org.onosproject.ui.impl.topo.model;
 
+import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,20 +29,43 @@ public final class UiSharedTopologyModel {
     private static final Logger log =
             LoggerFactory.getLogger(UiSharedTopologyModel.class);
 
-    private static UiSharedTopologyModel singleton = null;
 
     private UiSharedTopologyModel() {
         // TODO: set up core model listeners and build the state of the model
     }
 
-    public void register(UiTopoLayout layout) {
-        log.info("Registering topology layout {}", layout);
-        // TODO: register the view
+    // TODO: Note to Thomas (or others)..
+    // Don't we have a common pattern for adding/removing listeners and
+    //  invoking them when things happen?
+
+
+    /**
+     * Registers a UI topology session with the topology model.
+     *
+     * @param session the session to register
+     */
+    public void register(UiTopoSession session) {
+        log.info("Registering topology session {}", session);
+        // TODO: register the session
     }
 
-    public void unregister(UiTopoLayout layout) {
-        log.info("Unregistering topology layout {}", layout);
-        // TODO: unregister the view
+    /**
+     * Unregisters a UI topology session from the topology model.
+     *
+     * @param session the session to unregister
+     */
+    public void unregister(UiTopoSession session) {
+        log.info("Unregistering topology session {}", session);
+        // TODO: unregister the session
+    }
+
+    /**
+     * Bill Pugh Singleton pattern. INSTANCE won't be instantiated until the
+     * LazyHolder class is loaded via a call to the instance() method below.
+     */
+    private static class LazyHolder {
+        private static final UiSharedTopologyModel INSTANCE =
+                new UiSharedTopologyModel();
     }
 
     /**
@@ -49,11 +73,7 @@ public final class UiSharedTopologyModel {
      *
      * @return the singleton topology model
      */
-    public static synchronized UiSharedTopologyModel instance() {
-        if (singleton == null) {
-            log.info("Instantiating Singleton.");
-            singleton = new UiSharedTopologyModel();
-        }
-        return singleton;
+    public static UiSharedTopologyModel instance() {
+        return LazyHolder.INSTANCE;
     }
 }
