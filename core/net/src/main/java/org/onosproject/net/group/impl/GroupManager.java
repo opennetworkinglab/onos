@@ -102,6 +102,7 @@ public class GroupManager
 
     @Deactivate
     public void deactivate() {
+        deviceService.removeListener(deviceListener);
         cfgService.unregisterProperties(getClass(), false);
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(GroupEvent.class);

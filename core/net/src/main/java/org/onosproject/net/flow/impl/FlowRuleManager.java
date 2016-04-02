@@ -160,6 +160,7 @@ public class FlowRuleManager
 
     @Deactivate
     public void deactivate() {
+        deviceService.removeListener(deviceListener);
         cfgService.unregisterProperties(getClass(), false);
         deviceInstallers.shutdownNow();
         operationsService.shutdownNow();
