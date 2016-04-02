@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,7 +164,9 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
                          dpid, role, channel.isConnected(), msgs);
             }
         }
+    }
 
+    private void countOutgoingMsg(List<OFMessage> msgs) {
         // listen to outgoing control messages only if listeners are registered
         if (ofOutgoingMsgListener.size() != 0) {
             msgs.forEach(m -> {
@@ -180,6 +182,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     private void sendMsgsOnChannel(List<OFMessage> msgs) {
         if (channel.isConnected()) {
             channel.write(msgs);
+            countOutgoingMsg(msgs);
         } else {
             log.warn("Dropping messages for switch {} because channel is not connected: {}",
                      dpid, msgs);

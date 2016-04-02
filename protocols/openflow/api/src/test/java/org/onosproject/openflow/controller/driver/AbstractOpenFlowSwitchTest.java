@@ -16,13 +16,18 @@
 package org.onosproject.openflow.controller.driver;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelConfig;
+import org.jboss.netty.channel.ChannelFactory;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelPipeline;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.core.netty.ChannelAdapter;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
+import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,8 +70,9 @@ public class AbstractOpenFlowSwitchTest {
 
         executorService = new TestExecutorService();
         ofSwitch.executorMsgs = executorService;
-        Channel channel = new ChannelAdapter();
+        Channel channel = new MockChannel();
         ofSwitch.setChannel(channel);
+        ofSwitch.role = RoleState.MASTER;
         ofSwitch.addEventListener(new OpenFlowEventListenerAdapter());
     }
 
@@ -128,6 +134,150 @@ public class AbstractOpenFlowSwitchTest {
 
         @Override
         public void handleMessage(Dpid dpid, OFMessage msg) {
+        }
+    }
+
+    private class MockChannel implements Channel {
+
+        @Override
+        public Integer getId() {
+            return null;
+        }
+
+        @Override
+        public ChannelFactory getFactory() {
+            return null;
+        }
+
+        @Override
+        public Channel getParent() {
+            return null;
+        }
+
+        @Override
+        public ChannelConfig getConfig() {
+            return null;
+        }
+
+        @Override
+        public ChannelPipeline getPipeline() {
+            return null;
+        }
+
+        @Override
+        public boolean isOpen() {
+            return false;
+        }
+
+        @Override
+        public boolean isBound() {
+            return false;
+        }
+
+        @Override
+        public boolean isConnected() {
+            // we assume that the channel is connected
+            return true;
+        }
+
+        @Override
+        public SocketAddress getLocalAddress() {
+            return null;
+        }
+
+        @Override
+        public SocketAddress getRemoteAddress() {
+            return null;
+        }
+
+        @Override
+        public ChannelFuture write(Object message) {
+            return null;
+        }
+
+        @Override
+        public ChannelFuture write(Object message, SocketAddress remoteAddress) {
+            return null;
+        }
+
+        @Override
+        public ChannelFuture bind(SocketAddress localAddress) {
+            return null;
+        }
+
+        @Override
+        public ChannelFuture connect(SocketAddress remoteAddress) {
+            return null;
+        }
+
+        @Override
+        public ChannelFuture disconnect() {
+            return null;
+        }
+
+        @Override
+        public ChannelFuture unbind() {
+            return null;
+        }
+
+        @Override
+        public ChannelFuture close() {
+            return null;
+        }
+
+        @Override
+        public ChannelFuture getCloseFuture() {
+            return null;
+        }
+
+        @Override
+        public int getInterestOps() {
+            return 0;
+        }
+
+        @Override
+        public boolean isReadable() {
+            return false;
+        }
+
+        @Override
+        public boolean isWritable() {
+            return false;
+        }
+
+        @Override
+        public ChannelFuture setInterestOps(int interestOps) {
+            return null;
+        }
+
+        @Override
+        public ChannelFuture setReadable(boolean readable) {
+            return null;
+        }
+
+        @Override
+        public boolean getUserDefinedWritability(int index) {
+            return false;
+        }
+
+        @Override
+        public void setUserDefinedWritability(int index, boolean isWritable) {
+
+        }
+
+        @Override
+        public Object getAttachment() {
+            return null;
+        }
+
+        @Override
+        public void setAttachment(Object attachment) {
+
+        }
+
+        @Override
+        public int compareTo(Channel o) {
+            return 0;
         }
     }
 }
