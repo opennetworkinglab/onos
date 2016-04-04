@@ -17,6 +17,7 @@ package org.onosproject.cpman.rest;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringUtils;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cpman.ControlLoad;
@@ -249,7 +250,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
                 ObjectNode metricNode = mapper().createObjectNode();
                 ControlLoad load = service.getLocalLoad(type, Optional.ofNullable(null));
                 if (load != null) {
-                    metricNode.set(type.toString().toLowerCase(), codec(ControlLoad.class)
+                    metricNode.set(toCamelCase(type.toString(), true), codec(ControlLoad.class)
                             .encode(service.getLocalLoad(type, Optional.ofNullable(null)), this));
                     metricsNode.add(metricNode);
                 }
@@ -259,7 +260,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
                 ObjectNode metricNode = mapper().createObjectNode();
                 ControlLoad load = service.getLocalLoad(type, Optional.of(did));
                 if (load != null) {
-                    metricNode.set(type.toString().toLowerCase(),
+                    metricNode.set(toCamelCase(type.toString(), true),
                             codec(ControlLoad.class).encode(load, this));
                     metricsNode.add(metricNode);
                 }
@@ -269,7 +270,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
                 ObjectNode metricNode = mapper().createObjectNode();
                 ControlLoad load = service.getLocalLoad(type, name);
                 if (load != null) {
-                    metricNode.set(type.toString().toLowerCase(),
+                    metricNode.set(toCamelCase(type.toString(), true),
                             codec(ControlLoad.class).encode(load, this));
                     metricsNode.add(metricNode);
                 }
@@ -277,5 +278,13 @@ public class ControlMetricsWebResource extends AbstractWebResource {
         }
 
         return metricsNode;
+    }
+
+    private String toCamelCase(String value, boolean startWithLowerCase) {
+        String[] strings = StringUtils.split(value.toLowerCase(), "_");
+        for (int i = startWithLowerCase ? 1 : 0; i < strings.length; i++) {
+            strings[i] = StringUtils.capitalize(strings[i]);
+        }
+        return StringUtils.join(strings);
     }
 }
