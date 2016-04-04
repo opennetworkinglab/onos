@@ -18,6 +18,7 @@ package org.onosproject.pcep.controller.impl;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,11 +32,19 @@ import org.onosproject.pcep.controller.PcepClientController;
 import org.onosproject.pcep.controller.PcepClientListener;
 import org.onosproject.pcep.controller.PcepEventListener;
 import org.onosproject.pcep.controller.driver.PcepAgent;
+import org.onosproject.pcepio.protocol.PcepError;
+import org.onosproject.pcepio.protocol.PcepErrorInfo;
+import org.onosproject.pcepio.protocol.PcepErrorMsg;
+import org.onosproject.pcepio.protocol.PcepErrorObject;
+import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+
+import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_TYPE_19;
+import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_VALUE_5;
 
 /**
  * Implementation of PCEP client controller.
@@ -126,6 +135,24 @@ public class PcepClientControllerImpl implements PcepClientController {
             break;
         case ERROR:
             break;
+        case INITIATE:
+            if (!pc.capability().pcInstantiationCapability()) {
+                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(), ERROR_TYPE_19,
+                        ERROR_VALUE_5)));
+            }
+            break;
+        case UPDATE:
+            if (!pc.capability().statefulPceCapability()) {
+                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(), ERROR_TYPE_19,
+                        ERROR_VALUE_5)));
+            }
+            break;
+        case LABEL_UPDATE:
+            if (!pc.capability().pceccCapability()) {
+                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(), ERROR_TYPE_19,
+                        ERROR_VALUE_5)));
+            }
+            break;
         case CLOSE:
             log.info("Sending Close Message  to {" + pccId.toString() + "}");
             pc.sendMessage(Collections.singletonList(pc.factory().buildCloseMsg().build()));
@@ -133,21 +160,18 @@ public class PcepClientControllerImpl implements PcepClientController {
             pc.disconnectClient();
             break;
         case REPORT:
-            for (PcepEventListener l : pcepEventListener) {
-                l.handleMessage(pccId, msg);
+            //Only update the listener if respective capability is supported else send PCEP-ERR msg
+            if (pc.capability().statefulPceCapability()) {
+                for (PcepEventListener l : pcepEventListener) {
+                    l.handleMessage(pccId, msg);
+                }
+            } else {
+                // Send PCEP-ERROR message.
+                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
+                        ERROR_TYPE_19, ERROR_VALUE_5)));
             }
             break;
-        case UPDATE:
-            for (PcepEventListener l : pcepEventListener) {
-                l.handleMessage(pccId, msg);
-            }
-            break;
-        case INITIATE:
-            for (PcepEventListener l : pcepEventListener) {
-                l.handleMessage(pccId, msg);
-            }
-            break;
-        case LABEL_UPDATE:
+        case LABEL_RANGE_RESERV:
             break;
         case MAX:
             break;
@@ -165,6 +189,34 @@ public class PcepClientControllerImpl implements PcepClientController {
             pc = getClient(id);
             pc.disconnectClient();
         }
+    }
+
+    /**
+     * Returns pcep error message with specific error type and value.
+     *
+     * @param factory represents pcep factory
+     * @param errorType pcep error type
+     * @param errorValue pcep error value
+     * @return pcep error message
+     */
+    public PcepErrorMsg getErrMsg(PcepFactory factory, byte errorType, byte errorValue) {
+        LinkedList<PcepError> llPcepErr = new LinkedList<>();
+
+        LinkedList<PcepErrorObject> llerrObj = new LinkedList<>();
+        PcepErrorMsg errMsg;
+
+        PcepErrorObject errObj = factory.buildPcepErrorObject().setErrorValue(errorValue).setErrorType(errorType)
+                .build();
+
+        llerrObj.add(errObj);
+        PcepError pcepErr = factory.buildPcepError().setErrorObjList(llerrObj).build();
+
+        llPcepErr.add(pcepErr);
+
+        PcepErrorInfo errInfo = factory.buildPcepErrorInfo().setPcepErrorList(llPcepErr).build();
+
+        errMsg = factory.buildPcepErrorMsg().setPcepErrorInfo(errInfo).build();
+        return errMsg;
     }
 
     /**

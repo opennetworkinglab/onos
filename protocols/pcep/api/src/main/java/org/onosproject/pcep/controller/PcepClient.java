@@ -107,4 +107,18 @@ public interface PcepClient {
      * @return true/false if the synchronization is completed/not completed
      */
     boolean isSyncComplete();
+
+    /**
+     * Sets capability negotiated during open message exchange.
+     *
+     * @param capability supported by client
+     */
+    void setCapability(ClientCapability capability);
+
+    /**
+     * Obtains capability supported by client.
+     *
+     * @return capability supported by client
+     */
+    ClientCapability capability();
 }

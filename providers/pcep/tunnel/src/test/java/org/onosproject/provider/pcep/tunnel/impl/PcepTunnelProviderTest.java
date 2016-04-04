@@ -42,8 +42,8 @@ import org.onosproject.cfg.ComponentConfigAdapter;
 
 public class PcepTunnelProviderTest {
 
-    static final String PROVIDER_ID = "org.onosproject.provider.tunnel.pcep";
-    PcepTunnelProvider tunnelProvider = new PcepTunnelProvider();
+    public static final String PROVIDER_ID = "org.onosproject.provider.tunnel.pcep";
+    private PcepTunnelProvider tunnelProvider = new PcepTunnelProvider();
     private final TunnelProviderRegistryAdapter registry = new TunnelProviderRegistryAdapter();
     private final PcepClientControllerAdapter controller = new PcepClientControllerAdapter();
     private final PcepControllerAdapter ctl = new PcepControllerAdapter();

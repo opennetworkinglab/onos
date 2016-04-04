@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.jboss.netty.channel.Channel;
+import org.onosproject.pcep.controller.ClientCapability;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcepio.protocol.PcepFactories;
@@ -28,6 +29,9 @@ import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepVersion;
 
+/**
+ * Representation of PCEP client adapter.
+ */
 public class PcepClientAdapter implements PcepClient {
 
     private Channel channel;
@@ -35,9 +39,16 @@ public class PcepClientAdapter implements PcepClient {
 
     private boolean connected;
     private PccId pccId;
+    private ClientCapability capability;
 
     private PcepVersion pcepVersion;
 
+    /**
+     * Initialize instance with specified parameters.
+     *
+     * @param pccId PCC id
+     * @param pcepVersion PCEP message version
+     */
     public void init(PccId pccId, PcepVersion pcepVersion) {
         this.pccId = pccId;
         this.pcepVersion = pcepVersion;
@@ -103,5 +114,15 @@ public class PcepClientAdapter implements PcepClient {
 
     @Override
     public final void setIsSyncComplete(boolean value) {
+    }
+
+    @Override
+    public void setCapability(ClientCapability capability) {
+        this.capability = capability;
+    }
+
+    @Override
+    public ClientCapability capability() {
+        return capability;
     }
 }

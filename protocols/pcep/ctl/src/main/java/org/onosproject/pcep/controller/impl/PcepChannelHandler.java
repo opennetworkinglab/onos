@@ -38,6 +38,7 @@ import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
 import org.onlab.packet.IpAddress;
+import org.onosproject.pcep.controller.ClientCapability;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.driver.PcepClientDriver;
 import org.onosproject.pcepio.exceptions.PcepParseException;
@@ -51,7 +52,6 @@ import org.onosproject.pcepio.protocol.PcepOpenMsg;
 import org.onosproject.pcepio.protocol.PcepOpenObject;
 import org.onosproject.pcepio.protocol.PcepType;
 import org.onosproject.pcepio.protocol.PcepVersion;
-import org.onosproject.pcepio.types.ErrorObjListWithOpen;
 import org.onosproject.pcepio.types.PceccCapabilityTlv;
 import org.onosproject.pcepio.types.StatefulPceCapabilityTlv;
 import org.onosproject.pcepio.types.PcepErrorDetailInfo;
@@ -74,6 +74,7 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
     private byte sessionId = 0;
     private byte keepAliveTime;
     private byte deadTime;
+    private ClientCapability capability;
     private PcepPacketStatsImpl pcepPacketStats;
     static final int MAX_WRONG_COUNT_PACKET = 5;
     static final int BYTE_MASK = 0xFF;
@@ -146,8 +147,8 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
 
                     h.pcepPacketStats.addInPacket();
                     PcepOpenMsg pOpenmsg = (PcepOpenMsg) m;
-                    // do Capability validation.
-                    if (h.capabilityValidation(pOpenmsg)) {
+                        //Do Capability negotiation.
+                        h.capabilityNegotiation(pOpenmsg);
                         log.debug("Sending handshake OPEN message");
                         h.sessionId = pOpenmsg.getPcepOpenObject().getSessionId();
                         h.pcepVersion = pOpenmsg.getPcepOpenObject().getVersion();
@@ -168,13 +169,6 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                         h.sendHandshakeOpenMessage();
                         h.pcepPacketStats.addOutPacket();
                         h.setState(KEEPWAIT);
-                    } else {
-                        log.debug("Capability validation failed. Sending PCEP-ERROR message to PCC.");
-                        // Send PCEP-ERROR message.
-                        PcepErrorMsg errMsg = h.getErrorMsg(PcepErrorDetailInfo.ERROR_TYPE_2,
-                                PcepErrorDetailInfo.ERROR_VALUE_2);
-                        h.channel.write(Collections.singletonList(errMsg));
-                    }
                 }
             }
         },
@@ -203,6 +197,8 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                     h.thispccId = PccId.pccId(IpAddress.valueOf(inetAddress.getAddress()));
                     h.pc = h.controller.getPcepClientInstance(h.thispccId, h.sessionId, h.pcepVersion,
                             h.pcepPacketStats);
+                    //Get pc instance and set capabilities
+                    h.pc.setCapability(h.capability);
                     // set the status of pcc as connected
                     h.pc.setConnected(true);
                     h.pc.setChannel(h.channel);
@@ -493,17 +489,12 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
         channel.write(Collections.singletonList(msg));
     }
 
-    /**
-     * Capability Validation.
-     *
-     * @param pOpenmsg pcep open message
-     * @return success or failure
-     */
-    private boolean capabilityValidation(PcepOpenMsg pOpenmsg) {
+    //Capability negotiation
+    private void capabilityNegotiation(PcepOpenMsg pOpenmsg) {
         LinkedList<PcepValueType> tlvList = pOpenmsg.getPcepOpenObject().getOptionalTlv();
-        boolean bFoundPceccCapability = false;
-        boolean bFoundStatefulPceCapability = false;
-        boolean bFoundPcInstantiationCapability = false;
+        boolean pceccCapability = false;
+        boolean statefulPceCapability = false;
+        boolean pcInstantiationCapability = false;
 
         ListIterator<PcepValueType> listIterator = tlvList.listIterator();
         while (listIterator.hasNext()) {
@@ -511,21 +502,20 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
 
             switch (tlv.getType()) {
             case PceccCapabilityTlv.TYPE:
-                bFoundPceccCapability = true;
+                pceccCapability = true;
                 break;
             case StatefulPceCapabilityTlv.TYPE:
-                bFoundStatefulPceCapability = true;
+                statefulPceCapability = true;
                 StatefulPceCapabilityTlv stetefulPcCapTlv = (StatefulPceCapabilityTlv) tlv;
                 if (stetefulPcCapTlv.getIFlag()) {
-                    bFoundPcInstantiationCapability = true;
+                    pcInstantiationCapability = true;
                 }
                 break;
             default:
                 continue;
             }
         }
-
-        return (bFoundPceccCapability && bFoundStatefulPceCapability && bFoundPcInstantiationCapability);
+        this.capability = new ClientCapability(pceccCapability, statefulPceCapability, pcInstantiationCapability);
     }
 
     /**
@@ -579,23 +569,6 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
 
         llerrObj.add(errObj);
 
-        if (state == ChannelState.OPENWAIT) {
-            //If Error caught in Openmessage
-            PcepOpenObject openObj = null;
-            ErrorObjListWithOpen errorObjListWithOpen = null;
-
-            if (0 != sessionId) {
-                openObj = factory1.buildOpenObject().setSessionId(sessionId).build();
-                errorObjListWithOpen = new ErrorObjListWithOpen(llerrObj, openObj);
-            } else {
-                errorObjListWithOpen = new ErrorObjListWithOpen(llerrObj, null);
-            }
-
-            errMsg = factory1.buildPcepErrorMsg()
-                    .setErrorObjListWithOpen(errorObjListWithOpen)
-                    .build();
-        } else {
-
             //If Error caught in other than Openmessage
             LinkedList<PcepError> llPcepErr = new LinkedList<>();
 
@@ -612,7 +585,6 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
             errMsg = factory1.buildPcepErrorMsg()
                     .setPcepErrorInfo(errInfo)
                     .build();
-        }
         return errMsg;
     }
 

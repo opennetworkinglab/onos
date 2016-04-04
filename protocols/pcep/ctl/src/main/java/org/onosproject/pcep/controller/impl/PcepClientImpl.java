@@ -24,6 +24,7 @@ import java.util.concurrent.RejectedExecutionException;
 
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
+import org.onosproject.pcep.controller.ClientCapability;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepPacketStats;
 import org.onosproject.pcep.controller.driver.PcepAgent;
@@ -57,6 +58,7 @@ public class PcepClientImpl implements PcepClientDriver {
     private PccId pccId;
     private PcepAgent agent;
 
+    private ClientCapability capability;
     private PcepVersion pcepVersion;
     private byte keepAliveTime;
     private byte deadTime;
@@ -73,6 +75,16 @@ public class PcepClientImpl implements PcepClientDriver {
     @Override
     public final void disconnectClient() {
         this.channel.close();
+    }
+
+    @Override
+    public void setCapability(ClientCapability capability) {
+        this.capability = capability;
+    }
+
+    @Override
+    public ClientCapability capability() {
+        return capability;
     }
 
     @Override

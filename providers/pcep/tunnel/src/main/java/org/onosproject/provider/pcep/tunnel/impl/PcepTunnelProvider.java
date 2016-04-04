@@ -234,7 +234,11 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                               + ((IpTunnelEndPoint) tunnel.src()).ip().toString());
             return;
         }
-        pcepSetupTunnel(tunnel, path, pc);
+
+        //If stateful and PC Initiation capability is not supported by client not sending Initiate msg
+        if (pc.capability().pcInstantiationCapability()) {
+            pcepSetupTunnel(tunnel, path, pc);
+        }
     }
 
     @Override
@@ -263,7 +267,10 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     + ((IpElementId) srcElement).ipAddress().toString());
             return;
         }
-        pcepSetupTunnel(tunnel, path, pc);
+
+        if (pc.capability().pcInstantiationCapability()) {
+            pcepSetupTunnel(tunnel, path, pc);
+        }
     }
 
     @Override
@@ -287,7 +294,10 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     + ((IpTunnelEndPoint) tunnel.src()).ip().toString());
             return;
         }
-        pcepReleaseTunnel(tunnel, pc);
+
+        if (pc.capability().pcInstantiationCapability()) {
+            pcepReleaseTunnel(tunnel, pc);
+        }
     }
 
     @Override
@@ -315,7 +325,10 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     + ((IpElementId) srcElement).ipAddress().toString());
             return;
         }
-        pcepReleaseTunnel(tunnel, pc);
+
+        if (pc.capability().pcInstantiationCapability()) {
+            pcepReleaseTunnel(tunnel, pc);
+        }
     }
 
     @Override
@@ -338,7 +351,10 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     + ((IpTunnelEndPoint) tunnel.src()).ip().toString());
             return;
         }
-        pcepUpdateTunnel(tunnel, path, pc);
+
+        if (pc.capability().statefulPceCapability()) {
+            pcepUpdateTunnel(tunnel, path, pc);
+        }
     }
 
     @Override
@@ -367,7 +383,10 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     + ((IpElementId) srcElement).ipAddress().toString());
             return;
         }
-        pcepUpdateTunnel(tunnel, path, pc);
+
+        if (pc.capability().statefulPceCapability()) {
+            pcepUpdateTunnel(tunnel, path, pc);
+        }
     }
 
     @Override
