@@ -54,6 +54,8 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6Fl
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
 import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
+import org.onosproject.provider.of.flow.util.NoMappingFoundException;
+import org.onosproject.provider.of.flow.util.OpenFlowValueMapper;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDeleteStrict;

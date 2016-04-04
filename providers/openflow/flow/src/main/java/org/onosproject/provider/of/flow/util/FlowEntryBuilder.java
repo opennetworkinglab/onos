@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.provider.of.flow.impl;
+package org.onosproject.provider.of.flow.util;
 
 import com.google.common.collect.Lists;
 import org.onlab.packet.EthType;
@@ -101,10 +101,10 @@ import static org.onosproject.net.flow.criteria.Criteria.matchOduSignalId;
 import static org.onosproject.net.flow.criteria.Criteria.matchOduSignalType;
 import static org.onosproject.net.flow.instructions.Instructions.modL0Lambda;
 import static org.onosproject.net.flow.instructions.Instructions.modL1OduSignalId;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupChannelSpacing;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupGridType;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOchSignalType;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOduSignalType;
+import static org.onosproject.provider.of.flow.util.OpenFlowValueMapper.lookupChannelSpacing;
+import static org.onosproject.provider.of.flow.util.OpenFlowValueMapper.lookupGridType;
+import static org.onosproject.provider.of.flow.util.OpenFlowValueMapper.lookupOchSignalType;
+import static org.onosproject.provider.of.flow.util.OpenFlowValueMapper.lookupOduSignalType;
 
 public class FlowEntryBuilder {
     private static final Logger log = LoggerFactory.getLogger(FlowEntryBuilder.class);

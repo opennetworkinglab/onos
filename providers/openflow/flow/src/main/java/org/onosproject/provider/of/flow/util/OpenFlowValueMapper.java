@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.provider.of.flow.impl;
+package org.onosproject.provider.of.flow.util;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.EnumHashBiMap;
@@ -25,7 +25,7 @@ import org.onosproject.net.OduSignalType;
 /**
  * Collection of helper methods to convert protocol agnostic models to values used in OpenFlow spec.
  */
-final class OpenFlowValueMapper {
+public final class OpenFlowValueMapper {
 
     // prohibit instantiation
     private OpenFlowValueMapper() {}
@@ -94,7 +94,7 @@ final class OpenFlowValueMapper {
      * @return the byte value corresponding to the specified grid type
      * @throws NoMappingFoundException if the specified grid type is not found
      */
-    static byte lookupGridType(GridType type) {
+    public static byte lookupGridType(GridType type) {
         return lookup(GRID_TYPES, type, Byte.class);
     }
 
@@ -106,7 +106,7 @@ final class OpenFlowValueMapper {
      * @param type byte value as grid type defined the spec
      * @return the corresponding GridType instance
      */
-    static GridType lookupGridType(byte type) {
+    public static GridType lookupGridType(byte type) {
         return lookup(GRID_TYPES.inverse(), type, GridType.class);
     }
 
@@ -119,7 +119,7 @@ final class OpenFlowValueMapper {
      * @return byte value corresponding to the specified channel spacing
      * @throws NoMappingFoundException if the specified channel spacing is not found
      */
-    static byte lookupChannelSpacing(ChannelSpacing spacing) {
+    public static byte lookupChannelSpacing(ChannelSpacing spacing) {
         return lookup(CHANNEL_SPACING, spacing, Byte.class);
     }
 
@@ -132,7 +132,7 @@ final class OpenFlowValueMapper {
      * @return the corresponding ChannelSpacing instance
      * @throws NoMappingFoundException if the specified channel spacing is not found
      */
-    static ChannelSpacing lookupChannelSpacing(byte spacing) {
+    public static ChannelSpacing lookupChannelSpacing(byte spacing) {
         return lookup(CHANNEL_SPACING.inverse(), spacing, ChannelSpacing.class);
     }
 
@@ -145,7 +145,7 @@ final class OpenFlowValueMapper {
      * @return byte value corresponding to the specified OCh signal type
      * @throws NoMappingFoundException if the specified Och signal type is not found
      */
-    static byte lookupOchSignalType(OchSignalType signalType) {
+    public static byte lookupOchSignalType(OchSignalType signalType) {
         return lookup(OCH_SIGNAL_TYPES, signalType, Byte.class);
     }
 
@@ -158,7 +158,7 @@ final class OpenFlowValueMapper {
      * @return the corresponding OchSignalType instance
      * @throws NoMappingFoundException if the specified Och signal type is not found
      */
-    static OchSignalType lookupOchSignalType(byte signalType) {
+    public static OchSignalType lookupOchSignalType(byte signalType) {
         return lookup(OCH_SIGNAL_TYPES.inverse(), signalType, OchSignalType.class);
     }
 
@@ -171,7 +171,7 @@ final class OpenFlowValueMapper {
      * @return byte value corresponding to the specified ODU signal type
      * @throws NoMappingFoundException if the specified ODU signal type is not found
      */
-    static byte lookupOduSignalType(OduSignalType signalType) {
+    public static byte lookupOduSignalType(OduSignalType signalType) {
         return lookup(ODU_SIGNAL_TYPES, signalType, Byte.class);
     }
 
@@ -184,7 +184,7 @@ final class OpenFlowValueMapper {
      * @return the corresponding OchSignalType instance
      * @throws NoMappingFoundException if the specified ODU signal type is not found
      */
-    static OduSignalType lookupOduSignalType(byte signalType) {
+    public static OduSignalType lookupOduSignalType(byte signalType) {
         return lookup(ODU_SIGNAL_TYPES.inverse(), signalType, OduSignalType.class);
     }
 }

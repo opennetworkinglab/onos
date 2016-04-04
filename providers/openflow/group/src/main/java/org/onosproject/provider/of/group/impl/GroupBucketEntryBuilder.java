@@ -31,7 +31,7 @@ import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.openflow.controller.Dpid;
-import org.onosproject.provider.of.flow.impl.FlowEntryBuilder;
+import org.onosproject.provider.of.flow.util.FlowEntryBuilder;
 import org.projectfloodlight.openflow.protocol.OFBucket;
 import org.projectfloodlight.openflow.protocol.OFGroupType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
@@ -41,7 +41,7 @@ import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-/*
+/**
  * Builder for GroupBucketEntry.
  */
 public class GroupBucketEntryBuilder {

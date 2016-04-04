@@ -53,6 +53,7 @@ import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.ThirdPartyMessage;
+import org.onosproject.provider.of.flow.util.FlowEntryBuilder;
 import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
