@@ -25,6 +25,7 @@ import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.Tunnel.State;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.incubator.net.tunnel.TunnelAdminService;
 import org.onosproject.incubator.net.tunnel.TunnelDescription;
@@ -300,6 +301,20 @@ public class TunnelManager
             Tunnel storedTunnel = new DefaultTunnel(provider().id(),
                                                     tunnel.src(), tunnel.dst(),
                                                     tunnel.type(),
+                                                    tunnel.groupId(),
+                                                    tunnel.id(),
+                                                    tunnel.tunnelName(),
+                                                    tunnel.path(),
+                                                    tunnel.annotations());
+            return store.createOrUpdateTunnel(storedTunnel);
+        }
+
+        @Override
+        public TunnelId tunnelAdded(TunnelDescription tunnel, State state) {
+            Tunnel storedTunnel = new DefaultTunnel(provider().id(),
+                                                    tunnel.src(), tunnel.dst(),
+                                                    tunnel.type(),
+                                                    state,
                                                     tunnel.groupId(),
                                                     tunnel.id(),
                                                     tunnel.tunnelName(),

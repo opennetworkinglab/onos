@@ -17,6 +17,8 @@
 package org.onosproject.incubator.net.tunnel;
 
 import com.google.common.annotations.Beta;
+
+import org.onosproject.incubator.net.tunnel.Tunnel.State;
 import org.onosproject.net.provider.ProviderService;
 
 /**
@@ -32,6 +34,16 @@ public interface TunnelProviderService extends ProviderService<TunnelProvider> {
      * @return tunnel identity
      */
     TunnelId tunnelAdded(TunnelDescription tunnel);
+
+    /**
+     * Signals that the provider has added a tunnel with a status which may not
+     * be default, hence is provided as an input.
+     *
+     * @param tunnel tunnel information
+     * @param state tunnel working status
+     * @return tunnel identity
+     */
+    TunnelId tunnelAdded(TunnelDescription tunnel, State state);
 
     /**
      * Signals that the provider has removed a tunnel.

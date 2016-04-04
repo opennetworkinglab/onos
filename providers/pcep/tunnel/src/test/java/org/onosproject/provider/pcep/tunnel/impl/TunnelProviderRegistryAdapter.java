@@ -23,6 +23,7 @@ import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelProvider;
 import org.onosproject.incubator.net.tunnel.TunnelProviderRegistry;
 import org.onosproject.incubator.net.tunnel.TunnelProviderService;
+import org.onosproject.incubator.net.tunnel.Tunnel.State;
 import org.onosproject.net.provider.ProviderId;
 
 public class TunnelProviderRegistryAdapter implements TunnelProviderRegistry {
@@ -52,6 +53,11 @@ public class TunnelProviderRegistryAdapter implements TunnelProviderRegistry {
 
         @Override
         public TunnelId tunnelAdded(TunnelDescription tunnel) {
+            return null;
+        }
+
+        @Override
+        public TunnelId tunnelAdded(TunnelDescription tunnel, State state) {
             return null;
         }
 
