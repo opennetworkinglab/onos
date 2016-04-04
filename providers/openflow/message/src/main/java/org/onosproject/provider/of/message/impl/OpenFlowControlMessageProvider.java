@@ -38,6 +38,7 @@ import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
+import org.projectfloodlight.openflow.protocol.OFType;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
@@ -205,7 +206,11 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
 
         @Override
         public void handleMessage(Dpid dpid, OFMessage msg) {
-            aggregators.get(dpid).increment(msg);
+            if (msg.getType() == OFType.PACKET_IN ||
+                    msg.getType() == OFType.FLOW_MOD ||
+                    msg.getType() == OFType.STATS_REPLY) {
+                aggregators.get(dpid).increment(msg);
+            }
         }
     }
 
