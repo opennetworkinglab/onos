@@ -297,10 +297,11 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
                 return availableDeviceIdSet.stream().map(id ->
                         id.toString()).collect(Collectors.toSet());
             } else {
-                return availableResourceMap.get(resourceType);
+                Set<String> res = availableResourceMap.get(resourceType);
+                return res == null ? ImmutableSet.of() : res;
             }
         }
-        return null;
+        return ImmutableSet.of();
     }
 
     private MetricsDatabase genMDbBuilder(Type resourceType,
