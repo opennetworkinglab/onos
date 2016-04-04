@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
 import io.atomix.copycat.client.CopycatClient;
 import io.atomix.resource.AbstractResource;
 import io.atomix.resource.ResourceTypeInfo;
@@ -52,6 +53,7 @@ import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
+import org.slf4j.Logger;
 
 import com.google.common.collect.Sets;
 
@@ -62,6 +64,7 @@ import com.google.common.collect.Sets;
 public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     implements AsyncConsistentMap<String, byte[]> {
 
+    private final Logger log = getLogger(getClass());
     private final Set<MapEventListener<String, byte[]>> mapEventListeners = Sets.newCopyOnWriteArraySet();
 
     public static final String CHANGE_SUBJECT = "changeEvents";
@@ -84,7 +87,13 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     }
 
     private void handleEvent(List<MapEvent<String, byte[]>> events) {
-        events.forEach(event -> mapEventListeners.forEach(listener -> listener.event(event)));
+        events.forEach(event -> mapEventListeners.forEach(listener -> {
+            try {
+                listener.event(event);
+            } catch (Exception e) {
+                log.warn("Error processing map event", e);
+            }
+        }));
     }
 
     @Override

@@ -52,7 +52,7 @@ public final class AtomixConsistentMapCommands {
 
         @Override
         public ConsistencyLevel consistency() {
-          return ConsistencyLevel.LINEARIZABLE;
+          return ConsistencyLevel.SEQUENTIAL;
         }
 
         @Override
@@ -78,7 +78,7 @@ public final class AtomixConsistentMapCommands {
 
         @Override
         public ConsistencyLevel consistency() {
-          return ConsistencyLevel.BOUNDED_LINEARIZABLE;
+          return ConsistencyLevel.SEQUENTIAL;
         }
 
         @Override
