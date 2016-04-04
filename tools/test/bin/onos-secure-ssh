@@ -6,7 +6,18 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
+# Scan arguments for user/password or other options...
+while getopts u:p: o; do
+    case "$o" in
+        u) user=$OPTARG;;
+        p) password=$OPTARG;;
+    esac
+done
+password=${password:-$user} # password defaults to the user if not specified
+let OPC=$OPTIND-1
+shift $OPC
+
+nodes=${1:-$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)}
 
 for node in $nodes; do
     # Prune the node entry from the known hosts file since server key changes
@@ -17,7 +28,7 @@ for node in $nodes; do
     ssh $ONOS_USER@$node "
         [ ! -f ~/.ssh/id_rsa.pub ] && ssh-keygen -t rsa -f ~/.ssh/id_rsa -P '' -q
         $ONOS_INSTALL_DIR/bin/onos-user-key \$(id -un) \$(cut -d\\  -f2 ~/.ssh/id_rsa.pub)
-        $ONOS_INSTALL_DIR/bin/onos-secure-ssh "$@"
+        $ONOS_INSTALL_DIR/bin/onos-secure-ssh -u $user -p $password
 
         # Implicitly accept the new server key in dev/test environments
         while ! ssh -p 8101 -o StrictHostKeyChecking=no localhost list 2>/dev/null; do
