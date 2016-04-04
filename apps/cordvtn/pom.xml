@@ -131,23 +131,7 @@
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
                         <Import-Package>
-                            org.slf4j,
-                            org.osgi.framework,
-                            javax.ws.rs,
-                            javax.ws.rs.core,
-                            org.glassfish.jersey,
-                            org.glassfish.jersey.servlet,
-                            com.fasterxml.jackson.databind,
-                            com.fasterxml.jackson.databind.node,
-                            com.fasterxml.jackson.core,
-                            com.jcraft.jsch,
-                            org.apache.karaf.shell.commands,
-                            org.apache.karaf.shell.console,
-                            com.google.common.*,
-                            org.onlab.packet.*,
-                            org.onlab.rest.*,
-                            org.onosproject.*,
-                            org.onlab.util.*,
+                            *,org.glassfish.jersey.servlet
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

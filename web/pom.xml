@@ -75,6 +75,11 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- TODO jersey-container-servlet and core may not be needed as dependencies
+
+                  They are definitely not needed at compile time, but need to be added
+                  as a bundle import for runtime; references are specified in web.xml
+        -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>

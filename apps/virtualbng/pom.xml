@@ -89,18 +89,7 @@
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
                         <Import-Package>
-                            org.slf4j,
-                            javax.ws.rs,
-                            javax.ws.rs.core,
-                            org.glassfish.jersey,
-                            org.glassfish.jersey.servlet,
-                            com.sun.jersey.server.impl.container.servlet,
-                            com.fasterxml.jackson.databind,
-                            com.fasterxml.jackson.databind.node,
-                            org.apache.karaf.shell.commands,
-                            com.google.common.*,
-                            org.onlab.packet.*,
-                            org.onosproject.*
+                            *,org.glassfish.jersey.servlet
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

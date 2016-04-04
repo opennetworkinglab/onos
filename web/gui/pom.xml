@@ -91,38 +91,14 @@
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
                         <Import-Package>
-                            org.slf4j,
-                            org.osgi.framework,
-                            javax.imageio.*,
-                            javax.ws.rs,javax.ws.rs.core,javax.ws.rs.ext,
-                            javax.servlet.*,
-                            org.glassfish.jersey,
+                            *,
                             org.glassfish.jersey.servlet,
-                            org.glassfish.jersey.media.multipart,
-                            org.jvnet.mimepull,
-                            com.fasterxml.jackson.databind,
-                            com.fasterxml.jackson.databind.node,
-                            com.google.common.base.*,
-                            com.google.common.collect.*,
-                            com.google.common.io.*,
-                            org.eclipse.jetty.websocket.*,
-                            org.onlab.util.*,
-                            org.onlab.osgi.*,
-                            org.onlab.packet.*,
-                            org.onlab.rest.*,
-                            org.onosproject.*,
-                            org.joda.time.*,
-                            org.apache.commons.*
+                            org.jvnet.mimepull
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
-    <!--
-
--->
-
 </project>
