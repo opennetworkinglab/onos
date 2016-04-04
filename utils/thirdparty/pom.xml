@@ -33,17 +33,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.googlecode.concurrent-trees</groupId>
-      <artifactId>concurrent-trees</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>${commons.io.version}</version>
-    </dependency>
-
-    <dependency>
         <groupId>io.atomix.catalyst</groupId>
         <artifactId>catalyst-transport</artifactId>
         <version>${catalyst.version}</version>
@@ -104,25 +93,11 @@
               <exclude>org.ow2.asm:asm</exclude>
               <exclude>org.objenesis:objenesis</exclude>
               <exclude>io.netty:*</exclude>
+              <exclude>commons-io:commons-io</exclude>
             </excludes>
           </artifactSet>
 
           <filters>
-
-            <filter>
-              <artifact>com.googlecode.concurrent-trees:concurrent-trees</artifact>
-              <includes>
-                <include>com/googlecode/**</include>
-              </includes>
-            </filter>
-
-            <filter>
-              <artifact>commons-io:commons-io</artifact>
-              <includes>
-                <include>org/apache/commons/io/**</include>
-              </includes>
-            </filter>
-
             <filter>
               <artifact>org.onosproject:copycat*</artifact>
                 <includes>
@@ -130,14 +105,6 @@
                 </includes>
                 <excludes>
                   <exclude>net/kuujo/copycat/**</exclude>
-                </excludes>
-            </filter>
-
-            <filter>
-              <artifact>org.onosproject</artifact>
-                <excludes>
-                  <exclude>org/apache/commons/io/**</exclude>
-                  <exclude>com/googlecode/concurrenttrees/**</exclude>
                 </excludes>
             </filter>
 
@@ -165,7 +132,7 @@
         <configuration>
           <instructions>
             <Export-Package>
-              com.googlecode.concurrenttrees.*;net.kuujo.copycat.*;io.atomix.*;org.apache.commons.io.*
+              net.kuujo.copycat.*;io.atomix.*
             </Export-Package>
             <Import-Package>
               !sun.nio.ch,!sun.misc,*

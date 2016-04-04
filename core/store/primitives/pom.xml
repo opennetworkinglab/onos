@@ -68,5 +68,10 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-thirdparty</artifactId>
         </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons.io.version}</version>
+        </dependency>
     </dependencies>
 </project>
