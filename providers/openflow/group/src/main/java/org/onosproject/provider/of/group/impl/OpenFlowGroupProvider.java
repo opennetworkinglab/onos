@@ -211,7 +211,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
             }
         }
 
-        if (groupStatsReply != null && groupDescStatsReply != null) {
+        if (providerService != null && groupStatsReply != null) {
             Collection<Group> groups = buildGroupMetrics(deviceId,
                     groupStatsReply, groupDescStatsReply);
             providerService.pushGroupMetrics(deviceId, groups);

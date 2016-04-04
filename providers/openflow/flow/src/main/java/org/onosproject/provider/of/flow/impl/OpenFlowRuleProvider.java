@@ -269,6 +269,10 @@ public class OpenFlowRuleProvider extends AbstractProvider
         Dpid dpid = Dpid.dpid(flowRule.deviceId().uri());
         OpenFlowSwitch sw = controller.getSwitch(dpid);
 
+        if (sw == null) {
+            return;
+        }
+
         FlowRuleExtPayLoad flowRuleExtPayLoad = flowRule.payLoad();
         if (hasPayload(flowRuleExtPayLoad)) {
             OFMessage msg = new ThirdPartyMessage(flowRuleExtPayLoad.payLoad());
@@ -297,6 +301,10 @@ public class OpenFlowRuleProvider extends AbstractProvider
     private void removeRule(FlowRule flowRule) {
         Dpid dpid = Dpid.dpid(flowRule.deviceId().uri());
         OpenFlowSwitch sw = controller.getSwitch(dpid);
+
+        if (sw == null) {
+            return;
+        }
 
         FlowRuleExtPayLoad flowRuleExtPayLoad = flowRule.payLoad();
         if (hasPayload(flowRuleExtPayLoad)) {

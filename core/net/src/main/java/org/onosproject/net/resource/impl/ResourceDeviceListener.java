@@ -159,7 +159,7 @@ final class ResourceDeviceListener implements DeviceListener {
                 .map(adminService::register)
                 .ifPresent(success -> {
                    if (!success) {
-                       log.error("Failed to register Bandwidth for {}", portPath.id());
+                       log.warn("Failed to register Bandwidth for {}", portPath.id());
                    }
                 });
 
