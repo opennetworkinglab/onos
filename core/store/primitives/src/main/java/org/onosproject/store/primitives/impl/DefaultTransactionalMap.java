@@ -180,8 +180,13 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V>, Tr
     }
 
     @Override
-    public boolean hasPendingUpdates() {
-        return updates().size() > 0;
+    public CompletableFuture<Boolean> prepareAndCommit() {
+        return backingMap.prepareAndCommit(new MapTransaction<>(txContext.transactionId(), updates()));
+    }
+
+    @Override
+    public int totalUpdates() {
+        return updates().size();
     }
 
     protected List<MapUpdate<K, V>> updates() {

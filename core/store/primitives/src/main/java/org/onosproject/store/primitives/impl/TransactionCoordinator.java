@@ -44,20 +44,32 @@ public class TransactionCoordinator {
      */
     CompletableFuture<CommitStatus> commit(TransactionId transactionId,
                                            Set<TransactionParticipant> transactionParticipants) {
-        if (!transactionParticipants.stream().anyMatch(t -> t.hasPendingUpdates())) {
-            return CompletableFuture.completedFuture(CommitStatus.SUCCESS);
-        }
+        int totalUpdates = transactionParticipants.stream()
+                                                  .map(TransactionParticipant::totalUpdates)
+                                                  .reduce(Math::addExact)
+                                                  .orElse(0);
 
-        CompletableFuture<CommitStatus> status =  transactions.put(transactionId, Transaction.State.PREPARING)
+        if (totalUpdates == 0) {
+            return CompletableFuture.completedFuture(CommitStatus.SUCCESS);
+        } else if (totalUpdates == 1) {
+            return transactionParticipants.stream()
+                                          .filter(p -> p.totalUpdates() == 1)
+                                          .findFirst()
+                                          .get()
+                                          .prepareAndCommit()
+                                          .thenApply(v -> v ? CommitStatus.SUCCESS : CommitStatus.FAILURE);
+        } else {
+            CompletableFuture<CommitStatus> status =  transactions.put(transactionId, Transaction.State.PREPARING)
                     .thenCompose(v -> this.doPrepare(transactionParticipants))
                     .thenCompose(result -> result
-                           ? transactions.put(transactionId, Transaction.State.COMMITTING)
-                                         .thenCompose(v -> doCommit(transactionParticipants))
-                                         .thenApply(v -> CommitStatus.SUCCESS)
-                           : transactions.put(transactionId, Transaction.State.ROLLINGBACK)
-                                         .thenCompose(v -> doRollback(transactionParticipants))
-                                         .thenApply(v -> CommitStatus.FAILURE));
-        return status.thenCompose(v -> transactions.remove(transactionId).thenApply(u -> v));
+                            ? transactions.put(transactionId, Transaction.State.COMMITTING)
+                                          .thenCompose(v -> doCommit(transactionParticipants))
+                                          .thenApply(v -> CommitStatus.SUCCESS)
+                            : transactions.put(transactionId, Transaction.State.ROLLINGBACK)
+                                          .thenCompose(v -> doRollback(transactionParticipants))
+                                          .thenApply(v -> CommitStatus.FAILURE));
+            return status.thenCompose(v -> transactions.remove(transactionId).thenApply(u -> v));
+        }
     }
 
     private CompletableFuture<Boolean> doPrepare(Set<TransactionParticipant> transactionParticipants) {

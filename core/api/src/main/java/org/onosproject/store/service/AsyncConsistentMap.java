@@ -342,6 +342,14 @@ public interface AsyncConsistentMap<K, V> extends DistributedPrimitive {
     CompletableFuture<Void> rollback(TransactionId transactionId);
 
     /**
+     * Prepares a transaction and commits it in one go.
+     * @param transaction transaction
+     * @return {@code true} if operation is successful and updates are committed
+     * {@code false} otherwise
+     */
+    CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K, V> transaction);
+
+    /**
      * Returns a new {@link ConsistentMap} that is backed by this instance.
      *
      * @return new {@code ConsistentMap} instance

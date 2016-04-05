@@ -76,7 +76,7 @@ public class DefaultTransactionContext implements TransactionContext {
     public CompletableFuture<CommitStatus> commit() {
         final MeteringAgent.Context timer = monitor.startTimer("commit");
         return transactionCoordinator.commit(transactionId, txParticipants)
-                .whenComplete((r, e) -> timer.stop(e));
+                                     .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
@@ -89,7 +89,7 @@ public class DefaultTransactionContext implements TransactionContext {
             Serializer serializer) {
         // FIXME: Do not create duplicates.
         DefaultTransactionalMap<K, V> txMap = new DefaultTransactionalMap<K, V>(mapName,
-                creator.<K, V>newAsyncConsistentMap(mapName, serializer),
+                DistributedPrimitives.newMeteredMap(creator.<K, V>newAsyncConsistentMap(mapName, serializer)),
                 this,
                 serializer);
         txParticipants.add(txMap);

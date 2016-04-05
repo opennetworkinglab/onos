@@ -236,6 +236,24 @@ public class PartitionedAsyncConsistentMap<K, V> implements AsyncConsistentMap<K
                 .toArray(CompletableFuture[]::new));
     }
 
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K, V> transaction) {
+        Map<AsyncConsistentMap<K, V>, List<MapUpdate<K, V>>> updatesGroupedByMap = Maps.newIdentityHashMap();
+        transaction.updates().forEach(update -> {
+            AsyncConsistentMap<K, V> map = getMap(update.key());
+            updatesGroupedByMap.computeIfAbsent(map, k -> Lists.newLinkedList()).add(update);
+        });
+        Map<AsyncConsistentMap<K, V>, MapTransaction<K, V>> transactionsByMap =
+                Maps.transformValues(updatesGroupedByMap,
+                                     list -> new MapTransaction<>(transaction.transactionId(), list));
+
+        return Tools.allOf(transactionsByMap.entrySet()
+                                            .stream()
+                                            .map(e -> e.getKey().prepareAndCommit(e.getValue()))
+                                            .collect(Collectors.toList()))
+                    .thenApply(list -> list.stream().reduce(Boolean::logicalAnd).orElse(true));
+    }
+
     /**
      * Returns the map (partition) to which the specified key maps.
      * @param key key

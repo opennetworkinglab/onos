@@ -213,6 +213,11 @@ public class TranscodingAsyncConsistentMap<K1, V1, K2, V2> implements AsyncConsi
         return backingMap.rollback(transactionId);
     }
 
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K1, V1> transaction) {
+        return backingMap.prepareAndCommit(transaction.map(keyEncoder, valueEncoder));
+    }
+
     private class InternalBackingMapEventListener implements MapEventListener<K2, V2> {
 
         private final MapEventListener<K1, V1> listener;

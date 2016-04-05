@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
 import io.atomix.copycat.client.CopycatClient;
 import io.atomix.resource.AbstractResource;
 import io.atomix.resource.ResourceTypeInfo;
@@ -44,6 +43,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapComman
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Size;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionCommit;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionPrepare;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionPrepareAndCommit;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionRollback;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Unlisten;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.UpdateAndGet;
@@ -53,7 +53,6 @@ import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
-import org.slf4j.Logger;
 
 import com.google.common.collect.Sets;
 
@@ -64,7 +63,6 @@ import com.google.common.collect.Sets;
 public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     implements AsyncConsistentMap<String, byte[]> {
 
-    private final Logger log = getLogger(getClass());
     private final Set<MapEventListener<String, byte[]>> mapEventListeners = Sets.newCopyOnWriteArraySet();
 
     public static final String CHANGE_SUBJECT = "changeEvents";
@@ -287,5 +285,10 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
         return submit(new TransactionRollback(transactionId))
                 .thenApply(v -> null);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<String, byte[]> transaction) {
+        return submit(new TransactionPrepareAndCommit(transaction)).thenApply(v -> v == PrepareResult.OK);
     }
 }

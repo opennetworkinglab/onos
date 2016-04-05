@@ -108,7 +108,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         value -> value == null ? null : serializer.encode(value),
                         bytes -> serializer.decode(bytes));
 
-        return DistributedPrimitives.newCachingMap(transcodedMap);
+        return transcodedMap;
     }
 
     @Override

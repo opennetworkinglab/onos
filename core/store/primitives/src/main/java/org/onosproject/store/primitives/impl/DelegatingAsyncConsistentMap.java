@@ -178,6 +178,11 @@ public class DelegatingAsyncConsistentMap<K, V> implements AsyncConsistentMap<K,
     }
 
     @Override
+    public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K, V> transaction) {
+        return delegateMap.prepareAndCommit(transaction);
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                           .add("delegateMap", delegateMap)
