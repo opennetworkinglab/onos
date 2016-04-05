@@ -43,6 +43,7 @@ import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaNotificatio
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaRpc;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaInput;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaOutput;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 
 /**
  * Factory to create data model objects based on the target file type.
@@ -68,7 +69,7 @@ public final class YangDataModelFactory {
                 return new YangJavaModule();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -86,7 +87,7 @@ public final class YangDataModelFactory {
                 return new YangJavaAugment();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -104,7 +105,7 @@ public final class YangDataModelFactory {
                 return new YangJavaCase();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -122,7 +123,7 @@ public final class YangDataModelFactory {
                 return new YangJavaChoice();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -140,7 +141,7 @@ public final class YangDataModelFactory {
                 return new YangJavaContainer();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -158,7 +159,7 @@ public final class YangDataModelFactory {
                 return new YangJavaGrouping();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -176,7 +177,7 @@ public final class YangDataModelFactory {
                 return new YangJavaList();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -194,7 +195,7 @@ public final class YangDataModelFactory {
                 return new YangJavaSubModule();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -212,7 +213,7 @@ public final class YangDataModelFactory {
                 return new YangJavaTypeDef();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -230,7 +231,7 @@ public final class YangDataModelFactory {
                 return new YangJavaUses();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -248,7 +249,7 @@ public final class YangDataModelFactory {
                 return new YangJavaNotification();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -266,7 +267,7 @@ public final class YangDataModelFactory {
                 return new YangJavaRpc();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -284,7 +285,7 @@ public final class YangDataModelFactory {
                 return new YangJavaInput();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }
@@ -302,7 +303,7 @@ public final class YangDataModelFactory {
                 return new YangJavaOutput();
             }
             default: {
-                throw new RuntimeException("Only YANG to Java is supported.");
+                throw new TranslatorException("Only YANG to Java is supported.");
             }
         }
     }

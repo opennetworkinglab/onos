@@ -24,7 +24,7 @@ import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.core.IsNot.not;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getImportText;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaAttributeDefination;
@@ -75,7 +75,7 @@ public class JavaCodeSnippetGenTest {
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            assertNotNull(constructor.newInstance());
+            assertThat(null, not(constructor.newInstance()));
         }
     }
 
@@ -84,7 +84,6 @@ public class JavaCodeSnippetGenTest {
      */
     @Test
     public void testForImportText() {
-
         JavaQualifiedTypeInfo importInfo = new JavaQualifiedTypeInfo();
         importInfo.setPkgInfo(PKG_INFO);
         importInfo.setClassInfo(CLASS_INFO);
@@ -99,11 +98,9 @@ public class JavaCodeSnippetGenTest {
      */
     @Test
     public void testForJavaClassDefStart() {
-
         String classDef = getJavaClassDefStart(FILE_GEN_TYPE, YANG_NAME);
         assertThat(true, is(classDef
                 .equals(PUBLIC + SPACE + INTERFACE + SPACE + YANG_NAME + SPACE + OPEN_CURLY_BRACKET + NEW_LINE)));
-
     }
 
     /**
@@ -111,7 +108,6 @@ public class JavaCodeSnippetGenTest {
      */
     @Test
     public void testForListAttribute() {
-
         String listAttribute = getListAttribute(STRING_DATA_TYPE);
         assertThat(true,
                 is(listAttribute.equals(LIST + DIAMOND_OPEN_BRACKET + STRING_DATA_TYPE + DIAMOND_CLOSE_BRACKET)));
@@ -122,7 +118,6 @@ public class JavaCodeSnippetGenTest {
      */
     @Test
     public void testForJavaClassDefClose() {
-
         String interfaceDef = getJavaClassDefClose();
         assertThat(true, is(interfaceDef.equals(CLOSE_CURLY_BRACKET)));
     }

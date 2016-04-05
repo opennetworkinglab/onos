@@ -20,6 +20,7 @@ import java.util.Objects;
 
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
 
 import com.google.common.base.MoreObjects;
@@ -51,7 +52,6 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
      * @return the imported package info
      */
     public String getPkgInfo() {
-
         return pkgInfo;
     }
 
@@ -61,7 +61,6 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
      * @param pkgInfo the imported package info
      */
     public void setPkgInfo(String pkgInfo) {
-
         this.pkgInfo = pkgInfo;
     }
 
@@ -71,7 +70,6 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
      * @return the imported class/interface info
      */
     public String getClassInfo() {
-
         return classInfo;
     }
 
@@ -81,7 +79,6 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
      * @param classInfo the imported class/interface info
      */
     public void setClassInfo(String classInfo) {
-
         this.classInfo = classInfo;
     }
 
@@ -105,7 +102,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
         JavaQualifiedTypeInfo importInfo = new JavaQualifiedTypeInfo();
 
         if (attrType == null) {
-            throw new RuntimeException("missing data type of leaf " + attributeName);
+            throw new TranslatorException("missing data type of leaf " + attributeName);
         }
 
         /*
@@ -121,7 +118,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
             importInfo.setClassInfo(className);
             String classPkg = AttributesJavaDataType.getJavaImportPackage(attrType, isListAttr, className);
             if (classPkg == null) {
-                throw new RuntimeException("import package cannot be null when the class is used");
+                throw new TranslatorException("import package cannot be null when the class is used");
             }
             importInfo.setPkgInfo(classPkg);
         } else {
@@ -131,7 +128,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
              */
             String dataTypeName = AttributesJavaDataType.getJavaDataType(attrType);
             if (dataTypeName == null) {
-                throw new RuntimeException("not supported data type");
+                throw new TranslatorException("not supported data type");
             }
             importInfo.setClassInfo(dataTypeName);
         }
@@ -155,7 +152,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
         JavaQualifiedTypeInfo importInfo = new JavaQualifiedTypeInfo();
 
         if (!(curNode instanceof HasJavaFileInfo)) {
-            throw new RuntimeException("missing java file information to get the package details "
+            throw new TranslatorException("missing java file information to get the package details "
                     + "of attribute corresponding to child node");
         }
         /*
@@ -184,7 +181,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
 
         boolean isImportPkgEqualCurNodePkg;
         if (!(curNode instanceof HasJavaFileInfo)) {
-            throw new RuntimeException("missing java file info for getting the qualified access");
+            throw new TranslatorException("missing java file info for getting the qualified access");
         }
         if (importInfo.getClassInfo().contentEquals(
                 ((HasJavaFileInfo) curNode).getJavaFileInfo().getJavaName())) {
@@ -211,7 +208,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
                      * If the current data model node is not supposed to import
                      * data, then this is a usage issue and needs to be fixed.
                      */
-                    throw new RuntimeException("Current node needs to support Imports");
+                    throw new TranslatorException("Current node needs to support Imports");
                 }
 
                 boolean isImportAdded = ((HasJavaImportData) curNode).getJavaImportData()
@@ -241,7 +238,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
             YangNode curNode, JavaQualifiedTypeInfo importInfo) {
 
         if (!(curNode instanceof HasJavaFileInfo)) {
-            throw new RuntimeException("missing java file info for the data model node");
+            throw new TranslatorException("missing java file info for the data model node");
         }
         return ((HasJavaFileInfo) curNode).getJavaFileInfo().getPackage()
                 .contentEquals(importInfo.getPkgInfo()
@@ -250,7 +247,6 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
 
     @Override
     public int hashCode() {
-
         return Objects.hash(pkgInfo, classInfo);
     }
 
@@ -275,7 +271,6 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
      * @return if equal or not
      */
     public boolean exactMatch(JavaQualifiedTypeInfo importInfo) {
-
         return equals(importInfo)
                 && Objects.equals(pkgInfo, importInfo.getPkgInfo())
                 && Objects.equals(classInfo, importInfo.getClassInfo());
@@ -283,7 +278,6 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
 
     @Override
     public String toString() {
-
         return MoreObjects.toStringHelper(getClass())
                 .add("pkgInfo", pkgInfo)
                 .add("classInfo", classInfo).toString();
@@ -296,7 +290,6 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
      */
     @Override
     public int compareTo(JavaQualifiedTypeInfo other) {
-
         return getClassInfo().compareTo(other.getClassInfo());
     }
 

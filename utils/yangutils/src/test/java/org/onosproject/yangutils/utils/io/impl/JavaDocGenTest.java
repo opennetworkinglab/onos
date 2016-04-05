@@ -16,21 +16,36 @@
 
 package org.onosproject.yangutils.utils.io.impl;
 
-import org.junit.Test;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
-import org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertThat;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_CLASS;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_INTERFACE;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILD_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.CONSTRUCTOR;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.DEFAULT_CONSTRUCTOR;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.IMPL_CLASS;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INTERFACE;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.PACKAGE_INFO;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.SETTER_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.TYPE_DEF_SETTER_METHOD;
 
 /**
  * Tests the java doc that is generated.
  */
 public final class JavaDocGenTest {
+
+    private static final String TEST_NAME = "testName";
+    private static final String END_STRING = " */\n";
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -40,10 +55,9 @@ public final class JavaDocGenTest {
      */
     @Test
     public void builderClassGenerationTest() {
-
-        String builderClassJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.BUILDER_CLASS, "testGeneration1", false);
-        assertTrue(builderClassJavaDoc.contains("Provides the builder implementation of")
-                && builderClassJavaDoc.contains(" */\n"));
+        String builderClassJavaDoc = getJavaDoc(BUILDER_CLASS, TEST_NAME, false);
+        assertThat(true, is(builderClassJavaDoc.contains("Reperesents the builder implementation of")
+                && builderClassJavaDoc.contains(END_STRING)));
     }
 
     /**
@@ -51,9 +65,9 @@ public final class JavaDocGenTest {
      */
     @Test
     public void builderInterfaceGenerationTest() {
-
-        String builderInterfaceJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.BUILDER_INTERFACE, "testGeneration1", false);
-        assertTrue(builderInterfaceJavaDoc.contains("Builder for") && builderInterfaceJavaDoc.contains(" */\n"));
+        String builderInterfaceJavaDoc = getJavaDoc(BUILDER_INTERFACE, TEST_NAME, false);
+        assertThat(true,
+                is(builderInterfaceJavaDoc.contains("Builder for") && builderInterfaceJavaDoc.contains(END_STRING)));
     }
 
     /**
@@ -61,9 +75,8 @@ public final class JavaDocGenTest {
      */
     @Test
     public void buildGenerationTest() {
-
-        String buildDoc = JavaDocGen.getJavaDoc(JavaDocType.BUILD_METHOD, "testGeneration1", false);
-        assertTrue(buildDoc.contains("Builds object of") && buildDoc.contains(" */\n"));
+        String buildDoc = getJavaDoc(BUILD_METHOD, TEST_NAME, false);
+        assertThat(true, is(buildDoc.contains("Builds object of") && buildDoc.contains(END_STRING)));
     }
 
     /**
@@ -78,13 +91,13 @@ public final class JavaDocGenTest {
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
-    InstantiationException, IllegalAccessException, InvocationTargetException {
+            InstantiationException, IllegalAccessException, InvocationTargetException {
 
         Class<?>[] classesToConstruct = {JavaDocGen.class };
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            assertNotNull(constructor.newInstance());
+            assertThat(null, not(constructor.newInstance()));
         }
     }
 
@@ -93,12 +106,10 @@ public final class JavaDocGenTest {
      */
     @Test
     public void constructorGenerationTest() {
-
-        String constructorDoc = JavaDocGen.getJavaDoc(JavaDocType.CONSTRUCTOR, "testGeneration1", false);
-        assertTrue(
-                constructorDoc.contains("Construct the object of") && constructorDoc.contains("builder object of")
-                && constructorDoc.contains("@param") && constructorDoc.contains("*/\n"));
-        JavaDocType.valueOf(JavaDocType.CONSTRUCTOR.toString());
+        String constructorDoc = getJavaDoc(CONSTRUCTOR, TEST_NAME, false);
+        assertThat(true,
+                is(constructorDoc.contains("Creates an instance of ") && constructorDoc.contains("builder object of")
+                        && constructorDoc.contains("@param") && constructorDoc.contains("*/\n")));
     }
 
     /**
@@ -106,9 +117,9 @@ public final class JavaDocGenTest {
      */
     @Test
     public void defaultConstructorGenerationTest() {
-
-        String defaultConstructorDoc = JavaDocGen.getJavaDoc(JavaDocType.DEFAULT_CONSTRUCTOR, "testGeneration1", false);
-        assertTrue(defaultConstructorDoc.contains("Default Constructor") && defaultConstructorDoc.contains(" */\n"));
+        String defaultConstructorDoc = getJavaDoc(DEFAULT_CONSTRUCTOR, TEST_NAME, false);
+        assertThat(true, is(defaultConstructorDoc.contains("Creates an instance of ")
+                && defaultConstructorDoc.contains(END_STRING)));
     }
 
     /**
@@ -116,9 +127,8 @@ public final class JavaDocGenTest {
      */
     @Test
     public void getterGenerationTest() {
-
-        String getterJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.GETTER_METHOD, "testGeneration1", false);
-        assertTrue(getterJavaDoc.contains("Returns the attribute") && getterJavaDoc.contains(" */\n"));
+        String getterJavaDoc = getJavaDoc(GETTER_METHOD, TEST_NAME, false);
+        assertThat(true, is(getterJavaDoc.contains("Returns the attribute") && getterJavaDoc.contains(END_STRING)));
     }
 
     /**
@@ -126,8 +136,10 @@ public final class JavaDocGenTest {
      */
     @Test
     public void implClassGenerationTest() {
-        String implClassJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.IMPL_CLASS, "testGeneration1", false);
-        assertTrue(implClassJavaDoc.contains("Provides the implementation of") && implClassJavaDoc.contains(" */\n"));
+        String implClassJavaDoc = getJavaDoc(IMPL_CLASS, TEST_NAME, false);
+        assertThat(true,
+                is(implClassJavaDoc.contains("Reperesents the implementation of")
+                        && implClassJavaDoc.contains(END_STRING)));
     }
 
     /**
@@ -135,10 +147,10 @@ public final class JavaDocGenTest {
      */
     @Test
     public void interfaceGenerationTest() {
-
-        String interfaceJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.INTERFACE, "testGeneration1", false);
-        assertTrue(interfaceJavaDoc.contains("Abstraction of an entity which provides functionalities of")
-                && interfaceJavaDoc.contains(" */\n"));
+        String interfaceJavaDoc = getJavaDoc(INTERFACE, TEST_NAME, false);
+        assertThat(true,
+                is(interfaceJavaDoc.contains("Abstraction of an entity which Reperesents the functionalities of")
+                        && interfaceJavaDoc.contains(END_STRING)));
     }
 
     /**
@@ -146,9 +158,8 @@ public final class JavaDocGenTest {
      */
     @Test
     public void packageInfoGenerationTest() {
-
-        String packageInfo = JavaDocGen.getJavaDoc(JavaDocType.PACKAGE_INFO, "testGeneration1", false);
-        assertTrue(packageInfo.contains("Implementation of YANG file") && packageInfo.contains(" */\n"));
+        String packageInfo = getJavaDoc(PACKAGE_INFO, TEST_NAME, false);
+        assertThat(true, is(packageInfo.contains("Implementation of YANG file") && packageInfo.contains(END_STRING)));
     }
 
     /**
@@ -156,9 +167,9 @@ public final class JavaDocGenTest {
      */
     @Test
     public void setterGenerationTest() {
-
-        String setterJavaDoc = JavaDocGen.getJavaDoc(JavaDocType.SETTER_METHOD, "testGeneration1", false);
-        assertTrue(setterJavaDoc.contains("Returns the builder object of") && setterJavaDoc.contains(" */\n"));
+        String setterJavaDoc = getJavaDoc(SETTER_METHOD, TEST_NAME, false);
+        assertThat(true,
+                is(setterJavaDoc.contains("Returns the builder object of") && setterJavaDoc.contains(END_STRING)));
     }
 
     /**
@@ -166,8 +177,7 @@ public final class JavaDocGenTest {
      */
     @Test
     public void typeDefSetterGenerationTest() {
-
-        String typeDefSetter = JavaDocGen.getJavaDoc(JavaDocType.TYPE_DEF_SETTER_METHOD, "testGeneration1", false);
-        assertTrue(typeDefSetter.contains("Sets the value of") && typeDefSetter.contains(" */\n"));
+        String typeDefSetter = getJavaDoc(TYPE_DEF_SETTER_METHOD, TEST_NAME, false);
+        assertThat(true, is(typeDefSetter.contains("Sets the value of") && typeDefSetter.contains(END_STRING)));
     }
 }

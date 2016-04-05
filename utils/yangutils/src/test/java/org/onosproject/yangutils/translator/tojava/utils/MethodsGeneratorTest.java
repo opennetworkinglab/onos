@@ -25,7 +25,7 @@ import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
@@ -108,7 +108,7 @@ public final class MethodsGeneratorTest {
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            assertNotNull(constructor.newInstance());
+            assertThat(null, not(constructor.newInstance()));
         }
     }
 
@@ -117,7 +117,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getTypeDefConstructorTest() {
-
         JavaAttributeInfo testAttr = getTestAttribute();
         String test = getTypeDefConstructor(testAttr, CLASS_NAME);
         assertThat(true, is(test.contains(PUBLIC + SPACE + CLASS_NAME + OPEN_PARENTHESIS)));
@@ -128,7 +127,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getBuildTest() {
-
         String method = getBuild(CLASS_NAME);
         assertThat(true, is(method.equals(FOUR_SPACE_INDENTATION + PUBLIC + SPACE + CLASS_NAME + SPACE + BUILD
                 + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
@@ -142,7 +140,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getBuildForInterfaceTest() {
-
         String method = getBuildForInterface(CLASS_NAME);
         assertThat(true, is(method.equals(FOUR_SPACE_INDENTATION + CLASS_NAME + SPACE + BUILD +
                 OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE)));
@@ -153,7 +150,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getCheckNotNullTest() {
-
         String method = getCheckNotNull(CLASS_NAME);
         assertThat(true, is(method.equals(EIGHT_SPACE_INDENTATION + CHECK_NOT_NULL_STRING + OPEN_PARENTHESIS
                 + CLASS_NAME + COMMA + SPACE + CLASS_NAME + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE)));
@@ -164,7 +160,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getConstructorTest() {
-
         JavaAttributeInfo testAttr = getTestAttribute();
         String method = getConstructor(CLASS_NAME, testAttr);
         assertThat(true, is(method.contains(THIS + PERIOD + CLASS_NAME + SPACE + EQUAL + SPACE + "builder" + OBJECT
@@ -176,7 +171,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getConstructorStartTest() {
-
         String method = getConstructorStart(CLASS_NAME);
         assertThat(true, is(method.contains(PUBLIC + SPACE + CLASS_NAME + IMPL + OPEN_PARENTHESIS + CLASS_NAME
                 + BUILDER + SPACE + BUILDER.toLowerCase() + OBJECT + CLOSE_PARENTHESIS + SPACE
@@ -188,7 +182,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getEqualsMethodTest() {
-
         JavaAttributeInfo testAttr = getTestAttribute();
         String method = getEqualsMethod(testAttr);
         assertThat(true, is(method.contains(SIXTEEN_SPACE_INDENTATION + SPACE + OBJECT_STRING + SUFFIX_S + PERIOD
@@ -200,7 +193,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getToStringMethodTest() {
-
         JavaAttributeInfo testAttr = getTestAttribute();
         String method = getToStringMethod(testAttr);
         assertThat(true, is(method.equals(
@@ -213,7 +205,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getGetterForClassTest() {
-
         JavaAttributeInfo testAttr = getTestAttribute();
         String method = getGetterForClass(testAttr);
         assertThat(true, is(method.contains(PUBLIC + SPACE + STRING_DATA_TYPE + SPACE + GET_METHOD_PREFIX)));
@@ -224,7 +215,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getGetterForInterfaceTest() {
-
         String method = getGetterForInterface(CLASS_NAME, STRING_DATA_TYPE, false);
         assertThat(true, is(method.contains(STRING_DATA_TYPE + SPACE + GET_METHOD_PREFIX)));
     }
@@ -234,7 +224,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getSetterForClassTest() {
-
         JavaAttributeInfo testAttr = getTestAttribute();
         String method = getSetterForClass(testAttr, CLASS_NAME);
         assertThat(true, is(
@@ -248,7 +237,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getSetterForInterfaceTest() {
-
         String method = getSetterForInterface(CLASS_NAME, STRING_DATA_TYPE, CLASS_NAME, false);
         assertThat(true, is(method.contains(CLASS_NAME + BUILDER + SPACE + SET_METHOD_PREFIX + "Testname")));
     }
@@ -258,7 +246,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getOfMethodest() {
-
         JavaAttributeInfo testAttr = getTestAttribute();
         String method = getOfMethod(CLASS_NAME, testAttr);
         assertThat(true, is(method.contains(PUBLIC + SPACE + STATIC + SPACE + CLASS_NAME + SPACE + OF + OPEN_PARENTHESIS
@@ -270,7 +257,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getSetterForTypeDefClassTest() {
-
         JavaAttributeInfo testAttr = getTestAttribute();
         String method = getSetterForTypeDefClass(testAttr);
         assertThat(true, is(method.contains(PUBLIC + SPACE + VOID + SPACE + SET_METHOD_PREFIX)));
@@ -281,7 +267,6 @@ public final class MethodsGeneratorTest {
      */
     @Test
     public void getOverRideStringTest() {
-
         String method = getOverRideString();
         assertThat(true, is(method.contains(OVERRIDE)));
     }
@@ -292,7 +277,6 @@ public final class MethodsGeneratorTest {
      * @return java attribute
      */
     private JavaAttributeInfo getTestAttribute() {
-
         JavaAttributeInfo testAttr = new JavaAttributeInfo(getTestYangType(), ATTRIBUTE_NAME, false, false);
         testAttr.setAttributeName(ATTRIBUTE_NAME);
         testAttr.setAttributeType(getTestYangType());
@@ -306,7 +290,6 @@ public final class MethodsGeneratorTest {
      * @return java qualified info
      */
     private JavaQualifiedTypeInfo getTestJavaQualifiedTypeInfo() {
-
         JavaQualifiedTypeInfo info = new JavaQualifiedTypeInfo();
         info.setPkgInfo(JAVA_LANG);
         info.setClassInfo(STRING_DATA_TYPE);
@@ -319,7 +302,6 @@ public final class MethodsGeneratorTest {
      * @return test YANG type
      */
     private YangType<?> getTestYangType() {
-
         YangType<?> attrType = new YangType<>();
         attrType.setDataTypeName(STRING_DATA_TYPE);
         attrType.setDataType(STRING);

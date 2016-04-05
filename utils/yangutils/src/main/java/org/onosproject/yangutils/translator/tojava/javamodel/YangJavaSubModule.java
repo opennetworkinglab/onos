@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.YangBelongsTo;
 import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
 import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
@@ -77,7 +78,7 @@ public class YangJavaSubModule extends YangSubModule
     public JavaFileInfo getJavaFileInfo() {
 
         if (javaFileInfo == null) {
-            throw new RuntimeException("Missing java info in java datamodel node");
+            throw new TranslatorException("Missing java info in java datamodel node");
         }
         return javaFileInfo;
     }
@@ -89,7 +90,6 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public void setJavaFileInfo(JavaFileInfo javaInfo) {
-
         javaFileInfo = javaInfo;
     }
 
@@ -100,7 +100,6 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public JavaImportData getJavaImportData() {
-
         return javaImportData;
     }
 
@@ -112,7 +111,6 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public void setJavaImportData(JavaImportData javaImportData) {
-
         this.javaImportData = javaImportData;
     }
 
@@ -123,11 +121,6 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
-
-        if (tempFileHandle == null) {
-            throw new RuntimeException("missing temp file hand for current node "
-                    + getJavaFileInfo().getJavaName());
-        }
         return tempFileHandle;
     }
 
@@ -138,7 +131,6 @@ public class YangJavaSubModule extends YangSubModule
      */
     @Override
     public void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle) {
-
         tempFileHandle = fileHandle;
     }
 
@@ -150,7 +142,6 @@ public class YangJavaSubModule extends YangSubModule
      * @return the name space string of the module.
      */
     private String getNameSpaceFromModule(YangBelongsTo belongsToInfo) {
-
         // TODO Auto-generated method stub
         return "";
     }
@@ -190,6 +181,5 @@ public class YangJavaSubModule extends YangSubModule
     @Override
     public void generateCodeExit() {
         // TODO Auto-generated method stub
-
     }
 }

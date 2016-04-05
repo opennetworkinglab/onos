@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2016 Open Networking Laboratory
  *
@@ -31,7 +30,7 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 import org.sonatype.plexus.build.incremental.DefaultBuildContext;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addToSource;
@@ -40,7 +39,7 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirector
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
 /**
- * Unit tests for YANG io utils.
+ * Unit tests for YANG IO utils.
  */
 public final class YangIoUtilsTest {
 
@@ -119,7 +118,7 @@ public final class YangIoUtilsTest {
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            assertNotNull(constructor.newInstance());
+            assertThat(null, not(constructor.newInstance()));
         }
     }
 
@@ -183,4 +182,5 @@ public final class YangIoUtilsTest {
         String test = trimAtLast(CHECK_STRING, "six");
         assertThat(test.contains(TRIM_STRING), is(true));
     }
+
 }

@@ -16,12 +16,15 @@
 
 package org.onosproject.yangutils.utils;
 
-import org.junit.Test;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import static org.junit.Assert.assertNotNull;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test case for testing the util constants.
@@ -43,13 +46,13 @@ public final class UtilConstantsTest {
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
-    InstantiationException, IllegalAccessException, InvocationTargetException {
+            InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        Class<?>[] classesToConstruct = {UtilConstants.class};
+        Class<?>[] classesToConstruct = {UtilConstants.class };
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            assertNotNull(constructor.newInstance());
+            assertThat(null, not(constructor.newInstance()));
         }
     }
 }

@@ -18,6 +18,7 @@ package org.onosproject.yangutils.translator.tojava;
 
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
 
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getIsQualifiedAccessOrAddToImportList;
@@ -63,7 +64,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Construct object of java attribute info.
+     * Creates object of java attribute info.
      *
      * @param attrType YANG type
      * @param name attribute name
@@ -85,7 +86,7 @@ public final class JavaAttributeInfo {
     public YangType<?> getAttributeType() {
 
         if (attrType == null) {
-            throw new RuntimeException("Expected java attribute type is null");
+            throw new TranslatorException("Expected java attribute type is null");
         }
         return attrType;
     }
@@ -96,7 +97,6 @@ public final class JavaAttributeInfo {
      * @param type the data type info of attribute
      */
     public void setAttributeType(YangType<?> type) {
-
         attrType = type;
     }
 
@@ -108,7 +108,7 @@ public final class JavaAttributeInfo {
     public String getAttributeName() {
 
         if (name == null) {
-            throw new RuntimeException("Expected java attribute name is null");
+            throw new TranslatorException("Expected java attribute name is null");
         }
         return name;
     }
@@ -119,7 +119,6 @@ public final class JavaAttributeInfo {
      * @param attrName name of the attribute
      */
     public void setAttributeName(String attrName) {
-
         name = attrName;
     }
 
@@ -129,7 +128,6 @@ public final class JavaAttributeInfo {
      * @return the if the added attribute is a list of info
      */
     public boolean isListAttr() {
-
         return isListAttr;
     }
 
@@ -139,7 +137,6 @@ public final class JavaAttributeInfo {
      * @param isList if the added attribute is a list of info
      */
     public void setListAttr(boolean isList) {
-
         isListAttr = isList;
     }
 
@@ -151,7 +148,6 @@ public final class JavaAttributeInfo {
      *         qualified manner.
      */
     public boolean isQualifiedName() {
-
         return isQualifiedName;
     }
 
@@ -163,7 +159,6 @@ public final class JavaAttributeInfo {
      *            qualified manner
      */
     public void setIsQualifiedAccess(boolean isQualified) {
-
         isQualifiedName = isQualified;
     }
 
@@ -174,7 +169,6 @@ public final class JavaAttributeInfo {
      * @return import info
      */
     public JavaQualifiedTypeInfo getImportInfo() {
-
         return importInfo;
     }
 
@@ -184,7 +178,6 @@ public final class JavaAttributeInfo {
      * @param importInfo import info for the attribute type
      */
     public void setImportInfo(JavaQualifiedTypeInfo importInfo) {
-
         this.importInfo = importInfo;
     }
 
@@ -204,23 +197,14 @@ public final class JavaAttributeInfo {
             YangType<?> attributeType, String attributeName,
             boolean isListAttribute) {
 
-        JavaAttributeInfo newAttr = new JavaAttributeInfo();
-
         /*
          * Get the import info corresponding to the attribute for import in
          * generated java files or qualified access
          */
         JavaQualifiedTypeInfo importInfo = getQualifiedTypeInfoOfLeafAttribute(curNode,
                 attributeType, attributeName, isListAttribute);
-        newAttr.setImportInfo(importInfo);
-        newAttr.setIsQualifiedAccess(getIsQualifiedAccessOrAddToImportList(
-                curNode, importInfo));
-        newAttr.setAttributeName(getCamelCase(attributeName));
-        newAttr.setListAttr(isListAttribute);
-        newAttr.setImportInfo(importInfo);
-        newAttr.setAttributeType(attributeType);
 
-        return newAttr;
+        return getAttributeInfoForTheData(importInfo, attributeName, attributeType, curNode, isListAttribute);
     }
 
     /**
@@ -237,12 +221,6 @@ public final class JavaAttributeInfo {
     public static JavaAttributeInfo getCurNodeAsAttributeInParent(
             YangNode curNode, YangNode parentNode, boolean isListNode) {
 
-        JavaAttributeInfo newAttr = new JavaAttributeInfo();
-
-        //        if (curNode instanceof HasJavaFileInfo) {
-        //          throw new RuntimeException("translator data model node does not have java info");
-        //    }
-
         String curNodeName = ((HasJavaFileInfo) curNode).getJavaFileInfo().getJavaName();
 
         /*
@@ -251,16 +229,8 @@ public final class JavaAttributeInfo {
          */
         JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(parentNode,
                 curNodeName, isListNode);
-        newAttr.setImportInfo(qualifiedTypeInfo);
-        newAttr.setIsQualifiedAccess(
-                getIsQualifiedAccessOrAddToImportList(parentNode,
-                        qualifiedTypeInfo));
-        newAttr.setAttributeName(getCamelCase(curNodeName));
-        newAttr.setListAttr(isListNode);
-        newAttr.setImportInfo(qualifiedTypeInfo);
-        newAttr.setAttributeType(null);
 
-        return newAttr;
+        return getAttributeInfoForTheData(qualifiedTypeInfo, curNodeName, null, parentNode, isListNode);
     }
 
     /**
@@ -279,8 +249,6 @@ public final class JavaAttributeInfo {
             YangType<?> attributeType, String attributeName,
             boolean isListAttribute) {
 
-        JavaAttributeInfo newAttr = new JavaAttributeInfo();
-
         /*
          * Get the import info corresponding to the attribute for import in
          * generated java files or qualified access
@@ -288,9 +256,26 @@ public final class JavaAttributeInfo {
         JavaQualifiedTypeInfo importInfo = getQualifiedTypeInfoOfLeafAttribute(curNode,
                 attributeType, attributeName, isListAttribute);
         AttributesJavaDataType.addImportInfo(importInfo);
+
+        return getAttributeInfoForTheData(importInfo, attributeName, attributeType, curNode, isListAttribute);
+    }
+
+    /**
+     * Returns java attribute info.
+     *
+     * @param importInfo java qualified type info
+     * @param attributeName attribute name
+     * @param attributeType attribute type
+     * @param curNode current YANG node
+     * @param isListAttribute is list attribute
+     * @return java attribute info.
+     */
+    private static JavaAttributeInfo getAttributeInfoForTheData(JavaQualifiedTypeInfo importInfo, String attributeName,
+            YangType<?> attributeType, YangNode curNode, boolean isListAttribute) {
+
+        JavaAttributeInfo newAttr = new JavaAttributeInfo();
         newAttr.setImportInfo(importInfo);
-        newAttr.setIsQualifiedAccess(getIsQualifiedAccessOrAddToImportList(
-                curNode, importInfo));
+        newAttr.setIsQualifiedAccess(getIsQualifiedAccessOrAddToImportList(curNode, importInfo));
         newAttr.setAttributeName(getCamelCase(attributeName));
         newAttr.setListAttr(isListAttribute);
         newAttr.setImportInfo(importInfo);

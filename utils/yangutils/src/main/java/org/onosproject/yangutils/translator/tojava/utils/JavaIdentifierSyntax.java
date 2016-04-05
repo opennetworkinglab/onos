@@ -47,6 +47,8 @@ public final class JavaIdentifierSyntax {
     private static final int INDEX_ZERO = 0;
     private static final int INDEX_ONE = 1;
     private static final int INDEX_TWO = 2;
+    private static final int VALUE_CHECK = 10;
+    private static final String ZERO = "0";
 
     /**
      * Default constructor.
@@ -103,12 +105,12 @@ public final class JavaIdentifierSyntax {
         String pkg;
         if (!(curNode instanceof HasJavaFileInfo)
                 || curNode.getParent() == null) {
-            throw new RuntimeException("missing parent node to get current node's package");
+            throw new TranslatorException("missing parent node to get current node's package");
         }
 
         YangNode parentNode = getParentNodeInGenCode(curNode);
         if (!(parentNode instanceof HasJavaFileInfo)) {
-            throw new RuntimeException("missing parent java node to get current node's package");
+            throw new TranslatorException("missing parent java node to get current node's package");
         }
         JavaFileInfo parentJavaFileHandle = ((HasJavaFileInfo) parentNode).getJavaFileInfo();
         pkg = parentJavaFileHandle.getPackage() + PERIOD + parentJavaFileHandle.getJavaName();
@@ -122,7 +124,6 @@ public final class JavaIdentifierSyntax {
      * @return version
      */
     private static String getYangVersion(byte ver) {
-
         return VERSION_PREFIX + ver;
     }
 
@@ -164,8 +165,8 @@ public final class JavaIdentifierSyntax {
             for (int i = INDEX_ONE; i < revisionArr.length; i++) {
 
                 Integer val = Integer.parseInt(revisionArr[i]);
-                if (val < 10) {
-                    rev = rev + "0";
+                if (val < VALUE_CHECK) {
+                    rev = rev + ZERO;
                 }
                 rev = rev + val;
             }
@@ -242,7 +243,6 @@ public final class JavaIdentifierSyntax {
      * @return corresponding java identifier
      */
     public static String getCaptialCase(String yangIdentifier) {
-
         return yangIdentifier.substring(0, 1).toUpperCase() + yangIdentifier.substring(1);
     }
 
@@ -254,7 +254,6 @@ public final class JavaIdentifierSyntax {
      * @return corresponding java identifier
      */
     public static String getSmallCase(String yangIdentifier) {
-
         return yangIdentifier.substring(0, 1).toLowerCase() + yangIdentifier.substring(1);
     }
 
@@ -265,7 +264,6 @@ public final class JavaIdentifierSyntax {
      * @return java package
      */
     public static String getJavaPackageFromPackagePath(String packagePath) {
-
         return packagePath.replace(SLASH, PERIOD);
     }
 
@@ -276,7 +274,6 @@ public final class JavaIdentifierSyntax {
      * @return java package
      */
     public static String getPackageDirPathFromJavaJPackage(String packagePath) {
-
         return packagePath.replace(PERIOD, SLASH);
     }
 }

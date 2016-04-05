@@ -16,6 +16,7 @@
 
 package org.onosproject.yangutils.plugin.manager;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,6 +28,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.YangUtilsParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
@@ -36,6 +38,7 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 import static org.apache.maven.plugins.annotations.LifecyclePhase.GENERATE_SOURCES;
 import static org.apache.maven.plugins.annotations.ResolutionScope.COMPILE;
 import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.generateJavaCode;
+import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.translatorErrorHandler;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT_BASE_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
@@ -94,16 +97,7 @@ public class YangUtilManager extends AbstractMojo {
     private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
     private String searchDir;
     private String codeGenDir;
-
-    /**
-     * Set current project.
-     *
-     * @param curProject maven project
-     */
-    public void setCurrentProject(final MavenProject curProject) {
-
-        project = curProject;
-    }
+    private YangNode rootNode;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -125,6 +119,7 @@ public class YangUtilManager extends AbstractMojo {
                 String yangFile = yangFileIterator.next();
                 try {
                     YangNode yangNode = yangUtilsParser.getDataModel(yangFile);
+                    setRootNode(yangNode);
                     generateJavaCode(yangNode, codeGenDir);
                 } catch (ParserException e) {
                     String logInfo = "Error in file: " + e.getFileName();
@@ -143,8 +138,52 @@ public class YangUtilManager extends AbstractMojo {
             addToSource(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG, project, context);
             copyYangFilesToTarget(yangFiles, getDirectory(baseDir, outputDirectory), project);
         } catch (Exception e) {
-            getLog().info(e);
+            try {
+                translatorErrorHandler(getRootNode());
+                clean(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG);
+            } catch (IOException | DataModelException ex) {
+                throw new MojoExecutionException("Error handler failed to delete files for data model node.");
+            }
             throw new MojoExecutionException("Exception occured due to " + e.getLocalizedMessage());
         }
     }
+
+    /**
+     * Set current project.
+     *
+     * @param curProject maven project
+     */
+    public void setCurrentProject(MavenProject curProject) {
+        project = curProject;
+
+    }
+
+    /**
+     * Returns current project.
+     *
+     * @return current project
+     */
+    public MavenProject getCurrentProject() {
+        return project;
+    }
+
+    /**
+     * Returns current root YANG node of data-model tree.
+     *
+     * @return current root YANG node of data-model tree
+     */
+    public YangNode getRootNode() {
+        return rootNode;
+    }
+
+    /**
+     * Sets current root YANG node of data-model tree.
+     *
+     * @param rootNode current root YANG node of data-model tree
+     */
+
+    public void setRootNode(YangNode rootNode) {
+        this.rootNode = rootNode;
+    }
+
 }

@@ -16,26 +16,23 @@
 
 package org.onosproject.yangutils.utils.io.impl;
 
-import org.junit.Test;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
-
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertNotNull;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.slf4j.Logger;
+
+import static org.apache.commons.io.FileUtils.contentEquals;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertThat;
+import static org.onosproject.yangutils.utils.io.impl.CopyrightHeader.getCopyrightHeader;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Unit Tests for the CopyrightHeader contents.
@@ -59,47 +56,34 @@ public final class CopyrightHeaderTest {
      */
     @Test
     public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
-    InstantiationException, IllegalAccessException, InvocationTargetException {
+            InstantiationException, IllegalAccessException, InvocationTargetException {
 
         Class<?>[] classesToConstruct = {CopyrightHeader.class };
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            assertNotNull(constructor.newInstance());
+            assertThat(null, not(constructor.newInstance()));
         }
     }
 
     /**
      * This test case checks the received copyright header contents.
+     *
+     * @throws IOException when fails to do IO operations
      */
     @Test
     public void testGetCopyrightHeader() throws IOException {
 
-        CopyrightHeader.parseCopyrightHeader();
-        String licenseHeader = CopyrightHeader.getCopyrightHeader();
-        ClassLoader classLoader = CopyrightHeaderTest.class.getClassLoader();
+        String baseDir = System.getProperty("basedir");
+        String path = "/src/test/resources/CopyrightHeader.txt";
+
+        String licenseHeader = getCopyrightHeader();
         File test = new File("target/TestCopyrightHeader.txt");
 
         FileWriter out = new FileWriter(test);
         out.write(licenseHeader);
         out.close();
 
-        File temp = new File("target/temp.txt");
-        InputStream stream = classLoader.getResourceAsStream("CopyrightHeader.txt");
-        OutputStream outStream = new FileOutputStream(temp);
-        int i;
-        while ((i = stream.read()) != -1) {
-            outStream.write(i);
-        }
-        outStream.close();
-        stream.close();
-
-        BufferedReader br1 = new BufferedReader(new FileReader(test));
-        BufferedReader br2 = new BufferedReader(new FileReader(temp));
-        while (br1.readLine() != null && br2.readLine() != null) {
-            assertThat(true, is((br1.readLine()).equals(br2.readLine())));
-        }
-        br1.close();
-        br2.close();
+        assertThat(true, is(contentEquals(test, new File(baseDir + path))));
     }
 }

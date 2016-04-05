@@ -28,9 +28,14 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertThat;
+import static org.onosproject.yangutils.utils.io.impl.YangFileScanner.getJavaFiles;
+import static org.onosproject.yangutils.utils.io.impl.YangFileScanner.getYangFiles;
 import static org.slf4j.LoggerFactory.getLogger;
+
+import static java.io.File.separator;
 
 /**
  * Test the file scanner service.
@@ -62,23 +67,25 @@ public final class YangFileScannerTest {
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            assertNotNull(constructor.newInstance());
+            assertThat(null, not(constructor.newInstance()));
         }
     }
 
     /**
      * This test case checks for a .java file inside the specified dir.
+     *
+     * @throws IOException when fails to do IO operations
      */
     @Test
     public void checkJavaFileInsideDirTest() throws IOException {
 
-        String dir = baseDir + File.separator + "scanner2";
+        String dir = baseDir + separator + "scanner2";
         File path = createDirectory(dir);
         createFile(path, "testScanner.java");
-        List<String> dirContents = YangFileScanner.getJavaFiles(path.toString());
+        List<String> dirContents = getJavaFiles(path.toString());
         List<String> expectedContents = new LinkedList<>();
-        expectedContents.add(path.getCanonicalPath() + File.separator + "testScanner.java");
-        assertEquals(dirContents, expectedContents);
+        expectedContents.add(path.getCanonicalPath() + separator + "testScanner.java");
+        assertThat(true, is(dirContents.equals(expectedContents)));
     }
 
     /**
@@ -87,7 +94,7 @@ public final class YangFileScannerTest {
      * @param path where directories should be created
      * @return the directory path that is created
      */
-    public File createDirectory(String path) {
+    private File createDirectory(String path) {
 
         File myDir = new File(path);
         myDir.mkdirs();
@@ -100,67 +107,59 @@ public final class YangFileScannerTest {
      * @param myDir the path where file has to be created inside
      * @param fileName the name of the file to be created
      */
-    public void createFile(File myDir, String fileName) throws IOException {
+    private void createFile(File myDir, String fileName) throws IOException {
 
         File file = null;
-        file = new File(myDir + File.separator + fileName);
+        file = new File(myDir + separator + fileName);
         file.createNewFile();
     }
 
     /**
      * This testcase checks for a java file inside an empty directory.
+     *
+     * @throws IOException when fails to do IO operations
      */
     @Test
     public void emptyDirJavaScannerTest() throws IOException {
 
-        String emptyDir = baseDir + File.separator + "scanner1";
+        String emptyDir = baseDir + separator + "scanner1";
         File path = createDirectory(emptyDir);
-        List<String> emptyDirContents = YangFileScanner.getJavaFiles(path.toString());
+        List<String> emptyDirContents = getJavaFiles(path.toString());
         List<String> expectedContents = new LinkedList<>();
-        assertEquals(emptyDirContents, expectedContents);
+        assertThat(true, is(emptyDirContents.equals(expectedContents)));
     }
 
     /**
      * This testcase checks for a yang file inside an empty directory.
+     *
+     * @throws IOException when fails to do IO operations
      */
     @Test
     public void emptyDirYangScannerTest() throws IOException {
 
-        String emptyYangDir = baseDir + File.separator + "scanner1";
+        String emptyYangDir = baseDir + separator + "scanner1";
         File path = createDirectory(emptyYangDir);
-        List<String> emptyDirContents = YangFileScanner.getYangFiles(path.toString());
+        List<String> emptyDirContents = getYangFiles(path.toString());
         List<String> expectedContents = new LinkedList<>();
-        assertEquals(emptyDirContents, expectedContents);
+        assertThat(true, is(emptyDirContents.equals(expectedContents)));
     }
 
     /**
      * This test case checks with the sub directories in the given path for java files.
+     *
+     * @throws IOException when fails to do IO operations
      */
     @Test
     public void emptySubDirScannerTest() throws IOException {
 
-        String dir = baseDir + File.separator + "scanner3";
+        String dir = baseDir + separator + "scanner3";
         File path = createDirectory(dir);
-        String subDir = path.toString() + File.separator + "subDir1";
+        String subDir = path.toString() + separator + "subDir1";
         createDirectory(subDir);
         createFile(path, "invalidFile.txt");
-        List<String> emptySubDirContents = YangFileScanner.getJavaFiles(path.toString());
+        List<String> emptySubDirContents = getJavaFiles(path.toString());
         List<String> expectedContents = new LinkedList<>();
-        assertEquals(emptySubDirContents, expectedContents);
+        assertThat(true, is(emptySubDirContents.equals(expectedContents)));
     }
 
-    /**
-     * This test case checks with the sub directories in the given path for java files.
-
-    @Test
-    public void exceptionHandleTest() throws IOException {
-
-        String dir = baseDir + File.separator + "scanner4";
-        thrown.expect(IOException.class);
-        List<String> invalidContents = YangFileScanner.getJavaFiles(dir);
-        File path = createDirectory(dir);
-        createFile(path, "except.java");
-        List<String> dirWithFileName = YangFileScanner
-                .getJavaFiles(path + File.separator + "except.java" + File.separator + "scanner5");
-    }*/
 }

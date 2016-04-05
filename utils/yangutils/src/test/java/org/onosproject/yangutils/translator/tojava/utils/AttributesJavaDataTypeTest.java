@@ -24,7 +24,7 @@ import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangType;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.BOOLEAN;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.INT32;
@@ -69,7 +69,7 @@ public class AttributesJavaDataTypeTest {
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            assertNotNull(constructor.newInstance());
+            assertThat(null, not(constructor.newInstance()));
         }
     }
 
@@ -78,7 +78,6 @@ public class AttributesJavaDataTypeTest {
      */
     @Test
     public void testgetJavaClassInfo() {
-
         test = getJavaImportClass(getStubYangType(TYPE1), false);
         assertThat(true, is(test.equals(CLASS_INFO1)));
 
@@ -97,7 +96,6 @@ public class AttributesJavaDataTypeTest {
      */
     @Test
     public void testgetJavaDataType() {
-
         test = getJavaDataType(getStubYangType(TYPE1));
         assertThat(true, is(test.equals(CLASS_INFO1)));
 
@@ -116,7 +114,6 @@ public class AttributesJavaDataTypeTest {
      */
     @Test
     public void testgetJavaPkgInfo() {
-
         test = getJavaImportPackage(getStubYangType(TYPE1), false, CLASS_INFO1);
         assertThat(true, is(test.equals(JAVA_LANG)));
 
@@ -137,7 +134,6 @@ public class AttributesJavaDataTypeTest {
      * @return YANG type
      */
     private YangType<?> getStubYangType(YangDataTypes dataTypes) {
-
         YangType<?> type = new YangType();
         type.setDataType(dataTypes);
         return type;

@@ -22,10 +22,16 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Test;
-import org.onosproject.yangutils.utils.UtilConstants;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertThat;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.appendFileContents;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPackage;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.doesPackageExist;
+import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
 
 /**
  * Tests the file handle utilities.
@@ -57,7 +63,7 @@ public final class FileSystemUtilTest {
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            assertNotNull(constructor.newInstance());
+            assertThat(null, not(constructor.newInstance()));
         }
     }
 
@@ -69,17 +75,17 @@ public final class FileSystemUtilTest {
     @Test
     public void updateFileHandleTest() throws IOException {
 
-        File dir = new File(BASE_PKG + File.separator + "File1");
+        File dir = new File(BASE_PKG + SLASH + "File1");
         dir.mkdirs();
         File createFile = new File(dir + "testFile");
         createFile.createNewFile();
         File createSourceFile = new File(dir + "sourceTestFile");
         createSourceFile.createNewFile();
-        FileSystemUtil.updateFileHandle(createFile, TEST_DATA_1, false);
-        FileSystemUtil.updateFileHandle(createFile, TEST_DATA_2, false);
-        FileSystemUtil.updateFileHandle(createFile, TEST_DATA_3, false);
-        FileSystemUtil.appendFileContents(createFile, createSourceFile);
-        FileSystemUtil.updateFileHandle(createFile, null, true);
+        updateFileHandle(createFile, TEST_DATA_1, false);
+        updateFileHandle(createFile, TEST_DATA_2, false);
+        updateFileHandle(createFile, TEST_DATA_3, false);
+        appendFileContents(createFile, createSourceFile);
+        updateFileHandle(createFile, null, true);
     }
 
     /**
@@ -92,12 +98,12 @@ public final class FileSystemUtilTest {
 
         String dirPath = "exist1.exist2.exist3";
         String strPath = BASE_DIR_PKG + dirPath;
-        File createDir = new File(strPath.replace(UtilConstants.PERIOD, UtilConstants.SLASH));
+        File createDir = new File(strPath.replace(PERIOD, SLASH));
         createDir.mkdirs();
-        File createFile = new File(createDir + File.separator + "package-info.java");
+        File createFile = new File(createDir + SLASH + "package-info.java");
         createFile.createNewFile();
-        assertTrue(FileSystemUtil.doesPackageExist(strPath));
-        FileSystemUtil.createPackage(strPath, PKG_INFO_CONTENT);
+        assertThat(true, is(doesPackageExist(strPath)));
+        createPackage(strPath, PKG_INFO_CONTENT);
         createDir.delete();
     }
 

@@ -22,7 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.junit.Test;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
@@ -62,7 +62,7 @@ public final class ClassDefinitionGeneratorTest {
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            assertNotNull(constructor.newInstance());
+            assertThat(null, not(constructor.newInstance()));
         }
     }
 
@@ -71,7 +71,6 @@ public final class ClassDefinitionGeneratorTest {
      */
     @Test
     public void generateBuilderClassDefinitionTest() {
-
         String builderClassDefinition = generateClassDefinition(BUILDER_CLASS_MASK, CLASS_NAME);
         assertThat(true, is(builderClassDefinition.equals(BUILDER_CLASS_DEF)));
     }
@@ -81,7 +80,6 @@ public final class ClassDefinitionGeneratorTest {
      */
     @Test
     public void generateBuilderInterfaceDefinitionTest() {
-
         String builderInterfaceDefinition = generateClassDefinition(BUILDER_INTERFACE_MASK, CLASS_NAME);
         assertThat(true, is(builderInterfaceDefinition.equals(BULDER_INTERFACE_CLASS_DEF)));
     }
@@ -91,7 +89,6 @@ public final class ClassDefinitionGeneratorTest {
      */
     @Test
     public void generateImplDefinitionTest() {
-
         String implDefinition = generateClassDefinition(IMPL_CLASS_MASK, CLASS_NAME);
         assertThat(true, is(implDefinition.equals(IMPL_CLASS_DEF)));
     }
@@ -101,7 +98,6 @@ public final class ClassDefinitionGeneratorTest {
      */
     @Test
     public void generateinterfaceDefinitionTest() {
-
         String interfaceDefinition = generateClassDefinition(INTERFACE_MASK, CLASS_NAME);
         assertThat(true, is(interfaceDefinition.equals(INTERFACE_CLASS_DEF)));
     }
@@ -111,7 +107,6 @@ public final class ClassDefinitionGeneratorTest {
      */
     @Test
     public void generateTypeDefTest() {
-
         String typeDef = generateClassDefinition(GENERATE_TYPEDEF_CLASS, CLASS_NAME);
         assertThat(true, is(typeDef.equals(TYPE_DEF_CLASS_DEF)));
     }

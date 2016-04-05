@@ -19,6 +19,7 @@ package org.onosproject.yangutils.translator.tojava.javamodel;
 import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.YangOutput;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
 import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
@@ -78,7 +79,7 @@ public class YangJavaOutput extends YangOutput
     public JavaFileInfo getJavaFileInfo() {
 
         if (javaFileInfo == null) {
-            throw new RuntimeException("Missing java info in java datamodel node");
+            throw new TranslatorException("Missing java info in java datamodel node");
         }
         return javaFileInfo;
     }
@@ -90,7 +91,6 @@ public class YangJavaOutput extends YangOutput
      */
     @Override
     public void setJavaFileInfo(JavaFileInfo javaInfo) {
-
         javaFileInfo = javaInfo;
     }
 
@@ -101,7 +101,6 @@ public class YangJavaOutput extends YangOutput
      */
     @Override
     public JavaImportData getJavaImportData() {
-
         return javaImportData;
     }
 
@@ -113,7 +112,6 @@ public class YangJavaOutput extends YangOutput
      */
     @Override
     public void setJavaImportData(JavaImportData javaImportData) {
-
         this.javaImportData = javaImportData;
     }
 
@@ -124,11 +122,6 @@ public class YangJavaOutput extends YangOutput
      */
     @Override
     public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
-
-        if (tempFileHandle == null) {
-            throw new RuntimeException("Missing temporary file handle for" +
-                    "current node " + getJavaFileInfo().getJavaName());
-        }
         return tempFileHandle;
     }
 
@@ -139,7 +132,6 @@ public class YangJavaOutput extends YangOutput
      */
     @Override
     public void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle) {
-
         tempFileHandle = fileHandle;
     }
 
@@ -179,7 +171,6 @@ public class YangJavaOutput extends YangOutput
      */
     @Override
     public void generateCodeExit() throws IOException {
-
         getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
     }
 }

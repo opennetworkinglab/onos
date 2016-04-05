@@ -22,7 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.junit.Test;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
@@ -30,7 +30,6 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getYangRevisionStr;
 import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT_BASE_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 
@@ -79,7 +78,7 @@ public final class JavaIdentifierSyntaxTest {
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            assertNotNull(constructor.newInstance());
+            assertThat(null, not(constructor.newInstance()));
         }
     }
 
@@ -88,7 +87,6 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getRootPackageTest() {
-
         String rootPackage = getRootPackage((byte) 1, CHILD_PACKAGE, DATE1);
         assertThat(rootPackage.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
                 + PERIOD + CHILD_WITH_PERIOD + PERIOD + DATE_WITH_REV1), is(true));
@@ -99,7 +97,6 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getRootPackageWithSpecialCharactersTest() {
-
         String rootPackage = getRootPackage((byte) 1, INVALID_NAME_SPACE1, DATE1);
         assertThat(rootPackage.equals(DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER
                 + PERIOD + VALID_NAME_SPACE1 + PERIOD + DATE_WITH_REV1), is(true));
@@ -113,7 +110,6 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getRootPackageWithRevTest() {
-
         String rootPkgWithRev = getRootPackage((byte) 1, CHILD_PACKAGE, DATE2);
         assertThat(rootPkgWithRev.equals(
                 DEFAULT_BASE_PKG + PERIOD + VERSION_NUMBER + PERIOD + CHILD_WITH_PERIOD + PERIOD + DATE_WITH_REV2),
@@ -125,7 +121,6 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getCapitalCaseTest() {
-
         String capitalCase = getCaptialCase(WITHOUT_CAPITAL);
         assertThat(capitalCase.equals(WITH_CAPITAL), is(true));
     }
@@ -135,7 +130,6 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getCamelCaseTest() {
-
         String camelCase = getCamelCase(WITHOUT_CAMEL_CASE);
         assertThat(camelCase.equals(WITH_CAMEL_CASE), is(true));
     }
@@ -145,7 +139,6 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getSmallCaseTest() {
-
         String smallCase = getSmallCase(WITHOUT_CAPITAL);
         assertThat(smallCase.equals(WITH_SMALL), is(true));
     }
@@ -155,7 +148,6 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getPackageFromPathTest() {
-
         String pkg = getJavaPackageFromPackagePath(PARENT_PACKAGE);
         assertThat(pkg.equals(PARENT_WITH_PERIOD), is(true));
     }
@@ -165,18 +157,7 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getPathFromPackageTest() {
-
         String path = getPackageDirPathFromJavaJPackage(PARENT_WITH_PERIOD);
         assertThat(path.equals(PARENT_PACKAGE), is(true));
-    }
-
-    /**
-     * Unit test for getting the camel case for the received string.
-     */
-    @Test
-    public void getYangRevTest() {
-
-        String rev = getYangRevisionStr(DATE1);
-        assertThat(rev.equals(DATE_WITH_REV1), is(true));
     }
 }

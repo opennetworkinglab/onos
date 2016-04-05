@@ -16,6 +16,7 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import org.onosproject.yangutils.datamodel.YangUses;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
@@ -61,8 +62,9 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
      */
     @Override
     public JavaFileInfo getJavaFileInfo() {
+
         if (javaFileInfo == null) {
-            throw new RuntimeException("Missing java info in java datamodel node");
+            throw new TranslatorException("Missing java info in java datamodel node");
         }
         return javaFileInfo;
     }
@@ -106,6 +108,7 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
      */
     @Override
     public void generateCodeEntry(String codeGenDir) {
+
         getJavaFileInfo().setJavaName(getCaptialCase(getCamelCase(getName())));
         getJavaFileInfo().setPackage(getCurNodePackage(this));
         getJavaFileInfo().setPackageFilePath(

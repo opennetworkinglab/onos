@@ -30,7 +30,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.INTERFACE_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_BUILD;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_BUILD_RETURN;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_CONSTRUCTOR;
-import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_DEFAULT_CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_END_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FIRST_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_GETTERS;
@@ -164,7 +163,7 @@ public final class JavaDocGen {
         } else if (type.equals(JavaDocType.OF_METHOD)) {
             javaDoc = generateForOf(name);
         } else if (type.equals(JavaDocType.DEFAULT_CONSTRUCTOR)) {
-            javaDoc = generateForDefaultConstructors();
+            javaDoc = generateForDefaultConstructors(name);
         } else if (type.equals(JavaDocType.BUILD_METHOD)) {
             javaDoc = generateForBuild(name);
         } else {
@@ -226,7 +225,6 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForOf(String attribute) {
-
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_OF
                 + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
@@ -241,7 +239,6 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForTypeDefSetter(String attribute) {
-
         return (NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_SETTERS_COMMON + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute
@@ -255,7 +252,6 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForTypeDefConstructor(String attribute) {
-
         return (NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR
                 + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
@@ -269,7 +265,6 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForImplClass(String className) {
-
         return NEW_LINE + JAVA_DOC_FIRST_LINE + IMPL_CLASS_JAVA_DOC + className + PERIOD + NEW_LINE + JAVA_DOC_END_LINE;
     }
 
@@ -280,7 +275,6 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForBuilderClass(String className) {
-
         return NEW_LINE + JAVA_DOC_FIRST_LINE + BUILDER_CLASS_JAVA_DOC + className + PERIOD + NEW_LINE
                 + JAVA_DOC_END_LINE;
     }
@@ -292,7 +286,6 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForInterface(String interfaceName) {
-
         return NEW_LINE + JAVA_DOC_FIRST_LINE + INTERFACE_JAVA_DOC + interfaceName + PERIOD + NEW_LINE
                 + JAVA_DOC_END_LINE;
     }
@@ -304,7 +297,6 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForBuilderInterface(String builderforName) {
-
         return JAVA_DOC_FIRST_LINE + BUILDER_INTERFACE_JAVA_DOC + builderforName + PERIOD + NEW_LINE
                 + JAVA_DOC_END_LINE;
     }
@@ -316,19 +308,18 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForPackage(String packageName) {
-
         return JAVA_DOC_FIRST_LINE + PACKAGE_INFO_JAVADOC + packageName + PERIOD + NEW_LINE + JAVA_DOC_END_LINE;
     }
 
     /**
      * Generate javaDocs for default constructor.
      *
+     * @param className class name
      * @return javaDocs
      */
-    private static String generateForDefaultConstructors() {
-
-        return FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_DEFAULT_CONSTRUCTOR
-                + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
+    private static String generateForDefaultConstructors(String className) {
+        return FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR + className
+                + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -338,7 +329,6 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForConstructors(String className) {
-
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR + className + IMPL + PERIOD + NEW_LINE
                 + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM
@@ -353,7 +343,6 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForBuild(String buildName) {
-
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_BUILD
                 + buildName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_RETURN + JAVA_DOC_BUILD_RETURN + buildName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION

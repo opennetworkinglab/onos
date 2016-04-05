@@ -18,6 +18,7 @@ package org.onosproject.yangutils.translator.tojava.javamodel;
 import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.YangList;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
 import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
@@ -77,7 +78,7 @@ public class YangJavaList extends YangList
     public JavaFileInfo getJavaFileInfo() {
 
         if (javaFileInfo == null) {
-            throw new RuntimeException("Missing java info in java datamodel node");
+            throw new TranslatorException("Missing java info in java datamodel node");
         }
         return javaFileInfo;
     }
@@ -89,7 +90,6 @@ public class YangJavaList extends YangList
      */
     @Override
     public void setJavaFileInfo(JavaFileInfo javaInfo) {
-
         javaFileInfo = javaInfo;
     }
 
@@ -100,7 +100,6 @@ public class YangJavaList extends YangList
      */
     @Override
     public JavaImportData getJavaImportData() {
-
         return javaImportData;
     }
 
@@ -112,7 +111,6 @@ public class YangJavaList extends YangList
      */
     @Override
     public void setJavaImportData(JavaImportData javaImportData) {
-
         this.javaImportData = javaImportData;
     }
 
@@ -123,11 +121,6 @@ public class YangJavaList extends YangList
      */
     @Override
     public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
-
-        if (tempFileHandle == null) {
-            throw new RuntimeException("missing temp file hand for current node "
-                    + getJavaFileInfo().getJavaName());
-        }
         return tempFileHandle;
     }
 
@@ -138,7 +131,6 @@ public class YangJavaList extends YangList
      */
     @Override
     public void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle) {
-
         tempFileHandle = fileHandle;
     }
 
@@ -180,7 +172,6 @@ public class YangJavaList extends YangList
      */
     @Override
     public void generateCodeExit() throws IOException {
-
         getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
     }
 }

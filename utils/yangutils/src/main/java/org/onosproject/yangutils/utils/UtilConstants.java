@@ -34,17 +34,18 @@ public final class UtilConstants {
     /**
      * JavaDocs for impl class.
      */
-    public static final String IMPL_CLASS_JAVA_DOC = " * Provides the implementation of ";
+    public static final String IMPL_CLASS_JAVA_DOC = " * Reperesents the implementation of ";
 
     /**
      * JavaDocs for builder class.
      */
-    public static final String BUILDER_CLASS_JAVA_DOC = " * Provides the builder implementation of ";
+    public static final String BUILDER_CLASS_JAVA_DOC = " * Reperesents the builder implementation of ";
 
     /**
      * JavaDocs for interface class.
      */
-    public static final String INTERFACE_JAVA_DOC = " * Abstraction of an entity which provides functionalities of ";
+    public static final String INTERFACE_JAVA_DOC = " * Abstraction of an entity which Reperesents the"
+            + " functionalities of ";
 
     /**
      * JavaDocs for builder interface class.
@@ -102,14 +103,9 @@ public final class UtilConstants {
     public static final String JAVA_DOC_GETTERS = " * Returns the attribute ";
 
     /**
-     * JavaDocs's description for default constructor.
-     */
-    public static final String JAVA_DOC_DEFAULT_CONSTRUCTOR = " * Default Constructor.\n";
-
-    /**
      * JavaDocs's description for constructor.
      */
-    public static final String JAVA_DOC_CONSTRUCTOR = " * Construct the object of ";
+    public static final String JAVA_DOC_CONSTRUCTOR = " * Creates an instance of ";
 
     /**
      * JavaDocs's description for build method.

@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
@@ -76,7 +77,7 @@ public class YangJavaNotification extends YangNotification
     public JavaFileInfo getJavaFileInfo() {
 
         if (javaFileInfo == null) {
-            throw new RuntimeException("Missing java info in java datamodel node");
+            throw new TranslatorException("Missing java info in java datamodel node");
         }
         return javaFileInfo;
     }
@@ -88,7 +89,6 @@ public class YangJavaNotification extends YangNotification
      */
     @Override
     public void setJavaFileInfo(JavaFileInfo javaInfo) {
-
         javaFileInfo = javaInfo;
     }
 
@@ -99,7 +99,6 @@ public class YangJavaNotification extends YangNotification
      */
     @Override
     public JavaImportData getJavaImportData() {
-
         return javaImportData;
     }
 
@@ -111,7 +110,6 @@ public class YangJavaNotification extends YangNotification
      */
     @Override
     public void setJavaImportData(JavaImportData javaImportData) {
-
         this.javaImportData = javaImportData;
     }
 
@@ -122,11 +120,6 @@ public class YangJavaNotification extends YangNotification
      */
     @Override
     public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
-
-        if (tempFileHandle == null) {
-            throw new RuntimeException("Missing temporary file handle for" +
-                    "current node " + getJavaFileInfo().getJavaName());
-        }
         return tempFileHandle;
     }
 
@@ -137,7 +130,6 @@ public class YangJavaNotification extends YangNotification
      */
     @Override
     public void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle) {
-
         tempFileHandle = fileHandle;
     }
 

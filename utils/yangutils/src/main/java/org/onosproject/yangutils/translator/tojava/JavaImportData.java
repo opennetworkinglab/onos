@@ -21,6 +21,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 
 import static org.onosproject.yangutils.utils.UtilConstants.COLLECTION_IMPORTS;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
@@ -64,7 +65,6 @@ public class JavaImportData {
      * @return true if any of the attribute needs to be maintained as a list.
      */
     public boolean getIfListImported() {
-
         return isListToImport;
     }
 
@@ -74,7 +74,6 @@ public class JavaImportData {
      * @param isList status to mention list is bing imported.
      */
     public void setIfListImported(boolean isList) {
-
         isListToImport = isList;
     }
 
@@ -84,7 +83,6 @@ public class JavaImportData {
      * @return the set containing the imported class/interface info
      */
     public SortedSet<JavaQualifiedTypeInfo> getImportSet() {
-
         return importSet;
     }
 
@@ -94,7 +92,6 @@ public class JavaImportData {
      * @param importSet the set containing the imported class/interface info
      */
     private void setImportSet(SortedSet<JavaQualifiedTypeInfo> importSet) {
-
         this.importSet = importSet;
     }
 
@@ -116,7 +113,7 @@ public class JavaImportData {
     public boolean addImportInfo(YangNode curNode, JavaQualifiedTypeInfo newImportInfo) {
 
         if (!(curNode instanceof HasJavaImportData)) {
-            throw new RuntimeException("missing import info in data model node");
+            throw new TranslatorException("missing import info in data model node");
         }
         for (JavaQualifiedTypeInfo curImportInfo : ((HasJavaImportData) curNode).getJavaImportData().getImportSet()) {
             if (curImportInfo.getClassInfo()
@@ -165,7 +162,6 @@ public class JavaImportData {
      * @return import for hash and equals method
      */
     public String getImportForHashAndEquals() {
-
         return IMPORT + JAVA_UTIL_OBJECTS_IMPORT_PKG + PERIOD + JAVA_UTIL_OBJECTS_IMPORT_CLASS;
     }
 
@@ -175,15 +171,13 @@ public class JavaImportData {
      * @return import for to string method
      */
     public String getImportForToString() {
-
         return IMPORT + GOOGLE_MORE_OBJECT_IMPORT_PKG + PERIOD + GOOGLE_MORE_OBJECT_IMPORT_CLASS;
     }
 
     /**
-     * Sets import for to list.
+     * Sets import for the list attribute.
      */
     private static String setImportForList() {
-
         return IMPORT + COLLECTION_IMPORTS + PERIOD + LIST + SEMI_COLAN + NEW_LINE;
     }
 }
