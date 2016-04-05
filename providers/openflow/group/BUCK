@@ -8,6 +8,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:openflowj',
     '//protocols/openflow/api:onos-of-api',
+    '//providers/openflow/flow:onos-of-provider-flow',
 ]
 
 TEST_DEPS = [

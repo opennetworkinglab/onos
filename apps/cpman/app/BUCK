@@ -12,7 +12,8 @@ COMPILE_DEPS = [
     '//apps/cpman/api:onos-app-cpman-api',
     '//utils/rest:onlab-rest',
     '//cli:onos-cli',
- ]
+    '//core/store/serializers:onos-core-serializers',
+]
 
 TEST_DEPS = [
     '//lib:TEST',

@@ -6,6 +6,7 @@ CURRENT_TARGET = ':' + CURRENT_NAME
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//core/store/serializers:onos-core-serializers',
  ]
 
 TEST_DEPS = [
