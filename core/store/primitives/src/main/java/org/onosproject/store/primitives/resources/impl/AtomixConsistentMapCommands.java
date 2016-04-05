@@ -156,6 +156,13 @@ public final class AtomixConsistentMapCommands {
         }
 
         @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("value", value)
+                    .toString();
+        }
+
+        @Override
         public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
             super.writeObject(buffer, serializer);
             serializer.writeObject(value, buffer);
@@ -191,13 +198,6 @@ public final class AtomixConsistentMapCommands {
 
         public ContainsValue(byte[] value) {
             super(value);
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(getClass())
-                    .add("value", value)
-                    .toString();
         }
     }
 
@@ -453,14 +453,14 @@ public final class AtomixConsistentMapCommands {
     }
 
     /**
-     * KeySet query.
+     * ValueSet query.
      */
     @SuppressWarnings("serial")
     public static class Values extends MapQuery<Collection<Versioned<byte[]>>> {
     }
 
     /**
-     * KeySet query.
+     * EntrySet query.
      */
     @SuppressWarnings("serial")
     public static class EntrySet extends MapQuery<Set<Map.Entry<String, Versioned<byte[]>>>> {
