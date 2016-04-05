@@ -30,6 +30,13 @@ public interface MetricsDatabase {
     String metricName();
 
     /**
+     * Returns the resource name of this database.
+     *
+     * @return resource name
+     */
+    String resourceName();
+
+    /**
      * Update metric value by specifying metric type.
      *
      * @param metricType    metric type (e.g., load, usage, etc.)
@@ -136,6 +143,14 @@ public interface MetricsDatabase {
          * @return builder object
          */
         Builder withMetricName(String metricName);
+
+        /**
+         * Sets the resource name.
+         *
+         * @param resourceName resource name
+         * @return builder object
+         */
+        Builder withResourceName(String resourceName);
 
         /**
          * Add a new metric to be monitored.

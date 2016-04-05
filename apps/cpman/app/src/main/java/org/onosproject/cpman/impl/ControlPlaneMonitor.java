@@ -77,6 +77,8 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService communicationService;
 
+    private static final String DEFAULT_RESOURCE = "default";
+
     private static final Set RESOURCE_TYPE_SET =
             ImmutableSet.of(Type.CONTROL_MESSAGE, Type.DISK, Type.NETWORK);
 
@@ -96,6 +98,8 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
 
     private static final String METRIC_TYPE_NULL = "Control metric type cannot be null";
 
+    Set<Map<ControlMetricType, Double>> debugSets = Sets.newHashSet();
+
     private static final Serializer SERIALIZER = Serializer
             .using(new KryoNamespace.Builder()
                     .register(KryoNamespaces.API)
@@ -107,8 +111,8 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
 
     @Activate
     public void activate() {
-        cpuMetrics = genMDbBuilder(Type.CPU, CPU_METRICS);
-        memoryMetrics = genMDbBuilder(Type.MEMORY, MEMORY_METRICS);
+        cpuMetrics = genMDbBuilder(DEFAULT_RESOURCE, Type.CPU, CPU_METRICS);
+        memoryMetrics = genMDbBuilder(DEFAULT_RESOURCE, Type.MEMORY, MEMORY_METRICS);
         controlMessageMap = Maps.newConcurrentMap();
         diskMetricsMap = Maps.newConcurrentMap();
         networkMetricsMap = Maps.newConcurrentMap();
@@ -170,7 +174,7 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
                 if (ctrlMsgBuf.get(deviceId.get()).keySet()
                         .containsAll(CONTROL_MESSAGE_METRICS)) {
                     updateControlMessages(ctrlMsgBuf.get(deviceId.get()), deviceId.get());
-                    ctrlMsgBuf.get(deviceId.get()).clear();
+                    ctrlMsgBuf.get(deviceId.get());
                 }
             }
         } else {
@@ -304,31 +308,34 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
         return ImmutableSet.of();
     }
 
-    private MetricsDatabase genMDbBuilder(Type resourceType,
+    private MetricsDatabase genMDbBuilder(String resourceName,
+                                          Type resourceType,
                                           Set<ControlMetricType> metricTypes) {
         MetricsDatabase.Builder builder = new DefaultMetricsDatabase.Builder();
         builder.withMetricName(resourceType.toString());
+        builder.withResourceName(resourceName);
         metricTypes.forEach(type -> builder.addMetricType(type.toString()));
         return builder.build();
     }
 
     private void updateNetworkMetrics(Map<ControlMetricType, Double> metricMap,
                                       String resName) {
-        networkMetricsMap.putIfAbsent(resName,
-                genMDbBuilder(Type.NETWORK, NETWORK_METRICS));
+        networkMetricsMap.putIfAbsent(resName, genMDbBuilder(resName,
+                Type.NETWORK, NETWORK_METRICS));
         networkMetricsMap.get(resName).updateMetrics(convertMap(metricMap));
     }
 
     private void updateDiskMetrics(Map<ControlMetricType, Double> metricMap,
                                    String resName) {
-        diskMetricsMap.putIfAbsent(resName, genMDbBuilder(Type.DISK, DISK_METRICS));
+        diskMetricsMap.putIfAbsent(resName, genMDbBuilder(resName,
+                Type.DISK, DISK_METRICS));
         diskMetricsMap.get(resName).updateMetrics(convertMap(metricMap));
     }
 
     private void updateControlMessages(Map<ControlMetricType, Double> metricMap,
                                        DeviceId devId) {
-        controlMessageMap.putIfAbsent(devId,
-                genMDbBuilder(Type.CONTROL_MESSAGE, CONTROL_MESSAGE_METRICS));
+        controlMessageMap.putIfAbsent(devId, genMDbBuilder(devId.toString(),
+                Type.CONTROL_MESSAGE, CONTROL_MESSAGE_METRICS));
         controlMessageMap.get(devId).updateMetrics(convertMap(metricMap));
     }
 

@@ -141,7 +141,7 @@ public class OpenFlowControlMessageAggregator implements Runnable {
      * @return count value
      */
     private long getCount(OFType type) {
-        return (long) countMeterMap.get(type).getOneMinuteRate() *
-                EXECUTE_PERIOD_IN_SECOND;
+        return (long) (countMeterMap.get(type).getOneMinuteRate()
+                * EXECUTE_PERIOD_IN_SECOND);
     }
 }
