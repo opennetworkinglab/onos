@@ -17,6 +17,5 @@
     <group name="Net-Prerequisites">
         <step name="Check-mininet" exec="ssh ${ONOS_USER}@${OCN} type mn"/>
         <step name="Check-screen" exec="ssh ${ONOS_USER}@${OCN} type screen"/>
-        <step name="Check-arping" exec="ssh ${ONOS_USER}@${OCN} type arping"/>
     </group>
 </scenario>
