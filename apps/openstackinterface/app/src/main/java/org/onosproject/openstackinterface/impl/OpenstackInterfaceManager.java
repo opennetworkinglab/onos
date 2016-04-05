@@ -54,8 +54,12 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -89,13 +93,16 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
     private static final String PATH_ACCESS = "access";
     private static final String PATH_TOKEN = "token";
     private static final String PATH_ID = "id";
+    private static final String PATH_EXPIRES = "expires";
 
     private static final String HEADER_AUTH_TOKEN = "X-Auth-Token";
+    private static final String TOKEN_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     private final Logger log = getLogger(getClass());
     private String neutronUrl;
     private String keystoneUrl;
     private String tokenId;
+    private String tokenExpires;
     private String userName;
     private String pass;
 
@@ -283,7 +290,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
     }
 
     private String getToken() {
-        if (isTokenInvalid()) {
+        if (!isTokenValid()) {
             String request = "{\"auth\": {\"tenantName\": \"admin\", " +
                     "\"passwordCredentials\":  {\"username\": \"" +
                     userName + "\",\"password\": \"" + pass + "\"}}}";
@@ -294,6 +301,7 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
             try {
                 ObjectNode node = (ObjectNode) mapper.readTree(response);
                 tokenId = node.path(PATH_ACCESS).path(PATH_TOKEN).path(PATH_ID).asText();
+                tokenExpires = node.path(PATH_ACCESS).path(PATH_TOKEN).path(PATH_EXPIRES).asText();
             } catch (IOException e) {
                 log.warn("getToken()", e);
             }
@@ -303,9 +311,27 @@ public class OpenstackInterfaceManager implements OpenstackInterfaceService {
         return tokenId;
     }
 
-    private boolean isTokenInvalid() {
-        //TODO: validation check for the existing token
-        return true;
+    private boolean isTokenValid() {
+
+        if (tokenExpires == null || tokenId == null || tokenExpires.isEmpty()) {
+            return false;
+        }
+
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat(TOKEN_DATE_FORMAT);
+            Date exireDate = dateFormat.parse(tokenExpires);
+
+            Calendar today = Calendar.getInstance();
+            if (exireDate.after(today.getTime())) {
+                return true;
+            }
+        } catch (ParseException e) {
+            log.error("Token parse exception error : {}", e.getMessage());
+            return false;
+        }
+
+        log.debug("token is Invalid");
+        return false;
     }
 
     @Override
