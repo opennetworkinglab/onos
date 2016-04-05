@@ -60,6 +60,14 @@ public interface TunnelProviderService extends ProviderService<TunnelProvider> {
     void tunnelUpdated(TunnelDescription tunnel);
 
     /**
+     * Signals that the tunnel was changed with tunnel status change.
+     *
+     * @param tunnel tunnel information
+     * @param state tunnel working status
+     */
+    void tunnelUpdated(TunnelDescription tunnel, State state);
+
+    /**
      * Signals that the a tunnel was queried.
      *
      * @param tunnelId tunnel identity

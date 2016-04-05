@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.incubator.net.tunnel.Tunnel.State;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.provider.ProviderId;
@@ -36,6 +37,15 @@ public interface TunnelStore extends Store<TunnelEvent, TunnelStoreDelegate> {
      * @return tunnel identity
      */
     TunnelId createOrUpdateTunnel(Tunnel tunnel);
+
+    /**
+     * Creates a tunnel or updates a tunnel with the new state given in input.
+     *
+     * @param tunnel tunnel
+     * @param state tunnel state
+     * @return tunnel identity
+     */
+    TunnelId createOrUpdateTunnel(Tunnel tunnel, State state);
 
     /**
      * Deletes a tunnel by a specific tunnel identifier.

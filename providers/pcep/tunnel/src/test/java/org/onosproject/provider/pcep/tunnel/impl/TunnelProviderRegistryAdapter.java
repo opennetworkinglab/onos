@@ -70,6 +70,10 @@ public class TunnelProviderRegistryAdapter implements TunnelProviderRegistry {
         }
 
         @Override
+        public void tunnelUpdated(TunnelDescription tunnel, State state) {
+        }
+
+        @Override
         public Tunnel tunnelQueryById(TunnelId tunnelId) {
             return null;
         }

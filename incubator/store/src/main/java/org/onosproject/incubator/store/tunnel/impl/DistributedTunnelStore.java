@@ -38,6 +38,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.Tunnel.State;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.TunnelEvent;
@@ -147,6 +148,15 @@ public class DistributedTunnelStore
 
     @Override
     public TunnelId createOrUpdateTunnel(Tunnel tunnel) {
+        return handleCreateOrUpdateTunnel(tunnel, null);
+    }
+
+    @Override
+    public TunnelId createOrUpdateTunnel(Tunnel tunnel, State state) {
+        return handleCreateOrUpdateTunnel(tunnel, state);
+    }
+
+    private TunnelId handleCreateOrUpdateTunnel(Tunnel tunnel, State state) {
         // tunnelIdAsKeyStore.
         if (tunnel.tunnelId() != null && !"".equals(tunnel.tunnelId().toString())) {
             Tunnel old = tunnelIdAsKeyStore.get(tunnel.tunnelId());
@@ -156,24 +166,25 @@ public class DistributedTunnelStore
             }
             DefaultAnnotations oldAnno = (DefaultAnnotations) old.annotations();
             SparseAnnotations newAnno = (SparseAnnotations) tunnel.annotations();
+            State newTunnelState = (state != null) ? state : old.state();
             Tunnel newT = new DefaultTunnel(old.providerId(), old.src(),
                                             old.dst(), old.type(),
-                                            old.state(), old.groupId(),
+                                            newTunnelState, old.groupId(),
                                             old.tunnelId(),
                                             old.tunnelName(),
                                             old.path(),
                                             DefaultAnnotations.merge(oldAnno, newAnno));
             tunnelIdAsKeyStore.put(tunnel.tunnelId(), newT);
-            TunnelEvent event = new TunnelEvent(
-                                                TunnelEvent.Type.TUNNEL_UPDATED,
+            TunnelEvent event = new TunnelEvent(TunnelEvent.Type.TUNNEL_UPDATED,
                                                 tunnel);
             notifyDelegate(event);
             return tunnel.tunnelId();
         } else {
             TunnelId tunnelId = TunnelId.valueOf(idGenerator.getNewId());
+            State tunnelState = (state != null) ? state : tunnel.state();
             Tunnel newT = new DefaultTunnel(tunnel.providerId(), tunnel.src(),
                                             tunnel.dst(), tunnel.type(),
-                                            tunnel.state(), tunnel.groupId(),
+                                            tunnelState, tunnel.groupId(),
                                             tunnelId,
                                             tunnel.tunnelName(),
                                             tunnel.path(),

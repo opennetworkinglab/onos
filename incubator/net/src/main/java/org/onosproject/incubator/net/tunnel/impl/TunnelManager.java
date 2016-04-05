@@ -337,6 +337,20 @@ public class TunnelManager
         }
 
         @Override
+        public void tunnelUpdated(TunnelDescription tunnel, State state) {
+            Tunnel storedTunnel = new DefaultTunnel(provider().id(),
+                                                    tunnel.src(), tunnel.dst(),
+                                                    tunnel.type(),
+                                                    state,
+                                                    tunnel.groupId(),
+                                                    tunnel.id(),
+                                                    tunnel.tunnelName(),
+                                                    tunnel.path(),
+                                                    tunnel.annotations());
+            store.createOrUpdateTunnel(storedTunnel, state);
+        }
+
+        @Override
         public void tunnelRemoved(TunnelDescription tunnel) {
             if (tunnel.id() != null) {
                 store.deleteTunnel(tunnel.id());
