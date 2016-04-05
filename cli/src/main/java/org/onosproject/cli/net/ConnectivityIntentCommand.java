@@ -317,7 +317,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
 
         if (!isNullOrEmpty(setIpDstString)) {
-            treatmentBuilder.setIpSrc(IpAddress.valueOf(setIpDstString));
+            treatmentBuilder.setIpDst(IpAddress.valueOf(setIpDstString));
             emptyTreatment = false;
         }
         if (!isNullOrEmpty(setVlan)) {
