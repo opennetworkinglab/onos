@@ -434,6 +434,10 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
         @Override
         public void handleMessage(Dpid dpid, OFMessage msg) {
+            if (providerService == null) {
+                // We are shutting down, nothing to be done
+                return;
+            }
             DeviceId deviceId = DeviceId.deviceId(Dpid.uri(dpid));
             switch (msg.getType()) {
                 case FLOW_REMOVED:
