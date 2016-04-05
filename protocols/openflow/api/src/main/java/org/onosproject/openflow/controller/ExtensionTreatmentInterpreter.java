@@ -52,7 +52,8 @@ public interface ExtensionTreatmentInterpreter extends HandlerBehaviour {
      *
      * @param action OpenFlow action
      * @return extension treatment
+     * @throws UnsupportedOperationException if driver does not support extension type
      */
-    ExtensionTreatment mapAction(OFAction action);
+    ExtensionTreatment mapAction(OFAction action) throws UnsupportedOperationException;
 
 }

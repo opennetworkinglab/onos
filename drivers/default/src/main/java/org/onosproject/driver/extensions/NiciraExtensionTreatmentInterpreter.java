@@ -161,7 +161,7 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
     }
 
     @Override
-    public ExtensionTreatment mapAction(OFAction action) {
+    public ExtensionTreatment mapAction(OFAction action) throws UnsupportedOperationException {
         if (action.getType().equals(OFActionType.SET_FIELD)) {
             OFActionSetField setFieldAction = (OFActionSetField) action;
             OFOxm<?> oxm = setFieldAction.getField();

@@ -45,7 +45,6 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.ExtensionSelectorType.ExtensionSelectorTypes;
-import org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.openflow.controller.ExtensionSelectorInterpreter;
 import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
@@ -393,7 +392,8 @@ public class FlowEntryBuilder {
                     break;
                 case ENQUEUE:
                     OFActionEnqueue enqueue = (OFActionEnqueue) act;
-                    builder.setQueue(enqueue.getQueueId(), PortNumber.portNumber(enqueue.getPort().getPortNumber()));
+                    builder.setQueue(enqueue.getQueueId(),
+                            PortNumber.portNumber(enqueue.getPort().getPortNumber()));
                     break;
                 case STRIP_VLAN:
                 case POP_VLAN:
@@ -447,10 +447,12 @@ public class FlowEntryBuilder {
             builder.setVlanPcp(vlanpcp.getValue().getValue());
             break;
         case VLAN_VID:
-            if (treatmentInterpreter != null &&
-                    treatmentInterpreter.supported(ExtensionTreatmentTypes.OFDPA_SET_VLAN_ID.type())) {
-                builder.extension(treatmentInterpreter.mapAction(action),
-                        deviceId);
+            if (treatmentInterpreter != null) {
+                try {
+                    builder.extension(treatmentInterpreter.mapAction(action), deviceId);
+                } catch (UnsupportedOperationException e) {
+                    log.warn(e.getMessage());
+                }
             } else {
                 @SuppressWarnings("unchecked")
                 OFOxm<OFVlanVidMatch> vlanvid = (OFOxm<OFVlanVidMatch>) oxm;
@@ -515,9 +517,12 @@ public class FlowEntryBuilder {
             builder.setUdpSrc(TpPort.tpPort(udpsrc.getValue().getPort()));
             break;
         case TUNNEL_IPV4_DST:
-            if (treatmentInterpreter != null &&
-                    treatmentInterpreter.supported(ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST.type())) {
-                builder.extension(treatmentInterpreter.mapAction(action), deviceId);
+            if (treatmentInterpreter != null) {
+                try {
+                    builder.extension(treatmentInterpreter.mapAction(action), deviceId);
+                } catch (UnsupportedOperationException e) {
+                    log.warn(e.getMessage());
+                }
             }
             break;
        case EXP_ODU_SIG_ID:
@@ -895,9 +900,9 @@ public class FlowEntryBuilder {
         return builder.build();
     }
 
-    private DriverHandler getDriver(DeviceId deviceId) {
-        Driver driver = driverService.getDriver(deviceId);
-        DriverHandler handler = new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
+    private DriverHandler getDriver(DeviceId devId) {
+        Driver driver = driverService.getDriver(devId);
+        DriverHandler handler = new DefaultDriverHandler(new DefaultDriverData(driver, devId));
         return handler;
     }
 }
