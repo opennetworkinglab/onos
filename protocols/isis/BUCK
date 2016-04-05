@@ -1,0 +1,63 @@
+SRC = 'src/main/java/org/onosproject/**/'
+TEST = 'src/main/java/org/onosproject/**/'
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:netty-buffer',
+    #'//lib:netty-'
+    #'//lib:org.apache.karaf.shell.console',
+    #'//cli:onos-cli',
+    #'//utils/rest:onlab-rest',
+    #'//lib:javax.ws.rs-api',
+    #'//core/store/serializers:onos-core-serializers',
+    #'//incubator/api:onos-incubator-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+]
+
+java_library(
+   name = 'onos-isis',
+   visibility = ['PUBLIC'],
+   deps = [':onos-isis-api',
+           ':onos-isis-isisio',
+   ],
+)
+
+# onos-isis-api
+
+java_library(
+    name = 'onos-isis-api',
+    srcs = glob(['api/' + SRC + '*.java']),
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)
+
+java_test(
+    name = 'onos-isis-api-tests',
+    srcs = glob(['api/' + TEST + '*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':onos-isis-api'],
+    source_under_test = [':onos-isis-api'],
+)
+
+# onos-isis-isisio
+
+java_library(
+    name = 'onos-isis-isisio',
+    srcs = glob(['isisio/' + SRC + '*.java']),
+    deps = COMPILE_DEPS + [':onos-isis-api'],
+    visibility = ['PUBLIC'],
+)
+
+java_test(
+    name = 'onos-isis-isisio-tests',
+    srcs = glob(['isisio/' + TEST + '*.java']),
+    deps = COMPILE_DEPS +
+           TEST_DEPS +
+           [':onos-isis-isisio'],
+    source_under_test = [':onos-isis-isisio'],
+)
+

@@ -32,6 +32,8 @@ DEPS = [
     '//protocols/pcep/pcepio:onos-pcep-pcepio',
     '//protocols/pcep/api:onos-pcep-controller-api',
     '//protocols/pcep/ctl:onos-pcep-ctl',
+    '//protocols/isis:onos-isis-api',
+    '//protocols/isis:onos-isis-isisio',
 
     '//drivers/utilities:onos-drivers-utilities',
     '//drivers/ciena:onos-drivers-ciena',
