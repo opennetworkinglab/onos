@@ -147,6 +147,13 @@ import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
+import org.onosproject.net.flowobjective.DefaultFilteringObjective;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.DefaultNextObjective;
+import org.onosproject.net.flowobjective.FilteringObjective;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.intent.ConnectivityIntent;
@@ -446,7 +453,15 @@ public final class KryoNamespaces {
                     DefaultPortStatistics.class,
                     IntentDomainId.class,
                     TableStatisticsEntry.class,
-                    DefaultTableStatisticsEntry.class
+                    DefaultTableStatisticsEntry.class,
+                    // Flow Objectives
+                    DefaultForwardingObjective.class,
+                    ForwardingObjective.Flag.class,
+                    DefaultFilteringObjective.class,
+                    FilteringObjective.Type.class,
+                    DefaultNextObjective.class,
+                    NextObjective.Type.class,
+                    Objective.Operation.class
             )
             .register(new DefaultApplicationIdSerializer(), DefaultApplicationId.class)
             .register(new UriSerializer(), URI.class)
