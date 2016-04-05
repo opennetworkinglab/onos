@@ -94,7 +94,7 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
                                messagingService,
                                clusterService,
                                CatalystSerializers.getSerializer(),
-                               new File(System.getProperty("karaf.data") + "/data/" + partition.getId()))));
+                               new File(System.getProperty("karaf.data") + "/partitions/" + partition.getId()))));
 
         CompletableFuture<Void> openFuture = CompletableFuture.allOf(partitions.values()
                                                                                .stream()

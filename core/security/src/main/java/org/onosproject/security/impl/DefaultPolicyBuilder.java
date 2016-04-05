@@ -73,7 +73,6 @@ import org.onosproject.store.cluster.messaging.MessagingService;
 import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionService;
 import org.onosproject.store.service.LogicalClockService;
-import org.onosproject.store.service.MutexExecutionService;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.ui.UiExtensionService;
@@ -248,7 +247,6 @@ public final class DefaultPolicyBuilder {
         permSet.add(new ServicePermission(MessagingService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(PartitionService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(LogicalClockService.class.getName(), ServicePermission.GET));
-        permSet.add(new ServicePermission(MutexExecutionService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(StorageService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(UiExtensionService.class.getName(), ServicePermission.GET));
 
@@ -376,8 +374,6 @@ public final class DefaultPolicyBuilder {
                 PartitionService.class.getName()));
         serviceDirectory.put(CLOCK_WRITE, ImmutableSet.of(
                 LogicalClockService.class.getName()));
-        serviceDirectory.put(MUTEX_WRITE, ImmutableSet.of(
-                MutexExecutionService.class.getName()));
 
         return serviceDirectory;
     }

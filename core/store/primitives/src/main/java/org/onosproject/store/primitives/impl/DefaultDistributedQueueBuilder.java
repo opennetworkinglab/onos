@@ -28,15 +28,13 @@ import static com.google.common.base.Preconditions.checkState;
  *
  * @param <E> queue entry type
  */
-public class NewDefaultDistributedQueueBuilder<E> implements DistributedQueueBuilder<E> {
+public class DefaultDistributedQueueBuilder<E> implements DistributedQueueBuilder<E> {
 
     private final DistributedPrimitiveCreator primitiveCreator;
     private String name;
-    private boolean persistenceEnabled = true;
-    private boolean metering = true;
     private Serializer serializer;
 
-    public NewDefaultDistributedQueueBuilder(DistributedPrimitiveCreator primitiveCreator) {
+    public DefaultDistributedQueueBuilder(DistributedPrimitiveCreator primitiveCreator) {
         this.primitiveCreator = primitiveCreator;
     }
 
@@ -51,18 +49,6 @@ public class NewDefaultDistributedQueueBuilder<E> implements DistributedQueueBui
     public DistributedQueueBuilder<E> withSerializer(Serializer serializer) {
         checkArgument(serializer != null);
         this.serializer = serializer;
-        return this;
-    }
-
-    @Override
-    public DistributedQueueBuilder<E> withMeteringDisabled() {
-        metering = false;
-        return this;
-    }
-
-    @Override
-    public DistributedQueueBuilder<E> withPersistenceDisabled() {
-        persistenceEnabled = false;
         return this;
     }
 

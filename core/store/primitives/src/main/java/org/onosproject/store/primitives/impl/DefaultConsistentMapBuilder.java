@@ -26,11 +26,11 @@ import org.onosproject.store.service.ConsistentMapBuilder;
  * @param <K> type for map key
  * @param <V> type for map value
  */
-public class NewDefaultConsistentMapBuilder<K, V> extends ConsistentMapBuilder<K, V> {
+public class DefaultConsistentMapBuilder<K, V> extends ConsistentMapBuilder<K, V> {
 
     private final DistributedPrimitiveCreator primitiveCreator;
 
-    public NewDefaultConsistentMapBuilder(DistributedPrimitiveCreator primitiveCreator) {
+    public DefaultConsistentMapBuilder(DistributedPrimitiveCreator primitiveCreator) {
         this.primitiveCreator = primitiveCreator;
     }
 

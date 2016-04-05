@@ -32,7 +32,7 @@ import com.google.common.collect.Sets;
 /**
  * Default implementation of transaction context.
  */
-public class NewDefaultTransactionContext implements TransactionContext {
+public class DefaultTransactionContext implements TransactionContext {
 
     private final AtomicBoolean isOpen = new AtomicBoolean(false);
     private final DistributedPrimitiveCreator creator;
@@ -41,7 +41,7 @@ public class NewDefaultTransactionContext implements TransactionContext {
     private final Set<TransactionParticipant> txParticipants = Sets.newConcurrentHashSet();
     private final MeteringAgent monitor;
 
-    public NewDefaultTransactionContext(TransactionId transactionId,
+    public DefaultTransactionContext(TransactionId transactionId,
             DistributedPrimitiveCreator creator,
             TransactionCoordinator transactionCoordinator) {
         this.transactionId = transactionId;

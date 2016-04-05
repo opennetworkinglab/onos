@@ -22,11 +22,11 @@ import org.onosproject.store.service.AtomicCounterBuilder;
 /**
  * Default implementation of AtomicCounterBuilder.
  */
-public class NewDefaultAtomicCounterBuilder extends AtomicCounterBuilder {
+public class DefaultAtomicCounterBuilder extends AtomicCounterBuilder {
 
     private final DistributedPrimitiveCreator primitiveCreator;
 
-    public NewDefaultAtomicCounterBuilder(DistributedPrimitiveCreator primitiveCreator) {
+    public DefaultAtomicCounterBuilder(DistributedPrimitiveCreator primitiveCreator) {
         this.primitiveCreator = primitiveCreator;
     }
 

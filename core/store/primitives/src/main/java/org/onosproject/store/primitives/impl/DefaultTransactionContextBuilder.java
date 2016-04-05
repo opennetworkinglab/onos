@@ -22,13 +22,13 @@ import org.onosproject.store.service.TransactionContextBuilder;
 /**
  * Default Transaction Context Builder.
  */
-public class NewDefaultTransactionContextBuilder extends TransactionContextBuilder {
+public class DefaultTransactionContextBuilder extends TransactionContextBuilder {
 
     private final TransactionId transactionId;
     private final DistributedPrimitiveCreator primitiveCreator;
     private final TransactionCoordinator transactionCoordinator;
 
-    public NewDefaultTransactionContextBuilder(TransactionId transactionId,
+    public DefaultTransactionContextBuilder(TransactionId transactionId,
             DistributedPrimitiveCreator primitiveCreator,
             TransactionCoordinator transactionCoordinator) {
         this.transactionId = transactionId;
@@ -38,7 +38,7 @@ public class NewDefaultTransactionContextBuilder extends TransactionContextBuild
 
     @Override
     public TransactionContext build() {
-        return new NewDefaultTransactionContext(transactionId,
+        return new DefaultTransactionContext(transactionId,
                 primitiveCreator,
                 transactionCoordinator);
     }

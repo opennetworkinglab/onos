@@ -15,7 +15,6 @@
  */
 
 /**
- * Implementation of partitioned and distributed store facility capable of
- * providing consistent update semantics.
+ * Implementation classes for various Distributed primitives.
  */
 package org.onosproject.store.primitives.impl;
