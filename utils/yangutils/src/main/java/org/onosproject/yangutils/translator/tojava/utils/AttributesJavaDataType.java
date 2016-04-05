@@ -59,14 +59,14 @@ import static org.onosproject.yangutils.utils.UtilConstants.SHORT_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
 
 /**
- * Provides java data types corresponding to YANG type.
+ * Represents java data types info corresponding to YANG type.
  */
 public final class AttributesJavaDataType {
 
     private static Set<JavaQualifiedTypeInfo> importInfo = new TreeSet<>();
 
     /**
-     * Default constructor.
+     * Creates an instance of attribute java data type.
      */
     private AttributesJavaDataType() {
     }

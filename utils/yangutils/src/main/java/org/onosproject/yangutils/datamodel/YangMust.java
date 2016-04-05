@@ -44,7 +44,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  */
 
 /**
- * Maintain information defined in YANG must.
+ * Represents information defined in YANG must.
  */
 public class YangMust implements YangDesc, YangReference, Parsable {
 
@@ -64,13 +64,13 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     private String reference;
 
     /**
-     * Create a YANG must restriction.
+     * Creates a YANG must restriction.
      */
     public YangMust() {
     }
 
     /**
-     * Get the constraint.
+     * Returns the constraint.
      *
      * @return the constraint
      */
@@ -79,7 +79,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Set the constraint.
+     * Sets the constraint.
      *
      * @param constratint the constraint to set
      */
@@ -88,7 +88,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -98,7 +98,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -108,7 +108,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -118,7 +118,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -138,7 +138,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -148,7 +148,7 @@ public class YangMust implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

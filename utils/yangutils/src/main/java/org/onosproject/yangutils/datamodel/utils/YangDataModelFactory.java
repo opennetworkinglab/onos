@@ -46,12 +46,12 @@ import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaOutput;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 
 /**
- * Factory to create data model objects based on the target file type.
+ *Represents factory to create data model objects based on the target file type.
  */
 public final class YangDataModelFactory {
 
     /**
-     * Utility class, hence private to prevent creating objects.
+     * Creates a YANG data model factory object.
      */
     private YangDataModelFactory() {
     }
@@ -75,7 +75,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -93,7 +93,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -111,7 +111,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -129,7 +129,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -147,7 +147,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -165,7 +165,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -183,7 +183,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -201,7 +201,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -219,7 +219,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -237,7 +237,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -255,7 +255,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -273,7 +273,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated
@@ -291,7 +291,7 @@ public final class YangDataModelFactory {
     }
 
     /**
-     * Based on the target language generate the inherited data model node.
+     * Returns based on the target language generate the inherited data model node.
      *
      * @param targetLanguage target language in which YANG mapping needs to be
      *            generated

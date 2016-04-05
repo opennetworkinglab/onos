@@ -16,18 +16,19 @@
 package org.onosproject.yangutils.translator.tojava;
 
 /**
- * Has temporary file handle.
+ * Represents Has temporary file handle.
  */
 public interface HasTempJavaCodeFragmentFiles {
+
     /**
-     * Get the temporary file handle.
+     * Returns the temporary file handle.
      *
      * @return temporary file handle
      */
     TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles();
 
     /**
-     * Set temporary file handle.
+     * Sets temporary file handle.
      *
      * @param fileHandle temporary file handle
      */

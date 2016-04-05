@@ -30,20 +30,20 @@ import org.onosproject.yangutils.utils.YangConstructType;
  */
 
 /**
- * Name space to be used for the XML data tree.
+ * Represents name space to be used for the XML data tree.
  */
 public class YangNameSpace implements Parsable {
 
     private String uri;
 
     /**
-     * Default constructor.
+     * Creats a YANG name space object.
      */
     public YangNameSpace() {
     }
 
     /**
-     * Get the name space URI.
+     * Returns the name space URI.
      *
      * @return the URI
      */
@@ -52,7 +52,7 @@ public class YangNameSpace implements Parsable {
     }
 
     /**
-     * Set the name space URI.
+     * Sets the name space URI.
      *
      * @param uri the URI to set
      */
@@ -71,24 +71,22 @@ public class YangNameSpace implements Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnEntry() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
-
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
     @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
-
     }
 }

@@ -45,7 +45,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  */
 
 /**
- * Maintains the data type information.
+ * Represents the data type information.
  *
  * @param <T> YANG data type info
  */
@@ -94,7 +94,7 @@ public class YangType<T> implements Parsable, Resolvable {
     private ResolvableStatus resolvableStatus;
 
     /**
-     * Default constructor.
+     * Creates a YANG type object.
      */
     public YangType() {
 
@@ -112,7 +112,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Set prefix associated with data type name.
+     * Sets prefix associated with data type name.
      *
      * @param prefix prefix associated with data type name
      */
@@ -121,7 +121,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Get the name of data type.
+     * Returns the name of data type.
      *
      * @return the name of data type
      */
@@ -130,7 +130,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Set the name of the data type.
+     * Sets the name of the data type.
      *
      * @param typeName the name to set
      */
@@ -139,7 +139,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Get the Java package where the type is defined.
+     * Returns the Java package where the type is defined.
      *
      * @return Java package where the type is defined
      */
@@ -148,7 +148,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Set Java package where the type is defined.
+     * Sets Java package where the type is defined.
      *
      * @param javaPackage Java package where the type is defined
      */
@@ -157,7 +157,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Get the type of data.
+     * Returns the type of data.
      *
      * @return the data type
      */
@@ -166,7 +166,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Set the type of data.
+     * Sets the type of data.
      *
      * @param dataType data type
      */
@@ -175,7 +175,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Get the data type meta data.
+     * Returns the data type meta data.
      *
      * @return the data type meta data
      */
@@ -184,7 +184,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Set the data type meta data.
+     * Sets the data type meta data.
      *
      * @param dataTypeInfo the meta data to set
      */
@@ -202,7 +202,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Set node identifier.
+     * Sets node identifier.
      *
      * @param nodeIdentifier the node identifier
      */
@@ -220,7 +220,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Set effective built-in type.
+     * Sets effective built-in type.
      *
      * @param effectiveBuiltInType effective built-in type
      */
@@ -238,7 +238,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Set effective pattern restriction.
+     * Sets effective pattern restriction.
      *
      * @param effectivePatternRestriction effective pattern restriction
      */
@@ -257,7 +257,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -268,7 +268,7 @@ public class YangType<T> implements Parsable, Resolvable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.parser.impl.parserutils;
 
 /**
- * Maintains listener error location.
+ * Represents listener error location.
  */
 public enum ListenerErrorLocation {
     /**

@@ -62,12 +62,12 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataInto
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.partString;
 
 /**
- * Generates java file.
+ * Representation of java file generator.
  */
 public final class JavaFileGenerator {
 
     /**
-     * Default constructor.
+     * Creates an instance of java file generator.
      */
     private JavaFileGenerator() {
     }

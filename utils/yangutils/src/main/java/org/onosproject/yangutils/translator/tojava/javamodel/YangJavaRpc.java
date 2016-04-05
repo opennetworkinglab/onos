@@ -21,7 +21,7 @@ import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 
 /**
- * Rpc information extended to support java code generation.
+ * Represents rpc information extended to support java code generation.
  */
 public class YangJavaRpc extends YangRpc implements JavaCodeGenerator {
 
@@ -32,7 +32,7 @@ public class YangJavaRpc extends YangRpc implements JavaCodeGenerator {
     }
 
     /**
-     * Prepare the information for java code generation corresponding to YANG
+     * Prepares the information for java code generation corresponding to YANG
      * rpc info.
      *
      * @param codeGenDir code generation directory
@@ -44,7 +44,7 @@ public class YangJavaRpc extends YangRpc implements JavaCodeGenerator {
     }
 
     /**
-     * Create a java file using the YANG rpc info.
+     * Creates a java file using the YANG rpc info.
      *
      * @throws IOException IO operation fail
      */

@@ -20,17 +20,18 @@ package org.onosproject.yangutils.datamodel;
  * parsing and translator processing of reference.
  */
 public interface YangReference {
+
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
-     * @return the reference.
+     * @return the reference
      */
     String getReference();
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
-     * @param reference the reference to set.
+     * @param reference the reference to set
      */
     void setReference(String reference);
 

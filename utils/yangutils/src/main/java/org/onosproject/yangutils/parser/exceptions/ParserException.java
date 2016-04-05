@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.parser.exceptions;
 
 /**
- * Base class for exceptions in parser operations.
+ * Represents base class for exceptions in parser operations.
  */
 public class ParserException extends RuntimeException {
 
@@ -27,7 +27,7 @@ public class ParserException extends RuntimeException {
     private String fileName;
 
     /**
-     * Create a new parser exception.
+     * Creates a new parser exception.
      */
     public ParserException() {
         super();

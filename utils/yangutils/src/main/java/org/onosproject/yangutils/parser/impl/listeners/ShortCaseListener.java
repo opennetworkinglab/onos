@@ -57,7 +57,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.SHORT_CASE_DATA;
  */
 
 /**
- * Implements listener based call back function corresponding to the "short
+ * Represents listener based call back function corresponding to the "short
  * case" rule defined in ANTLR grammar file for corresponding ABNF rule in RFC
  * 6020.
  */

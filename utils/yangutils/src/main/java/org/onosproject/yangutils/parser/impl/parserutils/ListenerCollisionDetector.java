@@ -20,13 +20,14 @@ import org.onosproject.yangutils.datamodel.CollisionDetector;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.utils.YangConstructType;
+
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
-import org.onosproject.yangutils.utils.YangConstructType;
 
 /**
- * Check the YANG construct collision in a YANG file.
+ * Represents the detector of YANG construct collision in a YANG file.
  */
 public final class ListenerCollisionDetector {
 
@@ -52,7 +53,7 @@ public final class ListenerCollisionDetector {
      */
     public static void detectCollidingChildUtil(TreeWalkListener listener, int line, int charPosition,
             String identifierName, YangConstructType constructType)
-                    throws ParserException {
+            throws ParserException {
 
         if (listener.getParsedDataStack().peek() instanceof CollisionDetector) {
             try {

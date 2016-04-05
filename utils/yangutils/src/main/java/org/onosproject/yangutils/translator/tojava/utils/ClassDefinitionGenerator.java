@@ -34,12 +34,12 @@ import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 
 /**
- * Generates class definition for generated files.
+ * Represents generator for class definition of generated files.
  */
 public final class ClassDefinitionGenerator {
 
     /**
-     * Default constructor.
+     * Creates an instance of class definition generator.
      */
     private ClassDefinitionGenerator() {
     }

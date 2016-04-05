@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.datamodel;
 
 /**
- * YANG node identifier which is a combination of prefix and name.
+ * Represents YANG node identifier which is a combination of prefix and name.
  */
 public class YangNodeIdentifier {
 
@@ -43,7 +43,7 @@ public class YangNodeIdentifier {
     }
 
     /**
-     * Set name of the node identifier.
+     * Sets name of the node identifier.
      *
      * @param name name of the node identifier
      */
@@ -61,7 +61,7 @@ public class YangNodeIdentifier {
     }
 
     /**
-     * Set prefix of the node identifier.
+     * Sets prefix of the node identifier.
      *
      * @param prefix prefix of the node identifier
      */

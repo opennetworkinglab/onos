@@ -60,7 +60,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.INPUT_DATA;
  */
 
 /**
- * Implements listener based call back function corresponding to the "input"
+ * Represents listener based call back function corresponding to the "input"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class InputListener {

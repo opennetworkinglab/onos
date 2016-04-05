@@ -49,12 +49,12 @@ import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
 
 /**
- * Provides javadoc for the generated classes.
+ * Represents javadoc for the generated classes.
  */
 public final class JavaDocGen {
 
     /**
-     * Default Constructor.
+     * Creates an instance of java doc gen.
      */
     private JavaDocGen() {
     }

@@ -22,9 +22,10 @@ package org.onosproject.yangutils.parser.antlrgencode;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
- * ANTLR interfaces to be implemented by listener to traverse the parse tree.
+ * Represents ANTLR interfaces to be implemented by listener to traverse the parse tree.
  */
 public interface GeneratedYangListener extends ParseTreeListener {
+
     /**
      * Enter a parse tree produced by GeneratedYangParser for grammar rule
      * yangfile.

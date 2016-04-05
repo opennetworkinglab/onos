@@ -89,7 +89,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.CASE_DATA;
  *                +--------------+---------+-------------+------------------+
  */
 /**
- * Data model node to maintain information defined in YANG case.
+ * Represents data model node to maintain information defined in YANG case.
  */
 public class YangCase extends YangNode
         implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
@@ -127,14 +127,14 @@ public class YangCase extends YangNode
     private YangStatusType status;
 
     /**
-     * Create a choice node.
+     * Creates a choice node.
      */
     public YangCase() {
         super(YangNodeType.CASE_NODE);
     }
 
     /**
-     * Get the case name.
+     * Returns the case name.
      *
      * @return case name
      */
@@ -144,7 +144,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Set the case name.
+     * Sets the case name.
      *
      * @param name case name
      */
@@ -154,7 +154,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -164,7 +164,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -174,7 +174,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Get the list of leaves.
+     * Returns the list of leaves.
      *
      * @return the list of leaves
      */
@@ -184,7 +184,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Set the list of leaves.
+     * Sets the list of leaves.
      *
      * @param leafsList the list of leaf to set
      */
@@ -193,7 +193,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Add a leaf.
+     * Adds a leaf.
      *
      * @param leaf the leaf to be added
      */
@@ -207,7 +207,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Get the list of leaf-list.
+     * Returns the list of leaf-list.
      *
      * @return the list of leaf-list
      */
@@ -217,7 +217,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Set the list of leaf-list.
+     * Sets the list of leaf-list.
      *
      * @param listOfLeafList the list of leaf-list to set
      */
@@ -226,7 +226,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Add a leaf-list.
+     * Adds a leaf-list.
      *
      * @param leafList the leaf-list to be added
      */
@@ -240,7 +240,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -250,7 +250,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -260,7 +260,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Get the status.
+     * Returns the status.
      *
      * @return the status
      */
@@ -270,7 +270,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */
@@ -290,7 +290,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -300,7 +300,7 @@ public class YangCase extends YangNode
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

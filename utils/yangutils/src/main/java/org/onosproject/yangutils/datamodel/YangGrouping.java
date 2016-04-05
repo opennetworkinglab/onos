@@ -17,6 +17,7 @@ package org.onosproject.yangutils.datamodel;
 
 import java.util.LinkedList;
 import java.util.List;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
@@ -74,7 +75,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  */
 
 /**
- * Data model node to maintain information defined in YANG grouping.
+ * Represents data model node to maintain information defined in YANG grouping.
  */
 public class YangGrouping extends YangNode
         implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
@@ -119,7 +120,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Get YANG grouping name.
+     * Returns YANG grouping name.
      *
      * @return YANG grouping name
      */
@@ -129,7 +130,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Set YANG grouping name.
+     * Sets YANG grouping name.
      *
      * @param name YANG grouping name
      */
@@ -139,7 +140,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -149,7 +150,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -159,7 +160,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Get the list of leaves.
+     * Returns the list of leaves.
      *
      * @return the list of leaves
      */
@@ -169,7 +170,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Set the list of leaves.
+     * Sets the list of leaves.
      *
      * @param leafsList the list of leaf to set
      */
@@ -178,7 +179,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Add a leaf.
+     * Adds a leaf.
      *
      * @param leaf the leaf to be added
      */
@@ -188,7 +189,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Get the list of leaf-list.
+     * Returns the list of leaf-list.
      *
      * @return the list of leaf-list
      */
@@ -198,7 +199,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Set the list of leaf-list.
+     * Sets the list of leaf-list.
      *
      * @param listOfLeafList the list of leaf-list to set
      */
@@ -207,7 +208,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Add a leaf-list.
+     * Adds a leaf-list.
      *
      * @param leafList the leaf-list to be added
      */
@@ -217,7 +218,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -227,7 +228,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -237,7 +238,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Get the status.
+     * Returns the status.
      *
      * @return the status
      */
@@ -247,7 +248,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */
@@ -267,7 +268,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -277,7 +278,7 @@ public class YangGrouping extends YangNode
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -299,7 +300,6 @@ public class YangGrouping extends YangNode
      */
     @Override
     public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
-
         // Asks helper to detect colliding child.
         detectCollidingChildUtil(identifierName, dataType, this);
     }

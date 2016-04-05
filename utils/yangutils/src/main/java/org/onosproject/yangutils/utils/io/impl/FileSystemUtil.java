@@ -36,18 +36,18 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirectories;
 
 /**
- * Utility to handle file system operations.
+ * Represents utility to handle file system operations.
  */
 public final class FileSystemUtil {
 
     /**
-     * Hiding constructor of a utility class.
+     * Creates an instance of file system util.
      */
     private FileSystemUtil() {
     }
 
     /**
-     * Check if the package directory structure created.
+     * Checks if the package directory structure created.
      *
      * @param pkg Package to check if it is created
      * @return existence status of package
@@ -63,7 +63,7 @@ public final class FileSystemUtil {
     }
 
     /**
-     * Create a package structure with package info java file if not present.
+     * Creates a package structure with package info java file if not present.
      *
      * @param pkg java package string
      * @param pkgInfo description of package
@@ -82,7 +82,7 @@ public final class FileSystemUtil {
     }
 
     /**
-     * Read the contents from source file and append its contents to append
+     * Reads the contents from source file and append its contents to append
      * file.
      *
      * @param toAppend destination file in which the contents of source file is
@@ -133,7 +133,7 @@ public final class FileSystemUtil {
     }
 
     /**
-     * Update the generated file handle.
+     * Updates the generated file handle.
      *
      * @param inputFile input file
      * @param contentTobeAdded content to be appended to the file

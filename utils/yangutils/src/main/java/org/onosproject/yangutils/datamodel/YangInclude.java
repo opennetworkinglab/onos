@@ -34,8 +34,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *                +---------------+---------+-------------+------------------+
  */
 /**
- * Maintains the information about the included sub-modules.
- *
+ * Represents the information about the included sub-modules.
  */
 public class YangInclude implements Parsable {
 
@@ -56,13 +55,13 @@ public class YangInclude implements Parsable {
     private HasResolutionInfo resolutionInfoNode;
 
     /**
-     * Default constructor.
+     * Creates a YANG include.
      */
     public YangInclude() {
     }
 
     /**
-     * Get the name of included sub-module.
+     * Returns the name of included sub-module.
      *
      * @return the sub-module name
      */
@@ -71,7 +70,7 @@ public class YangInclude implements Parsable {
     }
 
     /**
-     * Set the name of included sub-modules.
+     * Sets the name of included sub-modules.
      *
      * @param subModuleName the sub-module name to set
      */
@@ -80,7 +79,7 @@ public class YangInclude implements Parsable {
     }
 
     /**
-     * Get the revision.
+     * Returns the revision.
      *
      * @return the revision
      */
@@ -89,7 +88,7 @@ public class YangInclude implements Parsable {
     }
 
     /**
-     * Set the revision.
+     * Sets the revision.
      *
      * @param revision the revision to set
      */
@@ -108,7 +107,7 @@ public class YangInclude implements Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -119,7 +118,7 @@ public class YangInclude implements Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -139,7 +138,7 @@ public class YangInclude implements Parsable {
     }
 
     /**
-     * Set the dresolution information node.
+     * Sets the dresolution information node.
      *
      * @param resolutionInfoNode the resolution information node
      */

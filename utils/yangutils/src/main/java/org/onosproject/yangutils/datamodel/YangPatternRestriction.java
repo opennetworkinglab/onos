@@ -47,7 +47,7 @@ import java.util.List;
  *   +---------------+---------+-------------+
  */
 /**
- * Pattern restriction information. The regular expression restriction on string
+ * Represents pattern restriction information. The regular expression restriction on string
  * data type.
  */
 public class YangPatternRestriction {
@@ -63,14 +63,14 @@ public class YangPatternRestriction {
     private List<String> basePattern;
 
     /**
-     * Default constructor.
+     * Creates a YANG pattern restriction object.
      */
     public YangPatternRestriction() {
         setPatternList(new LinkedList<String>());
     }
 
     /**
-     * Get the pattern restriction defined for the current type.
+     * Returns the pattern restriction defined for the current type.
      *
      * @return pattern restriction defined for the current type.
      */
@@ -79,7 +79,7 @@ public class YangPatternRestriction {
     }
 
     /**
-     * Set the pattern restriction defined for the current type.
+     * Sets the pattern restriction defined for the current type.
      *
      * @param pattern pattern restriction defined for the current type..
      */
@@ -88,7 +88,7 @@ public class YangPatternRestriction {
     }
 
     /**
-     * Add a new pattern to the list of pattern restriction.
+     * Adds a new pattern to the list of pattern restriction.
      *
      * @param newPattern pattern restriction.
      */
@@ -97,7 +97,7 @@ public class YangPatternRestriction {
     }
 
     /**
-     * Get the pattern restriction defined in base type.
+     * Returns the pattern restriction defined in base type.
      *
      * @return pattern restriction defined in base type.
      */
@@ -106,7 +106,7 @@ public class YangPatternRestriction {
     }
 
     /**
-     * Set the pattern restriction defined in base type.
+     * Sets the pattern restriction defined in base type.
      *
      * @param basePattern pattern restriction defined in base type.
      */

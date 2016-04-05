@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.parser.impl.parserutils;
 
 /**
- * Maintains listener error type.
+ * Represents listener error type.
  */
 public enum ListenerErrorType {
     /**

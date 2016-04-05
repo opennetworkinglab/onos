@@ -58,7 +58,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.SUB_MODULE_DATA;
  */
 
 /**
- * Implements listener based call back function corresponding to the "submodule"
+ * Represents listener based call back function corresponding to the "submodule"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class SubModuleListener {

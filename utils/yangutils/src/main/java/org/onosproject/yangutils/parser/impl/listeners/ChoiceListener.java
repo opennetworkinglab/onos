@@ -86,7 +86,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.WHEN_DATA;
  */
 
 /**
- * Implements listener based call back function corresponding to the "choice"
+ * Represents listener based call back function corresponding to the "choice"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class ChoiceListener {

@@ -48,7 +48,7 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.PAC
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Provides common utility functionalities for code generation.
+ * Represents common utility functionalities for code generation.
  */
 public final class YangIoUtils {
 
@@ -56,7 +56,7 @@ public final class YangIoUtils {
     private static final String TARGET_RESOURCE_PATH = SLASH + TEMP + SLASH + YANG_RESOURCES + SLASH;
 
     /**
-     * Default constructor.
+     * Creates an instance of YANG io utils.
      */
     private YangIoUtils() {
     }
@@ -68,7 +68,6 @@ public final class YangIoUtils {
      * @return directory structure
      */
     public static File createDirectories(String path) {
-
         File generatedDir = new File(path);
         generatedDir.mkdirs();
         return generatedDir;
@@ -114,7 +113,6 @@ public final class YangIoUtils {
      * @throws IOException when failed to delete directory
      */
     public static void clean(String dir) throws IOException {
-
         File generatedDirectory = new File(dir);
         if (generatedDirectory.exists()) {
             try {
@@ -133,7 +131,6 @@ public final class YangIoUtils {
      * @param context current build context
      */
     public static void addToSource(String source, MavenProject project, BuildContext context) {
-
         project.addCompileSourceRoot(source);
         context.refresh(project.getBasedir());
         log.info("Source directory added to compilation root: " + source);
@@ -147,7 +144,6 @@ public final class YangIoUtils {
      * @return new string
      */
     public static String trimAtLast(String valueString, String removealStirng) {
-
         StringBuilder stringBuilder = new StringBuilder(valueString);
         int index = valueString.lastIndexOf(removealStirng);
         stringBuilder.deleteCharAt(index);
@@ -161,7 +157,6 @@ public final class YangIoUtils {
      * @return parted string
      */
     public static String partString(String partString) {
-
         String[] strArray = partString.split(COMMA);
         String newString = EMPTY_STRING;
         for (int i = 0; i < strArray.length; i++) {
@@ -176,7 +171,7 @@ public final class YangIoUtils {
     }
 
     /**
-     * Get the directory path of the package in canonical form.
+     * Returns the directory path of the package in canonical form.
      *
      * @param baseCodeGenPath base path where the generated files needs to be
      *            put
@@ -197,7 +192,7 @@ public final class YangIoUtils {
     }
 
     /**
-     * Get the absolute path of the package in canonical form.
+     * Returns the absolute path of the package in canonical form.
      *
      * @param baseCodeGenPath base path where the generated files needs to be
      *            put
@@ -205,12 +200,11 @@ public final class YangIoUtils {
      * @return absolute path of the package in canonical form
      */
     public static String getAbsolutePackagePath(String baseCodeGenPath, String pathOfJavaPkg) {
-
         return baseCodeGenPath + pathOfJavaPkg;
     }
 
     /**
-     * Copy YANG files to the current project's output directory.
+     * Copies YANG files to the current project's output directory.
      *
      * @param yangFiles list of YANG files
      * @param outputDir project's output directory
@@ -243,7 +237,6 @@ public final class YangIoUtils {
      * @return list of files
      */
     private static List<File> getListOfFile(List<String> strings) {
-
         List<File> files = new ArrayList<>();
         for (String file : strings) {
             files.add(new File(file));
@@ -252,14 +245,13 @@ public final class YangIoUtils {
     }
 
     /**
-     * Merge the temp java files to main java files.
+     * Merges the temp java files to main java files.
      *
      * @param appendFile temp file
      * @param srcFile main file
      * @throws IOException when fails to append contents
      */
     public static void mergeJavaFiles(File appendFile, File srcFile) throws IOException {
-
         try {
             appendFileContents(appendFile, srcFile);
         } catch (IOException e) {
@@ -268,14 +260,13 @@ public final class YangIoUtils {
     }
 
     /**
-     * Insert data in the generated file.
+     * Inserts data in the generated file.
      *
      * @param file file in which need to be inserted
      * @param data data which need to be inserted
      * @throws IOException when fails to insert into file
      */
     public static void insertDataIntoJavaFile(File file, String data) throws IOException {
-
         try {
             updateFileHandle(file, data, false);
         } catch (IOException e) {

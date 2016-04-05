@@ -27,7 +27,7 @@ import java.io.OutputStream;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 
 /**
- * Provides the license header for the generated files.
+ * Represents the license header for the generated files.
  */
 public final class CopyrightHeader {
 
@@ -39,7 +39,7 @@ public final class CopyrightHeader {
     private static String copyrightHeader;
 
     /**
-     * Default constructor.
+     * Creates an instance of copyright header.
      */
     private CopyrightHeader() {
     }
@@ -69,11 +69,11 @@ public final class CopyrightHeader {
     }
 
     /**
-     * parse Copyright to the temporary file.
+     * parses Copyright to the temporary file.
      *
      * @throws IOException when fails to get the copyright header
      */
-    public static void parseCopyrightHeader() throws IOException {
+    private static void parseCopyrightHeader() throws IOException {
 
         File temp = new File(TEMP_FILE);
 

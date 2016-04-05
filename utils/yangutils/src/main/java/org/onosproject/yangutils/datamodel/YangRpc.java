@@ -54,10 +54,10 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  */
 
 /**
- * Data model node to maintain information defined in YANG rpc.
+ * Represents data model node to maintain information defined in YANG rpc.
  */
 public class YangRpc extends YangNode implements YangCommonInfo, Parsable,
-        CollisionDetector  {
+        CollisionDetector {
 
     /**
      * Name of the rpc.

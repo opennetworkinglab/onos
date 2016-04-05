@@ -16,7 +16,7 @@
 package org.onosproject.yangutils.datamodel;
 
 /**
- * Node type in data model tree corresponding to YANG schema.
+ * Represents node type in data model tree corresponding to YANG schema.
  */
 public enum YangNodeType {
     /**

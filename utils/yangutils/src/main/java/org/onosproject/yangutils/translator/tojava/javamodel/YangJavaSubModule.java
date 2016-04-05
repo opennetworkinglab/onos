@@ -36,7 +36,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
- * Sub module information extended to support java code generation.
+ * Represents Sub module information extended to support java code generation.
  */
 public class YangJavaSubModule extends YangSubModule
         implements JavaCodeGenerator, HasJavaFileInfo,
@@ -60,7 +60,7 @@ public class YangJavaSubModule extends YangSubModule
     private TempJavaCodeFragmentFiles tempFileHandle;
 
     /**
-     * Default constructor.
+     * Creates YANG java sub module object.
      */
     public YangJavaSubModule() {
         super();
@@ -70,7 +70,7 @@ public class YangJavaSubModule extends YangSubModule
     }
 
     /**
-     * Get the generated java file information.
+     * Returns the generated java file information.
      *
      * @return generated java file information
      */
@@ -84,7 +84,7 @@ public class YangJavaSubModule extends YangSubModule
     }
 
     /**
-     * Set the java file info object.
+     * Sets the java file info object.
      *
      * @param javaInfo java file info object
      */
@@ -94,7 +94,7 @@ public class YangJavaSubModule extends YangSubModule
     }
 
     /**
-     * Get the data of java imports to be included in generated file.
+     * Returns the data of java imports to be included in generated file.
      *
      * @return data of java imports to be included in generated file
      */
@@ -104,7 +104,7 @@ public class YangJavaSubModule extends YangSubModule
     }
 
     /**
-     * Set the data of java imports to be included in generated file.
+     * Sets the data of java imports to be included in generated file.
      *
      * @param javaImportData data of java imports to be included in generated
      *            file
@@ -115,7 +115,7 @@ public class YangJavaSubModule extends YangSubModule
     }
 
     /**
-     * Get the temporary file handle.
+     * Returns the temporary file handle.
      *
      * @return temporary file handle
      */
@@ -125,7 +125,7 @@ public class YangJavaSubModule extends YangSubModule
     }
 
     /**
-     * Set temporary file handle.
+     * Sets temporary file handle.
      *
      * @param fileHandle temporary file handle
      */
@@ -135,7 +135,7 @@ public class YangJavaSubModule extends YangSubModule
     }
 
     /**
-     * Get the name space of the module to which the sub module belongs to.
+     * Returns the name space of the module to which the sub module belongs to.
      *
      * @param belongsToInfo Information of the module to which the sub module
      *            belongs

@@ -17,8 +17,9 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
-import org.onosproject.yangutils.translator.exception.TranslatorException;
+
 import org.onosproject.yangutils.datamodel.YangNotification;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
 import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
@@ -35,7 +36,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
- * Notification information extended to support java code generation.
+ * Represents notification information extended to support java code generation.
  */
 public class YangJavaNotification extends YangNotification
         implements JavaCodeGenerator, HasJavaFileInfo,
@@ -83,7 +84,7 @@ public class YangJavaNotification extends YangNotification
     }
 
     /**
-     * Set the java file info object.
+     * Sets the java file info object.
      *
      * @param javaInfo java file info object
      */
@@ -103,7 +104,7 @@ public class YangJavaNotification extends YangNotification
     }
 
     /**
-     * Set the data of java imports to be included in generated file.
+     * Sets the data of java imports to be included in generated file.
      *
      * @param javaImportData data of java imports to be included in generated
      *            file
@@ -124,7 +125,7 @@ public class YangJavaNotification extends YangNotification
     }
 
     /**
-     * Set temporary file handle.
+     * Sets temporary file handle.
      *
      * @param fileHandle temporary file handle
      */

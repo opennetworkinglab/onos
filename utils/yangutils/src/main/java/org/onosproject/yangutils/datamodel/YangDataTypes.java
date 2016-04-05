@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.datamodel;
 
 /**
- * ENUM to identify the YANG data type.
+ * Represents ENUM to identify the YANG data type.
  */
 public enum YangDataTypes {
     /**

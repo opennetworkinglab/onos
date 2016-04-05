@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.translator.exception;
 
 /**
- * Provides custom translator exception for translator's operations.
+ * Represents custom translator exception for translator's operations.
  */
 public class TranslatorException extends RuntimeException {
 

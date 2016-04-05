@@ -59,7 +59,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.rem
  */
 
 /**
- * Implements listener based call back function corresponding to the "range"
+ * Represents listener based call back function corresponding to the "range"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class RangeRestrictionListener {

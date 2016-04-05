@@ -31,7 +31,7 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.parserutils.ParseTreeErrorListener;
 
 /**
- * Manages file parsing, parse tree creation and data model tree creation
+ * Represents file parsing, parse tree creation and data model tree creation
  * corresponding to an input YANG file.
  */
 public class YangUtilsParserManager implements YangUtilsParser {

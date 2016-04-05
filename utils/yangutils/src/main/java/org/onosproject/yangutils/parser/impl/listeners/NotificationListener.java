@@ -16,10 +16,10 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
-import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.datamodel.YangModule;
-import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangNotification;
+import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
@@ -33,17 +33,20 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLoc
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.*;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateMutuallyExclusiveChilds;
-import static org.onosproject.yangutils.utils.YangConstructType.NOTIFICATION_DATA;
-import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
-import static org.onosproject.yangutils.utils.YangConstructType.REFERENCE_DATA;
-import static org.onosproject.yangutils.utils.YangConstructType.TYPEDEF_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.GROUPING_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.NOTIFICATION_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.REFERENCE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.TYPEDEF_DATA;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -70,7 +73,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.GROUPING_DATA;
  */
 
 /**
- * Implements listener based call back function corresponding to the "notification"
+ * Represents listener based call back function corresponding to the "notification"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class NotificationListener {

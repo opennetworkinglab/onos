@@ -17,6 +17,7 @@ package org.onosproject.yangutils.datamodel;
 
 import java.util.LinkedList;
 import java.util.List;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
@@ -65,7 +66,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLi
  */
 
 /**
- * Data model node to maintain information defined in YANG module.
+ * Represents data model node to maintain information defined in YANG module.
  */
 public class YangModule extends YangNode
         implements YangLeavesHolder, YangDesc, YangReference, Parsable, CollisionDetector, HasResolutionInfo {
@@ -188,7 +189,7 @@ public class YangModule extends YangNode
     private List<YangResolutionInfo> unresolvedResolutionList;
 
     /**
-     * Create a YANG node of module type.
+     * Creates a YANG node of module type.
      */
     public YangModule() {
 
@@ -201,7 +202,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get name of the module.
+     * Returns name of the module.
      *
      * @return module name
      */
@@ -211,7 +212,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set module name.
+     * Sets module name.
      *
      * @param moduleName module name
      */
@@ -221,7 +222,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the contact details of the module owner.
+     * Returns the contact details of the module owner.
      *
      * @return the contact details of YANG owner
      */
@@ -230,7 +231,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the contact details of the module owner.
+     * Sets the contact details of the module owner.
      *
      * @param contact the contact details of YANG owner
      */
@@ -239,7 +240,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the description of module.
+     * Returns the description of module.
      *
      * @return the description of YANG module
      */
@@ -249,7 +250,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the description of module.
+     * Sets the description of module.
      *
      * @param description set the description of YANG module
      */
@@ -259,7 +260,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the list of imported modules.
+     * Returns the list of imported modules.
      *
      * @return the list of imported modules
      */
@@ -268,7 +269,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Add the imported module information to the import list.
+     * Adds the imported module information to the import list.
      *
      * @param importedModule module being imported
      */
@@ -282,7 +283,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the list of included sub modules.
+     * Returns the list of included sub modules.
      *
      * @return the included list of sub modules
      */
@@ -291,7 +292,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Add the included sub module information to the include list.
+     * Adds the included sub module information to the include list.
      *
      * @param includeModule submodule being included
      */
@@ -305,7 +306,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the list of leaves in module.
+     * Returns the list of leaves in module.
      *
      * @return the list of leaves
      */
@@ -315,7 +316,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Add a leaf in module.
+     * Adds a leaf in module.
      *
      * @param leaf the leaf to be added
      */
@@ -325,7 +326,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the list of leaf-list from module.
+     * Returns the list of leaf-list from module.
      *
      * @return the list of leaf-list
      */
@@ -335,7 +336,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Add a leaf-list in module.
+     * Adds a leaf-list in module.
      *
      * @param leafList the leaf-list to be added
      */
@@ -345,7 +346,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the name space of module elements.
+     * Returns the name space of module elements.
      *
      * @return the nameSpace
      */
@@ -354,7 +355,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the name space of module elements.
+     * Sets the name space of module elements.
      *
      * @param nameSpace the nameSpace to set
      */
@@ -363,7 +364,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the modules organization.
+     * Returns the modules organization.
      *
      * @return the organization
      */
@@ -372,7 +373,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the modules organization.
+     * Sets the modules organization.
      *
      * @param org the organization to set
      */
@@ -381,7 +382,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the prefix.
+     * Returns the prefix.
      *
      * @return the prefix
      */
@@ -390,7 +391,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the prefix.
+     * Sets the prefix.
      *
      * @param prefix the prefix to set
      */
@@ -407,7 +408,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -417,7 +418,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -427,7 +428,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the revision.
+     * Returns the revision.
      *
      * @return the revision
      */
@@ -436,7 +437,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the revision.
+     * Sets the revision.
      *
      * @param revision the revision to set
      */
@@ -445,7 +446,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Get the version.
+     * Returns the version.
      *
      * @return the version
      */
@@ -454,7 +455,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Set the version.
+     * Sets the version.
      *
      * @param version the version to set
      */
@@ -473,7 +474,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -486,7 +487,7 @@ public class YangModule extends YangNode
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

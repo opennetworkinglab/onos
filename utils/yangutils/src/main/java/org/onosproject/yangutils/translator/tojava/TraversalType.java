@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.translator.tojava;
 
 /**
- * Data model tree traversal types.
+ * Represents data model tree traversal types.
  */
 public enum TraversalType {
 

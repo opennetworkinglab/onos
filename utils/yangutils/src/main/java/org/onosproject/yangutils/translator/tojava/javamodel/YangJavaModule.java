@@ -35,7 +35,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
- * Module information extended to support java code generation.
+ * Represents module information extended to support java code generation.
  */
 public class YangJavaModule extends YangModule
         implements JavaCodeGenerator, HasJavaFileInfo,
@@ -69,7 +69,7 @@ public class YangJavaModule extends YangModule
     }
 
     /**
-     * Get the generated java file information.
+     * Returns the generated java file information.
      *
      * @return generated java file information
      */
@@ -83,7 +83,7 @@ public class YangJavaModule extends YangModule
     }
 
     /**
-     * Set the java file info object.
+     * Sets the java file info object.
      *
      * @param javaInfo java file info object
      */
@@ -93,7 +93,7 @@ public class YangJavaModule extends YangModule
     }
 
     /**
-     * Get the data of java imports to be included in generated file.
+     * Returns the data of java imports to be included in generated file.
      *
      * @return data of java imports to be included in generated file
      */
@@ -103,7 +103,7 @@ public class YangJavaModule extends YangModule
     }
 
     /**
-     * Set the data of java imports to be included in generated file.
+     * Sets the data of java imports to be included in generated file.
      *
      * @param javaImportData data of java imports to be included in generated
      *            file
@@ -114,7 +114,7 @@ public class YangJavaModule extends YangModule
     }
 
     /**
-     * Get the temporary file handle.
+     * Returns the temporary file handle.
      *
      * @return temporary file handle
      */
@@ -124,7 +124,7 @@ public class YangJavaModule extends YangModule
     }
 
     /**
-     * Set temporary file handle.
+     * Sets temporary file handle.
      *
      * @param fileHandle temporary file handle
      */

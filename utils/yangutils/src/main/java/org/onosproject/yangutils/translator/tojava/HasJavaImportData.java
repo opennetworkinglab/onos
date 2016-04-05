@@ -16,18 +16,19 @@
 package org.onosproject.yangutils.translator.tojava;
 
 /**
- * Maintains the information of the java import data.
+ * Represents the information of the java import data.
  */
 public interface HasJavaImportData {
+
     /**
-     * Get the data of java imports to be included in generated file.
+     * Returns the data of java imports to be included in generated file.
      *
      * @return data of java imports to be included in generated file
      */
     public JavaImportData getJavaImportData();
 
     /**
-     * Set the data of java imports to be included in generated file.
+     * Sets the data of java imports to be included in generated file.
      *
      * @param javaImportData data of java imports to be included in generated
      *            file

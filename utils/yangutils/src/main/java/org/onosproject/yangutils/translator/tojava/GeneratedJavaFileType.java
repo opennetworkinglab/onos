@@ -17,12 +17,12 @@
 package org.onosproject.yangutils.translator.tojava;
 
 /**
- * Type of files generated.
+ * Represents type of java files generated.
  */
 public final class GeneratedJavaFileType {
 
     /**
-     * prevent creating attributes.
+     * Creates an instance of generate java file type.
      */
     private GeneratedJavaFileType() {
     }

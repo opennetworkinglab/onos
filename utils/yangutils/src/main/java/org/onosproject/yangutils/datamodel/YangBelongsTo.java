@@ -44,7 +44,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  */
 
 /**
- * Maintains the belongs-to data type information.
+ * Represents the belongs-to data type information.
  */
 public class YangBelongsTo implements Parsable {
 
@@ -73,7 +73,7 @@ public class YangBelongsTo implements Parsable {
     }
 
     /**
-     * Get the belongs to module name.
+     * Returns the belongs to module name.
      *
      * @return the belongs to module name
      */
@@ -82,7 +82,7 @@ public class YangBelongsTo implements Parsable {
     }
 
     /**
-     * Set the belongs to module name.
+     * Sets the belongs to module name.
      *
      * @param belongsToModuleName the belongs to module name to set
      *
@@ -92,7 +92,7 @@ public class YangBelongsTo implements Parsable {
     }
 
     /**
-     * Get the prefix.
+     * Returns the prefix.
      *
      * @return the prefix
      */
@@ -101,7 +101,7 @@ public class YangBelongsTo implements Parsable {
     }
 
     /**
-     * Set the prefix.
+     * Sets the prefix.
      *
      * @param prefix the prefix to set
      */
@@ -120,7 +120,7 @@ public class YangBelongsTo implements Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -130,7 +130,7 @@ public class YangBelongsTo implements Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

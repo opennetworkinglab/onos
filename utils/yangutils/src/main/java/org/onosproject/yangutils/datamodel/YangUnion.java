@@ -16,12 +16,12 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /*
  * Reference RFC 6020.
@@ -46,7 +46,7 @@ import java.util.List;
  */
 
 /**
- * Data model node to maintain information defined in YANG union.
+ * Represents data model node to maintain information defined in YANG union.
  */
 public class YangUnion implements Parsable {
 
@@ -57,7 +57,7 @@ public class YangUnion implements Parsable {
     private String unionName;
 
     /**
-     * Create a YANG union node.
+     * Creates a YANG union node.
      */
     public YangUnion() {
         typeList = new LinkedList<>();
@@ -82,7 +82,7 @@ public class YangUnion implements Parsable {
     }
 
     /**
-     * Set the list of YANG type.
+     * Sets the list of YANG type.
      *
      * @param typeList list of YANG type.
      */
@@ -91,7 +91,7 @@ public class YangUnion implements Parsable {
     }
 
     /**
-     * Add YANG type to type list.
+     * Adds YANG type to type list.
      *
      * @param yangType YANG type to be added to list
      * @throws DataModelException union member type must not be one of the
@@ -106,7 +106,7 @@ public class YangUnion implements Parsable {
     }
 
     /**
-     * Set the union name.
+     * Sets the union name.
      *
      * @param unionName name of the union.
      */

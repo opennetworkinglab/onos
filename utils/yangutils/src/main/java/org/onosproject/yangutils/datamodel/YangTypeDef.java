@@ -49,7 +49,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *                +--------------+---------+-------------+------------------+
  */
 /**
- * Data model node to maintain information defined in YANG typedef.
+ * Represents data model node to maintain information defined in YANG typedef.
  */
 public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
 
@@ -90,7 +90,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     private String units;
 
     /**
-     * Create a typedef node.
+     * Creates a typedef node.
      */
     public YangTypeDef() {
         super(YangNodeType.TYPEDEF_NODE);
@@ -106,7 +106,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the default value.
+     * Sets the default value.
      *
      * @param defaultValueInString the default value
      */
@@ -125,7 +125,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -145,7 +145,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -165,7 +165,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */
@@ -184,7 +184,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the data type.
+     * Sets the data type.
      *
      * @param dataType the data type
      */
@@ -202,7 +202,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the unit.
+     * Sets the unit.
      *
      * @param units the units to set
      */
@@ -221,7 +221,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -231,7 +231,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -251,7 +251,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set YANG name of the typedef.
+     * Sets YANG name of the typedef.
      *
      * @param name YANG name of the typedef
      */

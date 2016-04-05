@@ -65,7 +65,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  */
 
 /**
- * List data represented in YANG.
+ * Represents list data represented in YANG.
  */
 public class YangList extends YangNode
         implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
@@ -166,14 +166,14 @@ public class YangList extends YangNode
     private YangStatusType status = YangStatusType.CURRENT;
 
     /**
-     * Constructor.
+     * Creates a YANG list object.
      */
     public YangList() {
         super(YangNodeType.LIST_NODE);
     }
 
     /**
-     * Get the YANG list name.
+     * Returns the YANG list name.
      *
      * @return YANG list name
      */
@@ -183,7 +183,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Set the YANG list name.
+     * Sets the YANG list name.
      *
      * @param name YANG list name
      */
@@ -193,7 +193,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Get the config flag.
+     * Returns the config flag.
      *
      * @return the isConfig
      */
@@ -202,7 +202,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Set the config flag.
+     * Sets the config flag.
      *
      * @param isCfg the config flag
      */
@@ -211,7 +211,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -221,7 +221,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -231,7 +231,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Get the list of key field names.
+     * Returns the list of key field names.
      *
      * @return the list of key field names
      */
@@ -240,7 +240,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Set the list of key field names.
+     * Sets the list of key field names.
      *
      * @param keyList the list of key field names
      */
@@ -249,7 +249,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Add a key field name.
+     * Adds a key field name.
      *
      * @param key key field name.
      * @throws DataModelException a violation of data model rules
@@ -268,7 +268,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Get the list of leaves.
+     * Returns the list of leaves.
      *
      * @return the list of leaves
      */
@@ -278,7 +278,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Set the list of leaves.
+     * Sets the list of leaves.
      *
      * @param leafsList the list of leaf to set
      */
@@ -287,7 +287,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Add a leaf.
+     * Adds a leaf.
      *
      * @param leaf the leaf to be added
      */
@@ -301,7 +301,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Get the list of leaf-list.
+     * Returns the list of leaf-list.
      *
      * @return the list of leaf-list
      */
@@ -311,7 +311,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Set the list of leaf-list.
+     * Sets the list of leaf-list.
      *
      * @param listOfLeafList the list of leaf-list to set
      */
@@ -320,7 +320,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Add a leaf-list.
+     * Adds a leaf-list.
      *
      * @param leafList the leaf-list to be added
      */
@@ -334,7 +334,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Get the max elements.
+     * Returns the max elements.
      *
      * @return the max elements
      */
@@ -343,7 +343,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Set the max elements.
+     * Sets the max elements.
      *
      * @param max the max elements
      */
@@ -352,7 +352,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Get the minimum elements.
+     * Returns the minimum elements.
      *
      * @return the minimum elements
      */
@@ -361,7 +361,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Set the minimum elements.
+     * Sets the minimum elements.
      *
      * @param minElements the minimum elements
      */
@@ -370,7 +370,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -380,7 +380,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -390,7 +390,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Get the status.
+     * Returns the status.
      *
      * @return the status
      */
@@ -400,7 +400,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */
@@ -420,7 +420,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -430,7 +430,7 @@ public class YangList extends YangNode
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

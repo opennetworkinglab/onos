@@ -37,7 +37,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 
 /**
- * Generated Java file can contain imports.
+ * Represents that generated Java file can contain imports.
  */
 public class JavaImportData {
 
@@ -53,14 +53,14 @@ public class JavaImportData {
     private SortedSet<JavaQualifiedTypeInfo> importSet;
 
     /**
-     * Default constructor.
+     * Creates java import data object.
      */
     public JavaImportData() {
         setImportSet(new TreeSet<JavaQualifiedTypeInfo>());
     }
 
     /**
-     * Get if the list needs to be imported.
+     * Returns if the list needs to be imported.
      *
      * @return true if any of the attribute needs to be maintained as a list.
      */
@@ -69,7 +69,7 @@ public class JavaImportData {
     }
 
     /**
-     * Set the status of importing list.
+     * Sets the status of importing list.
      *
      * @param isList status to mention list is bing imported.
      */
@@ -78,7 +78,7 @@ public class JavaImportData {
     }
 
     /**
-     * Get the set containing the imported class/interface info.
+     * Returns the set containing the imported class/interface info.
      *
      * @return the set containing the imported class/interface info
      */
@@ -149,7 +149,7 @@ public class JavaImportData {
         }
 
         if (attr.isListAttr()) {
-            imports.add(setImportForList());
+            imports.add(getImportForList());
         }
 
         java.util.Collections.sort(imports);
@@ -157,7 +157,7 @@ public class JavaImportData {
     }
 
     /**
-     * Gets import for hash and equals method.
+     * Returns import for hash and equals method.
      *
      * @return import for hash and equals method
      */
@@ -166,7 +166,7 @@ public class JavaImportData {
     }
 
     /**
-     * Gets import for to string method.
+     * Returns import for to string method.
      *
      * @return import for to string method
      */
@@ -175,9 +175,12 @@ public class JavaImportData {
     }
 
     /**
-     * Sets import for the list attribute.
+     * Returns import for list attribute.
+     *
+     * @return import for for list attribute
      */
-    private static String setImportForList() {
+
+    private static String getImportForList() {
         return IMPORT + COLLECTION_IMPORTS + PERIOD + LIST + SEMI_COLAN + NEW_LINE;
     }
 }

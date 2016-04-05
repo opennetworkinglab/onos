@@ -29,7 +29,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  */
 
 /**
- * Maintains the enumeration data type information.
+ * Represents the enumeration data type information.
  */
 public class YangEnumeration implements Parsable {
 
@@ -47,7 +47,7 @@ public class YangEnumeration implements Parsable {
     }
 
     /**
-     * Get the ENUM set.
+     * Returns the ENUM set.
      *
      * @return the ENUM set
      */
@@ -56,7 +56,7 @@ public class YangEnumeration implements Parsable {
     }
 
     /**
-     * Set the ENUM set.
+     * Sets the ENUM set.
      *
      * @param enumSet the ENUM set to set
      */
@@ -65,7 +65,7 @@ public class YangEnumeration implements Parsable {
     }
 
     /**
-     * Add ENUM information.
+     * Adds ENUM information.
      *
      * @param enumInfo the ENUM information to be added
      * @throws DataModelException due to violation in data model rules
@@ -86,7 +86,7 @@ public class YangEnumeration implements Parsable {
     }
 
     /**
-     * Set the enumeration name.
+     * Sets the enumeration name.
      *
      * @param enumerationName enumeration name
      */
@@ -105,7 +105,7 @@ public class YangEnumeration implements Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -115,7 +115,7 @@ public class YangEnumeration implements Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

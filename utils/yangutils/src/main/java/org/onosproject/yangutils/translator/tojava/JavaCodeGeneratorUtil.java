@@ -28,7 +28,7 @@ import static org.onosproject.yangutils.translator.tojava.TraversalType.ROOT;
 import static org.onosproject.yangutils.translator.tojava.TraversalType.SIBILING;
 
 /**
- * Implementation of Java code generator based on application schema.
+ * Representation of Java code generator based on application schema.
  */
 public final class JavaCodeGeneratorUtil {
 
@@ -38,7 +38,7 @@ public final class JavaCodeGeneratorUtil {
     private static YangNode curNode;
 
     /**
-     * Default constructor.
+     * Creates a java code generator util object.
      */
     private JavaCodeGeneratorUtil() {
     }
@@ -57,13 +57,12 @@ public final class JavaCodeGeneratorUtil {
      *
      * @param node current YANG node
      */
-
     public static void setCurNode(YangNode node) {
         curNode = node;
     }
 
     /**
-     * Generate Java code files corresponding to the YANG schema.
+     * Generates Java code files corresponding to the YANG schema.
      *
      * @param rootNode root node of the data model tree
      * @param codeGenDir code generation directory
@@ -173,6 +172,7 @@ public final class JavaCodeGeneratorUtil {
 
         YangNode parent = node.getParent();
         parent.setChild(null);
+
         if (node.getNextSibling() != null) {
             parent.setChild(node.getNextSibling());
         } else if (node.getPreviousSibling() != null) {

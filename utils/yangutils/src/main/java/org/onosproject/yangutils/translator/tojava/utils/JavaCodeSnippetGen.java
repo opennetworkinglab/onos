@@ -32,18 +32,18 @@ import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 
 /**
- * Utility class to generate the java snippet.
+ * Represents utility class to generate the java snippet.
  */
 public final class JavaCodeSnippetGen {
 
     /**
-     * Default constructor.
+     * Creates an instance of java code snippet gen.
      */
     private JavaCodeSnippetGen() {
     }
 
     /**
-     * Get the java file header comment.
+     * Returns the java file header comment.
      *
      * @return the java file header comment
      */
@@ -56,19 +56,18 @@ public final class JavaCodeSnippetGen {
     }
 
     /**
-     * Get the textual java code information corresponding to the import list.
+     * Returns the textual java code information corresponding to the import list.
      *
      * @param importInfo import info
      * @return the textual java code information corresponding to the import
      *         list
      */
     public static String getImportText(JavaQualifiedTypeInfo importInfo) {
-
         return IMPORT + importInfo.getPkgInfo() + PERIOD + importInfo.getClassInfo() + SEMI_COLAN + NEW_LINE;
     }
 
     /**
-     * Based on the file type and the YANG name of the file, generate the class
+     * Returns based on the file type and the YANG name of the file, generate the class
      * / interface definition start.
      *
      * @param genFileTypes type of file being generated
@@ -85,7 +84,7 @@ public final class JavaCodeSnippetGen {
     }
 
     /**
-     * Get the textual java code for attribute definition in class.
+     * Returns the textual java code for attribute definition in class.
      *
      * @param javaAttributeTypePkg Package of the attribute type
      * @param javaAttributeType java attribute type
@@ -124,18 +123,16 @@ public final class JavaCodeSnippetGen {
      * @return list attribute string
      */
     public static String getListAttribute(String type) {
-
         return LIST + DIAMOND_OPEN_BRACKET + type + DIAMOND_CLOSE_BRACKET;
     }
 
     /**
-     * Based on the file type and the YANG name of the file, generate the class
+     * Returns based on the file type and the YANG name of the file, generate the class
      * / interface definition close.
      *
      * @return corresponding textual java code information
      */
     public static String getJavaClassDefClose() {
-
         return CLOSE_CURLY_BRACKET;
     }
 }

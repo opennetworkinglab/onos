@@ -17,29 +17,30 @@ package org.onosproject.yangutils.datamodel;
  * Abstraction of error message and application info processing.
  */
 public interface YangAppErrorInfo {
+
     /**
-     * Get the application's error message for data error.
+     * Returns the application's error message for data error.
      *
      * @return application's error message for data error.
      */
     String getGetErrorMessage();
 
     /**
-     * Set the application's error message for data error.
+     * Sets the application's error message for data error.
      *
      * @param errorMessage application's error message for data error.
      */
     void setErrorMessage(String errorMessage);
 
     /**
-     * Get the application's error tag for data error.
+     * Returns the application's error tag for data error.
      *
      * @return application's error tag for data error.
      */
     String getGetErrorAppTag();
 
     /**
-     * Set the application's error tag for data error.
+     * Sets the application's error tag for data error.
      *
      * @param errorMessage application's error tag for data error.
      */

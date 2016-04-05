@@ -95,7 +95,7 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataInto
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.mergeJavaFiles;
 
 /**
- * Provides implementation of java code fragments temporary implementations.
+ * Represents implementation of java code fragments temporary implementations.
  */
 public class TempJavaCodeFragmentFiles {
 
@@ -292,7 +292,7 @@ public class TempJavaCodeFragmentFiles {
     private boolean isAttributePresent = false;
 
     /**
-     * Construct an object of temporary java code fragment.
+     * Creates an instance of temporary java code fragment.
      *
      * @param genFileType file generation type
      * @param genDir file generation directory
@@ -913,7 +913,7 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
-     * Parse attribute to get the attribute string.
+     * Parses attribute to get the attribute string.
      *
      * @param attr attribute info
      * @return attribute string
@@ -934,7 +934,7 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
-     * Append content to temporary file.
+     * Appends content to temporary file.
      *
      * @param file temporary file
      * @param data data to be appended
@@ -1061,7 +1061,7 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
-     * Add the new attribute info to the target generated temporary files.
+     * Adds the new attribute info to the target generated temporary files.
      *
      * @param newAttrInfo the attribute info that needs to be added to temporary
      *            files
@@ -1112,7 +1112,7 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
-     * Return java file info.
+     * Returns java file info.
      *
      * @return java file info
      */

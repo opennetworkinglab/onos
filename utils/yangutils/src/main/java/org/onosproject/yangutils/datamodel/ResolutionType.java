@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.datamodel;
 
 /**
- * ENUM to identify the YANG resolution type.
+ * Represents ENUM to identify the YANG resolution type.
  */
 public enum ResolutionType {
     /**

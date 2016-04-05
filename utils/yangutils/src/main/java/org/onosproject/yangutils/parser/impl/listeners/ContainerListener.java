@@ -16,15 +16,15 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNotification;
-import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangOutput;
-import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
@@ -83,7 +83,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
  */
 
 /**
- * Implements listener based call back function corresponding to the "container"
+ * Represents listener based call back function corresponding to the "container"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class ContainerListener {

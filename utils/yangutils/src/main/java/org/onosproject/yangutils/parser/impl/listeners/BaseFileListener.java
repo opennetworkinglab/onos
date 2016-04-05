@@ -22,6 +22,7 @@ import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -41,7 +42,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.YANGBASE_DATA;
  */
 
 /**
- * Implements call back function corresponding to the "base rule" defined in
+ * Representation of call back function corresponding to the "base rule" defined in
  * ANTLR grammar file.
  */
 public final class BaseFileListener {

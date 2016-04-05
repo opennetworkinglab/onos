@@ -16,6 +16,9 @@
 
 package org.onosproject.yangutils.parser.impl.parserutils;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.YangList;
@@ -23,15 +26,13 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import org.onosproject.yangutils.utils.YangConstructType;
+
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.utils.YangConstructType.getYangConstructType;
 
-import java.util.Iterator;
-import java.util.List;
-
 /**
- * It's a utility to carry out listener validation.
+ * Represents a utility to carry out listener validation.
  */
 public final class ListenerValidation {
 
@@ -54,6 +55,7 @@ public final class ListenerValidation {
     public static void checkStackIsNotEmpty(TreeWalkListener listener, ListenerErrorType errorType,
             YangConstructType yangConstructType, String parsableDataTypeName,
             ListenerErrorLocation errorLocation) {
+
         if (listener.getParsedDataStack().empty()) {
             /*
              * If stack is empty it indicates error condition, value of
@@ -100,6 +102,7 @@ public final class ListenerValidation {
      * @return true/false parent's config value
      */
     public static boolean getParentNodeConfig(TreeWalkListener listener) {
+
         YangNode parentNode;
         Parsable curData = listener.getParsedDataStack().peek();
         if (curData instanceof YangNode) {
@@ -125,7 +128,7 @@ public final class ListenerValidation {
      * @throws ParserException exception if cardinality check fails
      */
     public static void validateCardinalityMaxOne(List<?> childContext, YangConstructType yangChildConstruct,
-                                                 YangConstructType yangParentConstruct, String parentName)
+            YangConstructType yangParentConstruct, String parentName)
             throws ParserException {
 
         if (!childContext.isEmpty() && childContext.size() != 1) {
@@ -152,8 +155,8 @@ public final class ListenerValidation {
      * @throws ParserException exception if cardinality check fails
      */
     public static void validateCardinalityEqualsOne(List<?> childContext, YangConstructType yangChildConstruct,
-                                                    YangConstructType yangParentConstruct, String parentName,
-                                                    ParserRuleContext parentContext)
+            YangConstructType yangParentConstruct, String parentName,
+            ParserRuleContext parentContext)
             throws ParserException {
 
         if (childContext.isEmpty()) {
@@ -187,8 +190,8 @@ public final class ListenerValidation {
      * @throws ParserException exception if cardinality check fails
      */
     public static void validateCardinalityNonZero(List<?> childContext, YangConstructType yangChildConstruct,
-                                                  YangConstructType yangParentConstruct, String parentName,
-                                                  ParserRuleContext parentContext)
+            YangConstructType yangParentConstruct, String parentName,
+            ParserRuleContext parentContext)
             throws ParserException {
 
         if (childContext.isEmpty()) {
@@ -216,8 +219,8 @@ public final class ListenerValidation {
      * @throws ParserException exception if cardinality check fails
      */
     public static void validateMutuallyExclusiveChilds(List<?> child1Context, YangConstructType yangChild1Construct,
-                                                       List<?> child2Context, YangConstructType yangChild2Construct,
-                                                       YangConstructType yangParentConstruct, String parentName)
+            List<?> child2Context, YangConstructType yangChild2Construct,
+            YangConstructType yangParentConstruct, String parentName)
             throws ParserException {
 
         if (!child1Context.isEmpty() && !child2Context.isEmpty()) {

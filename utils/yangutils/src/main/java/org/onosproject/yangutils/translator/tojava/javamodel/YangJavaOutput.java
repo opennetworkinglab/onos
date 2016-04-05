@@ -37,7 +37,7 @@ import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPacka
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
- * Output information extended to support java code generation.
+ * Represents output information extended to support java code generation.
  */
 public class YangJavaOutput extends YangOutput
         implements JavaCodeGenerator, HasJavaFileInfo,
@@ -85,7 +85,7 @@ public class YangJavaOutput extends YangOutput
     }
 
     /**
-     * Set the java file info object.
+     * Sets the java file info object.
      *
      * @param javaInfo java file info object
      */
@@ -105,7 +105,7 @@ public class YangJavaOutput extends YangOutput
     }
 
     /**
-     * Set the data of java imports to be included in generated file.
+     * Sets the data of java imports to be included in generated file.
      *
      * @param javaImportData data of java imports to be included in generated
      *            file
@@ -126,7 +126,7 @@ public class YangJavaOutput extends YangOutput
     }
 
     /**
-     * Set temporary file handle.
+     * Sets temporary file handle.
      *
      * @param fileHandle temporary file handle
      */

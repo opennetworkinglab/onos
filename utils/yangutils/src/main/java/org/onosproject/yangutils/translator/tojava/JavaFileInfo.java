@@ -19,7 +19,7 @@ package org.onosproject.yangutils.translator.tojava;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 
 /**
- * Cached java file handle, which supports the addition of member attributes and
+ * Represents cached java file handle, which supports the addition of member attributes and
  * methods.
  */
 public class JavaFileInfo {
@@ -51,7 +51,7 @@ public class JavaFileInfo {
     private String codeGenDirFilePath;
 
     /**
-     * Get the types of files being generated corresponding to the YANG
+     * Returns the types of files being generated corresponding to the YANG
      * definition.
      *
      * @return the types of files being generated corresponding to the YANG
@@ -62,7 +62,7 @@ public class JavaFileInfo {
     }
 
     /**
-     * Set the types of files being generated corresponding to the YANG
+     * Sets the types of files being generated corresponding to the YANG
      * definition.
      *
      * @param fileTypes the types of files being generated corresponding to the
@@ -73,7 +73,7 @@ public class JavaFileInfo {
     }
 
     /**
-     * Get the java name of the node.
+     * Returns the java name of the node.
      *
      * @return the java name of node
      */
@@ -82,7 +82,7 @@ public class JavaFileInfo {
     }
 
     /**
-     * Set the java name of the node.
+     * Sets the java name of the node.
      *
      * @param name the java name of node
      */
@@ -91,7 +91,7 @@ public class JavaFileInfo {
     }
 
     /**
-     * Get the mapped java package.
+     * Returns the mapped java package.
      *
      * @return the java package
      */
@@ -104,7 +104,7 @@ public class JavaFileInfo {
     }
 
     /**
-     * Set the node's package.
+     * Sets the node's package.
      *
      * @param nodePackage node's package
      */
@@ -122,7 +122,7 @@ public class JavaFileInfo {
     }
 
     /**
-     * Gets directory package path for code generation.
+     * Returns directory package path for code generation.
      *
      * @return directory package path for code generation
      */
@@ -131,7 +131,7 @@ public class JavaFileInfo {
     }
 
     /**
-     * Gets base directory package path for code generation.
+     * Returns base directory package path for code generation.
      *
      * @return directory package path for code generation
      */

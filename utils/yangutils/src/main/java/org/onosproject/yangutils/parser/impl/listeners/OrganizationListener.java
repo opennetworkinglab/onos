@@ -23,12 +23,12 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.utils.YangConstructType.ORGANIZATION_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.utils.YangConstructType.ORGANIZATION_DATA;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -72,7 +72,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
  */
 
 /**
- * Implements listener based call back function corresponding to the
+ * Represents listener based call back function corresponding to the
  * "organization" rule defined in ANTLR grammar file for corresponding ABNF rule
  * in RFC 6020.
  */
@@ -101,19 +101,19 @@ public final class OrganizationListener {
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getYangConstructType()) {
-        case MODULE_DATA: {
-            YangModule module = (YangModule) tmpNode;
-            module.setOrganization(ctx.string().getText());
-            break;
-        }
-        case SUB_MODULE_DATA: {
-            YangSubModule subModule = (YangSubModule) tmpNode;
-            subModule.setOrganization(ctx.string().getText());
-            break;
-        }
-        default:
-            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, ORGANIZATION_DATA,
-                                                                    ctx.string().getText(), ENTRY));
+            case MODULE_DATA: {
+                YangModule module = (YangModule) tmpNode;
+                module.setOrganization(ctx.string().getText());
+                break;
+            }
+            case SUB_MODULE_DATA: {
+                YangSubModule subModule = (YangSubModule) tmpNode;
+                subModule.setOrganization(ctx.string().getText());
+                break;
+            }
+            default:
+                throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, ORGANIZATION_DATA,
+                        ctx.string().getText(), ENTRY));
         }
     }
 }

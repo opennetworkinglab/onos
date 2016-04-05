@@ -49,8 +49,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *                +--------------+---------+-------------+------------------+
  */
 /**
- * Data model node to maintain information defined in YANG uses.
- *
+ * Represents data model node to maintain information defined in YANG uses.
  */
 public class YangUses extends YangNode implements YangCommonInfo, Parsable, Resolvable {
 
@@ -88,7 +87,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable, Reso
     private ResolvableStatus resolvableStatus;
 
     /**
-     * Create an YANG uses node.
+     * Creates an YANG uses node.
      */
     public YangUses() {
         super(YangNodeType.USES_NODE);
@@ -106,7 +105,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable, Reso
     }
 
     /**
-     * Set the referred group.
+     * Sets the referred group.
      *
      * @param refGroup the referred group
      */
@@ -125,7 +124,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable, Reso
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -145,7 +144,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable, Reso
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -165,7 +164,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable, Reso
     }
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */
@@ -185,7 +184,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable, Reso
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -195,7 +194,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable, Reso
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -224,7 +223,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable, Reso
     }
 
     /**
-     * Set node identifier.
+     * Sets node identifier.
      *
      * @param nodeIdentifier the node identifier
      */

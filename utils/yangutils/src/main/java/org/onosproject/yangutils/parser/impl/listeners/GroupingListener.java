@@ -53,7 +53,6 @@ import static org.onosproject.yangutils.utils.YangConstructType.REFERENCE_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.TYPEDEF_DATA;
 
-
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
  *
@@ -77,7 +76,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.TYPEDEF_DATA;
  */
 
 /**
- * Implements listener based call back function corresponding to the "grouping"
+ * Represents listener based call back function corresponding to the "grouping"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class GroupingListener {

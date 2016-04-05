@@ -49,7 +49,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.CONFIG_DATA;
  */
 
 /**
- * Implements listener based call back function corresponding to the "config"
+ * Represents listener based call back function corresponding to the "config"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class ConfigListener {

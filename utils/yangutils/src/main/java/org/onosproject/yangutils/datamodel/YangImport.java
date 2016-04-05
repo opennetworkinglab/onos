@@ -60,7 +60,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *                +---------------+---------+-------------+------------------+
  */
 /**
- * Maintains the information about the imported modules.
+ * Represents the information about the imported modules.
  */
 public class YangImport implements Parsable {
 
@@ -90,14 +90,14 @@ public class YangImport implements Parsable {
     private String revision;
 
     /**
-     * Default constructor.
+     * Creates a YANG import.
      */
     public YangImport() {
 
     }
 
     /**
-     * Get the imported module name.
+     * Returns the imported module name.
      *
      * @return the module name
      */
@@ -106,7 +106,7 @@ public class YangImport implements Parsable {
     }
 
     /**
-     * Set module name.
+     * Sets module name.
      *
      * @param moduleName the module name to set
      */
@@ -115,7 +115,7 @@ public class YangImport implements Parsable {
     }
 
     /**
-     * Get the prefix used to identify the entities from the imported module.
+     * Returns the prefix used to identify the entities from the imported module.
      *
      * @return the prefix used to identify the entities from the imported
      *         module
@@ -125,7 +125,7 @@ public class YangImport implements Parsable {
     }
 
     /**
-     * Set prefix identifier.
+     * Sets prefix identifier.
      *
      * @param prefixId set the prefix identifier of the imported module
      */
@@ -134,7 +134,7 @@ public class YangImport implements Parsable {
     }
 
     /**
-     * Get the revision of the imported module.
+     * Returns the revision of the imported module.
      *
      * @return the revision of the imported module
      */
@@ -143,7 +143,7 @@ public class YangImport implements Parsable {
     }
 
     /**
-     * Set the revision of the imported module.
+     * Sets the revision of the imported module.
      *
      * @param rev set the revision of the imported module
      */
@@ -162,7 +162,7 @@ public class YangImport implements Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -173,7 +173,7 @@ public class YangImport implements Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -193,7 +193,7 @@ public class YangImport implements Parsable {
     }
 
     /**
-     * Set the dresolution information node.
+     * Sets the dresolution information node.
      *
      * @param resolutionInfoNode the resolution information node
      */

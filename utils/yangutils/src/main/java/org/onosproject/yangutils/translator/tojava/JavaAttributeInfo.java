@@ -27,7 +27,7 @@ import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 
 /**
- * Maintains the attribute info corresponding to class/interface generated.
+ * Represents the attribute info corresponding to class/interface generated.
  */
 public final class JavaAttributeInfo {
 
@@ -58,7 +58,7 @@ public final class JavaAttributeInfo {
     private JavaQualifiedTypeInfo importInfo;
 
     /**
-     * Default constructor.
+     * Creates a java attribute info object.
      */
     private JavaAttributeInfo() {
     }
@@ -79,7 +79,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Get the data type info of attribute.
+     * Returns the data type info of attribute.
      *
      * @return the data type info of attribute
      */
@@ -92,7 +92,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Set the data type info of attribute.
+     * Sets the data type info of attribute.
      *
      * @param type the data type info of attribute
      */
@@ -101,7 +101,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Get name of the attribute.
+     * Returns name of the attribute.
      *
      * @return name of the attribute
      */
@@ -114,7 +114,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Set name of the attribute.
+     * Sets name of the attribute.
      *
      * @param attrName name of the attribute
      */
@@ -123,7 +123,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Get if the added attribute is a list of info.
+     * Returns if the added attribute is a list of info.
      *
      * @return the if the added attribute is a list of info
      */
@@ -132,7 +132,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Set if the added attribute is a list of info.
+     * Sets if the added attribute is a list of info.
      *
      * @param isList if the added attribute is a list of info
      */
@@ -141,7 +141,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Get if the added attribute has to be accessed in a fully qualified
+     * Returns if the added attribute has to be accessed in a fully qualified
      * manner.
      *
      * @return the if the added attribute has to be accessed in a fully
@@ -152,7 +152,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Set if the added attribute has to be accessed in a fully qualified
+     * Sets if the added attribute has to be accessed in a fully qualified
      * manner.
      *
      * @param isQualified if the added attribute has to be accessed in a fully
@@ -163,7 +163,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Get the import info for the attribute type. It will be null, of the type
+     * Returns the import info for the attribute type. It will be null, of the type
      * is basic built-in java type.
      *
      * @return import info
@@ -173,7 +173,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Set the import info for the attribute type.
+     * Sets the import info for the attribute type.
      *
      * @param importInfo import info for the attribute type
      */
@@ -182,7 +182,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Create an attribute info object corresponding to the passed leaf
+     * Creates an attribute info object corresponding to the passed leaf
      * information and return it.
      *
      * @param curNode current data model node for which the java file is being
@@ -208,7 +208,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Create an attribute info object corresponding to a data model node and
+     * Creates an attribute info object corresponding to a data model node and
      * return it.
      *
      * @param curNode current data model node for which the java code generation
@@ -234,7 +234,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Create an attribute info object corresponding to the passed type def attribute
+     * Creates an attribute info object corresponding to the passed type def attribute
      * information and return it.
      *
      * @param curNode current data model node for which the java file is being

@@ -16,7 +16,7 @@
 package org.onosproject.yangutils.datamodel.exceptions;
 
 /**
- * Base class for exceptions in data model operations.
+ * Represents base class for exceptions in data model operations.
  */
 public class DataModelException extends Exception {
 
@@ -25,7 +25,7 @@ public class DataModelException extends Exception {
     private int charPositionInLine;
 
     /**
-     * Constructor to create a data model exception with message.
+     * Creates a data model exception with message.
      *
      * @param message the detail of exception in string
      */
@@ -34,7 +34,7 @@ public class DataModelException extends Exception {
     }
 
     /**
-     * Constructor to create exception from message and cause.
+     * Creates exception from message and cause.
      *
      * @param message the detail of exception in string
      * @param cause underlying cause of the error
@@ -44,7 +44,7 @@ public class DataModelException extends Exception {
     }
 
     /**
-     * Constructor to create exception from cause.
+     * Creates exception from cause.
      *
      * @param cause underlying cause of the error
      */

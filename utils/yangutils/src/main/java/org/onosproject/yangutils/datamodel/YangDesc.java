@@ -21,8 +21,9 @@ package org.onosproject.yangutils.datamodel;
  * parsing and translator processing of description.
  */
 public interface YangDesc {
+
     /**
-     * Get the description of YANG entity.
+     * Returns the description of YANG entity.
      *
      * @return the description of YANG entity.
      */

@@ -25,14 +25,14 @@ import org.onosproject.yangutils.utils.YangConstructType;
 public interface Parsable {
 
     /**
-     * Get the type of YANG construct data.
+     * Returns the type of YANG construct data.
      *
      * @return the type of YANG construct data.
      */
     YangConstructType getYangConstructType();
 
     /**
-     * Check if the node is valid as per YANG grammar's syntax and semantics.
+     * Checks if the node is valid as per YANG grammar's syntax and semantics.
      * This validation will be performed on entering the node in traversal
      *
      * @throws DataModelException if there is any violation of the YANG rules
@@ -41,7 +41,7 @@ public interface Parsable {
     void validateDataOnEntry() throws DataModelException;
 
     /**
-     * Check if the node is valid as per YANG grammar's syntax and semantics.
+     * Checks if the node is valid as per YANG grammar's syntax and semantics.
      * This validation will be performed on exiting the node in traversal
      *
      * @throws DataModelException if there is any violation of the YANG rules

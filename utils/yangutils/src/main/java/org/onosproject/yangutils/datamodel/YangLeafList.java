@@ -50,7 +50,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *                +--------------+---------+-------------+------------------+
  */
 /**
- * Leaf-list data represented in YANG.
+ * Represents leaf-list data represented in YANG.
  */
 public class YangLeafList implements YangCommonInfo, Parsable {
 
@@ -122,13 +122,13 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     private YangType<?> dataType;
 
     /**
-     * Default Constructor to create a YANG leaf-list.
+     * Creates a YANG leaf-list.
      */
     public YangLeafList() {
     }
 
     /**
-     * Get the leaf-list name.
+     * Returns the leaf-list name.
      *
      * @return the leaf-list name
      */
@@ -137,7 +137,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the leaf-list name.
+     * Sets the leaf-list name.
      *
      * @param leafListName the leaf-list name to set
      */
@@ -146,7 +146,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the config flag.
+     * Returns the config flag.
      *
      * @return the config flag
      */
@@ -155,7 +155,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the config flag.
+     * Sets the config flag.
      *
      * @param isCfg the config flag
      */
@@ -164,7 +164,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -174,7 +174,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -184,7 +184,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the max elements no.
+     * Returns the max elements no.
      *
      * @return the max elements no
      */
@@ -193,7 +193,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the max elements no.
+     * Sets the max elements no.
      *
      * @param maxElelements max elements no
      */
@@ -202,7 +202,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the min elements no.
+     * Returns the min elements no.
      *
      * @return the min elements no
      */
@@ -211,7 +211,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the min elements no.
+     * Sets the min elements no.
      *
      * @param minElements the min elements no
      */
@@ -220,7 +220,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -230,7 +230,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -240,7 +240,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the status.
+     * Returns the status.
      *
      * @return the status
      */
@@ -250,7 +250,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */
@@ -260,7 +260,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the units.
+     * Returns the units.
      *
      * @return the units
      */
@@ -269,7 +269,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the units.
+     * Sets the units.
      *
      * @param units the units to set
      */
@@ -278,7 +278,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the data type.
+     * Returns the data type.
      *
      * @return the data type
      */
@@ -287,7 +287,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the data type.
+     * Sets the data type.
      *
      * @param dataType the data type to set
      */
@@ -306,7 +306,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -317,7 +317,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

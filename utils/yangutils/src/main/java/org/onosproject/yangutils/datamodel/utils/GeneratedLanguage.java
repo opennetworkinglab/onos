@@ -16,7 +16,7 @@
 package org.onosproject.yangutils.datamodel.utils;
 
 /**
- * The target language in which the YANG information is modeled.
+ * Represents the target language in which the YANG information is modeled.
  */
 public enum GeneratedLanguage {
     /**

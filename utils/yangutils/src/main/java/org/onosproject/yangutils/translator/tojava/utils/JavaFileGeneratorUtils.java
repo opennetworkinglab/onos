@@ -57,12 +57,12 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INT
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
 
 /**
- * Provides utilities for java file generator.
+ * Represents utilities for java file generator.
  */
 public final class JavaFileGeneratorUtils {
 
     /**
-     * Default constructor.
+     * Creates an instance of java file generator util.
      */
     private JavaFileGeneratorUtils() {
     }
@@ -82,7 +82,7 @@ public final class JavaFileGeneratorUtils {
     }
 
     /**
-     * Return data stored in temporary files.
+     * Returns data stored in temporary files.
      *
      * @param generatedTempFiles temporary file types
      * @param curNode current YANG node
@@ -126,7 +126,7 @@ public final class JavaFileGeneratorUtils {
     }
 
     /**
-     * Initiate generation of file based on generated file type.
+     * Initiates generation of file based on generated file type.
      *
      * @param file generated file
      * @param className generated file class name
@@ -232,7 +232,7 @@ public final class JavaFileGeneratorUtils {
     }
 
     /**
-     * Write data to the specific generated file.
+     * Writes data to the specific generated file.
      *
      * @param file generated file
      * @param fileName file name

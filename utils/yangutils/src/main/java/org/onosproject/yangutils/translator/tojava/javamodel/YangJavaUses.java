@@ -30,7 +30,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 
 /**
- * Uses information extended to support java code generation.
+ * Represents uses information extended to support java code generation.
  */
 public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJavaFileInfo, HasJavaImportData {
 
@@ -46,7 +46,7 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
     private JavaImportData javaImportData;
 
     /**
-     * Default constructor.
+     * Creates YANG java uses object.
      */
     public YangJavaUses() {
         super();
@@ -56,7 +56,7 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
     }
 
     /**
-     * Get the generated java file information.
+     * Returns the generated java file information.
      *
      * @return generated java file information
      */
@@ -70,7 +70,7 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
     }
 
     /**
-     * Set the java file info object.
+     * Sets the java file info object.
      *
      * @param javaInfo java file info object
      */
@@ -80,7 +80,7 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
     }
 
     /**
-     * Get the data of java imports to be included in generated file.
+     * Returns the data of java imports to be included in generated file.
      *
      * @return data of java imports to be included in generated file
      */
@@ -90,7 +90,7 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
     }
 
     /**
-     * Set the data of java imports to be included in generated file.
+     * Sets the data of java imports to be included in generated file.
      *
      * @param javaImportData data of java imports to be included in generated
      *            file

@@ -16,10 +16,10 @@
 
 package org.onosproject.yangutils.parser;
 
+import java.io.IOException;
+
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
-
-import java.io.IOException;
 
 /**
  * Abstraction of entity which provides parser service of YANG files for yangutils-maven-plugin.
@@ -27,7 +27,7 @@ import java.io.IOException;
 public interface YangUtilsParser {
 
     /**
-     * It is an entry function to initiate the YANG file parsing.
+     * Returns the data model node. It is an entry function to initiate the YANG file parsing.
      *
      * @param file input YANG file
      * @return YangNode root node of the data model tree

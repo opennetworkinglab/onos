@@ -14,7 +14,7 @@ limitations under the License.*/
 package org.onosproject.yangutils.datamodel;
 
 /**
- * Single interval information of a range.
+ * Represents single interval information of a range.
  *
  * @param <T> range type based on the data type.
  */
@@ -31,13 +31,13 @@ public class YangRangeInterval<T extends Comparable<T>> {
     private T endValue;
 
     /**
-     * Default constructor.
+     * Creates YANG range interval object.
      */
     public YangRangeInterval() {
     }
 
     /**
-     * Get the starting value of the range interval.
+     * Returns the starting value of the range interval.
      *
      * @return the starting value of the range interval.
      */
@@ -46,7 +46,7 @@ public class YangRangeInterval<T extends Comparable<T>> {
     }
 
     /**
-     * Set the starting value of the range interval.
+     * Sets the starting value of the range interval.
      *
      * @param startValue the starting value of the range interval.
      */
@@ -55,7 +55,7 @@ public class YangRangeInterval<T extends Comparable<T>> {
     }
 
     /**
-     * Get the last value of the range interval.
+     * Returns the last value of the range interval.
      *
      * @return last value of the range interval.
      */
@@ -64,7 +64,7 @@ public class YangRangeInterval<T extends Comparable<T>> {
     }
 
     /**
-     * Set the last value of the range interval.
+     * Sets the last value of the range interval.
      *
      * @param endValue last value of the range interval.
      */

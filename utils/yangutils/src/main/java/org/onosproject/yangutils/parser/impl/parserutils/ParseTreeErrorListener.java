@@ -22,6 +22,7 @@ import org.antlr.v4.runtime.Recognizer;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 
 /**
+ * Represent the parse tree error listener.
  * By default, ANTLR sends all errors to standard error, this is changed by
  * providing this new implementation of interface ANTLRErrorListener. The
  * interface has a syntaxError() method that applies to both lexer and parser.

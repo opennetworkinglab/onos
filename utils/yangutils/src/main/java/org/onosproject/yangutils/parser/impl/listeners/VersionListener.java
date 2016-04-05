@@ -65,7 +65,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
  */
 
 /**
- * Implements listener based call back function corresponding to the "version"
+ * Represents listener based call back function corresponding to the "version"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class VersionListener {
@@ -94,19 +94,19 @@ public final class VersionListener {
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getYangConstructType()) {
-        case MODULE_DATA: {
-            YangModule module = (YangModule) tmpNode;
-            module.setVersion(version);
-            break;
-        }
-        case SUB_MODULE_DATA: {
-            YangSubModule subModule = (YangSubModule) tmpNode;
-            subModule.setVersion(version);
-            break;
-        }
-        default:
-            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, VERSION_DATA,
-                                                                    ctx.version().getText(), ENTRY));
+            case MODULE_DATA: {
+                YangModule module = (YangModule) tmpNode;
+                module.setVersion(version);
+                break;
+            }
+            case SUB_MODULE_DATA: {
+                YangSubModule subModule = (YangSubModule) tmpNode;
+                subModule.setVersion(version);
+                break;
+            }
+            default:
+                throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, VERSION_DATA,
+                        ctx.version().getText(), ENTRY));
         }
     }
 }

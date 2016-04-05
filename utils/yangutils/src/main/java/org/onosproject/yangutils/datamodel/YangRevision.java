@@ -40,7 +40,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *                +--------------+---------+-------------+------------------+
  */
 /**
- * Maintains the information about the revision.
+ * Represents the information about the revision.
  */
 public class YangRevision implements YangDesc, YangReference, Parsable {
 
@@ -60,13 +60,13 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
     private String reference;
 
     /**
-     * Default constructor.
+     * Creates a YANG revision object.
      */
     public YangRevision() {
     }
 
     /**
-     * Get the revision date.
+     * Returns the revision date.
      *
      * @return the revision date
      */
@@ -75,7 +75,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Set the revision date.
+     * Sets the revision date.
      *
      * @param revDate the revision date to set
      */
@@ -84,7 +84,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -94,7 +94,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -104,7 +104,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -114,7 +114,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -134,7 +134,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -145,7 +145,7 @@ public class YangRevision implements YangDesc, YangReference, Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

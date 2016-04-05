@@ -56,7 +56,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.INCLUDE_DATA;
  */
 
 /**
- * Implements listener based call back function corresponding to the "include"
+ * Represents listener based call back function corresponding to the "include"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class IncludeListener {
@@ -110,20 +110,20 @@ public final class IncludeListener {
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getYangConstructType()) {
-            case MODULE_DATA: {
-                YangModule module = (YangModule) tmpNode;
-                module.addToIncludeList((YangInclude) tmpIncludeNode);
-                break;
-            }
-            case SUB_MODULE_DATA: {
-                YangSubModule subModule = (YangSubModule) tmpNode;
-                subModule.addToIncludeList((YangInclude) tmpIncludeNode);
-                break;
-            }
-            default:
-                throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, INCLUDE_DATA,
-                                                                        ctx.identifier().getText(),
-                                                                        EXIT));
+                case MODULE_DATA: {
+                    YangModule module = (YangModule) tmpNode;
+                    module.addToIncludeList((YangInclude) tmpIncludeNode);
+                    break;
+                }
+                case SUB_MODULE_DATA: {
+                    YangSubModule subModule = (YangSubModule) tmpNode;
+                    subModule.addToIncludeList((YangInclude) tmpIncludeNode);
+                    break;
+                }
+                default:
+                    throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, INCLUDE_DATA,
+                            ctx.identifier().getText(),
+                            EXIT));
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, INCLUDE_DATA,

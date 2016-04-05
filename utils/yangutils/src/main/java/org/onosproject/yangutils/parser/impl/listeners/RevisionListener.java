@@ -24,16 +24,16 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.isDateValid;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
-import static org.onosproject.yangutils.utils.YangConstructType.REVISION_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.isDateValid;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.utils.YangConstructType.REVISION_DATA;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -64,7 +64,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
  */
 
 /**
- * Implements listener based call back function corresponding to the "revision"
+ * Represents listener based call back function corresponding to the "revision"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class RevisionListener {
@@ -132,20 +132,20 @@ public final class RevisionListener {
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getYangConstructType()) {
-            case MODULE_DATA: {
-                YangModule module = (YangModule) tmpNode;
-                module.setRevision((YangRevision) tmpRevisionNode);
-                break;
-            }
-            case SUB_MODULE_DATA: {
-                YangSubModule subModule = (YangSubModule) tmpNode;
-                subModule.setRevision((YangRevision) tmpRevisionNode);
-                break;
-            }
-            default:
-                throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, REVISION_DATA,
-                                                                        ctx.dateArgumentString().getText(),
-                                                                        EXIT));
+                case MODULE_DATA: {
+                    YangModule module = (YangModule) tmpNode;
+                    module.setRevision((YangRevision) tmpRevisionNode);
+                    break;
+                }
+                case SUB_MODULE_DATA: {
+                    YangSubModule subModule = (YangSubModule) tmpNode;
+                    subModule.setRevision((YangRevision) tmpRevisionNode);
+                    break;
+                }
+                default:
+                    throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, REVISION_DATA,
+                            ctx.dateArgumentString().getText(),
+                            EXIT));
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, REVISION_DATA,

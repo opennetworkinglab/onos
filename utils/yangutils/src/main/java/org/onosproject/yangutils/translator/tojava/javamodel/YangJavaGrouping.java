@@ -35,7 +35,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
- * Grouping information extended to support java code generation.
+ * Represents grouping information extended to support java code generation.
  */
 public class YangJavaGrouping extends YangGrouping
         implements JavaCodeGenerator, HasJavaFileInfo,
@@ -59,7 +59,7 @@ public class YangJavaGrouping extends YangGrouping
     private TempJavaCodeFragmentFiles tempFileHandle;
 
     /**
-     * Default constructor.
+     * Creates YANG java grouping object.
      */
     public YangJavaGrouping() {
         super();
@@ -69,7 +69,7 @@ public class YangJavaGrouping extends YangGrouping
     }
 
     /**
-     * Get the generated java file information.
+     * Returns the generated java file information.
      *
      * @return generated java file information
      */
@@ -83,7 +83,7 @@ public class YangJavaGrouping extends YangGrouping
     }
 
     /**
-     * Set the java file info object.
+     * Sets the java file info object.
      *
      * @param javaInfo java file info object
      */
@@ -93,7 +93,7 @@ public class YangJavaGrouping extends YangGrouping
     }
 
     /**
-     * Get the data of java imports to be included in generated file.
+     * Returns the data of java imports to be included in generated file.
      *
      * @return data of java imports to be included in generated file
      */
@@ -103,7 +103,7 @@ public class YangJavaGrouping extends YangGrouping
     }
 
     /**
-     * Set the data of java imports to be included in generated file.
+     * Sets the data of java imports to be included in generated file.
      *
      * @param javaImportData data of java imports to be included in generated
      *            file
@@ -114,7 +114,7 @@ public class YangJavaGrouping extends YangGrouping
     }
 
     /**
-     * Get the temporary file handle.
+     * Returns the temporary file handle.
      *
      * @return temporary file handle
      */
@@ -124,7 +124,7 @@ public class YangJavaGrouping extends YangGrouping
     }
 
     /**
-     * Set temporary file handle.
+     * Sets temporary file handle.
      *
      * @param fileHandle temporary file handle
      */

@@ -32,7 +32,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  */
 
 /**
- * Maintains the bits data type information.
+ * Represents the bits data type information.
  */
 public class YangBits implements Parsable {
 
@@ -43,7 +43,7 @@ public class YangBits implements Parsable {
     private String bitsName;
 
     /**
-     * Create a YANG bits type object.
+     * Creates a YANG bits type object.
      */
     public YangBits() {
         setBitSet(new HashSet<YangBit>());
@@ -59,7 +59,7 @@ public class YangBits implements Parsable {
     }
 
     /**
-     * Set the bit set.
+     * Sets the bit set.
      *
      * @param bitSet the bit set
      */
@@ -68,7 +68,7 @@ public class YangBits implements Parsable {
     }
 
     /**
-     * Add bit info.
+     * Adds bit info.
      *
      * @param bitInfo the bit information to be added
      * @throws DataModelException due to violation in data model rules
@@ -100,7 +100,7 @@ public class YangBits implements Parsable {
     }
 
     /**
-     * Set bits name.
+     * Sets bits name.
      *
      * @param bitsName bit name to be set
      */
@@ -109,7 +109,7 @@ public class YangBits implements Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -119,7 +119,7 @@ public class YangBits implements Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

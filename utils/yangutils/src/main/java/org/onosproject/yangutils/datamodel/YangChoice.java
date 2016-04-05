@@ -57,7 +57,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.CHOICE_DATA;
  *                +--------------+---------+-------------+------------------+
  */
 /**
- * Data model node to maintain information defined in YANG choice.
+ * Represents data model node to maintain information defined in YANG choice.
  */
 public class YangChoice extends YangNode implements YangCommonInfo, Parsable, CollisionDetector {
 
@@ -141,7 +141,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Get the choice name.
+     * Returns the choice name.
      *
      * @return choice name
      */
@@ -151,7 +151,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Set the choice name.
+     * Sets the choice name.
      *
      * @param name choice name
      */
@@ -161,7 +161,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Get config flag.
+     * Returns config flag.
      *
      * @return the config flag
      */
@@ -170,7 +170,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Set config flag.
+     * Sets config flag.
      *
      * @param isCfg the config flag
      */
@@ -179,7 +179,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Get the default case.
+     * Returns the default case.
      *
      * @return the default case
      */
@@ -188,7 +188,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Set the default case.
+     * Sets the default case.
      *
      * @param defaultCase the default case to set
      */
@@ -197,7 +197,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Get the mandatory status.
+     * Returns the mandatory status.
      *
      * @return the mandatory status
      */
@@ -206,7 +206,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Set the mandatory status.
+     * Sets the mandatory status.
      *
      * @param mandatory the mandatory status
      */
@@ -215,7 +215,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -225,7 +225,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -235,7 +235,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -245,7 +245,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -255,7 +255,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Get the status.
+     * Returns the status.
      *
      * @return the status
      */
@@ -265,7 +265,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */
@@ -285,7 +285,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -295,7 +295,7 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

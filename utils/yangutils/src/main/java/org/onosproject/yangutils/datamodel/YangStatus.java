@@ -18,15 +18,16 @@ package org.onosproject.yangutils.datamodel;
  * translator processing of status.
  */
 public interface YangStatus {
+
     /**
-     * Get the status.
+     * Returns the status.
      *
      * @return the status
      */
     YangStatusType getStatus();
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */

@@ -17,12 +17,12 @@
 package org.onosproject.yangutils.translator.tojava;
 
 /**
- * Type of files generated.
+ * Represents type of temporary files generated.
  */
 public final class GeneratedTempFileType {
 
     /**
-     * prevent creating attributes.
+     * Creates an instance of generated temp file type.
      */
     private GeneratedTempFileType() {
     }

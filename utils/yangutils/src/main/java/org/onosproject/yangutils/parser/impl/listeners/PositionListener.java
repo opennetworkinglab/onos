@@ -50,7 +50,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
 import static org.onosproject.yangutils.utils.YangConstructType.POSITION_DATA;
 
 /**
- * Implements listener based call back function corresponding to the "position"
+ * Represents listener based call back function corresponding to the "position"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class PositionListener {

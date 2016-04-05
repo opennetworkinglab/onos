@@ -54,8 +54,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *       +--------------+---------+-------------+------------------+
  */
 /**
- * Leaf data represented in YANG.
- *
+ * Represents leaf data represented in YANG.
  */
 public class YangLeaf implements YangCommonInfo, Parsable {
 
@@ -100,13 +99,13 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     private YangType<?> dataType;
 
     /**
-     * Default constructor to create a YANG leaf.
+     * Creates a YANG leaf.
      */
     public YangLeaf() {
     }
 
     /**
-     * Get the name of leaf.
+     * Returns the name of leaf.
      *
      * @return the leaf name
      */
@@ -115,7 +114,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the name of leaf.
+     * Sets the name of leaf.
      *
      * @param leafName the leaf name to set
      */
@@ -124,7 +123,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the config flag.
+     * Returns the config flag.
      *
      * @return if config flag
      */
@@ -133,7 +132,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the config flag.
+     * Sets the config flag.
      *
      * @param isCfg the flag value to set
      */
@@ -142,7 +141,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -152,7 +151,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -162,7 +161,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get if the leaf is mandatory.
+     * Returns if the leaf is mandatory.
      *
      * @return if leaf is mandatory
      */
@@ -171,7 +170,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set if the leaf is mandatory.
+     * Sets if the leaf is mandatory.
      *
      * @param isReq if the leaf is mandatory
      */
@@ -180,7 +179,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -190,7 +189,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -200,7 +199,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the status.
+     * Returns the status.
      *
      * @return the status
      */
@@ -210,7 +209,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */
@@ -220,7 +219,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the units.
+     * Returns the units.
      *
      * @return the units
      */
@@ -229,7 +228,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the units.
+     * Sets the units.
      *
      * @param units the units to set
      */
@@ -238,7 +237,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the data type.
+     * Returns the data type.
      *
      * @return the data type
      */
@@ -247,7 +246,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the data type.
+     * Sets the data type.
      *
      * @param dataType the data type to set
      */
@@ -266,7 +265,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -277,7 +276,7 @@ public class YangLeaf implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

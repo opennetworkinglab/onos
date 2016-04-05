@@ -16,7 +16,7 @@
 package org.onosproject.yangutils.utils;
 
 /**
- * ENUM to represent the type of data in parse tree.
+ * Represents ENUM to represent the type of data in parse tree.
  */
 public enum YangConstructType {
     /**

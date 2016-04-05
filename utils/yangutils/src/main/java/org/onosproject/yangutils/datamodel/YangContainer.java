@@ -85,7 +85,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  */
 
 /**
- * Data model node to maintain information defined in YANG container.
+ * Represents data model node to maintain information defined in YANG container.
  */
 public class YangContainer extends YangNode implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
 
@@ -138,7 +138,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Get the YANG name of container.
+     * Returns the YANG name of container.
      *
      * @return the name of container as defined in YANG file
      */
@@ -148,7 +148,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Set the YANG name of container.
+     * Sets the YANG name of container.
      *
      * @param name the name of container as defined in YANG file
      */
@@ -158,7 +158,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Get the config flag.
+     * Returns the config flag.
      *
      * @return the isConfig
      */
@@ -167,7 +167,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Set the config flag.
+     * Sets the config flag.
      *
      * @param isCfg the config flag
      */
@@ -176,7 +176,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -186,7 +186,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -196,7 +196,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Get the list of leaves.
+     * Returns the list of leaves.
      *
      * @return the list of leaves
      */
@@ -206,7 +206,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Set the list of leaves.
+     * Sets the list of leaves.
      *
      * @param leafsList the list of leaf to set
      */
@@ -215,12 +215,13 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Add a leaf.
+     * Adds a leaf.
      *
      * @param leaf the leaf to be added
      */
     @Override
     public void addLeaf(YangLeaf leaf) {
+
         if (getListOfLeaf() == null) {
             setListOfLeaf(new LinkedList<YangLeaf>());
         }
@@ -229,7 +230,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Get the list of leaf-list.
+     * Returns the list of leaf-list.
      *
      * @return the list of leaf-list
      */
@@ -239,7 +240,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Set the list of leaf-list.
+     * Sets the list of leaf-list.
      *
      * @param listOfLeafList the list of leaf-list to set
      */
@@ -248,12 +249,13 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Add a leaf-list.
+     * Adds a leaf-list.
      *
      * @param leafList the leaf-list to be added
      */
     @Override
     public void addLeafList(YangLeafList leafList) {
+
         if (getListOfLeafList() == null) {
             setListOfLeafList(new LinkedList<YangLeafList>());
         }
@@ -262,7 +264,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Get the presence string if present.
+     * Returns the presence string if present.
      *
      * @return the presence
      */
@@ -271,7 +273,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Set the presence string.
+     * Sets the presence string.
      *
      * @param presence the presence flag
      */
@@ -280,7 +282,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -290,7 +292,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -300,7 +302,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Get the status.
+     * Returns the status.
      *
      * @return the status
      */
@@ -310,7 +312,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */
@@ -330,7 +332,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -340,7 +342,7 @@ public class YangContainer extends YangNode implements YangLeavesHolder, YangCom
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

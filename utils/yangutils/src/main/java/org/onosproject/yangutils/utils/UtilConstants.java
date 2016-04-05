@@ -21,12 +21,12 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Provides utility constants while generating java files.
+ * Represents utilities constants which are used while generating java files.
  */
 public final class UtilConstants {
 
     /**
-     * Default constructor.
+     * Creates an instance of util constants.
      */
     private UtilConstants() {
     }

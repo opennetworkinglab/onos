@@ -17,10 +17,11 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.util.Stack;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 
 /**
- * Resolution object which will be resolved by linker.
+ * Represents resolution object which will be resolved by linker.
  */
 public class YangResolutionInfo<T> {
 
@@ -43,8 +44,8 @@ public class YangResolutionInfo<T> {
     private boolean isResolved;
 
     /*
-     * Stack for type/uses is maintained for hierarchical references, this
-     * is used during resolution.
+     * Stack for type/uses is maintained for hierarchical references, this is
+     * used during resolution.
      */
     private Stack<T> partialResolvedStack;
 
@@ -72,8 +73,8 @@ public class YangResolutionInfo<T> {
      * @param charPositionInLine error character position in line
      */
     public YangResolutionInfo(T dataNode, ResolutionType resolutionType,
-                              YangNode holderNode, String prefix, int lineNumber,
-                              int charPositionInLine) {
+            YangNode holderNode, String prefix, int lineNumber,
+            int charPositionInLine) {
         this.setHolderOfEntityToResolve(holderNode);
         this.setEntityToResolve(dataNode);
         this.setPrefix(prefix);
@@ -92,8 +93,8 @@ public class YangResolutionInfo<T> {
      * @param charPositionInLine error character position in line
      */
     public YangResolutionInfo(T dataNode, ResolutionType resolutionType,
-                              YangNode holderNode, int lineNumber,
-                              int charPositionInLine) {
+            YangNode holderNode, int lineNumber,
+            int charPositionInLine) {
         this.setHolderOfEntityToResolve(holderNode);
         this.setEntityToResolve(dataNode);
         this.setLineNumber(lineNumber);
@@ -106,7 +107,7 @@ public class YangResolutionInfo<T> {
      * @param resolutionInfoNodePrefix module/sub-module prefix
      * @throws DataModelException DataModelException a violation of data model rules
      */
-    public void resolveLinkingForResolutionInfo(String resolutionInfoNodePrefix)  throws DataModelException {
+    public void resolveLinkingForResolutionInfo(String resolutionInfoNodePrefix) throws DataModelException {
 
         this.resolutionInfoRootNodePrefix = resolutionInfoNodePrefix;
 
@@ -177,8 +178,8 @@ public class YangResolutionInfo<T> {
             }
             if (isMoreReferenceDetected) {
                 /*
-                 * If more reference are present, tree traversal must start
-                 * from first child again, to check the availability of
+                 * If more reference are present, tree traversal must start from
+                 * first child again, to check the availability of
                  * typedef/grouping.
                  */
                 node = parentNode.getChild();
@@ -197,14 +198,14 @@ public class YangResolutionInfo<T> {
      * @return flag to indicate whether resolution is done
      * @throws DataModelException a violation of data model rules
      */
-    private boolean resolveLinkingForNode(YangNode node, YangNode parentNode) throws
-            DataModelException {
+    private boolean resolveLinkingForNode(YangNode node, YangNode parentNode) throws DataModelException {
+
         /*
-         * Check if name of node name matches with the entity name
-         * under resolution.
+         * Check if name of node name matches with the entity name under
+         * resolution.
          */
         if (isNodeNameSameAsResolutionInfoName(node)) {
-            // Add reference of entity to the node under resolution.
+            // Adds reference of entity to the node under resolution.
             addReferredEntityLink(node);
             // Check if referred entity has further reference to uses/type.
             if (!(isMoreReferencePresent(node))) {
@@ -212,7 +213,7 @@ public class YangResolutionInfo<T> {
                 resolveStackAndAddToStack(node);
                 return true;
             } else {
-                // Add referred type/uses to the stack.
+                // Adds referred type/uses to the stack.
                 addToPartialResolvedStack(node);
                 /*
                  * Check whether referred type is resolved, partially resolved
@@ -230,25 +231,25 @@ public class YangResolutionInfo<T> {
                     updateResolutionTypeToPartial();
                     return true;
                 } else {
-                /*
-                 * Check if prefix is present to find that the derived
-                 * reference is for intra file or inter file, if it's
-                 * inter-file return and stop further processing.
-                 */
+                    /*
+                     * Check if prefix is present to find that the derived
+                     * reference is for intra file or inter file, if it's
+                     * inter-file return and stop further processing.
+                     */
                     if (isExternalPrefixPresent(node)) {
                         /*
-                         * Update the resolution type to partially resolved for all
-                         * type/uses in stack
+                         * Update the resolution type to partially resolved for
+                         * all type/uses in stack
                          */
                         updateResolutionTypeToPartial();
                         return true;
                     } else {
-                    /*
-                     * If prefix is not present it indicates intra-file
-                     * dependency in this case set the node back to first
-                     * child, as referred entity may appear in any order
-                     * and continue with the resolution.
-                     */
+                        /*
+                         * If prefix is not present it indicates intra-file
+                         * dependency in this case set the node back to first
+                         * child, as referred entity may appear in any order and
+                         * continue with the resolution.
+                         */
                         isMoreReferenceDetected = true;
                         return false;
                     }
@@ -265,26 +266,26 @@ public class YangResolutionInfo<T> {
      */
     private void updateResolutionTypeToPartial() throws DataModelException {
         // For all entries in stack calls for the resolution in type/uses.
-        for (T entity:getPartialResolvedStack()) {
+        for (T entity : getPartialResolvedStack()) {
             if (!(entity instanceof Resolvable)) {
                 throw new DataModelException("Data Model Exception: Entity to resolved is other than type/uses");
             }
             if (((Resolvable) entity).getResolvableStatus() == ResolvableStatus.UNRESOLVED) {
-                // Set the resolution status in inside the type/uses.
+                // Sets the resolution status in inside the type/uses.
                 ((Resolvable) entity).setResolvableStatus(ResolvableStatus.PARTIALLY_RESOLVED);
             }
         }
     }
 
     /**
-     * Add referred type/uses to the stack and resolve the stack.
+     * Adds referred type/uses to the stack and resolve the stack.
      *
      * @param node typedef/grouping node
      * @throws DataModelException a violation of data model rules
      */
     private void resolveStackAndAddToStack(YangNode node) throws DataModelException {
         if (getEntityToResolve() instanceof YangType) {
-            // Add to the stack only for YANG typedef.
+            // Adds to the stack only for YANG typedef.
             getPartialResolvedStack().push((T) ((YangTypeDef) node).getDataType());
         }
         // Don't add to stack in case of YANG grouping.
@@ -303,13 +304,13 @@ public class YangResolutionInfo<T> {
             /*
              * Checks if type is partially resolved.
              */
-            if (((YangType) getPartialResolvedStack().peek()).getResolvableStatus() ==
-                    ResolvableStatus.PARTIALLY_RESOLVED) {
+            if (((YangType) getPartialResolvedStack().peek())
+                    .getResolvableStatus() == ResolvableStatus.PARTIALLY_RESOLVED) {
                 return true;
             }
         } else if (getPartialResolvedStack().peek() instanceof YangUses) {
-            if (((YangUses) getPartialResolvedStack().peek()).getResolvableStatus() ==
-                    ResolvableStatus.PARTIALLY_RESOLVED) {
+            if (((YangUses) getPartialResolvedStack().peek())
+                    .getResolvableStatus() == ResolvableStatus.PARTIALLY_RESOLVED) {
                 return true;
             }
         }
@@ -326,13 +327,11 @@ public class YangResolutionInfo<T> {
             /*
              * Checks if type is partially resolved.
              */
-            if (((YangType) getPartialResolvedStack().peek()).getResolvableStatus() ==
-                    ResolvableStatus.RESOLVED) {
+            if (((YangType) getPartialResolvedStack().peek()).getResolvableStatus() == ResolvableStatus.RESOLVED) {
                 return true;
             }
         } else if (getPartialResolvedStack().peek() instanceof YangUses) {
-            if (((YangUses) getPartialResolvedStack().peek()).getResolvableStatus() ==
-                    ResolvableStatus.RESOLVED) {
+            if (((YangUses) getPartialResolvedStack().peek()).getResolvableStatus() == ResolvableStatus.RESOLVED) {
                 return true;
             }
         }
@@ -361,7 +360,6 @@ public class YangResolutionInfo<T> {
         return false;
     }
 
-
     /**
      * Check if node name is same as name in resolution info, i.e. name of
      * typedef/grouping is same as name of type/uses.
@@ -387,7 +385,7 @@ public class YangResolutionInfo<T> {
     }
 
     /**
-     * Add reference of grouping/typedef in uses/type.
+     * Adds reference of grouping/typedef in uses/type.
      *
      * @param node grouping/typedef node
      * @throws DataModelException a violation of data model rules
@@ -457,30 +455,30 @@ public class YangResolutionInfo<T> {
      */
     private void resolveCompleteStack() throws DataModelException {
         // For all entries in stack calls for the resolution in type/uses.
-        for (T entity:getPartialResolvedStack()) {
+        for (T entity : getPartialResolvedStack()) {
             if (!(entity instanceof Resolvable)) {
                 throw new DataModelException("Data Model Exception: Entity to resolved is other than type/uses");
             }
             ((Resolvable) entity).resolve();
-            // Set the resolution status in inside the type/uses.
+            // Sets the resolution status in inside the type/uses.
             ((Resolvable) entity).setResolvableStatus(ResolvableStatus.RESOLVED);
         }
         /*
-         * Set the resolution status in resolution info present in resolution
+         * Sets the resolution status in resolution info present in resolution
          * list.
          */
         setIsResolved(true);
     }
 
     /**
-     * Add to partial resolved stack.
+     * Adds to partial resolved stack.
      *
      * @param node grouping/typedef node
      * @throws DataModelException a violation of data model rules
      */
     private void addToPartialResolvedStack(YangNode node) throws DataModelException {
         if (getPartialResolvedStack().peek() instanceof YangType) {
-            // Add to the stack only for YANG typedef.
+            // Adds to the stack only for YANG typedef.
             getPartialResolvedStack().push((T) ((YangTypeDef) node).getDataType());
         } else if (getPartialResolvedStack().peek() instanceof YangUses) {
             getPartialResolvedStack().push((T) getUsesInGrouping(node));
@@ -522,7 +520,7 @@ public class YangResolutionInfo<T> {
     }
 
     /**
-     * Set prefix of imported module.
+     * Sets prefix of imported module.
      *
      * @param prefix of imported module
      */
@@ -540,7 +538,7 @@ public class YangResolutionInfo<T> {
     }
 
     /**
-     * Set parsable entity to be resolved.
+     * Sets parsable entity to be resolved.
      *
      * @param entityToResolve YANG entity to be resolved
      */
@@ -558,7 +556,7 @@ public class YangResolutionInfo<T> {
     }
 
     /**
-     * Set parent YANG node holder for the entity to be resolved.
+     * Sets parent YANG node holder for the entity to be resolved.
      *
      * @param holderOfEntityToResolve parent YANG node holder
      */
@@ -576,7 +574,7 @@ public class YangResolutionInfo<T> {
     }
 
     /**
-     * Set error position.
+     * Sets error position.
      *
      * @param charPosition position of error
      */
@@ -594,7 +592,7 @@ public class YangResolutionInfo<T> {
     }
 
     /**
-     * Set error character position in line.
+     * Sets error character position in line.
      *
      * @param lineNumber error character position in line
      */
@@ -612,7 +610,7 @@ public class YangResolutionInfo<T> {
     }
 
     /**
-     * Set status of resolution.
+     * Sets status of resolution.
      *
      * @param isResolved resolution status
      */
@@ -630,7 +628,7 @@ public class YangResolutionInfo<T> {
     }
 
     /**
-     * Set stack of YANG type with partially resolved YANG construct hierarchy.
+     * Sets stack of YANG type with partially resolved YANG construct hierarchy.
      *
      * @param partialResolvedStack partial resolved YANG construct stack
      */

@@ -26,7 +26,7 @@ import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
 import com.google.common.base.MoreObjects;
 
 /**
- * Maintains the information about individual imports in the generated file.
+ * Represents the information about individual imports in the generated file.
  */
 public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> {
 
@@ -41,13 +41,13 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     private String classInfo;
 
     /**
-     * Default constructor.
+     * Creates a java qualified type info object.
      */
     public JavaQualifiedTypeInfo() {
     }
 
     /**
-     * Get the imported package info.
+     * Returns the imported package info.
      *
      * @return the imported package info
      */
@@ -56,7 +56,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
-     * Set the imported package info.
+     * Sets the imported package info.
      *
      * @param pkgInfo the imported package info
      */
@@ -65,7 +65,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
-     * Get the imported class/interface info.
+     * Returns the imported class/interface info.
      *
      * @return the imported class/interface info
      */
@@ -74,7 +74,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
-     * Set the imported class/interface info.
+     * Sets the imported class/interface info.
      *
      * @param classInfo the imported class/interface info
      */
@@ -83,7 +83,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
-     * Get the import info for an attribute, which needs to be used for code
+     * Returns the import info for an attribute, which needs to be used for code
      * generation for import or for qualified access.
      *
      * @param curNode current data model node for which the java file is being
@@ -136,7 +136,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
-     * Get the import info for an attribute, which needs to be used for code
+     * Returns the import info for an attribute, which needs to be used for code
      * generation for import or for qualified access.
      *
      * @param curNode current data model node for which the java file is being
@@ -168,7 +168,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
-     * Get if the attribute needs to be accessed in a qualified manner or not,
+     * Returns if the attribute needs to be accessed in a qualified manner or not,
      * if it needs to be imported, then the same needs to be done.
      *
      * @param curNode current cache of the data model node for which java file
@@ -226,7 +226,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
-     * Check if the import info is same as the package of the current generated
+     * Checks if the import info is same as the package of the current generated
      * java file.
      *
      * @param curNode Java identifier of the current data model node
@@ -265,7 +265,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
-     * check if the import info matches.
+     * checks if the import info matches.
      *
      * @param importInfo matched import
      * @return if equal or not
@@ -284,7 +284,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
-     * Check that there is no 2 objects with the same class name.
+     * Checks that there is no 2 objects with the same class name.
      *
      * @param other compared import info.
      */

@@ -82,7 +82,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 
 /**
- * Implements listener based call back function corresponding to the "bit"
+ * Represents listener based call back function corresponding to the "bit"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class BitListener {

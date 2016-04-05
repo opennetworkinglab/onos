@@ -57,7 +57,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.BELONGS_TO_DATA;
  */
 
 /**
- * Implements listener based call back function corresponding to the
+ * Represents listener based call back function corresponding to the
  * "belongs to" rule defined in ANTLR grammar file for corresponding ABNF rule
  * in RFC 6020.
  */
@@ -116,16 +116,16 @@ public final class BelongsToListener {
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getYangConstructType()) {
-            case SUB_MODULE_DATA: {
-                YangSubModule subModule = (YangSubModule) tmpNode;
-                subModule.setBelongsTo((YangBelongsTo) tmpBelongstoNode);
-                subModule.setPrefix(subModule.getBelongsTo().getPrefix());
-                break;
-            }
-            default:
-                throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, BELONGS_TO_DATA,
-                                                                        ctx.identifier().getText(),
-                                                                        EXIT));
+                case SUB_MODULE_DATA: {
+                    YangSubModule subModule = (YangSubModule) tmpNode;
+                    subModule.setBelongsTo((YangBelongsTo) tmpBelongstoNode);
+                    subModule.setPrefix(subModule.getBelongsTo().getPrefix());
+                    break;
+                }
+                default:
+                    throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, BELONGS_TO_DATA,
+                            ctx.identifier().getText(),
+                            EXIT));
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, BELONGS_TO_DATA,

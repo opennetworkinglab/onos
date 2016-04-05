@@ -24,13 +24,13 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
-import static org.onosproject.yangutils.utils.YangConstructType.PREFIX_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.utils.YangConstructType.PREFIX_DATA;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -56,7 +56,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidati
  */
 
 /**
- * Implements listener based call back function corresponding to the "prefix"
+ * Represents listener based call back function corresponding to the "prefix"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class PrefixListener {
@@ -84,24 +84,24 @@ public final class PrefixListener {
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getYangConstructType()) {
-        case MODULE_DATA: {
-            YangModule module = (YangModule) tmpNode;
-            module.setPrefix(identifier);
-            break;
-        }
-        case IMPORT_DATA: {
-            YangImport importNode = (YangImport) tmpNode;
-            importNode.setPrefixId(identifier);
-            break;
-        }
-        case BELONGS_TO_DATA: {
-            YangBelongsTo belongstoNode = (YangBelongsTo) tmpNode;
-            belongstoNode.setPrefix(identifier);
-            break;
-        }
-        default:
-            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, PREFIX_DATA,
-                                                                    ctx.identifier().getText(), ENTRY));
+            case MODULE_DATA: {
+                YangModule module = (YangModule) tmpNode;
+                module.setPrefix(identifier);
+                break;
+            }
+            case IMPORT_DATA: {
+                YangImport importNode = (YangImport) tmpNode;
+                importNode.setPrefixId(identifier);
+                break;
+            }
+            case BELONGS_TO_DATA: {
+                YangBelongsTo belongstoNode = (YangBelongsTo) tmpNode;
+                belongstoNode.setPrefix(identifier);
+                break;
+            }
+            default:
+                throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, PREFIX_DATA,
+                        ctx.identifier().getText(), ENTRY));
         }
     }
 }

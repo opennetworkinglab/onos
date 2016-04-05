@@ -25,7 +25,7 @@ import java.math.BigInteger;
  *
  */
 /**
- * The restriction for string data type.
+ * Represents the restriction for string data type.
  */
 public class YangStringRestriction {
 
@@ -75,51 +75,51 @@ public class YangStringRestriction {
     private YangPatternRestriction patternRestriction;
 
     /**
-     * Default constructor.
+     * Creates a YANG string restriction object.
      */
     public YangStringRestriction() {
     }
 
     /**
-     * Get the length restriction on the string data.
+     * Returns the length restriction on the string data.
      *
-     * @return length restriction on the string data.
+     * @return length restriction on the string data
      */
     public YangRangeRestriction<BigInteger> getLengthRestriction() {
         return lengthRestriction;
     }
 
     /**
-     * Set the length restriction on the string data.
+     * Sets the length restriction on the string data.
      *
-     * @param lengthRestriction length restriction on the string data.
+     * @param lengthRestriction length restriction on the string data
      */
     public void setLengthRestriction(YangRangeRestriction<BigInteger> lengthRestriction) {
         this.lengthRestriction = lengthRestriction;
     }
 
     /**
-     * Get the pattern restriction for the type.
+     * Returns the pattern restriction for the type.
      *
-     * @return pattern restriction for the type.
+     * @return pattern restriction for the type
      */
     public YangPatternRestriction getPatternRestriction() {
         return patternRestriction;
     }
 
     /**
-     * Set the pattern restriction for the type.
+     * Sets the pattern restriction for the type.
      *
-     * @param patternRestriction pattern restriction for the type.
+     * @param patternRestriction pattern restriction for the type
      */
     private void setPatternRestriction(YangPatternRestriction patternRestriction) {
         this.patternRestriction = patternRestriction;
     }
 
     /**
-     * Add a new pattern restriction for the type.
+     * Adds a new pattern restriction for the type.
      *
-     * @param newPattern new pattern restriction for the type.
+     * @param newPattern new pattern restriction for the type
      */
     public void addPattern(String newPattern) {
         if (getPatternRestriction() == null) {

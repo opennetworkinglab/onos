@@ -16,11 +16,11 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import java.util.Objects;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
-
-import java.util.Objects;
 
 /*-
  * The "ENUM" statement, which is a sub-statement to the "type"
@@ -48,7 +48,7 @@ import java.util.Objects;
  */
 
 /**
- * Maintains the ENUM data type information.
+ * Represents the ENUM data type information.
  */
 public class YangEnum implements YangCommonInfo, Parsable {
 
@@ -85,7 +85,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the named value.
+     * Returns the named value.
      *
      * @return the named value
      */
@@ -94,7 +94,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the named value.
+     * Sets the named value.
      *
      * @param namedValue the named value to set
      */
@@ -103,7 +103,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the description.
+     * Returns the description.
      *
      * @return the description
      */
@@ -113,7 +113,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -123,7 +123,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the textual reference.
+     * Returns the textual reference.
      *
      * @return the reference
      */
@@ -133,7 +133,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -143,7 +143,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the status.
+     * Returns the status.
      *
      * @return the status
      */
@@ -153,7 +153,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */
@@ -163,7 +163,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Get the value.
+     * Returns the value.
      *
      * @return the value
      */
@@ -172,7 +172,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the value.
+     * Sets the value.
      *
      * @param value the value to set
      */
@@ -208,7 +208,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -218,7 +218,7 @@ public class YangEnum implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

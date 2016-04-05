@@ -38,7 +38,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.UNDER_SCORE;
 import static org.onosproject.yangutils.utils.UtilConstants.VERSION_PREFIX;
 
 /**
- * Utility Class for translating the name from YANG to java convention.
+ * Represents an utility Class for translating the name from YANG to java convention.
  */
 public final class JavaIdentifierSyntax {
 
@@ -51,13 +51,13 @@ public final class JavaIdentifierSyntax {
     private static final String ZERO = "0";
 
     /**
-     * Default constructor.
+     * Create instance of java identifier syntax.
      */
     private JavaIdentifierSyntax() {
     }
 
     /**
-     * Get the root package string.
+     * Returns the root package string.
      *
      * @param version YANG version
      * @param nameSpace name space of the module
@@ -79,7 +79,7 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Get the contained data model parent node.
+     * Returns the contained data model parent node.
      *
      * @param currentNode current node which parent contained node is required
      * @return parent node in which the current node is an attribute
@@ -95,7 +95,7 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Get the node package string.
+     * Returns the node package string.
      *
      * @param curNode current java node whose package string needs to be set
      * @return returns the root package string
@@ -128,12 +128,12 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Get package name from name space.
+     * Returns package name from name space.
      *
      * @param nameSpace name space of YANG module
      * @return java package name as per java rules
      */
-    public static String getPkgFromNameSpace(String nameSpace) {
+    private static String getPkgFromNameSpace(String nameSpace) {
 
         ArrayList<String> pkgArr = new ArrayList<String>();
         nameSpace = nameSpace.replace(QUOTES, EMPTY_STRING);
@@ -153,7 +153,7 @@ public final class JavaIdentifierSyntax {
      * @return revision string
      * @throws TranslatorException when date is invalid.
      */
-    public static String getYangRevisionStr(String date) throws TranslatorException {
+    private static String getYangRevisionStr(String date) throws TranslatorException {
 
         String[] revisionArr = date.split(HYPHEN);
 
@@ -183,7 +183,7 @@ public final class JavaIdentifierSyntax {
      * @param pkgArr package array
      * @return package string
      */
-    public static String getPkgFrmArr(ArrayList<String> pkgArr) {
+    private static String getPkgFrmArr(ArrayList<String> pkgArr) {
 
         String pkg = EMPTY_STRING;
         int size = pkgArr.size();
@@ -203,7 +203,7 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Get package sub name from YANG identifier name.
+     * Returns package sub name from YANG identifier name.
      *
      * @param name YANG identifier name
      * @return java package sub name as per java rules
@@ -220,7 +220,7 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Translate the YANG identifier name to java identifier.
+     * Returns the YANG identifier name as java identifier.
      *
      * @param yangIdentifier identifier in YANG file
      * @return corresponding java identifier
@@ -236,7 +236,7 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Translate the YANG identifier name to java identifier with first letter
+     * Returns the YANG identifier name as java identifier with first letter
      * in caps.
      *
      * @param yangIdentifier identifier in YANG file
@@ -247,7 +247,7 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Translate the YANG identifier name to java identifier with first letter
+     * Returns the YANG identifier name as java identifier with first letter
      * in small.
      *
      * @param yangIdentifier identifier in YANG file.
@@ -258,7 +258,7 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Get the java Package from package path.
+     * Returns the java Package from package path.
      *
      * @param packagePath package path
      * @return java package
@@ -268,7 +268,7 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
-     * Get the directory path corresponding to java package.
+     * Returns the directory path corresponding to java package.
      *
      * @param packagePath package path
      * @return java package

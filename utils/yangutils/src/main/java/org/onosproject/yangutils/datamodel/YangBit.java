@@ -16,11 +16,11 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import java.util.Objects;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
-
-import java.util.Objects;
 
 /*-
  *  The "bit" statement, which is a sub-statement to the "type" statement,
@@ -44,7 +44,7 @@ import java.util.Objects;
  */
 
 /**
- * Maintains the bit data type information.
+ * Represents the bit data type information.
  */
 public class YangBit implements YangCommonInfo, Parsable {
 
@@ -90,7 +90,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the bit name.
+     * Sets the bit name.
      *
      * @param bitName the bit name to set
      */
@@ -109,7 +109,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the description.
+     * Sets the description.
      *
      * @param description set the description
      */
@@ -129,7 +129,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the textual reference.
+     * Sets the textual reference.
      *
      * @param reference the reference to set
      */
@@ -149,7 +149,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the status.
+     * Sets the status.
      *
      * @param status the status to set
      */
@@ -168,7 +168,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Set the bit position.
+     * Sets the bit position.
      *
      * @param position the position to set
      */
@@ -188,6 +188,7 @@ public class YangBit implements YangCommonInfo, Parsable {
 
     @Override
     public boolean equals(Object obj) {
+
         if (this == obj) {
             return true;
         }
@@ -204,7 +205,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Validate the data on entering the corresponding parse tree node.
+     * Validates the data on entering the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */
@@ -214,7 +215,7 @@ public class YangBit implements YangCommonInfo, Parsable {
     }
 
     /**
-     * Validate the data on exiting the corresponding parse tree node.
+     * Validates the data on exiting the corresponding parse tree node.
      *
      * @throws DataModelException a violation of data model rules
      */

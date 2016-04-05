@@ -75,7 +75,7 @@ import org.onosproject.yangutils.parser.impl.listeners.ValueListener;
 import org.onosproject.yangutils.parser.impl.listeners.VersionListener;
 
 /**
- * ANTLR generates a parse-tree listener interface that responds to events
+ * Represents ANTLR generates parse-tree. ANTLR generates a parse-tree listener interface that responds to events
  * triggered by the built-in tree walker. The methods in listener are just
  * callbacks. This class implements listener interface and generates the
  * corresponding data model tree.

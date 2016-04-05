@@ -60,10 +60,11 @@ import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.UNION_DATA;
 
 /**
- * Implements listener based call back function corresponding to the "union" rule
+ * Represents listener based call back function corresponding to the "union" rule
  * defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class UnionListener {
+
     /**
      * Creates a new union listener.
      */

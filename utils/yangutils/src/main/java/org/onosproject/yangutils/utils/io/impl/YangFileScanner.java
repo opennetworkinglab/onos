@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Stack;
 
 /**
- * Provides utility for searching the files in a directory.
+ * Represents utility for searching the files in a directory.
  */
 public final class YangFileScanner {
 
@@ -31,7 +31,7 @@ public final class YangFileScanner {
     private static final String YANG_FILE_EXTENTION = ".yang";
 
     /**
-     * Default constructor.
+     * Creates an instance of YANG file scanner.
      */
     private YangFileScanner() {
     }

@@ -18,7 +18,7 @@ package org.onosproject.yangutils.datamodel;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 
 /**
- * Base class of a node in data model tree.
+ * Represents base class of a node in data model tree.
  */
 public abstract class YangNode {
 
@@ -48,21 +48,21 @@ public abstract class YangNode {
     private YangNode previousSibling;
 
     /**
-     * Get the nodes name.
+     * Returns the nodes name.
      *
      * @return nodes name
      */
     public abstract String getName();
 
     /**
-     * Set the nodes name.
+     * Sets the nodes name.
      *
      * @param name nodes name
      */
     public abstract void setName(String name);
 
     /**
-     * Default constructor is made private to ensure node type is always set.
+     * Creates a YANG node object.
      */
     @SuppressWarnings("unused")
     private YangNode() {
@@ -70,7 +70,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Create a specific type of node.
+     * Creates a specific type of node.
      *
      * @param type of YANG node
      */
@@ -79,7 +79,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Get the node type.
+     * Returns the node type.
      *
      * @return node type
      */
@@ -88,7 +88,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Set the node type.
+     * Sets the node type.
      *
      * @param nodeType type of node
      */
@@ -97,7 +97,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Get the parent of node.
+     * Returns the parent of node.
      *
      * @return parent of node
      */
@@ -106,7 +106,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Set the parent of node.
+     * Sets the parent of node.
      *
      * @param parent node
      */
@@ -115,7 +115,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Get the first child of node.
+     * Returns the first child of node.
      *
      * @return first child of node
      */
@@ -124,7 +124,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Set the first instance of a child node.
+     * Sets the first instance of a child node.
      *
      * @param child is only child to be set
      */
@@ -133,7 +133,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Get the next sibling of node.
+     * Returns the next sibling of node.
      *
      * @return next sibling of node
      */
@@ -142,7 +142,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Set the next sibling of node.
+     * Sets the next sibling of node.
      *
      * @param sibling YANG node
      */
@@ -151,7 +151,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Get the previous sibling.
+     * Returns the previous sibling.
      *
      * @return previous sibling node
      */
@@ -160,7 +160,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Set the previous sibling.
+     * Sets the previous sibling.
      *
      * @param previousSibling points to predecessor sibling
      */
@@ -169,7 +169,7 @@ public abstract class YangNode {
     }
 
     /**
-     * Add a child node, the children sibling list will be sorted based on node
+     * Adds a child node, the children sibling list will be sorted based on node
      * type.
      *
      * @param newChild refers to a child to be added

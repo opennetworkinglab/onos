@@ -83,12 +83,12 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.SET
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
 /**
- * Generated methods for generated files based on the file type.
+ * Represents generator for methods of generated files based on the file type.
  */
 public final class MethodsGenerator {
 
     /**
-     * Default constructor.
+     * Creates an instance of method generator.
      */
     private MethodsGenerator() {
     }
@@ -506,7 +506,7 @@ public final class MethodsGenerator {
     }
 
     /**
-     * To string method for class.
+     * Returns to string method for class.
      *
      * @param attr attribute info
      * @return to string method
@@ -521,9 +521,9 @@ public final class MethodsGenerator {
     }
 
     /**
-     * Returns to hash code method open strings.
+     * Returns hash code method open strings.
      *
-     * @return to hash code method open string
+     * @return hash code method open string
      */
     public static String getHashCodeMethodOpen() {
 
@@ -533,7 +533,7 @@ public final class MethodsGenerator {
     }
 
     /**
-     * Returns to hash code methods close string.
+     * Returns hash code methods close string.
      *
      * @param hashcodeString hash code string
      * @return to hash code method close string
@@ -547,7 +547,7 @@ public final class MethodsGenerator {
     }
 
     /**
-     * Hash code method for class.
+     * Returns hash code method for class.
      *
      * @param attr attribute info
      * @return hash code method
@@ -558,10 +558,10 @@ public final class MethodsGenerator {
     }
 
     /**
-     * Returns to equals method open strings.
+     * Returns equals method open strings.
      *
      * @param className class name
-     * @return to equals method open string
+     * @return equals method open string
      */
     public static String getEqualsMethodOpen(String className) {
 
@@ -597,10 +597,10 @@ public final class MethodsGenerator {
     }
 
     /**
-     * Returns to equals methods close string.
+     * Returns equals methods close string.
      *
      * @param equalMethodString equal method string
-     * @return to equals method close string
+     * @return equals method close string
      */
     public static String getEqualsMethodClose(String equalMethodString) {
 
@@ -614,7 +614,7 @@ public final class MethodsGenerator {
     }
 
     /**
-     * Equals method for class.
+     * Returns equals method for class.
      *
      * @param attr attribute info
      * @return equals method

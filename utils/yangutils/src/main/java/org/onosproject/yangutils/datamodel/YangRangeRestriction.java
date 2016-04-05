@@ -48,7 +48,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *  for the type being restricted, respectively.
  */
 /**
- * Ascending range restriction information.
+ * Represents ascending range restriction information.
  *
  * @param <T> range type (data type)
  */
@@ -81,35 +81,34 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
     private String description;
 
     /**
-     * Default constructor.
+     * Creates YANG range restriction object.
      */
     public YangRangeRestriction() {
     }
 
     /**
-     * Get the list of range interval restriction in ascending order.
+     * Returns the list of range interval restriction in ascending order.
      *
-     * @return list of range interval restriction in ascending order.
+     * @return list of range interval restriction in ascending order
      */
     public List<YangRangeInterval<T>> getAscendingRangeIntervals() {
         return ascendingRangeIntervals;
     }
 
     /**
-     * Set the list of range interval restriction in ascending order.
+     * Sets the list of range interval restriction in ascending order.
      *
-     * @param rangeList list of range interval restriction in ascending order.
+     * @param rangeList list of range interval restriction in ascending order
      */
     private void setAscendingRangeIntervals(List<YangRangeInterval<T>> rangeList) {
         ascendingRangeIntervals = rangeList;
     }
 
     /**
-     * Get the minimum valid value as per the restriction.
+     * Returns the minimum valid value as per the restriction.
      *
-     * @throws DataModelException data model exception for minimum restriction.
-     *
-     * @return minimum restricted value.
+     * @throws DataModelException data model exception for minimum restriction
+     * @return minimum restricted value
      */
     public T getMinRestrictedvalue() throws DataModelException {
         if (getAscendingRangeIntervals() == null) {
@@ -122,11 +121,10 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
     }
 
     /**
-     * Get the maximum valid value as per the restriction.
+     * Returns the maximum valid value as per the restriction.
      *
-     * @throws DataModelException data model exception for maximum restriction.
-     *
-     * @return minimum maximum value.
+     * @throws DataModelException data model exception for maximum restriction
+     * @return minimum maximum value
      */
     public T getMaxRestrictedvalue() throws DataModelException {
         if (getAscendingRangeIntervals() == null) {
@@ -140,11 +138,11 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
     }
 
     /**
-     * Add new interval to extend its range in the last. i.e. newly added
+     * Adds new interval to extend its range in the last. i.e. newly added
      * interval needs to be bigger than the biggest interval in the list.
      *
-     * @param newInterval restricted length interval.
-     * @throws DataModelException data model exception for range restriction.
+     * @param newInterval restricted length interval
+     * @throws DataModelException data model exception for range restriction
      */
     public void addRangeRestrictionInterval(YangRangeInterval<T> newInterval) throws DataModelException {
 
@@ -173,9 +171,9 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
     }
 
     /**
-     * Get the textual reference of the length restriction.
+     * Returns the textual reference of the length restriction.
      *
-     * @return textual reference of the length restriction.
+     * @return textual reference of the length restriction
      */
     @Override
     public String getReference() {
@@ -183,9 +181,9 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
     }
 
     /**
-     * Set the textual reference of the length restriction.
+     * Sets the textual reference of the length restriction.
      *
-     * @param ref textual reference of the length restriction.
+     * @param ref textual reference of the length restriction
      */
     @Override
     public void setReference(String ref) {
@@ -193,9 +191,9 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
     }
 
     /**
-     * Get the description of the length restriction.
+     * Returns the description of the length restriction.
      *
-     * @return description of the length restriction.
+     * @return description of the length restriction
      */
     @Override
     public String getDescription() {
@@ -203,9 +201,9 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
     }
 
     /**
-     * Set the description of the length restriction.
+     * Sets the description of the length restriction.
      *
-     * @param desc description of the length restriction.
+     * @param desc description of the length restriction
      */
     @Override
     public void setDescription(String desc) {
@@ -214,9 +212,9 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
     }
 
     /**
-     * Get application's error message, to be used for data error.
+     * Returns application's error message, to be used for data error.
      *
-     * @return Application's error message, to be used for data error.
+     * @return Application's error message, to be used for data error
      */
     @Override
     public String getGetErrorMessage() {
@@ -224,9 +222,9 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
     }
 
     /**
-     * Set Application's error message, to be used for data error.
+     * Sets Application's error message, to be used for data error.
      *
-     * @param errMsg Application's error message, to be used for data error.
+     * @param errMsg Application's error message, to be used for data error
      */
     @Override
     public void setErrorMessage(String errMsg) {
@@ -235,9 +233,9 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
     }
 
     /**
-     * Get application's error tag, to be used for data error.
+     * Returns application's error tag, to be used for data error.
      *
-     * @return application's error tag, to be used for data error.
+     * @return application's error tag, to be used for data error
      */
     @Override
     public String getGetErrorAppTag() {
@@ -245,7 +243,7 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
     }
 
     /**
-     * Set application's error tag, to be used for data error.
+     * Sets application's error tag, to be used for data error.
      *
      * @param errTag application's error tag, to be used for data error.
      */

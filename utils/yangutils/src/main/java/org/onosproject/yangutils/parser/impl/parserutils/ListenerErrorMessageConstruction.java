@@ -18,17 +18,17 @@ package org.onosproject.yangutils.parser.impl.parserutils;
 
 import org.onosproject.yangutils.utils.YangConstructType;
 
-import static org.onosproject.yangutils.utils.YangConstructType.getYangConstructType;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.getErrorLocationMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.getErrorType;
+import static org.onosproject.yangutils.utils.YangConstructType.getYangConstructType;
 
 /**
- * It's a utility to help construct detailed error message.
+ * Represents a utility to help construct detailed error message.
  */
 public final class ListenerErrorMessageConstruction {
 
     /**
-     * Private constructor.
+     * Creates a object of listen error message.
      */
     private ListenerErrorMessageConstruction() {
     }

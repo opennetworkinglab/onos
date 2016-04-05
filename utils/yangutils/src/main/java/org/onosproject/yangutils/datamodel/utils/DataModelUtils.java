@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.datamodel.utils;
 
 import java.util.List;
+
 import org.onosproject.yangutils.datamodel.CollisionDetector;
 import org.onosproject.yangutils.datamodel.HasResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangLeaf;
@@ -28,7 +29,7 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.utils.YangConstructType;
 
 /**
- * Utilities for data model tree.
+ * Represents utilities for data model tree.
  */
 public final class DataModelUtils {
 
@@ -49,6 +50,7 @@ public final class DataModelUtils {
      */
     public static void detectCollidingChildUtil(String identifierName, YangConstructType dataType, YangNode node)
             throws DataModelException {
+
         if (dataType == YangConstructType.LEAF_DATA) {
             YangLeavesHolder leavesHolder = (YangLeavesHolder) node;
             if (leavesHolder.getListOfLeaf() != null) {
@@ -78,8 +80,9 @@ public final class DataModelUtils {
      *            checked
      * @throws DataModelException a violation of data model rules
      */
-    private static void detectCollidingLeaf(YangLeavesHolder leavesHolder, String identifierName) throws
-            DataModelException {
+    private static void detectCollidingLeaf(YangLeavesHolder leavesHolder, String identifierName)
+            throws DataModelException {
+
         for (YangLeaf leaf : leavesHolder.getListOfLeaf()) {
             if (leaf.getLeafName().equals(identifierName)) {
                 throw new DataModelException("YANG file error: Duplicate input identifier detected, same as leaf \""
@@ -96,8 +99,9 @@ public final class DataModelUtils {
      *            checked
      * @throws DataModelException a violation of data model rules
      */
-    private static void detectCollidingLeafList(YangLeavesHolder leavesHolder, String identifierName) throws
-            DataModelException {
+    private static void detectCollidingLeafList(YangLeavesHolder leavesHolder, String identifierName)
+            throws DataModelException {
+
         for (YangLeafList leafList : leavesHolder.getListOfLeafList()) {
             if (leafList.getLeafName().equals(identifierName)) {
                 throw new DataModelException("YANG file error: Duplicate input identifier detected, same as leaf " +
@@ -114,6 +118,7 @@ public final class DataModelUtils {
      * @throws DataModelException a violation of data model rules
      */
     public static void addResolutionInfo(YangResolutionInfo resolutionInfo) throws DataModelException {
+
         /* get the module node to add maintain the list of nested reference */
         YangNode curNode = resolutionInfo.getHolderOfEntityToResolve();
         while (!(curNode instanceof HasResolutionInfo)) {
@@ -134,8 +139,9 @@ public final class DataModelUtils {
      * @throws DataModelException a violation of data model rules
      */
     public static void resolveLinkingForResolutionList(List<YangResolutionInfo> resolutionList,
-                                                       HasResolutionInfo resolutionInfoNode)
+            HasResolutionInfo resolutionInfoNode)
             throws DataModelException {
+
         for (YangResolutionInfo resolutionInfo : resolutionList) {
             if (resolutionInfo.getPrefix() == null ||
                     resolutionInfo.getPrefix().equals(resolutionInfoNode.getPrefix())) {

@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.datamodel;
 
 /**
- * Maintains the derived information.
+ * Represents the derived information.
  *
  * @param <T> extended information.
  */
@@ -52,7 +52,7 @@ public class YangDerivedInfo<T> {
     }
 
     /**
-     * Set the referred typedef reference.
+     * Sets the referred typedef reference.
      *
      * @param referredTypeDef referred typedef reference
      */
@@ -70,7 +70,7 @@ public class YangDerivedInfo<T> {
     }
 
     /**
-     * Set resolved extended information after successful linking.
+     * Sets resolved extended information after successful linking.
      *
      * @param resolvedExtendedInfo resolved extended information
      */
@@ -88,7 +88,7 @@ public class YangDerivedInfo<T> {
     }
 
     /**
-     * Set extended information.
+     * Sets extended information.
      *
      * @param extendedInfo extended information
      */

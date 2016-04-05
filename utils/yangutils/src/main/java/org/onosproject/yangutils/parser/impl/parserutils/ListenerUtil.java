@@ -26,13 +26,14 @@ import java.util.regex.Pattern;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
-import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 /**
- * It's a utility for listener.
+ * Represents an utility for listener.
  */
 public final class ListenerUtil {
+
     private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_.-]*");
     private static final String NON_NEGATIVE_INTEGER_PATTERN = "[0-9]+";
     private static final String PLUS = "+";
@@ -154,7 +155,7 @@ public final class ListenerUtil {
      * @return valid non negative integer value
      */
     public static int getValidNonNegativeIntegerValue(String integerValue, YangConstructType yangConstruct,
-                                           ParserRuleContext ctx) {
+            ParserRuleContext ctx) {
 
         String value = removeQuotesAndHandleConcat(integerValue);
         if (!value.matches(NON_NEGATIVE_INTEGER_PATTERN)) {
@@ -178,7 +179,7 @@ public final class ListenerUtil {
      * @return boolean value either true or false
      */
     public static boolean getValidBooleanValue(String booleanValue, YangConstructType yangConstruct,
-                                                ParserRuleContext ctx) {
+            ParserRuleContext ctx) {
 
         String value = removeQuotesAndHandleConcat(booleanValue);
         if (value.equals(TRUE_KEYWORD)) {
