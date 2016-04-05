@@ -87,13 +87,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     }
 
     private void handleEvent(List<MapEvent<String, byte[]>> events) {
-        events.forEach(event -> mapEventListeners.forEach(listener -> {
-            try {
-                listener.event(event);
-            } catch (Exception e) {
-                log.warn("Error processing map event", e);
-            }
-        }));
+        events.forEach(event -> mapEventListeners.forEach(listener -> listener.event(event)));
     }
 
     @Override

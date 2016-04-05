@@ -16,6 +16,8 @@
 
 package org.onosproject.store.service;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.onosproject.store.primitives.TransactionId;
 
 /**
@@ -63,9 +65,9 @@ public interface TransactionContext extends DistributedPrimitive {
      * Commits a transaction that was previously started thereby making its changes permanent
      * and externally visible.
      *
-     * @return true if this transaction succeeded, otherwise false.
+     * @return A future that will be completed when the operation completes
      */
-    boolean commit();
+    CompletableFuture<CommitStatus> commit();
 
     /**
      * Aborts any changes made in this transaction context and discarding all locally cached updates.

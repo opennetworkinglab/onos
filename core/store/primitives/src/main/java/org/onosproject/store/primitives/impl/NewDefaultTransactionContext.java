@@ -16,13 +16,16 @@
 package org.onosproject.store.primitives.impl;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.service.CommitStatus;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionalMap;
+import org.onosproject.utils.MeteringAgent;
 
 import com.google.common.collect.Sets;
 
@@ -36,6 +39,7 @@ public class NewDefaultTransactionContext implements TransactionContext {
     private final TransactionId transactionId;
     private final TransactionCoordinator transactionCoordinator;
     private final Set<TransactionParticipant> txParticipants = Sets.newConcurrentHashSet();
+    private final MeteringAgent monitor;
 
     public NewDefaultTransactionContext(TransactionId transactionId,
             DistributedPrimitiveCreator creator,
@@ -43,6 +47,7 @@ public class NewDefaultTransactionContext implements TransactionContext {
         this.transactionId = transactionId;
         this.creator = creator;
         this.transactionCoordinator = transactionCoordinator;
+        this.monitor = new MeteringAgent("transactionContext", "*", true);
     }
 
     @Override
@@ -68,9 +73,10 @@ public class NewDefaultTransactionContext implements TransactionContext {
     }
 
     @Override
-    public boolean commit() {
-        transactionCoordinator.commit(transactionId, txParticipants).getNow(null);
-        return true;
+    public CompletableFuture<CommitStatus> commit() {
+        final MeteringAgent.Context timer = monitor.startTimer("commit");
+        return transactionCoordinator.commit(transactionId, txParticipants)
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override

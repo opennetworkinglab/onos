@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -41,6 +42,7 @@ import org.onosproject.net.resource.ResourceStoreDelegate;
 import org.onosproject.net.resource.Resources;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.CommitStatus;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.Serializer;
@@ -178,18 +180,18 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             }
         }
 
-        boolean success = tx.commit();
-        if (success) {
-            log.trace("Transaction commit succeeded on registration: resources={}", resources);
-            List<ResourceEvent> events = resources.stream()
-                    .filter(x -> x.parent().isPresent())
-                    .map(x -> new ResourceEvent(RESOURCE_ADDED, x))
-                    .collect(Collectors.toList());
-            notifyDelegate(events);
-        } else {
-            log.debug("Transaction commit failed on registration: resources={}", resources);
-        }
-        return success;
+        return tx.commit().whenComplete((status, error) -> {
+            if (status == CommitStatus.SUCCESS) {
+                log.trace("Transaction commit succeeded on registration: resources={}", resources);
+                List<ResourceEvent> events = resources.stream()
+                        .filter(x -> x.parent().isPresent())
+                        .map(x -> new ResourceEvent(RESOURCE_ADDED, x))
+                        .collect(Collectors.toList());
+                notifyDelegate(events);
+            } else {
+                log.warn("Transaction commit failed on registration", error);
+            }
+        }).join() == CommitStatus.SUCCESS;
     }
 
     @Override
@@ -252,17 +254,17 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             }
         }
 
-        boolean success = tx.commit();
-        if (success) {
-            List<ResourceEvent> events = resources.stream()
-                    .filter(x -> x.parent().isPresent())
-                    .map(x -> new ResourceEvent(RESOURCE_REMOVED, x))
-                    .collect(Collectors.toList());
-            notifyDelegate(events);
-        } else {
-            log.warn("Failed to unregister {}: Commit failed.", ids);
-        }
-        return success;
+        return tx.commit().whenComplete((status, error) -> {
+            if (status == CommitStatus.SUCCESS) {
+                List<ResourceEvent> events = resources.stream()
+                        .filter(x -> x.parent().isPresent())
+                        .map(x -> new ResourceEvent(RESOURCE_REMOVED, x))
+                        .collect(Collectors.toList());
+                notifyDelegate(events);
+            } else {
+                log.warn("Failed to unregister {}: Commit failed.", ids, error);
+            }
+        }).join() == CommitStatus.SUCCESS;
     }
 
     @Override
@@ -308,7 +310,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             }
         }
 
-        return tx.commit();
+        return tx.commit().join() == CommitStatus.SUCCESS;
     }
 
     @Override
@@ -348,7 +350,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             }
         }
 
-        return tx.commit();
+        return tx.commit().join() == CommitStatus.SUCCESS;
     }
 
     // computational complexity: O(1) if the resource is discrete type.

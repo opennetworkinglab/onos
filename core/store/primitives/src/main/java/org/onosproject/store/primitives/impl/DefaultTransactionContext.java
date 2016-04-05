@@ -27,6 +27,7 @@ import static com.google.common.base.Preconditions.*;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.primitives.resources.impl.CommitResult;
+import org.onosproject.store.service.CommitStatus;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TransactionContext;
@@ -96,22 +97,23 @@ public class DefaultTransactionContext implements TransactionContext {
 
     @SuppressWarnings("unchecked")
     @Override
-    public boolean commit() {
+    public CompletableFuture<CommitStatus> commit() {
         // TODO: rework commit implementation to be more intuitive
         checkState(isOpen, TX_NOT_OPEN_ERROR);
-        CommitResult result = null;
+        CommitStatus status;
         try {
             List<MapUpdate<String, byte[]>> updates = Lists.newLinkedList();
             txMaps.values().forEach(m -> updates.addAll(m.toMapUpdates()));
             Transaction transaction = new Transaction(transactionId, updates);
-            result = Futures.getUnchecked(transactionCommitter.apply(transaction));
-            return result == CommitResult.OK;
+            status = Futures.getUnchecked(transactionCommitter.apply(transaction)) == CommitResult.OK
+                    ? CommitStatus.SUCCESS : CommitStatus.FAILURE;
         } catch (Exception e) {
             abort();
-            return false;
+            status = CommitStatus.FAILURE;
         } finally {
             isOpen = false;
         }
+        return CompletableFuture.completedFuture(status);
     }
 
     @Override

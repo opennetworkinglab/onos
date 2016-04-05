@@ -21,6 +21,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.util.function.Function;
 
+import org.onlab.util.ByteArraySizeHashPrinter;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -153,7 +155,7 @@ public final class MapUpdate<K, V> {
             .add("mapName", mapName)
             .add("type", type)
             .add("key", key)
-            .add("value", value)
+            .add("value", value instanceof byte[] ? new ByteArraySizeHashPrinter((byte[]) value) : value)
             .add("currentValue", currentValue)
             .add("currentVersion", currentVersion)
             .toString();
