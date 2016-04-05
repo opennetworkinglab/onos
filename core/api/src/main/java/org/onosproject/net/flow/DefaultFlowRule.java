@@ -16,6 +16,11 @@
 package org.onosproject.net.flow;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.Charsets;
+import com.google.common.hash.Funnel;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
@@ -393,9 +398,20 @@ public class DefaultFlowRule implements FlowRule {
         }
 
         private int hash() {
-            return Objects.hash(deviceId, priority, selector, tableId);
-        }
+            Funnel<TrafficSelector> selectorFunnel = (from, into) -> from.criteria()
+                    .stream()
+                    .forEach(c -> into.putString(c.toString(), Charsets.UTF_8));
 
+            HashFunction hashFunction = Hashing.murmur3_32();
+            HashCode hashCode = hashFunction.newHasher()
+                    .putString(deviceId.toString(), Charsets.UTF_8)
+                    .putObject(selector, selectorFunnel)
+                    .putInt(priority)
+                    .putInt(tableId)
+                    .hash();
+
+            return hashCode.asInt();
+        }
     }
 
     @Override

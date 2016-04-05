@@ -569,7 +569,7 @@ public class FlowRuleManagerTest {
 
         @Override
         public Set<Criterion> criteria() {
-            return null;
+            return Collections.emptySet();
         }
 
         @Override

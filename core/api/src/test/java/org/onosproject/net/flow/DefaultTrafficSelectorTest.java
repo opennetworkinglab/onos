@@ -15,13 +15,16 @@
  */
 package org.onosproject.net.flow;
 
+import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
+import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -75,6 +78,26 @@ public class DefaultTrafficSelectorTest {
                 .addEqualityGroup(selector1, sameAsSelector1)
                 .addEqualityGroup(selector2)
                 .testEquals();
+    }
+
+    /**
+     * Tests criteria order is consistent.
+     */
+    @Test
+    public void testCriteriaOrder() {
+        final TrafficSelector selector1 = DefaultTrafficSelector.builder()
+                .matchInPort(PortNumber.portNumber(11))
+                .matchEthType(Ethernet.TYPE_ARP)
+                .build();
+        final TrafficSelector selector2 = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchInPort(PortNumber.portNumber(11))
+                .build();
+
+        List<Criterion> criteria1 = Lists.newArrayList(selector1.criteria());
+        List<Criterion> criteria2 = Lists.newArrayList(selector2.criteria());
+
+        new EqualsTester().addEqualityGroup(criteria1, criteria2).testEquals();
     }
 
     /**
