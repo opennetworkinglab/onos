@@ -29,12 +29,15 @@
 
         <step name="Start-Mininet"
               requires="Install-Apps,Config-Topo,Push-Topos,Stop-Mininet-If-Needed"
-              exec="onos-mininet start topos/topo att-onos.py ${ONOS_INSTANCES}"/>
+              exec="onos-mininet start topos/topo attmplsfast.py ${ONOS_INSTANCES}"/>
 
         <step name="Wait-For-Mininet" requires="Start-Mininet"
               exec="onos-mininet wait 10"/>
 
-        <step name="Check-Summary" requires="~Wait-For-Mininet"
+        <step name="ARP-Hosts" requires="~Wait-For-Mininet"
+              exec="onos-mininet sendAndExpect gratuitousArp --expect ."/>
+
+        <step name="Check-Summary" requires="ARP-Hosts"
               exec="onos-check-summary ${OC1} [0-9]* 25 140 25"/>
 
         <step name="Balance-Masters" requires="~Check-Summary" if="${OC2}"
