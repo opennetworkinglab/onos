@@ -80,8 +80,7 @@
         <!-- TODO: replace with final release version when it is out -->
         <catalyst.version>1.0.6</catalyst.version>
         <atomix.version>1.0.0-rc3</atomix.version>
-        <atomix.copycat.version>1.0.0-rc6</atomix.copycat.version>
-        <copycat.version>0.5.1.onos</copycat.version>
+        <copycat.version>1.0.0-rc6</copycat.version>
         <openflowj.version>0.9.3.onos-SNAPSHOT</openflowj.version>
         <onos-maven-plugin.version>1.9</onos-maven-plugin.version>
         <osgi.version>4.3.1</osgi.version>

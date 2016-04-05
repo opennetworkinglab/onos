@@ -53,28 +53,15 @@
     <dependency>
         <groupId>io.atomix.copycat</groupId>
         <artifactId>copycat-client</artifactId>
-        <version>${atomix.copycat.version}</version>
+        <version>${copycat.version}</version>
     </dependency>
 
     <dependency>
         <groupId>io.atomix.copycat</groupId>
         <artifactId>copycat-server</artifactId>
-        <version>${atomix.copycat.version}</version>
-    </dependency>
-
-    <dependency>
-      <!-- FIXME once fixes get merged to upstream -->
-      <groupId>org.onosproject</groupId>
-        <artifactId>copycat-api</artifactId>
         <version>${copycat.version}</version>
     </dependency>
 
-    <dependency>
-      <!-- FIXME once fixes get merged to upstream -->
-      <groupId>org.onosproject</groupId>
-        <artifactId>copycat-core</artifactId>
-        <version>${copycat.version}</version>
-    </dependency>
   </dependencies>
 
   <build>
@@ -99,16 +86,6 @@
 
           <filters>
             <filter>
-              <artifact>org.onosproject:copycat*</artifact>
-                <includes>
-                  <include>**</include>
-                </includes>
-                <excludes>
-                  <exclude>net/kuujo/copycat/**</exclude>
-                </excludes>
-            </filter>
-
-            <filter>
               <artifact>io.atomix:atomix-all</artifact>
                 <includes>
                   <include>**</include>
@@ -132,7 +109,7 @@
         <configuration>
           <instructions>
             <Export-Package>
-              net.kuujo.copycat.*;io.atomix.*
+              io.atomix.*
             </Export-Package>
             <Import-Package>
               !sun.nio.ch,!sun.misc,*
