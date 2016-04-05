@@ -149,7 +149,7 @@ public final class Main {
         try {
             server.start();
         } catch (Exception e) {
-            e.printStackTrace();
+            print("GUI already active; running without...");
         }
     }
 
