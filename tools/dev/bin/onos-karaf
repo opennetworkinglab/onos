@@ -4,4 +4,13 @@
 # karaf using the supplied arguments.
 # -----------------------------------------------------------------------------
 
+# FIXME: temporarily fix 500 error in GUI, need to be improved with a better way
+if echo $* | egrep "\bclean\b"; then
+    . $ONOS_ROOT/tools/build/envDefaults
+    export KARAF_ROOT=${KARAF_ROOT:-~/Applications/apache-karaf-$KARAF_VERSION}
+    export STAGE=$(dirname $KARAF_ROOT)
+    echo "Removing data directories..."
+    [ -d $KARAF_ROOT ] && rm -fr $STAGE/data
+fi
+
 onos-setup-karaf && karaf "$@"
