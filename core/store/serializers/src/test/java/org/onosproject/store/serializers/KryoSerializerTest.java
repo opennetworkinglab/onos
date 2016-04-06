@@ -436,7 +436,7 @@ public class KryoSerializerTest {
     }
 
     // code clone
-    protected static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
+    private static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
         SparseAnnotations expected = DefaultAnnotations.builder().build();
         for (SparseAnnotations a : annotations) {
             expected = DefaultAnnotations.union(expected, a);
