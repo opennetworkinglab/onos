@@ -119,6 +119,7 @@ def maven_jar(
     prebuilt_jar(
       name = '%s_src' % name,
       binary_jar = ':%s__download_src' % name,
+      maven_coords = id,
       deps = license,
       visibility = visibility,
     )
@@ -136,6 +137,7 @@ def maven_jar(
       deps = deps + license,
       binary_jar = ':%s__download_bin' % name,
       source_jar = ':%s__download_src' % name if srcjar else None,
+      maven_coords = id,
     )
     java_library(
       name = name,
@@ -149,6 +151,7 @@ def maven_jar(
       binary_jar = ':%s__download_bin' % name,
       source_jar = ':%s__download_src' % name if srcjar else None,
       visibility = visibility,
+      maven_coords = id,
     )
 
 

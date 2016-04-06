@@ -1,0 +1,107 @@
+
+DEBUG_ARG='JAVA_TOOL_OPTIONS="-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=y"'
+
+def osgi_jar(
+    name,
+    srcs,
+    group_id = 'org.onosproject',
+    version = '1.6.0-SNAPSHOT',
+    deps = [],
+    visibility = ['PUBLIC'],
+    license = 'NONE',
+    description = '',
+    debug = False,
+    web_context = 'NONE',
+    **kwargs
+    ):
+
+  bare_jar_name = name + '-jar'
+  osgi_jar_name = name + '-osgi'
+  mvn_coords = group_id + ':' + name + ':' + version
+
+  java_library(
+      name = bare_jar_name,
+      srcs = srcs,
+      deps = deps,
+      visibility = [], #intentially, not visible
+      **kwargs
+  )
+
+  cp = ':'.join(['$(classpath %s)' % c for c in deps])
+
+  args = ( '$(location :%s)' % bare_jar_name, #input jar
+           '$OUT',                            #output jar
+           cp,                                #classpath
+           name,                              #bundle name
+           group_id,                          #group id
+           version,                           #version
+           license,                           #license url
+           web_context,                       #web context (REST API only)
+           description,                       #description
+          )
+
+  #TODO stage_jar is a horrendous hack
+  stage_jar = 'pushd $SRCDIR; mkdir bin; cd bin; jar xf $(location :%s); ls; popd; ' % bare_jar_name
+  wrap_jar = '$(exe //utils/osgiwrap:osgi-jar) ' + ' '.join(args)
+  bash = stage_jar + wrap_jar
+  if debug:
+    bash = stage_jar + DEBUG_ARG + ' ' + wrap_jar
+    print bash
+  # TODO this is a hack to add checkstyle as dependency before generating jar
+  bash = 'ls $(location :' + name + '-checkstyle) > /dev/null; ' + bash
+
+  genrule(
+    name = osgi_jar_name,
+    bash = bash,
+    out = name + '.jar',
+    visibility = [], #intentially, not visible
+  )
+
+  # TODO we really should shade the jar with maven flavor
+  prebuilt_jar(
+    name = name,
+    maven_coords = mvn_coords,
+    binary_jar = ':' + osgi_jar_name,
+    visibility = visibility,
+  )
+
+
+
+  ### Checkstyle
+  chk_cmd = ' '.join(( 'java -jar $(location //lib:checkstyle)',
+                       '-o $OUT',
+                       '-c $(location //tools/build/conf:checkstyle-xml)',
+                       ' '.join(srcs) ))
+  error_cmd = '(touch $OUT; cat $OUT | grep "^\[ERROR\]"; exit 1)'
+  cmd = ' || '.join((chk_cmd, error_cmd))
+  genrule(
+    name = name + '-checkstyle',
+    bash = cmd,
+    srcs = srcs,
+    out = 'checkstyle.log',
+  )
+
+  ### .m2 Install
+  mvn_cmd = ' '.join(('mvn install:install-file',
+                      '-Dfile=$(location :%s)' % name,
+                      '-DgroupId=%s' % group_id,
+                      '-DartifactId=%s' % name,
+                      '-Dversion=%s' % version,
+                      '-Dpackaging=jar'
+                      ))
+  genrule(
+    name = name + '-install',
+    bash = mvn_cmd + ' > $OUT',
+    out = 'install.log',
+    visibility = visibility,
+  )
+
+def onos_app(
+    name,
+    **kwargs):
+
+    osgi_jar(
+      name = name,
+      **kwargs
+    )
+

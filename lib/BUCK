@@ -781,3 +781,62 @@ maven_jar(
   attach_source = False,
   license = 'Apache2.0',
 )
+
+# ------ needed for OSGi Wrapper ------------------
+#TODO should these live in osgiwrap or in lib
+#FIXME replace with release version
+maven_jar(
+  name = 'org.apache.felix.scr.bnd',
+  id = 'org.onosproject:org.apache.felix.scr.bnd:1.4.1-SNAPSHOT',
+  repository = 'https://oss.sonatype.org/content/repositories/snapshots',
+  full_url = 'https://oss.sonatype.org/content/repositories/snapshots/org/onosproject/org.apache.felix.scr.bnd/1.4.1-SNAPSHOT/org.apache.felix.scr.bnd-1.4.1-20160328.235003-2',
+  attach_source = False,
+  license = 'Apache2.0',
+)
+#TODO update this to org.apache.felix when changes are merged upstream
+# prebuilt_jar(
+#   name = 'felix-bnd',
+#   binary_jar =  ':org.apache.felix.scr.bnd-jar',
+# )
+# remote_file(
+#   name = 'org.apache.felix.scr.bnd-jar',
+#   out = 'org.apache.felix.scr.bnd-jar-1.4.1-SNAPSHOT.jar',
+#   url = 'mvn:https://oss.sonatype.org/content/repositories/snapshots:org.onosproject:org.apache.felix.scr.bnd:jar:1.4.1-SNAPSHOT',
+#   sha1 = '89b5161d60dfe4138046f13c789f17a6b89e823d',
+# )
+
+prebuilt_jar(
+  name = 'bndlib',
+  binary_jar = ':biz.aQute.bnd-biz.aQute.bndlib-jar',
+  visibility = [ 'PUBLIC' ] #:onlab-osgiwrap and :osgi-jar
+#  source_jar
+#  maven_coords
+)
+
+remote_file(
+  name = 'biz.aQute.bnd-biz.aQute.bndlib-jar',
+  out = 'biz.aQute.bnd-biz.aQute.bndlib-jar-3.1.0.jar',
+  url = 'mvn:biz.aQute.bnd:biz.aQute.bndlib:jar:3.1.0',
+  sha1 = '8e45564ca80bf089276a35f916e8702e7b798cbb',
+)
+
+prebuilt_jar(
+  name = 'checkstyle',
+  binary_jar = ':checkstyle-jar',
+  visibility = [ 'PUBLIC' ]
+)
+
+# TODO upgrade to newer version of checkstyle
+# remote_file(
+#   name = 'checkstyle-jar',
+#   out = 'checkstyle-6.17-all.jar',
+#   url = 'http://onlab.vicci.org/onos/third-party/checkstyle-6.17-all.jar',
+#   sha1 = '11a02d7b0374f8a82fbd76361a69756faa6aefa0'
+# )
+
+remote_file(
+  name = 'checkstyle-jar',
+  out = 'checkstyle-6.11.2-all.jar',
+  url = 'http://onlab.vicci.org/onos/third-party/checkstyle-6.11.2-all.jar',
+  sha1 = 'f504187b1743e73ffe72c2eede0ff57d45536b7d'
+)

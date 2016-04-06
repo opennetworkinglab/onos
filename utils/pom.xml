@@ -41,6 +41,7 @@
         <module>stc</module>
         <module>jdvue</module>
         <module>jnc</module>
+        <module>osgiwrap</module>
     </modules>
 
     <dependencies>
