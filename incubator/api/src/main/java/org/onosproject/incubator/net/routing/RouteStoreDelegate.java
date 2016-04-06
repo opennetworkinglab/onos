@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.host;
+
+package org.onosproject.incubator.net.routing;
 
 import org.onosproject.store.StoreDelegate;
 
 /**
- * Host store delegate abstraction.
+ * Route store delegate abstraction.
  */
-public interface HostStoreDelegate extends StoreDelegate<HostEvent> {
+public interface RouteStoreDelegate extends StoreDelegate<RouteEvent> {
 }

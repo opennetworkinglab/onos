@@ -497,6 +497,16 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.RoutesListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.RouteAddCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.RouteRemoveCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.GlobalLabelCommand"/>
         </command>
         <command>

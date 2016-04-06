@@ -70,8 +70,7 @@ public class Route {
      */
     public Route(Source source, IpPrefix prefix, IpAddress nextHop) {
         checkNotNull(prefix);
-        checkNotNull(nextHop);
-        checkArgument(prefix.version().equals(nextHop.version()), VERSION_MISMATCH);
+        checkArgument(nextHop == null || prefix.version().equals(nextHop.version()), VERSION_MISMATCH);
 
         this.source = checkNotNull(source);
         this.prefix = prefix;
