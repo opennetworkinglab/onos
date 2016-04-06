@@ -6,7 +6,7 @@ org.onlab.jdvue*
 org.onlab.stc*
 org.onlab.catalyst*
 
-org.onlab.thirdparty
+org.onlab.atomix
 org.onosproject.provider*
 org.onosproject.rest
 org.onosproject.cli*

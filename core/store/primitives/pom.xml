@@ -63,15 +63,16 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- for shaded atomix/copycat -->
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-thirdparty</artifactId>
-        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons.io.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>atomix</artifactId>
+            <version>1.0.onos-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

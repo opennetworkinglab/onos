@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.thirdparty;
-
+package org.onlab.atomix;
 
 /**
- * Empty class required to get the onlab-thirdparty module to build properly.
+ * Empty class required to get the atomix module to build properly.
  *
  * NOTE Required for shade plugin to operate.
  */
-public class OnlabThirdparty {
+public class AtomixShaded {
 
 }
