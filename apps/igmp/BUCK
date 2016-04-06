@@ -1,5 +1,5 @@
 SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/main/java/org/onosproject/**/'
+TEST = 'src/test/java/org/onosproject/**/'
 
 CURRENT_NAME = 'onos-app-igmp'
 CURRENT_TARGET = ':' + CURRENT_NAME

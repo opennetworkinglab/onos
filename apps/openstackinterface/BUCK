@@ -1,5 +1,5 @@
 SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/main/java/org/onosproject/**/'
+TEST = 'src/test/java/org/onosproject/**/'
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',

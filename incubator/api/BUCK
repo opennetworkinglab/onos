@@ -1,5 +1,5 @@
 SRC = 'src/main/java/org/onosproject/incubator/**/'
-TEST = 'src/main/java/org/onosproject/incubator/**/'
+TEST = 'src/test/java/org/onosproject/incubator/**/'
 CURRENT_NAME = 'onos-incubator-api'
 CURRENT_TARGET = ':' + CURRENT_NAME
 
