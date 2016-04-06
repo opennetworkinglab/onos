@@ -5,9 +5,10 @@ CURRENT_TARGET = ':' + CURRENT_NAME
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:concurrent-trees',
     '//incubator/api:onos-incubator-api',
     '//core/store/dist:onos-core-dist',
-    '//core/store/serializers:onos-core-serializers',
+    '//core/store/serializers:onos-core-serializers'
 ]
 
 TEST_DEPS = [
