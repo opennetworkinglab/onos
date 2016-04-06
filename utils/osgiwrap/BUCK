@@ -21,6 +21,6 @@ java_library(
 java_binary(
     name = 'osgi-jar',
     deps = COMPILE_DEPS + [ ':' + CURRENT_NAME ],
-    main_class = 'org.onlab.OSGiWrapper',
+    main_class = 'org.onlab.osgiwrap.OSGiWrapper',
     visibility = [ 'PUBLIC' ]
 )
