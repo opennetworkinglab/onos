@@ -121,7 +121,7 @@ public class OSGiWrapper {
         //analyzer.setProperty("-consumer-policy", "${range;[===,==+)}");
 
         // There are no good defaults so make sure you set the Import-Package
-        analyzer.setProperty(Analyzer.IMPORT_PACKAGE, "*,org.glassfish.jersey.servlet");
+        analyzer.setProperty(Analyzer.IMPORT_PACKAGE, "*");
 
         // TODO include version in export, but not in import
         analyzer.setProperty(Analyzer.EXPORT_PACKAGE, "*");
@@ -131,6 +131,7 @@ public class OSGiWrapper {
         if (isWab()) {
             analyzer.setProperty(Analyzer.WAB, "src/main/webapp/");
             analyzer.setProperty("Web-ContextPath", webContext);
+            analyzer.setProperty(Analyzer.IMPORT_PACKAGE, "*,org.glassfish.jersey.servlet");
         }
     }
 
