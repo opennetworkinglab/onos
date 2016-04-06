@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.store.primitives.impl;
 
 import java.util.concurrent.CompletableFuture;
@@ -40,23 +39,41 @@ import com.google.common.cache.LoadingCache;
  * @param <V> value type
  */
 public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMap<K, V> {
+    private int maxCacheSize = 10000;
 
     private final LoadingCache<K, CompletableFuture<Versioned<V>>> cache =
             CacheBuilder.newBuilder()
-                        .maximumSize(10000) // TODO: make configurable
-                        .build(new CacheLoader<K, CompletableFuture<Versioned<V>>>() {
-                            @Override
-                            public CompletableFuture<Versioned<V>> load(K key)
-                                    throws Exception {
-                                return CachingAsyncConsistentMap.super.get(key);
-                            }
-                        });
+                    .maximumSize(maxCacheSize)
+                    .build(new CacheLoader<K, CompletableFuture<Versioned<V>>>() {
+                        @Override
+                        public CompletableFuture<Versioned<V>> load(K key)
+                                throws Exception {
+                            return CachingAsyncConsistentMap.super.get(key);
+                        }
+                    });
 
     private final MapEventListener<K, V> cacheInvalidator = event -> cache.invalidate(event.key());
 
+    /**
+     * Default constructor.
+     *
+     * @param backingMap a distributed, strongly consistent map for backing
+     */
     public CachingAsyncConsistentMap(AsyncConsistentMap<K, V> backingMap) {
         super(backingMap);
         super.addListener(cacheInvalidator);
+    }
+
+    /**
+     * Constructor to configure cache size of LoadingCache.
+     *
+     * @param backingMap a distributed, strongly consistent map for backing
+     * @param cacheSize the maximum size of the cache
+     */
+    public CachingAsyncConsistentMap(AsyncConsistentMap<K, V> backingMap, int cacheSize) {
+        super(backingMap);
+        super.addListener(cacheInvalidator);
+        maxCacheSize = cacheSize;
     }
 
     @Override
@@ -74,31 +91,31 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
             Predicate<? super V> condition,
             BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         return super.computeIf(key, condition, remappingFunction)
-                    .whenComplete((r, e) -> cache.invalidate(key));
+                .whenComplete((r, e) -> cache.invalidate(key));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> put(K key, V value) {
         return super.put(key, value)
-                    .whenComplete((r, e) -> cache.invalidate(key));
+                .whenComplete((r, e) -> cache.invalidate(key));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> putAndGet(K key, V value) {
         return super.putAndGet(key, value)
-                    .whenComplete((r, e) -> cache.invalidate(key));
+                .whenComplete((r, e) -> cache.invalidate(key));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> remove(K key) {
         return super.remove(key)
-                    .whenComplete((r, e) -> cache.invalidate(key));
+                .whenComplete((r, e) -> cache.invalidate(key));
     }
 
     @Override
     public CompletableFuture<Void> clear() {
         return super.clear()
-                    .whenComplete((r, e) -> cache.invalidateAll());
+                .whenComplete((r, e) -> cache.invalidateAll());
     }
 
     @Override
