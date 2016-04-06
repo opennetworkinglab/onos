@@ -1,6 +1,8 @@
 import random
 
 DEBUG_ARG='JAVA_TOOL_OPTIONS="-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=y"'
+FORCE_INSTALL=True
+NONE='NONE'
 
 def osgi_jar(
     name,
@@ -12,7 +14,10 @@ def osgi_jar(
     license = 'NONE',
     description = '',
     debug = False,
-    web_context = 'NONE',
+    import_packages = '*',
+    export_packages = '*',
+    include_resources = NONE,
+    web_context = NONE,
     **kwargs
     ):
 
@@ -37,6 +42,9 @@ def osgi_jar(
            group_id,                          #group id
            version,                           #version
            license,                           #license url
+           "'%s'" % import_packages,          #packages to import
+           "'%s'" % export_packages,          #packages to export
+           include_resources,                 #custom includes to classpath
            web_context,                       #web context (REST API only)
            description,                       #description
           )
@@ -55,6 +63,7 @@ def osgi_jar(
     name = osgi_jar_name,
     bash = bash,
     out = name + '.jar',
+    srcs =  glob(['src/main/webapp/**']),
     visibility = [], #intentially, not visible
   )
 
@@ -89,9 +98,11 @@ def osgi_jar(
                        '-DartifactId=%s' % name,
                        '-Dversion=%s' % version,
                        '-Dpackaging=jar' ))
-  # TODO This rule must be run every time, adding random number as rule input.
-  #      We should make this configurable, perhaps with a flag.
-  cmd = 'FOO=%s ' % random.random() + mvn_cmd + ' > $OUT'
+  cmd = mvn_cmd + ' > $OUT'
+  if FORCE_INSTALL:
+    # Add a random number to the command to force this rule to run.
+    # TODO We should make this configurable from CLI, perhaps with a flag.
+    cmd = 'FOO=%s ' % random.random() + cmd
   genrule(
     name = name + '-install',
     bash = cmd,

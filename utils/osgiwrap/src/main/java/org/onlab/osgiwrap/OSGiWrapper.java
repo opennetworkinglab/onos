@@ -16,16 +16,28 @@
 
 package org.onlab.osgiwrap;
 
+import aQute.bnd.header.Attrs;
+import aQute.bnd.header.Parameters;
 import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Builder;
+import aQute.bnd.osgi.FileResource;
 import aQute.bnd.osgi.Jar;
+import aQute.bnd.osgi.Resource;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scrplugin.bnd.SCRDescriptorBndPlugin;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -34,10 +46,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.jar.Manifest;
 
+import static java.nio.file.Files.walkFileTree;
+
 /**
  * BND-based wrapper to convert Buck JARs to OSGi-compatible JARs.
  */
 public class OSGiWrapper {
+    private static final String NONE = "NONE";
 
     private String inputJar;
     private String outputJar;
@@ -48,14 +63,18 @@ public class OSGiWrapper {
     private String bundleSymbolicName;
     private String bundleVersion;
 
+    private String importPackages;
+    private String exportPackages;
+    private String includeResources;
+    private Set<String> includedResources = Sets.newHashSet();
+
     private String bundleDescription;
     private String bundleLicense;
 
     private String webContext;
 
     public static void main(String[] args) {
-
-        if (args.length < 7) {
+        if (args.length < 10) {
             System.err.println("Not enough args");
             System.exit(1);
         }
@@ -67,16 +86,21 @@ public class OSGiWrapper {
         String group = args[4];
         String version = args[5];
         String license = args[6];
-        String webContext = args[7];
-        String desc = Joiner.on(' ').join(Arrays.copyOfRange(args, 8, args.length));
+        String importPackages = args[7];
+        String exportPackages = args[8];
+        String includeResources = args[9];
+        String webContext = args[10];
+        String desc = Joiner.on(' ').join(Arrays.copyOfRange(args, 11, args.length));
 
         OSGiWrapper wrapper = new OSGiWrapper(jar, output, cp,
                                               name, group,
                                               version, license,
+                                              importPackages, exportPackages,
+                                              includeResources,
                                               webContext, desc);
         wrapper.log(wrapper + "\n");
         if (!wrapper.execute()) {
-            System.err.println("ERROR");
+            System.err.printf("Error generating %s\n", name);
             System.exit(2);
         }
     }
@@ -89,6 +113,9 @@ public class OSGiWrapper {
                        String groupId,
                        String bundleVersion,
                        String bundleLicense,
+                       String importPackages,
+                       String exportPackages,
+                       String includeResources,
                        String webContext,
                        String bundleDescription) {
         this.inputJar = inputJar;
@@ -106,6 +133,12 @@ public class OSGiWrapper {
         this.bundleLicense = bundleLicense;
         this.bundleDescription = bundleDescription;
 
+        this.importPackages = importPackages;
+        this.exportPackages = exportPackages;
+        if (!Objects.equals(includeResources, NONE)) {
+            this.includeResources = includeResources;
+        }
+
         this.webContext = webContext;
     }
 
@@ -122,17 +155,20 @@ public class OSGiWrapper {
         //analyzer.setProperty("-consumer-policy", "${range;[===,==+)}");
 
         // There are no good defaults so make sure you set the Import-Package
-        analyzer.setProperty(Analyzer.IMPORT_PACKAGE, "*");
+        analyzer.setProperty(Analyzer.IMPORT_PACKAGE, importPackages);
 
         // TODO include version in export, but not in import
-        analyzer.setProperty(Analyzer.EXPORT_PACKAGE, "*");
+        analyzer.setProperty(Analyzer.EXPORT_PACKAGE, exportPackages);
 
         // TODO we may need INCLUDE_RESOURCE, or that might be done by Buck
-        //analyzer.setProperty(analyzer.INCLUDE_RESOURCE, ...)
+        if (includeResources != null) {
+            analyzer.setProperty(Analyzer.INCLUDE_RESOURCE, includeResources);
+        }
+
         if (isWab()) {
             analyzer.setProperty(Analyzer.WAB, "src/main/webapp/");
             analyzer.setProperty("Web-ContextPath", webContext);
-            analyzer.setProperty(Analyzer.IMPORT_PACKAGE, "*,org.glassfish.jersey.servlet");
+            analyzer.setProperty(Analyzer.IMPORT_PACKAGE, "*,org.glassfish.jersey.servlet,org.jvnet.mimepull\n");
         }
     }
 
@@ -165,6 +201,10 @@ public class OSGiWrapper {
             scrDescriptorBndPlugin.setReporter(analyzer);
             scrDescriptorBndPlugin.analyzeJar(analyzer);
 
+            if (includeResources != null) {
+                doIncludeResources(analyzer);
+            }
+
             // Repack the JAR as a WAR
             doWabStaging(analyzer);
 
@@ -176,10 +216,14 @@ public class OSGiWrapper {
 
             if (analyzer.isOk()) {
                 analyzer.getJar().setManifest(manifest);
-                analyzer.save(new File(outputJar), true);
-                log("Saved!\n");
+                if (analyzer.save(new File(outputJar), true)) {
+                    log("Saved!\n");
+                } else {
+                    warn("Failed to create jar \n");
+                    return false;
+                }
             } else {
-                warn("%s\n", analyzer.getErrors());
+                warn("Analyzer Errors:\n%s\n", analyzer.getErrors());
                 return false;
             }
 
@@ -193,7 +237,7 @@ public class OSGiWrapper {
     }
 
     private boolean isWab() {
-        return !Objects.equals(webContext, "NONE");
+        return !Objects.equals(webContext, NONE);
     }
 
     private void doWabStaging(Analyzer analyzer) throws Exception {
@@ -215,6 +259,88 @@ public class OSGiWrapper {
                 dot.rename(path, "WEB-INF/classes/" + path);
             }
         }
+
+        Path wabRoot = Paths.get(wab);
+        includeFiles(dot, null, wabRoot.toString());
+    }
+
+    /**
+     * Parse the Bundle-Includes header. Files in the bundles Include header are
+     * included in the jar. The source can be a directory or a file.
+     *
+     * @throws Exception
+     */
+    private void doIncludeResources(Analyzer analyzer) throws Exception {
+        String includes = analyzer.getProperty(Analyzer.INCLUDE_RESOURCE);
+        if (includes == null) {
+            return;
+        }
+        Parameters clauses = analyzer.parseHeader(includes);
+        Jar jar = analyzer.getJar();
+
+        for (Map.Entry<String, Attrs> entry : clauses.entrySet()) {
+            String name = entry.getKey();
+            Map<String, String> extra = entry.getValue();
+            // TODO consider doing something with extras
+
+            String[] parts = name.split("\\s*=\\s*");
+            String source = parts[0];
+            String destination = parts[0];
+            if (parts.length == 2) {
+                source = parts[1];
+            }
+
+            includeFiles(jar, destination, source);
+        }
+    }
+
+    private void includeFiles(Jar jar, String destinationRoot, String sourceRoot)
+            throws IOException {
+        Path sourceRootPath = Paths.get(sourceRoot);
+        // iterate through sources
+        // put each source on the jar
+        FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Path relativePath = sourceRootPath.relativize(file);
+                String destination = destinationRoot != null ?
+                        destinationRoot + "/" + relativePath.toString() : //TODO
+                        relativePath.toString();
+
+                addFileToJar(jar, destination, file.toAbsolutePath().toString());
+                return FileVisitResult.CONTINUE;
+            }
+        };
+        File dir = new File(sourceRoot);
+        if (dir.isFile()) {
+            addFileToJar(jar, destinationRoot, dir.getAbsolutePath());
+        } else if (dir.isDirectory()) {
+            walkFileTree(sourceRootPath, visitor);
+        } else {
+            warn("Skipping resource in bundle %s: %s (File Not Found)\n",
+                 bundleSymbolicName, sourceRoot);
+        }
+    }
+
+    private boolean addFileToJar(Jar jar, String destination, String sourceAbsPath) {
+        if (includedResources.contains(sourceAbsPath)) {
+            log("Skipping already included resource: %s\n", sourceAbsPath);
+            return false;
+        }
+        File file = new File(sourceAbsPath);
+        if (!file.isFile()) {
+            throw new RuntimeException(
+                    String.format("Skipping non-existent file: %s\n", sourceAbsPath));
+        }
+        Resource resource = new FileResource(file);
+        if (jar.getResource(destination) != null) {
+            warn("Skipping duplicate resource: %s\n", destination);
+            return false;
+        }
+        jar.putResource(destination, resource);
+        includedResources.add(sourceAbsPath);
+        log("Adding resource: %s\n", destination);
+        return true;
     }
 
     private void log(String format, Object... objects) {
