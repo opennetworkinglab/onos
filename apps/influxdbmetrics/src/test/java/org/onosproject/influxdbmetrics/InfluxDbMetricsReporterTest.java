@@ -26,6 +26,7 @@ import com.codahale.metrics.Timer;
 import org.junit.Before;
 import org.onlab.metrics.MetricsComponent;
 import org.onlab.metrics.MetricsFeature;
+import org.onlab.metrics.MetricsReporter;
 import org.onlab.metrics.MetricsService;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cluster.ClusterServiceAdapter;
@@ -101,6 +102,18 @@ public class InfluxDbMetricsReporterTest {
                                                    MetricsFeature feature,
                                                    String metricName, T metric) {
             return null;
+        }
+
+        @Override
+        public void registerReporter(MetricsReporter reporter) {
+        }
+
+        @Override
+        public void unregisterReporter(MetricsReporter reporter) {
+        }
+
+        @Override
+        public void notifyReporters() {
         }
 
         @Override

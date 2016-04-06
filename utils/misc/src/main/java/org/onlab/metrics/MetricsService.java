@@ -113,6 +113,25 @@ public interface MetricsService {
              T metric);
 
     /**
+     * Registers a reporter to receive any changes on metric registry.
+     *
+     * @param reporter metric reporter
+     */
+    void registerReporter(MetricsReporter reporter);
+
+    /**
+     * Unregisters the given metric reporter.
+     *
+     * @param reporter metric reporter
+     */
+    void unregisterReporter(MetricsReporter reporter);
+
+    /**
+     * Notifies the changes on metric registry to all registered reporters.
+     */
+    void notifyReporters();
+
+    /**
      * Removes the metric with the given name.
      *
      * @param component component the Metric is defined in

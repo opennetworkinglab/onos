@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.metrics.MetricsComponent;
 import org.onlab.metrics.MetricsFeature;
+import org.onlab.metrics.MetricsReporter;
 import org.onlab.metrics.MetricsService;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
@@ -217,6 +218,18 @@ public class ControlMetricsCollectorResourceTest extends ResourceTest {
                                                    MetricsFeature feature,
                                                    String metricName, T metric) {
             return null;
+        }
+
+        @Override
+        public void registerReporter(MetricsReporter reporter) {
+        }
+
+        @Override
+        public void unregisterReporter(MetricsReporter reporter) {
+        }
+
+        @Override
+        public void notifyReporters() {
         }
 
         @Override

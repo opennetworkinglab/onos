@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.influxdbmetrics;
+package org.onosproject.gangliametrics;
 
 import com.codahale.metrics.MetricRegistry;
-import com.izettle.metrics.influxdb.InfluxDbHttpSender;
-import com.izettle.metrics.influxdb.InfluxDbReporter;
+import com.codahale.metrics.ganglia.GangliaReporter;
+import info.ganglia.gmetric4j.gmetric.GMetric;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -26,37 +26,36 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.MetricsService;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.CoreService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.util.Dictionary;
 import java.util.concurrent.TimeUnit;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * A Metric reporter that reports all metrics value to influxDB server.
+ * A metric report that reports all metrics value to ganglia monitoring server.
  */
 @Component(immediate = true)
-@Service
-public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
+public class DefaultGangliaMetricsReporter implements GangliaMetricsReporter {
     private final Logger log = getLogger(getClass());
 
+    // we will use uni-cast mode to transfer the metrics value by default
+    private static final GMetric.UDPAddressingMode GANGLIA_MODE =
+                         GMetric.UDPAddressingMode.UNICAST;
     private static final int REPORT_PERIOD = 1;
     private static final TimeUnit REPORT_TIME_UNIT = TimeUnit.MINUTES;
 
-    private static final String DEFAULT_PROTOCOL = "http";
+    private static final String DEFAULT_ADDRESS = "localhost";
+    private static final int DEFAULT_PORT = 8649;
+    private static final int DEFAULT_TTL = 1;
     private static final String DEFAULT_METRIC_NAMES = "default";
-    private static final String SEPARATOR = ":";
-    private static final int DEFAULT_CONN_TIMEOUT = 1000;
-    private static final int DEFAULT_READ_TIMEOUT = 1000;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -67,36 +66,36 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
-
     @Property(name = "monitorAll", boolValue = true,
-            label = "Enable to monitor all of metrics stored in metric registry " +
-                    "default is true")
+              label = "Enable to monitor all of metrics stored in metric registry default is true")
     protected boolean monitorAll = true;
 
     @Property(name = "metricNames", value = DEFAULT_METRIC_NAMES,
-            label = "Names of metric to be monitored in third party monitoring " +
-                    "server; default metric names are 'default'")
+              label = "Names of metric to be monitored; default metric names are 'default'")
     protected String metricNames = DEFAULT_METRIC_NAMES;
 
-    protected String address;
-    protected int port;
-    protected String database;
-    protected String username;
-    protected String password;
+    @Property(name = "address", value = DEFAULT_ADDRESS,
+              label = "IP address of ganglia monitoring server; default is localhost")
+    protected String address = DEFAULT_ADDRESS;
 
-    private InfluxDbReporter influxDbReporter;
-    private InfluxDbHttpSender influxDbHttpSender;
+    @Property(name = "port", intValue = DEFAULT_PORT,
+              label = "Port number of ganglia monitoring server; default is 8649")
+    protected int port = DEFAULT_PORT;
+
+    @Property(name = "ttl", intValue = DEFAULT_TTL,
+              label = "TTL value of ganglia monitoring server; default is 1")
+    protected int ttl = DEFAULT_TTL;
+
+    private GMetric ganglia;
+    private GangliaReporter gangliaReporter;
 
     @Activate
     public void activate() {
         cfgService.registerProperties(getClass());
-        coreService.registerApplication("org.onosproject.influxdbmetrics");
+        coreService.registerApplication("org.onosproject.metrics.reporter");
         metricsService.registerReporter(this);
 
         startReport();
-
         log.info("Started");
     }
 
@@ -113,23 +112,24 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
     @Modified
     public void modified(ComponentContext context) {
         readComponentConfiguration(context);
-        restartReport();
+        stopReport();
+        startReport();
     }
 
     @Override
     public void startReport() {
-        configSender();
-        influxDbReporter = buildReporter(influxDbHttpSender);
-        influxDbReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
-        log.info("Start to report metrics to influxDB.");
+        configGMetric();
+        gangliaReporter = buildReporter(ganglia);
+        gangliaReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
+        log.info("Start to report metrics to ganglia server.");
     }
 
     @Override
     public void stopReport() {
-        influxDbReporter.stop();
-        influxDbHttpSender = null;
-        influxDbReporter = null;
-        log.info("Stop reporting metrics to influxDB.");
+        gangliaReporter.stop();
+        ganglia = null;
+        gangliaReporter = null;
+        log.info("Stop reporting metrics to ganglia server.");
     }
 
     @Override
@@ -140,20 +140,10 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
 
     @Override
     public void notifyMetricsChange() {
-        influxDbReporter.stop();
-        influxDbReporter = buildReporter(influxDbHttpSender);
-        influxDbReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
+        gangliaReporter.stop();
+        gangliaReporter = buildReporter(ganglia);
+        gangliaReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
         log.info("Metric registry has been changed, apply changes.");
-    }
-
-    @Override
-    public void config(String address, int port, String database,
-                       String username, String password) {
-        this.address = address;
-        this.port = port;
-        this.database = database;
-        this.username = username;
-        this.password = password;
     }
 
     /**
@@ -175,24 +165,8 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
     }
 
     /**
-     * Appends node IP prefix to all performance metrics.
-     *
-     * @param metricRegistry original metric registry
-     * @return prefix added metric registry
-     */
-    protected MetricRegistry addHostPrefix(MetricRegistry metricRegistry) {
-        MetricRegistry moddedRegistry = new MetricRegistry();
-        ControllerNode node = clusterService.getLocalNode();
-        String prefix = node.id().id() + ".";
-        metricRegistry.getNames().stream().forEach(name ->
-                moddedRegistry.register(prefix + name, metricRegistry.getMetrics().get(name)));
-
-        return moddedRegistry;
-    }
-
-    /**
      * Looks up whether the metric name contains the given prefix keywords.
-     * Note that the keywords are separated with comma as delimiter.
+     * Note that the keywords are separated with comma as delimiter
      *
      * @param full the original metric name that to be compared with
      * @param prefixes the prefix keywords that are matched against with the metric name
@@ -216,14 +190,36 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
 
+        String addressStr = Tools.get(properties, "address");
+        address = addressStr != null ? addressStr : DEFAULT_ADDRESS;
+        log.info("Configured. Ganglia server address is {}", address);
+
         String metricNameStr = Tools.get(properties, "metricNames");
         metricNames = metricNameStr != null ? metricNameStr : DEFAULT_METRIC_NAMES;
         log.info("Configured. Metric name is {}", metricNames);
 
+        Integer portConfigured = Tools.getIntegerProperty(properties, "port");
+        if (portConfigured == null) {
+            port = DEFAULT_PORT;
+            log.info("Ganglia port is not configured, default value is {}", port);
+        } else {
+            port = portConfigured;
+            log.info("Configured. Ganglia port is configured to {}", port);
+        }
+
+        Integer ttlConfigured = Tools.getIntegerProperty(properties, "ttl");
+        if (ttlConfigured == null) {
+            ttl = DEFAULT_TTL;
+            log.info("Ganglia TTL is not configured, default value is {}", ttl);
+        } else {
+            ttl = ttlConfigured;
+            log.info("Configured. Ganglia TTL is configured to {}", ttl);
+        }
+
         Boolean monitorAllEnabled = Tools.isPropertyEnabled(properties, "monitorAll");
         if (monitorAllEnabled == null) {
             log.info("Monitor all metrics is not configured, " +
-                    "using current value of {}", monitorAll);
+                     "using current value of {}", monitorAll);
         } else {
             monitorAll = monitorAllEnabled;
             log.info("Configured. Monitor all metrics is {}",
@@ -232,29 +228,28 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
     }
 
     /**
-     * Configures parameters for sender.
+     * Configures parameters for GMetric.
      */
-    private void configSender() {
+    private void configGMetric() {
         try {
-            influxDbHttpSender = new InfluxDbHttpSender(DEFAULT_PROTOCOL, address,
-                    port, database, username + SEPARATOR + password, REPORT_TIME_UNIT,
-                    DEFAULT_CONN_TIMEOUT, DEFAULT_READ_TIMEOUT);
-        } catch (Exception e) {
-            log.error("Fail to connect to given influxDB server!");
+            ganglia = new GMetric(address, port, GANGLIA_MODE, ttl);
+        } catch (IOException e) {
+            log.error("Fail to connect to given ganglia server!");
         }
     }
 
     /**
-     * Builds reporter with the given sender.
+     * Builds reporter with the given ganglia metric.
      *
-     * @param sender sender
+     * @param gMetric ganglia metric
      * @return reporter
      */
-    private InfluxDbReporter buildReporter(InfluxDbHttpSender sender) {
+    private GangliaReporter buildReporter(GMetric gMetric) {
         MetricRegistry mr = metricsService.getMetricRegistry();
-        return InfluxDbReporter.forRegistry(addHostPrefix(filter(mr)))
+
+        return GangliaReporter.forRegistry(filter(mr))
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
-                .build(sender);
+                .build(gMetric);
     }
 }

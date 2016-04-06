@@ -15,35 +15,20 @@
  */
 package org.onosproject.graphitemetrics;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.metrics.MetricsComponent;
-import org.onlab.metrics.MetricsFeature;
-import org.onlab.metrics.MetricsService;
-import org.onosproject.cfg.ComponentConfigAdapter;
-import org.onosproject.core.CoreServiceAdapter;
-
-import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Unit test for metrics reporter of graphite.
  */
 public class GraphiteMetricsReporterTest {
 
-    private GraphiteMetricsReporter gmr;
+    private DefaultGraphiteMetricsReporter gmr;
 
     private static final String METRIC_NAME1 = "consistentMap.onos-app-ids.putIfAbsent";
     private static final String METRIC_NAME2 = "consistentMap.onos-hosts.entrySet";
@@ -60,11 +45,7 @@ public class GraphiteMetricsReporterTest {
      */
     @Before
     public void setUp() {
-        gmr = new GraphiteMetricsReporter();
-        gmr.coreService = new CoreServiceAdapter();
-        gmr.cfgService = new ComponentConfigAdapter();
-        gmr.metricsService = new TestMetricsService();
-        gmr.activate();
+        gmr = new DefaultGraphiteMetricsReporter();
     }
 
     /**
@@ -134,117 +115,5 @@ public class GraphiteMetricsReporterTest {
         assertTrue(filtered.getNames()
                 .containsAll(ImmutableSet.of(METRIC_NAME1, METRIC_NAME2,
                         METRIC_NAME3, METRIC_NAME4)));
-    }
-
-    /**
-     * Tests whether the methods of MetricsService receives null value parameter.
-     */
-    private class TestMetricsService implements MetricsService {
-
-        @Override
-        public MetricsComponent registerComponent(String name) {
-            assertNotNull("Component name is null.", name);
-            return null;
-        }
-
-        @Override
-        public MetricRegistry getMetricRegistry() {
-            return null;
-        }
-
-        @Override
-        public Counter createCounter(MetricsComponent component,
-                                     MetricsFeature feature, String metricName) {
-            assertNotNull("MetricsComponent is null.", component);
-            assertNotNull("MetricsFeature is null.", feature);
-            assertNotNull("Metric name is null.", metricName);
-            return null;
-        }
-
-        @Override
-        public Histogram createHistogram(MetricsComponent component,
-                                         MetricsFeature feature, String metricName) {
-            assertNotNull("MetricsComponent is null.", component);
-            assertNotNull("MetricsFeature is null.", feature);
-            assertNotNull("Metric name is null.", metricName);
-            return null;
-        }
-
-        @Override
-        public Timer createTimer(MetricsComponent component,
-                                 MetricsFeature feature, String metricName) {
-            assertNotNull("MetricsComponent is null.", component);
-            assertNotNull("MetricsFeature is null.", feature);
-            assertNotNull("Metric name is null.", metricName);
-            return null;
-        }
-
-        @Override
-        public Meter createMeter(MetricsComponent component,
-                                 MetricsFeature feature, String metricName) {
-            assertNotNull("MetricsComponent is null.", component);
-            assertNotNull("MetricsFeature is null.", feature);
-            assertNotNull("Metric name is null.", metricName);
-            return null;
-        }
-
-        @Override
-        public <T extends Metric> T registerMetric(MetricsComponent component,
-                                                   MetricsFeature feature, String metricName, T metric) {
-            assertNotNull("MetricsComponent is null.", component);
-            assertNotNull("MetricsFeature is null.", feature);
-            assertNotNull("Metric name is null.", metricName);
-            assertNotNull("Metric is null.", metric);
-            return null;
-        }
-
-        @Override
-        public boolean removeMetric(MetricsComponent component,
-                                    MetricsFeature feature, String metricName) {
-            assertNotNull("MetricsComponent is null.", component);
-            assertNotNull("MetricsFeature is null.", feature);
-            assertNotNull("Metric name is null.", metricName);
-            return false;
-        }
-
-        @Override
-        public Map<String, Timer> getTimers(MetricFilter filter) {
-            assertNotNull("MetricFilter is null.", filter);
-            return null;
-        }
-
-        @Override
-        public Map<String, Gauge> getGauges(MetricFilter filter) {
-            assertNotNull("MetricFilter is null.", filter);
-            return null;
-        }
-
-        @Override
-        public Map<String, Counter> getCounters(MetricFilter filter) {
-            assertNotNull("MetricFilter is null.", filter);
-            return null;
-        }
-
-        @Override
-        public Map<String, Meter> getMeters(MetricFilter filter) {
-            assertNotNull("MetricFilter is null.", filter);
-            return null;
-        }
-
-        @Override
-        public Map<String, Histogram> getHistograms(MetricFilter filter) {
-            assertNotNull("MetricFilter is null.", filter);
-            return null;
-        }
-
-        @Override
-        public Map<String, Metric> getMetrics() {
-            return null;
-        }
-
-        @Override
-        public void removeMatching(MetricFilter filter) {
-            assertNotNull("MetricFilter is null.", filter);
-        }
     }
 }

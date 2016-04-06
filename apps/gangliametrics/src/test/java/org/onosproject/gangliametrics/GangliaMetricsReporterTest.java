@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class GangliaMetricsReporterTest {
 
-    private GangliaMetricsReporter gmr;
+    private DefaultGangliaMetricsReporter gmr;
 
     private static final String METRIC_NAME1 = "consistentMap.onos-app-ids.putIfAbsent";
     private static final String METRIC_NAME2 = "consistentMap.onos-hosts.entrySet";
@@ -45,7 +45,7 @@ public class GangliaMetricsReporterTest {
      */
     @Before
     public void setUp() {
-        gmr = new GangliaMetricsReporter();
+        gmr = new DefaultGangliaMetricsReporter();
     }
 
     /**

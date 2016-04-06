@@ -15,25 +15,12 @@
  */
 package org.onosproject.influxdbmetrics;
 
+import org.onlab.metrics.MetricsReporter;
+
 /**
  * A Metric reporter interface for reporting all metrics to influxDB server.
  */
-public interface InfluxDbMetricsReporter {
-
-    /**
-     * Starts to report metrics to InfluxDB server.
-     */
-    void startReport();
-
-    /**
-     * Stops reporting metrics.
-     */
-    void stopReport();
-
-    /**
-     * Restarts metrics reporter.
-     */
-    void restartReport();
+public interface InfluxDbMetricsReporter extends MetricsReporter {
 
     /**
      * Configures default parameters for influx database metrics reporter.

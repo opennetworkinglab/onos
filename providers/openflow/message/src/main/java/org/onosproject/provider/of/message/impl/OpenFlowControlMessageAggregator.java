@@ -86,6 +86,7 @@ public class OpenFlowControlMessageAggregator implements Runnable {
 
         this.deviceId = deviceId;
         this.providerService = providerService;
+        metricsService.notifyReporters();
     }
 
     /**

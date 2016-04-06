@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.influxdbmetrics;
+package org.onosproject.graphitemetrics;
+
 
 import com.codahale.metrics.MetricRegistry;
-import com.izettle.metrics.influxdb.InfluxDbHttpSender;
-import com.izettle.metrics.influxdb.InfluxDbReporter;
+import com.codahale.metrics.graphite.Graphite;
+import com.codahale.metrics.graphite.GraphiteReporter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -26,37 +27,35 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.MetricsService;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.CoreService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.net.InetSocketAddress;
 import java.util.Dictionary;
 import java.util.concurrent.TimeUnit;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * A Metric reporter that reports all metrics value to influxDB server.
+ * A metric report that reports all metrics value to graphite monitoring server.
  */
 @Component(immediate = true)
-@Service
-public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
+public class DefaultGraphiteMetricsReporter implements GraphiteMetricsReporter {
+
     private final Logger log = getLogger(getClass());
 
-    private static final int REPORT_PERIOD = 1;
     private static final TimeUnit REPORT_TIME_UNIT = TimeUnit.MINUTES;
+    private static final int DEFAULT_REPORT_PERIOD = 1;
 
-    private static final String DEFAULT_PROTOCOL = "http";
     private static final String DEFAULT_METRIC_NAMES = "default";
-    private static final String SEPARATOR = ":";
-    private static final int DEFAULT_CONN_TIMEOUT = 1000;
-    private static final int DEFAULT_READ_TIMEOUT = 1000;
+    private static final String DEFAULT_ADDRESS = "localhost";
+    private static final int DEFAULT_PORT = 2003;
+    private static final String DEFAULT_METRIC_NAME_PREFIX = "onos";
+
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -67,36 +66,40 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
-
     @Property(name = "monitorAll", boolValue = true,
-            label = "Enable to monitor all of metrics stored in metric registry " +
-                    "default is true")
+            label = "Enable to monitor all of metrics stored in metric registry default is true")
     protected boolean monitorAll = true;
 
     @Property(name = "metricNames", value = DEFAULT_METRIC_NAMES,
-            label = "Names of metric to be monitored in third party monitoring " +
-                    "server; default metric names are 'default'")
+            label = "Names of metric to be monitored; default metric names are 'default'")
     protected String metricNames = DEFAULT_METRIC_NAMES;
 
-    protected String address;
-    protected int port;
-    protected String database;
-    protected String username;
-    protected String password;
+    @Property(name = "address", value = DEFAULT_ADDRESS,
+            label = "IP address of graphite monitoring server; default is localhost")
+    protected String address = DEFAULT_ADDRESS;
 
-    private InfluxDbReporter influxDbReporter;
-    private InfluxDbHttpSender influxDbHttpSender;
+    @Property(name = "port", intValue = DEFAULT_PORT,
+            label = "Port number of graphite monitoring server; default is 2003")
+    protected int port = DEFAULT_PORT;
+
+    @Property(name = "reportPeriod", intValue = DEFAULT_REPORT_PERIOD,
+            label = "Reporting period of graphite monitoring server; default is 1")
+    protected int reportPeriod = DEFAULT_REPORT_PERIOD;
+
+    @Property(name = "metricNamePrefix", value = DEFAULT_METRIC_NAME_PREFIX,
+            label = "Prefix of metric name for graphite back-end server; default is 'onos'")
+    protected String metricNamePrefix = DEFAULT_METRIC_NAME_PREFIX;
+
+    private Graphite graphite;
+    private GraphiteReporter graphiteReporter;
 
     @Activate
     public void activate() {
         cfgService.registerProperties(getClass());
-        coreService.registerApplication("org.onosproject.influxdbmetrics");
+        coreService.registerApplication("org.onosproject.graphitemetrics");
         metricsService.registerReporter(this);
 
         startReport();
-
         log.info("Started");
     }
 
@@ -113,23 +116,24 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
     @Modified
     public void modified(ComponentContext context) {
         readComponentConfiguration(context);
-        restartReport();
+
+        // Restarts reporting
+        stopReport();
+        startReport();
     }
 
-    @Override
     public void startReport() {
-        configSender();
-        influxDbReporter = buildReporter(influxDbHttpSender);
-        influxDbReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
-        log.info("Start to report metrics to influxDB.");
+        configGraphite();
+        graphiteReporter = buildReporter(graphite);
+        graphiteReporter.start(reportPeriod, REPORT_TIME_UNIT);
+        log.info("Start to report metrics to graphite server.");
     }
 
-    @Override
     public void stopReport() {
-        influxDbReporter.stop();
-        influxDbHttpSender = null;
-        influxDbReporter = null;
-        log.info("Stop reporting metrics to influxDB.");
+        graphiteReporter.stop();
+        graphite = null;
+        graphiteReporter = null;
+        log.info("Stop reporting metrics to graphite server.");
     }
 
     @Override
@@ -140,20 +144,10 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
 
     @Override
     public void notifyMetricsChange() {
-        influxDbReporter.stop();
-        influxDbReporter = buildReporter(influxDbHttpSender);
-        influxDbReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
+        graphiteReporter.stop();
+        graphiteReporter = buildReporter(graphite);
+        graphiteReporter.start(DEFAULT_REPORT_PERIOD, REPORT_TIME_UNIT);
         log.info("Metric registry has been changed, apply changes.");
-    }
-
-    @Override
-    public void config(String address, int port, String database,
-                       String username, String password) {
-        this.address = address;
-        this.port = port;
-        this.database = database;
-        this.username = username;
-        this.password = password;
     }
 
     /**
@@ -175,24 +169,8 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
     }
 
     /**
-     * Appends node IP prefix to all performance metrics.
-     *
-     * @param metricRegistry original metric registry
-     * @return prefix added metric registry
-     */
-    protected MetricRegistry addHostPrefix(MetricRegistry metricRegistry) {
-        MetricRegistry moddedRegistry = new MetricRegistry();
-        ControllerNode node = clusterService.getLocalNode();
-        String prefix = node.id().id() + ".";
-        metricRegistry.getNames().stream().forEach(name ->
-                moddedRegistry.register(prefix + name, metricRegistry.getMetrics().get(name)));
-
-        return moddedRegistry;
-    }
-
-    /**
      * Looks up whether the metric name contains the given prefix keywords.
-     * Note that the keywords are separated with comma as delimiter.
+     * Note that the keywords are separated with comma as delimiter
      *
      * @param full the original metric name that to be compared with
      * @param prefixes the prefix keywords that are matched against with the metric name
@@ -216,45 +194,73 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
 
-        String metricNameStr = Tools.get(properties, "metricNames");
-        metricNames = metricNameStr != null ? metricNameStr : DEFAULT_METRIC_NAMES;
-        log.info("Configured. Metric name is {}", metricNames);
-
-        Boolean monitorAllEnabled = Tools.isPropertyEnabled(properties, "monitorAll");
-        if (monitorAllEnabled == null) {
+        Boolean newMonitorAll = Tools.isPropertyEnabled(properties, "monitorAll");
+        if (newMonitorAll == null) {
             log.info("Monitor all metrics is not configured, " +
                     "using current value of {}", monitorAll);
         } else {
-            monitorAll = monitorAllEnabled;
-            log.info("Configured. Monitor all metrics is {}",
+            monitorAll = newMonitorAll;
+            log.info("Configured. Monitor all metrics is {}, ",
                     monitorAll ? "enabled" : "disabled");
         }
+
+        String newMetricNames = Tools.get(properties, "metricNames");
+        metricNames = newMetricNames != null ? newMetricNames : DEFAULT_METRIC_NAMES;
+        log.info("Configured. Metric name is {}", metricNames);
+
+        String newAddress = Tools.get(properties, "address");
+        address = newAddress != null ? newAddress : DEFAULT_ADDRESS;
+        log.info("Configured. Graphite monitoring server address is {}", address);
+
+        Integer newPort = Tools.getIntegerProperty(properties, "port");
+        if (newPort == null) {
+            port = DEFAULT_PORT;
+            log.info("Graphite port is not configured, default value is {}", port);
+        } else {
+            port = newPort;
+            log.info("Configured. Graphite port is configured to {}", port);
+        }
+
+        Integer newReportPeriod = Tools.getIntegerProperty(properties, "reportPeriod");
+        if (newReportPeriod == null) {
+            reportPeriod = DEFAULT_REPORT_PERIOD;
+            log.info("Report period of graphite server is not configured, " +
+                    "default value is {}", reportPeriod);
+        } else {
+            reportPeriod = newReportPeriod;
+            log.info("Configured. Report period of graphite server" +
+                    " is configured to {}", reportPeriod);
+        }
+
+        String newMetricNamePrefix = Tools.get(properties, "metricNamePrefix");
+        metricNamePrefix = newMetricNamePrefix != null ?
+                newMetricNamePrefix : DEFAULT_METRIC_NAME_PREFIX;
+
     }
 
     /**
-     * Configures parameters for sender.
+     * Configures parameters for graphite config.
      */
-    private void configSender() {
+    private void configGraphite() {
         try {
-            influxDbHttpSender = new InfluxDbHttpSender(DEFAULT_PROTOCOL, address,
-                    port, database, username + SEPARATOR + password, REPORT_TIME_UNIT,
-                    DEFAULT_CONN_TIMEOUT, DEFAULT_READ_TIMEOUT);
+            graphite = new Graphite(new InetSocketAddress(address, port));
         } catch (Exception e) {
-            log.error("Fail to connect to given influxDB server!");
+            log.error("Fail to connect to given graphite server! : " + e.getMessage());
         }
     }
 
     /**
-     * Builds reporter with the given sender.
+     * Builds reporter with the given graphite config.
      *
-     * @param sender sender
+     * @param graphiteCfg graphite config
      * @return reporter
      */
-    private InfluxDbReporter buildReporter(InfluxDbHttpSender sender) {
-        MetricRegistry mr = metricsService.getMetricRegistry();
-        return InfluxDbReporter.forRegistry(addHostPrefix(filter(mr)))
+    private GraphiteReporter buildReporter(Graphite graphiteCfg) {
+        MetricRegistry metricRegistry = metricsService.getMetricRegistry();
+        return GraphiteReporter.forRegistry(filter(metricRegistry))
+                .prefixedWith(metricNamePrefix)
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
-                .build(sender);
+                .build(graphiteCfg);
     }
 }

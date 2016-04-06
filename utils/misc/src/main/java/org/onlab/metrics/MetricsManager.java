@@ -15,10 +15,6 @@
  */
 package org.onlab.metrics;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
@@ -27,6 +23,12 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.google.common.collect.Sets;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * This class holds the Metrics registry for ONOS.
@@ -72,6 +74,11 @@ public class MetricsManager implements MetricsService {
      * Registry for the Metrics objects created in the system.
      */
     private MetricRegistry metricsRegistry = new MetricRegistry();
+
+    /**
+     * Reporter for exposing metrics objects to third party persistent system.
+     */
+    private Set<MetricsReporter> reporters = Sets.newConcurrentHashSet();
 
     /**
      * Clears the internal state.
@@ -213,6 +220,34 @@ public class MetricsManager implements MetricsService {
         final String name = generateName(component, feature, metricName);
         metricsRegistry.register(name, metric);
         return metric;
+    }
+
+    /**
+     * Registers a reporter to receive any changes on metric registry.
+     *
+     * @param reporter metric reporter
+     */
+    @Override
+    public void registerReporter(MetricsReporter reporter) {
+        reporters.add(reporter);
+    }
+
+    /**
+     * Unregisters the given metric reporter.
+     *
+     * @param reporter metric reporter
+     */
+    @Override
+    public void unregisterReporter(MetricsReporter reporter) {
+        reporters.remove(reporter);
+    }
+
+    /**
+     * Notifies the changes on metric registry to all registered reporters.
+     */
+    @Override
+    public void notifyReporters() {
+        reporters.forEach(MetricsReporter::notifyMetricsChange);
     }
 
     /**

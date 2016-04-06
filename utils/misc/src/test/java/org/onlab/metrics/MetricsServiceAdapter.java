@@ -75,6 +75,18 @@ public class MetricsServiceAdapter implements MetricsService {
     }
 
     @Override
+    public void registerReporter(MetricsReporter reporter) {
+    }
+
+    @Override
+    public void unregisterReporter(MetricsReporter reporter) {
+    }
+
+    @Override
+    public void notifyReporters() {
+    }
+
+    @Override
     public boolean removeMetric(MetricsComponent component,
                                 MetricsFeature feature, String metricName) {
         return false;

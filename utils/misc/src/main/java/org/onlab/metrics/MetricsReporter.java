@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.gangliametrics;
+package org.onlab.metrics;
 
 /**
- * A metric report that reports all metrics value to third party monitor.
+ * Interface of reporter that reports all metrics value to third party monitor.
  */
 public interface MetricsReporter {
 
@@ -29,4 +29,14 @@ public interface MetricsReporter {
      * Stops reporting metrics.
      */
     void stopReport();
+
+    /**
+     * Restarts metrics reporter.
+     */
+    void restartReport();
+
+    /**
+     * Notifies the changes on metric registry.
+     */
+    void notifyMetricsChange();
 }

@@ -86,8 +86,6 @@ public class InfluxDbMetricsConfig {
         coreService.registerApplication("org.onosproject.influxdbmetrics");
 
         configReporter(influxDbMetricsReporter);
-        influxDbMetricsReporter.startReport();
-
         configRetriever(influxDbMetricsRetriever);
 
         log.info("Started");
@@ -97,7 +95,6 @@ public class InfluxDbMetricsConfig {
     public void deactivate() {
         cfgService.unregisterProperties(getClass(), false);
 
-        influxDbMetricsReporter.stopReport();
         log.info("Stopped");
     }
 
