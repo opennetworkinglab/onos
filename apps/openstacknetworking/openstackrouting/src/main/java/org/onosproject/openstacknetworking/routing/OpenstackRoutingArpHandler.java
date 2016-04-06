@@ -18,7 +18,6 @@ package org.onosproject.openstacknetworking.routing;
 import org.onlab.packet.ARP;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -94,10 +93,12 @@ public class OpenstackRoutingArpHandler {
         checkNotNull(context, "context can not be null");
         checkNotNull(ethernet, "ethernet can not be null");
 
-        log.info("arpEvent called from {} to {}",
-                Ip4Address.valueOf(((IPv4) ethernet.getPayload()).getSourceAddress()).toString(),
-                Ip4Address.valueOf(((IPv4) ethernet.getPayload()).getDestinationAddress()).toString());
+
         ARP arp = (ARP) ethernet.getPayload();
+
+        log.debug("arpEvent called from {} to {}",
+                Ip4Address.valueOf(arp.getSenderProtocolAddress()).toString(),
+                Ip4Address.valueOf(arp.getTargetProtocolAddress()).toString());
 
         if (arp.getOpCode() != ARP.OP_REQUEST) {
             return;
