@@ -233,10 +233,7 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     @Override
     public void updateRouter(OpenstackRouter openstackRouter) {
         if (openstackRouter.gatewayExternalInfo().externalFixedIps().size() > 0) {
-            Ip4Address externalIp = openstackRouter.gatewayExternalInfo().externalFixedIps()
-                    .values().stream().findFirst().orElse(null);
-            OpenstackRouter router = getRouterfromExternalIp(externalIp);
-            checkExternalConnection(router, getOpenstackRouterInterface(router));
+            checkExternalConnection(openstackRouter, getOpenstackRouterInterface(openstackRouter));
         } else {
             unsetExternalConnection();
         }
