@@ -43,6 +43,7 @@ import org.onosproject.incubator.net.tunnel.TunnelStoreDelegate;
 import org.onosproject.incubator.net.tunnel.TunnelSubscription;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.ElementId;
 import org.onosproject.net.Path;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
@@ -224,6 +225,18 @@ public class TunnelManager
             }
         }
         return tunnels;
+    }
+
+    @Override
+    public TunnelId setupTunnel(ApplicationId producerId, ElementId srcElementId, Tunnel tunnel, Path path) {
+        // TODO: Insert into store and trigger provider API.
+        return null;
+    }
+
+    @Override
+    public boolean downTunnel(ApplicationId producerId, TunnelId tunnelId) {
+        // TODO: Change the tunnel status and trigger provider API.
+        return false;
     }
 
     @Override
