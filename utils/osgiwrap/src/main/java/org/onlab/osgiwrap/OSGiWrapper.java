@@ -17,6 +17,7 @@
 package org.onlab.osgiwrap;
 
 import aQute.bnd.osgi.Analyzer;
+import aQute.bnd.osgi.Builder;
 import aQute.bnd.osgi.Jar;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -136,7 +137,7 @@ public class OSGiWrapper {
     }
 
     public boolean execute() {
-        Analyzer analyzer = new Analyzer();
+        Analyzer analyzer = new Builder();
         try {
 
             Jar jar = new Jar(new File(inputJar));  // where our data is
