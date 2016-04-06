@@ -22,7 +22,7 @@ TEST_DEPS = [
      '//core/common:onos-core-common-tests',
 ]
 
-java_library(
+osgi_jar(
     name = CURRENT_NAME,
     srcs = glob([SRC + '/*.java']),
     deps = COMPILE_DEPS,

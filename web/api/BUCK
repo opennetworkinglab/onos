@@ -1,25 +1,30 @@
 SRC = 'src/main/java/org/onosproject/**/'
 TEST = 'src/test/java/org/onosproject/**/'
+RESOURCES_ROOT = 'src/main/resources/'
 
 CURRENT_NAME = 'onos-rest'
 CURRENT_TARGET = ':' + CURRENT_NAME
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
     '//lib:javax.ws.rs-api',
     '//utils/rest:onlab-rest',
-    '//incubator/api:onos-incubator-api',
 ]
 
 TEST_DEPS = [
     '//lib:TEST',
 ]
 
-java_library(
+osgi_jar(
     name = CURRENT_NAME,
     srcs = glob([SRC + '/*.java']),
+    resources = glob([RESOURCES_ROOT + '**']),
+    resources_root = RESOURCES_ROOT,
     deps = COMPILE_DEPS,
     visibility = ['PUBLIC'],
+    debug = False,
+    web_context = '/onos/v1'
 )
 
 java_test(

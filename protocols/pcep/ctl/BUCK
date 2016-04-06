@@ -9,7 +9,7 @@ COMPILE_DEPS = [
     '//protocols/pcep/api:onos-pcep-controller-api',
 ]
 
-java_library(
+osgi_jar(
     name = CURRENT_NAME,
     srcs = glob([SRC + '/*.java']),
     deps = COMPILE_DEPS,

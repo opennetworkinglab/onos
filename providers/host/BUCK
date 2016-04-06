@@ -7,7 +7,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
 ]
 
-java_library(
+osgi_jar(
     name = CURRENT_NAME,
     srcs = glob([SRC + '/*.java']),
     deps = COMPILE_DEPS,

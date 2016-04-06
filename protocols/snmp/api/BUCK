@@ -13,7 +13,7 @@ COMPILE_DEPS = [
     '//lib:mibs-rfc',
 ]
 
-java_library(
+osgi_jar(
     name = CURRENT_NAME,
     srcs = glob([SRC + '/*.java']),
     deps = COMPILE_DEPS,

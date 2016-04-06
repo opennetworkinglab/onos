@@ -1,3 +1,4 @@
+import random
 
 DEBUG_ARG='JAVA_TOOL_OPTIONS="-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=y"'
 
@@ -82,16 +83,18 @@ def osgi_jar(
   )
 
   ### .m2 Install
-  mvn_cmd = ' '.join(('mvn install:install-file',
-                      '-Dfile=$(location :%s)' % name,
-                      '-DgroupId=%s' % group_id,
-                      '-DartifactId=%s' % name,
-                      '-Dversion=%s' % version,
-                      '-Dpackaging=jar'
-                      ))
+  mvn_cmd = ' '.join(( 'mvn install:install-file',
+                       '-Dfile=$(location :%s)' % name,
+                       '-DgroupId=%s' % group_id,
+                       '-DartifactId=%s' % name,
+                       '-Dversion=%s' % version,
+                       '-Dpackaging=jar' ))
+  # TODO This rule must be run every time, adding random number as rule input.
+  #      We should make this configurable, perhaps with a flag.
+  cmd = 'FOO=%s ' % random.random() + mvn_cmd + ' > $OUT'
   genrule(
     name = name + '-install',
-    bash = mvn_cmd + ' > $OUT',
+    bash = cmd,
     out = 'install.log',
     visibility = visibility,
   )

@@ -13,7 +13,7 @@ TEST_DEPS = [
     '//core/api:onos-api-tests',
 ]
 
-java_library(
+osgi_jar(
     name = CURRENT_NAME,
     srcs = glob([SRC + '/*.java']),
     deps = COMPILE_DEPS,

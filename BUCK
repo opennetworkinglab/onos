@@ -3,15 +3,22 @@ DEPS = [
     '//utils/junit:onlab-junit',
     '//utils/misc:onlab-misc',
     '//utils/rest:onlab-rest',
+
     '//core/api:onos-api',
-    '//incubator/api:onos-incubator-api',
-    '//incubator/net:onos-incubator-net',
     '//core/net:onos-core-net',
+    '//core/common:onos-core-common',
     '//core/store/primitives:onos-core-primitives',
     '//core/store/serializers:onos-core-serializers',
     '//core/store/dist:onos-core-dist',
     '//core/security:onos-security',
     '//core/store/persistence:onos-core-persistence',
+
+    '//incubator/api:onos-incubator-api',
+    '//incubator/net:onos-incubator-net',
+    '//incubator/core:onos-incubator-core',
+    '//incubator/store:onos-incubator-store',
+    '//incubator/rpc:onos-incubator-rpc',
+
     '//cli:onos-cli',
 
     '//protocols/rest/api:onos-restsb-api',
@@ -121,4 +128,36 @@ java_library(
    name = 'onos',
    visibility = ['PUBLIC'],
    deps = DEPS
+)
+
+INSTALL = [
+    '//utils/misc:onlab-misc-install',
+    '//utils/osgi:onlab-osgi-install',
+    '//utils/rest:onlab-rest-install',
+
+    '//core/api:onos-api-install',
+    '//incubator/api:onos-incubator-api-install',
+
+    '//core/net:onos-core-net-install',
+    '//core/common:onos-core-common-install',
+    '//core/store/dist:onos-core-dist-install',
+    '//core/store/primitives:onos-core-primitives-install',
+    '//core/store/persistence:onos-core-persistence-install',
+    '//core/store/serializers:onos-core-serializers-install',
+
+    '//incubator/net:onos-incubator-net-install',
+    '//incubator/core:onos-incubator-core-install',
+    '//incubator/store:onos-incubator-store-install',
+    '//incubator/rpc:onos-incubator-rpc-install',
+
+    '//core/security:onos-security-install',
+
+    '//web/api:onos-rest-install',
+    '//web/gui:onos-gui-install',
+    '//cli:onos-cli-install',
+]
+java_library(
+    name = 'install',
+    visibility = ['PUBLIC'],
+    deps = INSTALL
 )

@@ -8,7 +8,7 @@ COMPILE_DEPS = [
     '//protocols/bgp/bgpio:onos-bgpio',
 ]
 
-java_library(
+osgi_jar(
     name = CURRENT_NAME,
     srcs = glob([SRC + '/*.java']),
     deps = COMPILE_DEPS,

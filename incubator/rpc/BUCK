@@ -1,12 +1,11 @@
-SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/test/java/org/onosproject/**/'
-CURRENT_NAME = 'onos-ovsdb-api'
+SRC = 'src/main/java/org/onosproject/incubator/**/'
+TEST = 'src/test/java/org/onosproject/incubator/**/'
+CURRENT_NAME = 'onos-incubator-rpc'
 CURRENT_TARGET = ':' + CURRENT_NAME
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//lib:netty-transport',
-    '//protocols/ovsdb/rfc:onos-ovsdb-rfc',
+    '//incubator/api:onos-incubator-api',
 ]
 
 TEST_DEPS = [

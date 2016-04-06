@@ -4,13 +4,6 @@ TEST = 'src/test/java/org/onosproject/**/'
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:netty-buffer',
-    #'//lib:netty-'
-    #'//lib:org.apache.karaf.shell.console',
-    #'//cli:onos-cli',
-    #'//utils/rest:onlab-rest',
-    #'//lib:javax.ws.rs-api',
-    #'//core/store/serializers:onos-core-serializers',
-    #'//incubator/api:onos-incubator-api',
 ]
 
 TEST_DEPS = [
@@ -27,7 +20,7 @@ java_library(
 
 # onos-isis-api
 
-java_library(
+osgi_jar(
     name = 'onos-isis-api',
     srcs = glob(['api/' + SRC + '*.java']),
     deps = COMPILE_DEPS,
@@ -45,7 +38,7 @@ java_test(
 
 # onos-isis-isisio
 
-java_library(
+osgi_jar(
     name = 'onos-isis-isisio',
     srcs = glob(['isisio/' + SRC + '*.java']),
     deps = COMPILE_DEPS + [':onos-isis-api'],

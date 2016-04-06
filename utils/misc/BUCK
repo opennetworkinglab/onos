@@ -11,7 +11,7 @@ TEST_DEPS = [
     '//lib:TEST',
 ]
 
-java_library(
+osgi_jar(
     name = CURRENT_NAME,
     srcs = glob([SRC + '/*.java']),
     deps = COMPILE_DEPS,
@@ -26,3 +26,4 @@ java_test(
            [CURRENT_TARGET],
     source_under_test = [CURRENT_TARGET],
 )
+
