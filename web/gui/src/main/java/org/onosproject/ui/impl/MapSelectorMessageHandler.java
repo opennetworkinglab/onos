@@ -42,17 +42,16 @@ class MapSelectorMessageHandler extends UiMessageHandler {
 
     private static final List<Map> SUPPORTED_MAPS =
             ImmutableList.of(new Map("australia", "Australia", 1.0),
-                             new Map("ns_america", "North, Central and South America", 0.7),
-                             new Map("s_america", "South America", 0.9),
-                             new Map("usa", "United States", 1.0),
-                             new Map("bayarea", "Bay Area, California", 1.0),
-                             new Map("europe", "Europe", 2.5),
-                             new Map("italy", "Italy", 0.8),
-                             new Map("uk", "United Kingdom and Ireland", 0.6),
-                             new Map("japan", "Japan", 0.8),
-                             new Map("s_korea", "South Korea", 0.75),
-                             new Map("taiwan", "Taiwan", 0.7),
-                             new Map("world", "World", 1.0));
+                    new Map("ns_america", "North, Central and South America", 0.7),
+                    new Map("s_america", "South America", 0.9),
+                    new Map("usa", "United States", 1.0),
+                    new Map("bayarea", "Bay Area, California", 1.0),
+                    new Map("europe", "Europe", 2.5),
+                    new Map("italy", "Italy", 0.8),
+                    new Map("uk", "United Kingdom and Ireland", 0.6),
+                    new Map("japan", "Japan", 0.8),
+                    new Map("s_korea", "South Korea", 0.75),
+                    new Map("taiwan", "Taiwan", 0.7));
 
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {

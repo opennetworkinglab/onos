@@ -307,12 +307,6 @@
 
 
     var countryFilters = {
-        world: function (c) {
-            return c.properties.continent !== 'Antarctica';
-        },
-
-        // NOTE: for "usa" we are using our hand-crafted topojson file
-
         s_america: function (c) {
             return c.properties.continent === 'South America';
         },
@@ -375,7 +369,7 @@
 
     function setMap(map) {
         ps.setPrefs('topo_mapid', map);
-        setUpMap($loc);
+        setUpMap();
         opacifyMap(true);
     }
 
@@ -387,7 +381,7 @@
         );
     }
 
-    function setUpMap($loc) {
+    function setUpMap() {
         var prefs = currentMap(),
             mapId = prefs.mapid,
             mapScale = prefs.mapscale,
@@ -430,7 +424,7 @@
             })
         } else {
             shadeFlip = 0;
-            cfilter = countryFilters[mapId] || countryFilters.world;
+            cfilter = countryFilters[mapId] || countryFilters.uk;
             promise = ms.loadMapRegionInto(mapG, {
                 countryFilter: cfilter,
                 adjustScale: mapScale,
@@ -459,7 +453,7 @@
             .attr('opacity', b ? 1 : 0);
     }
 
-    function setUpSprites($loc, tspr) {
+    function setUpSprites() {
         var prefs = ps.getPrefs('topo_sprites', { sprites: '' }, $loc.search()),
             sprId = prefs.sprites;
 
@@ -629,7 +623,7 @@
             setUpDefs();
             setUpZoom();
             setUpNoDevs();
-            setUpMap($loc).then(
+            setUpMap().then(
                 function (proj) {
                     var z = ps.getPrefs('topo_zoom', { tx:0, ty:0, sc:1 });
                     zoomer.panZoom([z.tx, z.ty], z.sc);
@@ -651,7 +645,7 @@
                 }
             );
             tes.bindHandlers();
-            setUpSprites($loc, tspr);
+            setUpSprites();
 
             forceG = zoomLayer.append('g').attr('id', 'topo-force');
             tfs.initForce(svg, forceG, uplink, dim);
