@@ -508,6 +508,7 @@ public class OpenstackRoutingRulePopulator {
      * Removes flow rules for floating ip configuration.
      *
      * @param floatingIP Corresponding floating ip information
+     * @param portInfo stored information about deleted vm
      */
     public void removeFloatingIpRules(OpenstackFloatingIP floatingIP, OpenstackPortInfo portInfo) {
         TrafficSelector.Builder sOutgoingBuilder = DefaultTrafficSelector.builder();

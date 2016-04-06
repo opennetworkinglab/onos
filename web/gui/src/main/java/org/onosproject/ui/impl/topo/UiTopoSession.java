@@ -47,6 +47,8 @@ public class UiTopoSession {
 
     /**
      * Creates a new topology layout.
+     * @param username user name
+     * @param webSocket web socket
      */
     public UiTopoSession(String username, UiWebSocket webSocket) {
         this.username = username;

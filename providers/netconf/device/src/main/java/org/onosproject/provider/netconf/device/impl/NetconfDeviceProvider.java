@@ -343,6 +343,8 @@ public class NetconfDeviceProvider extends AbstractProvider
     /**
      * Return the DeviceId about the device containing the URI.
      *
+     * @param ip IP address
+     * @param port port number
      * @return DeviceId
      */
     public DeviceId getDeviceId(String ip, int port) {

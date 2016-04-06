@@ -66,7 +66,7 @@ public class Route {
      *
      * @param source route source
      * @param prefix IP prefix
-     * @param nextHop
+     * @param nextHop net hop IP address
      */
     public Route(Source source, IpPrefix prefix, IpAddress nextHop) {
         checkNotNull(prefix);

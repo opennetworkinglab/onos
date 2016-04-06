@@ -161,6 +161,7 @@ public class FlowsListCommand extends AbstractShellCommand {
      *
      * @param deviceService device service
      * @param service flow rule service
+     * @param coreService core service
      * @return sorted device list
      */
     protected SortedMap<Device, List<FlowEntry>> getSortedFlows(DeviceService deviceService,

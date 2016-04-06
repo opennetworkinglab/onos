@@ -92,8 +92,8 @@ public interface DeviceProperties {
      * Value: a list of ports, which are bound to the subnet
      *
      * @param deviceId device identifier
+     * @throws DeviceConfigNotFoundException if the device configuration is not found
      * @return a map that contains all subnet-to-ports mapping of given device
-     * @throws DeviceConfigNotFoundException
      */
     Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId)
             throws DeviceConfigNotFoundException;

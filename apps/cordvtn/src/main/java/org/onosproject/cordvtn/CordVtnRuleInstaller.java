@@ -136,6 +136,7 @@ public class CordVtnRuleInstaller {
      * @param deviceService device service
      * @param driverService driver service
      * @param groupService group service
+     * @param configRegistry config registry
      * @param tunnelType tunnel type
      */
     public CordVtnRuleInstaller(ApplicationId appId,
