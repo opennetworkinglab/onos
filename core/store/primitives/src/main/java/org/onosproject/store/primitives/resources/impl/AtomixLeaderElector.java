@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import io.atomix.catalyst.util.Listener;
 import io.atomix.copycat.client.CopycatClient;
 import io.atomix.resource.AbstractResource;
 import io.atomix.resource.ResourceTypeInfo;
@@ -50,10 +49,9 @@ import com.google.common.collect.Sets;
 public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
     implements AsyncLeaderElector {
     private final Set<Consumer<Change<Leadership>>> leadershipChangeListeners =
-            Sets.newConcurrentHashSet();
+            Sets.newIdentityHashSet();
 
     public static final String CHANGE_SUBJECT = "leadershipChangeEvents";
-    private Listener<Change<Leadership>> listener;
 
     public AtomixLeaderElector(CopycatClient client, Properties properties) {
         super(client, properties);
@@ -127,7 +125,7 @@ public class AtomixLeaderElector extends AbstractResource<AtomixLeaderElector>
 
     @Override
     public synchronized CompletableFuture<Void> removeChangeListener(Consumer<Change<Leadership>> consumer) {
-        if (leadershipChangeListeners.remove(listener) && leadershipChangeListeners.isEmpty()) {
+        if (leadershipChangeListeners.remove(consumer) && leadershipChangeListeners.isEmpty()) {
             return submit(new Unlisten()).thenApply(v -> null);
         }
         return CompletableFuture.completedFuture(null);
