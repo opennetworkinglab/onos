@@ -120,7 +120,12 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
     public void startReport() {
         configSender();
         influxDbReporter = buildReporter(influxDbHttpSender);
-        influxDbReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
+
+        try {
+            influxDbReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
+        } catch (Exception e) {
+            log.error("Errors during reporting to InfluxDB, msg: {}" + e.getMessage());
+        }
         log.info("Start to report metrics to influxDB.");
     }
 
@@ -142,7 +147,13 @@ public class DefaultInfluxDbMetricsReporter implements InfluxDbMetricsReporter {
     public void notifyMetricsChange() {
         influxDbReporter.stop();
         influxDbReporter = buildReporter(influxDbHttpSender);
-        influxDbReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
+
+        try {
+            influxDbReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
+        } catch (Exception e) {
+            log.error("Errors during reporting to InfluxDB, msg: {}" + e.getMessage());
+        }
+
         log.info("Metric registry has been changed, apply changes.");
     }
 

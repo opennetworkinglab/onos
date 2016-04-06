@@ -125,7 +125,13 @@ public class DefaultGraphiteMetricsReporter implements GraphiteMetricsReporter {
     public void startReport() {
         configGraphite();
         graphiteReporter = buildReporter(graphite);
-        graphiteReporter.start(reportPeriod, REPORT_TIME_UNIT);
+
+        try {
+            graphiteReporter.start(DEFAULT_REPORT_PERIOD, REPORT_TIME_UNIT);
+        } catch (Exception e) {
+            log.error("Errors during reporting to graphite, msg: {}" + e.getMessage());
+        }
+
         log.info("Start to report metrics to graphite server.");
     }
 
@@ -146,7 +152,13 @@ public class DefaultGraphiteMetricsReporter implements GraphiteMetricsReporter {
     public void notifyMetricsChange() {
         graphiteReporter.stop();
         graphiteReporter = buildReporter(graphite);
-        graphiteReporter.start(DEFAULT_REPORT_PERIOD, REPORT_TIME_UNIT);
+
+        try {
+            graphiteReporter.start(DEFAULT_REPORT_PERIOD, REPORT_TIME_UNIT);
+        } catch (Exception e) {
+            log.error("Errors during reporting to graphite, msg: {}" + e.getMessage());
+        }
+
         log.info("Metric registry has been changed, apply changes.");
     }
 

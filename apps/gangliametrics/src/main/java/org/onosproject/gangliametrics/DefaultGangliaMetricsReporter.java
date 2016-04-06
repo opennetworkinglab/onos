@@ -92,7 +92,7 @@ public class DefaultGangliaMetricsReporter implements GangliaMetricsReporter {
     @Activate
     public void activate() {
         cfgService.registerProperties(getClass());
-        coreService.registerApplication("org.onosproject.metrics.reporter");
+        coreService.registerApplication("org.onosproject.gangliametrics");
         metricsService.registerReporter(this);
 
         startReport();
@@ -120,7 +120,13 @@ public class DefaultGangliaMetricsReporter implements GangliaMetricsReporter {
     public void startReport() {
         configGMetric();
         gangliaReporter = buildReporter(ganglia);
-        gangliaReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
+
+        try {
+            gangliaReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
+        } catch (Exception e) {
+            log.error("Errors during reporting to ganglia, msg: {}" + e.getMessage());
+        }
+
         log.info("Start to report metrics to ganglia server.");
     }
 
@@ -142,7 +148,13 @@ public class DefaultGangliaMetricsReporter implements GangliaMetricsReporter {
     public void notifyMetricsChange() {
         gangliaReporter.stop();
         gangliaReporter = buildReporter(ganglia);
-        gangliaReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
+
+        try {
+            gangliaReporter.start(REPORT_PERIOD, REPORT_TIME_UNIT);
+        } catch (Exception e) {
+            log.error("Errors during reporting to ganglia, msg: {}" + e.getMessage());
+        }
+
         log.info("Metric registry has been changed, apply changes.");
     }
 
