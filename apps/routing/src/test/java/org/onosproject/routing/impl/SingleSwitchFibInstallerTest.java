@@ -131,7 +131,7 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
 
         //component context
         ComponentContext mockContext = EasyMock.createMock(ComponentContext.class);
-        Dictionary<String, Boolean> properties = null;
+        Dictionary properties = null;
         expect(mockContext.getProperties()).andReturn(properties);
         replay(mockContext);
 

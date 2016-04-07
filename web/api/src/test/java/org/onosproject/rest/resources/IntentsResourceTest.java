@@ -15,10 +15,17 @@
  */
 package org.onosproject.rest.resources;
 
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.Collections;
+import java.util.HashSet;
+
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -40,17 +47,11 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.MockIdGenerator;
 
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.Collections;
-import java.util.HashSet;
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
@@ -65,6 +66,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
+import static org.onosproject.net.intent.MockIdGenerator.bindNewGenerator;
 
 /**
  * Unit tests for Intents REST APIs.
@@ -255,8 +257,7 @@ public class IntentsResourceTest extends ResourceTest {
 
         BaseResource.setServiceDirectory(testDirectory);
 
-        mockGenerator = new MockIdGenerator();
-        Intent.bindIdGenerator(mockGenerator);
+        bindNewGenerator();
     }
 
     /**
@@ -265,7 +266,6 @@ public class IntentsResourceTest extends ResourceTest {
     @After
     public void tearDownTest() {
         verify(mockIntentService);
-        Intent.unbindIdGenerator(mockGenerator);
     }
 
     /**
@@ -456,7 +456,7 @@ public class IntentsResourceTest extends ResourceTest {
         WebTarget wt = target();
 
         Response response = wt.path("intents/app/0x2")
-                .request(MediaType.APPLICATION_JSON_TYPE)
+                .request(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN)
                 .delete();
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
     }
@@ -484,7 +484,7 @@ public class IntentsResourceTest extends ResourceTest {
         WebTarget wt = target();
 
         Response response = wt.path("intents/app/0x2")
-                .request(MediaType.APPLICATION_JSON_TYPE)
+                .request(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN)
                 .delete();
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
     }

@@ -16,7 +16,7 @@ COMPILE_DEPS = [
 ]
 
 TEST_DEPS = [
-    '//lib:TEST',
+    '//lib:TEST_ADAPTERS',
 ]
 
 java_library(
@@ -35,4 +35,6 @@ java_test(
            TEST_DEPS +
            [CURRENT_TARGET],
     source_under_test = [CURRENT_TARGET],
+    resources_root = 'src/test/resources',
+    resources = glob(['src/test/resources/**']),
 )

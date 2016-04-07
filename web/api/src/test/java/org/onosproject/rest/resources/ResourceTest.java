@@ -36,6 +36,14 @@ public class ResourceTest extends JerseyTest {
     }
 
     /**
+     * Creates a new web-resource test.
+     */
+    public ResourceTest(ResourceConfig config) {
+        super(config);
+        this.set("jersey.config.test.container.port", getRandomPort(DEFAULT_PORT));
+    }
+
+    /**
      * Returns an unused port number to make sure that each unit test runs in
      * different port number.
      *

@@ -279,7 +279,7 @@ public class PortChainResourceTest extends VtnResourceTest {
         String location = "port_chains/1278dcd4-459f-62ed-754b-87fc5e4a6751";
 
         Response deleteResponse = wt.path(location)
-                .request(MediaType.APPLICATION_JSON_TYPE)
+                .request(MediaType.APPLICATION_JSON_TYPE, MediaType.TEXT_PLAIN_TYPE)
                 .delete();
         assertThat(deleteResponse.getStatus(),
                    is(HttpURLConnection.HTTP_NO_CONTENT));

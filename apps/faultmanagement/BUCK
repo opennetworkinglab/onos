@@ -11,7 +11,11 @@ COMPILE_DEPS = [
 ]
 
 TEST_DEPS = [
-    '//lib:TEST',
+    '//lib:TEST_ADAPTERS',
+    '//lib:jersey-test-framework-core',
+    '//lib:jersey-test-framework-grizzly2',
+    '//utils/osgi:onlab-osgi-tests',
+    '//web/api:onos-rest-tests',
 ]
 
 java_library(

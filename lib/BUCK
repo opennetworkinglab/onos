@@ -76,6 +76,47 @@ java_library(
   ],
 )
 
+java_library(
+  name = 'TEST_ADAPTERS',
+  visibility = ['PUBLIC'],
+  exported_deps = [
+    ':TEST',
+    '//core/common:onos-core-common',
+    '//core/api:onos-api-tests',
+    '//core/common:onos-core-common-tests',
+  ],
+)
+
+
+java_library(
+  name = 'TEST_REST',
+  visibility = ['PUBLIC'],
+  exported_deps = [
+    ':TEST_ADAPTERS',
+    '//lib:jersey-client',
+    '//lib:jersey-server',
+    '//lib:jersey-common',
+    '//lib:jersey-test-framework-core',
+    '//lib:jersey-test-framework-grizzly2',
+    '//lib:jersey-guava',
+    '//lib:hk2-api',
+    '//lib:hk2-locator',
+    '//lib:hk2-utils',
+    '//lib:javax.inject',
+    '//lib:hk2-osgi-resource-locator',
+    '//lib:jersey-container-grizzly2-http',
+    '//lib:grizzly-http-server',
+    '//lib:grizzly-framework',
+    '//lib:grizzly-http',
+    '//lib:javax.annotation-api',
+    '//lib:validation-api',
+    '//core/common:onos-core-common',
+    '//core/api:onos-api-tests',
+    '//core/common:onos-core-common-tests',
+    '//utils/osgi:onlab-osgi-tests',
+  ],
+)
+
 maven_jar(
   name = 'minimal-json',
   id = 'com.eclipsesource.minimal-json:minimal-json:0.9.4',
@@ -448,6 +489,76 @@ maven_jar(
 )
 
 maven_jar(
+  name = 'hk2-locator',
+  id = 'org.glassfish.hk2:hk2-locator:2.4.0-b34',
+  sha1 = '1451fc3e5b7f00d7a5ca0feaff2c1bf68be5ac91',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'hk2-utils',
+  id = 'org.glassfish.hk2:hk2-utils:2.4.0-b34',
+  sha1 = 'aacce18411fffef9621d8fc91464ca0477119c38',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'hk2-osgi-resource-locator',
+  id = 'org.glassfish.hk2:osgi-resource-locator:1.0.1',
+  sha1 = '4ed2b2d4738aed5786cfa64cba5a332779c4c708',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'javax.inject',
+  id = 'org.glassfish.hk2.external:javax.inject:2.4.0-b34',
+  sha1 = 'a6a3d4935af7b03e44126b5aac2c2a0ce98fe6e9',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'jersey-container-grizzly2-http',
+  id = 'org.glassfish.jersey.containers:jersey-container-grizzly2-http:2.22.2',
+  sha1 = '7f4f0cb7cfad277a4a6d91298d9f2ac309e4383b',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'grizzly-http-server',
+  id = 'org.glassfish.grizzly:grizzly-http-server:2.3.23',
+  sha1 = '4aaf209163d8dca1bfb1907f19c7fd1f2f3ebbf9',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'grizzly-http',
+  id = 'org.glassfish.grizzly:grizzly-http:2.3.23',
+  sha1 = '287ea2c8a765b14fbc494749570ff3889ecd7b83',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'grizzly-framework',
+  id = 'org.glassfish.grizzly:grizzly-framework:2.3.23',
+  sha1 = '262913b1a7ec4156e7e6aa3f8854a4d1a54940b0',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'javax.annotation-api',
+  id = 'javax.annotation:javax.annotation-api:1.2',
+  sha1 = '479c1e06db31c432330183f5cae684163f186146',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'validation-api',
+  id = 'javax.validation:validation-api:1.1.0.Final',
+  sha1 = '8613ae82954779d518631e05daa73a6a954817d5',
+  license = 'Apache2.0',
+)
+
+maven_jar(
   name = 'aopalliance-repackaged',
   id = 'org.glassfish.hk2.external:aopalliance-repackaged:2.4.0-b34',
   sha1 = '3d5e856dbc91a3a2b0bcb3a3424f8b62421ae4cf',
@@ -460,14 +571,6 @@ maven_jar(
   sha1 = '7422c693c89640c9685dfa99dbef2da745aa4617',
   license = 'Apache2.0',
 )
-
-maven_jar(
-  name = 'javax.inject',
-  id = 'org.glassfish.hk2.external:javax.inject:2.4.0-b34',
-  sha1 = 'a6a3d4935af7b03e44126b5aac2c2a0ce98fe6e9',
-  license = 'Apache2.0',
-)
-
 
 maven_jar(
   name = 'servlet-api',

@@ -24,7 +24,7 @@ def osgi_jar(
       name = bare_jar_name,
       srcs = srcs,
       deps = deps,
-      visibility = [], #intentially, not visible
+      visibility = ['PUBLIC'],
       **kwargs
   )
 

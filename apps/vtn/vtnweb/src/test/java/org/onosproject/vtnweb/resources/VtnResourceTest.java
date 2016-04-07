@@ -16,12 +16,12 @@
 package org.onosproject.vtnweb.resources;
 
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
+import org.onosproject.rest.resources.ResourceTest;
 
 /**
  * Base class for VTN REST API tests.  Performs common configuration operations.
  */
-public class VtnResourceTest extends JerseyTest {
+public class VtnResourceTest extends ResourceTest {
 
     /**
      * Creates a new web-resource test.

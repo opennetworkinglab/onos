@@ -8,10 +8,11 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/bgp/api:onos-bgp-api',
     '//protocols/bgp/bgpio:onos-bgpio',
+    '//incubator/store:onos-incubator-store',
 ]
 
 TEST_DEPS = [
-    '//lib:TEST',
+    '//lib:TEST_ADAPTERS',
 ]
 
 osgi_jar(

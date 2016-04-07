@@ -15,8 +15,16 @@
  */
 package org.onosproject.cpman.rest;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.Optional;
+
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
@@ -26,14 +34,7 @@ import org.onosproject.cpman.ControlPlaneMonitorService;
 import org.onosproject.cpman.SystemInfo;
 import org.onosproject.cpman.impl.SystemInfoFactory;
 import org.onosproject.net.DeviceId;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.Optional;
+import org.onosproject.rest.resources.ResourceTest;
 
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
@@ -48,7 +49,7 @@ import static org.junit.Assert.assertThat;
 /**
  * Unit test for ControlMetricsCollector.
  */
-public class ControlMetricsCollectorResourceTest extends JerseyTest {
+public class ControlMetricsCollectorResourceTest extends ResourceTest {
 
     final ControlPlaneMonitorService mockControlPlaneMonitorService =
                                      createMock(ControlPlaneMonitorService.class);

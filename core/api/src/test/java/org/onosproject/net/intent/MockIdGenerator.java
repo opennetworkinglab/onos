@@ -23,6 +23,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * Mock id generator for testing.
  */
 public class MockIdGenerator implements IdGenerator {
+
+    private static boolean generatorIsBound = false;
+    public static void bindNewGenerator() {
+        if (!generatorIsBound) {
+            generatorIsBound = true;
+            Intent.bindIdGenerator(new MockIdGenerator());
+        }
+    }
     private AtomicLong nextId = new AtomicLong(0);
 
     @Override

@@ -11,7 +11,9 @@ COMPILE_DEPS = [
 ]
 
 TEST_DEPS = [
-    '//lib:TEST',
+    '//lib:TEST_ADAPTERS',
+    '//incubator/api:onos-incubator-api-tests',
+    '//apps/routing-api:onos-app-routing-api-tests',
 ]
 
 java_library(

@@ -13,7 +13,7 @@ COMPILE_DEPS = [
 ]
 
 TEST_DEPS = [
-    '//lib:TEST',
+    '//lib:TEST_REST',
 ]
 
 osgi_jar(
@@ -27,11 +27,15 @@ osgi_jar(
     web_context = '/onos/v1'
 )
 
+SOURCE_JAR = CURRENT_TARGET + '-jar'
 java_test(
-    name = 'tests',
+    name = 'onos-rest-tests',
     srcs = glob([TEST + '/*.java']),
     deps = COMPILE_DEPS +
            TEST_DEPS +
-           [CURRENT_TARGET],
-    source_under_test = [CURRENT_TARGET],
+           [SOURCE_JAR],
+    source_under_test = [SOURCE_JAR],
+    visibility = ['PUBLIC'],
+    resources_root = 'src/test/resources',
+    resources = glob(['src/test/resources/**']),
 )

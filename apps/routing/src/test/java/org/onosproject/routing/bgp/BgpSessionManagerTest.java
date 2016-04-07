@@ -238,9 +238,9 @@ public class BgpSessionManagerTest {
     }
 
     @SuppressWarnings("unchecked")
-    private Dictionary<String, String>
+    private Dictionary
             getDictionaryMock(ComponentContext componentContext) {
-        Dictionary<String, String> dictionary = createMock(Dictionary.class);
+        Dictionary dictionary = createMock(Dictionary.class);
         expect(dictionary.get("bgpPort")).andReturn("0");
         replay(dictionary);
         expect(componentContext.getProperties()).andReturn(dictionary);
@@ -264,7 +264,7 @@ public class BgpSessionManagerTest {
         bgpSessionManager = new BgpSessionManager();
         // NOTE: We use port 0 to bind on any available port
         ComponentContext componentContext = createMock(ComponentContext.class);
-        Dictionary<String, String> dictionary = getDictionaryMock(componentContext);
+        Dictionary dictionary = getDictionaryMock(componentContext);
         replay(componentContext);
         bgpSessionManager.activate(componentContext);
         bgpSessionManager.start(dummyRouteListener);

@@ -9,7 +9,10 @@ COMPILE_DEPS = [
 ]
 
 TEST_DEPS = [
-    '//lib:TEST',
+    '//lib:TEST_ADAPTERS',
+    '//core/common:onos-core-common',
+    '//core/store/dist:onos-core-dist',
+    '//core/store/dist:onos-core-dist-tests',
 ]
 
 osgi_jar(
@@ -26,4 +29,6 @@ java_test(
            TEST_DEPS +
            [CURRENT_TARGET],
     source_under_test = [CURRENT_TARGET],
+    resources_root = 'src/test/resources',
+    resources = glob(['src/test/resources/**']),
 )

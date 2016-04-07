@@ -1,5 +1,5 @@
-SRC = 'src/main/java/org/onosproject/incubator/**/'
-TEST = 'src/test/java/org/onosproject/incubator/**/'
+SRC = 'src/main/java/org/onosproject/incubator/store/**/'
+TEST = 'src/test/java/org/onosproject/incubator/store/**/'
 CURRENT_NAME = 'onos-incubator-store'
 CURRENT_TARGET = ':' + CURRENT_NAME
 
@@ -12,7 +12,9 @@ COMPILE_DEPS = [
 ]
 
 TEST_DEPS = [
-    '//lib:TEST',
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+    '//core/common:onos-core-common-tests',
 ]
 
 osgi_jar(

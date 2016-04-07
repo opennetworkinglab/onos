@@ -9,7 +9,11 @@ COMPILE_DEPS = [
 ]
 
 TEST_DEPS = [
-    '//lib:TEST',
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+    '//core/common:onos-core-common-tests',
+    '//incubator/store:onos-incubator-store',
+    '//core/store/serializers:onos-core-serializers',
 ]
 
 osgi_jar(

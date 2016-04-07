@@ -231,7 +231,7 @@ public class PortPairResourceTest extends VtnResourceTest {
         String location = "port_pairs/78dcd363-fc23-aeb6-f44b-56dc5e2fb3ae";
 
         Response deleteResponse = wt.path(location)
-                .request(MediaType.APPLICATION_JSON_TYPE)
+                .request(MediaType.APPLICATION_JSON_TYPE, MediaType.TEXT_PLAIN_TYPE)
                 .delete();
         assertThat(deleteResponse.getStatus(),
                    is(HttpURLConnection.HTTP_NO_CONTENT));

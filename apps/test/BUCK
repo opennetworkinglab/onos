@@ -1,6 +1,6 @@
 SRC = 'src/main/java/org/onosproject/**/'
 #FIXME there are some tests in main
-TEST = 'src/main/java/org/onosproject/**/'
+TEST = 'src/test/java/org/onosproject/**/'
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',

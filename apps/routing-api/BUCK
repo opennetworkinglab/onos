@@ -9,7 +9,7 @@ COMPILE_DEPS = [
 ]
 
 TEST_DEPS = [
-    '//lib:TEST',
+    '//lib:TEST_ADAPTERS',
 ]
 
 java_library(
@@ -20,10 +20,11 @@ java_library(
 )
 
 java_test(
-    name = 'tests',
+    name = 'onos-app-routing-api-tests',
     srcs = glob([TEST + '/*.java']),
     deps = COMPILE_DEPS +
            TEST_DEPS +
            [CURRENT_TARGET],
     source_under_test = [CURRENT_TARGET],
+    visibility = ['PUBLIC'],
 )

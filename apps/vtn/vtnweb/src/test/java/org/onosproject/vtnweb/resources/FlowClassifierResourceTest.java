@@ -295,7 +295,7 @@ public class FlowClassifierResourceTest extends VtnResourceTest {
         String location = "flow_classifiers/4a334cd4-fe9c-4fae-af4b-321c5e2eb051";
 
         Response deleteResponse = wt.path(location)
-                .request(MediaType.APPLICATION_JSON_TYPE)
+                .request(MediaType.APPLICATION_JSON_TYPE, MediaType.TEXT_PLAIN_TYPE)
                 .delete();
         assertThat(deleteResponse.getStatus(),
                    is(HttpURLConnection.HTTP_NO_CONTENT));

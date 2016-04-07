@@ -18,8 +18,6 @@ osgi_jar(
     name = CURRENT_NAME,
     srcs = glob([SRC + '/*.java']),
     deps = COMPILE_DEPS,
-    resources_root = 'src/test/resources',
-    resources = glob(['src/test/resources/**']),
     visibility = ['PUBLIC'],
 )
 
@@ -31,4 +29,6 @@ java_test(
            TEST_DEPS +
            [CURRENT_TARGET],
     source_under_test = [CURRENT_TARGET],
+    resources_root = 'src/test/resources',
+    resources = glob(['src/test/resources/**']),
 )

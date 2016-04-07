@@ -15,9 +15,12 @@
  */
 package org.onosproject.cpman.rest;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.client.WebTarget;
+
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
@@ -32,10 +35,9 @@ import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.cpman.ControlLoad;
 import org.onosproject.cpman.ControlPlaneMonitorService;
 import org.onosproject.cpman.codec.ControlLoadCodec;
+import org.onosproject.rest.resources.ResourceTest;
 
-import javax.ws.rs.client.WebTarget;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import com.google.common.collect.ImmutableSet;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -49,7 +51,7 @@ import static org.junit.Assert.assertThat;
 /**
  * Unit test for ControlMetrics REST API.
  */
-public class ControlMetricsResourceTest extends JerseyTest {
+public class ControlMetricsResourceTest extends ResourceTest {
 
     final ControlPlaneMonitorService mockControlPlaneMonitorService =
             createMock(ControlPlaneMonitorService.class);

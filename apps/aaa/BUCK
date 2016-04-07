@@ -11,7 +11,8 @@ COMPILE_DEPS = [
 ]
 
 TEST_DEPS = [
-    '//lib:TEST',
+    '//lib:TEST_ADAPTERS',
+    '//core/common:onos-core-common',
 ]
 
 java_library(

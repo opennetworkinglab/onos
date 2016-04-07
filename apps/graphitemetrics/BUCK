@@ -12,7 +12,7 @@ COMPILE_DEPS = [
 
 TEST_DEPS = [
     '//lib:TEST',
-    '//core/api:onos-api',
+    '//core/api:onos-api-tests',
 ]
 
 java_library(
