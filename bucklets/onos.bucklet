@@ -4,15 +4,21 @@ DEBUG_ARG='JAVA_TOOL_OPTIONS="-Xdebug -Xrunjdwp:server=y,transport=dt_socket,add
 FORCE_INSTALL=True
 NONE='NONE'
 
+SRC = 'src/main/java/org/onosproject/**/'
+TEST = 'src/test/java/org/onosproject/**/'
+RESOURCES_ROOT = 'src/main/resources/'
+
 ONOS_GROUP_ID = 'org.onosproject'
 ONOS_VERSION = '1.6.0-SNAPSHOT'
 
 def osgi_jar(
     name,
     srcs,
+    test_srcs = None,
     group_id = ONOS_GROUP_ID,
     version = ONOS_VERSION,
     deps = [],
+    test_deps = [ '//lib:TEST' ],
     visibility = ['PUBLIC'],
     license = 'NONE',
     description = '',
@@ -21,6 +27,10 @@ def osgi_jar(
     export_packages = '*',
     include_resources = NONE,
     web_context = NONE,
+    resources = None,
+    resources_root = None,
+    test_resources = None,
+    test_resources_root = None,
     **kwargs
     ):
 
@@ -28,11 +38,16 @@ def osgi_jar(
   osgi_jar_name = name + '-osgi'
   mvn_coords = group_id + ':' + name + ':' + version
 
+  if resources and not resources_root:
+      resources_root = RESOURCES_ROOT
+
   java_library(
       name = bare_jar_name,
       srcs = srcs,
       deps = deps,
-      visibility = ['PUBLIC'],
+      visibility = [], #intentially, not visible
+      resources = resources,
+      resources_root = resources_root,
       **kwargs
   )
 
@@ -113,3 +128,18 @@ def osgi_jar(
     visibility = visibility,
   )
 
+
+  if test_resources and not test_resources_root:
+      test_resources_root = RESOURCES_ROOT
+
+  if test_srcs:
+      java_test(
+        name = 'tests',
+        srcs = test_srcs,
+        deps = deps +
+               test_deps +
+               [':' + bare_jar_name],
+        source_under_test = [':' + bare_jar_name],
+        resources = test_resources,
+        resources_root = test_resources_root
+        )
