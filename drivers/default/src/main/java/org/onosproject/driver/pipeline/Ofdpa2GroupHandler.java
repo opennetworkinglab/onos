@@ -13,6 +13,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultGroupId;
+import org.onosproject.driver.extensions.OfdpaSetVlanVid;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
@@ -306,7 +307,8 @@ public class Ofdpa2GroupHandler {
                         break;
                     case VLAN_ID:
                         vlanid = ((L2ModificationInstruction.ModVlanIdInstruction) l2ins).vlanId();
-                        outerTtb.setVlanId(vlanid);
+                        OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(vlanid);
+                        outerTtb.extension(ofdpaSetVlanVid, deviceId);
                         setVlan = true;
                         break;
                     case VLAN_POP:
@@ -339,7 +341,8 @@ public class Ofdpa2GroupHandler {
             }
             // if vlan is not set, use the vlan in metadata for outerTtb
             if (vlanid != null && !setVlan) {
-                outerTtb.setVlanId(vlanid);
+                OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(vlanid);
+                outerTtb.extension(ofdpaSetVlanVid, deviceId);
             }
         }
 
