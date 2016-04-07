@@ -36,6 +36,7 @@
         <module>loadtest</module>
         <module>intent-perf</module>
         <module>messaging-perf</module>
+        <module>flow-perf</module>
         <module>demo</module>
         <module>distributed-primitives</module>
     </modules>
