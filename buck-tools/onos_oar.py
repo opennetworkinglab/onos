@@ -16,8 +16,9 @@ def generateOar(output, files=[]):
                 extension = filename.split('.')[-1]
                 if extension == 'jar':
                     filename = '%s-%s.jar' % ( artifactId, version )
+                elif 'features.xml' in filename:
+                    filename = '%s-%s-features.xml' % ( artifactId, version )
                 dest = 'm2/%s/%s/%s/%s' % ( groupId, artifactId, version, filename )
-            print file, '->', dest
             zip.write(file, dest)
 
 if __name__ == '__main__':

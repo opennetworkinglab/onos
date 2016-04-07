@@ -96,7 +96,7 @@ if __name__ == '__main__':
     import sys, optparse
 
     parser = optparse.OptionParser()
-    parser.add_option("-n", "--name",     dest="feature_name", help="Feature Name")
+    parser.add_option("-n", "--name",     dest="feature_coords", help="Feature MVN Coords")
     parser.add_option("-a", "--app",      dest="app_name",     help="App Name")
     parser.add_option("-o", "--origin",   dest="origin",       help="Origin")
     parser.add_option("-c", "--category", dest="category",     help="Category")
@@ -124,8 +124,8 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     values = {}
-    if options.feature_name and options.version and options.title:
-        values['feature_name'] = options.feature_name.split(':')[1]
+    if options.feature_coords and options.version and options.title:
+        values['feature_name'] = options.feature_coords.split(':')[1]
         values['version'] = options.version
         values['title'] = options.title
     else:
@@ -144,7 +144,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     values['feature_repo_name'] = options.repo_name if options.repo_name \
-                                    else options.feature_name
+                                    else options.feature_coords
 
     if options.write_features:
         bundles = []

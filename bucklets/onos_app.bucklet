@@ -11,17 +11,17 @@ def onos_app(
         url = None,
         description = None, #TODO make this a file
         #TODO icon,
-        feature_name = None,
+        feature_coords = None,
         required_features = [ 'onos-api' ],
         required_apps = [],
         included_bundles = [],
         excluded_bundles = [],
         **kwargs):
 
-    if not feature_name and len(included_bundles) == 1:
-        feature_name = included_bundles[0][1]
+    if not feature_coords and len(included_bundles) == 1:
+        feature_coords = '$(maven_coords %s)' % included_bundles[0]
 
-    args = [ '-n %s' % feature_name,
+    args = [ '-n %s' % feature_coords,
              '-v %s' % version,
              '-t "%s"' % title,
              '-o "%s"' % origin,
@@ -30,15 +30,15 @@ def onos_app(
              '-u %s' % url,
              ]
     args += [ '-f %s' % f for f in required_features ]
-    args += [ '-b %s' % b for (t, b) in included_bundles ]
-    args += [ '-e %s' % b for (t, b) in excluded_bundles ]
+    args += [ '-b $(maven_coords %s)' % b for b in included_bundles ]
+    args += [ '-e $(maven_coords %s)' % b for b in excluded_bundles ]
     args += [ '-d %s' % a for a in required_apps ]
 
     cmd = '$(exe //buck-tools:onos-app-writer) -F ' + ' '.join(args) + ' > $OUT'
     genrule(
         name = 'app-features',
         bash = cmd,
-        out = '%s-%s-features.xml' % (feature_name.split(':')[1], version),
+        out = 'features.xml',
         visibility = [],
     )
     cmd = '$(exe //buck-tools:onos-app-writer) -A ' + ' '.join(args) + ' > $OUT'
@@ -50,10 +50,10 @@ def onos_app(
     )
 
     sources = [
-        '$(location :app-features) %s' % feature_name,
+        '$(location :app-features) %s' % feature_coords,
         '$(location :app-xml) NONE',
     ]
-    sources += ['$(location %s) %s' % i for i in included_bundles]
+    sources += ['$(location %s) $(maven_coords %s)' % (i, i) for i in included_bundles]
     genrule(
         name = 'app-oar',
         out = 'app.oar',

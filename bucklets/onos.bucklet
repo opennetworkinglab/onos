@@ -93,8 +93,6 @@ def osgi_jar(
     visibility = visibility,
   )
 
-
-
   ### Checkstyle
   chk_cmd = ' '.join(( 'java -jar $(location //lib:checkstyle)',
                        '-o $OUT',
@@ -132,7 +130,7 @@ def osgi_jar(
   if test_resources and not test_resources_root:
       test_resources_root = RESOURCES_ROOT
 
-  if test_srcs:
+  if test_srcs is not None:
       java_test(
         name = 'tests',
         srcs = test_srcs,
