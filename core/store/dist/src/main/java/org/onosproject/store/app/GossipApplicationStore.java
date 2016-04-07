@@ -17,6 +17,7 @@ package org.onosproject.store.app;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -57,6 +58,8 @@ import org.slf4j.Logger;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -97,6 +100,8 @@ public class GossipApplicationStore extends ApplicationArchive
     private static final int FETCH_TIMEOUT_MS = 10_000;
 
     private static final int APP_LOAD_DELAY_MS = 500;
+
+    private static List<String> pendingApps = Lists.newArrayList();
 
     public enum InternalState {
         INSTALLED, ACTIVATED, DEACTIVATED
@@ -197,6 +202,8 @@ public class GossipApplicationStore extends ApplicationArchive
     }
 
     private Application loadFromDisk(String appName) {
+        pendingApps.add(appName);
+
         for (int i = 0; i < MAX_LOAD_RETRIES; i++) {
             try {
                 // Directly return if app already exists
@@ -204,19 +211,33 @@ public class GossipApplicationStore extends ApplicationArchive
                 if (appId != null) {
                     Application application = getApplication(appId);
                     if (application != null) {
+                        pendingApps.remove(appName);
                         return application;
                     }
                 }
 
                 ApplicationDescription appDesc = getApplicationDescription(appName);
+
+                Optional<String> loop = appDesc.requiredApps().stream()
+                        .filter(app -> pendingApps.contains(app)).findAny();
+                if (loop.isPresent()) {
+                    log.error("Circular app dependency detected: {} -> {}", pendingApps, loop.get());
+                    pendingApps.remove(appName);
+                    return null;
+                }
+
                 boolean success = appDesc.requiredApps().stream()
                         .noneMatch(requiredApp -> loadFromDisk(requiredApp) == null);
+                pendingApps.remove(appName);
+
                 return success ? create(appDesc, false) : null;
+
             } catch (Exception e) {
                 log.warn("Unable to load application {} from disk; retrying", appName);
                 randomDelay(RETRY_DELAY_MS); //FIXME: This is a deliberate hack; fix in Falcon
             }
         }
+        pendingApps.remove(appName);
         return null;
     }
 
