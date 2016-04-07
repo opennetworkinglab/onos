@@ -6,6 +6,21 @@ python_binary(
 )
 
 python_binary(
+  name = 'onos-app-writer',
+  main = 'onos_app.py',
+  deps = [],
+  visibility = ['PUBLIC'],
+)
+
+python_binary(
+  name = 'onos-app-oar',
+  main = 'onos_oar.py',
+  deps = [],
+  visibility = ['PUBLIC'],
+)
+
+
+python_binary(
   name = 'pack_war',
   main = 'pack_war.py',
   deps = [':util'],

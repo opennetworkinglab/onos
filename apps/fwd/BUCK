@@ -14,7 +14,7 @@ TEST_DEPS = [
     '//lib:TEST',
 ]
 
-java_library(
+osgi_jar(
     name = CURRENT_NAME,
     srcs = glob([SRC + '/*.java']),
     deps = COMPILE_DEPS,
@@ -28,4 +28,17 @@ java_test(
            TEST_DEPS +
            [CURRENT_TARGET],
     source_under_test = [CURRENT_TARGET],
+)
+
+BUNDLES = [
+    (CURRENT_TARGET, ONOS_GROUP_ID + ':' + CURRENT_NAME + ':' + ONOS_VERSION),
+]
+
+onos_app(
+    app_name = 'org.onosproject.fwd',
+    title = 'Reactive Forwarding App',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    description = 'Reactive forwarding application using flow subsystem.',
+    included_bundles = BUNDLES,
 )

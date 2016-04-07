@@ -1,5 +1,6 @@
 include_defs('//bucklets/maven_jar.bucklet')
 include_defs('//bucklets/onos.bucklet')
+include_defs('//bucklets/onos_app.bucklet')
 
 BASE_DEPS = [
     '//lib:junit',

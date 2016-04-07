@@ -4,11 +4,14 @@ DEBUG_ARG='JAVA_TOOL_OPTIONS="-Xdebug -Xrunjdwp:server=y,transport=dt_socket,add
 FORCE_INSTALL=True
 NONE='NONE'
 
+ONOS_GROUP_ID = 'org.onosproject'
+ONOS_VERSION = '1.6.0-SNAPSHOT'
+
 def osgi_jar(
     name,
     srcs,
-    group_id = 'org.onosproject',
-    version = '1.6.0-SNAPSHOT',
+    group_id = ONOS_GROUP_ID,
+    version = ONOS_VERSION,
     deps = [],
     visibility = ['PUBLIC'],
     license = 'NONE',
@@ -62,7 +65,7 @@ def osgi_jar(
   genrule(
     name = osgi_jar_name,
     bash = bash,
-    out = name + '.jar',
+    out = '%s-%s.jar' % (name, version), #FIXME add version to jar file
     srcs =  glob(['src/main/webapp/**']),
     visibility = [], #intentially, not visible
   )
@@ -109,13 +112,4 @@ def osgi_jar(
     out = 'install.log',
     visibility = visibility,
   )
-
-def onos_app(
-    name,
-    **kwargs):
-
-    osgi_jar(
-      name = name,
-      **kwargs
-    )
 

@@ -1,0 +1,61 @@
+ONOS_ORIGIN = 'ON.Lab'
+ONOS_VERSION = '1.6.0-SNAPSHOT'
+DEFAULT_APP_CATEGORY = 'Utility'
+
+def onos_app(
+        app_name,
+        title,
+        version = ONOS_VERSION,
+        origin = ONOS_ORIGIN,
+        category = DEFAULT_APP_CATEGORY,
+        url = None,
+        description = None, #TODO make this a file
+        #TODO icon,
+        feature_name = None,
+        required_features = [ 'onos-api' ],
+        required_apps = [],
+        included_bundles = [],
+        excluded_bundles = [],
+        **kwargs):
+
+    if not feature_name and len(included_bundles) == 1:
+        feature_name = included_bundles[0][1]
+
+    args = [ '-n %s' % feature_name,
+             '-v %s' % version,
+             '-t "%s"' % title,
+             '-o "%s"' % origin,
+             '-c "%s"' % category,
+             '-a "%s"' % app_name,
+             '-u %s' % url,
+             ]
+    args += [ '-f %s' % f for f in required_features ]
+    args += [ '-b %s' % b for (t, b) in included_bundles ]
+    args += [ '-e %s' % b for (t, b) in excluded_bundles ]
+    args += [ '-d %s' % a for a in required_apps ]
+
+    cmd = '$(exe //buck-tools:onos-app-writer) -F ' + ' '.join(args) + ' > $OUT'
+    genrule(
+        name = 'app-features',
+        bash = cmd,
+        out = '%s-%s-features.xml' % (feature_name.split(':')[1], version),
+        visibility = [],
+    )
+    cmd = '$(exe //buck-tools:onos-app-writer) -A ' + ' '.join(args) + ' > $OUT'
+    genrule(
+        name = 'app-xml',
+        bash = cmd,
+        out = 'app.xml',
+        visibility = [],
+    )
+
+    sources = [
+        '$(location :app-features) %s' % feature_name,
+        '$(location :app-xml) NONE',
+    ]
+    sources += ['$(location %s) %s' % i for i in included_bundles]
+    genrule(
+        name = 'app-oar',
+        out = 'app.oar',
+        bash = '$(exe //buck-tools:onos-app-oar) $OUT ' + ' '.join(sources)
+    )
