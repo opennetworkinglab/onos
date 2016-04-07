@@ -714,6 +714,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     }
 
     // Cluster event listener.
+    // TODO: Superceded by UiSharedTopologyModel.ModelEventListener
+    @Deprecated
     private class InternalClusterListener implements ClusterEventListener {
         @Override
         public void event(ClusterEvent event) {
@@ -722,6 +724,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     }
 
     // Mastership change listener
+    // TODO: Superceded by UiSharedTopologyModel.ModelEventListener
+    @Deprecated
     private class InternalMastershipListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
@@ -736,6 +740,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     }
 
     // Device event listener.
+    // TODO: Superceded by UiSharedTopologyModel.ModelEventListener
+    @Deprecated
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
@@ -748,6 +754,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     }
 
     // Link event listener.
+    // TODO: Superceded by UiSharedTopologyModel.ModelEventListener
+    @Deprecated
     private class InternalLinkListener implements LinkListener {
         @Override
         public void event(LinkEvent event) {
@@ -758,6 +766,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     }
 
     // Host event listener.
+    // TODO: Superceded by UiSharedTopologyModel.ModelEventListener
+    @Deprecated
     private class InternalHostListener implements HostListener {
         @Override
         public void event(HostEvent event) {
@@ -768,6 +778,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     }
 
     // Intent event listener.
+    // TODO: Superceded by UiSharedTopologyModel.ModelEventListener
+    @Deprecated
     private class InternalIntentListener implements IntentListener {
         @Override
         public void event(IntentEvent event) {
@@ -777,6 +789,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     }
 
     // Intent event listener.
+    // TODO: Superceded by UiSharedTopologyModel.ModelEventListener
+    @Deprecated
     private class InternalFlowListener implements FlowRuleListener {
         @Override
         public void event(FlowRuleEvent event) {

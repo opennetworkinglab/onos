@@ -36,31 +36,33 @@ import org.slf4j.LoggerFactory;
 public class UiTopoSession {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final String username;
     private final UiWebSocket webSocket;
-    private final UiSharedTopologyModel sharedModel;
+    private final String username;
+
+    final UiSharedTopologyModel sharedModel;
 
     private boolean registered = false;
 
     private UiTopoLayoutService service;
-    private UiTopoLayout layout;
+    private UiTopoLayout currentLayout;
 
     /**
-     * Creates a new topology layout.
-     * @param username user name
+     * Creates a new topology session for the specified web socket connection.
+     *
      * @param webSocket web socket
      */
-    public UiTopoSession(String username, UiWebSocket webSocket) {
-        this.username = username;
+    public UiTopoSession(UiWebSocket webSocket) {
         this.webSocket = webSocket;
+        this.username = webSocket.userName();
         this.sharedModel = UiSharedTopologyModel.instance();
     }
 
     /**
-     * Initializes the layout; registering with the shared model.
+     * Initializes the session; registering with the shared model.
      */
     public void init() {
         if (!registered) {
+            log.debug("{} : Registering with shared model", this);
             sharedModel.register(this);
             registered = true;
         } else {
@@ -69,10 +71,11 @@ public class UiTopoSession {
     }
 
     /**
-     * Destroys the layout; unregistering from the shared model.
+     * Destroys the session; unregistering from the shared model.
      */
     public void destroy() {
-        if (!registered) {
+        if (registered) {
+            log.debug("{} : Unregistering from shared model", this);
             sharedModel.unregister(this);
             registered = false;
         } else {
