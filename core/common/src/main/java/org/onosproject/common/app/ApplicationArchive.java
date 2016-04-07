@@ -71,6 +71,7 @@ public class ApplicationArchive
 
     // Magic strings to search for at the beginning of the archive stream
     private static final String XML_MAGIC = "<?xml ";
+    private static final String ZIP_MAGIC = "PK";
 
     // Magic strings to search for and how deep to search it into the archive stream
     private static final String APP_MAGIC = "<app ";
@@ -218,8 +219,9 @@ public class ApplicationArchive
 
     // Indicates whether the stream encoded in the given bytes is plain XML.
     private boolean isPlainXml(byte[] bytes) {
-        return substring(bytes, XML_MAGIC.length()).equals(XML_MAGIC) ||
-                substring(bytes, APP_MAGIC_DEPTH).contains(APP_MAGIC);
+        return !substring(bytes, ZIP_MAGIC.length()).equals(ZIP_MAGIC) &&
+                (substring(bytes, XML_MAGIC.length()).equals(XML_MAGIC) ||
+                 substring(bytes, APP_MAGIC_DEPTH).contains(APP_MAGIC));
     }
 
     // Returns the substring of maximum possible length from the specified bytes.
