@@ -15,6 +15,16 @@
  */
 package org.onosproject.reactive.routing;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.packet.Ethernet.TYPE_ARP;
+import static org.onlab.packet.Ethernet.TYPE_IPV4;
+import static org.onosproject.net.packet.PacketPriority.REACTIVE;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.nio.ByteBuffer;
+import java.util.Optional;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -52,16 +62,6 @@ import org.onosproject.routing.RouteEntry;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
-
-import java.nio.ByteBuffer;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.packet.Ethernet.TYPE_ARP;
-import static org.onlab.packet.Ethernet.TYPE_IPV4;
-import static org.onosproject.net.packet.PacketPriority.REACTIVE;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * This is reactive routing to handle 3 cases:
@@ -107,9 +107,8 @@ public class SdnIpReactiveRouting {
     @Activate
     public void activate() {
         appId = coreService.registerApplication(APP_NAME);
-
         intentRequestListener = new ReactiveRoutingFib(appId, hostService,
-                config, interfaceService, intentSynchronizer);
+                interfaceService, intentSynchronizer);
 
         packetService.addProcessor(processor, PacketProcessor.director(2));
         requestIntercepts();
@@ -300,23 +299,26 @@ public class SdnIpReactiveRouting {
      * @return the traffic type which this packet belongs to
      */
     private TrafficType trafficTypeClassifier(ConnectPoint srcConnectPoint,
-                                                             IpAddress dstIp) {
+                                              IpAddress dstIp) {
         LocationType dstIpLocationType = getLocationType(dstIp);
         Optional<Interface> srcInterface =
                 interfaceService.getInterfacesByPort(srcConnectPoint).stream().findFirst();
-        Set<ConnectPoint> ingressPoints = config.getBgpPeerConnectPoints();
+
+        Set<ConnectPoint> bgpPeerConnectPoints = config.getBgpPeerConnectPoints();
+
+
 
         switch (dstIpLocationType) {
         case INTERNET:
             if (srcInterface.isPresent() &&
-                    (!ingressPoints.contains(srcConnectPoint))) {
+                    (!bgpPeerConnectPoints.contains(srcConnectPoint))) {
                 return TrafficType.HOST_TO_INTERNET;
             } else {
                 return TrafficType.INTERNET_TO_INTERNET;
             }
         case LOCAL:
             if (srcInterface.isPresent() &&
-                    (!ingressPoints.contains(srcConnectPoint))) {
+                    (!bgpPeerConnectPoints.contains(srcConnectPoint))) {
                 return TrafficType.HOST_TO_HOST;
             } else {
                 // TODO Currently we only consider local public prefixes.
@@ -394,6 +396,5 @@ public class SdnIpReactiveRouting {
         packetService.emit(packet);
         log.trace("sending packet: {}", packet);
     }
-
 }
 
