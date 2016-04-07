@@ -39,7 +39,8 @@ public class DevicePortStateCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     Integer portNumber = null;
 
-    @Argument(index = 2, name = "portState", description = "Desired State",
+    @Argument(index = 2, name = "portState",
+            description = "Desired State. Either \"enable\" or \"disable\".",
             required = true, multiValued = false)
     String portState = null;
 
