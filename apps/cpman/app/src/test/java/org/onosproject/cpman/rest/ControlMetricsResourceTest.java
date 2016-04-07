@@ -60,7 +60,7 @@ public class ControlMetricsResourceTest extends ResourceTest {
     NodeId nodeId;
     ControlLoad mockControlLoad;
 
-    private static final String PREFIX = "metrics";
+    private static final String PREFIX = "controlmetrics";
 
     /**
      * Constructs a control metrics resource test instance.

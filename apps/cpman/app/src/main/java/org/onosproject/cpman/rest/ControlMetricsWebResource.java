@@ -47,7 +47,7 @@ import static org.onosproject.cpman.ControlResource.Type.NETWORK;
 /**
  * Query control metrics.
  */
-@Path("metrics")
+@Path("controlmetrics")
 public class ControlMetricsWebResource extends AbstractWebResource {
 
     private final ControlPlaneMonitorService monitorService =
