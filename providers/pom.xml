@@ -45,6 +45,7 @@
         <module>lldpcommon</module>
         <module>lldp</module>
         <module>netcfglinks</module>
+        <module>bmv2</module>
     </modules>
 
     <dependencies>
