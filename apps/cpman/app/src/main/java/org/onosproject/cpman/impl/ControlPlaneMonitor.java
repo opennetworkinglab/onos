@@ -15,6 +15,7 @@
  */
 package org.onosproject.cpman.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -340,6 +341,9 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     }
 
     private Map convertMap(Map<ControlMetricType, Double> map) {
+        if (map == null) {
+            return ImmutableMap.of();
+        }
         Map newMap = Maps.newConcurrentMap();
         map.forEach((k, v) -> newMap.putIfAbsent(k.toString(), v));
         return newMap;

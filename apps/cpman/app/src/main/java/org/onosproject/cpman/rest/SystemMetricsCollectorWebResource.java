@@ -18,14 +18,18 @@ package org.onosproject.cpman.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringUtils;
 import org.onosproject.cpman.ControlMetric;
 import org.onosproject.cpman.ControlMetricType;
 import org.onosproject.cpman.ControlPlaneMonitorService;
+import org.onosproject.cpman.ControlResource;
 import org.onosproject.cpman.MetricValue;
 import org.onosproject.cpman.SystemInfo;
 import org.onosproject.cpman.impl.DefaultSystemInfo;
 import org.onosproject.cpman.impl.SystemInfoFactory;
 import org.onosproject.rest.AbstractWebResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -35,7 +39,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.nullIsIllegal;
 
@@ -45,11 +52,21 @@ import static org.onlab.util.Tools.nullIsIllegal;
 @Path("collector")
 public class SystemMetricsCollectorWebResource extends AbstractWebResource {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final ControlPlaneMonitorService service = get(ControlPlaneMonitorService.class);
     private static final int UPDATE_INTERVAL_IN_MINUTE = 1;
     private static final String INVALID_SYSTEM_SPECS = "Invalid system specifications";
     private static final String INVALID_RESOURCE_NAME = "Invalid resource name";
     private static final String INVALID_REQUEST = "Invalid request";
+    private static final int PERCENT_CONSTANT = 100;
+
+    private static final Set<String> MEMORY_FIELD_SET = ControlResource.MEMORY_METRICS
+            .stream().map(type -> toCamelCase(type.toString(), true))
+            .collect(Collectors.toSet());
+
+    private static final Set<String> CPU_FIELD_SET = ControlResource.CPU_METRICS
+            .stream().map(type -> toCamelCase(type.toString(), true))
+            .collect(Collectors.toSet());
 
     /**
      * Collects CPU metrics.
@@ -67,7 +84,13 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
         ControlMetric cm;
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            long cpuLoad = nullIsIllegal(jsonTree.get("cpuLoad").asLong(), INVALID_REQUEST);
+
+            if (jsonTree == null || !checkFields(jsonTree, CPU_FIELD_SET)) {
+                ok(root).build();
+            }
+
+            long cpuLoad = nullIsIllegal((long) (jsonTree.get("cpuLoad").asDouble()
+                    * PERCENT_CONSTANT), INVALID_REQUEST);
             long totalCpuTime = nullIsIllegal(jsonTree.get("totalCpuTime").asLong(), INVALID_REQUEST);
             long sysCpuTime = nullIsIllegal(jsonTree.get("sysCpuTime").asLong(), INVALID_REQUEST);
             long userCpuTime = nullIsIllegal(jsonTree.get("userCpuTime").asLong(), INVALID_REQUEST);
@@ -95,6 +118,8 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
 
         } catch (IOException e) {
             throw new IllegalArgumentException(e.getMessage());
+        } catch (IllegalArgumentException iae) {
+            log.error("[CPU] Illegal arguments in JSON input, msg: {}", iae.getMessage());
         }
         return ok(root).build();
     }
@@ -115,10 +140,16 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
         ControlMetric cm;
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            long memUsedRatio = nullIsIllegal(jsonTree.get("memoryUsedRatio").asLong(), INVALID_REQUEST);
-            long memFreeRatio = nullIsIllegal(jsonTree.get("memoryFreeRatio").asLong(), INVALID_REQUEST);
+
+            if (jsonTree == null || !checkFields(jsonTree, MEMORY_FIELD_SET)) {
+                ok(root).build();
+            }
+
             long memUsed = nullIsIllegal(jsonTree.get("memoryUsed").asLong(), INVALID_REQUEST);
             long memFree = nullIsIllegal(jsonTree.get("memoryFree").asLong(), INVALID_REQUEST);
+            long memTotal = memUsed + memFree;
+            long memUsedRatio = memTotal == 0L ? 0L : (memUsed * PERCENT_CONSTANT) / memTotal;
+            long memFreeRatio = memTotal == 0L ? 0L : (memFree * PERCENT_CONSTANT) / memTotal;
 
             cm = new ControlMetric(ControlMetricType.MEMORY_USED_RATIO,
                     new MetricValue.Builder().load(memUsedRatio).add());
@@ -138,6 +169,8 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
 
         } catch (IOException e) {
             throw new IllegalArgumentException(e.getMessage());
+        } catch (IllegalArgumentException iae) {
+            log.error("[RAM] Illegal arguments in JSON input, msg: {}", iae.getMessage());
         }
         return ok(root).build();
     }
@@ -158,7 +191,9 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
         ControlMetric cm;
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            ArrayNode diskRes = (ArrayNode) jsonTree.get("disks");
+            ArrayNode diskRes =
+                    jsonTree.get("disks") == null ? mapper().createArrayNode() : (ArrayNode) jsonTree.get("disks");
+
             for (JsonNode node : diskRes) {
                 JsonNode resourceName = node.get("resourceName");
                 nullIsIllegal(resourceName, INVALID_RESOURCE_NAME);
@@ -176,6 +211,8 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
             }
         } catch (IOException e) {
             throw new IllegalArgumentException(e.getMessage());
+        } catch (IllegalArgumentException iae) {
+            log.error("[DISK] Illegal arguments in JSON input, msg: {}", iae.getMessage());
         }
         return ok(root).build();
     }
@@ -196,7 +233,10 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
         ControlMetric cm;
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            ArrayNode networkRes = (ArrayNode) jsonTree.get("networks");
+
+            ArrayNode networkRes = jsonTree.get("networks") == null
+                    ? mapper().createArrayNode() : (ArrayNode) jsonTree.get("networks");
+
             for (JsonNode node : networkRes) {
                 JsonNode resourceName = node.get("resourceName");
                 nullIsIllegal(resourceName, INVALID_RESOURCE_NAME);
@@ -270,5 +310,25 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
             throw new IllegalArgumentException(e.getMessage());
         }
         return ok(root).build();
+    }
+
+    private boolean checkFields(ObjectNode node, Set<String> original) {
+        Iterator<String> fieldNames = node.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            if (!original.contains(fieldName) || node.get(fieldName) == null) {
+                log.warn("Illegal field name: {}", fieldName);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String toCamelCase(String value, boolean startWithLowerCase) {
+        String[] strings = StringUtils.split(value.toLowerCase(), "_");
+        for (int i = startWithLowerCase ? 1 : 0; i < strings.length; i++) {
+            strings[i] = StringUtils.capitalize(strings[i]);
+        }
+        return StringUtils.join(strings);
     }
 }
