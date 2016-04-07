@@ -209,7 +209,10 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
             if (msg.getType() == OFType.PACKET_IN ||
                     msg.getType() == OFType.FLOW_MOD ||
                     msg.getType() == OFType.STATS_REPLY) {
-                aggregators.get(dpid).increment(msg);
+                aggregators.computeIfPresent(dpid, (k, v) -> {
+                    v.increment(msg);
+                    return v;
+                });
             }
         }
     }
@@ -221,7 +224,10 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
 
         @Override
         public void handleMessage(Dpid dpid, OFMessage msg) {
-            aggregators.get(dpid).increment(msg);
+            aggregators.computeIfPresent(dpid, (k, v) -> {
+                v.increment(msg);
+                return v;
+            });
         }
     }
 }
