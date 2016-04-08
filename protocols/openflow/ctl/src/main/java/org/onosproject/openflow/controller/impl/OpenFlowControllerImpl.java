@@ -295,8 +295,8 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         case FLOW_REMOVED:
             if (monitorAllEvents) {
                 executorFlowRemoved.execute(new OFMessageHandler(dpid, msg));
-                break;
             }
+            break;
         case ERROR:
             log.debug("Received error message from {}: {}", dpid, msg);
             executorMsgs.execute(new OFMessageHandler(dpid, msg));
