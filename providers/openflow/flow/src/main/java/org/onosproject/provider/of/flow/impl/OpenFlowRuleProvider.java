@@ -115,7 +115,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
             label = "Frequency (in seconds) for polling flow statistics")
     private int flowPollFrequency = DEFAULT_POLL_FREQUENCY;
 
-    private static final boolean DEFAULT_ADAPTIVE_FLOW_SAMPLING = true;
+    private static final boolean DEFAULT_ADAPTIVE_FLOW_SAMPLING = false;
     @Property(name = "adaptiveFlowSampling", boolValue = DEFAULT_ADAPTIVE_FLOW_SAMPLING,
             label = "Adaptive Flow Sampling is on or off")
     private boolean adaptiveFlowSampling = DEFAULT_ADAPTIVE_FLOW_SAMPLING;
