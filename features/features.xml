@@ -38,7 +38,7 @@
 
         <bundle>mvn:io.dropwizard.metrics/metrics-core/3.1.2</bundle>
         <bundle>mvn:io.dropwizard.metrics/metrics-json/3.1.2</bundle>
-        <bundle>mvn:com.eclipsesource.minimal-json/minimal-json/0.9.1</bundle>
+        <bundle>mvn:com.eclipsesource.minimal-json/minimal-json/0.9.4</bundle>
 
         <bundle>mvn:com.esotericsoftware/kryo/3.0.3</bundle>
         <bundle>mvn:com.esotericsoftware/reflectasm/1.11.0</bundle>
