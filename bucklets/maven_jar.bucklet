@@ -42,6 +42,24 @@ def maven_jar(
     visibility = ['PUBLIC'],
     local_license = False,
     full_url = ''):
+
+  if not full_url:
+    groupId, artifactId, version = id.split(':')
+
+    prebuilt_jar(
+            name = name,
+            binary_jar = ':%s-jar' % name,
+            visibility = [ 'PUBLIC' ]
+    )
+
+    remote_file(
+            name = name + '-jar',
+            out = '%s-%s.jar' % (artifactId, version),
+            url = 'mvn:%s:%s:%s:%s' % (groupId, artifactId, 'jar', version),
+            sha1 = sha1
+    )
+    return
+
   from os import path
 
   parts = id.split(':')
