@@ -51,7 +51,7 @@
         <bundle>mvn:com.fasterxml.jackson.core/jackson-databind/2.7.0</bundle>
 
         <bundle>mvn:commons-configuration/commons-configuration/1.10</bundle>
-        <bundle>mvn:commons-collections/commons-collections/3.2.1</bundle>
+        <bundle>mvn:commons-collections/commons-collections/3.2.2</bundle>
 
         <bundle>mvn:com.typesafe/config/1.2.1</bundle>
         <bundle>wrap:mvn:com.googlecode.concurrent-trees/concurrent-trees/2.4.0$Bundle-SymbolicName=concurrent-trees&amp;Bundle-Version=2.4.0</bundle>
