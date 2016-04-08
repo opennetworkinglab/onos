@@ -120,19 +120,20 @@ fi
 if ! grep -q "/onos-features/" $KARAF_ROOT/etc/org.apache.karaf.features.cfg; then
     # Patch the Apache Karaf distribution file to add ONOS features repository
     echo "Adding ONOS feature repository..."
-    perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onosproject/onos-features/$ONOS_POM_VERSION/xml/features|" \
+    perl -pi.old -e "s|^(featuresRepositories=.*)|featuresRepositories=mvn:org.apache.karaf.features/standard/$KARAF_VERSION/xml/features,mvn:org.onosproject/onos-features/$ONOS_POM_VERSION/xml/features|" \
         $KARAF_ROOT/etc/org.apache.karaf.features.cfg
 fi
 
 if ! grep -q ",onos-api," $KARAF_ROOT/etc/org.apache.karaf.features.cfg; then
     # Patch the Apache Karaf distribution file to load default ONOS boot features
-    export BOOT_FEATURES="webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui"
+    BOOT_FEATURES="standard,ssh,webconsole"
     if [ "$SECURE" = "true" ]; then
         # SM-ONOS Step 3.2: add onos-security to featuresBoot
-        export BOOT_FEATURES="onos-security,$BOOT_FEATURES"
+        BOOT_FEATURES="$BOOT_FEATURES,onos-security"
     fi
+    BOOT_FEATURES="$BOOT_FEATURES,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui"
     echo "Adding ONOS boot features $BOOT_FEATURES..."
-    perl -pi.old -e "s|^(featuresBoot=.*)|\1,$BOOT_FEATURES|" \
+    perl -pi.old -e "s|^(featuresBoot=.*)|featuresBoot=$BOOT_FEATURES|" \
         $KARAF_ROOT/etc/org.apache.karaf.features.cfg
 fi
 
