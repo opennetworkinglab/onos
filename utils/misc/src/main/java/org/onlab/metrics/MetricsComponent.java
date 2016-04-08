@@ -35,7 +35,7 @@ public class MetricsComponent implements MetricsComponentRegistry {
      *
      * @param newName name of the component
      */
-    MetricsComponent(final String newName) {
+    public MetricsComponent(final String newName) {
         name = newName;
     }
 
