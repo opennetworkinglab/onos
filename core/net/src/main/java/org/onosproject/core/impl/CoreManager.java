@@ -183,11 +183,11 @@ public class CoreManager implements CoreService {
         }
 
         Integer timeLimit = Tools.getIntegerProperty(properties, "maxEventTimeLimit");
-        if (timeLimit != null && timeLimit > 1) {
+        if (timeLimit != null && timeLimit >= 0) {
             maxEventTimeLimit = timeLimit;
             eventDeliveryService.setDispatchTimeLimit(maxEventTimeLimit);
         } else if (timeLimit != null) {
-            log.warn("maxEventTimeLimit must be greater than 1");
+            log.warn("maxEventTimeLimit must be greater than or equal to 0");
         }
 
         Boolean performanceCheck = Tools.isPropertyEnabled(properties, "sharedThreadPerformanceCheck");

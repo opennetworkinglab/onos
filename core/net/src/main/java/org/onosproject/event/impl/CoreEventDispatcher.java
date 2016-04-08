@@ -36,10 +36,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.*;
+import static org.onosproject.security.AppPermission.Type.EVENT_READ;
+import static org.onosproject.security.AppPermission.Type.EVENT_WRITE;
+import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Simple implementation of an event dispatching service.
  */
@@ -49,6 +49,8 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
         implements EventDeliveryService {
 
     private final Logger log = getLogger(getClass());
+
+    private boolean executionTimeLimit = false;
 
     // Default number of millis a sink can take to process an event.
     private static final long DEFAULT_EXECUTE_MS = 5_000; // ms
@@ -83,25 +85,48 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     public void activate() {
         dispatchLoop = new DispatchLoop();
         dispatchFuture = executor.submit(dispatchLoop);
-        watchdog = new Watchdog();
-        SharedExecutors.getTimer().schedule(watchdog, WATCHDOG_MS, WATCHDOG_MS);
+
+        if (maxProcessMillis != 0) {
+            startWatchdog();
+        }
+
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         dispatchLoop.stop();
-        watchdog.cancel();
+        stopWatchdog();
         post(KILL_PILL);
         log.info("Stopped");
+    }
+
+    private void startWatchdog() {
+        log.info("Starting watchdog task");
+        watchdog = new Watchdog();
+        SharedExecutors.getTimer().schedule(watchdog, WATCHDOG_MS, WATCHDOG_MS);
+    }
+
+    private void stopWatchdog() {
+        log.info("Stopping watchdog task");
+        if (watchdog != null) {
+            watchdog.cancel();
+        }
     }
 
     @Override
     public void setDispatchTimeLimit(long millis) {
         checkPermission(EVENT_WRITE);
-        checkArgument(millis >= WATCHDOG_MS,
+        checkArgument(millis == 0 || millis >= WATCHDOG_MS,
                       "Time limit must be greater than %s", WATCHDOG_MS);
+        long oldMillis = maxProcessMillis;
         maxProcessMillis = millis;
+
+        if (millis == 0 && oldMillis != 0) {
+            stopWatchdog();
+        } else if (millis != 0 && oldMillis == 0) {
+            startWatchdog();
+        }
     }
 
     @Override

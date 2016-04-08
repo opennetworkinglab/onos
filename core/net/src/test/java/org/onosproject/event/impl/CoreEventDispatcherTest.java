@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test of the even dispatcher mechanism.
+ * Test of the event dispatcher mechanism.
  */
 public class CoreEventDispatcherTest {
 
