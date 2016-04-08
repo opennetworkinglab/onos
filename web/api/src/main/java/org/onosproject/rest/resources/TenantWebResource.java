@@ -131,7 +131,7 @@ public class TenantWebResource extends AbstractWebResource {
      *
      * @param stream TenantId JSON stream
      * @return TenantId
-     * @throws IOException
+     * @throws IOException if unable to parse the request
      */
     private TenantId getTenantIdFromJsonStream(InputStream stream) throws IOException {
         ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
@@ -146,11 +146,11 @@ public class TenantWebResource extends AbstractWebResource {
     /**
      * Get the matching tenant identifier from existing tenant identifiers in system.
      *
-     * @param vnetAdminSvc
+     * @param vnetAdminSvc virtual network administration service
      * @param tidIn tenant identifier
      * @return TenantId
      */
-    private static TenantId getExistingTenantId(VirtualNetworkAdminService vnetAdminSvc,
+     static TenantId getExistingTenantId(VirtualNetworkAdminService vnetAdminSvc,
                                                TenantId tidIn) {
         final TenantId resultTid = vnetAdminSvc
                 .getTenantIds()

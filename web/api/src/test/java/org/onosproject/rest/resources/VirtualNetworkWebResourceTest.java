@@ -32,16 +32,20 @@ import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.virtual.DefaultVirtualDevice;
+import org.onosproject.incubator.net.virtual.DefaultVirtualLink;
 import org.onosproject.incubator.net.virtual.DefaultVirtualNetwork;
 import org.onosproject.incubator.net.virtual.DefaultVirtualPort;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultPort;
@@ -61,6 +65,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -80,7 +85,6 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     private CodecManager codecService;
 
     final HashSet<TenantId> tenantIdSet = new HashSet<>();
-    final HashSet<VirtualNetwork> vnetSet = new HashSet<>();
     final HashSet<VirtualDevice> vdevSet = new HashSet<>();
     final HashSet<VirtualPort> vportSet = new HashSet<>();
 
@@ -90,6 +94,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     private static final String PORT_NUM = "portNum";
     private static final String PHYS_DEVICE_ID = "physDeviceId";
     private static final String PHYS_PORT_NUM = "physPortNum";
+    private static final String TUNNEL_ID = "tunnelId";
 
     private final TenantId tenantId1 = TenantId.tenantId("TenantId1");
     private final TenantId tenantId2 = TenantId.tenantId("TenantId2");
@@ -106,8 +111,8 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     private final VirtualNetwork vnet3 = new DefaultVirtualNetwork(networkId3, tenantId3);
     private final VirtualNetwork vnet4 = new DefaultVirtualNetwork(networkId4, tenantId3);
 
-    private final DeviceId devId1 = DeviceId.deviceId("devId1");
-    private final DeviceId devId2 = DeviceId.deviceId("devId2");
+    private final DeviceId devId1 = DeviceId.deviceId("devid1");
+    private final DeviceId devId2 = DeviceId.deviceId("devid2");
     private final DeviceId devId22 = DeviceId.deviceId("dev22");
 
     private final VirtualDevice vdev1 = new DefaultVirtualDevice(networkId3, devId1);
@@ -115,6 +120,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
 
     private final Device dev1 = NetTestTools.device("dev1");
     private final Device dev2 = NetTestTools.device("dev2");
+    private final Device dev21 = NetTestTools.device("dev21");
     private final Device dev22 = NetTestTools.device("dev22");
 
     Port port1 = new DefaultPort(dev1, portNumber(1), true);
@@ -124,6 +130,15 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
                                                               dev22, portNumber(22), port1);
     private final VirtualPort vport23 = new DefaultVirtualPort(networkId3,
                                                               dev22, portNumber(23), port2);
+
+    private final ConnectPoint cp11 = NetTestTools.connectPoint(devId1.toString(), 21);
+    private final ConnectPoint cp21 = NetTestTools.connectPoint(devId2.toString(), 22);
+    private final ConnectPoint cp12 = NetTestTools.connectPoint(devId1.toString(), 2);
+    private final ConnectPoint cp22 = NetTestTools.connectPoint(devId2.toString(), 22);
+
+    private final TunnelId tunnelId = TunnelId.valueOf(31);
+    private final VirtualLink vlink1 = new DefaultVirtualLink(networkId3, cp22, cp11, tunnelId);
+    private final VirtualLink vlink2 = new DefaultVirtualLink(networkId3, cp12, cp21, tunnelId);
 
     /**
      * Sets up the global values for all the tests.
@@ -313,12 +328,9 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
      */
     @Test
     public void testGetVirtualNetworksArray() {
+        final Set<VirtualNetwork> vnetSet = ImmutableSet.of(vnet1, vnet2, vnet3, vnet4);
         expect(mockVnetAdminService.getTenantIds()).andReturn(ImmutableSet.of(tenantId3)).anyTimes();
         replay(mockVnetAdminService);
-        vnetSet.add(vnet1);
-        vnetSet.add(vnet2);
-        vnetSet.add(vnet3);
-        vnetSet.add(vnet4);
         expect(mockVnetService.getVirtualNetworks(tenantId3)).andReturn(vnetSet).anyTimes();
         replay(mockVnetService);
 
@@ -338,6 +350,64 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
                      vnetSet.size(), vnetJsonArray.size());
 
         vnetSet.forEach(vnet -> assertThat(vnetJsonArray, hasVnet(vnet)));
+
+        verify(mockVnetService);
+        verify(mockVnetAdminService);
+    }
+
+    /**
+     * Tests the result of the REST API GET for virtual networks with tenant id.
+     */
+    @Test
+    public void testGetVirtualNetworksByTenantId() {
+        final Set<VirtualNetwork> vnetSet = ImmutableSet.of(vnet1, vnet2, vnet3, vnet4);
+        expect(mockVnetAdminService.getTenantIds()).andReturn(ImmutableSet.of(tenantId3)).anyTimes();
+        replay(mockVnetAdminService);
+        expect(mockVnetService.getVirtualNetworks(tenantId3)).andReturn(vnetSet).anyTimes();
+        replay(mockVnetService);
+
+        WebTarget wt = target();
+        String response = wt.path("vnets/" + tenantId3.id()).request().get(String.class);
+        assertThat(response, containsString("{\"vnets\":["));
+
+        final JsonObject result = Json.parse(response).asObject();
+        assertThat(result, notNullValue());
+
+        assertThat(result.names(), hasSize(1));
+        assertThat(result.names().get(0), is("vnets"));
+
+        final JsonArray vnetJsonArray = result.get("vnets").asArray();
+        assertThat(vnetJsonArray, notNullValue());
+        assertEquals("Virtual networks array is not the correct size.",
+                     vnetSet.size(), vnetJsonArray.size());
+
+        vnetSet.forEach(vnet -> assertThat(vnetJsonArray, hasVnet(vnet)));
+
+        verify(mockVnetService);
+        verify(mockVnetAdminService);
+    }
+
+    /**
+     * Tests the result of the REST API GET for virtual networks with tenant id.
+     */
+    @Test
+    public void testGetVirtualNetworksByNonExistentTenantId() {
+        String tenantIdName = "NON_EXISTENT_TENANT_ID";
+        expect(mockVnetAdminService.getTenantIds()).andReturn(ImmutableSet.of(tenantId3)).anyTimes();
+        replay(mockVnetAdminService);
+        expect(mockVnetService.getVirtualNetworks(anyObject())).andReturn(ImmutableSet.of()).anyTimes();
+        replay(mockVnetService);
+
+        WebTarget wt = target();
+
+        try {
+            wt.path("vnets/" + tenantIdName)
+                    .request()
+                    .get(String.class);
+            fail("Get of a non-existent virtual network did not throw an exception");
+        } catch (NotFoundException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 404 Not Found"));
+        }
 
         verify(mockVnetService);
         verify(mockVnetAdminService);
@@ -756,5 +826,243 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         verify(mockVnetAdminService);
     }
 
-    // TODO Tests for Virtual Links
+    // Tests for Virtual Links
+
+    /**
+     * Tests the result of the REST API GET when there are no virtual links.
+     */
+    @Test
+    public void testGetVirtualLinksEmptyArray() {
+        NetworkId networkId = networkId4;
+        expect(mockVnetService.getVirtualLinks(networkId)).andReturn(ImmutableSet.of()).anyTimes();
+        replay(mockVnetService);
+
+        WebTarget wt = target();
+        String location = "vnets/" + networkId.toString() + "/links";
+        String response = wt.path(location).request().get(String.class);
+        assertThat(response, is("{\"links\":[]}"));
+
+        verify(mockVnetService);
+    }
+
+    /**
+     * Tests the result of the REST API GET when virtual links are defined.
+     */
+    @Test
+    public void testGetVirtualLinksArray() {
+        NetworkId networkId = networkId3;
+        final Set<VirtualLink> vlinkSet = ImmutableSet.of(vlink1, vlink2);
+        expect(mockVnetService.getVirtualLinks(networkId)).andReturn(vlinkSet).anyTimes();
+        replay(mockVnetService);
+
+        WebTarget wt = target();
+        String location = "vnets/" + networkId.toString() + "/links";
+        String response = wt.path(location).request().get(String.class);
+        assertThat(response, containsString("{\"links\":["));
+
+        final JsonObject result = Json.parse(response).asObject();
+        assertThat(result, notNullValue());
+
+        assertThat(result.names(), hasSize(1));
+        assertThat(result.names().get(0), is("links"));
+
+        final JsonArray vnetJsonArray = result.get("links").asArray();
+        assertThat(vnetJsonArray, notNullValue());
+        assertEquals("Virtual links array is not the correct size.",
+                     vlinkSet.size(), vnetJsonArray.size());
+
+        vlinkSet.forEach(vlink -> assertThat(vnetJsonArray, hasVlink(vlink)));
+
+        verify(mockVnetService);
+    }
+
+    /**
+     * Hamcrest matcher to check that a virtual link representation in JSON matches
+     * the actual virtual link.
+     */
+    public static class VirtualLinkJsonMatcher extends LinksResourceTest.LinkJsonMatcher {
+        private final VirtualLink vlink;
+        private String reason = "";
+
+        public VirtualLinkJsonMatcher(VirtualLink vlinkValue) {
+            super(vlinkValue);
+            vlink = vlinkValue;
+        }
+
+        @Override
+        public boolean matchesSafely(JsonObject jsonLink) {
+            if (!super.matchesSafely(jsonLink)) {
+                return false;
+            }
+            // check NetworkId
+            String jsonNetworkId = jsonLink.get(ID).asString();
+            String networkId = vlink.networkId().toString();
+            if (!jsonNetworkId.equals(networkId)) {
+                reason = ID + " was " + jsonNetworkId;
+                return false;
+            }
+            // check TunnelId
+            String jsonTunnelId = jsonLink.get(TUNNEL_ID).asString();
+            if (jsonTunnelId != null && vlink instanceof DefaultVirtualLink) {
+                String tunnelId = ((DefaultVirtualLink) vlink).tunnelId().toString();
+                if (!jsonTunnelId.equals(tunnelId)) {
+                    reason = TUNNEL_ID + " was " + jsonTunnelId;
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText(reason);
+        }
+    }
+
+    /**
+     * Factory to allocate a virtual link matcher.
+     *
+     * @param vlink virtual link object we are looking for
+     * @return matcher
+     */
+    private static VirtualLinkJsonMatcher matchesVirtualLink(VirtualLink vlink) {
+        return new VirtualLinkJsonMatcher(vlink);
+    }
+
+    /**
+     * Hamcrest matcher to check that a virtual link is represented properly in a JSON
+     * array of links.
+     */
+    private static class VirtualLinkJsonArrayMatcher extends TypeSafeMatcher<JsonArray> {
+        private final VirtualLink vlink;
+        private String reason = "";
+
+        public VirtualLinkJsonArrayMatcher(VirtualLink vlinkValue) {
+            vlink = vlinkValue;
+        }
+
+        @Override
+        public boolean matchesSafely(JsonArray json) {
+            final int expectedAttributes = 2;
+
+            for (int jsonLinkIndex = 0; jsonLinkIndex < json.size();
+                 jsonLinkIndex++) {
+
+                JsonObject jsonLink = json.get(jsonLinkIndex).asObject();
+
+                if (matchesVirtualLink(vlink).matchesSafely(jsonLink)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText(reason);
+        }
+    }
+
+    /**
+     * Factory to allocate a virtual link array matcher.
+     *
+     * @param vlink virtual link object we are looking for
+     * @return matcher
+     */
+    private VirtualLinkJsonArrayMatcher hasVlink(VirtualLink vlink) {
+        return new VirtualLinkJsonArrayMatcher(vlink);
+    }
+
+    /**
+     * Tests adding of new virtual link using POST via JSON stream.
+     */
+    @Test
+    public void testPostVirtualLink() {
+        NetworkId networkId = networkId3;
+        expect(mockVnetAdminService.createVirtualLink(networkId, cp22, cp11, tunnelId))
+                .andReturn(vlink1);
+        replay(mockVnetAdminService);
+
+        WebTarget wt = target();
+        InputStream jsonStream = VirtualNetworkWebResourceTest.class
+                .getResourceAsStream("post-virtual-link.json");
+        String reqLocation = "vnets/" + networkId.toString() + "/links";
+        Response response = wt.path(reqLocation).request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
+
+        String location = response.getLocation().getPath();
+        assertThat(location, Matchers.startsWith("/" + reqLocation));
+
+        verify(mockVnetAdminService);
+    }
+
+    /**
+     * Tests adding of a null virtual link using POST via JSON stream.
+     */
+    @Test
+    public void testPostVirtualLinkNullJsonStream() {
+        NetworkId networkId = networkId3;
+        replay(mockVnetAdminService);
+
+        WebTarget wt = target();
+        try {
+            String reqLocation = "vnets/" + networkId.toString() + "/links";
+            wt.path(reqLocation)
+                    .request(MediaType.APPLICATION_JSON_TYPE)
+                    .post(Entity.json(null), String.class);
+            fail("POST of null virtual link did not throw an exception");
+        } catch (BadRequestException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 400 Bad Request"));
+        }
+
+        verify(mockVnetAdminService);
+    }
+
+    /**
+     * Tests removing a virtual link with DELETE request.
+     */
+    @Test
+    public void testDeleteVirtualLink() {
+        NetworkId networkId = networkId3;
+        mockVnetAdminService.removeVirtualLink(networkId, cp22, cp11);
+        expectLastCall();
+        replay(mockVnetAdminService);
+
+        WebTarget wt = target()
+                .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
+        InputStream jsonStream = VirtualNetworkWebResourceTest.class
+                .getResourceAsStream("post-virtual-link.json");
+        String reqLocation = "vnets/" + networkId.toString() + "/links";
+        Response response = wt.path(reqLocation).request().accept(MediaType.APPLICATION_JSON_TYPE)
+                .method("DELETE", Entity.json(jsonStream));
+//        Response response = wt.path(reqLocation).request().method("DELETE", Entity.json(jsonStream));
+
+//        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
+//        verify(mockVnetAdminService);
+    }
+
+    /**
+     * Tests removing a virtual link with PUT request.
+     */
+    @Test
+    public void testDeleteVirtualLink2() {
+        NetworkId networkId = networkId3;
+        mockVnetAdminService.removeVirtualLink(networkId, cp22, cp11);
+        expectLastCall();
+        replay(mockVnetAdminService);
+
+        WebTarget wt = target()
+                .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
+        InputStream jsonStream = VirtualNetworkWebResourceTest.class
+                .getResourceAsStream("post-virtual-link.json");
+        String reqLocation = "vnets/" + networkId.toString() + "/links/remove";
+        Response response = wt.path(reqLocation).request().accept(MediaType.APPLICATION_JSON_TYPE)
+                .method("PUT", Entity.json(jsonStream));
+
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
+        verify(mockVnetAdminService);
+    }
+
+    // All Tests done
 }

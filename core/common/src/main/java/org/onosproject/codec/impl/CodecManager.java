@@ -28,6 +28,7 @@ import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.Application;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.Annotations;
@@ -134,6 +135,7 @@ public class CodecManager implements CodecService {
         registerCodec(VirtualNetwork.class, new VirtualNetworkCodec());
         registerCodec(VirtualDevice.class, new VirtualDeviceCodec());
         registerCodec(VirtualPort.class, new VirtualPortCodec());
+        registerCodec(VirtualLink.class, new VirtualLinkCodec());
         log.info("Started");
     }
 

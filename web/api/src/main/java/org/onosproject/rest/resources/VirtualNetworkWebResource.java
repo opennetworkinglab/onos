@@ -18,9 +18,12 @@ package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.incubator.net.virtual.DefaultVirtualLink;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
@@ -38,6 +41,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -69,7 +73,6 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     UriInfo uriInfo;
 
     // VirtualNetwork
-    // TODO Query vnets by tenant
 
     /**
      * Returns all virtual networks.
@@ -85,6 +88,22 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
         return ok(encodeArray(VirtualNetwork.class, "vnets", allVnets)).build();
+    }
+
+    /**
+     * Returns the virtual networks with the specified tenant identifier.
+     *
+     * @param tenantId tenant identifier
+     * @return 200 OK, 404 not found
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{tenantId}")
+    public Response getVirtualNetworkById(@PathParam("tenantId") String tenantId) {
+        final TenantId existingTid = TenantWebResource.getExistingTenantId(vnetAdminService,
+                TenantId.tenantId(tenantId));
+        Set<VirtualNetwork> vnets = vnetService.getVirtualNetworks(existingTid);
+        return ok(encodeArray(VirtualNetwork.class, "vnets", vnets)).build();
     }
 
     /**
@@ -122,7 +141,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     @DELETE
     @Path("{networkId}")
     public Response removeVirtualNetwork(@PathParam("networkId") long networkId) {
-        final NetworkId nid = NetworkId.networkId(networkId);
+        NetworkId nid = NetworkId.networkId(networkId);
         vnetAdminService.removeVirtualNetwork(nid);
         return Response.ok().build();
     }
@@ -139,7 +158,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{networkId}/devices")
     public Response getVirtualDevices(@PathParam("networkId") long networkId) {
-        final NetworkId nid = NetworkId.networkId(networkId);
+        NetworkId nid = NetworkId.networkId(networkId);
         Set<VirtualDevice> vdevs  = vnetService.getVirtualDevices(nid);
         return ok(encodeArray(VirtualDevice.class, "devices", vdevs)).build();
     }
@@ -154,7 +173,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      * @onos.rsModel VirtualDevice
      */
     @POST
-    @Path("{networkId}/devices/")
+    @Path("{networkId}/devices")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createVirtualDevice(@PathParam("networkId") long networkId,
@@ -162,15 +181,14 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             final VirtualDevice vdevReq = codec(VirtualDevice.class).decode(jsonTree, this);
-            JsonNode specifiedRegionId = jsonTree.get("networkId");
-            if (specifiedRegionId != null &&
-                    specifiedRegionId.asLong() != (networkId)) {
+            JsonNode specifiedNetworkId = jsonTree.get("networkId");
+            if (specifiedNetworkId == null || specifiedNetworkId.asLong() != (networkId)) {
                 throw new IllegalArgumentException(INVALID_FIELD + "networkId");
             }
             final VirtualDevice vdevRes = vnetAdminService.createVirtualDevice(vdevReq.networkId(),
                                                                                vdevReq.id());
             UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
-                    .path("vnets").path(specifiedRegionId.asText())
+                    .path("vnets").path(specifiedNetworkId.asText())
                     .path("devices").path(vdevRes.id().toString());
             return Response
                     .created(locationBuilder.build())
@@ -191,8 +209,8 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     @Path("{networkId}/devices/{deviceId}")
     public Response removeVirtualDevice(@PathParam("networkId") long networkId,
             @PathParam("deviceId") String deviceId) {
-        final NetworkId nid = NetworkId.networkId(networkId);
-        final DeviceId did = DeviceId.deviceId(deviceId);
+        NetworkId nid = NetworkId.networkId(networkId);
+        DeviceId did = DeviceId.deviceId(deviceId);
         vnetAdminService.removeVirtualDevice(nid, did);
         return Response.ok().build();
     }
@@ -211,7 +229,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     @Path("{networkId}/devices/{deviceId}/ports")
     public Response getVirtualPorts(@PathParam("networkId") long networkId,
             @PathParam("deviceId") String deviceId) {
-        final NetworkId nid = NetworkId.networkId(networkId);
+        NetworkId nid = NetworkId.networkId(networkId);
         Iterable<VirtualPort> vports  = vnetService.getVirtualPorts(nid, DeviceId.deviceId(deviceId));
         return ok(encodeArray(VirtualPort.class, "ports", vports)).build();
     }
@@ -238,12 +256,10 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
 //            final VirtualPort vportReq = codec(VirtualPort.class).decode(jsonTree, this);
             JsonNode specifiedNetworkId = jsonTree.get("networkId");
             JsonNode specifiedDeviceId = jsonTree.get("deviceId");
-            if (specifiedNetworkId != null &&
-                    specifiedNetworkId.asLong() != (networkId)) {
+            if (specifiedNetworkId == null || specifiedNetworkId.asLong() != (networkId)) {
                 throw new IllegalArgumentException(INVALID_FIELD + "networkId");
             }
-            if (specifiedDeviceId != null &&
-                    !specifiedDeviceId.asText().equals(virtDeviceId)) {
+            if (specifiedDeviceId == null || !specifiedDeviceId.asText().equals(virtDeviceId)) {
                 throw new IllegalArgumentException(INVALID_FIELD + "deviceId");
             }
             JsonNode specifiedPortNum = jsonTree.get("portNum");
@@ -283,13 +299,129 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     public Response removeVirtualPort(@PathParam("networkId") long networkId,
             @PathParam("deviceId") String deviceId,
             @PathParam("portNum") long portNum) {
-        final NetworkId nid = NetworkId.networkId(networkId);
+        NetworkId nid = NetworkId.networkId(networkId);
         vnetAdminService.removeVirtualPort(nid, DeviceId.deviceId(deviceId),
                 PortNumber.portNumber(portNum));
         return Response.ok().build();
     }
 
-    // TODO VirtualLink
+    // VirtualLink
+
+    /**
+     * Returns all virtual network links in a virtual network.
+     *
+     * @param networkId network identifier
+     * @return 200 OK
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{networkId}/links")
+    public Response getVirtualLinks(@PathParam("networkId") long networkId) {
+        NetworkId nid = NetworkId.networkId(networkId);
+        Set<VirtualLink> vlinks  = vnetService.getVirtualLinks(nid);
+        return ok(encodeArray(VirtualLink.class, "links", vlinks)).build();
+    }
+
+     /**
+     * Creates a virtual network link from the JSON input stream.
+     *
+     * @param networkId network identifier
+     * @param stream Virtual device JSON stream
+     * @return status of the request - CREATED if the JSON is correct,
+     * BAD_REQUEST if the JSON is invalid
+     * @onos.rsModel VirtualLink
+     */
+    @POST
+    @Path("{networkId}/links")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createVirtualLink(@PathParam("networkId") long networkId,
+                                      InputStream stream) {
+        try {
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            JsonNode specifiedNetworkId = jsonTree.get("networkId");
+            if (specifiedNetworkId == null || specifiedNetworkId.asLong() != (networkId)) {
+                throw new IllegalArgumentException(INVALID_FIELD + "networkId");
+            }
+            final VirtualLink vlinkReq = codec(VirtualLink.class).decode(jsonTree, this);
+            TunnelId tunnelId = TunnelId.valueOf(0);
+            if (vlinkReq instanceof DefaultVirtualLink) {
+                tunnelId = ((DefaultVirtualLink) vlinkReq).tunnelId();
+            }
+            vnetAdminService.createVirtualLink(vlinkReq.networkId(),
+                    vlinkReq.src(), vlinkReq.dst(), tunnelId);
+            UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
+                    .path("vnets").path(specifiedNetworkId.asText())
+                    .path("links");
+            return Response
+                    .created(locationBuilder.build())
+                    .build();
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    /**
+     * Removes the virtual network link from the JSON input stream.
+     *
+     * @param networkId network identifier
+     * @param stream deviceIds JSON stream
+     * @return 200 OK, 404 not found
+     * @onos.rsModel VirtualLink
+     */
+    @DELETE
+    @Path("{networkId}/links")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response removeVirtualLink(@PathParam("networkId") long networkId,
+                                        InputStream stream) {
+        try {
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            JsonNode specifiedNetworkId = jsonTree.get("networkId");
+            if (specifiedNetworkId != null &&
+                    specifiedNetworkId.asLong() != (networkId)) {
+                throw new IllegalArgumentException(INVALID_FIELD + "networkId");
+            }
+            final VirtualLink vlinkReq = codec(VirtualLink.class).decode(jsonTree, this);
+            vnetAdminService.removeVirtualLink(vlinkReq.networkId(),
+                    vlinkReq.src(), vlinkReq.dst());
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+
+        return Response.ok().build();
+    }
+
+    /**
+     * Removes the virtual network link from the JSON input stream.
+     *
+     * @param networkId network identifier
+     * @param stream deviceIds JSON stream
+     * @return 200 OK, 404 not found
+     * @onos.rsModel VirtualLink
+     */
+
+    @PUT
+    @Path("{networkId}/links/remove")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeVirtualLink2(@PathParam("networkId") long networkId,
+                                        InputStream stream) {
+        try {
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            JsonNode specifiedNetworkId = jsonTree.get("networkId");
+            if (specifiedNetworkId != null &&
+                    specifiedNetworkId.asLong() != (networkId)) {
+                throw new IllegalArgumentException(INVALID_FIELD + "networkId");
+            }
+            final VirtualLink vlinkReq = codec(VirtualLink.class).decode(jsonTree, this);
+            vnetAdminService.removeVirtualLink(vlinkReq.networkId(),
+                    vlinkReq.src(), vlinkReq.dst());
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+
+        return Response.ok().build();
+    }
 
     /**
      * Get the tenant identifier from the JSON stream.
@@ -297,7 +429,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      * @param stream TenantId JSON stream
      * @param jsonFieldName field name
      * @return JsonNode
-     * @throws IOException
+     * @throws IOException if unable to parse the request
      */
     private JsonNode getFromJsonStream(InputStream stream, String jsonFieldName) throws IOException {
         ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
