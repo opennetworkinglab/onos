@@ -5,8 +5,11 @@ CURRENT_TARGET = ':' + CURRENT_NAME
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//protocols/netconf/api:onos-snmp-api',
-    '//incubator/api:onos-incubator-api'
+    '//protocols/snmp/api:onos-snmp-api',
+    '//lib:org.apache.servicemix.bundles.snmp4j',
+    '//lib:snmp-core',
+    '//lib:bti7000',
+    '//lib:mibs-net-snmp',
 ]
 
 osgi_jar(

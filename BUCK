@@ -39,10 +39,13 @@ DEPS = [
     '//protocols/pcep/pcepio:onos-pcep-pcepio',
     '//protocols/pcep/api:onos-pcep-controller-api',
     '//protocols/pcep/ctl:onos-pcep-ctl',
+    '//protocols/snmp/api:onos-snmp-api',
+    '//protocols/snmp/ctl:onos-snmp-ctl',
     '//protocols/isis:onos-isis-api',
     '//protocols/isis:onos-isis-isisio',
 
     '//drivers/utilities:onos-drivers-utilities',
+    '//drivers/bti:onos-drivers-bti',
     '//drivers/ciena:onos-drivers-ciena',
     '//drivers/cisco:onos-drivers-cisco',
     '//drivers/default:onos-drivers-default',
