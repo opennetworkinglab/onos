@@ -1,4 +1,4 @@
-DEPS = [
+CORE = [
     '//utils/osgi:onlab-osgi',
     '//utils/junit:onlab-junit',
     '//utils/misc:onlab-misc',
@@ -81,7 +81,14 @@ DEPS = [
 
     '//web/api:onos-rest',
     '//web/gui:onos-gui',
+]
 
+APPS = [
+    '//apps/dhcp:onos-apps-dhcp-oar',
+    '//apps/fwd:onos-apps-fwd-oar',
+]
+
+APP_JARS = [
     '//apps/cpman/api:onos-app-cpman-api',
     '//apps/cpman/app:onos-app-cpman-app',
     '//apps/aaa:onos-app-aaa',
@@ -90,14 +97,14 @@ DEPS = [
     '//apps/routing-api:onos-app-routing-api',
     '//apps/cip:onos-app-cip',
     '//apps/cordmcast:onos-app-cord-mcast',
-    '//apps/cordvtn:onos-app-cordvtn',
-    '//apps/dhcp/api:onos-app-dhcp-api',
-    '//apps/dhcp/app:onos-app-dhcp-app',
+    '//apps/cordvtn:onos-apps-cordvtn',
+    '//apps/dhcp/api:onos-apps-dhcp-api',
+    '//apps/dhcp/app:onos-apps-dhcp-app',
     '//apps/drivermatrix:onos-app-drivermatrix',
     '//apps/events:onos-app-events',
     '//apps/faultmanagement:onos-app-fm',
     '//apps/flowanalyzer:onos-app-flowanalyzer',
-    '//apps/fwd:onos-app-fwd',
+    '//apps/fwd:onos-apps-fwd',
     '//apps/igmp:onos-app-igmp',
     '//apps/influxdbmetrics:onos-app-influxdb',
     '//apps/olt:onos-app-olt-api',
@@ -128,9 +135,21 @@ DEPS = [
 ]
 
 java_library(
-   name = 'onos',
-   visibility = ['PUBLIC'],
-   deps = DEPS
+    name = 'core',
+    visibility = ['PUBLIC'],
+    deps = CORE,
+)
+
+java_library(
+    name = 'apps',
+    visibility = ['PUBLIC'],
+    deps = APPS + APP_JARS,
+)
+
+java_library(
+    name = 'onos',
+    visibility = ['PUBLIC'],
+    deps = [ ':core', ':apps' ]
 )
 
 INSTALL = [

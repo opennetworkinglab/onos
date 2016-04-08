@@ -14,6 +14,7 @@ genrule(
   visibility = [ 'PUBLIC' ]
 )
 
+#FIXME location suppression.xml does not trigger this rule
 export_file(
   name = 'suppressions.xml',
   src = suppression_source,

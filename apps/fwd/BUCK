@@ -1,30 +1,16 @@
-CURRENT_NAME = 'onos-app-fwd'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
 ]
 
-TEST_DEPS = [
-    '//lib:TEST',
-]
-
 osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
     deps = COMPILE_DEPS,
-    test_srcs = glob([TEST + '/*.java']),
-    test_deps = TEST_DEPS,
-    visibility = ['PUBLIC'],
 )
 
 onos_app(
-    app_name = 'org.onosproject.fwd',
     title = 'Reactive Forwarding App',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'Reactive forwarding application using flow subsystem.',
-    included_bundles = [ CURRENT_TARGET ],
 )

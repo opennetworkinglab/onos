@@ -593,12 +593,12 @@ maven_jar(
   license = 'Apache2.0',
 )
 
-maven_jar(
-  name = 'atomix-coordination',
-  id = 'io.atomix:atomix-coordination:1.0.0-rc3',
-  sha1 = '182a2618cbef13e6efe58b85aadfa1176b9d08f3',
-  license = 'Apache2.0',
-)
+# maven_jar(
+#   name = 'atomix-coordination',
+#   id = 'io.atomix:atomix-coordination:1.0.0-rc3',
+#   sha1 = '182a2618cbef13e6efe58b85aadfa1176b9d08f3',
+#   license = 'Apache2.0',
+# )
 
 maven_jar(
   name = 'atomix-messaging',

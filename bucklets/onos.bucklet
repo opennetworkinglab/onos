@@ -4,21 +4,26 @@ DEBUG_ARG='JAVA_TOOL_OPTIONS="-Xdebug -Xrunjdwp:server=y,transport=dt_socket,add
 FORCE_INSTALL=True
 NONE='NONE'
 
-SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/test/java/org/onosproject/**/'
+SRC = 'src/main/java/**/'
+TEST = 'src/test/java/**/'
 RESOURCES_ROOT = 'src/main/resources/'
+TEST_RESOURCES_ROOT = 'src/test/resources/'
+
 
 ONOS_GROUP_ID = 'org.onosproject'
 ONOS_VERSION = '1.6.0-SNAPSHOT'
+ONOS_ARTIFACT_BASE = 'onos-'
+
+def _get_name():
+    base_path = get_base_path()
+    return ONOS_ARTIFACT_BASE + base_path.replace('/', '-') #TODO Unix-separator
 
 def osgi_jar(
-    name,
-    srcs,
-    test_srcs = None,
+    name = None,
+    srcs = None,
     group_id = ONOS_GROUP_ID,
     version = ONOS_VERSION,
     deps = [],
-    test_deps = [ '//lib:TEST' ],
     visibility = ['PUBLIC'],
     license = 'NONE',
     description = '',
@@ -27,19 +32,31 @@ def osgi_jar(
     export_packages = '*',
     include_resources = NONE,
     web_context = NONE,
-    resources = None,
+    resources = NONE,
     resources_root = None,
-    test_resources = None,
-    test_resources_root = None,
     **kwargs
     ):
+
+  # if name and _get_name() != name:
+  #     print _get_name(), '!=', name
+  if name is None:
+      name = _get_name()
+
+  if srcs is None:
+      srcs = glob([SRC + '/*.java'])
+
+  if resources == NONE and resources_root is not None:
+      resources = glob([resources_root + '**'])
+  elif resources == NONE:
+      resources = glob([RESOURCES_ROOT + '**'])
+
+  if resources and not resources_root:
+      resources_root = RESOURCES_ROOT
 
   bare_jar_name = name + '-jar'
   osgi_jar_name = name + '-osgi'
   mvn_coords = group_id + ':' + name + ':' + version
 
-  if resources and not resources_root:
-      resources_root = RESOURCES_ROOT
 
   java_library(
       name = bare_jar_name,
@@ -98,7 +115,9 @@ def osgi_jar(
                        '-o $OUT',
                        '-c $(location //tools/build/conf:checkstyle-xml)',
                        ' '.join(srcs) ))
-  error_cmd = '(touch $OUT; cat $OUT | grep "^\[ERROR\]"; exit 1)'
+  error_cmd = ' | '.join(( '( touch $OUT; cat $OUT',
+                           'grep -E "^[^: ]*:\d+:\d+: error:"',
+                           'sed "s#^.*__srcs/#%s:#g" ; exit 1)' % name, ))
   cmd = ' || '.join((chk_cmd, error_cmd))
   genrule(
     name = name + '-checkstyle',
@@ -126,18 +145,48 @@ def osgi_jar(
     visibility = visibility,
   )
 
+def osgi_jar_with_tests(
+        name = None,
+        deps = [],
+        test_srcs = None,
+        test_deps = [ '//lib:TEST' ],
+        test_resources = None,
+        test_resources_root = None,
+        visibility = [ 'PUBLIC' ],
+        **kwargs
+    ):
+
+  if name is None:
+      name = _get_name()
+
+  osgi_jar(name = name,
+           deps = deps,
+           visibility = visibility,
+           **kwargs)
 
   if test_resources and not test_resources_root:
-      test_resources_root = RESOURCES_ROOT
+      test_resources_root = TEST_RESOURCES_ROOT
+  if test_resources_root and not test_resources:
+      test_resources = glob([test_resources_root + '**'])
+  if not test_resources and not test_resources_root:
+      test_resources = glob([TEST_RESOURCES_ROOT + '**'])
+      if test_resources:
+        test_resources_root = TEST_RESOURCES_ROOT
 
-  if test_srcs is not None:
-      java_test(
-        name = 'tests',
-        srcs = test_srcs,
-        deps = deps +
-               test_deps +
-               [':' + bare_jar_name],
-        source_under_test = [':' + bare_jar_name],
-        resources = test_resources,
-        resources_root = test_resources_root
-        )
+  if test_srcs is None:
+      test_srcs = glob([TEST + '/*.java'])
+
+  if not test_srcs:
+          print "Generating test rule for %s, but there are no tests." % name
+
+  java_test(
+    name = name + '-tests',
+    srcs = test_srcs,
+    deps = deps +
+           test_deps +
+           [':' + name + '-jar'],
+    source_under_test = [':' + name + '-jar'],
+    resources = test_resources,
+    resources_root = test_resources_root,
+    visibility = visibility
+    )
