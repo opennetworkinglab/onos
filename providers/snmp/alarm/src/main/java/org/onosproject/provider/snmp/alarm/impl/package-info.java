@@ -1,8 +1,8 @@
 /*
 <<<<<<< HEAD
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
 =======
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
 >>>>>>> master
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
