@@ -86,15 +86,16 @@ CORE = [
 APPS = [
     '//apps/dhcp:onos-apps-dhcp-oar',
     '//apps/fwd:onos-apps-fwd-oar',
+    '//apps/aaa:onos-apps-aaa-oar',
+    '//apps/acl:onos-apps-acl-oar',
+    '//apps/bgprouter:onos-apps-bgprouter-oar',
+    '//apps/proxyarp:onos-apps-proxyarp-oar',
 ]
 
 APP_JARS = [
     '//apps/cpman/api:onos-app-cpman-api',
     '//apps/cpman/app:onos-app-cpman-app',
-    '//apps/aaa:onos-app-aaa',
-    '//apps/acl:onos-app-acl',
-    '//apps/bgprouter:onos-app-bgprouter',
-    '//apps/routing-api:onos-app-routing-api',
+    '//apps/routing-api:onos-apps-routing-api',
     '//apps/cip:onos-app-cip',
     '//apps/cordmcast:onos-app-cord-mcast',
     '//apps/cordvtn:onos-apps-cordvtn',
@@ -123,8 +124,7 @@ APP_JARS = [
     '//apps/optical:onos-app-optical',
     '//apps/pathpainter:onos-app-pp',
     '//apps/pim:onos-app-pim',
-    '//apps/proxyarp:onos-app-proxyarp',
-    '//apps/routing:onos-app-routing',
+    '//apps/routing:onos-apps-routing',
     '//apps/sdnip:onos-app-sdnip',
     '//apps/segmentrouting:onos-app-segmentrouting',
     '//apps/test:onos-app-test',

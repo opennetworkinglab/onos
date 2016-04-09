@@ -3,8 +3,7 @@ BUNDLES = [
     '//apps/dhcp/app:onos-apps-dhcp-app',
 ]
 
-onos_app(
-  feature_coords = ONOS_GROUP_ID + ':onos-apps-dhcp:' + ONOS_VERSION,
+onos_app (
   title = 'DHCP Server App',
   category = 'Utility',
   url = 'http://onosproject.org',

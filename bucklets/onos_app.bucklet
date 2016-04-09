@@ -1,8 +1,9 @@
 ONOS_ORIGIN = 'ON.Lab'
+ONOS_GROUP_ID = 'org.onosproject'
 ONOS_VERSION = '1.6.0-SNAPSHOT'
 DEFAULT_APP_CATEGORY = 'Utility'
 ONOS_ARTIFACT_BASE = 'onos-'
-APP_PREFIX = 'org.onosproject.'
+APP_PREFIX = ONOS_GROUP_ID + '.'
 
 import os.path
 
@@ -50,8 +51,7 @@ def onos_app(
         feature_coords = '$(maven_coords %s)' % included_bundles[0]
 
     if not feature_coords:
-        print 'Missing maven coordinates for %s app feature.' % name
-        return
+        feature_coords = '%s:%s:%s' % ( ONOS_GROUP_ID, _get_name(), ONOS_VERSION )
 
     args = [ '-n %s' % feature_coords,
              '-v %s' % version,

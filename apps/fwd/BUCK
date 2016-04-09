@@ -4,11 +4,11 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
 ]
 
-osgi_jar(
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
 )
 
-onos_app(
+onos_app (
     title = 'Reactive Forwarding App',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',

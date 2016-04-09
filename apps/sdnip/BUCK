@@ -7,13 +7,13 @@ CURRENT_TARGET = ':' + CURRENT_NAME
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//incubator/api:onos-incubator-api',
-    '//apps/routing-api:onos-app-routing-api',
+    '//apps/routing-api:onos-apps-routing-api',
 ]
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//incubator/api:onos-incubator-api-tests',
-    '//apps/routing-api:onos-app-routing-api-tests',
+    '//apps/routing-api:onos-apps-routing-api-tests',
 ]
 
 java_library(
