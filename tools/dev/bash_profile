@@ -198,3 +198,9 @@ alias atttopo='onos-netcfg $OCI $ONOS_ROOT/tools/test/topos/attmpls-cfg.json'
 
 # Load UK topo GEO data
 alias uktopo='onos-netcfg $OCI $ONOS_ROOT/tools/test/topos/uk-cfg.json'
+
+# Git annotated one-line log
+alias gil='git log --oneline --decorate=short'
+
+# Buck (if "buck" is not on the PATH)
+[ -z "$(which buck)" ] && alias buck="onos-buck"
