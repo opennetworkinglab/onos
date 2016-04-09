@@ -1,5 +1,3 @@
-package org.onlab.packet;
-
 /*
  * Copyright 2015-present Open Networking Laboratory
  *
@@ -15,6 +13,7 @@ package org.onlab.packet;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onlab.packet;
 
 /**
  * Representation of a transport layer port.

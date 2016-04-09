@@ -1,5 +1,3 @@
-package org.onosproject.store.primitives;
-
 /*
  * Copyright 2016-present Open Networking Laboratory
  *
@@ -15,6 +13,8 @@ package org.onosproject.store.primitives;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.store.primitives;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
