@@ -10,7 +10,6 @@ COMPILE_DEPS = [
     '//lib:javax.ws.rs-api',
     '//cli:onos-cli',
     '//incubator/api:onos-incubator-api',
-    '//apps/routing-api:onos-apps-routing-api',
     '//utils/rest:onlab-rest',
 
 ]
