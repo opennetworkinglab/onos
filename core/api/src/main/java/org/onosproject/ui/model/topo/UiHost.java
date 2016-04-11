@@ -16,8 +16,17 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.onosproject.net.Host;
+
 /**
  * Represents an end-station host.
  */
 public class UiHost extends UiNode {
+
+    private Host host;
+
+    @Override
+    protected void destroy() {
+        host = null;
+    }
 }

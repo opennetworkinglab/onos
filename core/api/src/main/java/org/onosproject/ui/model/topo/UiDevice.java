@@ -16,8 +16,17 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.onosproject.net.Device;
+
 /**
  * Represents a device.
  */
 public class UiDevice extends UiNode {
+
+    private Device device;
+
+    @Override
+    protected void destroy() {
+        device = null;
+    }
 }

@@ -16,8 +16,42 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.onosproject.net.Device;
+import org.onosproject.net.EdgeLink;
+import org.onosproject.net.Link;
+
+import java.util.Set;
+
 /**
  * Represents a bi-directional link backed by two uni-directional links.
  */
 public class UiLink extends UiElement {
+
+    // devices at either end of this link
+    private Device deviceA;
+    private Device deviceB;
+
+    // two unidirectional links underlying this link...
+    private Link linkAtoB;
+    private Link linkBtoA;
+
+    // ==OR== : private (synthetic) host link
+    private EdgeLink edgeLink;
+
+    // ==OR== : set of underlying UI links that this link aggregates
+    private Set<UiLink> children;
+
+
+    @Override
+    protected void destroy() {
+        deviceA = null;
+        deviceB = null;
+        linkAtoB = null;
+        linkBtoA = null;
+        edgeLink = null;
+        if (children != null) {
+            children.clear();
+            children = null;
+        }
+    }
 }

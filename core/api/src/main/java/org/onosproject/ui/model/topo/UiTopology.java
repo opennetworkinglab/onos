@@ -16,8 +16,29 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Set;
+import java.util.TreeSet;
+
 /**
  * Represents the overall network topology.
  */
 public class UiTopology extends UiElement {
+
+    private static final Logger log = LoggerFactory.getLogger(UiTopology.class);
+
+    private final UiCluster uiCluster = new UiCluster();
+    private final Set<UiRegion> uiRegions = new TreeSet<>();
+
+    /**
+     * Clears the topology state; that is, drops all regions, devices, hosts,
+     * links, and cluster members.
+     */
+    public void clear() {
+        log.debug("clearing topology model");
+        uiRegions.clear();
+        uiCluster.clear();
+    }
 }

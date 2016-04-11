@@ -16,8 +16,34 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.onosproject.net.region.Region;
+
+import java.util.Set;
+import java.util.TreeSet;
+
 /**
  * Represents a region.
  */
 public class UiRegion extends UiNode {
+
+    private final Set<UiDevice> uiDevices = new TreeSet<>();
+    private final Set<UiHost> uiHosts = new TreeSet<>();
+    private final Set<UiLink> uiLinks = new TreeSet<>();
+
+    private Region region;
+
+
+    @Override
+    protected void destroy() {
+        uiDevices.forEach(UiDevice::destroy);
+        uiHosts.forEach(UiHost::destroy);
+        uiLinks.forEach(UiLink::destroy);
+
+        uiDevices.clear();
+        uiHosts.clear();
+        uiLinks.clear();
+
+        region = null;
+    }
+
 }

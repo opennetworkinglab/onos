@@ -19,5 +19,5 @@ package org.onosproject.ui.model.topo;
 /**
  * Represents a node drawn on the topology view (region, device, host).
  */
-public abstract class UiNode extends UiElement {
+abstract class UiNode extends UiElement {
 }

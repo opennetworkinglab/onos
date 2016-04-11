@@ -25,6 +25,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.RoleInfo;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.incubator.net.PortStatisticsService;
 import org.onosproject.incubator.net.tunnel.TunnelService;
@@ -32,6 +34,9 @@ import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.Link;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -47,6 +52,7 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionEvent;
 import org.onosproject.net.region.RegionListener;
 import org.onosproject.net.region.RegionService;
@@ -178,28 +184,71 @@ public final class UiSharedTopologyModel
     private class InternalClusterListener implements ClusterEventListener {
         @Override
         public void event(ClusterEvent event) {
-            // TODO: handle cluster event
+            ControllerNode cnode = event.subject();
+
+            switch (event.type()) {
+
+                case INSTANCE_ADDED:
+                case INSTANCE_ACTIVATED:
+                case INSTANCE_READY:
+                case INSTANCE_DEACTIVATED:
+                    cache.addOrUpdateClusterMember(cnode);
+                    break;
+
+                case INSTANCE_REMOVED:
+                    cache.removeClusterMember(cnode);
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 
     private class InternalMastershipListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
-            // TODO: handle mastership event
+            DeviceId deviceId = event.subject();
+            RoleInfo roleInfo = event.roleInfo();
+
+            switch (event.type()) {
+                case MASTER_CHANGED:
+                case BACKUPS_CHANGED:
+                    cache.updateMasterships(deviceId, roleInfo);
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 
     private class InternalRegionListener implements RegionListener {
         @Override
         public void event(RegionEvent event) {
-            // TODO: handle region event
+            Region region = event.subject();
+
+            switch (event.type()) {
+
+                case REGION_ADDED:
+                case REGION_UPDATED:
+                case REGION_MEMBERSHIP_CHANGED:
+                    cache.addOrUpdateRegion(region);
+                    break;
+
+                case REGION_REMOVED:
+                    cache.removeRegion(region);
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-
             Device device = event.subject();
 
             switch (event.type()) {
@@ -224,28 +273,71 @@ public final class UiSharedTopologyModel
     private class InternalLinkListener implements LinkListener {
         @Override
         public void event(LinkEvent event) {
-            // TODO: handle link event
+            Link link = event.subject();
+
+            switch (event.type()) {
+
+                case LINK_ADDED:
+                case LINK_UPDATED:
+                    cache.addOrUpdateLink(link);
+                    break;
+
+                case LINK_REMOVED:
+                    cache.removeLink(link);
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 
     private class InternalHostListener implements HostListener {
         @Override
         public void event(HostEvent event) {
-            // TODO: handle host event
+            Host host = event.subject();
+            Host prevHost = event.prevSubject();
+
+            switch (event.type()) {
+
+                case HOST_ADDED:
+                case HOST_UPDATED:
+                    cache.addOrUpdateHost(host);
+                    break;
+
+                case HOST_MOVED:
+                    cache.moveHost(host, prevHost);
+                    break;
+
+                case HOST_REMOVED:
+                    cache.removeHost(host);
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
+
+    // =======================================================================
+    // NOTE: Neither intents nor flows are modeled by the UiTopology.
+    //       Rather, they are serviced directly from this class.
+    //       Additionally, since we are only retrieving counts (in the current
+    //        implementation), we'll fetch them on demand from the service.
+    //       Thus, the following internal listeners are stubs only (for now).
+    // =======================================================================
 
     private class InternalIntentListener implements IntentListener {
         @Override
         public void event(IntentEvent event) {
-            // TODO: handle intent event
+            // do nothing (for now)
         }
     }
 
     private class InternalFlowRuleListener implements FlowRuleListener {
         @Override
         public void event(FlowRuleEvent event) {
-            // TODO: handle flowrule event
+            // do nothing (for now)
         }
     }
 

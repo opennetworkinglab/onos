@@ -20,4 +20,12 @@ package org.onosproject.ui.model.topo;
  * Abstract base class of all elements in the UI topology model.
  */
 public class UiElement {
+
+    /**
+     * Removes all external references, and prepares the instance for
+     * garbage collection. This default implementation does nothing.
+     */
+    protected void destroy() {
+        // does nothing
+    }
 }

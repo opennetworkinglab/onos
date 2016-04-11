@@ -16,9 +16,19 @@
 
 package org.onosproject.ui.impl.topo.model;
 
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.RoleInfo;
 import org.onosproject.event.EventDispatcher;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.Link;
+import org.onosproject.net.region.Region;
 import org.onosproject.ui.model.topo.UiDevice;
+import org.onosproject.ui.model.topo.UiTopology;
+
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.DEVICE_ADDED;
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.DEVICE_REMOVED;
 
 /**
  * UI Topology Model cache.
@@ -26,6 +36,7 @@ import org.onosproject.ui.model.topo.UiDevice;
 class ModelCache {
 
     private final EventDispatcher dispatcher;
+    private final UiTopology uiTopology = new UiTopology();
 
     ModelCache(EventDispatcher eventDispatcher) {
         this.dispatcher = eventDispatcher;
@@ -35,7 +46,7 @@ class ModelCache {
      * Clear our model.
      */
     void clear() {
-        // TODO: clear our internal state
+        uiTopology.clear();
     }
 
     /**
@@ -50,26 +61,72 @@ class ModelCache {
     }
 
 
-    // add or update device
     void addOrUpdateDevice(Device device) {
-        // fetch UiDevice
+        // TODO: find or create device assoc. with parameter
+        // FIXME
         UiDevice uiDevice = new UiDevice();
 
-        dispatcher.post(
-                new UiModelEvent(UiModelEvent.Type.DEVICE_ADDED, uiDevice)
-        );
-
+        // TODO: post the (correct) event
+        dispatcher.post(new UiModelEvent(DEVICE_ADDED, uiDevice));
     }
 
     void removeDevice(Device device) {
+        // TODO: get UiDevice associated with the given parameter; remove from model
+        // FIXME
         UiDevice uiDevice = new UiDevice();
 
-        dispatcher.post(
-                new UiModelEvent(UiModelEvent.Type.DEVICE_REMOVED, uiDevice)
-        );
+        // TODO: post the (correct) event
+        dispatcher.post(new UiModelEvent(DEVICE_REMOVED, uiDevice));
 
     }
 
-    // TODO remaining model objects
+    void addOrUpdateClusterMember(ControllerNode cnode) {
+        // TODO: find or create cluster member assoc. with parameter
+        // TODO: post event
+    }
 
+    void removeClusterMember(ControllerNode cnode) {
+        // TODO: find cluster member assoc. with parameter; remove from model
+        // TODO: post event
+    }
+
+
+    void updateMasterships(DeviceId deviceId, RoleInfo roleInfo) {
+        // TODO: store the updated mastership information
+        // TODO: post event
+    }
+
+    void addOrUpdateRegion(Region region) {
+        // TODO: find or create region assoc. with parameter
+        // TODO: post event
+    }
+
+    void removeRegion(Region region) {
+        // TODO: find region assoc. with parameter; remove from model
+        // TODO: post event
+    }
+
+    void addOrUpdateLink(Link link) {
+        // TODO: find ui-link assoc. with parameter; create or update.
+        // TODO: post event
+    }
+
+    void removeLink(Link link) {
+        // TODO: find ui-link assoc. with parameter; update or remove.
+        // TODO: post event
+    }
+
+    void addOrUpdateHost(Host host) {
+        // TODO: find or create host assoc. with parameter
+        // TODO: post event
+    }
+
+    void moveHost(Host host, Host prevHost) {
+        // TODO: process host-move
+        // TODO: post event
+    }
+
+    void removeHost(Host host) {
+        // TODO: find host assoc. with parameter; remove from model
+    }
 }

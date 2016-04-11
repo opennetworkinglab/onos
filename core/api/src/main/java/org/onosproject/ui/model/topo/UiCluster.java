@@ -16,8 +16,20 @@
 
 package org.onosproject.ui.model.topo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Encapsulates the notion of the ONOS cluster.
  */
-public class UiCluster extends UiElement {
+class UiCluster extends UiElement {
+
+    private final List<UiClusterMember> members = new ArrayList<>();
+
+    /**
+     * Removes all cluster members.
+     */
+    void clear() {
+        members.clear();
+    }
 }
