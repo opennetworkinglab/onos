@@ -173,3 +173,15 @@
 .dark #application-details-panel .bottom tr:nth-child(even) {
     background-color: #555;
 }
+
+.dropping {
+
+}
+
+.light div.dropping {
+    border: solid 3px deepskyblue;
+}
+
+.dark div.dropping {
+    border: solid 3px deepskyblue;
+}

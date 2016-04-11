@@ -407,11 +407,13 @@
 
                 // When an item is dragged over the document
                 var onDragOver = function (e) {
+                    d3.select('#frame').classed('dropping', true);
                     e.preventDefault();
                 };
 
                 // When the user leaves the window, cancels the drag or drops the item
                 var onDragEnd = function (e) {
+                    d3.select('#frame').classed('dropping', false);
                     e.preventDefault();
                 };
 
