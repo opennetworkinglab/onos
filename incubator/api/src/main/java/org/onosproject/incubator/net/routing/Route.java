@@ -21,6 +21,7 @@ import org.onlab.packet.IpPrefix;
 
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -70,7 +71,8 @@ public class Route {
      */
     public Route(Source source, IpPrefix prefix, IpAddress nextHop) {
         checkNotNull(prefix);
-        checkArgument(nextHop == null || prefix.version().equals(nextHop.version()), VERSION_MISMATCH);
+        checkNotNull(nextHop);
+        checkArgument(prefix.version().equals(nextHop.version()), VERSION_MISMATCH);
 
         this.source = checkNotNull(source);
         this.prefix = prefix;
@@ -123,5 +125,13 @@ public class Route {
 
         return Objects.equals(this.prefix, that.prefix) &&
                 Objects.equals(this.nextHop, that.nextHop);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("prefix", prefix)
+                .add("nextHop", nextHop)
+                .toString();
     }
 }

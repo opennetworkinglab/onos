@@ -17,8 +17,10 @@
 package org.onosproject.incubator.store.routing.impl;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import com.googlecode.concurrenttrees.common.KeyValuePair;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
 import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
 import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
@@ -35,10 +37,14 @@ import org.onosproject.incubator.net.routing.RouteStore;
 import org.onosproject.incubator.net.routing.RouteStoreDelegate;
 import org.onosproject.incubator.net.routing.RouteTableId;
 import org.onosproject.store.AbstractStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,6 +56,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegate>
         implements RouteStore {
+
+    private Logger log = LoggerFactory.getLogger(getClass());
 
     private Map<RouteTableId, RouteTable> routeTables;
     private static final RouteTableId IPV4 = new RouteTableId("ipv4");
@@ -74,7 +82,9 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
     public void removeRoute(Route route) {
         RouteTable table = getDefaultRouteTable(route);
         table.remove(route);
-        if (table.getRoutesForNextHop(route.nextHop()).isEmpty()) {
+        Collection<Route> routes = table.getRoutesForNextHop(route.nextHop());
+
+        if (routes.isEmpty()) {
             nextHops.remove(route.nextHop());
         }
     }
@@ -99,8 +109,14 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
     }
 
     @Override
+    public Collection<Route> getRoutesForNextHop(IpAddress ip) {
+        return getDefaultRouteTable(ip).getRoutesForNextHop(ip);
+    }
+
+    @Override
     public void updateNextHop(IpAddress ip, MacAddress mac) {
         Collection<Route> routes = getDefaultRouteTable(ip).getRoutesForNextHop(ip);
+
         if (!routes.isEmpty() && !mac.equals(nextHops.get(ip))) {
             nextHops.put(ip, mac);
 
@@ -123,6 +139,11 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
     @Override
     public MacAddress getNextHop(IpAddress ip) {
         return nextHops.get(ip);
+    }
+
+    @Override
+    public Map<IpAddress, MacAddress> getNextHops() {
+        return ImmutableMap.copyOf(nextHops);
     }
 
     private RouteTable getDefaultRouteTable(Route route) {
@@ -179,13 +200,26 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
                 routeTable.put(createBinaryString(route.prefix()), route);
 
                 // TODO manage routes from multiple providers
-                reverseIndex.remove(route.nextHop(), oldRoute);
+
                 reverseIndex.put(route.nextHop(), route);
+
+                if (oldRoute != null) {
+                    reverseIndex.remove(oldRoute.nextHop(), oldRoute);
+
+                    if (reverseIndex.get(oldRoute.nextHop()).isEmpty()) {
+                        nextHops.remove(oldRoute.nextHop());
+                    }
+                }
 
                 if (oldRoute != null && !oldRoute.nextHop().equals(route.nextHop())) {
                     // Remove old route because new one is different
                     // TODO ROUTE_UPDATED?
                     notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, new ResolvedRoute(oldRoute, null)));
+                }
+
+                MacAddress nextHopMac = nextHops.get(route.nextHop());
+                if (nextHopMac != null) {
+                    notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, new ResolvedRoute(route, nextHopMac)));
                 }
             }
         }
@@ -199,9 +233,9 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
             synchronized (this) {
                 Route removed = routes.remove(route.prefix());
                 routeTable.remove(createBinaryString(route.prefix()));
-                reverseIndex.remove(route.nextHop(), route);
 
                 if (removed != null) {
+                    reverseIndex.remove(removed.nextHop(), removed);
                     notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, new ResolvedRoute(route, null)));
                 }
             }
@@ -223,7 +257,17 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
          * @return all routes
          */
         public Collection<Route> getRoutes() {
-            return routes.values();
+            Iterator<KeyValuePair<Route>> it =
+                    routeTable.getKeyValuePairsForKeysStartingWith("").iterator();
+
+            List<Route> routes = new LinkedList<>();
+
+            while (it.hasNext()) {
+                KeyValuePair<Route> entry = it.next();
+                routes.add(entry.getValue());
+            }
+
+            return routes;
         }
 
         /**

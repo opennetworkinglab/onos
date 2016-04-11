@@ -20,6 +20,8 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Represents a route with the next hop MAC address resolved.
  */
@@ -79,5 +81,14 @@ public class ResolvedRoute {
      */
     public MacAddress nextHopMac() {
         return nextHopMac;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("prefix", prefix)
+                .add("nextHop", nextHop)
+                .add("nextHopMac", nextHopMac)
+                .toString();
     }
 }

@@ -21,6 +21,7 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.store.Store;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -66,6 +67,14 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
     Route longestPrefixMatch(IpAddress ip);
 
     /**
+     * Returns the routes that point to the given next hop IP address.
+     *
+     * @param ip IP address of the next hop
+     * @return routes for the given next hop
+     */
+    Collection<Route> getRoutesForNextHop(IpAddress ip);
+
+    /**
      * Updates a next hop IP and MAC in the store.
      *
      * @param ip IP address
@@ -88,4 +97,11 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
      * @return MAC address
      */
     MacAddress getNextHop(IpAddress ip);
+
+    /**
+     * Returns all next hops in the route store.
+     *
+     * @return next hops
+     */
+    Map<IpAddress, MacAddress> getNextHops();
 }

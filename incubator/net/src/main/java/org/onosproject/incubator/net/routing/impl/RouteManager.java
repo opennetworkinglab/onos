@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.event.ListenerService;
+import org.onosproject.incubator.net.routing.NextHop;
 import org.onosproject.incubator.net.routing.ResolvedRoute;
 import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteAdminService;
@@ -146,6 +147,7 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
      * @param event event
      */
     private void post(RouteEvent event) {
+        log.debug("Sending event {}", event);
         synchronized (this) {
             listeners.values().forEach(l -> l.post(event));
         }
@@ -165,9 +167,22 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
     }
 
     @Override
+    public Collection<Route> getRoutesForNextHop(IpAddress nextHop) {
+        return routeStore.getRoutesForNextHop(nextHop);
+    }
+
+    @Override
+    public Set<NextHop> getNextHops() {
+        return routeStore.getNextHops().entrySet().stream()
+                .map(entry -> new NextHop(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public void update(Collection<Route> routes) {
         synchronized (this) {
             routes.forEach(route -> {
+                log.debug("Received update {}", route);
                 routeStore.updateRoute(route);
                 resolve(route);
             });
@@ -177,7 +192,10 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
     @Override
     public void withdraw(Collection<Route> routes) {
         synchronized (this) {
-            routes.forEach(route -> routeStore.removeRoute(route));
+            routes.forEach(route -> {
+                log.debug("Received withdraw {}", routes);
+                routeStore.removeRoute(route);
+            });
         }
     }
 

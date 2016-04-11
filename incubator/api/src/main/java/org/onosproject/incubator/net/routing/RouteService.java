@@ -21,6 +21,7 @@ import org.onosproject.event.ListenerService;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Unicast IP route service.
@@ -43,5 +44,20 @@ public interface RouteService extends ListenerService<RouteEvent, RouteListener>
      * @return longest prefix matched route
      */
     Route longestPrefixMatch(IpAddress ip);
+
+    /**
+     * Returns the routes for the given next hop.
+     *
+     * @param nextHop next hop IP address
+     * @return routes for this next hop
+     */
+    Collection<Route> getRoutesForNextHop(IpAddress nextHop);
+
+    /**
+     * Returns all next hops in the route store.
+     *
+     * @return set of next hops
+     */
+    Set<NextHop> getNextHops();
 
 }
