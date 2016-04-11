@@ -1,31 +1,24 @@
-SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/test/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-app-ganglia'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:gmetric4j',
     '//lib:metrics-ganglia',
+    '//lib:remotetea-oncrpc',
 ]
 
-TEST_DEPS = [
-    '//lib:TEST',
+EXCLUDED_BUNDLES = [
+    '//lib:gmetric4j',
+    '//lib:metrics-ganglia',
+    '//lib:remotetea-oncrpc',
 ]
 
-java_library(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
 )
 
-java_test(
-    name = 'tests',
-    srcs = glob([TEST + '/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS +
-           [CURRENT_TARGET],
-    source_under_test = [CURRENT_TARGET],
+onos_app (
+    title = 'Ganglia Report and Query App',
+    category = 'Monitoring',
+    url = 'http://onosproject.org',
+    description = 'Performance metric service reporter',
+    excluded_bundles = EXCLUDED_BUNDLES,
 )

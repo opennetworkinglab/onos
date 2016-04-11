@@ -49,6 +49,7 @@ def maven_jar(
     prebuilt_jar(
             name = name,
             binary_jar = ':%s-jar' % name,
+            maven_coords = id,
             visibility = [ 'PUBLIC' ]
     )
 

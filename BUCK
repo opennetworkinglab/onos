@@ -89,6 +89,8 @@ APPS = [
     '//apps/acl:onos-apps-acl-oar',
     '//apps/bgprouter:onos-apps-bgprouter-oar',
     '//apps/proxyarp:onos-apps-proxyarp-oar',
+    '//apps/segmentrouting:onos-apps-segmentrouting-oar',
+    '//apps/gangliametrics:onos-apps-gangliametrics-oar',
 ]
 
 APP_JARS = [
@@ -111,7 +113,6 @@ APP_JARS = [
     '//apps/olt:onos-app-olt-app',
     '//apps/iptopology-api:onos-app-iptopology-api',
     '//apps/metrics:onos-app-metrics',
-    '//apps/gangliametrics:onos-app-ganglia',
     '//apps/graphitemetrics:onos-app-graphite',
     '//apps/mfwd:onos-app-mfwd',
     '//apps/mlb:onos-app-mlb',
@@ -125,7 +126,6 @@ APP_JARS = [
     '//apps/pim:onos-app-pim',
     '//apps/routing:onos-apps-routing',
     '//apps/sdnip:onos-app-sdnip',
-    '//apps/segmentrouting:onos-app-segmentrouting',
     '//apps/test:onos-app-test',
     '//apps/vtn:onos-app-vtn',
     '//apps/virtualbng:onos-app-virtualbng',
