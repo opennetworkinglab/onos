@@ -32,15 +32,20 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
+import org.onosproject.net.behaviour.PipelinerContext;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
@@ -60,6 +65,7 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupKey;
+import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
 
 
@@ -74,6 +80,27 @@ import org.slf4j.Logger;
 public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
     private final Logger log = getLogger(getClass());
+
+    @Override
+    public void init(DeviceId deviceId, PipelinerContext context) {
+        this.deviceId = deviceId;
+
+        // Initialize OFDPA group handler
+        groupHandler = new CpqdOfdpa2GroupHandler();
+        groupHandler.init(deviceId, context);
+
+        serviceDirectory = context.directory();
+        coreService = serviceDirectory.get(CoreService.class);
+        flowRuleService = serviceDirectory.get(FlowRuleService.class);
+        groupService = serviceDirectory.get(GroupService.class);
+        flowObjectiveStore = context.store();
+        deviceService = serviceDirectory.get(DeviceService.class);
+
+        driverId = coreService.registerApplication(
+                "org.onosproject.driver.CpqdOfdpa2Pipeline");
+
+        initializePipeline();
+    }
 
     /*
      * CPQD emulation does not require special untagged packet handling, unlike
@@ -253,13 +280,13 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
         for (PortNumber pnum : portnums) {
             // update storage
-            ofdpa2GroupHandler.port2Vlan.put(pnum, storeVlan);
-            Set<PortNumber> vlanPorts = ofdpa2GroupHandler.vlan2Port.get(storeVlan);
+            groupHandler.port2Vlan.put(pnum, storeVlan);
+            Set<PortNumber> vlanPorts = groupHandler.vlan2Port.get(storeVlan);
             if (vlanPorts == null) {
                 vlanPorts = Collections.newSetFromMap(
                                     new ConcurrentHashMap<PortNumber, Boolean>());
                 vlanPorts.add(pnum);
-                ofdpa2GroupHandler.vlan2Port.put(storeVlan, vlanPorts);
+                groupHandler.vlan2Port.put(storeVlan, vlanPorts);
             } else {
                 vlanPorts.add(pnum);
             }

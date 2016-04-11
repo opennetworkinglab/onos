@@ -92,28 +92,28 @@ public class Ofdpa2GroupHandler {
      * L2 Flood Groups have <4bits-4><12bits-vlanid><16bits-index>
      * L3 VPN Groups have <4bits-9><4bits-2><24bits-index>
      */
-    private static final int L2_INTERFACE_TYPE = 0x00000000;
-    private static final int L3_INTERFACE_TYPE = 0x50000000;
-    private static final int L3_UNICAST_TYPE = 0x20000000;
-    private static final int L3_MULTICAST_TYPE = 0x60000000;
-    private static final int MPLS_INTERFACE_TYPE = 0x90000000;
-    private static final int MPLS_L3VPN_SUBTYPE = 0x92000000;
-    private static final int L3_ECMP_TYPE = 0x70000000;
-    private static final int L2_FLOOD_TYPE = 0x40000000;
+    protected static final int L2_INTERFACE_TYPE = 0x00000000;
+    protected static final int L3_INTERFACE_TYPE = 0x50000000;
+    protected static final int L3_UNICAST_TYPE = 0x20000000;
+    protected static final int L3_MULTICAST_TYPE = 0x60000000;
+    protected static final int MPLS_INTERFACE_TYPE = 0x90000000;
+    protected static final int MPLS_L3VPN_SUBTYPE = 0x92000000;
+    protected static final int L3_ECMP_TYPE = 0x70000000;
+    protected static final int L2_FLOOD_TYPE = 0x40000000;
 
-    private static final int TYPE_MASK = 0x0fffffff;
-    private static final int SUBTYPE_MASK = 0x00ffffff;
-    private static final int TYPE_VLAN_MASK = 0x0000ffff;
+    protected static final int TYPE_MASK = 0x0fffffff;
+    protected static final int SUBTYPE_MASK = 0x00ffffff;
+    protected static final int TYPE_VLAN_MASK = 0x0000ffff;
 
-    private static final int PORT_LOWER_BITS_MASK = 0x3f;
-    private static final long PORT_HIGHER_BITS_MASK = ~PORT_LOWER_BITS_MASK;
+    protected static final int PORT_LOWER_BITS_MASK = 0x3f;
+    protected static final long PORT_HIGHER_BITS_MASK = ~PORT_LOWER_BITS_MASK;
 
     private final Logger log = getLogger(getClass());
     private ServiceDirectory serviceDirectory;
     protected GroupService groupService;
     protected StorageService storageService;
 
-    private DeviceId deviceId;
+    protected DeviceId deviceId;
     private FlowObjectiveStore flowObjectiveStore;
     private Cache<GroupKey, List<OfdpaNextGroup>> pendingNextObjectives;
     private ConcurrentHashMap<GroupKey, Set<GroupChainElem>> pendingGroups;
@@ -282,8 +282,8 @@ public class Ofdpa2GroupHandler {
     /**
      * Creates one of two possible group-chains from the treatment
      * passed in. Depending on the MPLS boolean, this method either creates
-     * an L3Unicast Group --> L2Interface Group, if mpls is false;
-     * or MPLSInterface Group --> L2Interface Group, if mpls is true;
+     * an L3Unicast Group --&gt; L2Interface Group, if mpls is false;
+     * or MPLSInterface Group --&gt; L2Interface Group, if mpls is true;
      * The returned 'inner' group description is always the L2 Interface group.
      *
      * @param treatment that needs to be broken up to create the group chain
@@ -296,7 +296,7 @@ public class Ofdpa2GroupHandler {
      *         L3Unicast/MPLSInterface group. May return null if there is an
      *         error in processing the chain
      */
-    private GroupInfo createL2L3Chain(TrafficTreatment treatment, int nextId,
+    protected GroupInfo createL2L3Chain(TrafficTreatment treatment, int nextId,
                                       ApplicationId appId, boolean mpls,
                                       TrafficSelector meta) {
         // for the l2interface group, get vlan and port info
@@ -1039,7 +1039,7 @@ public class Ofdpa2GroupHandler {
         }
     }
 
-    private void updatePendingGroups(GroupKey gkey, GroupChainElem gce) {
+    protected void updatePendingGroups(GroupKey gkey, GroupChainElem gce) {
         Set<GroupChainElem> gceSet = Collections.newSetFromMap(
                 new ConcurrentHashMap<GroupChainElem, Boolean>());
         gceSet.add(gce);
@@ -1145,7 +1145,7 @@ public class Ofdpa2GroupHandler {
         }
     }
 
-    private int getNextAvailableIndex() {
+    protected int getNextAvailableIndex() {
         return (int) nextIndex.incrementAndGet();
     }
 
@@ -1160,7 +1160,7 @@ public class Ofdpa2GroupHandler {
      * @param portNumber Port number
      * @return L2 interface group key
      */
-    private int l2InterfaceGroupKey(
+    protected int l2InterfaceGroupKey(
             DeviceId deviceId, VlanId vlanId, long portNumber) {
         int portLowerBits = (int) portNumber & PORT_LOWER_BITS_MASK;
         long portHigherBits = portNumber & PORT_HIGHER_BITS_MASK;
@@ -1171,7 +1171,7 @@ public class Ofdpa2GroupHandler {
     /**
      * Utility class for moving group information around.
      */
-    private class GroupInfo {
+    protected class GroupInfo {
         /**
          * Description of the inner-most group of the group chain.
          * It is always an L2 interface group.
@@ -1240,7 +1240,7 @@ public class Ofdpa2GroupHandler {
      * class are meant to be temporary and live as long as it is needed to wait for
      * preceding groups in the group chain to be created.
      */
-    private class GroupChainElem {
+    protected class GroupChainElem {
         private GroupDescription groupDescription;
         private AtomicInteger waitOnGroups;
         private boolean addBucketToGroup;

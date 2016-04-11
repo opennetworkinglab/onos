@@ -108,9 +108,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final int LOWEST_PRIORITY = 0x0;
 
     private final Logger log = getLogger(getClass());
-    private ServiceDirectory serviceDirectory;
+    protected ServiceDirectory serviceDirectory;
     protected FlowRuleService flowRuleService;
-    private CoreService coreService;
+    protected CoreService coreService;
     protected GroupService groupService;
     protected FlowObjectiveStore flowObjectiveStore;
     protected DeviceId deviceId;
@@ -125,20 +125,20 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         .register(ArrayDeque.class)
         .build();
 
-    protected Ofdpa2GroupHandler ofdpa2GroupHandler;
+    protected Ofdpa2GroupHandler groupHandler;
 
     protected Set<IPCriterion> sentIpFilters = Collections.newSetFromMap(
                                                new ConcurrentHashMap<>());
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
-        this.serviceDirectory = context.directory();
         this.deviceId = deviceId;
 
         // Initialize OFDPA group handler
-        ofdpa2GroupHandler = new Ofdpa2GroupHandler();
-        ofdpa2GroupHandler.init(deviceId, context);
+        groupHandler = new Ofdpa2GroupHandler();
+        groupHandler.init(deviceId, context);
 
+        serviceDirectory = context.directory();
         coreService = serviceDirectory.get(CoreService.class);
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
         groupService = serviceDirectory.get(GroupService.class);
@@ -146,7 +146,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         deviceService = serviceDirectory.get(DeviceService.class);
 
         driverId = coreService.registerApplication(
-                "org.onosproject.driver.OFDPA2Pipeline");
+                "org.onosproject.driver.Ofdpa2Pipeline");
 
         initializePipeline();
     }
@@ -224,19 +224,19 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
             log.debug("Processing NextObjective id{} in dev{} - add group",
                       nextObjective.id(), deviceId);
-            ofdpa2GroupHandler.addGroup(nextObjective);
+            groupHandler.addGroup(nextObjective);
             break;
         case ADD_TO_EXISTING:
             if (nextGroup != null) {
                 log.debug("Processing NextObjective id{} in dev{} - add bucket",
                           nextObjective.id(), deviceId);
-                ofdpa2GroupHandler.addBucketToGroup(nextObjective, nextGroup);
+                groupHandler.addBucketToGroup(nextObjective, nextGroup);
             } else {
                 // it is possible that group-chain has not been fully created yet
                 log.debug("Waiting to add bucket to group for next-id:{} in dev:{}",
                           nextObjective.id(), deviceId);
                 // by design only one pending bucket is allowed for the group
-                ofdpa2GroupHandler.pendingBuckets.put(nextObjective.id(), nextObjective);
+                groupHandler.pendingBuckets.put(nextObjective.id(), nextObjective);
             }
             break;
         case REMOVE:
@@ -247,7 +247,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
             log.debug("Processing NextObjective id{}  in dev{} - remove group",
                       nextObjective.id(), deviceId);
-            ofdpa2GroupHandler.removeGroup(nextObjective, nextGroup);
+            groupHandler.removeGroup(nextObjective, nextGroup);
             break;
         case REMOVE_FROM_EXISTING:
             if (nextGroup == null) {
@@ -257,7 +257,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
             log.debug("Processing NextObjective id{} in dev{} - remove bucket",
                       nextObjective.id(), deviceId);
-            ofdpa2GroupHandler.removeBucketFromGroup(nextObjective, nextGroup);
+            groupHandler.removeBucketFromGroup(nextObjective, nextGroup);
             break;
         default:
             log.warn("Unsupported operation {}", nextObjective.op());
@@ -500,13 +500,13 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         for (PortNumber pnum : portnums) {
             // update storage
-            ofdpa2GroupHandler.port2Vlan.put(pnum, storeVlan);
-            Set<PortNumber> vlanPorts = ofdpa2GroupHandler.vlan2Port.get(storeVlan);
+            groupHandler.port2Vlan.put(pnum, storeVlan);
+            Set<PortNumber> vlanPorts = groupHandler.vlan2Port.get(storeVlan);
             if (vlanPorts == null) {
                 vlanPorts = Collections.newSetFromMap(
                                     new ConcurrentHashMap<PortNumber, Boolean>());
                 vlanPorts.add(pnum);
-                ofdpa2GroupHandler.vlan2Port.put(storeVlan, vlanPorts);
+                groupHandler.vlan2Port.put(storeVlan, vlanPorts);
             } else {
                 vlanPorts.add(pnum);
             }
