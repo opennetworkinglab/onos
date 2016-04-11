@@ -114,7 +114,7 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
     public void addListener(RouteListener listener) {
         synchronized (this) {
             log.debug("Synchronizing current routes to new listener");
-            ListenerQueue l = new ListenerQueue(listener);
+            ListenerQueue l = createListenerQueue(listener);
             routeStore.getRouteTables().forEach(table -> {
                 Collection<Route> routes = routeStore.getRoutes(table);
                 if (routes != null) {
@@ -234,10 +234,19 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
     }
 
     /**
-     * Queues updates for a route listener to ensure they are received in the
-     * correct order.
+     * Creates a new listener queue.
+     *
+     * @param listener route listener
+     * @return listener queue
      */
-    private class ListenerQueue {
+    ListenerQueue createListenerQueue(RouteListener listener) {
+        return new DefaultListenerQueue(listener);
+    }
+
+    /**
+     * Default route listener queue.
+     */
+    private class DefaultListenerQueue implements ListenerQueue {
 
         private final ExecutorService executorService;
         private final BlockingQueue<RouteEvent> queue;
@@ -248,31 +257,23 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
          *
          * @param listener route listener to queue updates for
          */
-        public ListenerQueue(RouteListener listener) {
+        public DefaultListenerQueue(RouteListener listener) {
             this.listener = listener;
             queue = new LinkedBlockingQueue<>();
             executorService = newSingleThreadExecutor(threadFactory);
         }
 
-        /**
-         * Posts and event to the listener.
-         *
-         * @param event event
-         */
+        @Override
         public void post(RouteEvent event) {
             queue.add(event);
         }
 
-        /**
-         * Initiates event delivery to the listener.
-         */
+        @Override
         public void start() {
             executorService.execute(this::poll);
         }
 
-        /**
-         * Halts event delivery to the listener.
-         */
+        @Override
         public void stop() {
             executorService.shutdown();
         }

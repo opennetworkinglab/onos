@@ -66,7 +66,7 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
     private Map<IpAddress, MacAddress> nextHops = new ConcurrentHashMap<>();
 
     @Activate
-    protected void activate() {
+    public void activate() {
         routeTables = new ConcurrentHashMap<>();
 
         routeTables.put(IPV4, new RouteTable());

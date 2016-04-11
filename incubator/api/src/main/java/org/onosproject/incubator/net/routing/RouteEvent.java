@@ -18,6 +18,8 @@ package org.onosproject.incubator.net.routing;
 
 import org.onosproject.event.AbstractEvent;
 
+import java.util.Objects;
+
 /**
  * Describes an event about a route.
  */
@@ -65,4 +67,24 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
         super(type, subject, time);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(subject(), type());
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (!(other instanceof RouteEvent)) {
+            return false;
+        }
+
+        RouteEvent that = (RouteEvent) other;
+
+        return Objects.equals(this.subject(), that.subject()) &&
+                Objects.equals(this.type(), that.type());
+    }
 }

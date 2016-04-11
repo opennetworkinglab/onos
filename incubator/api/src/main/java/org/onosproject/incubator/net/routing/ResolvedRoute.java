@@ -20,6 +20,8 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 
+import java.util.Objects;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
@@ -81,6 +83,28 @@ public class ResolvedRoute {
      */
     public MacAddress nextHopMac() {
         return nextHopMac;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(prefix, nextHop, nextHopMac);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (!(other instanceof ResolvedRoute)) {
+            return false;
+        }
+
+        ResolvedRoute that = (ResolvedRoute) other;
+
+        return Objects.equals(this.prefix, that.prefix) &&
+                Objects.equals(this.nextHop, that.nextHop) &&
+                Objects.equals(this.nextHopMac, that.nextHopMac);
     }
 
     @Override
