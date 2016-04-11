@@ -19,5 +19,5 @@ package org.onosproject.ui.model.topo;
 /**
  * Represents an individual member of the cluster (ONOS instance).
  */
-public class UiClusterMember {
+public class UiClusterMember extends UiElement {
 }

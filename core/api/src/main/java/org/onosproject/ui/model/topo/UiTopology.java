@@ -19,5 +19,5 @@ package org.onosproject.ui.model.topo;
 /**
  * Represents the overall network topology.
  */
-public class UiTopology {
+public class UiTopology extends UiElement {
 }

@@ -18,6 +18,8 @@ package org.onosproject.ui.impl.topo;
 
 import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.impl.UiWebSocket;
+import org.onosproject.ui.impl.topo.model.UiModelEvent;
+import org.onosproject.ui.impl.topo.model.UiModelListener;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
@@ -26,14 +28,14 @@ import org.slf4j.LoggerFactory;
 /**
  * Coordinates with the {@link UiTopoLayoutService} to access
  * {@link UiTopoLayout}s, and with the {@link UiSharedTopologyModel} which
- * maintains a local model of the network entities,
- * tailored specifically for displaying on the UI.
+ * maintains a local model of the network entities, tailored specifically
+ * for displaying on the UI.
  * <p>
  * Note that an instance of this class will be created for each
  * {@link UiWebSocket} connection, and will contain
  * the state of how the topology is laid out for the logged-in user.
  */
-public class UiTopoSession {
+public class UiTopoSession implements UiModelListener {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final UiWebSocket webSocket;
@@ -50,11 +52,12 @@ public class UiTopoSession {
      * Creates a new topology session for the specified web socket connection.
      *
      * @param webSocket web socket
+     * @param model share topology model
      */
-    public UiTopoSession(UiWebSocket webSocket) {
+    public UiTopoSession(UiWebSocket webSocket, UiSharedTopologyModel model) {
         this.webSocket = webSocket;
         this.username = webSocket.userName();
-        this.sharedModel = UiSharedTopologyModel.instance();
+        this.sharedModel = model;
     }
 
     /**
@@ -86,5 +89,11 @@ public class UiTopoSession {
     @Override
     public String toString() {
         return String.format("{UiTopoSession for user <%s>}", username);
+    }
+
+    @Override
+    public void event(UiModelEvent event) {
+        log.info("Event received: {}", event);
+        // TODO: handle model events from the cache...
     }
 }

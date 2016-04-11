@@ -29,6 +29,7 @@ import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiTopoOverlayFactory;
 import org.onosproject.ui.impl.topo.UiTopoSession;
+import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.topo.TopoConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class UiWebSocket
     private TopoOverlayCache overlayCache;
 
     /**
-     * Creates a new web-socket for serving data to GUI.
+     * Creates a new web-socket for serving data to the Web UI.
      *
      * @param directory service directory
      * @param userName user name of the logged-in user
@@ -73,7 +74,8 @@ public class UiWebSocket
     public UiWebSocket(ServiceDirectory directory, String userName) {
         this.directory = directory;
         this.userName = userName;
-        this.topoSession = new UiTopoSession(this);
+        this.topoSession =
+                new UiTopoSession(this, directory.get(UiSharedTopologyModel.class));
     }
 
     @Override

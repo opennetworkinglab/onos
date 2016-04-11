@@ -19,5 +19,5 @@ package org.onosproject.ui.model.topo;
 /**
  * Represents a bi-directional link backed by two uni-directional links.
  */
-public class UiLink {
+public class UiLink extends UiElement {
 }

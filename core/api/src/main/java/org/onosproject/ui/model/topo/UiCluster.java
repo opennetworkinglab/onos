@@ -19,5 +19,5 @@ package org.onosproject.ui.model.topo;
 /**
  * Encapsulates the notion of the ONOS cluster.
  */
-public class UiCluster {
+public class UiCluster extends UiElement {
 }

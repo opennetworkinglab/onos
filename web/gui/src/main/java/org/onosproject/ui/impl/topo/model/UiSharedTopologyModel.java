@@ -16,16 +16,22 @@
 
 package org.onosproject.ui.impl.topo.model;
 
-import org.onlab.osgi.DefaultServiceDirectory;
-import org.onlab.osgi.ServiceDirectory;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.incubator.net.PortStatisticsService;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -50,29 +56,103 @@ import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
- * A lazily-initialized Singleton that creates and maintains the UI-model
- * of the network topology.
+ * Service that creates and maintains the UI-model of the network topology.
  */
-public final class UiSharedTopologyModel {
+@Component(immediate = true)
+@Service(value = UiSharedTopologyModel.class)
+public final class UiSharedTopologyModel
+        extends AbstractListenerManager<UiModelEvent, UiModelListener> {
 
     private static final Logger log =
             LoggerFactory.getLogger(UiSharedTopologyModel.class);
 
-    private final ModelEventListener modelEventListener;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private ClusterService clusterService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private MastershipService mastershipService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private RegionService regionService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private DeviceService deviceService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private LinkService linkService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private HostService hostService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private IntentService intentService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private FlowRuleService flowService;
 
-    private final Set<UiTopoSession> sessions = new HashSet<>();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private StatisticService flowStatsService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private PortStatisticsService portStatsService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private TopologyService topologyService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private TunnelService tunnelService;
 
-    private UiSharedTopologyModel() {
-        modelEventListener = new ModelEventListener().init();
+    private final ClusterEventListener clusterListener =
+            new InternalClusterListener();
+    private final MastershipListener mastershipListener =
+            new InternalMastershipListener();
+    private final RegionListener regionListener =
+            new InternalRegionListener();
+    private final DeviceListener deviceListener =
+            new InternalDeviceListener();
+    private final LinkListener linkListener =
+            new InternalLinkListener();
+    private final HostListener hostListener =
+            new InternalHostListener();
+    private final IntentListener intentListener =
+            new InternalIntentListener();
+    private final FlowRuleListener flowRuleListener =
+            new InternalFlowRuleListener();
 
-        // TODO: build and maintain the state of the model
-        // (1) query model for current state
-        // (2) update state as model events arrive
+
+    private ModelCache cache;
+
+
+    @Activate
+    protected void activate() {
+        cache = new ModelCache(eventDispatcher);
+
+        eventDispatcher.addSink(UiModelEvent.class, listenerRegistry);
+
+        clusterService.addListener(clusterListener);
+        mastershipService.addListener(mastershipListener);
+        regionService.addListener(regionListener);
+        deviceService.addListener(deviceListener);
+        linkService.addListener(linkListener);
+        hostService.addListener(hostListener);
+        intentService.addListener(intentListener);
+        flowService.addListener(flowRuleListener);
+
+        cache.load();
+
+        log.info("Started");
     }
+
+    @Deactivate
+    protected void deactivate() {
+        eventDispatcher.removeSink(UiModelEvent.class);
+
+        clusterService.removeListener(clusterListener);
+        mastershipService.removeListener(mastershipListener);
+        regionService.removeListener(regionListener);
+        deviceService.removeListener(deviceListener);
+        linkService.removeListener(linkListener);
+        hostService.removeListener(hostListener);
+        intentService.removeListener(intentListener);
+        flowService.removeListener(flowRuleListener);
+
+        cache.clear();
+        cache = null;
+
+        log.info("Stopped");
+    }
+
 
     /**
      * Registers a UI topology session with the topology model.
@@ -81,7 +161,7 @@ public final class UiSharedTopologyModel {
      */
     public void register(UiTopoSession session) {
         log.info("Registering topology session {}", session);
-        sessions.add(session);
+        addListener(session);
     }
 
     /**
@@ -91,138 +171,82 @@ public final class UiSharedTopologyModel {
      */
     public void unregister(UiTopoSession session) {
         log.info("Unregistering topology session {}", session);
-        sessions.remove(session);
+        removeListener(session);
     }
 
 
-    // TODO: notify registered sessions when changes happen to the model
-
-
-    // ----------
-
-    // inner class to encapsulate the model listeners
-    private final class ModelEventListener {
-
-        // TODO: Review - is this good enough? couldn't otherwise see how to inject
-        private final ServiceDirectory directory = new DefaultServiceDirectory();
-
-        private ClusterService clusterService;
-        private MastershipService mastershipService;
-        private RegionService regionService;
-        private DeviceService deviceService;
-        private LinkService linkService;
-        private HostService hostService;
-        private IntentService intentService;
-        private FlowRuleService flowService;
-
-        private StatisticService flowStatsService;
-        private PortStatisticsService portStatsService;
-        private TopologyService topologyService;
-        private TunnelService tunnelService;
-
-        private ModelEventListener init() {
-            clusterService = directory.get(ClusterService.class);
-            mastershipService = directory.get(MastershipService.class);
-            regionService = directory.get(RegionService.class);
-            deviceService = directory.get(DeviceService.class);
-            linkService = directory.get(LinkService.class);
-            hostService = directory.get(HostService.class);
-            intentService = directory.get(IntentService.class);
-            flowService = directory.get(FlowRuleService.class);
-
-            // passive services (?) to whom we are not listening...
-            flowStatsService = directory.get(StatisticService.class);
-            portStatsService = directory.get(PortStatisticsService.class);
-            topologyService = directory.get(TopologyService.class);
-            tunnelService = directory.get(TunnelService.class);
-
-            return this;
+    private class InternalClusterListener implements ClusterEventListener {
+        @Override
+        public void event(ClusterEvent event) {
+            // TODO: handle cluster event
         }
+    }
 
-        private class InternalClusterListener implements ClusterEventListener {
-            @Override
-            public void event(ClusterEvent event) {
-                // TODO: handle cluster event
-                // (1) emit cluster member event
-            }
+    private class InternalMastershipListener implements MastershipListener {
+        @Override
+        public void event(MastershipEvent event) {
+            // TODO: handle mastership event
         }
+    }
 
-        private class InternalMastershipListener implements MastershipListener {
-            @Override
-            public void event(MastershipEvent event) {
-                // TODO: handle mastership event
-                // (1) emit cluster member update for all members
-                // (2) emit update device event for he whose mastership changed
-            }
+    private class InternalRegionListener implements RegionListener {
+        @Override
+        public void event(RegionEvent event) {
+            // TODO: handle region event
         }
+    }
 
-        private class InternalRegionListener implements RegionListener {
-            @Override
-            public void event(RegionEvent event) {
-                // TODO: handle region event
-                // (1) emit region event
-            }
-        }
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
 
-        private class InternalDeviceListener implements DeviceListener {
-            @Override
-            public void event(DeviceEvent event) {
-                // TODO: handle device event
-                // (1) emit device event
-            }
-        }
+            Device device = event.subject();
 
-        private class InternalLinkListener implements LinkListener {
-            @Override
-            public void event(LinkEvent event) {
-                // TODO: handle link event
-                // (1) consolidate infrastructure links -> UiLink (?)
-                // (2) emit link event
-            }
-        }
+            switch (event.type()) {
 
-        private class InternalHostListener implements HostListener {
-            @Override
-            public void event(HostEvent event) {
-                // TODO: handle host event
-                // (1) emit host event
-            }
-        }
+                case DEVICE_ADDED:
+                case DEVICE_UPDATED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                case DEVICE_SUSPENDED:
+                    cache.addOrUpdateDevice(device);
+                    break;
 
-        private class InternalIntentListener implements IntentListener {
-            @Override
-            public void event(IntentEvent event) {
-                // TODO: handle intent event
-                // (1) update cache of intent counts?
-            }
-        }
+                case DEVICE_REMOVED:
+                    cache.removeDevice(device);
+                    break;
 
-        private class InternalFlowRuleListener implements FlowRuleListener {
-            @Override
-            public void event(FlowRuleEvent event) {
-                // TODO: handle flowrule event
-                // (1) update cache of flow counts?
+                default:
+                    break;
             }
         }
     }
 
-    // ----------
-
-    /**
-     * Bill Pugh Singleton pattern. INSTANCE won't be instantiated until the
-     * LazyHolder class is loaded via a call to the instance() method below.
-     */
-    private static class LazyHolder {
-        private static final UiSharedTopologyModel INSTANCE =
-                new UiSharedTopologyModel();
+    private class InternalLinkListener implements LinkListener {
+        @Override
+        public void event(LinkEvent event) {
+            // TODO: handle link event
+        }
     }
 
-    /**
-     * Returns a reference to the Singleton UI network topology model.
-     *
-     * @return the singleton topology model
-     */
-    public static UiSharedTopologyModel instance() {
-        return LazyHolder.INSTANCE;
+    private class InternalHostListener implements HostListener {
+        @Override
+        public void event(HostEvent event) {
+            // TODO: handle host event
+        }
     }
+
+    private class InternalIntentListener implements IntentListener {
+        @Override
+        public void event(IntentEvent event) {
+            // TODO: handle intent event
+        }
+    }
+
+    private class InternalFlowRuleListener implements FlowRuleListener {
+        @Override
+        public void event(FlowRuleEvent event) {
+            // TODO: handle flowrule event
+        }
+    }
+
 }

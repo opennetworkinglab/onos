@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016-present Open Networking Laboratory
+ *  Copyright 2016 Open Networking Laboratory
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,10 +14,23 @@
  *  limitations under the License.
  */
 
-package org.onosproject.ui.model.topo;
+package org.onosproject.ui.impl.topo.model;
+
+import org.onosproject.event.AbstractEvent;
+import org.onosproject.ui.model.topo.UiElement;
 
 /**
- * Represents a node drawn on the topology view (region, device, host).
+ * UI Topology model events.
  */
-public abstract class UiNode extends UiElement {
+public class UiModelEvent extends AbstractEvent<UiModelEvent.Type, UiElement> {
+
+    protected UiModelEvent(Type type, UiElement subject) {
+        super(type, subject);
+    }
+
+    enum Type {
+        DEVICE_ADDED,
+        DEVICE_REMOVED,
+        // TODO...
+    }
 }
