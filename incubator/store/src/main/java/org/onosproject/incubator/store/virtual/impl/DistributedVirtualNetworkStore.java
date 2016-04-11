@@ -134,9 +134,9 @@ public class DistributedVirtualNetworkStore
                            .register(DefaultVirtualPort.class)
                            .register(DeviceId.class)
                            .register(Device.class)
-                           .register(TunnelId.class)
                            .register(DefaultDevice.class)
                            .register(DefaultPort.class)
+                           .register(TunnelId.class)
                            .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID).build());
 
     /**
@@ -349,22 +349,51 @@ public class DistributedVirtualNetworkStore
         if (virtualLinkSet == null) {
             virtualLinkSet = new HashSet<>();
         }
-        VirtualLink virtualLink = new DefaultVirtualLink(networkId, src, dst, realizedBy);
+        // validate that the link does not already exist in this network
+        checkState(getLink(networkId, src, dst) == null, "The virtual link already exists");
+
+        VirtualLink virtualLink = DefaultVirtualLink.builder()
+                .networkId(networkId)
+                .src(src)
+                .dst(dst)
+                .tunnelId(realizedBy)
+                .build();
+
         virtualLinkSet.add(virtualLink);
         networkIdVirtualLinkSetMap.put(networkId, virtualLinkSet);
         return virtualLink;
     }
 
     @Override
-    public void removeLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
+    public void updateLink(VirtualLink virtualLink, TunnelId tunnelId) {
+        checkState(networkExists(virtualLink.networkId()), "The network has not been added.");
+        Set<VirtualLink> virtualLinkSet = networkIdVirtualLinkSetMap.get(virtualLink.networkId());
+        if (virtualLinkSet == null) {
+            virtualLinkSet = new HashSet<>();
+        }
+        virtualLinkSet.remove(virtualLink);
+
+        VirtualLink newVirtualLink = DefaultVirtualLink.builder()
+                .networkId(virtualLink.networkId())
+                .src(virtualLink.src())
+                .dst(virtualLink.dst())
+                .tunnelId(tunnelId)
+                .build();
+
+        virtualLinkSet.add(newVirtualLink);
+        networkIdVirtualLinkSetMap.put(newVirtualLink.networkId(), virtualLinkSet);
+    }
+
+    @Override
+    public VirtualLink removeLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
         checkState(networkExists(networkId), "The network has not been added.");
 
+        final VirtualLink virtualLink = getLink(networkId, src, dst);
+        if (virtualLink == null) {
+            return null;
+        }
         Set<VirtualLink> virtualLinkSet = new HashSet<>();
-        networkIdVirtualLinkSetMap.get(networkId).forEach(link -> {
-            if (link.src().equals(src) && link.dst().equals(dst)) {
-                virtualLinkSet.add(link);
-            }
-        });
+        virtualLinkSet.add(virtualLink);
 
         if (virtualLinkSet != null) {
             networkIdVirtualLinkSetMap.compute(networkId, (id, existingVirtualLinks) -> {
@@ -375,6 +404,7 @@ public class DistributedVirtualNetworkStore
                 }
             });
         }
+        return virtualLink;
     }
 
     @Override
@@ -443,6 +473,31 @@ public class DistributedVirtualNetworkStore
             virtualLinkSet = new HashSet<>();
         }
         return ImmutableSet.copyOf(virtualLinkSet);
+    }
+
+    /**
+     * Returns the virtual link matching the network identifier, source connect point,
+     * and destination connect point.
+     *
+     * @param networkId network identifier
+     * @param src       source connect point
+     * @param dst       destination connect point
+     * @return virtual link
+     */
+    private VirtualLink getLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
+        Set<VirtualLink> virtualLinkSet = networkIdVirtualLinkSetMap.get(networkId);
+        if (virtualLinkSet == null) {
+            return null;
+        }
+
+        VirtualLink virtualLink = null;
+        for (VirtualLink link : virtualLinkSet) {
+            if (link.src().equals(src) && link.dst().equals(dst)) {
+                virtualLink = link;
+                break;
+            }
+        }
+        return virtualLink;
     }
 
     @Override

@@ -180,7 +180,7 @@ public class DistributedTunnelStore
             notifyDelegate(event);
             return tunnel.tunnelId();
         } else {
-            TunnelId tunnelId = TunnelId.valueOf(idGenerator.getNewId());
+            TunnelId tunnelId = TunnelId.valueOf(String.valueOf(idGenerator.getNewId()));
             State tunnelState = (state != null) ? state : tunnel.state();
             Tunnel newT = new DefaultTunnel(tunnel.providerId(), tunnel.src(),
                                             tunnel.dst(), tunnel.type(),

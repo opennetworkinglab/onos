@@ -48,7 +48,7 @@ public class TunnelEventTest {
                 .valueOf(32421));
         DefaultGroupId groupId = new DefaultGroupId(92034);
         TunnelName tunnelName = TunnelName.tunnelName("TunnelName");
-        TunnelId tunnelId = TunnelId.valueOf(41654654);
+        TunnelId tunnelId = TunnelId.valueOf("41654654");
         ProviderId producerName1 = new ProviderId("producer1", "13");
         Tunnel p1 = new DefaultTunnel(producerName1, src, dst, Tunnel.Type.VXLAN,
                                       Tunnel.State.ACTIVE, groupId, tunnelId,

@@ -32,7 +32,6 @@ import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
-import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.virtual.DefaultVirtualDevice;
 import org.onosproject.incubator.net.virtual.DefaultVirtualLink;
 import org.onosproject.incubator.net.virtual.DefaultVirtualNetwork;
@@ -104,7 +103,6 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     private static final String PORT_NUM = "portNum";
     private static final String PHYS_DEVICE_ID = "physDeviceId";
     private static final String PHYS_PORT_NUM = "physPortNum";
-    private static final String TUNNEL_ID = "tunnelId";
 
     private final TenantId tenantId1 = TenantId.tenantId("TenantId1");
     private final TenantId tenantId2 = TenantId.tenantId("TenantId2");
@@ -137,18 +135,26 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     Port port2 = new DefaultPort(dev2, portNumber(2), true);
 
     private final VirtualPort vport22 = new DefaultVirtualPort(networkId3,
-                                                              dev22, portNumber(22), port1);
+                                                               dev22, portNumber(22), port1);
     private final VirtualPort vport23 = new DefaultVirtualPort(networkId3,
-                                                              dev22, portNumber(23), port2);
+                                                               dev22, portNumber(23), port2);
 
     private final ConnectPoint cp11 = NetTestTools.connectPoint(devId1.toString(), 21);
     private final ConnectPoint cp21 = NetTestTools.connectPoint(devId2.toString(), 22);
     private final ConnectPoint cp12 = NetTestTools.connectPoint(devId1.toString(), 2);
     private final ConnectPoint cp22 = NetTestTools.connectPoint(devId2.toString(), 22);
 
-    private final TunnelId tunnelId = TunnelId.valueOf(31);
-    private final VirtualLink vlink1 = new DefaultVirtualLink(networkId3, cp22, cp11, tunnelId);
-    private final VirtualLink vlink2 = new DefaultVirtualLink(networkId3, cp12, cp21, tunnelId);
+    private final VirtualLink vlink1 = DefaultVirtualLink.builder()
+            .networkId(networkId3)
+            .src(cp22)
+            .dst(cp11)
+            .build();
+
+    private final VirtualLink vlink2 = DefaultVirtualLink.builder()
+            .networkId(networkId3)
+            .src(cp12)
+            .dst(cp21)
+            .build();
 
     /**
      * Sets up the global values for all the tests.
@@ -217,14 +223,14 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     /**
      * Factory to allocate a virtual network entity matcher.
      *
-     * @param obj virtual network object we are looking for
+     * @param obj            virtual network object we are looking for
      * @param jsonFieldNames JSON field names to check against
-     * @param getValue function to retrieve value from virtual network object
+     * @param getValue       function to retrieve value from virtual network object
      * @param <T>
      * @return JsonObjectMatcher
      */
     private static <T> JsonObjectMatcher matchesVnetEntity(T obj, List<String> jsonFieldNames,
-                                                    BiFunction<T, String, String> getValue) {
+                                                           BiFunction<T, String, String> getValue) {
         return new JsonObjectMatcher(obj, jsonFieldNames, getValue);
     }
 
@@ -710,7 +716,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         final JsonArray vnetJsonArray = result.get("ports").asArray();
         assertThat(vnetJsonArray, notNullValue());
         assertEquals("Virtual ports array is not the correct size.",
-                vportSet.size(), vnetJsonArray.size());
+                     vportSet.size(), vnetJsonArray.size());
 
         vportSet.forEach(vport -> assertThat(vnetJsonArray, hasVport(vport)));
 
@@ -759,7 +765,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         DeviceId deviceId = devId22;
         DefaultAnnotations annotations = DefaultAnnotations.builder().build();
         Device physDevice = new DefaultDevice(null, DeviceId.deviceId("dev1"),
-                null, null, null, null, null, null, annotations);
+                                              null, null, null, null, null, null, annotations);
         Port port1 = new DefaultPort(physDevice, portNumber(1), true);
         expect(mockVnetAdminService.createVirtualPort(networkId, deviceId, portNumber(22), port1))
                 .andReturn(vport22);
@@ -817,7 +823,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         WebTarget wt = target()
                 .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
         String reqLocation = "vnets/" + networkId.toString()
-            + "/devices/" + deviceId.toString() + "/ports/" + portNum.toLong();
+                + "/devices/" + deviceId.toString() + "/ports/" + portNum.toLong();
         Response response = wt.path(reqLocation)
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .delete();
@@ -902,15 +908,6 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
                 reason = ID + " was " + jsonNetworkId;
                 return false;
             }
-            // check TunnelId
-            String jsonTunnelId = jsonLink.get(TUNNEL_ID).asString();
-            if (jsonTunnelId != null && vlink instanceof DefaultVirtualLink) {
-                String tunnelId = ((DefaultVirtualLink) vlink).tunnelId().toString();
-                if (!jsonTunnelId.equals(tunnelId)) {
-                    reason = TUNNEL_ID + " was " + jsonTunnelId;
-                    return false;
-                }
-            }
             return true;
         }
 
@@ -980,7 +977,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
     @Test
     public void testPostVirtualLink() {
         NetworkId networkId = networkId3;
-        expect(mockVnetAdminService.createVirtualLink(networkId, cp22, cp11, tunnelId))
+        expect(mockVnetAdminService.createVirtualLink(networkId, cp22, cp11))
                 .andReturn(vlink1);
         replay(mockVnetAdminService);
 

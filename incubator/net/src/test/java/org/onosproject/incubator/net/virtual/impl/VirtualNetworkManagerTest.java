@@ -27,7 +27,6 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.Event;
-import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.virtual.DefaultVirtualNetwork;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
@@ -247,8 +246,8 @@ public class VirtualNetworkManagerTest {
                 manager.createVirtualDevice(virtualNetwork1.id(), DeviceId.deviceId(deviceIdValue2));
         ConnectPoint src = new ConnectPoint(srcVirtualDevice.id(), PortNumber.portNumber(1));
         ConnectPoint dst = new ConnectPoint(dstVirtualDevice.id(), PortNumber.portNumber(2));
-        manager.createVirtualLink(virtualNetwork1.id(), src, dst, TunnelId.valueOf(0));
-        manager.createVirtualLink(virtualNetwork1.id(), dst, src, TunnelId.valueOf(1));
+        manager.createVirtualLink(virtualNetwork1.id(), src, dst);
+        manager.createVirtualLink(virtualNetwork1.id(), dst, src);
 
         Set<VirtualLink> virtualLinks = manager.getVirtualLinks(virtualNetwork1.id());
         assertNotNull("The virtual link set should not be null", virtualLinks);
@@ -263,10 +262,27 @@ public class VirtualNetworkManagerTest {
         assertTrue("The virtual link set should be empty.", virtualLinks.isEmpty());
 
         // Add/remove the virtual link again.
-        VirtualLink virtualLink = manager.createVirtualLink(virtualNetwork1.id(), src, dst, TunnelId.valueOf(0));
+        VirtualLink virtualLink = manager.createVirtualLink(virtualNetwork1.id(), src, dst);
         manager.removeVirtualLink(virtualLink.networkId(), virtualLink.src(), virtualLink.dst());
         virtualLinks = manager.getVirtualLinks(virtualNetwork1.id());
         assertTrue("The virtual link set should be empty.", virtualLinks.isEmpty());
+    }
+
+    /**
+     * Tests adding the same virtual link twice.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testAddSameVirtualLink() {
+        manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
+        VirtualNetwork virtualNetwork1 = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+        VirtualDevice srcVirtualDevice =
+                manager.createVirtualDevice(virtualNetwork1.id(), DeviceId.deviceId(deviceIdValue1));
+        VirtualDevice dstVirtualDevice =
+                manager.createVirtualDevice(virtualNetwork1.id(), DeviceId.deviceId(deviceIdValue2));
+        ConnectPoint src = new ConnectPoint(srcVirtualDevice.id(), PortNumber.portNumber(1));
+        ConnectPoint dst = new ConnectPoint(dstVirtualDevice.id(), PortNumber.portNumber(2));
+        manager.createVirtualLink(virtualNetwork1.id(), src, dst);
+        manager.createVirtualLink(virtualNetwork1.id(), src, dst);
     }
 
     /**

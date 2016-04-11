@@ -51,7 +51,7 @@ import org.onosproject.pcepio.types.StatefulIPv4LspIdentidiersTlv;
  */
 public class PcepUpdateTunnelProviderTest {
 
-    public static final String PROVIDER_ID = "org.onosproject.provider.tunnel.pcep";
+    private static final String PROVIDER_ID = "org.onosproject.provider.tunnel.pcep";
     private PcepTunnelProvider tunnelProvider = new PcepTunnelProvider();
     private final TunnelProviderRegistryAdapter registry = new TunnelProviderRegistryAdapter();
     private final PcepClientControllerAdapter controller = new PcepClientControllerAdapter();
@@ -102,7 +102,7 @@ public class PcepUpdateTunnelProviderTest {
         path = new DefaultPath(pid, links, 20, EMPTY);
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
-                                   new DefaultGroupId(0), TunnelId.valueOf(1), TunnelName.tunnelName("T123"),
+                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, EMPTY);
 
         // for updating tunnel tunnel should exist in db
@@ -150,7 +150,7 @@ public class PcepUpdateTunnelProviderTest {
         path = new DefaultPath(pid, links, 20, EMPTY);
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
-                                   new DefaultGroupId(0), TunnelId.valueOf(1), TunnelName.tunnelName("T123"),
+                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, EMPTY);
 
         // for updating tunnel tunnel should exist in db

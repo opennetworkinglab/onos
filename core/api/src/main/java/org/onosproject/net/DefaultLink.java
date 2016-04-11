@@ -148,7 +148,7 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
     /**
      * Builder for DefaultLink objects.
      */
-    public static final class Builder {
+    public static class Builder {
         private ProviderId providerId;
         private Annotations annotations = EMPTY;
         private ConnectPoint src;
@@ -157,7 +157,7 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
         private State state = ACTIVE;
         private boolean isExpected = false;
 
-        private Builder() {
+        protected Builder() {
             // Hide constructor
         }
 

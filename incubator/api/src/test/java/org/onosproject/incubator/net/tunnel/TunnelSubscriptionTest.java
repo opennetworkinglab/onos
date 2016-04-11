@@ -45,7 +45,7 @@ public class TunnelSubscriptionTest {
         TunnelEndPoint dst = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(32421));
         ApplicationId appId = new DefaultApplicationId(243, "test");
         ApplicationId appId2 = new DefaultApplicationId(2431, "test1");
-        TunnelId tunnelId = TunnelId.valueOf(41654654);
+        TunnelId tunnelId = TunnelId.valueOf("41654654");
         TunnelSubscription p1 = new TunnelSubscription(appId, src, dst, tunnelId, Tunnel.Type.VXLAN,
                              null);
         TunnelSubscription p2 = new TunnelSubscription(appId, src, dst, tunnelId, Tunnel.Type.VXLAN,

@@ -9,6 +9,5 @@
     "port": "21" 
   },
   "type": "VIRTUAL",
-  "state": "ACTIVE",
-  "tunnelId": "31"
+  "state": "ACTIVE"
 }

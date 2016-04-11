@@ -56,10 +56,6 @@
     "state": {
       "type": "string",
       "example": "ACTIVE"
-    },
-    "tunnelId": {
-      "type": "int64",
-      "example": "Tunnel identifier"
     }
   }
 }

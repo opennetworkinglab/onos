@@ -20,7 +20,6 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 import org.onosproject.net.ConnectPoint;
@@ -65,12 +64,10 @@ public class VirtualLinkCreateCommand extends AbstractShellCommand {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
         ConnectPoint src = new ConnectPoint(DeviceId.deviceId(srcDeviceId), PortNumber.portNumber(srcPortNum));
         ConnectPoint dst = new ConnectPoint(DeviceId.deviceId(dstDeviceId), PortNumber.portNumber(dstPortNum));
-        //TODO use a real/valid tunnel ID
-        TunnelId tunnelId = TunnelId.valueOf(0);
 
-        service.createVirtualLink(NetworkId.networkId(networkId), src, dst, tunnelId);
+        service.createVirtualLink(NetworkId.networkId(networkId), src, dst);
         if (bidirectional) {
-            service.createVirtualLink(NetworkId.networkId(networkId), dst, src, tunnelId);
+            service.createVirtualLink(NetworkId.networkId(networkId), dst, src);
         }
         print("Virtual link successfully created.");
     }

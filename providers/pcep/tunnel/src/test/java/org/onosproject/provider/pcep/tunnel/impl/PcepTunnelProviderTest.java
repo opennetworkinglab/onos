@@ -42,7 +42,7 @@ import org.onosproject.cfg.ComponentConfigAdapter;
 
 public class PcepTunnelProviderTest {
 
-    public static final String PROVIDER_ID = "org.onosproject.provider.tunnel.pcep";
+    private static final String PROVIDER_ID = "org.onosproject.provider.tunnel.pcep";
     private PcepTunnelProvider tunnelProvider = new PcepTunnelProvider();
     private final TunnelProviderRegistryAdapter registry = new TunnelProviderRegistryAdapter();
     private final PcepClientControllerAdapter controller = new PcepClientControllerAdapter();
@@ -86,7 +86,7 @@ public class PcepTunnelProviderTest {
         path = new DefaultPath(pid, links, 10, EMPTY);
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
-                                   new DefaultGroupId(0), TunnelId.valueOf(1), TunnelName.tunnelName("T123"),
+                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, EMPTY);
 
         tunnelProvider.setupTunnel(tunnel, path);

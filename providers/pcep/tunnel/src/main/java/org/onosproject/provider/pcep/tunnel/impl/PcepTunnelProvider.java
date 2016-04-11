@@ -152,7 +152,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
     HashMap<String, TunnelId> tunnelMap = new HashMap<String, TunnelId>();
     HashMap<TunnelId, TunnelStatistics> tunnelStatisticsMap = new HashMap<>();
-    private HashMap<Long, TunnelStatsCollector> collectors = Maps.newHashMap();
+    private HashMap<String, TunnelStatsCollector> collectors = Maps.newHashMap();
 
     private InnerTunnelProvider listener = new InnerTunnelProvider();
 
