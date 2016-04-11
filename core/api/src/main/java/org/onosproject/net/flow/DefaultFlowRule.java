@@ -364,6 +364,7 @@ public class DefaultFlowRule implements FlowRule {
 
         @Override
         public FlowRule build() {
+            FlowId localFlowId;
             checkArgument((flowId != null) ^ (appId != null), "Either an application" +
                     " id or a cookie must be supplied");
             checkNotNull(selector, "Traffic selector cannot be null");
@@ -377,11 +378,13 @@ public class DefaultFlowRule implements FlowRule {
             // Computing a flow ID based on appId takes precedence over setting
             // the flow ID directly
             if (appId != null) {
-                flowId = computeFlowId(appId);
+                localFlowId = computeFlowId(appId);
+            } else {
+                localFlowId = flowId;
             }
 
             return new DefaultFlowRule(deviceId, selector, treatment, priority,
-                                       flowId, permanent, timeout, tableId);
+                                       localFlowId, permanent, timeout, tableId);
         }
 
         private FlowId computeFlowId(ApplicationId appId) {

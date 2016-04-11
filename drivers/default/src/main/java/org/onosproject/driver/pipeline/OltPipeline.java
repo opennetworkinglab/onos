@@ -38,7 +38,6 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
@@ -579,12 +578,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 builder.add(inner.build()).add(outer.build());
                 break;
             case REMOVE:
-                Iterable<FlowEntry> flows = flowRuleService.getFlowEntries(deviceId);
-                for (FlowEntry fe : flows) {
-                    if (fe.equals(inner.build()) || fe.equals(outer.build())) {
-                        builder.remove(fe);
-                    }
-                }
+                builder.remove(inner.build()).remove(outer.build());
                 break;
             case ADD_TO_EXISTING:
                 break;
