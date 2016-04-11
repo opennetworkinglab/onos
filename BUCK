@@ -76,7 +76,6 @@ CORE = [
     '//providers/pcep/topology:onos-pcep-provider-topology',
     '//providers/pcep/tunnel:onos-pcep-provider-tunnel',
     '//providers/rest/device:onos-restsb-provider-device',
-    '//providers/snmp/alarm:onos-snmp-provider-alarm',
     '//providers/snmp/device:onos-snmp-provider-device',
 
     '//web/api:onos-rest',

@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
  * Copyright 2015-present Open Networking Laboratory
-=======
- * Copyright 2015-present Open Networking Laboratory
->>>>>>> master
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
- * Provider that will support SNMP alarm discoveries.
+ * Abstractions for interacting with alarms. An alarm is a persistent indication
+ * of a fault that clears only when the triggering condition has been resolved.
  */
-package org.onosproject.provider.snmp.alarm.impl;
+package org.onosproject.incubator.net.faultmanagement.alarm.impl;

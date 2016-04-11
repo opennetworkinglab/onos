@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.incubator.net.faultmanagement.alarm;
 
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.provider.Provider;
+import org.onosproject.net.driver.HandlerBehaviour;
+
+import java.util.List;
 
 /**
- * Abstraction of an entity capable of supplying alarms collected from
- * network devices.
+ * Abstraction of a device behaviour capable of retrieving/consuming list of
+ * pending alarms from the device.
  */
-public interface AlarmProvider extends Provider {
+public interface AlarmConsumer extends HandlerBehaviour {
 
     /**
-     * Triggers an asynchronous discovery of the alarms on the specified device,
-     * intended to refresh internal alarm model for the device. An indirect
-     * result of this should be a event sent later with discovery result
-     * ie a set of alarms.
+     * Returns the list of active alarms consumed from the device.
+     * This means that subsequent retrieval of alarms will not contain
+     * any duplicates.
      *
-     * @param deviceId ID of device to be probed
+     * @return list of alarms consumed from the device
      */
-    void triggerProbe(DeviceId deviceId);
+    List<Alarm> consumeAlarms();
+
 }

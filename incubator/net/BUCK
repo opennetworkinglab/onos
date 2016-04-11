@@ -14,6 +14,9 @@ TEST_DEPS = [
     '//core/common:onos-core-common-tests',
     '//incubator/store:onos-incubator-store',
     '//core/store/serializers:onos-core-serializers',
+    '//utils/osgi:onlab-osgi',
+    '//utils/osgi:onlab-osgi-tests',
+    '//incubator/api:onos-incubator-api-tests',
 ]
 
 osgi_jar(

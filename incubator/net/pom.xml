@@ -41,6 +41,15 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-api</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-core-common</artifactId>
             <version>${project.version}</version>
             <classifier>tests</classifier>
@@ -67,11 +76,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.scr.annotations</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.karaf.features</groupId>
             <artifactId>org.apache.karaf.features.core</artifactId>
         </dependency>
@@ -85,6 +89,19 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-store</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-osgi</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
     </dependencies>

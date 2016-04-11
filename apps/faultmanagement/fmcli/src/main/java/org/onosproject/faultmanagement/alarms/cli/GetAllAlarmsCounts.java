@@ -35,9 +35,9 @@ public class GetAllAlarmsCounts extends AbstractShellCommand {
         printCounts(alarmCounts);
     }
 
-    static void printCounts(Map<Alarm.SeverityLevel, Long> alarmCounts) {
+    void printCounts(Map<Alarm.SeverityLevel, Long> alarmCounts) {
         alarmCounts.entrySet().stream().forEach((countEntry) -> {
-            System.out.println(String.format("%s, %d",
+            print(String.format("%s, %d",
                     countEntry.getKey(), countEntry.getValue()));
 
         });

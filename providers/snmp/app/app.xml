@@ -20,7 +20,6 @@
      features="${project.artifactId}">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/onos-snmp-provider-device/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-snmp-provider-alarm/${project.version}</artifact>
 
     <artifact>mvn:${project.groupId}/onos-snmp-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-snmp-ctl/${project.version}</artifact>

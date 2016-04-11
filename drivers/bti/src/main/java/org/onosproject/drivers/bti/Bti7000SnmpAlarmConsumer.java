@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.provider.snmp.alarm.impl;
+
+package org.onosproject.drivers.bti;
 
 import com.btisystems.mibbler.mibs.bti7000.bti7000_13_2_0.I_Device;
 import com.btisystems.mibbler.mibs.bti7000.bti7000_13_2_0._OidRegistry;
@@ -23,31 +24,34 @@ import com.btisystems.pronx.ems.core.model.ClassRegistry;
 import com.btisystems.pronx.ems.core.model.IClassRegistry;
 import com.btisystems.pronx.ems.core.model.NetworkDevice;
 import com.btisystems.pronx.ems.core.snmp.ISnmpSession;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TimeZone;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEntityId;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.snmp.SnmpController;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.TimeZone;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * BTI 7000 specific implementation to provide a list of current alarms.
- * @deprecated 1.5.0 Falcon, not compliant with ONOS SB and driver architecture.
  */
-@Deprecated
-public class Bti7000SnmpAlarmProvider implements SnmpDeviceAlarmProvider {
+public class Bti7000SnmpAlarmConsumer extends AbstractHandlerBehaviour implements AlarmConsumer {
     private final Logger log = getLogger(getClass());
     protected static final IClassRegistry CLASS_REGISTRY = new ClassRegistry(_OidRegistry.oidRegistry, I_Device.class);
 
@@ -55,40 +59,6 @@ public class Bti7000SnmpAlarmProvider implements SnmpDeviceAlarmProvider {
     static final int ALARM_SEVERITY_MAJOR = 3;
     static final int ALARM_SEVERITY_CRITICAL = 4;
 
-    @Override
-    public Collection<Alarm> getAlarms(ISnmpSession session, DeviceId deviceID) {
-        log.info("Getting alarms for BTI 7000 device at {}", deviceID);
-        Set<Alarm> alarms = new HashSet<>();
-        NetworkDevice networkDevice = new NetworkDevice(CLASS_REGISTRY,
-                session.getAddress().getHostAddress());
-
-        try {
-            session.walkDevice(networkDevice, Arrays.asList(
-                    new OID[]{CLASS_REGISTRY.getClassToOidMap().get(ActAlarmTable.class)}));
-
-            IActAlarmTable deviceAlarms = (IActAlarmTable) networkDevice.getRootObject()
-                .getEntity(CLASS_REGISTRY.getClassToOidMap().get(ActAlarmTable.class));
-        if ((deviceAlarms != null) && (deviceAlarms.getActAlarmEntry() != null)
-                && (!deviceAlarms.getActAlarmEntry().isEmpty())) {
-
-            deviceAlarms.getActAlarmEntry().values().stream().forEach((alarm) -> {
-                DefaultAlarm.Builder alarmBuilder = new DefaultAlarm.Builder(
-                        deviceID, alarm.getActAlarmDescription(),
-                        mapAlarmSeverity(alarm.getActAlarmSeverity()),
-                        getLocalDateAndTime(alarm.getActAlarmDateAndTime(), null, null).getTime())
-                        .forSource(AlarmEntityId.alarmEntityId("other:" + alarm.getActAlarmInstanceIdx()));
-                alarms.add(alarmBuilder.build());
-            });
-
-        }
-        log.info("Conditions retrieved: {}", deviceAlarms);
-
-        } catch (IOException ex) {
-            log.error("Error reading alarms for device {}.", deviceID, ex);
-        }
-
-        return alarms;
-    }
 
     private Alarm.SeverityLevel mapAlarmSeverity(int intAlarmSeverity) {
         Alarm.SeverityLevel mappedSeverity;
@@ -108,18 +78,19 @@ public class Bti7000SnmpAlarmProvider implements SnmpDeviceAlarmProvider {
         }
         return mappedSeverity;
     }
+
     /**
      * Converts an SNMP string representation into a {@link Date} object,
      * and applies time zone conversion to provide the time on the local machine, ie PSM server.
      *
      * @param actAlarmDateAndTime MIB-II DateAndTime formatted. May optionally contain
-     * a timezone offset in 3 extra bytes
-     * @param sysInfoTimeZone Must be supplied if actAlarmDateAndTime is just local time (with no timezone)
-     * @param swVersion Must be supplied if actAlarmDateAndTime is just local time (with no timezone)
+     *                            a timezone offset in 3 extra bytes
+     * @param sysInfoTimeZone     Must be supplied if actAlarmDateAndTime is just local time (with no timezone)
+     * @param swVersion           Must be supplied if actAlarmDateAndTime is just local time (with no timezone)
      * @return adjusted {@link Date} or a simple conversion if other fields are null.
      */
     public static Date getLocalDateAndTime(String actAlarmDateAndTime, String sysInfoTimeZone,
-            String swVersion) {
+                                           String swVersion) {
         if (StringUtils.isBlank(actAlarmDateAndTime)) {
             return null;
         }
@@ -141,14 +112,13 @@ public class Bti7000SnmpAlarmProvider implements SnmpDeviceAlarmProvider {
     /**
      * This method is similar to SNMP4J approach with some fixes for the 11-bytes version (ie the one with timezone
      * offset).
-     *
+     * <p>
      * For original makeCalendar refer @see http://www.snmp4j.org/agent/doc/org/snmp4j/agent/mo/snmp/DateAndTime.html
-     *
+     * <p>
      * Creates a <code>GregorianCalendar</code> from a properly formatted SNMP4J DateAndTime <code>OctetString</code>.
      *
      * @param dateAndTimeValue an OctetString conforming to the DateAndTime TC.
      * @return the corresponding <code>GregorianCalendar</code> instance.
-     *
      */
     public static GregorianCalendar btiMakeCalendar(OctetString dateAndTimeValue) {
         int year = (dateAndTimeValue.get(0) & 0xFF) * 256
@@ -178,5 +148,45 @@ public class Bti7000SnmpAlarmProvider implements SnmpDeviceAlarmProvider {
 
     private static TimeZone getTimeZone() {
         return Calendar.getInstance().getTimeZone();
+    }
+
+    @Override
+    public List<Alarm> consumeAlarms() {
+        SnmpController controller = checkNotNull(handler().get(SnmpController.class));
+        ISnmpSession session;
+        List<Alarm> alarms = new ArrayList<>();
+        DeviceId deviceId = handler().data().deviceId();
+        try {
+            session = controller.getSession(deviceId);
+            log.debug("Getting alarms for BTI 7000 device at {}", deviceId);
+            NetworkDevice networkDevice = new NetworkDevice(CLASS_REGISTRY,
+                                                            session.getAddress().getHostAddress());
+            session.walkDevice(networkDevice, Collections.singletonList(
+                    CLASS_REGISTRY.getClassToOidMap().get(ActAlarmTable.class)));
+
+            IActAlarmTable deviceAlarms = (IActAlarmTable) networkDevice.getRootObject()
+                    .getEntity(CLASS_REGISTRY.getClassToOidMap().get(ActAlarmTable.class));
+            if ((deviceAlarms != null) && (deviceAlarms.getActAlarmEntry() != null)
+                    && (!deviceAlarms.getActAlarmEntry().isEmpty())) {
+
+                deviceAlarms.getActAlarmEntry().values().stream().forEach((alarm) -> {
+                    DefaultAlarm.Builder alarmBuilder = new DefaultAlarm.Builder(
+                            deviceId, alarm.getActAlarmDescription(),
+                            mapAlarmSeverity(alarm.getActAlarmSeverity()),
+                            getLocalDateAndTime(alarm.getActAlarmDateAndTime(), null, null).getTime())
+                            .forSource(AlarmEntityId.alarmEntityId("other:" + alarm.getActAlarmInstanceIdx()));
+                    alarms.add(alarmBuilder.build());
+                });
+
+            }
+            log.debug("Conditions retrieved: {}", deviceAlarms);
+
+        } catch (IOException ex) {
+            log.error("Error reading alarms for device {}.", deviceId, ex);
+            alarms.add(controller.buildWalkFailedAlarm(deviceId));
+
+        }
+
+        return ImmutableList.copyOf(alarms);
     }
 }

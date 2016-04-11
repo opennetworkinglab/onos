@@ -42,7 +42,7 @@ import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
 
 /**
- * Skeletal ONOS UI Topology-Overlay message handler.
+ * FaultManagement UI Topology-Overlay message handler.
  */
 public class AlarmTopovMessageHandler extends UiMessageHandler {
 

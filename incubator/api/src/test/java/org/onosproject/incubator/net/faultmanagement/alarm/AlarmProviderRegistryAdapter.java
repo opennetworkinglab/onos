@@ -13,13 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.incubator.net.faultmanagement.alarm;
 
-import org.onosproject.event.EventListener;
+import org.onosproject.net.provider.ProviderId;
 
+import java.util.Set;
 
 /**
- * Entity capable of receiving Alarm related events.
+ * Adapter for Alarm Provider Registry.
  */
-public interface AlarmListener extends EventListener<AlarmEvent> {
+public class AlarmProviderRegistryAdapter implements AlarmProviderRegistry {
+
+    @Override
+    public AlarmProviderService register(AlarmProvider provider) {
+        return null;
+    }
+
+    @Override
+    public void unregister(AlarmProvider provider) {
+
+    }
+
+    @Override
+    public Set<ProviderId> getProviders() {
+        return null;
+    }
 }

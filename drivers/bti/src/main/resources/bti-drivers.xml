@@ -19,10 +19,14 @@
     <driver name="bti7000" manufacturer="bti" hwVersion="1.0.0" swVersion="1.0.0">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.bti.Bti7000DeviceDescriptor"/>
+        <behaviour api="org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer"
+                   impl="org.onosproject.drivers.bti.Bti7000SnmpAlarmConsumer"/>
     </driver>
     <driver name="NetSnmp" manufacturer="bti" hwVersion="1.0.0" swVersion="1.0.0">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.bti.NetSnmpDeviceDescriptor"/>
+        <behaviour api="org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer"
+                   impl="org.onosproject.drivers.bti.NetSnmpAlarmConsumer"/>
     </driver>
 </drivers>
 

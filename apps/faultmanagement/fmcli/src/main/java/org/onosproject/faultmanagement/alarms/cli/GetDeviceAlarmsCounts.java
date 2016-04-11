@@ -38,7 +38,14 @@ public class GetDeviceAlarmsCounts extends AbstractShellCommand {
         Map<Alarm.SeverityLevel, Long> alarmCounts = AbstractShellCommand.get(AlarmService.class).
                 getAlarmCounts(DeviceId.deviceId(deviceId));
         // Deliberately using same formatting for both ...
-        GetAllAlarmsCounts.printCounts(alarmCounts);
+        printCounts(alarmCounts);
     }
 
+    void printCounts(Map<Alarm.SeverityLevel, Long> alarmCounts) {
+        alarmCounts.entrySet().stream().forEach((countEntry) -> {
+            print(String.format("%s, %d",
+                                countEntry.getKey(), countEntry.getValue()));
+
+        });
+    }
 }

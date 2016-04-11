@@ -48,7 +48,6 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.device.DeviceStore;
 import org.onosproject.net.device.DeviceStoreAdapter;
-import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.driver.DriverServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.snmp.SnmpController;
