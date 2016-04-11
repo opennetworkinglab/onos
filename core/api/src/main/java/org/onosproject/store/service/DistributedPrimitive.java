@@ -39,6 +39,11 @@ public interface DistributedPrimitive {
         EVENTUALLY_CONSISTENT_MAP,
 
         /**
+         * Consistent Multimap.
+         */
+        CONSISTENT_MULTIMAP,
+
+        /**
          * distributed set.
          */
         SET,
