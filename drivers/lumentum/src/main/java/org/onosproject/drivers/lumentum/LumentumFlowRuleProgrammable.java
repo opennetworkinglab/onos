@@ -58,10 +58,10 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkArgument;
 
 // TODO: need to convert between OChSignal and XC channel number
-public class LumentumFlowRuleDriver extends AbstractHandlerBehaviour implements FlowRuleProgrammable {
+public class LumentumFlowRuleProgrammable extends AbstractHandlerBehaviour implements FlowRuleProgrammable {
 
     private static final Logger log =
-            LoggerFactory.getLogger(LumentumFlowRuleDriver.class);
+            LoggerFactory.getLogger(LumentumFlowRuleProgrammable.class);
 
     // Default values
     private static final int DEFAULT_TARGET_GAIN_PREAMP = 150;

@@ -21,7 +21,9 @@
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.drivers.lumentum.LambdaQueryLumentumRoadm"/>
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
-                   impl="org.onosproject.drivers.lumentum.LumentumFlowRuleDriver"/>
+                   impl="org.onosproject.drivers.lumentum.LumentumFlowRuleProgrammable"/>
+        <behaviour api="org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer"
+                   impl="org.onosproject.drivers.lumentum.LumentumAlarmConsumer"/>
     </driver>
 </drivers>
 

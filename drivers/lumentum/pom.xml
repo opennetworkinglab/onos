@@ -36,7 +36,8 @@
         <onos.app.title>Lumentum Device Drivers</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.requires>
-            org.onosproject.snmp
+            org.onosproject.snmp,
+            org.onosproject.faultmanagement
         </onos.app.requires>
     </properties>
 
@@ -45,6 +46,11 @@
             <groupId>org.apache.servicemix.bundles</groupId>
             <artifactId>org.apache.servicemix.bundles.snmp4j</artifactId>
             <version>2.3.4_1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-snmp-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>
