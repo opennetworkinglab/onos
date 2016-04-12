@@ -34,7 +34,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Aggregate system metrics.
  */
-public class SystemMetricsAggregator {
+public final class SystemMetricsAggregator {
 
     private final Logger log = getLogger(getClass());
 
@@ -42,40 +42,108 @@ public class SystemMetricsAggregator {
     private static final String DEFAULT_METER_SUFFIX = "rate";
     private static final String DISK_RESOURCE_TYPE = "disk";
     private static final String NETWORK_RESOURCE_TYPE = "network";
-    private final Map<ControlMetricType, Meter> meterMap = Maps.newHashMap();
-    private final Set<ControlMetricType> metricTypeSet = Sets.newHashSet();
+    private final Map<ControlMetricType, Meter> systemMap = Maps.newHashMap();
+    private final Map<String, Map<ControlMetricType, Meter>> diskMap = Maps.newHashMap();
+    private final Map<String, Map<ControlMetricType, Meter>> networkMap = Maps.newHashMap();
 
-    public SystemMetricsAggregator(MetricsService metricsService, Optional<String> resName, String resType) {
-        String resourceName = resName.isPresent() ? resName.get() : DEFAULT_RESOURCE_NAME;
-        MetricsComponent mc = metricsService.registerComponent(resourceName);
+    private MetricsService metricsService;
 
-        if (resName.isPresent()) {
-            if (DISK_RESOURCE_TYPE.equals(resType)) {
-                metricTypeSet.addAll(ControlResource.DISK_METRICS);
-            } else if (NETWORK_RESOURCE_TYPE.equals(resType)) {
-                metricTypeSet.addAll(ControlResource.NETWORK_METRICS);
-            } else {
-                log.warn("Not valid resource type {}", resType);
-            }
-        } else {
-            metricTypeSet.addAll(ControlResource.MEMORY_METRICS);
-            metricTypeSet.addAll(ControlResource.CPU_METRICS);
-        }
-
-        metricTypeSet.forEach(type -> {
-            MetricsFeature metricsFeature = mc.registerFeature(type.toString());
-            Meter meter = metricsService.createMeter(mc, metricsFeature, DEFAULT_METER_SUFFIX);
-            meterMap.putIfAbsent(type, meter);
-        });
+    public static SystemMetricsAggregator getInstance() {
+        return SingletonHelper.INSTANCE;
     }
 
     /**
-     * Increments metric value.
+     * Configures metric services.
      *
-     * @param type metric type
+     * @param service metrics service
+     */
+    public void setMetricsService(MetricsService service) {
+
+        metricsService = service;
+    }
+
+    /**
+     * Increments system metric value.
+     *
+     * @param type  metric type
      * @param value metric value
      */
     public void increment(ControlMetricType type, long value) {
-        meterMap.get(type).mark(value);
+        systemMap.get(type).mark(value);
+    }
+
+    /**
+     * Increments disk or network metric value.
+     *
+     * @param resourceName resource name
+     * @param resourceType resource type
+     * @param type         control metric type
+     * @param value        metric value
+     */
+    public void increment(String resourceName, String resourceType, ControlMetricType type, long value) {
+        if (DISK_RESOURCE_TYPE.equals(resourceType) && diskMap.containsKey(resourceName)) {
+            diskMap.get(resourceName).get(type).mark(value);
+        }
+
+        if (NETWORK_RESOURCE_TYPE.equals(resourceType) && networkMap.containsKey(resourceName)) {
+            networkMap.get(resourceName).get(type).mark(value);
+        }
+    }
+
+    /**
+     * Adds a set of new monitoring metric types.
+     *
+     * @param optResourceName optional resource name, null denotes system metric
+     * @param resType         resource type
+     */
+    public void addMetrics(Optional<String> optResourceName, String resType) {
+        Set<ControlMetricType> metricTypeSet = Sets.newHashSet();
+        String resourceName = optResourceName.isPresent() ?
+                optResourceName.get() : DEFAULT_RESOURCE_NAME;
+
+        MetricsComponent metricsComponent = metricsService.registerComponent(resourceName);
+
+        if (optResourceName.isPresent()) {
+            if (!diskMap.containsKey(resourceName) && DISK_RESOURCE_TYPE.equals(resType)) {
+                metricTypeSet.addAll(ControlResource.DISK_METRICS);
+                diskMap.putIfAbsent(resourceName,
+                        getMeterMap(metricTypeSet, metricsComponent, metricsService));
+                metricsService.notifyReporters();
+            } else if (!networkMap.containsKey(resourceName) && NETWORK_RESOURCE_TYPE.equals(resType)) {
+                metricTypeSet.addAll(ControlResource.NETWORK_METRICS);
+                networkMap.putIfAbsent(resourceName,
+                        getMeterMap(metricTypeSet, metricsComponent, metricsService));
+                metricsService.notifyReporters();
+            } else {
+                return;
+            }
+        } else {
+            if (systemMap.isEmpty()) {
+                metricTypeSet.addAll(ControlResource.MEMORY_METRICS);
+                metricTypeSet.addAll(ControlResource.CPU_METRICS);
+
+                systemMap.putAll(getMeterMap(metricTypeSet, metricsComponent, metricsService));
+                metricsService.notifyReporters();
+            }
+        }
+    }
+
+    private Map<ControlMetricType, Meter> getMeterMap(Set<ControlMetricType> types,
+                                                      MetricsComponent component,
+                                                      MetricsService service) {
+        Map<ControlMetricType, Meter> meterMap = Maps.newHashMap();
+        types.forEach(type -> {
+            MetricsFeature metricsFeature = component.registerFeature(type.toString());
+            Meter meter = service.createMeter(component, metricsFeature, DEFAULT_METER_SUFFIX);
+            meterMap.putIfAbsent(type, meter);
+        });
+        return meterMap;
+    }
+
+    private SystemMetricsAggregator() {
+    }
+
+    private static class SingletonHelper {
+        private static final SystemMetricsAggregator INSTANCE = new SystemMetricsAggregator();
     }
 }

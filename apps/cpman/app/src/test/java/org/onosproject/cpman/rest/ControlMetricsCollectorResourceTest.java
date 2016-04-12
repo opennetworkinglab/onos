@@ -36,7 +36,6 @@ import org.onlab.rest.BaseResource;
 import org.onosproject.cpman.ControlPlaneMonitorService;
 import org.onosproject.cpman.SystemInfo;
 import org.onosproject.cpman.impl.SystemInfoFactory;
-import org.onosproject.cpman.impl.SystemMetricsAggregator;
 import org.onosproject.net.DeviceId;
 import org.onosproject.rest.resources.ResourceTest;
 
@@ -51,7 +50,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.easymock.EasyMock.anyInt;
-import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
@@ -69,9 +67,6 @@ public class ControlMetricsCollectorResourceTest extends ResourceTest {
     final ControlPlaneMonitorService mockControlPlaneMonitorService =
                                      createMock(ControlPlaneMonitorService.class);
     final MetricsService mockMetricsService = new MockMetricsService();
-    final MetricsComponent mockMetricsComponent = createMock(MetricsComponent.class);
-    final SystemMetricsAggregator mockAggregator = createMock(SystemMetricsAggregator.class);
-
 
     private static final String PREFIX = "collector";
 
@@ -103,10 +98,6 @@ public class ControlMetricsCollectorResourceTest extends ResourceTest {
                 (Optional<DeviceId>) anyObject());
         expectLastCall().times(5);
         replay(mockControlPlaneMonitorService);
-
-        mockAggregator.increment(anyObject(), anyLong());
-        expectLastCall();
-        replay(mockAggregator);
 
         basePostTest("cpu-metrics-post.json", PREFIX + "/cpu_metrics");
     }
