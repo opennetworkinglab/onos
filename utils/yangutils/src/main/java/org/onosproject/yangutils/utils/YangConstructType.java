@@ -277,7 +277,17 @@ public enum YangConstructType {
     /**
      * Identifies the YANG range element parsed data.
      */
-    RANGE_DATA;
+    RANGE_DATA,
+
+    /**
+     * Identifies the YANG length element parsed data.
+     */
+    LENGTH_DATA,
+
+    /**
+     * Identifies the YANG pattern element parsed data.
+     */
+    PATTERN_DATA;
 
     /**
      * Returns the YANG construct keyword corresponding to enum values.
@@ -392,6 +402,10 @@ public enum YangConstructType {
                 return "union";
             case RANGE_DATA:
                 return "range";
+            case LENGTH_DATA:
+                return "length";
+            case PATTERN_DATA:
+                return "pattern";
             default:
                 return "yang";
         }

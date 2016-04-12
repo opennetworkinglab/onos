@@ -20,7 +20,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.utils.builtindatatype.YangBuiltInDataTypeInfo;
 
+import static org.onosproject.yangutils.utils.builtindatatype.BuiltInTypeObjectFactory.getDataObjectFromString;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /*-
@@ -47,12 +49,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *  "max". "min" and "max" mean the minimum and maximum value accepted
  *  for the type being restricted, respectively.
  */
+
 /**
  * Represents ascending range restriction information.
  *
  * @param <T> range type (data type)
  */
-public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, YangReference, YangAppErrorInfo {
+public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
+        implements YangDesc, YangReference, YangAppErrorInfo {
 
     /**
      * Ascending list of range interval restriction. If the restriction is a
@@ -168,6 +172,37 @@ public class YangRangeRestriction<T extends Comparable<T>> implements YangDesc, 
 
         getAscendingRangeIntervals()
                 .add(getAscendingRangeIntervals().size(), newInterval);
+    }
+
+    /**
+     * Check if the given value is correct as per the restriction.
+     *
+     * @param valueInString value
+     * @return true, if the value is confirming to restriction, false otherwise
+     * @throws DataModelException data model error
+     */
+    public boolean isValidValueString(String valueInString) throws DataModelException {
+
+        if (getAscendingRangeIntervals() == null
+                || getAscendingRangeIntervals().size() == 0) {
+            // Throw exception, At least one default range needs to be set in constructor or in linker.
+            throw new DataModelException("Range interval missing in range restriction.");
+
+        }
+
+        YangDataTypes type = getAscendingRangeIntervals().get(0).getStartValue().getYangType();
+        YangBuiltInDataTypeInfo<?> value = getDataObjectFromString(valueInString, type);
+
+        for (YangRangeInterval<T> interval : getAscendingRangeIntervals()) {
+            int rangeStartCompareRes = interval.getStartValue().compareTo((T) value);
+            int rangeEndCompareRes = interval.getEndValue().compareTo((T) value);
+
+            if (rangeStartCompareRes <= 0 && rangeEndCompareRes >= 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -16,7 +16,7 @@
 
 package org.onosproject.yangutils.datamodel;
 
-import java.math.BigInteger;
+import org.onosproject.yangutils.utils.builtindatatype.YangUint64;
 
 /*-
  * Reference RFC 6020.
@@ -64,10 +64,11 @@ public class YangStringRestriction {
      *  | reference     | 7.19.4  | 0..1        | string          |
      *  +---------------+---------+-------------+-----------------+
      */
+
     /**
      * Length restriction information.
      */
-    private YangRangeRestriction<BigInteger> lengthRestriction;
+    private YangRangeRestriction<YangUint64> lengthRestriction;
 
     /**
      * Effective pattern restriction for the type.
@@ -85,7 +86,7 @@ public class YangStringRestriction {
      *
      * @return length restriction on the string data
      */
-    public YangRangeRestriction<BigInteger> getLengthRestriction() {
+    public YangRangeRestriction<YangUint64> getLengthRestriction() {
         return lengthRestriction;
     }
 
@@ -94,7 +95,7 @@ public class YangStringRestriction {
      *
      * @param lengthRestriction length restriction on the string data
      */
-    public void setLengthRestriction(YangRangeRestriction<BigInteger> lengthRestriction) {
+    public void setLengthRestriction(YangRangeRestriction<YangUint64> lengthRestriction) {
         this.lengthRestriction = lengthRestriction;
     }
 

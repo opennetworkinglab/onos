@@ -46,6 +46,7 @@ import org.onosproject.yangutils.parser.impl.listeners.InputListener;
 import org.onosproject.yangutils.parser.impl.listeners.KeyListener;
 import org.onosproject.yangutils.parser.impl.listeners.LeafListListener;
 import org.onosproject.yangutils.parser.impl.listeners.LeafListener;
+import org.onosproject.yangutils.parser.impl.listeners.LengthRestrictionListener;
 import org.onosproject.yangutils.parser.impl.listeners.ListListener;
 import org.onosproject.yangutils.parser.impl.listeners.MandatoryListener;
 import org.onosproject.yangutils.parser.impl.listeners.MaxElementsListener;
@@ -55,6 +56,7 @@ import org.onosproject.yangutils.parser.impl.listeners.NotificationListener;
 import org.onosproject.yangutils.parser.impl.listeners.NamespaceListener;
 import org.onosproject.yangutils.parser.impl.listeners.OrganizationListener;
 import org.onosproject.yangutils.parser.impl.listeners.OutputListener;
+import org.onosproject.yangutils.parser.impl.listeners.PatternRestrictionListener;
 import org.onosproject.yangutils.parser.impl.listeners.PositionListener;
 import org.onosproject.yangutils.parser.impl.listeners.PrefixListener;
 import org.onosproject.yangutils.parser.impl.listeners.PresenceListener;
@@ -586,7 +588,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterLengthStatement(GeneratedYangParser.LengthStatementContext ctx) {
-        // TODO: implement the method.
+        LengthRestrictionListener.processLengthRestrictionEntry(this, ctx);
     }
 
     @Override
@@ -596,7 +598,7 @@ public class TreeWalkListener implements GeneratedYangListener {
 
     @Override
     public void enterPatternStatement(GeneratedYangParser.PatternStatementContext ctx) {
-        // TODO: implement the method.
+        PatternRestrictionListener.processPatternRestrictionEntry(this, ctx);
     }
 
     @Override

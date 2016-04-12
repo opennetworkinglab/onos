@@ -98,36 +98,6 @@ public final class TypeListener {
         type.setNodeIdentifier(nodeIdentifier);
         type.setDataType(yangDataTypes);
 
-        // Push the type to the stack.
-        listener.getParsedDataStack().push(type);
-    }
-
-    /**
-     * It is called when parser exits from grammar rule (type), it perform
-     * validations and update the data model tree.
-     *
-     * @param listener Listener's object
-     * @param ctx context object of the grammar rule
-     */
-    public static void processTypeExit(TreeWalkListener listener,
-            GeneratedYangParser.TypeStatementContext ctx) {
-
-        // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_CURRENT_HOLDER, TYPE_DATA, ctx.string().getText(), EXIT);
-
-        Parsable parsableType = listener.getParsedDataStack().pop();
-        if (!(parsableType instanceof YangType)) {
-            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, TYPE_DATA,
-                    ctx.string().getText(), EXIT));
-        }
-
-        YangType<?> type = (YangType<?>) parsableType;
-
-        // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPE_DATA, ctx.string().getText(), EXIT);
-
-        YangDataTypes yangDataTypes = YangDataTypes.getType(ctx.string().getText());
-
         int errorLine = ctx.getStart().getLine();
         int errorPosition = ctx.getStart().getCharPositionInLine();
 
@@ -242,12 +212,35 @@ public final class TypeListener {
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, TYPE_DATA,
                         ctx.string().getText(), EXIT));
         }
+
+        // Push the type to the stack.
+        listener.getParsedDataStack().push(type);
     }
 
     /**
-     * Add to resolution list.
+     * It is called when parser exits from grammar rule (type), it perform
+     * validations and update the data model tree.
      *
-     * @param resolutionInfo resolution information.
+     * @param listener Listener's object
+     * @param ctx context object of the grammar rule
+     */
+    public static void processTypeExit(TreeWalkListener listener,
+            GeneratedYangParser.TypeStatementContext ctx) {
+
+        // Check for stack to be non empty.
+        checkStackIsNotEmpty(listener, MISSING_CURRENT_HOLDER, TYPE_DATA, ctx.string().getText(), EXIT);
+
+        Parsable parsableType = listener.getParsedDataStack().pop();
+        if (!(parsableType instanceof YangType)) {
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, TYPE_DATA,
+                    ctx.string().getText(), EXIT));
+        }
+    }
+
+    /**
+     * Adds to resolution list.
+     *
+     * @param resolutionInfo resolution information
      * @param ctx context object of the grammar rule
      */
     private static void addToResolutionList(YangResolutionInfo<YangType> resolutionInfo,

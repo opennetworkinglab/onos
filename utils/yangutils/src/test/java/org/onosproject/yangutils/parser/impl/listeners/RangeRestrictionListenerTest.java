@@ -16,11 +16,12 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
-
 import java.io.IOException;
 import java.util.ListIterator;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
@@ -31,6 +32,7 @@ import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
+import org.onosproject.yangutils.utils.builtindatatype.YangInt32;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -39,6 +41,9 @@ import static org.hamcrest.core.Is.is;
  * Test cases for range restriction listener.
  */
 public class RangeRestrictionListenerTest {
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
 
@@ -67,8 +72,8 @@ public class RangeRestrictionListenerTest {
         ListIterator<YangRangeInterval> rangeListIterator = rangeRestriction.getAscendingRangeIntervals()
                                                     .listIterator();
         YangRangeInterval rangeInterval = rangeListIterator.next();
-        assertThat(rangeInterval.getStartValue(), is(10));
-        assertThat(rangeInterval.getEndValue(), is(20));
+        assertThat(((YangInt32) rangeInterval.getStartValue()).getValue(), is(1));
+        assertThat(((YangInt32) rangeInterval.getEndValue()).getValue(), is(4));
     }
 
     /**
@@ -97,7 +102,77 @@ public class RangeRestrictionListenerTest {
                 .listIterator();
         YangRangeInterval rangeInterval = rangeListIterator.next();
 
-        assertThat(rangeInterval.getStartValue(), is(10));
-        assertThat(rangeInterval.getEndValue(), is(20));
+        assertThat(((YangInt32) rangeInterval.getStartValue()).getValue(), is(1));
+        assertThat(((YangInt32) rangeInterval.getEndValue()).getValue(), is(4));
+    }
+
+    /**
+     * Checks valid range statement with one interval.
+     */
+    @Test
+    public void processRangeWithOneInterval() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/RangeWithOneInterval.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
+
+        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getDataType().getDataTypeName(), is("int32"));
+        assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.INT32));
+        YangRangeRestriction rangeRestriction = (YangRangeRestriction) leafListInfo
+                .getDataType().getDataTypeExtendedInfo();
+
+        ListIterator<YangRangeInterval> rangeListIterator = rangeRestriction.getAscendingRangeIntervals()
+                .listIterator();
+        YangRangeInterval rangeInterval = rangeListIterator.next();
+
+        assertThat(((YangInt32) rangeInterval.getStartValue()).getValue(), is(1));
+        assertThat(((YangInt32) rangeInterval.getEndValue()).getValue(), is(1));
+    }
+
+    /**
+     * Checks valid range statement with min and max.
+     */
+    @Test
+    public void processRangeWithMinMax() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/RangeWithMinMax.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
+        YangLeafList leafListInfo = leafListIterator.next();
+
+        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getDataType().getDataTypeName(), is("int32"));
+        assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.INT32));
+        YangRangeRestriction rangeRestriction = (YangRangeRestriction) leafListInfo
+                .getDataType().getDataTypeExtendedInfo();
+
+        ListIterator<YangRangeInterval> rangeListIterator = rangeRestriction.getAscendingRangeIntervals()
+                .listIterator();
+        YangRangeInterval rangeInterval = rangeListIterator.next();
+
+        assertThat(((YangInt32) rangeInterval.getStartValue()).getValue(), is(-2147483648));
+        assertThat(((YangInt32) rangeInterval.getEndValue()).getValue(), is(2147483647));
+    }
+
+    /**
+     * Checks valid range statement with invalid integer pattern.
+     */
+    @Test
+    public void processRangeWithInvalidIntegerPattern() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("YANG file error : a is not valid.");
+        YangNode node = manager.getDataModel("src/test/resources/RangeWithInvalidIntegerPattern.yang");
     }
 }

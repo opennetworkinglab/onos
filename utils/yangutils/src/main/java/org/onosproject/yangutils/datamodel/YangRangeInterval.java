@@ -13,12 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 package org.onosproject.yangutils.datamodel;
 
+import org.onosproject.yangutils.utils.builtindatatype.YangBuiltInDataTypeInfo;
+
 /**
  * Represents single interval information of a range.
  *
- * @param <T> range type based on the data type.
+ * @param <T> range type based on the data type
  */
-public class YangRangeInterval<T extends Comparable<T>> {
+public class YangRangeInterval<T extends YangBuiltInDataTypeInfo<T>> {
 
     /**
      * Starting value of the range interval.
@@ -39,7 +41,7 @@ public class YangRangeInterval<T extends Comparable<T>> {
     /**
      * Returns the starting value of the range interval.
      *
-     * @return the starting value of the range interval.
+     * @return the starting value of the range interval
      */
     public T getStartValue() {
         return startValue;
@@ -48,7 +50,7 @@ public class YangRangeInterval<T extends Comparable<T>> {
     /**
      * Sets the starting value of the range interval.
      *
-     * @param startValue the starting value of the range interval.
+     * @param startValue the starting value of the range interval
      */
     public void setStartValue(T startValue) {
         this.startValue = startValue;
@@ -57,7 +59,7 @@ public class YangRangeInterval<T extends Comparable<T>> {
     /**
      * Returns the last value of the range interval.
      *
-     * @return last value of the range interval.
+     * @return last value of the range interval
      */
     public T getEndValue() {
         return endValue;
@@ -66,7 +68,7 @@ public class YangRangeInterval<T extends Comparable<T>> {
     /**
      * Sets the last value of the range interval.
      *
-     * @param endValue last value of the range interval.
+     * @param endValue last value of the range interval
      */
     public void setEndValue(T endValue) {
         this.endValue = endValue;
