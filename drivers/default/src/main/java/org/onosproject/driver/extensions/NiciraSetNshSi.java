@@ -48,7 +48,7 @@ public class NiciraSetNshSi extends AbstractExtension implements
      *
      * @param nshSi nsh service index
      */
-    NiciraSetNshSi(NshServiceIndex nshSi) {
+    public NiciraSetNshSi(NshServiceIndex nshSi) {
         this.nshSi = nshSi;
     }
 

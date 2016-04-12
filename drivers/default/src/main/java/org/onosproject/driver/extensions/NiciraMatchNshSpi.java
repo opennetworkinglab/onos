@@ -41,6 +41,15 @@ public final class NiciraMatchNshSpi extends AbstractExtension implements Extens
     }
 
     /**
+     * Creates an instance with initialized Nsh Service Path ID.
+     *
+     * @param nshSpi nsh service path ID
+     */
+    public NiciraMatchNshSpi(NshServicePathId nshSpi) {
+        this.nshSpi = nshSpi;
+    }
+
+    /**
      * Gets the network service path id to match.
      *
      * @return the nshSpi to match

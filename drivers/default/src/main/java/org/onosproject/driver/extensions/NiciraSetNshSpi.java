@@ -48,7 +48,7 @@ public class NiciraSetNshSpi extends AbstractExtension implements
      *
      * @param nshSpi nsh service path id
      */
-    NiciraSetNshSpi(NshServicePathId nshSpi) {
+    public NiciraSetNshSpi(NshServicePathId nshSpi) {
         this.nshSpi = nshSpi;
     }
 

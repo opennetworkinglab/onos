@@ -15,15 +15,15 @@
  */
 package org.onosproject.driver.extensions;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-import java.util.Objects;
-
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.NshServiceIndex;
 import org.onosproject.net.flow.AbstractExtension;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.ExtensionSelectorType;
+
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Implementation of NSH Service Index(SI).
  */
@@ -39,6 +39,15 @@ public final class NiciraMatchNshSi extends AbstractExtension implements Extensi
      */
     public NiciraMatchNshSi() {
         this.nshSi = null;
+    }
+
+    /**
+     * Creates an instance with initialized Nsh Service Index.
+     *
+     * @param nshSi nsh service index
+     */
+    public NiciraMatchNshSi(NshServiceIndex nshSi) {
+        this.nshSi = nshSi;
     }
 
     /**

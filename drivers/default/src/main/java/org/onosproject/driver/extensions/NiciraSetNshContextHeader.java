@@ -53,7 +53,7 @@ public class NiciraSetNshContextHeader extends AbstractExtension implements
      * @param nshCh nsh context header
      * @param type extension treatment type
      */
-    NiciraSetNshContextHeader(NshContextHeader nshCh, ExtensionTreatmentType type) {
+    public NiciraSetNshContextHeader(NshContextHeader nshCh, ExtensionTreatmentType type) {
         this.nshCh = nshCh;
         this.type = type;
     }

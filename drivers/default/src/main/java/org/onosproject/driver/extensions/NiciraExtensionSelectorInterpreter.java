@@ -16,6 +16,8 @@
 
 package org.onosproject.driver.extensions;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.codec.CodecContext;
 import org.onosproject.net.behaviour.ExtensionSelectorResolver;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
@@ -97,6 +99,18 @@ public class NiciraExtensionSelectorInterpreter
                 || type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_CH4.type())) {
             return new NiciraMatchNshContextHeader(type);
         }
+        return null;
+    }
+
+    @Override
+    public ObjectNode encode(ExtensionSelector extensionSelector, CodecContext context) {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public ExtensionSelector decode(ObjectNode json, CodecContext context) {
+        // TODO
         return null;
     }
 }

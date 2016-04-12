@@ -17,7 +17,7 @@
 package org.onosproject.openflow.controller;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.driver.HandlerBehaviour;
+import org.onosproject.codec.ExtensionTreatmentCodec;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.projectfloodlight.openflow.protocol.OFFactory;
@@ -27,7 +27,7 @@ import org.projectfloodlight.openflow.protocol.action.OFAction;
  * Interprets extension treatments and converts them to/from OpenFlow objects.
  */
 @Beta
-public interface ExtensionTreatmentInterpreter extends HandlerBehaviour {
+public interface ExtensionTreatmentInterpreter extends ExtensionTreatmentCodec {
 
     /**
      * Returns true if the given extension treatment is supported by this
@@ -55,5 +55,4 @@ public interface ExtensionTreatmentInterpreter extends HandlerBehaviour {
      * @throws UnsupportedOperationException if driver does not support extension type
      */
     ExtensionTreatment mapAction(OFAction action) throws UnsupportedOperationException;
-
 }

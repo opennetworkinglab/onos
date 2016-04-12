@@ -79,6 +79,15 @@ public final class ExtensionTreatmentType {
         this.type = type;
     }
 
+    /**
+     * Returns extension treatment type.
+     *
+     * @return extension treatment type
+     */
+    public int type() {
+        return type;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(type);

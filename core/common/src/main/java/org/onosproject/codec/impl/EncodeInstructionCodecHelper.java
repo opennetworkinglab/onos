@@ -16,10 +16,16 @@
 package org.onosproject.codec.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
+import org.onosproject.codec.ExtensionTreatmentCodec;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
@@ -28,13 +34,14 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * JSON encoding of Instructions.
  */
 public final class EncodeInstructionCodecHelper {
-    protected static final Logger log = LoggerFactory.getLogger(EncodeInstructionCodecHelper.class);
+    protected static final Logger log = getLogger(EncodeInstructionCodecHelper.class);
     private final Instruction instruction;
     private final CodecContext context;
 
@@ -219,14 +226,29 @@ public final class EncodeInstructionCodecHelper {
         }
     }
 
+
     /**
-     * Encode a extension instruction.
+     * Encodes a extension instruction.
      *
      * @param result json node that the instruction attributes are added to
      */
     private void encodeExtension(ObjectNode result) {
-        // TODO Support extension in REST API
-        log.info("Cannot convert instruction type of EXTENSION");
+        final Instructions.ExtensionInstructionWrapper extensionInstruction =
+                (Instructions.ExtensionInstructionWrapper) instruction;
+
+        DeviceId deviceId = extensionInstruction.deviceId();
+
+        ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
+        DeviceService deviceService = serviceDirectory.get(DeviceService.class);
+        Device device = deviceService.getDevice(deviceId);
+
+        if (device.is(ExtensionTreatmentCodec.class)) {
+            ExtensionTreatmentCodec treatmentCodec = device.as(ExtensionTreatmentCodec.class);
+            ObjectNode node = treatmentCodec.encode(extensionInstruction.extensionInstruction(), context);
+            result.set(InstructionCodec.EXTENSION, node);
+        } else {
+            log.warn("There is no codec to encode extension for device {}", deviceId.toString());
+        }
     }
 
     /**

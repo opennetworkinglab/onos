@@ -16,7 +16,9 @@
 
 package org.onosproject.driver.extensions;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.Ip4Address;
+import org.onosproject.codec.CodecContext;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -35,6 +37,9 @@ import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmTunnelIpv4Dst;
 import org.projectfloodlight.openflow.types.IPv4Address;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.nullIsIllegal;
+
 /**
  * Interpreter for Nicira OpenFlow treatment extensions.
  */
@@ -49,6 +54,18 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
 
     private static final int SUB_TYPE_RESUBMIT = 1;
     private static final int SUB_TYPE_MOVE = 6;
+
+    private static final String TUNNEL_DST = "tunnelDst";
+    private static final String RESUBMIT = "resubmit";
+    private static final String RESUBMIT_TABLE = "resubmitTable";
+    private static final String NICIRA_NSH_SPI = "niciraNshSpi";
+    private static final String NICIRA_NSH_SI = "niciraNshSi";
+    private static final String NICIRA_NSH_CH = "niciraNshCh";
+    private static final String NICIRA_MOVE = "niciraMove";
+
+    private static final String TYPE = "type";
+
+    private static final String MISSING_MEMBER_MESSAGE = " member is required in NiciraExtensionTreatmentInterpreter";
 
     @Override
     public boolean supported(ExtensionTreatmentType extensionTreatmentType) {
@@ -246,6 +263,108 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_IP_SRC_TO_DST.type())) {
             return NiciraMoveTreatmentFactory.createNiciraMovIpSrcToDst();
+        }
+        throw new UnsupportedOperationException(
+                "Driver does not support extension type " + type.toString());
+    }
+
+    @Override
+    public ObjectNode encode(ExtensionTreatment extensionTreatment, CodecContext context) {
+        checkNotNull(extensionTreatment, "Extension treatment cannot be null");
+        ExtensionTreatmentType type = extensionTreatment.type();
+        ObjectNode root = context.mapper().createObjectNode();
+
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST.type())) {
+            NiciraSetTunnelDst tunnelDst = (NiciraSetTunnelDst) extensionTreatment;
+            root.set(TUNNEL_DST, context.codec(NiciraSetTunnelDst.class).encode(tunnelDst, context));
+        }
+
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
+            NiciraResubmit resubmit = (NiciraResubmit) extensionTreatment;
+            root.set(RESUBMIT, context.codec(NiciraResubmit.class).encode(resubmit, context));
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE.type())) {
+            NiciraResubmitTable resubmitTable = (NiciraResubmitTable) extensionTreatment;
+            root.set(RESUBMIT_TABLE, context.codec(NiciraResubmitTable.class).encode(resubmitTable, context));
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
+            NiciraSetNshSpi niciraNshSpi = (NiciraSetNshSpi) extensionTreatment;
+            root.set(NICIRA_NSH_SPI, context.codec(NiciraSetNshSpi.class).encode(niciraNshSpi, context));
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SI.type())) {
+            NiciraSetNshSi niciraNshSi = (NiciraSetNshSi) extensionTreatment;
+            root.set(NICIRA_NSH_SI, context.codec(NiciraSetNshSi.class).encode(niciraNshSi, context));
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH1.type())) {
+            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
+            root.set(NICIRA_NSH_CH, context.codec(NiciraSetNshContextHeader.class).encode(niciraNshch, context));
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH2.type())) {
+            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
+            root.set(NICIRA_NSH_CH, context.codec(NiciraSetNshContextHeader.class).encode(niciraNshch, context));
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH3.type())) {
+            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
+            root.set(NICIRA_NSH_CH, context.codec(NiciraSetNshContextHeader.class).encode(niciraNshch, context));
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH4.type())) {
+            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
+            root.set(NICIRA_NSH_CH, context.codec(NiciraSetNshContextHeader.class).encode(niciraNshch, context));
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SHA_TO_THA.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SPA_TO_TPA.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_IP_SRC_TO_DST.type())) {
+            MoveExtensionTreatment mov = (MoveExtensionTreatment) extensionTreatment;
+            root.set(NICIRA_MOVE, context.codec(MoveExtensionTreatment.class).encode(mov, context));
+        }
+
+        return root;
+    }
+
+    @Override
+    public ExtensionTreatment decode(ObjectNode json, CodecContext context) {
+        if (json == null || !json.isObject()) {
+            return null;
+        }
+
+        // parse extension type
+        int typeInt = nullIsIllegal(json.get(TYPE), TYPE + MISSING_MEMBER_MESSAGE).asInt();
+        ExtensionTreatmentType type = new ExtensionTreatmentType(typeInt);
+
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST.type())) {
+            return context.codec(NiciraSetTunnelDst.class).decode(json, context);
+        }
+
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
+            return context.codec(NiciraResubmit.class).decode(json, context);
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE.type())) {
+            return context.codec(NiciraResubmitTable.class).decode(json, context);
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
+            return context.codec(NiciraSetNshSpi.class).decode(json, context);
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SI.type())) {
+            return context.codec(NiciraSetNshSi.class).decode(json, context);
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH1.type())) {
+            return context.codec(NiciraSetNshContextHeader.class).decode(json, context);
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH2.type())) {
+            return context.codec(NiciraSetNshContextHeader.class).decode(json, context);
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH3.type())) {
+            return context.codec(NiciraSetNshContextHeader.class).decode(json, context);
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH4.type())) {
+            return context.codec(NiciraSetNshContextHeader.class).decode(json, context);
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SHA_TO_THA.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SPA_TO_TPA.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_IP_SRC_TO_DST.type())) {
+            return context.codec(MoveExtensionTreatment.class).decode(json, context);
         }
         throw new UnsupportedOperationException(
                 "Driver does not support extension type " + type.toString());

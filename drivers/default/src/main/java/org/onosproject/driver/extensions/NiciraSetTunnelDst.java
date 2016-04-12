@@ -54,7 +54,7 @@ public class NiciraSetTunnelDst extends AbstractExtension implements
      *
      * @param tunnelDst tunnel destination IPv4 address
      */
-    NiciraSetTunnelDst(Ip4Address tunnelDst) {
+    public NiciraSetTunnelDst(Ip4Address tunnelDst) {
         checkNotNull(tunnelDst);
         this.tunnelDst = tunnelDst;
     }

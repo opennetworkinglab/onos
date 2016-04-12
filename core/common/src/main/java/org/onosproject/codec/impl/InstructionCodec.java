@@ -57,6 +57,8 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
     protected static final String TRIBUTARY_PORT_NUMBER = "tributaryPortNumber";
     protected static final String TRIBUTARY_SLOT_LEN = "tributarySlotLength";
     protected static final String TRIBUTARY_SLOT_BITMAP = "tributarySlotBitmap";
+    protected static final String EXTENSION = "extension";
+    protected static final String DEVICE_ID = "deviceId";
 
     protected static final String MISSING_MEMBER_MESSAGE =
             " member is required in Instruction";

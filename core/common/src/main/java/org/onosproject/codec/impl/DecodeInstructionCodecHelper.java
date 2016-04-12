@@ -15,20 +15,28 @@
  */
 package org.onosproject.codec.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.HexString;
+import org.onosproject.codec.ExtensionTreatmentCodec;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
@@ -37,13 +45,16 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.meter.MeterId;
+import org.slf4j.Logger;
 
 import static org.onlab.util.Tools.nullIsIllegal;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Decoding portion of the instruction codec.
  */
 public final class DecodeInstructionCodecHelper {
+    protected static final Logger log = getLogger(DecodeInstructionCodecHelper.class);
     private final ObjectNode json;
 
     /**
@@ -227,6 +238,45 @@ public final class DecodeInstructionCodecHelper {
     }
 
     /**
+     * Decodes a extension instruction.
+     *
+     * @return extension treatment
+     */
+    private Instruction decodeExtension() {
+        ObjectNode node = (ObjectNode) json.get(InstructionCodec.EXTENSION);
+        if (node != null) {
+            DeviceId deviceId = getDeviceId();
+
+            ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
+            DeviceService deviceService = serviceDirectory.get(DeviceService.class);
+            Device device = deviceService.getDevice(deviceId);
+
+            if (device.is(ExtensionTreatmentCodec.class)) {
+                ExtensionTreatmentCodec treatmentCodec = device.as(ExtensionTreatmentCodec.class);
+                ExtensionTreatment treatment = treatmentCodec.decode(node, null);
+                return Instructions.extension(treatment, deviceId);
+            } else {
+                log.warn("There is no codec to decode extension for device {}", deviceId.toString());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns device identifier.
+     *
+     * @return device identifier
+     * @throws IllegalArgumentException if the JSON is invalid
+     */
+    private DeviceId getDeviceId() {
+        JsonNode deviceIdNode = json.get(InstructionCodec.DEVICE_ID);
+        if (deviceIdNode != null) {
+            return DeviceId.deviceId(deviceIdNode.asText());
+        }
+        throw new IllegalArgumentException("Empty device identifier");
+    }
+
+    /**
      * Extracts port number of the given json node.
      *
      * @param jsonNode json node
@@ -290,6 +340,8 @@ public final class DecodeInstructionCodecHelper {
             return decodeL3();
         } else if (type.equals(Instruction.Type.L4MODIFICATION.name())) {
             return decodeL4();
+        } else if (type.equals(Instruction.Type.EXTENSION.name())) {
+            return decodeExtension();
         }
         throw new IllegalArgumentException("Instruction type "
                 + type + " is not supported");
