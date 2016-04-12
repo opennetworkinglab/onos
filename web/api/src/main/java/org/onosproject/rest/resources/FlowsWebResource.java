@@ -244,6 +244,8 @@ public class FlowsWebResource extends AbstractWebResource {
 
     /**
      * Removes a batch of flow rules.
+     *
+     * @param stream stream for posted JSON
      */
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)

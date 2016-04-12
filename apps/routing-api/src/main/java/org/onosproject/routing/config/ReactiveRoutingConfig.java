@@ -99,6 +99,7 @@ public class ReactiveRoutingConfig extends Config<ApplicationId> {
     /**
      *  Gets of the virtual gateway MAC address.
      *
+     * @return virtual gateway MAC address
      */
     public MacAddress virtualGatewayMacAddress() {
         return MacAddress.valueOf(
