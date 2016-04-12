@@ -3,4 +3,16 @@
      ng-click="mastCtrl.toggleNav()"></div>
 <img class="logo" src="data/img/onos-logo.png">
 <span class="title">Open Network Operating System</span>
-<div id="mast-right"><a href="rs/logout">logout</a></div>
+<div id="mast-right">
+
+    <nav>
+        <div class="dropdown-parent">
+            <a class="user-menu__name">{{user}} <i class="dropdown-icon"></i></a>
+
+            <div class="dropdown">
+                <a href="rs/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+</div>

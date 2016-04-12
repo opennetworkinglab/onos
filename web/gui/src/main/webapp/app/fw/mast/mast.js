@@ -33,10 +33,10 @@
         };
 
         angular.module('onosMast', ['onosNav'])
-        .controller('MastCtrl', ['$log', '$window', 'NavService',
-                                    'DialogService', 'WebSocketService',
+        .controller('MastCtrl', ['$log', '$scope', '$window', 'WebSocketService', 'NavService',
+                                    'DialogService',
 
-        function (_$log_, $window, ns, ds, wss) {
+        function (_$log_, $scope, $window, wss, ns, ds) {
             var self = this;
 
             $log = _$log_;
@@ -78,6 +78,8 @@
             self.toggleNav = function () {
                 ns.toggleNav();
             };
+
+            $scope.user = onosAuth || '(no one)';
 
             $log.log('MastCtrl has been created');
         }])
