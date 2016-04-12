@@ -5,7 +5,6 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
-
 ]
 
 TEST_DEPS = [
@@ -18,8 +17,8 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    title = 'Proxy ARP/NDP App',
+    title = 'Segment Routing App',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
-    description = 'Proxy ARP/NDP application.',
+    description = 'Segment routing application.',
 )
