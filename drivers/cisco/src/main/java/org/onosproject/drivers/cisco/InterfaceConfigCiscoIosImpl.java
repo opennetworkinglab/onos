@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -168,14 +169,14 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
     }
 
     /**
-     * Configures an interface as trunk for VLAN.
+     *  Configures an interface as trunk for VLANs.
      * @param deviceId the device ID
      * @param intf the name of the interface
-     * @param vlanId the VLAN ID
+     * @param vlanIds the VLAN IDs
      * @return the result of operation
      */
     @Override
-    public boolean addTrunkInterface(DeviceId deviceId, String intf, VlanId vlanId) {
+    public boolean addTrunkInterface(DeviceId deviceId, String intf, List<VlanId> vlanIds) {
         NetconfController controller = checkNotNull(handler()
                                        .get(NetconfController.class));
 
@@ -183,10 +184,10 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
                                  .data().deviceId()).getSession();
         String reply;
         try {
-            reply = session.requestSync(addTrunkInterfaceBuilder(intf, vlanId));
+            reply = session.requestSync(addTrunkInterfaceBuilder(intf, vlanIds));
         } catch (NetconfException e) {
             log.error("Failed to configure trunk mode for VLAN ID {} on device {} interface {}.",
-                      vlanId, deviceId, intf, e);
+                      vlanIds, deviceId, intf, e);
             return false;
         }
 
@@ -195,12 +196,12 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
     }
 
     /**
-     * Builds a request to configure an interface as trunk for VLAN.
+     * Builds a request to configure an interface as trunk for VLANs.
      * @param intf the name of the interface
-     * @param vlanId the VLAN ID
+     * @param vlanIds the VLAN IDs
      * @return the request string.
      */
-    private String addTrunkInterfaceBuilder(String intf, VlanId vlanId) {
+    private String addTrunkInterfaceBuilder(String intf, List<VlanId> vlanIds) {
         StringBuilder rpc =
                 new StringBuilder("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" ");
         rpc.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
@@ -217,7 +218,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
         rpc.append("<switchport><trunk><encapsulation><dot1q/></encapsulation>");
         rpc.append("</trunk></switchport><switchport><trunk><allowed><vlan>");
         rpc.append("<VLANIDsAllowedVLANsPortTrunkingMode>");
-        rpc.append(vlanId);
+        rpc.append(getVlansString(vlanIds));
         rpc.append("</VLANIDsAllowedVLANsPortTrunkingMode></vlan></allowed></trunk>");
         rpc.append("</switchport><switchport><mode><trunk/></mode></switchport>");
         rpc.append("</ConfigIf-Configuration>");
@@ -232,14 +233,14 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
     }
 
     /**
-     *  Removes trunk mode configuration for VLAN from an interface.
+     *  Removes trunk mode configuration for VLANs from an interface.
      * @param deviceId the device ID
      * @param intf the name of the interface
-     * @param vlanId the VLAN ID
+     * @param vlanIds the VLAN IDs
      * @return the result of operation
      */
     @Override
-    public boolean removeTrunkInterface(DeviceId deviceId, String intf, VlanId vlanId) {
+    public boolean removeTrunkInterface(DeviceId deviceId, String intf, List<VlanId> vlanIds) {
         NetconfController controller = checkNotNull(handler()
                                        .get(NetconfController.class));
 
@@ -247,10 +248,10 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
                              .data().deviceId()).getSession();
     String reply;
     try {
-        reply = session.requestSync(removeTrunkInterfaceBuilder(intf, vlanId));
+        reply = session.requestSync(removeTrunkInterfaceBuilder(intf, vlanIds));
     } catch (NetconfException e) {
         log.error("Failed to remove trunk mode for VLAN ID {} on device {} interface {}.",
-                  vlanId, deviceId, intf, e);
+                  vlanIds, deviceId, intf, e);
         return false;
     }
 
@@ -259,12 +260,12 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
 }
 
     /**
-     * Builds a request to remove trunk mode configuration for VLAN from an interface.
+     * Builds a request to remove trunk mode configuration for VLANs from an interface.
      * @param intf the name of the interface
-     * @param vlanId the VLAN ID
+     * @param vlanIds the VLAN IDs
      * @return the request string.
      */
-    private String removeTrunkInterfaceBuilder(String intf, VlanId vlanId) {
+    private String removeTrunkInterfaceBuilder(String intf, List<VlanId> vlanIds) {
         StringBuilder rpc =
                 new StringBuilder("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" ");
         rpc.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
@@ -283,7 +284,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
         rpc.append("<dot1q/></encapsulation></trunk></switchport>");
         rpc.append("<switchport><trunk operation=\"delete\"><allowed><vlan>");
         rpc.append("<VLANIDsAllowedVLANsPortTrunkingMode>");
-        rpc.append(vlanId);
+        rpc.append(getVlansString(vlanIds));
         rpc.append("</VLANIDsAllowedVLANsPortTrunkingMode></vlan></allowed>");
         rpc.append("</trunk></switchport></ConfigIf-Configuration>");
         rpc.append("</interface>");
@@ -294,6 +295,24 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
         rpc.append("</rpc>");
 
         return rpc.toString();
+    }
+
+    /**
+     * Builds a string with comma separated VLAN-IDs.
+     * @param vlanIds the VLAN IDs
+     * @return the string including the VLAN-IDs
+     */
+    private String getVlansString(List<VlanId> vlanIds) {
+        StringBuilder vlansStringBuilder = new StringBuilder();
+
+        for (int i = 0; i < vlanIds.size(); i++) {
+            vlansStringBuilder.append(vlanIds.get(i));
+
+            if (i != vlanIds.size() - 1) {
+                vlansStringBuilder.append(",");
+            }
+        }
+        return  vlansStringBuilder.toString();
     }
 
 }

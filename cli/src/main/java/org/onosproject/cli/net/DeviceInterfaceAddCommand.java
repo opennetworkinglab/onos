@@ -25,6 +25,9 @@ import org.onosproject.net.behaviour.InterfaceConfig;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Configures a device interface.
  */
@@ -36,6 +39,8 @@ public class DeviceInterfaceAddCommand extends AbstractShellCommand {
             "VLAN %s added on device %s interface %s.";
     private static final String CONFIG_VLAN_FAILURE =
             "Failed to add VLAN %s on device %s interface %s.";
+    private static final String ONE_VLAN_ALLOWED =
+            "Only one VLAN allowed for access mode on device %s interface %s.";
 
     private static final String CONFIG_TRUNK_SUCCESS =
             "Trunk mode added for VLAN %s on device %s interface %s.";
@@ -53,11 +58,11 @@ public class DeviceInterfaceAddCommand extends AbstractShellCommand {
 
     @Argument(index = 2, name = "vlan",
             description = "VLAN ID",
-            required = true, multiValued = false)
-    private String vlanString = null;
+            required = true, multiValued = true)
+    private String[] vlanStrings = null;
 
     @Option(name = "-t", aliases = "--trunk",
-            description = "Configure interface as trunk for VLAN",
+            description = "Configure interface as trunk for VLAN(s)",
             required = false, multiValued = false)
     private boolean trunkMode = false;
 
@@ -68,23 +73,31 @@ public class DeviceInterfaceAddCommand extends AbstractShellCommand {
         DriverHandler h = service.createHandler(deviceId);
         InterfaceConfig interfaceConfig = h.behaviour(InterfaceConfig.class);
 
-        VlanId vlanId = VlanId.vlanId(Short.parseShort(vlanString));
+        List<VlanId> vlanIds = new ArrayList<>();
+        for (String vlanString : vlanStrings) {
+            vlanIds.add(VlanId.vlanId(Short.parseShort(vlanString)));
+        }
 
         if (trunkMode) {
             // Trunk mode to be enabled for VLAN.
-            if (interfaceConfig.addTrunkInterface(deviceId, portName, vlanId)) {
-                print(CONFIG_TRUNK_SUCCESS, vlanId, deviceId, portName);
+            if (interfaceConfig.addTrunkInterface(deviceId, portName, vlanIds)) {
+                print(CONFIG_TRUNK_SUCCESS, vlanIds, deviceId, portName);
             } else {
-                print(CONFIG_TRUNK_FAILURE, vlanId, deviceId, portName);
+                print(CONFIG_TRUNK_FAILURE, vlanIds, deviceId, portName);
             }
             return;
         }
 
-        // VLAN to be added to interface.
-        if (interfaceConfig.addInterfaceToVlan(deviceId, portName, vlanId)) {
-            print(CONFIG_VLAN_SUCCESS, vlanId, deviceId, portName);
+        // Access mode to be enabled for VLAN.
+        if (vlanIds.size() != 1) {
+            print(ONE_VLAN_ALLOWED, deviceId, portName);
+            return;
+        }
+        VlanId accessVlanId = vlanIds.get(0);
+        if (interfaceConfig.addInterfaceToVlan(deviceId, portName, accessVlanId)) {
+            print(CONFIG_VLAN_SUCCESS, accessVlanId, deviceId, portName);
         } else {
-            print(CONFIG_VLAN_FAILURE, vlanId, deviceId, portName);
+            print(CONFIG_VLAN_FAILURE, accessVlanId, deviceId, portName);
         }
     }
 

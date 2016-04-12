@@ -25,6 +25,9 @@ import org.onosproject.net.behaviour.InterfaceConfig;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Removes configured interface from a device.
  */
@@ -36,6 +39,8 @@ public class DeviceInterfaceRemoveCommand extends AbstractShellCommand {
             "VLAN %s removed from device %s interface %s.";
     private static final String REMOVE_VLAN_FAILURE =
             "Failed to remove VLAN %s from device %s interface %s.";
+    private static final String ONE_VLAN_ALLOWED =
+            "Only one VLAN allowed for access mode on device %s interface %s.";
 
     private static final String REMOVE_TRUNK_SUCCESS =
             "Trunk mode removed for VLAN %s on device %s interface %s.";
@@ -53,11 +58,11 @@ public class DeviceInterfaceRemoveCommand extends AbstractShellCommand {
 
     @Argument(index = 2, name = "vlan",
             description = "VLAN ID",
-            required = true, multiValued = false)
-    private String vlanString = null;
+            required = true, multiValued = true)
+    private String[] vlanStrings = null;
 
     @Option(name = "-t", aliases = "--trunk",
-            description = "Remove trunk mode for VLAN",
+            description = "Remove trunk mode for VLAN(s)",
             required = false, multiValued = false)
     private boolean trunkMode = false;
 
@@ -68,23 +73,31 @@ public class DeviceInterfaceRemoveCommand extends AbstractShellCommand {
         DriverHandler h = service.createHandler(deviceId);
         InterfaceConfig interfaceConfig = h.behaviour(InterfaceConfig.class);
 
-        VlanId vlanId = VlanId.vlanId(Short.parseShort(vlanString));
+        List<VlanId> vlanIds = new ArrayList<>();
+        for (String vlanString : vlanStrings) {
+            vlanIds.add(VlanId.vlanId(Short.parseShort(vlanString)));
+        }
 
         if (trunkMode) {
             // Trunk mode for VLAN to be removed.
-            if (interfaceConfig.removeTrunkInterface(deviceId, portName, vlanId)) {
-                print(REMOVE_TRUNK_SUCCESS, vlanId, deviceId, portName);
+            if (interfaceConfig.removeTrunkInterface(deviceId, portName, vlanIds)) {
+                print(REMOVE_TRUNK_SUCCESS, vlanIds, deviceId, portName);
             } else {
-                print(REMOVE_TRUNK_FAILURE, vlanId, deviceId, portName);
+                print(REMOVE_TRUNK_FAILURE, vlanIds, deviceId, portName);
             }
             return;
         }
 
-        // Interface to be removed from VLAN.
-        if (interfaceConfig.removeInterfaceFromVlan(deviceId, portName, vlanId)) {
-            print(REMOVE_VLAN_SUCCESS, vlanId, deviceId, portName);
+        // Access mode for VLAN to be removed.
+        if (vlanIds.size() != 1) {
+            print(ONE_VLAN_ALLOWED, deviceId, portName);
+            return;
+        }
+        VlanId accessVlanId = vlanIds.get(0);
+        if (interfaceConfig.removeInterfaceFromVlan(deviceId, portName, accessVlanId)) {
+            print(REMOVE_VLAN_SUCCESS, accessVlanId, deviceId, portName);
         } else {
-            print(REMOVE_VLAN_FAILURE, vlanId, deviceId, portName);
+            print(REMOVE_VLAN_FAILURE, accessVlanId, deviceId, portName);
         }
     }
 
