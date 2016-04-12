@@ -42,19 +42,25 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
+import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUnion;
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.UNION_DATA;
@@ -64,6 +70,11 @@ import static org.onosproject.yangutils.utils.YangConstructType.UNION_DATA;
  * defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class UnionListener {
+
+    /**
+     * Suffix to be used while creating union class.
+     */
+    private static final String UNION_CLASS_SUFFIX = "_union";
 
     /**
      * Creates a new union listener.
@@ -95,15 +106,47 @@ public final class UnionListener {
 
             switch (tmpData.getYangConstructType()) {
                 case LEAF_DATA:
-                    unionNode.setUnionName(((YangLeaf) tmpData).getLeafName());
+                    // Set the name of union same as leaf.
+                    unionNode.setName(((YangLeaf) tmpData).getLeafName() + UNION_CLASS_SUFFIX);
+                    // Pop the stack entry to obtain the parent YANG node.
+                    Parsable leaf = listener.getParsedDataStack().pop();
+                    // Add the union node to the parent holder of leaf.
+                    addChildToParentNode(listener, unionNode);
+                    // Push the popped entry back to the stack.
+                    listener.getParsedDataStack().push(leaf);
                     break;
                 case LEAF_LIST_DATA:
-                    unionNode.setUnionName(((YangLeafList) tmpData).getLeafName());
+                    // Set the name of union same as leaf list.
+                    unionNode.setName(((YangLeafList) tmpData).getLeafName() + UNION_CLASS_SUFFIX);
+                    // Pop the stack entry to obtain the parent YANG node.
+                    Parsable leafList = listener.getParsedDataStack().pop();
+                    // Add the union node to the parent holder of leaf.
+                    addChildToParentNode(listener, unionNode);
+                    // Push the popped entry back to the stack.
+                    listener.getParsedDataStack().push(leafList);
                     break;
                 case UNION_DATA:
-                    unionNode.setUnionName(((YangUnion) tmpData).getUnionName());
+                    YangUnion parentUnion = (YangUnion) tmpData;
+                    /*
+                     * In case parent of union is again a union, name of the
+                     * child union is parent union name suffixed with running
+                     * integer number, this is done because under union there
+                     * could be multiple child union types.
+                     */
+                    unionNode.setName(parentUnion.getName() + UNION_CLASS_SUFFIX + parentUnion.getChildUnionNumber());
+                    // Increment the running number.
+                    parentUnion.setChildUnionNumber(parentUnion.getChildUnionNumber() + 1);
+                    // Add union as a child to parent union.
+                    addChildToParentNode(listener, unionNode);
                     break;
-                // TODO typedef, deviate.
+                case TYPEDEF_DATA:
+                    YangTypeDef typeDef = (YangTypeDef) tmpData;
+                    // Set the name of union same as typedef name.
+                    unionNode.setName(typeDef.getName() + UNION_CLASS_SUFFIX);
+                    // Add union as a child to parent type def.
+                    addChildToParentNode(listener, unionNode);
+                    break;
+                // TODO deviate.
                 default:
                     throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, TYPE_DATA,
                             ((YangType<?>) typeData).getDataTypeName(), ENTRY));
@@ -150,6 +193,27 @@ public final class UnionListener {
         } else {
             throw new ParserException(
                     constructListenerErrorMessage(MISSING_CURRENT_HOLDER, UNION_DATA, "", EXIT));
+        }
+    }
+
+    /**
+     * Adds the union node to the parent holder.
+     *
+     * @param listener listener's object
+     * @param unionNode union node which needs to be added to parent
+     */
+    private static void addChildToParentNode(TreeWalkListener listener, YangUnion unionNode) {
+        if (!(listener.getParsedDataStack().peek() instanceof YangNode)) {
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, UNION_DATA,
+                    "", ENTRY));
+        } else {
+            YangNode curNode = (YangNode) listener.getParsedDataStack().peek();
+            try {
+                curNode.addChild(unionNode);
+            } catch (DataModelException e) {
+                throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
+                        YangConstructType.UNION_DATA, "", ENTRY, e.getMessage()));
+            }
         }
     }
 }

@@ -95,6 +95,11 @@ public enum YangNodeType {
     RPC_NODE,
 
     /**
+     * Node contains "YANG's union" information.
+     */
+    UNION_NODE,
+
+    /**
      * Node contains "YANG's list" information.
      */
     LIST_NODE

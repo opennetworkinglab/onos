@@ -16,30 +16,20 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
-
 import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
-import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
+import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfNode;
 
 /**
  * Represents choice information extended to support java code generation.
  */
-public class YangJavaChoice extends YangChoice
-        implements JavaCodeGenerator, HasJavaFileInfo,
-        HasJavaImportData, HasTempJavaCodeFragmentFiles {
+public class YangJavaChoice extends YangChoice implements JavaCodeGeneratorInfo, JavaCodeGenerator {
 
     /**
      * Contains the information of the java file being generated.
@@ -75,7 +65,6 @@ public class YangJavaChoice extends YangChoice
      */
     @Override
     public JavaFileInfo getJavaFileInfo() {
-
         if (javaFileInfo == null) {
             throw new TranslatorException("Missing java info in java datamodel node");
         }
@@ -142,28 +131,12 @@ public class YangJavaChoice extends YangChoice
      */
     @Override
     public void generateCodeEntry(String codeGenDir) throws IOException {
-
-        getJavaFileInfo().setJavaName(getCaptialCase(getCamelCase(getName())));
-        getJavaFileInfo().setPackage(getCurNodePackage(this));
-        getJavaFileInfo().setPackageFilePath(
-                getPackageDirPathFromJavaJPackage(getJavaFileInfo().getPackage()));
-        getJavaFileInfo().setBaseCodeGenPath(codeGenDir);
-
-        String absloutePath = getAbsolutePackagePath(
-                getJavaFileInfo().getBaseCodeGenPath(),
-                getJavaFileInfo().getPackageFilePath());
-
-        setTempJavaCodeFragmentFiles(new TempJavaCodeFragmentFiles(
-                getJavaFileInfo().getGeneratedFileTypes(), absloutePath,
-                getJavaFileInfo().getJavaName()));
-
-        //        TODO:getTempJavaCodeFragmentFiles().addCurNodeLeavesInfoToTempFiles(this);
-
-        getTempJavaCodeFragmentFiles().addCurNodeInfoInParentTempFile(this, false);
+        generateCodeOfNode(this, codeGenDir, false);
+        // TODO:getTempJavaCodeFragmentFiles().addCurNodeLeavesInfoToTempFiles(this);
     }
 
     /**
-     * Create a java file using the YANG grouping info.
+     * Creates a java file using the YANG grouping info.
      */
     @Override
     public void generateCodeExit() {

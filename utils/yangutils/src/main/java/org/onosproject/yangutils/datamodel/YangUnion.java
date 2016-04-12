@@ -16,12 +16,12 @@
 
 package org.onosproject.yangutils.datamodel;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /*
  * Reference RFC 6020.
@@ -48,19 +48,24 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Represents data model node to maintain information defined in YANG union.
  */
-public class YangUnion implements Parsable {
+public class YangUnion extends YangNode implements Parsable {
 
     // List of YANG type.
     private List<YangType<?>> typeList;
 
     // Name of union.
-    private String unionName;
+    private String name;
+
+    // Current child union number.
+    private int childUnionNumber;
 
     /**
      * Creates a YANG union node.
      */
     public YangUnion() {
+        super(YangNodeType.UNION_NODE);
         typeList = new LinkedList<>();
+        childUnionNumber = 1;
     }
 
     /**
@@ -73,15 +78,6 @@ public class YangUnion implements Parsable {
     }
 
     /**
-     * Returns union name.
-     *
-     * @return the union name
-     */
-    public String getUnionName() {
-        return unionName;
-    }
-
-    /**
      * Sets the list of YANG type.
      *
      * @param typeList list of YANG type.
@@ -91,13 +87,31 @@ public class YangUnion implements Parsable {
     }
 
     /**
-     * Adds YANG type to type list.
+     * Returns running child union number.
+     *
+     * @return running child union number
+     */
+    public int getChildUnionNumber() {
+        return childUnionNumber;
+    }
+
+    /**
+     * Sets the running child union number.
+     *
+     * @param childUnionNumber running child union number
+     */
+    public void setChildUnionNumber(int childUnionNumber) {
+        this.childUnionNumber = childUnionNumber;
+    }
+
+    /**
+     * Add YANG type to type list.
      *
      * @param yangType YANG type to be added to list
      * @throws DataModelException union member type must not be one of the
      * built-in types "empty" or "leafref"
      */
-    public void addToTypeList(YangType<?> yangType) throws DataModelException {
+    public void addType(YangType<?> yangType) throws DataModelException {
         if (yangType.getDataType() == YangDataTypes.EMPTY || yangType.getDataType() == YangDataTypes.LEAFREF) {
             throw new DataModelException("Union member type must not be one of the built-in types \"empty\" or " +
                     "\"leafref\"");
@@ -106,12 +120,23 @@ public class YangUnion implements Parsable {
     }
 
     /**
+     * Returns union name.
+     *
+     * @return the union name
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    /**
      * Sets the union name.
      *
-     * @param unionName name of the union.
+     * @param name union name
      */
-    public void setUnionName(String unionName) {
-        this.unionName = unionName;
+    @Override
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

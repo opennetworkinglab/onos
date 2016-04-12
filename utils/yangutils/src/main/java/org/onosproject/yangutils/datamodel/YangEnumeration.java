@@ -31,18 +31,19 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Represents the enumeration data type information.
  */
-public class YangEnumeration implements Parsable {
+public class YangEnumeration extends YangNode implements Parsable {
 
     // Enumeration info set.
     private Set<YangEnum> enumSet;
 
     // Enumeration name.
-    private String enumerationName;
+    private String name;
 
     /**
      * Creates an enumeration object.
      */
     public YangEnumeration() {
+        super(YangNodeType.ENUMERATION_NODE);
         setEnumSet(new HashSet<YangEnum>());
     }
 
@@ -77,21 +78,23 @@ public class YangEnumeration implements Parsable {
     }
 
     /**
-     * Return enumeration name.
+     * Returns enumeration name.
      *
      * @return the enumeration name
      */
-    public String getEnumerationName() {
-        return enumerationName;
+    @Override
+    public String getName() {
+        return name;
     }
 
     /**
      * Sets the enumeration name.
      *
-     * @param enumerationName enumeration name
+     * @param name enumeration name
      */
-    public void setEnumerationName(String enumerationName) {
-        this.enumerationName = enumerationName;
+    @Override
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**

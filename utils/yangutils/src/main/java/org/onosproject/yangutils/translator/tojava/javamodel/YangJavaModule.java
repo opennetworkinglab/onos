@@ -16,30 +16,21 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
-
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
-import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
  * Represents module information extended to support java code generation.
  */
-public class YangJavaModule extends YangModule
-        implements JavaCodeGenerator, HasJavaFileInfo,
-        HasJavaImportData, HasTempJavaCodeFragmentFiles {
+public class YangJavaModule extends YangModule implements JavaCodeGeneratorInfo, JavaCodeGenerator {
 
     /**
      * Contains the information of the java file being generated.
@@ -59,7 +50,7 @@ public class YangJavaModule extends YangModule
     private TempJavaCodeFragmentFiles tempFileHandle;
 
     /**
-     * Create a YANG node of module type.
+     * Creates a YANG node of module type.
      */
     public YangJavaModule() {
         super();
@@ -75,7 +66,6 @@ public class YangJavaModule extends YangModule
      */
     @Override
     public JavaFileInfo getJavaFileInfo() {
-
         if (javaFileInfo == null) {
             throw new TranslatorException("Missing java info in java datamodel node");
         }
@@ -141,23 +131,8 @@ public class YangJavaModule extends YangModule
      */
     @Override
     public void generateCodeEntry(String baseCodeGenDir) throws IOException {
-
-        getJavaFileInfo().setJavaName(getCaptialCase(getCamelCase(getName())));
-        getJavaFileInfo().setPackage(getRootPackage(getVersion(), getNameSpace().getUri(),
-                getRevision().getRevDate()));
-        getJavaFileInfo().setPackageFilePath(
-                getPackageDirPathFromJavaJPackage(getJavaFileInfo().getPackage()));
-        getJavaFileInfo().setBaseCodeGenPath(baseCodeGenDir);
-
-        String absloutePath = getAbsolutePackagePath(
-                getJavaFileInfo().getBaseCodeGenPath(),
-                getJavaFileInfo().getPackageFilePath());
-
-        setTempJavaCodeFragmentFiles(new TempJavaCodeFragmentFiles(
-                getJavaFileInfo().getGeneratedFileTypes(), absloutePath,
-                getJavaFileInfo().getJavaName()));
-
-        getTempJavaCodeFragmentFiles().addCurNodeLeavesInfoToTempFiles(this);
+        String modulePkg = getRootPackage(getVersion(), getNameSpace().getUri(), getRevision().getRevDate());
+        YangJavaModelUtils.generateCodeOfRootNode(this, baseCodeGenDir, modulePkg);
     }
 
     @Override

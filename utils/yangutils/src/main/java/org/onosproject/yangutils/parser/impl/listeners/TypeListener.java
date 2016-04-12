@@ -204,7 +204,7 @@ public final class TypeListener {
             case UNION_DATA:
                 YangUnion unionNode = (YangUnion) tmpData;
                 try {
-                    unionNode.addToTypeList((YangType<?>) type);
+                    unionNode.addType((YangType<?>) type);
                 } catch (DataModelException e) {
                     ParserException parserException = new ParserException(e.getMessage());
                     parserException.setLine(ctx.getStart().getLine());

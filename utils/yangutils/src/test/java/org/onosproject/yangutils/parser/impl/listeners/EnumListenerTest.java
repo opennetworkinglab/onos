@@ -64,8 +64,8 @@ public class EnumListenerTest {
         assertThat(leafInfo.getLeafName(), is("speed"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("enumeration"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.ENUMERATION));
-        assertThat(((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getEnumerationName(),
-                is("speed"));
+        assertThat(((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getName(),
+                is("speed_enum"));
 
         Set<YangEnum> enumSet = ((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getEnumSet();
         for (YangEnum tmp : enumSet) {
