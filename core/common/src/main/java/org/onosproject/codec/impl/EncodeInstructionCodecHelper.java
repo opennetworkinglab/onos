@@ -260,6 +260,12 @@ public final class EncodeInstructionCodecHelper {
                 result.put(InstructionCodec.METER_ID, meterInstruction.meterId().toString());
                 break;
 
+            case TABLE:
+                final Instructions.TableTypeTransition tableTransitionInstruction =
+                        (Instructions.TableTypeTransition) instruction;
+                result.put(InstructionCodec.TABLE_ID, tableTransitionInstruction.tableId().toString());
+                break;
+
             case QUEUE:
                 final Instructions.SetQueueInstruction setQueueInstruction =
                         (Instructions.SetQueueInstruction) instruction;

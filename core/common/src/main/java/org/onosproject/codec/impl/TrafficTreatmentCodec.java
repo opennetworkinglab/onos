@@ -49,6 +49,13 @@ public final class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
             jsonInstructions.add(instructionCodec.encode(instruction, context));
         }
 
+        if (treatment.metered() != null) {
+            jsonInstructions.add(instructionCodec.encode(treatment.metered(), context));
+        }
+        if (treatment.tableTransition() != null) {
+            jsonInstructions.add(instructionCodec.encode(treatment.tableTransition(), context));
+        }
+
         final ArrayNode jsonDeferred = result.putArray("deferred");
 
         for (final Instruction instruction : treatment.deferred()) {
