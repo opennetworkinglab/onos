@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  */
 
 /**
- * Infrastructure alarm model &amp; related services implementation.
+ * Infrastructure alarm store &amp; related services API definitions.
  */
-package org.onosproject.faultmanagement.impl;
+package org.onosproject.faultmanagement.api;

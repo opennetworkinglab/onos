@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
+package org.onosproject.faultmanagement.api;
+
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEvent;
+import org.onosproject.store.StoreDelegate;
+
 /**
- * Infrastructure alarm model &amp; related services implementation.
+ * Infrastructure alarm store delegate abstraction.
  */
-package org.onosproject.faultmanagement.impl;
+public interface AlarmStoreDelegate extends StoreDelegate<AlarmEvent> {
+}
