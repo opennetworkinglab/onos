@@ -5,7 +5,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:jersey-client',
     '//lib:javax.ws.rs-api',
-    '//apps/openstackinterface:onos-app-openstackinterface-api',
+    '//apps/openstackinterface:onos-apps-openstackinterface-api',
     '//core/store/serializers:onos-core-serializers',
 ]
 

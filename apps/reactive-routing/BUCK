@@ -1,15 +1,16 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//incubator/api:onos-incubator-api',
+    '//apps/routing-api:onos-apps-routing-api',
 ]
 
-osgi_jar_with_tests (
+osgi_jar (
     deps = COMPILE_DEPS,
 )
 
 onos_app (
-    title = 'Virtual Router App',
+    title = 'SDN-IP Reactive Routing App',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
-    description = 'Virtual router (vRouter) application.',
+    description = 'SDN-IP reactive routing application.',
 )

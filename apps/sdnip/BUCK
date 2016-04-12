@@ -1,13 +1,12 @@
-SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/test/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-app-sdnip'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//incubator/api:onos-incubator-api',
     '//apps/routing-api:onos-apps-routing-api',
+]
+
+BUNDLES = [
+    '//apps/routing-api:onos-apps-routing-api',
+    '//apps/sdnip:onos-apps-sdnip',
 ]
 
 TEST_DEPS = [
@@ -16,18 +15,15 @@ TEST_DEPS = [
     '//apps/routing-api:onos-apps-routing-api-tests',
 ]
 
-java_library(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
+    test_deps = TEST_DEPS,
 )
 
-java_test(
-    name = 'tests',
-    srcs = glob([TEST + '/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS +
-           [CURRENT_TARGET],
-    source_under_test = [CURRENT_TARGET],
+onos_app (
+  title = 'SDN-IP App',
+  category = 'Utility',
+  url = 'http://onosproject.org',
+  included_bundles = BUNDLES,
+  description = 'SDN-IP peering application',
 )

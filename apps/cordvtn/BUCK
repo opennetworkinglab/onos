@@ -9,9 +9,19 @@ COMPILE_DEPS = [
     '//utils/rest:onlab-rest',
     '//cli:onos-cli',
     '//core/store/serializers:onos-core-serializers',
+    '//apps/openstackinterface:onos-apps-openstackinterface-api',
     '//apps/dhcp/api:onos-apps-dhcp-api',
     '//protocols/ovsdb/api:onos-ovsdb-api',
     '//protocols/ovsdb/rfc:onos-ovsdb-rfc',
+]
+
+BUNDLES = [
+    '//apps/openstackinterface:onos-apps-openstackinterface-api',
+    '//apps/cordvtn:onos-apps-cordvtn',
+]
+
+EXCLUDED_BUNDLES = [
+    '//lib:jsch', # TODO - needs wrap
 ]
 
 osgi_jar_with_tests (
@@ -19,4 +29,11 @@ osgi_jar_with_tests (
     web_context = '/onos/cordvtn',
 )
 
-#FIXME need onos_app
+onos_app (
+    title = 'CORD VTN REST API',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    excluded_bundles = EXCLUDED_BUNDLES,
+    description = 'APIs for interacting with the CORD VTN application.',
+)

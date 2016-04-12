@@ -8,7 +8,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/ovsdb/api:onos-ovsdb-api',
     '//protocols/ovsdb/rfc:onos-ovsdb-rfc',
-    '//apps/pcep-api:onos-app-pcep-api',
+    '//apps/pcep-api:onos-apps-pcep-api',
     '//incubator/api:onos-incubator-api',
     '//protocols/rest/api:onos-restsb-api',
     '//lib:javax.ws.rs-api',

@@ -1,14 +1,8 @@
-SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/test/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-pcep-provider-tunnel'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/ovsdb/api:onos-ovsdb-api',
     '//protocols/ovsdb/rfc:onos-ovsdb-rfc',
-    '//apps/pcep-api:onos-app-pcep-api',
+    '//apps/pcep-api:onos-apps-pcep-api',
     '//incubator/api:onos-incubator-api',
     '//protocols/pcep/pcepio:onos-pcep-pcepio',
     '//protocols/pcep/api:onos-pcep-controller-api',
@@ -18,18 +12,7 @@ TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
 ]
 
-osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
-)
-
-java_test(
-    name = 'tests',
-    srcs = glob([TEST + '/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS +
-           [CURRENT_TARGET],
-    source_under_test = [CURRENT_TARGET],
+    test_deps = TEST_DEPS,
 )

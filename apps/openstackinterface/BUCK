@@ -7,38 +7,26 @@ COMPILE_DEPS = [
     '//lib:javax.ws.rs-api',
 ]
 
-TEST_DEPS = [
-    '//lib:TEST',
+BUNDLES = [
+    '//apps/openstackinterface:onos-apps-openstackinterface-api',
+    # TODO - this doesn't actually work now, have to refactor the BUCK files into each sub directory
 ]
 
-java_library(
-    name = 'onos-app-openstackinterface-api',
+osgi_jar_with_tests (
+    name = 'onos-apps-openstackinterface-api',
     srcs = glob(['api/' + SRC + '*.java']),
     deps = COMPILE_DEPS,
     visibility = ['PUBLIC'],
 )
 
-java_test(
-    name = 'onos-app-openstackinterface-api-tests',
-    srcs = glob([TEST + '/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS +
-           [':onos-app-openstackinterface-api'],
-    source_under_test = [':onos-app-openstackinterface-api'],
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
 )
 
-java_library(
-    name = 'onos-app-openstackinterface-app',
-    srcs = glob(['app/' + SRC + '*.java']),
-    deps = COMPILE_DEPS + [':onos-app-openstackinterface-api'],
-    visibility = ['PUBLIC'],
-)
-
-java_test(
-    name = 'onos-app-openstackinterface-app-tests',
-    srcs = glob([TEST + '/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS +
-           [':onos-app-openstackinterface-api', ':onos-app-openstackinterface-app'],
-    source_under_test = [':onos-app-openstackinterface-app'],
+onos_app (
+    title = 'Authentication App',
+    category = 'Security',
+    url = 'http://onosproject.org',
+    description = 'ONOS authentication application.',
+    included_bundles = BUNDLES,
 )
