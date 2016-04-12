@@ -25,7 +25,6 @@ public class VlanIdTest {
 
     @Test
     public void testEquality() {
-
         VlanId vlan1 = VlanId.vlanId("None");
         VlanId vlan2 = VlanId.vlanId((short) -1);
         VlanId vlan3 = VlanId.vlanId((short) 100);
@@ -48,11 +47,15 @@ public class VlanIdTest {
         assertEquals("incorrect VLAN value", 10, vlan1.toShort());
         assertEquals("invalid untagged value", VlanId.UNTAGGED,
                      vlan2.toShort(), vlan3.toShort());
-
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testIllicitVLAN() {
+    public void testIllicitVlan() {
         VlanId.vlanId((short) 5000);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllicitVlanString() {
+        VlanId.vlanId("5000");
     }
 }

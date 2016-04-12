@@ -92,7 +92,7 @@ public final class VlanId extends Identifier<Short> {
             return new VlanId(ANY_VALUE);
         }
         try {
-            return new VlanId(Short.parseShort(value));
+            return VlanId.vlanId(Short.parseShort(value));
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(e);
         }
