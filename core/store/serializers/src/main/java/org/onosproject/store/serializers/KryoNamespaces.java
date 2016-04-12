@@ -157,6 +157,7 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.intent.ConnectivityIntent;
+import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
@@ -431,6 +432,7 @@ public final class KryoNamespaces {
                     OpticalPathIntent.class,
                     OpticalCircuitIntent.class,
                     OpticalOduIntent.class,
+                    FlowObjectiveIntent.class,
                     DiscreteResource.class,
                     ContinuousResource.class,
                     DiscreteResourceId.class,
