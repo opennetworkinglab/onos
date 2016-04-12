@@ -22,64 +22,64 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
 import org.onlab.packet.IPv4;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
-import org.onosproject.net.packet.PacketPriority;
-import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
-import org.onosproject.segmentrouting.config.DeviceConfiguration;
-import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
-import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
-import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
-import org.onosproject.segmentrouting.grouphandler.NeighborSet;
-import org.onosproject.segmentrouting.grouphandler.NeighborSetNextObjectiveStoreKey;
-import org.onosproject.segmentrouting.grouphandler.PortNextObjectiveStoreKey;
-import org.onosproject.mastership.MastershipService;
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.Link;
-import org.onosproject.net.Port;
-import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
+import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
+import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
+import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
+import org.onosproject.segmentrouting.grouphandler.NeighborSet;
+import org.onosproject.segmentrouting.grouphandler.NeighborSetNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.grouphandler.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.grouphandler.SubnetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.grouphandler.XConnectNextObjectiveStoreKey;
+import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.StorageService;
@@ -87,7 +87,6 @@ import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -103,11 +102,12 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkState;
 
-@Service
-@Component(immediate = true)
+
 /**
  * Segment routing manager.
  */
+@Service
+@Component(immediate = true)
 public class SegmentRoutingManager implements SegmentRoutingService {
 
     private static Logger log = LoggerFactory
@@ -225,7 +225,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private static int numOfHandlerExecution = 0;
     private static int numOfHandlerScheduled = 0;
 
-    private KryoNamespace.Builder kryoBuilder = null;
     /**
      * Segment Routing App ID.
      */
@@ -241,37 +240,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @Activate
     protected void activate() {
-        appId = coreService
-                .registerApplication(SR_APP_ID);
-
-        kryoBuilder = new KryoNamespace.Builder()
-            .register(NeighborSetNextObjectiveStoreKey.class,
-                    SubnetNextObjectiveStoreKey.class,
-                    SubnetAssignedVidStoreKey.class,
-                    NeighborSet.class,
-                    DeviceId.class,
-                    URI.class,
-                    WallClockTimestamp.class,
-                    org.onosproject.cluster.NodeId.class,
-                    HashSet.class,
-                    Tunnel.class,
-                    DefaultTunnel.class,
-                    Policy.class,
-                    TunnelPolicy.class,
-                    Policy.Type.class,
-                    VlanId.class,
-                    Ip4Address.class,
-                    Ip4Prefix.class,
-                    IpAddress.Version.class,
-                    ConnectPoint.class
-            );
+        appId = coreService.registerApplication(SR_APP_ID);
 
         log.debug("Creating EC map nsnextobjectivestore");
         EventuallyConsistentMapBuilder<NeighborSetNextObjectiveStoreKey, Integer>
                 nsNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
         nsNextObjStore = nsNextObjMapBuilder
                 .withName("nsnextobjectivestore")
-                .withSerializer(kryoBuilder)
+                .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
         log.trace("Current size {}", nsNextObjStore.size());
@@ -281,7 +257,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 subnetNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
         subnetNextObjStore = subnetNextObjMapBuilder
                 .withName("subnetnextobjectivestore")
-                .withSerializer(kryoBuilder)
+                .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
@@ -290,7 +266,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 portNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
         portNextObjStore = portNextObjMapBuilder
                 .withName("portnextobjectivestore")
-                .withSerializer(kryoBuilder)
+                .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
@@ -299,7 +275,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 xConnectNextObjStoreBuilder = storageService.eventuallyConsistentMapBuilder();
         xConnectNextObjStore = xConnectNextObjStoreBuilder
                 .withName("xconnectnextobjectivestore")
-                .withSerializer(kryoBuilder)
+                .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
@@ -307,7 +283,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 storageService.eventuallyConsistentMapBuilder();
         tunnelStore = tunnelMapBuilder
                 .withName("tunnelstore")
-                .withSerializer(kryoBuilder)
+                .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
@@ -315,7 +291,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 storageService.eventuallyConsistentMapBuilder();
         policyStore = policyMapBuilder
                 .withName("policystore")
-                .withSerializer(kryoBuilder)
+                .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
@@ -323,7 +299,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             subnetVidStoreMapBuilder = storageService.eventuallyConsistentMapBuilder();
         subnetVidStore = subnetVidStoreMapBuilder
                 .withName("subnetvidstore")
-                .withSerializer(kryoBuilder)
+                .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
@@ -353,6 +329,23 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgListener.configureNetwork();
 
         log.info("Started");
+    }
+
+    private KryoNamespace.Builder createSerializer() {
+        return new KryoNamespace.Builder()
+                .register(KryoNamespaces.API)
+                .register(NeighborSetNextObjectiveStoreKey.class,
+                        SubnetNextObjectiveStoreKey.class,
+                        SubnetAssignedVidStoreKey.class,
+                        NeighborSet.class,
+                        Tunnel.class,
+                        DefaultTunnel.class,
+                        Policy.class,
+                        TunnelPolicy.class,
+                        Policy.Type.class,
+                        PortNextObjectiveStoreKey.class,
+                        XConnectNextObjectiveStoreKey.class
+                );
     }
 
     @Deactivate
@@ -649,7 +642,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         .schedule(eventHandler, 100, TimeUnit.MILLISECONDS);
                 numOfHandlerScheduled++;
             }
-            log.trace("numOfEventsQueued {}, numOfEventHanlderScheduled {}",
+            log.trace("numOfEventsQueued {}, numOfEventHandlerScheduled {}",
                       numOfEventsQueued,
                       numOfHandlerScheduled);
         }
