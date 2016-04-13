@@ -36,13 +36,16 @@
         clusterIndex = -1,      // the instance to which we are connected
         connectRetries = 0,     // limit our attempts at reconnecting
         openListeners = {},     // registered listeners for websocket open()
-        nextListenerId = 1;     // internal ID for open listeners
+        nextListenerId = 1,     // internal ID for open listeners
+        loggedInUser = null;    // name of logged-in user
 
     // =======================
     // === Bootstrap Handler
 
     var builtinHandlers = {
         bootstrap: function (data) {
+            $log.debug('bootstrap data', data);
+            loggedInUser = data.user;
             clusterNodes = data.clusterNodes;
             clusterNodes.forEach(function (d, i) {
                 if (d.uiAttached) {
@@ -332,6 +335,7 @@
                 removeOpenListener: removeOpenListener,
                 sendEvent: sendEvent,
                 isConnected: function () { return wsUp; },
+                loggedInUser: function () { return loggedInUser || '(no-one)'; },
 
                 _setVeilDelegate: setVeilDelegate,
                 _setLoadingDelegate: setLoadingDelegate
