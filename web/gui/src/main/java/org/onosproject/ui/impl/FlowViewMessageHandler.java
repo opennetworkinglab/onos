@@ -156,7 +156,9 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 FlowEntry flow = (FlowEntry) value;
                 List<Instruction> instructions = flow.treatment().allInstructions();
 
-                if (instructions.isEmpty()) {
+                if (instructions.isEmpty()
+                        && flow.treatment().metered() == null
+                        && flow.treatment().tableTransition() == null) {
                     return "(No traffic treatment instructions for this flow)";
                 }
                 StringBuilder sb = new StringBuilder("Treatment Instructions: ");
