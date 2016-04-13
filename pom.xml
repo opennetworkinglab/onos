@@ -79,7 +79,7 @@
         <netty4.version>4.0.36.Final</netty4.version>
         <openflowj.version>0.9.3.onos-SNAPSHOT</openflowj.version>
         <onos-maven-plugin.version>1.9</onos-maven-plugin.version>
-        <osgi.version>4.3.1</osgi.version>
+        <osgi.version>5.0.0</osgi.version>
         <karaf.version>3.0.5</karaf.version>
         <jersey.version>2.22.2</jersey.version>
         <jackson.version>2.7.3</jackson.version>
