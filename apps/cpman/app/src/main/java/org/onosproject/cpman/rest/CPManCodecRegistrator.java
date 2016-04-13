@@ -47,6 +47,8 @@ public class CPManCodecRegistrator {
 
     @Deactivate
     public void deactivate() {
+        codecService.unregisterCodec(ControlLoad.class);
+
         log.info("Stopped");
     }
 }
