@@ -45,11 +45,6 @@
             <artifactId>onos-cli</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty</artifactId>
-            <version>3.9.0.Final</version>
-        </dependency>
 
         <dependency>
             <groupId>org.osgi</groupId>
