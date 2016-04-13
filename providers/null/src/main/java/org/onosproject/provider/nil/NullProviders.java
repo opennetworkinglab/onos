@@ -152,7 +152,7 @@ public class NullProviders {
             label = "Number of host to generate per device")
     private int hostCount = DEFAULT_HOST_COUNT;
 
-    private static final int DEFAULT_PACKET_RATE = 5;
+    private static final int DEFAULT_PACKET_RATE = 0;
     @Property(name = "packetRate", intValue = DEFAULT_PACKET_RATE,
             label = "Packet-in/s rate; 0 for no packets")
     private int packetRate = DEFAULT_PACKET_RATE;
