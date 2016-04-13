@@ -65,6 +65,7 @@ public class RouteManagerTest {
             PortNumber.portNumber(1));
 
     private static final IpPrefix V4_PREFIX1 = Ip4Prefix.valueOf("1.1.1.0/24");
+    private static final IpPrefix V4_PREFIX2 = Ip4Prefix.valueOf("2.2.2.0/24");
     private static final IpPrefix V6_PREFIX1 = Ip6Prefix.valueOf("4000::/64");
 
     private static final IpAddress V4_NEXT_HOP1 = Ip4Address.valueOf("192.168.10.1");
@@ -175,16 +176,16 @@ public class RouteManagerTest {
      * Tests adding routes to the route manager.
      */
     @Test
-    public void testIpv4RouteAdd() {
+    public void testRouteAdd() {
         Route route = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP1);
         ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1);
 
-        testRouteAdd(route, resolvedRoute);
+        verifyRouteAdd(route, resolvedRoute);
 
         route = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP1);
         resolvedRoute = new ResolvedRoute(route, MAC3);
 
-        testRouteAdd(route, resolvedRoute);
+        verifyRouteAdd(route, resolvedRoute);
     }
 
     /**
@@ -195,10 +196,10 @@ public class RouteManagerTest {
      * @param resolvedRoute resolved route that should be sent to the route
      *                      listener
      */
-    private void testRouteAdd(Route route, ResolvedRoute resolvedRoute) {
+    private void verifyRouteAdd(Route route, ResolvedRoute resolvedRoute) {
         reset(routeListener);
 
-        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, resolvedRoute));
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED, resolvedRoute));
 
         replay(routeListener);
 
@@ -216,31 +217,63 @@ public class RouteManagerTest {
         Route updatedRoute = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP2);
         ResolvedRoute updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2);
 
-        testRouteUpdated(route, updatedRoute, updatedResolvedRoute);
+        verifyRouteRemoveThenAdd(route, updatedRoute, updatedResolvedRoute);
+
+        // Different prefix pointing to the same next hop.
+        // In this case we expect to receive a ROUTE_UPDATED event.
+        route = new Route(Route.Source.STATIC, V4_PREFIX2, V4_NEXT_HOP1);
+        updatedRoute = new Route(Route.Source.STATIC, V4_PREFIX2, V4_NEXT_HOP2);
+        updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2);
+
+        verifyRouteUpdated(route, updatedRoute, updatedResolvedRoute);
 
         route = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP1);
         updatedRoute = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP2);
         updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC4);
 
-        testRouteUpdated(route, updatedRoute, updatedResolvedRoute);
+        verifyRouteRemoveThenAdd(route, updatedRoute, updatedResolvedRoute);
     }
 
     /**
-     * Tests updating a route and verifies that the correct events are sent to
-     * the route listener.
+     * Tests updating a route and verifies that the route listener receives a
+     * route remove event followed by a route add event.
      *
      * @param original original route
      * @param updated updated route
      * @param updatedResolvedRoute resolved route that is expected to be sent to
-     *                             the routelistener
+     *                             the route listener
      */
-    private void testRouteUpdated(Route original, Route updated,
-                                  ResolvedRoute updatedResolvedRoute) {
+    private void verifyRouteRemoveThenAdd(Route original, Route updated,
+                                          ResolvedRoute updatedResolvedRoute) {
         // First add the original route
         addRoute(original);
 
         routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, new ResolvedRoute(original, null)));
         expectLastCall().once();
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED, updatedResolvedRoute));
+        expectLastCall().once();
+
+        replay(routeListener);
+
+        routeManager.update(Collections.singleton(updated));
+
+        verify(routeListener);
+    }
+
+    /**
+     * Tests updating a route and verifies that the route listener receives a
+     * route updated event.
+     *
+     * @param original original route
+     * @param updated updated route
+     * @param updatedResolvedRoute resolved route that is expected to be sent to
+     *                             the route listener
+     */
+    private void verifyRouteUpdated(Route original, Route updated,
+                                    ResolvedRoute updatedResolvedRoute) {
+        // First add the original route
+        addRoute(original);
+
         routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, updatedResolvedRoute));
         expectLastCall().once();
 
@@ -255,14 +288,14 @@ public class RouteManagerTest {
      * Tests deleting routes from the route manager.
      */
     @Test
-    public void testIpv4RouteDelete() {
+    public void testRouteDelete() {
         Route route = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP1);
 
-        testDelete(route);
+        verifyDelete(route);
 
         route = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP1);
 
-        testDelete(route);
+        verifyDelete(route);
     }
 
     /**
@@ -271,7 +304,7 @@ public class RouteManagerTest {
      *
      * @param route route to delete
      */
-    private void testDelete(Route route) {
+    private void verifyDelete(Route route) {
         addRoute(route);
 
         RouteEvent withdrawRouteEvent = new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
@@ -288,7 +321,8 @@ public class RouteManagerTest {
     }
 
     /**
-     * Tests adding a route entry with asynchronous HostService replies.
+     * Tests adding a route entry where the HostService does not immediately
+     * know the MAC address of the next hop, but this is learnt later.
      */
     @Test
     public void testAsyncRouteAdd() {
@@ -311,7 +345,7 @@ public class RouteManagerTest {
 
         // Now when we send the event, we expect the FIB update to be sent
         reset(routeListener);
-        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED,
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED,
                 new ResolvedRoute(route, MAC1)));
         replay(routeListener);
 
