@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+package org.onosproject.bmv2.api.model;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.drivers.bmv2.model.Bmv2Model;
-import org.onosproject.drivers.bmv2.model.Bmv2ModelAction;
-import org.onosproject.drivers.bmv2.model.Bmv2ModelHeaderType;
-import org.onosproject.drivers.bmv2.model.Bmv2ModelTable;
+import org.onosproject.bmv2.api.runtime.Bmv2MatchParam;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -156,7 +153,7 @@ public class Bmv2ModelTest {
 
         // key match type
         assertThat("Incorrect value for table key match type",
-                table0.keys().get(0).matchType(), is(equalTo("ternary")));
+                   table0.keys().get(0).matchType(), is(equalTo(Bmv2MatchParam.Type.TERNARY)));
 
         // header type
         assertThat("Incorrect value for table key header type",

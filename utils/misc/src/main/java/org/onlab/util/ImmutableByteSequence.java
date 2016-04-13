@@ -21,6 +21,7 @@ import com.google.common.base.Objects;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.apache.commons.lang3.ArrayUtils.reverse;
@@ -62,7 +63,7 @@ public final class ImmutableByteSequence {
      * the passed byte array.
      *
      * @param original a byte array value
-     * @return a new immutable byte buffer
+     * @return a new immutable byte sequence
      */
     public static ImmutableByteSequence copyFrom(byte[] original) {
         checkArgument(original != null && original.length > 0,
@@ -101,7 +102,7 @@ public final class ImmutableByteSequence {
      * Creates a new byte sequence of 8 bytes containing the given long value.
      *
      * @param original a long value
-     * @return a new immutable byte buffer
+     * @return a new immutable byte sequence
      */
     public static ImmutableByteSequence copyFrom(long original) {
         return new ImmutableByteSequence(
@@ -112,7 +113,7 @@ public final class ImmutableByteSequence {
      * Creates a new byte sequence of 4 bytes containing the given int value.
      *
      * @param original an int value
-     * @return a new immutable byte buffer
+     * @return a new immutable byte sequence
      */
     public static ImmutableByteSequence copyFrom(int original) {
         return new ImmutableByteSequence(
@@ -123,7 +124,7 @@ public final class ImmutableByteSequence {
      * Creates a new byte sequence of 2 bytes containing the given short value.
      *
      * @param original a short value
-     * @return a new immutable byte buffer
+     * @return a new immutable byte sequence
      */
     public static ImmutableByteSequence copyFrom(short original) {
         return new ImmutableByteSequence(
@@ -134,11 +135,35 @@ public final class ImmutableByteSequence {
      * Creates a new byte sequence of 1 byte containing the given value.
      *
      * @param original a byte value
-     * @return a new immutable byte buffer
+     * @return a new immutable byte sequence
      */
     public static ImmutableByteSequence copyFrom(byte original) {
         return new ImmutableByteSequence(
                 ByteBuffer.allocate(Byte.BYTES).put(original));
+    }
+
+    /**
+     * Creates a new byte sequence of the given size where alla bits are 0.
+     *
+     * @param size number of bytes
+     * @return a new immutable byte sequence
+     */
+    public static ImmutableByteSequence ofZeros(int size) {
+        byte[] bytes = new byte[size];
+        Arrays.fill(bytes, (byte) 0);
+        return new ImmutableByteSequence(ByteBuffer.wrap(bytes));
+    }
+
+    /**
+     * Creates a new byte sequence of the given size where alla bits are 1.
+     *
+     * @param size number of bytes
+     * @return a new immutable byte sequence
+     */
+    public static ImmutableByteSequence ofOnes(int size) {
+        byte[] bytes = new byte[size];
+        Arrays.fill(bytes, (byte) 0xFF);
+        return new ImmutableByteSequence(ByteBuffer.wrap(bytes));
     }
 
     /**

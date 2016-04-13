@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,82 +14,76 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2.model;
+package org.onosproject.bmv2.api.model;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-
-import java.util.LinkedHashMap;
-import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
- * BMv2 model header type.
+ * Representation of a BMv2 model header instance.
  */
-public final class Bmv2ModelHeaderType {
+public final class Bmv2ModelHeader {
 
     private final String name;
     private final int id;
-    private final LinkedHashMap<String, Bmv2ModelFieldType> fields = Maps.newLinkedHashMap();
+    private final Bmv2ModelHeaderType type;
+    private final boolean isMetadata;
 
     /**
-     * Creates a new header type instance.
+     * Creates a new header instance.
      *
-     * @param name       name
-     * @param id         id
-     * @param fieldTypes fields
+     * @param name     name
+     * @param id       id
+     * @param type     header type
+     * @param metadata if is metadata
      */
-    protected Bmv2ModelHeaderType(String name, int id, List<Bmv2ModelFieldType> fieldTypes) {
+    protected Bmv2ModelHeader(String name, int id, Bmv2ModelHeaderType type, boolean metadata) {
         this.name = name;
         this.id = id;
-        fieldTypes.forEach(f -> this.fields.put(f.name(), f));
+        this.type = type;
+        this.isMetadata = metadata;
     }
 
     /**
-     * Returns this header type name.
+     * Returns the name of this header instance.
      *
-     * @return name
+     * @return a string value
      */
     public String name() {
         return name;
     }
 
     /**
-     * Returns this header type id.
+     * Return the id of this header instance.
      *
-     * @return id
+     * @return an integer value
      */
     public int id() {
         return id;
     }
 
     /**
-     * Returns this header type's field defined by the passed name, null if
-     * not present.
+     * Return the type of this header instance.
      *
-     * @param fieldName field name
-     * @return field or null
+     * @return a header type value
      */
-    public Bmv2ModelFieldType field(String fieldName) {
-        return fields.get(fieldName);
+    public Bmv2ModelHeaderType type() {
+        return type;
     }
 
     /**
-     * Return and immutable list of header fields for this header
-     * type. The list is ordered according to the values defined in the
-     * model.
+     * Return true if this header instance is a metadata, false elsewhere.
      *
-     * @return list of fields
+     * @return a boolean value
      */
-    public List<Bmv2ModelFieldType> fields() {
-        return ImmutableList.copyOf(fields.values());
+    public boolean isMetadata() {
+        return isMetadata;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, id, fields);
+        return Objects.hashCode(name, id, type, isMetadata);
     }
 
     @Override
@@ -100,10 +94,11 @@ public final class Bmv2ModelHeaderType {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Bmv2ModelHeaderType other = (Bmv2ModelHeaderType) obj;
+        final Bmv2ModelHeader other = (Bmv2ModelHeader) obj;
         return Objects.equal(this.name, other.name)
                 && Objects.equal(this.id, other.id)
-                && Objects.equal(this.fields, other.fields);
+                && Objects.equal(this.type, other.type)
+                && Objects.equal(this.isMetadata, other.isMetadata);
     }
 
     @Override
@@ -111,7 +106,8 @@ public final class Bmv2ModelHeaderType {
         return toStringHelper(this)
                 .add("name", name)
                 .add("id", id)
-                .add("fields", fields)
+                .add("type", type)
+                .add("isMetadata", isMetadata)
                 .toString();
     }
 }

@@ -18,7 +18,7 @@ package org.onosproject.drivers.bmv2;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.onosproject.bmv2.api.Bmv2Exception;
+import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.ctl.Bmv2ThriftClient;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.PortNumber;
@@ -44,7 +44,7 @@ public class Bmv2PortGetterDriver extends AbstractHandlerBehaviour
         Bmv2ThriftClient deviceClient;
         try {
             deviceClient = Bmv2ThriftClient.of(handler().data().deviceId());
-        } catch (Bmv2Exception e) {
+        } catch (Bmv2RuntimeException e) {
             log.error("Failed to connect to Bmv2 device", e);
             return Collections.emptyList();
         }
@@ -68,7 +68,7 @@ public class Bmv2PortGetterDriver extends AbstractHandlerBehaviour
                                 annotations
                         ));
                     });
-        } catch (Bmv2Exception e) {
+        } catch (Bmv2RuntimeException e) {
             log.error("Unable to get port description from Bmv2 device", e);
         }
 

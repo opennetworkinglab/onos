@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2.model;
+package org.onosproject.bmv2.api.model;
 
 import com.google.common.base.Objects;
+import org.onosproject.bmv2.api.runtime.Bmv2MatchParam;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -25,7 +26,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public final class Bmv2ModelTableKey {
 
-    private final String matchType;
+    private final Bmv2MatchParam.Type matchType;
     private final Bmv2ModelField field;
 
     /**
@@ -34,7 +35,7 @@ public final class Bmv2ModelTableKey {
      * @param matchType match type
      * @param field     field instance
      */
-    protected Bmv2ModelTableKey(String matchType, Bmv2ModelField field) {
+    protected Bmv2ModelTableKey(Bmv2MatchParam.Type matchType, Bmv2ModelField field) {
         this.matchType = matchType;
         this.field = field;
     }
@@ -45,7 +46,7 @@ public final class Bmv2ModelTableKey {
      * @return a string value
      * TODO returns enum of match type
      */
-    public String matchType() {
+    public Bmv2MatchParam.Type matchType() {
         return matchType;
     }
 

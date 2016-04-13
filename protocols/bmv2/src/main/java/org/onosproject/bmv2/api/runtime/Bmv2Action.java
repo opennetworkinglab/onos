@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 
-package org.onosproject.bmv2.api;
+package org.onosproject.bmv2.api.runtime;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
+import org.onlab.util.ImmutableByteSequence;
 
-import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
- * Bmv2 Action representation.
+ * Bmv2 action representation.
  */
 public final class Bmv2Action {
 
     private final String name;
-    private final List<ByteBuffer> parameters;
+    private final List<ImmutableByteSequence> parameters;
 
-    private Bmv2Action(String name, List<ByteBuffer> parameters) {
+    private Bmv2Action(String name, List<ImmutableByteSequence> parameters) {
         // hide constructor
         this.name = name;
         this.parameters = parameters;
@@ -48,7 +49,7 @@ public final class Bmv2Action {
     }
 
     /**
-     * Get action name.
+     * Return the name of this action.
      *
      * @return action name
      */
@@ -57,11 +58,12 @@ public final class Bmv2Action {
     }
 
     /**
-     * Get list of action parameters ordered as per P4 action definition.
+     * Returns an immutable view of the ordered list of parameters of this
+     * action.
      *
-     * @return List of action parameters
+     * @return list of byte sequence
      */
-    public final List<ByteBuffer> parameters() {
+    public final List<ImmutableByteSequence> parameters() {
         return Collections.unmodifiableList(parameters);
     }
 
@@ -96,8 +98,8 @@ public final class Bmv2Action {
      */
     public static final class Builder {
 
-        private String name;
-        private List<ByteBuffer> parameters;
+        private String name = null;
+        private List<ImmutableByteSequence> parameters;
 
         private Builder() {
             this.parameters = Lists.newArrayList();
@@ -110,7 +112,7 @@ public final class Bmv2Action {
          * @return this
          */
         public Builder withName(String actionName) {
-            this.name = actionName;
+            this.name = checkNotNull(actionName);
             return this;
         }
 
@@ -120,8 +122,8 @@ public final class Bmv2Action {
          * @param parameter a ByteBuffer value
          * @return this
          */
-        public Builder addParameter(ByteBuffer parameter) {
-            parameters.add(parameter);
+        public Builder addParameter(ImmutableByteSequence parameter) {
+            parameters.add(checkNotNull(parameter));
             return this;
         }
 
@@ -131,7 +133,7 @@ public final class Bmv2Action {
          * @return a Bmv2 action
          */
         public Bmv2Action build() {
-            checkNotNull(name, "Action name not set");
+            checkState(name != null, "action name not set");
             return new Bmv2Action(name, parameters);
         }
     }

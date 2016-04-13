@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
+package org.onosproject.bmv2.api.runtime;
+
 /**
- * Bmv2 API abstractions.
- * <p>
- * Bmv2 APIs are divided in two sub-packages, runtime and model.
- * Runtime APIs are used to represent operations that can be performed at runtime
- * on a Bmv2 device, while model APIs are used to describe the Bmv2 packet
- * processing model.
+ * General exception of the Bmv2 runtime APIs.
  */
-package org.onosproject.bmv2.api;
+public class Bmv2RuntimeException extends Exception {
+
+    public Bmv2RuntimeException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public Bmv2RuntimeException(String message) {
+        super(message);
+    }
+}

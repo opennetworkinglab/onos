@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,33 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2.model;
+package org.onosproject.bmv2.api.model;
 
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
- * BMv2 model header type field.
+ * BMv2 model action runtime data.
  */
-public final class Bmv2ModelFieldType {
+public final class Bmv2ModelRuntimeData {
 
     private final String name;
     private final int bitWidth;
 
-    protected Bmv2ModelFieldType(String name, int bitWidth) {
+    /**
+     * Creates a new runtime data.
+     *
+     * @param name     name
+     * @param bitWidth bitwidth
+     */
+    protected Bmv2ModelRuntimeData(String name, int bitWidth) {
         this.name = name;
         this.bitWidth = bitWidth;
     }
 
     /**
-     * Returns the name of this header type field.
+     * Return the name of this runtime data.
      *
      * @return a string value
      */
@@ -43,7 +49,7 @@ public final class Bmv2ModelFieldType {
     }
 
     /**
-     * Returns the bit width of this header type field.
+     * Return the bit width of this runtime data.
      *
      * @return an integer value
      */
@@ -53,7 +59,7 @@ public final class Bmv2ModelFieldType {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, bitWidth);
+        return Objects.hash(name, bitWidth);
     }
 
     @Override
@@ -64,9 +70,9 @@ public final class Bmv2ModelFieldType {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Bmv2ModelFieldType other = (Bmv2ModelFieldType) obj;
-        return Objects.equal(this.name, other.name)
-                && Objects.equal(this.bitWidth, other.bitWidth);
+        final Bmv2ModelRuntimeData other = (Bmv2ModelRuntimeData) obj;
+        return Objects.equals(this.name, other.name)
+                && Objects.equals(this.bitWidth, other.bitWidth);
     }
 
     @Override

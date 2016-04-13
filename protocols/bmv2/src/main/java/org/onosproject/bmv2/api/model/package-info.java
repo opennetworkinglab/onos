@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.bmv2.api;
-
 /**
- * General Bmv2 exception.
+ * BMv2 configuration model classes.
  */
-public class Bmv2Exception extends Exception {
-
-    public Bmv2Exception(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
+package org.onosproject.bmv2.api.model;

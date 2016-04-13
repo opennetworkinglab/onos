@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2.model;
+package org.onosproject.bmv2.api.model;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.onosproject.bmv2.api.runtime.Bmv2MatchParam;
 
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,7 @@ public final class Bmv2Model {
      */
     public static Bmv2Model parse(JsonObject json) {
         checkArgument(json != null, "json cannot be null");
+        // TODO: implement caching, no need to parse a json if we already have the model
         Bmv2Model model = new Bmv2Model(json);
         model.doParse();
         return model;
@@ -335,7 +337,27 @@ public final class Bmv2Model {
                     Bmv2ModelField field = new Bmv2ModelField(
                             header, header.type().field(typeName));
 
-                    String matchType = jKey.asObject().get("match_type").asString();
+                    String matchTypeStr = jKey.asObject().get("match_type").asString();
+
+                    Bmv2MatchParam.Type matchType;
+
+                    switch (matchTypeStr) {
+                        case "ternary":
+                            matchType = Bmv2MatchParam.Type.TERNARY;
+                            break;
+                        case "exact":
+                            matchType = Bmv2MatchParam.Type.EXACT;
+                            break;
+                        case "lpm":
+                            matchType = Bmv2MatchParam.Type.LPM;
+                            break;
+                        case "valid":
+                            matchType = Bmv2MatchParam.Type.VALID;
+                            break;
+                        default:
+                            throw new RuntimeException(
+                                    "Unable to parse match type: " + matchTypeStr);
+                    }
 
                     keys.add(new Bmv2ModelTableKey(matchType, field));
                 });

@@ -20,10 +20,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.onosproject.bmv2.api.Bmv2ExtensionSelector;
-import org.onosproject.bmv2.api.Bmv2ExtensionTreatment;
-import org.onosproject.bmv2.api.Bmv2TableEntry;
-import org.onosproject.bmv2.api.Bmv2Exception;
+import org.onosproject.bmv2.api.runtime.Bmv2ExtensionSelector;
+import org.onosproject.bmv2.api.runtime.Bmv2ExtensionTreatment;
+import org.onosproject.bmv2.api.runtime.Bmv2TableEntry;
+import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.ctl.Bmv2ThriftClient;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -70,7 +70,7 @@ public class Bmv2FlowRuleDriver extends AbstractHandlerBehaviour
         Bmv2ThriftClient deviceClient;
         try {
             deviceClient = getDeviceClient();
-        } catch (Bmv2Exception e) {
+        } catch (Bmv2RuntimeException e) {
             return Collections.emptyList();
         }
 
@@ -107,7 +107,7 @@ public class Bmv2FlowRuleDriver extends AbstractHandlerBehaviour
                     tableEntryIdsMap.put(rule, entryId);
                     deviceEntriesMap.put(rule, new DefaultFlowEntry(
                             rule, FlowEntry.FlowEntryState.ADDED, 0, 0, 0));
-                } catch (Bmv2Exception e) {
+                } catch (Bmv2RuntimeException e) {
                     log.error("Unable to update flow rule", e);
                     continue;
                 }
@@ -121,7 +121,7 @@ public class Bmv2FlowRuleDriver extends AbstractHandlerBehaviour
                     tableEntryIdsMap.put(rule, entryId);
                     deviceEntriesMap.put(rule, new DefaultFlowEntry(
                             rule, FlowEntry.FlowEntryState.ADDED, 0, 0, 0));
-                } catch (Bmv2Exception e) {
+                } catch (Bmv2RuntimeException e) {
                     log.error("Unable to add flow rule", e);
                     continue;
                 }
@@ -138,7 +138,7 @@ public class Bmv2FlowRuleDriver extends AbstractHandlerBehaviour
         Bmv2ThriftClient deviceClient;
         try {
             deviceClient = getDeviceClient();
-        } catch (Bmv2Exception e) {
+        } catch (Bmv2RuntimeException e) {
             return Collections.emptyList();
         }
 
@@ -152,7 +152,7 @@ public class Bmv2FlowRuleDriver extends AbstractHandlerBehaviour
 
                 try {
                     deviceClient.deleteTableEntry(tableName, entryId);
-                } catch (Bmv2Exception e) {
+                } catch (Bmv2RuntimeException e) {
                     log.error("Unable to delete flow rule", e);
                     continue;
                 }
@@ -225,10 +225,10 @@ public class Bmv2FlowRuleDriver extends AbstractHandlerBehaviour
         return "table" + String.valueOf(tableId);
     }
 
-    private Bmv2ThriftClient getDeviceClient() throws Bmv2Exception {
+    private Bmv2ThriftClient getDeviceClient() throws Bmv2RuntimeException {
         try {
             return Bmv2ThriftClient.of(handler().data().deviceId());
-        } catch (Bmv2Exception e) {
+        } catch (Bmv2RuntimeException e) {
             log.error("Failed to connect to Bmv2 device", e);
             throw e;
         }

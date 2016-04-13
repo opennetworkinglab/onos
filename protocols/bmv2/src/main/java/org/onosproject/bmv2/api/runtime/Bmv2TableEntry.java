@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.onosproject.bmv2.api;
-
-import com.google.common.base.Preconditions;
+package org.onosproject.bmv2.api.runtime;
 
 import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Bmv2 representation of a table entry.
@@ -43,6 +44,11 @@ public final class Bmv2TableEntry {
         this.timeout = timeout;
     }
 
+    /**
+     * Returns a new Bmv2 table entry builder.
+     *
+     * @return a new builder.
+     */
     public static Builder builder() {
         return new Builder();
     }
@@ -159,7 +165,7 @@ public final class Bmv2TableEntry {
          * @return this
          */
         public Builder withTableName(String tableName) {
-            this.tableName = tableName;
+            this.tableName = checkNotNull(tableName, "table name cannot be null");
             return this;
         }
 
@@ -170,7 +176,7 @@ public final class Bmv2TableEntry {
          * @return this
          */
         public Builder withMatchKey(Bmv2MatchKey matchKey) {
-            this.matchKey = matchKey;
+            this.matchKey = checkNotNull(matchKey, "match key cannot be null");
             return this;
         }
 
@@ -181,11 +187,12 @@ public final class Bmv2TableEntry {
          * @return this
          */
         public Builder withAction(Bmv2Action action) {
-            this.action = action;
+            this.action = checkNotNull(action, "action cannot be null");
             return this;
         }
 
         public Builder withPriority(int priority) {
+            checkArgument(priority >= 0, "priority cannot be negative");
             this.priority = priority;
             return this;
         }
@@ -197,6 +204,7 @@ public final class Bmv2TableEntry {
          * @return this
          */
         public Builder withTimeout(double timeout) {
+            checkArgument(timeout > 0, "timeout must be a positive non-zero value");
             this.timeout = timeout;
             return this;
         }
@@ -207,10 +215,6 @@ public final class Bmv2TableEntry {
          * @return a new table entry object
          */
         public Bmv2TableEntry build() {
-            Preconditions.checkNotNull(tableName);
-            Preconditions.checkNotNull(matchKey);
-            Preconditions.checkNotNull(action);
-
             return new Bmv2TableEntry(tableName, matchKey, action, priority,
                                       timeout);
 

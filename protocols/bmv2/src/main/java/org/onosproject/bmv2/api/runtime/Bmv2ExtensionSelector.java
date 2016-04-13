@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,41 @@
  * limitations under the License.
  */
 
-package org.onosproject.bmv2.api;
+package org.onosproject.bmv2.api.runtime;
 
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.flow.AbstractExtension;
-import org.onosproject.net.flow.instructions.ExtensionTreatment;
-import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
+import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 
-public class Bmv2ExtensionTreatment extends AbstractExtension implements ExtensionTreatment {
+/**
+ * Extension selector for Bmv2 used as a wrapper for a {@link Bmv2MatchKey}.
+ */
+public class Bmv2ExtensionSelector extends AbstractExtension implements ExtensionSelector {
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder().build();
-    private Bmv2Action action;
+    private Bmv2MatchKey matchKey;
 
-    public Bmv2ExtensionTreatment(Bmv2Action action) {
-        this.action = action;
+    public Bmv2ExtensionSelector(Bmv2MatchKey matchKey) {
+        this.matchKey = matchKey;
     }
 
-    public Bmv2Action getAction() {
-        return action;
+    public Bmv2MatchKey matchKey() {
+        return matchKey;
     }
 
     @Override
-    public ExtensionTreatmentType type() {
-        return ExtensionTreatmentType.ExtensionTreatmentTypes.P4_BMV2_ACTION.type();
+    public ExtensionSelectorType type() {
+        return ExtensionSelectorType.ExtensionSelectorTypes.P4_BMV2_MATCH_KEY.type();
     }
 
     @Override
     public byte[] serialize() {
-        return appKryo.serialize(action);
+        return appKryo.serialize(matchKey);
     }
 
     @Override
     public void deserialize(byte[] data) {
-        action = appKryo.deserialize(data);
+        matchKey = appKryo.deserialize(data);
     }
 }
