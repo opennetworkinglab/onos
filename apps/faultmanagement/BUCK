@@ -8,6 +8,7 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//utils/rest:onlab-rest',
     '//lib:javax.ws.rs-api',
+    '//utils/osgi:onlab-osgi',
 ]
 
 TEST_DEPS = [
@@ -16,6 +17,8 @@ TEST_DEPS = [
     '//lib:jersey-test-framework-grizzly2',
     '//utils/osgi:onlab-osgi-tests',
     '//web/api:onos-rest-tests',
+    '//utils/osgi:onlab-osgi',
+    '//incubator/api:onos-incubator-api-tests',
 ]
 
 java_library(
