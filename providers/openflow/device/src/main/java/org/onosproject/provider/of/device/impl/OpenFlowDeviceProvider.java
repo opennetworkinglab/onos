@@ -177,6 +177,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     @Deactivate
     public void deactivate(ComponentContext context) {
         cfgService.unregisterProperties(getClass(), false);
+        listener.disable();
         controller.removeListener(listener);
         providerRegistry.unregister(this);
         collectors.values().forEach(PortStatsCollector::stop);
@@ -344,6 +345,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     private class InternalDeviceProvider implements OpenFlowSwitchListener, OpenFlowEventListener {
 
         private HashMap<Dpid, List<OFPortStatsEntry>> portStatsReplies = new HashMap<>();
+        private boolean isDisabled = false;
 
         @Override
         public void switchAdded(Dpid dpid) {
@@ -773,29 +775,42 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         @Override
         public void handleMessage(Dpid dpid, OFMessage msg) {
-            switch (msg.getType()) {
-                case STATS_REPLY:
-                    if (((OFStatsReply) msg).getStatsType() == OFStatsType.PORT) {
-                        OFPortStatsReply portStatsReply = (OFPortStatsReply) msg;
-                        List<OFPortStatsEntry> portStatsReplyList = portStatsReplies.get(dpid);
-                        if (portStatsReplyList == null) {
-                            portStatsReplyList = Lists.newArrayList();
-                        }
-                        portStatsReplyList.addAll(portStatsReply.getEntries());
-                        portStatsReplies.put(dpid, portStatsReplyList);
-                        if (!portStatsReply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
-                            pushPortMetrics(dpid, portStatsReplies.get(dpid));
-                            portStatsReplies.get(dpid).clear();
-                        }
-                    }
-                    break;
-                case ERROR:
-                    if (((OFErrorMsg) msg).getErrType() == OFErrorType.PORT_MOD_FAILED) {
-                        LOG.error("port mod failed");
-                    }
-                default:
-                    break;
+            if (isDisabled) {
+                return;
             }
+
+            try {
+                switch (msg.getType()) {
+                    case STATS_REPLY:
+                        if (((OFStatsReply) msg).getStatsType() == OFStatsType.PORT) {
+                            OFPortStatsReply portStatsReply = (OFPortStatsReply) msg;
+                            List<OFPortStatsEntry> portStatsReplyList = portStatsReplies.get(dpid);
+                            if (portStatsReplyList == null) {
+                                portStatsReplyList = Lists.newArrayList();
+                            }
+                            portStatsReplyList.addAll(portStatsReply.getEntries());
+                            portStatsReplies.put(dpid, portStatsReplyList);
+                            if (!portStatsReply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
+                                pushPortMetrics(dpid, portStatsReplies.get(dpid));
+                                portStatsReplies.get(dpid).clear();
+                            }
+                        }
+                        break;
+                    case ERROR:
+                        if (((OFErrorMsg) msg).getErrType() == OFErrorType.PORT_MOD_FAILED) {
+                            LOG.error("port mod failed");
+                        }
+                    default:
+                        break;
+                }
+            } catch (IllegalStateException e) {
+                // system is shutting down and the providerService is no longer
+                // valid. Messages cannot be processed.
+            }
+        }
+
+        private void disable() {
+            isDisabled = true;
         }
     }
 
