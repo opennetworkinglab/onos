@@ -89,6 +89,7 @@ public class FlowClassifierCodecTest {
         assertThat(flowClassifier.tenantId().toString(), is(tenantId.toString()));
         assertThat(flowClassifier.description(), is("flow classifier"));
         assertThat(flowClassifier.protocol(), is("tcp"));
+        assertThat(flowClassifier.priority(), is(65535));
         assertThat(flowClassifier.minSrcPortRange(), is(22));
         assertThat(flowClassifier.maxSrcPortRange(), is(4000));
         assertThat(flowClassifier.minDstPortRange(), is(80));

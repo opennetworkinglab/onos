@@ -223,19 +223,19 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
                 // Send the packet to controller
                 TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
                 treatment.setOutput(PortNumber.CONTROLLER);
-                sendServiceFunctionClassifier(selector, treatment, deviceId, type);
+                sendServiceFunctionClassifier(selector, treatment, deviceId, type, flowClassifier.priority());
             } else if (deviceId.equals(deviceIdfromPortPair)) {
                 // classifier and source device are in the same OVS. So directly send packet to first port pair
                 TrafficTreatment.Builder treatment = packTrafficTreatment(deviceId, port, nshDstPort,
                                                                           nshSpiId, flowClassifier, true);
                 // Build forwarding objective and send to OVS.
-                sendServiceFunctionClassifier(selector, treatment, deviceId, type);
+                sendServiceFunctionClassifier(selector, treatment, deviceId, type, flowClassifier.priority());
             } else {
                 // classifier and source device are not in the same OVS. Send packet on vlan Tunnel
                 TrafficTreatment.Builder treatment = packTrafficTreatment(deviceId, port, nshDstPort,
                                                                           nshSpiId, flowClassifier, false);
                 // Build forwarding objective and send to OVS.
-                sendServiceFunctionClassifier(selector, treatment, deviceId, type);
+                sendServiceFunctionClassifier(selector, treatment, deviceId, type, flowClassifier.priority());
 
                 // At the other device get the packet from vlan and send to first port pair
                 TrafficSelector.Builder selectorDst = DefaultTrafficSelector.builder();
@@ -244,7 +244,8 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
                 TrafficTreatment.Builder treatmentDst = DefaultTrafficTreatment.builder();
                 Host hostDst = hostService.getHost(HostId.hostId(srcMacAddress));
                 treatmentDst.setOutput(hostDst.location().port());
-                sendServiceFunctionClassifier(selectorDst, treatmentDst, deviceIdfromPortPair, type);
+                sendServiceFunctionClassifier(selectorDst, treatmentDst, deviceIdfromPortPair, type,
+                                              flowClassifier.priority());
             }
         }
         return host.location();
@@ -383,14 +384,15 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
      * @param treatment traffic treatment
      * @param deviceId device id
      * @param type operation type
+     * @param priority priority of classifier
      */
     public void sendServiceFunctionClassifier(TrafficSelector.Builder selector, TrafficTreatment.Builder treatment,
-                                              DeviceId deviceId, Objective.Operation type) {
+                                              DeviceId deviceId, Objective.Operation type, int priority) {
         log.info("Sending flow to service function classifier. Selector {}, Treatment {}",
                  selector.toString(), treatment.toString());
         ForwardingObjective.Builder objective = DefaultForwardingObjective.builder().withTreatment(treatment.build())
                 .withSelector(selector.build()).fromApp(appId).makePermanent().withFlag(Flag.VERSATILE)
-                .withPriority(FLOW_CLASSIFIER_PRIORITY);
+                .withPriority(priority);
 
         if (type.equals(Objective.Operation.ADD)) {
             log.debug("flowClassifierRules-->ADD");

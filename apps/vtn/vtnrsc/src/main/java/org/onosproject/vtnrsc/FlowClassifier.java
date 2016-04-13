@@ -68,6 +68,13 @@ public interface FlowClassifier {
     String protocol();
 
     /**
+     * Returns priority.
+     *
+     * @return priority
+     */
+    int priority();
+
+    /**
      * Returns minimum source port range.
      *
      * @return minimum source port range
@@ -191,6 +198,14 @@ public interface FlowClassifier {
          * @return builder object by setting IP protocol
          */
         Builder setProtocol(String protocol);
+
+        /**
+         * Sets priority.
+         *
+         * @param priority priority
+         * @return builder object by setting priority
+         */
+        Builder setPriority(int priority);
 
         /**
          * Set minimum source port range.
