@@ -64,6 +64,7 @@ import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Element;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.GridType;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
@@ -179,6 +180,7 @@ import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.BooleanConstraint;
+import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
@@ -456,6 +458,8 @@ public final class KryoNamespaces {
                     IntentDomainId.class,
                     TableStatisticsEntry.class,
                     DefaultTableStatisticsEntry.class,
+                    EncapsulationConstraint.class,
+                    EncapsulationType.class,
                     // Flow Objectives
                     DefaultForwardingObjective.class,
                     ForwardingObjective.Flag.class,
