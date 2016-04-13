@@ -48,7 +48,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
     private static final String END_PATTERN = "]]>]]>";
     private static final String RPC_REPLY = "rpc-reply";
     private static final String RPC_ERROR = "rpc-error";
-    private static final String NOTIFICATION_LABEL = "<notification>";
+    private static final String NOTIFICATION_LABEL = "<notification";
     private static final String MESSAGE_ID = "message-id=";
 
     private PrintWriter outputStream;
