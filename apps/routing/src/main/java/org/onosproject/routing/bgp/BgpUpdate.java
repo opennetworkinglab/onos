@@ -154,10 +154,10 @@ final class BgpUpdate {
         //
         BgpRouteSelector bgpRouteSelector =
             bgpSession.getBgpSessionManager().getBgpRouteSelector();
-        bgpRouteSelector.routeUpdates(bgpSession,
+        bgpRouteSelector.routeUpdates(
                                 decodedBgpRoutes.addedUnicastRoutes4.values(),
                                 decodedBgpRoutes.deletedUnicastRoutes4.values());
-        bgpRouteSelector.routeUpdates(bgpSession,
+        bgpRouteSelector.routeUpdates(
                                 decodedBgpRoutes.addedUnicastRoutes6.values(),
                                 decodedBgpRoutes.deletedUnicastRoutes6.values());
 

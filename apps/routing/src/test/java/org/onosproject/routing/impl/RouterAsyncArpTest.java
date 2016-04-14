@@ -39,7 +39,7 @@ import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routing.config.RoutingConfigurationService;
-import org.onosproject.routing.impl.Router.InternalHostListener;
+import org.onosproject.routing.impl.DefaultRouter.InternalHostListener;
 import org.onosproject.routing.RouteSourceService;
 import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibListener;
@@ -74,7 +74,7 @@ public class RouterAsyncArpTest {
             DeviceId.deviceId("of:0000000000000003"),
             PortNumber.portNumber(1));
 
-    private Router router;
+    private DefaultRouter router;
     private InternalHostListener internalHostListener;
 
     @Before
@@ -90,7 +90,7 @@ public class RouterAsyncArpTest {
 
         fibListener = createMock(FibListener.class);
 
-        router = new Router();
+        router = new DefaultRouter();
         router.coreService = createNiceMock(CoreService.class);
         router.hostService = hostService;
         router.routingConfigurationService = routingConfigurationService;

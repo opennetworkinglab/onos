@@ -15,18 +15,10 @@
  */
 package org.onosproject.routing.config.impl;
 
-import static org.onosproject.routing.RouteEntry.createBinaryString;
-
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
 import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
 import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
-
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -48,14 +40,21 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.BgpConfig;
 import org.onosproject.routing.config.LocalIpPrefixEntry;
 import org.onosproject.routing.config.ReactiveRoutingConfig;
 import org.onosproject.routing.config.RouterConfig;
 import org.onosproject.routing.config.RoutingConfigurationService;
-import org.onosproject.routing.impl.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.onosproject.routing.RouteEntry.createBinaryString;
 
 /**
  * Implementation of RoutingConfigurationService which reads routing
@@ -165,7 +164,7 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
         virtualGatewayMacAddress = config.virtualGatewayMacAddress();
 
         // Setup BGP peer connect points
-        ApplicationId routerAppId = coreService.getAppId(Router.ROUTER_APP_ID);
+        ApplicationId routerAppId = coreService.getAppId(RoutingService.ROUTER_APP_ID);
         if (routerAppId == null) {
             log.info("Router application ID is null!");
             return;

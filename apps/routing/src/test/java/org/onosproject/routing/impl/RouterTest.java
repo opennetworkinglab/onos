@@ -90,7 +90,7 @@ public class RouterTest {
     private static final ConnectPoint SW6_ETH1 = new ConnectPoint(
             DeviceId.deviceId("of:0000000000000006"),
             PortNumber.portNumber(1));
-    private Router router;
+    private DefaultRouter router;
 
     @Before
     public void setUp() throws Exception {
@@ -105,7 +105,7 @@ public class RouterTest {
 
         fibListener = createMock(FibListener.class);
 
-        router = new Router();
+        router = new DefaultRouter();
         router.coreService = createNiceMock(CoreService.class);
         router.hostService = hostService;
         router.routingConfigurationService = routingConfigurationService;

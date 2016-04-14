@@ -18,6 +18,7 @@ package org.onosproject.routing;
 /**
  * A source of route updates.
  */
+@Deprecated
 public interface RouteSourceService {
 
     /**
