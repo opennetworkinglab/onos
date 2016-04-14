@@ -189,6 +189,7 @@ public class UiExtensionManager
     @Deactivate
     public void deactivate() {
         prefs.removeListener(prefsListener);
+        prefs.destroy();
         UiWebSocketServlet.closeAll();
         unregister(core);
         log.info("Stopped");
