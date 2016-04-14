@@ -185,7 +185,8 @@ public class DistributedGroupStore
         messageHandlingExecutor = Executors.
                 newFixedThreadPool(MESSAGE_HANDLER_THREAD_POOL_SIZE,
                                    groupedThreads("onos/store/group",
-                                                  "message-handlers"));
+                                                  "message-handlers",
+                                                  log));
 
         clusterCommunicator.addSubscriber(GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
                                           clusterMsgSerializer::deserialize,

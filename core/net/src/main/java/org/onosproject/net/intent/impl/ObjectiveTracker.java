@@ -116,7 +116,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     protected IntentPartitionService partitionService;
 
     private ExecutorService executorService =
-            newSingleThreadExecutor(groupedThreads("onos/intent", "objectivetracker"));
+            newSingleThreadExecutor(groupedThreads("onos/intent", "objectivetracker", log));
     private ScheduledExecutorService executor = Executors
             .newScheduledThreadPool(1);
 

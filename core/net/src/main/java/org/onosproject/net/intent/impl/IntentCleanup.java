@@ -90,7 +90,7 @@ public class IntentCleanup implements Runnable, IntentListener {
     @Activate
     public void activate() {
         cfgService.registerProperties(getClass());
-        executor = newSingleThreadExecutor(groupedThreads("onos/intent", "cleanup"));
+        executor = newSingleThreadExecutor(groupedThreads("onos/intent", "cleanup", log));
         timer = new Timer("onos-intent-cleanup-timer");
         service.addListener(this);
         adjustRate();
@@ -149,7 +149,7 @@ public class IntentCleanup implements Runnable, IntentListener {
             timerTask = new TimerTask() {
                 @Override
                 public void run() {
-                    executor.submit(IntentCleanup.this);
+                    executor.execute(IntentCleanup.this);
                 }
             };
 

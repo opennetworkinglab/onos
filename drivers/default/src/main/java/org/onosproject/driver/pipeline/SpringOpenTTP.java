@@ -132,7 +132,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     private ScheduledExecutorService groupChecker = Executors
             .newScheduledThreadPool(2,
                                     groupedThreads("onos/pipeliner",
-                                                   "spring-open-%d"));
+                                                   "spring-open-%d",
+                                                   log));
     protected KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(KryoNamespaces.API)
             .register(GroupKey.class)

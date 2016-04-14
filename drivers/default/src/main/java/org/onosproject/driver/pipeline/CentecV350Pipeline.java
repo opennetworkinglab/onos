@@ -140,7 +140,7 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
 
     private ScheduledExecutorService groupChecker =
             Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner",
-                    "centec-V350-%d"));
+                    "centec-V350-%d", log));
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {

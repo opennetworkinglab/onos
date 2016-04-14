@@ -118,7 +118,7 @@ public class DistributedPacketStore
     public void activate() {
         messageHandlingExecutor = Executors.newFixedThreadPool(
                 messageHandlerThreadPoolSize,
-                groupedThreads("onos/store/packet", "message-handlers"));
+                groupedThreads("onos/store/packet", "message-handlers", log));
 
         communicationService.<OutboundPacket>addSubscriber(PACKET_OUT_SUBJECT,
                 SERIALIZER::decode,

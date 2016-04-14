@@ -57,7 +57,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
 
     private final ExecutorService executor =
-            newSingleThreadExecutor(groupedThreads("onos/event", "dispatch-%d"));
+            newSingleThreadExecutor(groupedThreads("onos/event", "dispatch-%d", log));
 
     @SuppressWarnings("unchecked")
     private static final Event KILL_PILL = new AbstractEvent(null, 0) {

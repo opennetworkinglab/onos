@@ -143,7 +143,7 @@ public class OpenstackNodeManager implements OpenstackNodeService {
             };
 
     private final ExecutorService eventExecutor =
-            newSingleThreadScheduledExecutor(groupedThreads("onos/openstacknode", "event-handler"));
+            newSingleThreadScheduledExecutor(groupedThreads("onos/openstacknode", "event-handler", log));
 
 
     private final DeviceListener deviceListener = new InternalDeviceListener();

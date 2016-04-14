@@ -151,13 +151,13 @@ public class Controller {
 
         if (workerThreads == 0) {
             execFactory = new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d")),
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d")));
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d", log)),
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d", log)));
             return new ServerBootstrap(execFactory);
         } else {
             execFactory = new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d")),
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d")), workerThreads);
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d", log)),
+                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d", log)), workerThreads);
             return new ServerBootstrap(execFactory);
         }
     }

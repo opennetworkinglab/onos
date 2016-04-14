@@ -117,7 +117,7 @@ public class Ofdpa2GroupHandler {
     private Cache<GroupKey, List<OfdpaNextGroup>> pendingNextObjectives;
     private ConcurrentHashMap<GroupKey, Set<GroupChainElem>> pendingGroups;
     private ScheduledExecutorService groupChecker =
-            Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner", "ofdpa2-%d"));
+            Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner", "ofdpa2-%d", log));
 
     // index number for group creation
     private AtomicCounter nextIndex;

@@ -134,7 +134,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     @Activate
     protected void activate() {
-        executorService = newFixedThreadPool(4, groupedThreads("onos/objective-installer", "%d"));
+        executorService = newFixedThreadPool(4, groupedThreads("onos/objective-installer", "%d", log));
         flowObjectiveStore.setDelegate(delegate);
         mastershipService.addListener(mastershipListener);
         deviceService.addListener(deviceListener);
@@ -191,7 +191,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                     //Attempts to check if pipeliner is null for retry attempts
                 } else if (numAttempts < INSTALL_RETRY_ATTEMPTS) {
                     Thread.sleep(INSTALL_RETRY_INTERVAL);
-                    executorService.submit(new ObjectiveInstaller(deviceId, objective, numAttempts + 1));
+                    executorService.execute(new ObjectiveInstaller(deviceId, objective, numAttempts + 1));
                 } else {
                     // Otherwise we've tried a few times and failed, report an
                     // error back to the user.
@@ -208,7 +208,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Override
     public void filter(DeviceId deviceId, FilteringObjective filteringObjective) {
         checkPermission(FLOWRULE_WRITE);
-        executorService.submit(new ObjectiveInstaller(deviceId, filteringObjective));
+        executorService.execute(new ObjectiveInstaller(deviceId, filteringObjective));
     }
 
     @Override
@@ -217,14 +217,14 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         if (queueObjective(deviceId, forwardingObjective)) {
             return;
         }
-        executorService.submit(new ObjectiveInstaller(deviceId, forwardingObjective));
+        executorService.execute(new ObjectiveInstaller(deviceId, forwardingObjective));
     }
 
     @Override
     public void next(DeviceId deviceId, NextObjective nextObjective) {
         checkPermission(FLOWRULE_WRITE);
         nextToDevice.put(nextObjective.id(), deviceId);
-        executorService.submit(new ObjectiveInstaller(deviceId, nextObjective));
+        executorService.execute(new ObjectiveInstaller(deviceId, nextObjective));
     }
 
     @Override

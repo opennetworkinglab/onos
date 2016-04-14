@@ -128,7 +128,7 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
         availableDeviceIdSet = Sets.newConcurrentHashSet();
 
         messageHandlingExecutor = Executors.newSingleThreadScheduledExecutor(
-                groupedThreads("onos/app/cpman", "message-handlers"));
+                groupedThreads("onos/app/cpman", "message-handlers", log));
 
         communicationService.addSubscriber(CONTROL_STATS,
                 SERIALIZER::decode, this::handleRequest, messageHandlingExecutor);

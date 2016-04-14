@@ -76,7 +76,7 @@ public class DistributedProxyArpStore implements ProxyArpStore {
     private Map<HostId, ArpResponseMessage> pendingMessages = Maps.newConcurrentMap();
 
     private ExecutorService executor =
-            newFixedThreadPool(4, groupedThreads("onos/arp", "sender-%d"));
+            newFixedThreadPool(4, groupedThreads("onos/arp", "sender-%d", log));
 
     private NodeId localNodeId;
 

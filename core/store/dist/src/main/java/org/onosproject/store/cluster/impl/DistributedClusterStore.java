@@ -107,9 +107,9 @@ public class DistributedClusterStore
     private final Map<NodeId, DateTime> nodeStateLastUpdatedTimes = Maps.newConcurrentMap();
 
     private ScheduledExecutorService heartBeatSender = Executors.newSingleThreadScheduledExecutor(
-            groupedThreads("onos/cluster/membership", "heartbeat-sender"));
+            groupedThreads("onos/cluster/membership", "heartbeat-sender", log));
     private ExecutorService heartBeatMessageHandler = Executors.newSingleThreadExecutor(
-            groupedThreads("onos/cluster/membership", "heartbeat-receiver"));
+            groupedThreads("onos/cluster/membership", "heartbeat-receiver", log));
 
     private PhiAccrualFailureDetector failureDetector;
 
@@ -377,7 +377,7 @@ public class DistributedClusterStore
         try {
             ScheduledExecutorService prevSender = heartBeatSender;
             heartBeatSender = Executors.newSingleThreadScheduledExecutor(
-                    groupedThreads("onos/cluster/membership", "heartbeat-sender-%d"));
+                    groupedThreads("onos/cluster/membership", "heartbeat-sender-%d", log));
             heartBeatSender.scheduleWithFixedDelay(this::heartbeat, 0,
                                                    heartbeatInterval, TimeUnit.MILLISECONDS);
             prevSender.shutdown();

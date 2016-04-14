@@ -218,7 +218,7 @@ public class EventuallyConsistentMapImpl<K, V>
         } else {
             // should be a normal executor; it's used for receiving messages
             this.executor =
-                    Executors.newFixedThreadPool(8, groupedThreads("onos/ecm", mapName + "-fg-%d"));
+                    Executors.newFixedThreadPool(8, groupedThreads("onos/ecm", mapName + "-fg-%d", log));
         }
 
         if (communicationExecutor != null) {
@@ -227,7 +227,7 @@ public class EventuallyConsistentMapImpl<K, V>
             // sending executor; should be capped
             //TODO this probably doesn't need to be bounded anymore
             this.communicationExecutor =
-                    newFixedThreadPool(8, groupedThreads("onos/ecm", mapName + "-publish-%d"));
+                    newFixedThreadPool(8, groupedThreads("onos/ecm", mapName + "-publish-%d", log));
         }
 
 
@@ -235,7 +235,7 @@ public class EventuallyConsistentMapImpl<K, V>
             this.backgroundExecutor = backgroundExecutor;
         } else {
             this.backgroundExecutor =
-                    newSingleThreadScheduledExecutor(groupedThreads("onos/ecm", mapName + "-bg-%d"));
+                    newSingleThreadScheduledExecutor(groupedThreads("onos/ecm", mapName + "-bg-%d", log));
         }
 
         // start anti-entropy thread
@@ -718,7 +718,7 @@ public class EventuallyConsistentMapImpl<K, V>
             Map<K, UpdateEntry<K, V>> map = Maps.newHashMap();
             items.forEach(item -> map.compute(item.key(), (key, existing) ->
                     item.isNewerThan(existing) ? item : existing));
-            communicationExecutor.submit(() -> {
+            communicationExecutor.execute(() -> {
                 clusterCommunicator.unicast(ImmutableList.copyOf(map.values()),
                                             updateMessageSubject,
                                             serializer::encode,

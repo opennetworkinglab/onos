@@ -125,7 +125,7 @@ public class FlowRuleManager
             Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "device-installer-%d", log));
 
     protected ExecutorService operationsService =
-            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "operations-%d, log"));
+            Executors.newFixedThreadPool(32, groupedThreads("onos/flowservice", "operations-%d", log));
 
     private IdGenerator idGenerator;
 
@@ -294,7 +294,7 @@ public class FlowRuleManager
     @Override
     public void apply(FlowRuleOperations ops) {
         checkPermission(FLOWRULE_WRITE);
-        operationsService.submit(new FlowOperationsProcessor(ops));
+        operationsService.execute(new FlowOperationsProcessor(ops));
     }
 
     @Override
@@ -623,14 +623,14 @@ public class FlowRuleManager
                 final FlowRuleBatchOperation b = new FlowRuleBatchOperation(perDeviceBatches.get(deviceId),
                                                deviceId, id);
                 pendingFlowOperations.put(id, this);
-                deviceInstallers.submit(() -> store.storeBatch(b));
+                deviceInstallers.execute(() -> store.storeBatch(b));
             }
         }
 
         public void satisfy(DeviceId devId) {
             pendingDevices.remove(devId);
             if (pendingDevices.isEmpty()) {
-                operationsService.submit(this);
+                operationsService.execute(this);
             }
         }
 
@@ -640,7 +640,7 @@ public class FlowRuleManager
             hasFailed.set(true);
             pendingDevices.remove(devId);
             if (pendingDevices.isEmpty()) {
-                operationsService.submit(this);
+                operationsService.execute(this);
             }
 
             if (context != null) {

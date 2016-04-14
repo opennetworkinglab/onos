@@ -78,7 +78,7 @@ public class NewAdaptiveFlowStatsCollector {
     private final OpenFlowSwitch sw;
 
     private ScheduledExecutorService adaptiveFlowStatsScheduler =
-            Executors.newScheduledThreadPool(4, groupedThreads("onos/flow", "device-stats-collector-%d"));
+            Executors.newScheduledThreadPool(4, groupedThreads("onos/flow", "device-stats-collector-%d", log));
     private ScheduledFuture<?> calAndShortFlowsThread;
     private ScheduledFuture<?> midFlowsThread;
     private ScheduledFuture<?> longFlowsThread;

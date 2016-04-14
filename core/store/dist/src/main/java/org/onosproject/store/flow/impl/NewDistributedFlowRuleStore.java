@@ -167,7 +167,7 @@ public class NewDistributedFlowRuleStore
 
     private ScheduledFuture<?> backupTask;
     private final ScheduledExecutorService backupSenderExecutor =
-            Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/flow", "backup-sender"));
+            Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/flow", "backup-sender", log));
 
     private EventuallyConsistentMap<DeviceId, List<TableStatisticsEntry>> deviceTableStats;
     private final EventuallyConsistentMapListener<DeviceId, List<TableStatisticsEntry>> tableStatsListener =
@@ -203,7 +203,7 @@ public class NewDistributedFlowRuleStore
         local = clusterService.getLocalNode().id();
 
         messageHandlingExecutor = Executors.newFixedThreadPool(
-                msgHandlerPoolSize, groupedThreads("onos/store/flow", "message-handlers"));
+                msgHandlerPoolSize, groupedThreads("onos/store/flow", "message-handlers", log));
 
         registerMessageHandlers(messageHandlingExecutor);
 

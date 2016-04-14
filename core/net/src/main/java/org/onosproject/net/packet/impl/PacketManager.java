@@ -120,7 +120,7 @@ public class PacketManager
     @Activate
     public void activate() {
         eventHandlingExecutor = Executors.newSingleThreadExecutor(
-                groupedThreads("onos/net/packet", "event-handler"));
+                groupedThreads("onos/net/packet", "event-handler", log));
         localNodeId = clusterService.getLocalNode().id();
         appId = coreService.getAppId(CoreService.CORE_APP_NAME);
         store.setDelegate(delegate);

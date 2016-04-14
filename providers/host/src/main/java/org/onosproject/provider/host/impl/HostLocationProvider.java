@@ -138,7 +138,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.provider.host");
         eventHandler = newSingleThreadScheduledExecutor(
-                groupedThreads("onos/host-loc-provider", "event-handler"));
+                groupedThreads("onos/host-loc-provider", "event-handler", log));
         providerService = providerRegistry.register(this);
         packetService.addProcessor(processor, PacketProcessor.advisor(1));
         deviceService.addListener(deviceListener);

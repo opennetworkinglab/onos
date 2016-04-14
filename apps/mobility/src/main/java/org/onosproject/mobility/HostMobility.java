@@ -72,7 +72,7 @@ public class HostMobility {
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.mobility");
-        eventHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/app-mobility", "event-handler"));
+        eventHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/app-mobility", "event-handler", log));
         hostService.addListener(new InternalHostListener());
         log.info("Started with Application ID {}", appId.id());
     }

@@ -120,7 +120,7 @@ public class DistributedStatisticStore implements StatisticStore {
 
         messageHandlingExecutor = Executors.newFixedThreadPool(
                 messageHandlerThreadPoolSize,
-                groupedThreads("onos/store/statistic", "message-handlers"));
+                groupedThreads("onos/store/statistic", "message-handlers", log));
 
         clusterCommunicator.<ConnectPoint, Set<FlowEntry>>addSubscriber(GET_CURRENT,
                 SERIALIZER::decode,

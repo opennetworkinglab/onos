@@ -124,7 +124,7 @@ public class DefaultTopologyProvider extends AbstractProvider
     @Activate
     public synchronized void activate(ComponentContext context) {
         cfgService.registerProperties(DefaultTopologyProvider.class);
-        executor = newFixedThreadPool(MAX_THREADS, groupedThreads("onos/topo", "build-%d"));
+        executor = newFixedThreadPool(MAX_THREADS, groupedThreads("onos/topo", "build-%d", log));
         accumulator = new TopologyChangeAccumulator();
         logConfig("Configured");
 

@@ -338,7 +338,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
         loadDevices();
 
-        executor = newSingleThreadScheduledExecutor(groupedThreads("onos/link", "discovery-%d"));
+        executor = newSingleThreadScheduledExecutor(groupedThreads("onos/link", "discovery-%d", log));
         executor.scheduleAtFixedRate(new SyncDeviceInfoTask(),
                                      DEVICE_SYNC_DELAY, DEVICE_SYNC_DELAY, SECONDS);
         executor.scheduleAtFixedRate(new LinkPrunerTask(),

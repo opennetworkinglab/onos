@@ -120,7 +120,7 @@ public class IntentSynchronizer implements IntentSynchronizationService,
      * @return executor service
      */
     protected ExecutorService createExecutor() {
-        return newSingleThreadExecutor(groupedThreads("onos/" + appId, "sync"));
+        return newSingleThreadExecutor(groupedThreads("onos/" + appId, "sync", log));
     }
 
     @Override

@@ -124,7 +124,8 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
 
     private ScheduledExecutorService groupChecker =
             Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner",
-                                                               "ovs-corsa-%d"));
+                                                               "ovs-corsa-%d",
+                                                               log));
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
