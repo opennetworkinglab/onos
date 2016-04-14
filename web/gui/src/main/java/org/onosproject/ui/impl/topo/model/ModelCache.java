@@ -24,6 +24,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
 import org.onosproject.net.region.Region;
+import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiTopology;
 
@@ -40,6 +41,11 @@ class ModelCache {
 
     ModelCache(EventDispatcher eventDispatcher) {
         this.dispatcher = eventDispatcher;
+    }
+
+    @Override
+    public String toString() {
+        return "ModelCache{" + uiTopology + "}";
     }
 
     /**
@@ -61,6 +67,44 @@ class ModelCache {
     }
 
 
+    /**
+     * Updates the model (adds a new instance if necessary) with the given
+     * controller node information.
+     *
+     * @param cnode controller node to be added/updated
+     */
+    void addOrUpdateClusterMember(ControllerNode cnode) {
+        UiClusterMember member = uiTopology.findClusterMember(cnode.id());
+        if (member != null) {
+            member.update(cnode);
+        } else {
+            member = new UiClusterMember(cnode);
+            uiTopology.add(member);
+        }
+
+        // TODO: post event
+    }
+
+    void removeClusterMember(ControllerNode cnode) {
+        // TODO: find cluster member assoc. with parameter; remove from model
+        // TODO: post event
+    }
+
+    void updateMasterships(DeviceId deviceId, RoleInfo roleInfo) {
+        // TODO: store the updated mastership information
+        // TODO: post event
+    }
+
+    void addOrUpdateRegion(Region region) {
+        // TODO: find or create region assoc. with parameter
+        // TODO: post event
+    }
+
+    void removeRegion(Region region) {
+        // TODO: find region assoc. with parameter; remove from model
+        // TODO: post event
+    }
+
     void addOrUpdateDevice(Device device) {
         // TODO: find or create device assoc. with parameter
         // FIXME
@@ -78,32 +122,6 @@ class ModelCache {
         // TODO: post the (correct) event
         dispatcher.post(new UiModelEvent(DEVICE_REMOVED, uiDevice));
 
-    }
-
-    void addOrUpdateClusterMember(ControllerNode cnode) {
-        // TODO: find or create cluster member assoc. with parameter
-        // TODO: post event
-    }
-
-    void removeClusterMember(ControllerNode cnode) {
-        // TODO: find cluster member assoc. with parameter; remove from model
-        // TODO: post event
-    }
-
-
-    void updateMasterships(DeviceId deviceId, RoleInfo roleInfo) {
-        // TODO: store the updated mastership information
-        // TODO: post event
-    }
-
-    void addOrUpdateRegion(Region region) {
-        // TODO: find or create region assoc. with parameter
-        // TODO: post event
-    }
-
-    void removeRegion(Region region) {
-        // TODO: find region assoc. with parameter; remove from model
-        // TODO: post event
     }
 
     void addOrUpdateLink(Link link) {
@@ -128,5 +146,23 @@ class ModelCache {
 
     void removeHost(Host host) {
         // TODO: find host assoc. with parameter; remove from model
+    }
+
+    /**
+     * Returns the number of members in the cluster.
+     *
+     * @return number of cluster members
+     */
+    public int clusterMemberCount() {
+        return uiTopology.clusterMemberCount();
+    }
+
+    /**
+     * Returns the number of regions configured in the topology.
+     *
+     * @return number of regions
+     */
+    public int regionCount() {
+        return uiTopology.regionCount();
     }
 }

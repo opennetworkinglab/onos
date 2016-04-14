@@ -16,8 +16,41 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.NodeId;
+
 /**
  * Represents an individual member of the cluster (ONOS instance).
  */
 public class UiClusterMember extends UiElement {
+
+    private final ControllerNode cnode;
+
+    /**
+     * Constructs a cluster member, with a reference to the specified
+     * controller node instance.
+     *
+     * @param cnode underlying controller node.
+     */
+    public UiClusterMember(ControllerNode cnode) {
+        this.cnode = cnode;
+    }
+
+    /**
+     * Updates the information about this cluster member.
+     *
+     * @param cnode underlying controller node
+     */
+    public void update(ControllerNode cnode) {
+        // TODO: update our information cache appropriately
+    }
+
+    /**
+     * Returns the identity of the cluster member.
+     *
+     * @return member identifier
+     */
+    public NodeId id() {
+        return cnode.id();
+    }
 }

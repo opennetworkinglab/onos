@@ -16,6 +16,7 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.onosproject.cluster.NodeId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,11 @@ public class UiTopology extends UiElement {
     private final UiCluster uiCluster = new UiCluster();
     private final Set<UiRegion> uiRegions = new TreeSet<>();
 
+    @Override
+    public String toString() {
+        return "Topology: " + uiCluster + ", " + uiRegions.size() + " regions";
+    }
+
     /**
      * Clears the topology state; that is, drops all regions, devices, hosts,
      * links, and cluster members.
@@ -40,5 +46,43 @@ public class UiTopology extends UiElement {
         log.debug("clearing topology model");
         uiRegions.clear();
         uiCluster.clear();
+    }
+
+    /**
+     * Returns the cluster member with the given identifier, or null if no
+     * such member.
+     *
+     * @param id cluster node identifier
+     * @return the cluster member with that identifier
+     */
+    public UiClusterMember findClusterMember(NodeId id) {
+        return uiCluster.find(id);
+    }
+
+    /**
+     * Adds the given cluster member to the topology model.
+     *
+     * @param member cluster member to add
+     */
+    public void add(UiClusterMember member) {
+        uiCluster.add(member);
+    }
+
+    /**
+     * Returns the number of members in the cluster.
+     *
+     * @return number of cluster members
+     */
+    public int clusterMemberCount() {
+        return uiCluster.size();
+    }
+
+    /**
+     * Returns the number of regions configured in the topology.
+     *
+     * @return number of regions
+     */
+    public int regionCount() {
+        return uiRegions.size();
     }
 }

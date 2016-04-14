@@ -16,8 +16,12 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.onosproject.cluster.NodeId;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Encapsulates the notion of the ONOS cluster.
@@ -25,11 +29,47 @@ import java.util.List;
 class UiCluster extends UiElement {
 
     private final List<UiClusterMember> members = new ArrayList<>();
+    private final Map<NodeId, UiClusterMember> lookup = new HashMap<>();
+
+    @Override
+    public String toString() {
+        return String.valueOf(members.size()) + "-member cluster";
+    }
 
     /**
      * Removes all cluster members.
      */
     void clear() {
         members.clear();
+    }
+
+    /**
+     * Returns the cluster member with the given identifier, or null if no
+     * such member exists.
+     *
+     * @param id identifier of member to find
+     * @return corresponding member
+     */
+    public UiClusterMember find(NodeId id) {
+        return lookup.get(id);
+    }
+
+    /**
+     * Adds the given member to the cluster.
+     *
+     * @param member member to add
+     */
+    public void add(UiClusterMember member) {
+        members.add(member);
+        lookup.put(member.id(), member);
+    }
+
+    /**
+     * Returns the number of members in the cluster.
+     *
+     * @return number of members
+     */
+    public int size() {
+        return members.size();
     }
 }
