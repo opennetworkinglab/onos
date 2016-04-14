@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cordvtn;
+package org.onosproject.cordvtn.api;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpAddress;
@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class CordService {
 
-    enum ServiceType {
+    public enum ServiceType {
         PRIVATE,
         PUBLIC,
         MANAGEMENT

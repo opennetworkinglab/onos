@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onosproject.cordvtn.CordVtnService;
+import org.onosproject.cordvtn.api.CordVtnService;
 import org.onosproject.net.HostId;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;

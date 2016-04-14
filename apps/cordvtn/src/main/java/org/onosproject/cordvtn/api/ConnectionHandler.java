@@ -13,33 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cordvtn;
-
-import org.onlab.util.Identifier;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+package org.onosproject.cordvtn.api;
 
 /**
- * Representation of service identifier.
+ * Entity capable of handling a subject connected and disconnected situation.
  */
-public final class CordServiceId extends Identifier<String> {
-    /**
-     * Default constructor.
-     *
-     * @param id service identifier
-     */
-    private CordServiceId(String id) {
-        super(id);
-    }
+public interface ConnectionHandler<T> {
 
     /**
-     * Returns the CordServiceId with value.
+     * Processes the connected subject.
      *
-     * @param id service id
-     * @return CordServiceId
+     * @param subject subject
      */
-    public static CordServiceId of(String id) {
-        checkNotNull(id);
-        return new CordServiceId(id);
-    }
+    void connected(T subject);
+
+    /**
+     * Processes the disconnected subject.
+     *
+     * @param subject subject.
+     */
+    void disconnected(T subject);
 }

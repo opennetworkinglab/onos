@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cordvtn;
+package org.onosproject.cordvtn.impl;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
@@ -23,6 +23,8 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cordvtn.api.NetworkAddress;
+import org.onosproject.cordvtn.api.SshAccessInfo;
 import org.slf4j.Logger;
 
 import java.io.IOException;

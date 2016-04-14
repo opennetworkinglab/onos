@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cordvtn;
+package org.onosproject.cordvtn.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -29,6 +29,11 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cordvtn.api.CordService;
+import org.onosproject.cordvtn.api.CordServiceId;
+import org.onosproject.cordvtn.api.CordVtnConfig;
+import org.onosproject.cordvtn.api.CordVtnNode;
+import org.onosproject.cordvtn.api.CordVtnService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.dhcp.DhcpService;
@@ -719,7 +724,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                 .forEach(entry -> {
                     arpProxy.addGateway(entry.getKey(), entry.getValue());
                     log.info("Added public gateway IP {}, MAC {}",
-                              entry.getKey().toString(), entry.getValue().toString());
+                             entry.getKey().toString(), entry.getValue().toString());
                 });
         // TODO notice gateway MAC change to VMs holds this gateway IP
     }

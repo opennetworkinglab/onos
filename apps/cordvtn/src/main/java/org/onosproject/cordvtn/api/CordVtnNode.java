@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cordvtn;
+package org.onosproject.cordvtn.api;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.TpPort;

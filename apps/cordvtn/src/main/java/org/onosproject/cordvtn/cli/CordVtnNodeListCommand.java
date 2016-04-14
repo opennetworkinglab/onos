@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cordvtn.CordVtnNodeManager;
-import org.onosproject.cordvtn.CordVtnNode;
+import org.onosproject.cordvtn.impl.CordVtnNodeManager;
+import org.onosproject.cordvtn.api.CordVtnNode;
 
 import java.util.Collections;
 import java.util.List;

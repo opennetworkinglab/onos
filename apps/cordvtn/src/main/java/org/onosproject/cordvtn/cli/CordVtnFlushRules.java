@@ -18,7 +18,7 @@ package org.onosproject.cordvtn.cli;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cordvtn.CordVtnNodeManager;
+import org.onosproject.cordvtn.impl.CordVtnNodeManager;
 
 /**
  * Deletes nodes from the service.

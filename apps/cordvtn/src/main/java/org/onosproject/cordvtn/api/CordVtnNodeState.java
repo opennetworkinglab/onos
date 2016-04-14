@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cordvtn;
+package org.onosproject.cordvtn.api;
 
 /**
  * Entity that defines possible init state of the cordvtn node.

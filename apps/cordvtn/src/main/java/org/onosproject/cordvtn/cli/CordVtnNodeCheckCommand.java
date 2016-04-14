@@ -19,8 +19,8 @@ package org.onosproject.cordvtn.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cordvtn.CordVtnNode;
-import org.onosproject.cordvtn.CordVtnNodeManager;
+import org.onosproject.cordvtn.api.CordVtnNode;
+import org.onosproject.cordvtn.impl.CordVtnNodeManager;
 
 /**
  * Checks detailed node init state.

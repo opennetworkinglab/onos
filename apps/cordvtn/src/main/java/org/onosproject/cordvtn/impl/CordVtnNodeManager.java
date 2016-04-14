@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cordvtn;
+package org.onosproject.cordvtn.impl;
 
 import com.google.common.collect.Sets;
 import com.jcraft.jsch.Session;
@@ -29,6 +29,13 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.cordvtn.api.ConnectionHandler;
+import org.onosproject.cordvtn.api.CordVtnConfig;
+import org.onosproject.cordvtn.api.CordVtnNode;
+import org.onosproject.cordvtn.api.CordVtnNodeState;
+import org.onosproject.cordvtn.api.CordVtnService;
+import org.onosproject.cordvtn.api.NetworkAddress;
+import org.onosproject.cordvtn.api.SshAccessInfo;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;

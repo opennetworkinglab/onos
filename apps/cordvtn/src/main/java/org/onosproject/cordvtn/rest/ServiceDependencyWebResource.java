@@ -15,8 +15,8 @@
  */
 package org.onosproject.cordvtn.rest;
 
-import org.onosproject.cordvtn.CordVtnService;
-import org.onosproject.cordvtn.CordServiceId;
+import org.onosproject.cordvtn.api.CordVtnService;
+import org.onosproject.cordvtn.api.CordServiceId;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.DELETE;
