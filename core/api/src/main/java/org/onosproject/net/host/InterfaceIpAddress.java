@@ -182,11 +182,6 @@ public class InterfaceIpAddress {
 
     @Override
     public String toString() {
-        /*return toStringHelper(this).add("ipAddress", ipAddress)
-            .add("subnetAddress", subnetAddress)
-            .add("broadcastAddress", broadcastAddress)
-            .add("peerAddress", peerAddress)
-            .omitNullValues().toString();*/
         return ipAddress.toString() + "/" + subnetAddress.prefixLength();
     }
 }

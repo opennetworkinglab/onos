@@ -49,7 +49,6 @@ public class Vrouter {
 
     private final List<String> components = ImmutableList.<String>builder()
             .add("org.onosproject.routing.fpm.FpmManager")
-            .add("org.onosproject.routing.impl.Router")
             .add("org.onosproject.routing.impl.SingleSwitchFibInstaller")
             .add("org.onosproject.routing.impl.ControlPlaneRedirectManager")
             .build();

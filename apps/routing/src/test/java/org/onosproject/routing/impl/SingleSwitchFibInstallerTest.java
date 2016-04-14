@@ -15,13 +15,11 @@
  */
 package org.onosproject.routing.impl;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
@@ -31,11 +29,14 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.incubator.net.intf.InterfaceServiceAdapter;
+import org.onosproject.incubator.net.routing.ResolvedRoute;
+import org.onosproject.incubator.net.routing.RouteEvent;
+import org.onosproject.incubator.net.routing.RouteListener;
+import org.onosproject.incubator.net.routing.RouteServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -53,25 +54,22 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.host.InterfaceIpAddress;
-import org.onosproject.net.intent.AbstractIntentTest;
-import org.onosproject.routing.FibEntry;
-import org.onosproject.routing.FibListener;
-import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.RoutingService;
-import org.onosproject.routing.RoutingServiceAdapter;
 import org.onosproject.routing.config.RouterConfig;
 import org.osgi.service.component.ComponentContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
@@ -79,76 +77,68 @@ import static org.easymock.EasyMock.verify;
 /**
  * Unit tests for SingleSwitchFibInstaller.
  */
-public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
+public class SingleSwitchFibInstallerTest {
 
-    //for interface service setup
+    private static final DeviceId DEVICE_ID = DeviceId.deviceId("of:0000000000000001");
+
     private static final ConnectPoint SW1_ETH1 = new ConnectPoint(
-            DeviceId.deviceId("of:0000000000000001"),
-            PortNumber.portNumber(1));
+            DEVICE_ID, PortNumber.portNumber(1));
 
-    private static final ConnectPoint SW2_ETH1 = new ConnectPoint(
-            DeviceId.deviceId("of:0000000000000002"),
-            PortNumber.portNumber(1));
+    private static final ConnectPoint SW1_ETH2 = new ConnectPoint(
+            DEVICE_ID, PortNumber.portNumber(2));
 
-    private static final ConnectPoint SW3_ETH1 = new ConnectPoint(
-            DeviceId.deviceId("of:0000000000000003"),
-            PortNumber.portNumber(1));
+    private static final int NEXT_ID = 11;
 
-    private static final ConnectPoint SW4_ETH1 = new ConnectPoint(
-            DeviceId.deviceId("of:0000000000000004"),
-            PortNumber.portNumber(1));
+    private static final VlanId VLAN1 = VlanId.vlanId((short) 1);
+    private static final MacAddress MAC1 = MacAddress.valueOf("00:00:00:00:00:01");
+    private static final MacAddress MAC2 = MacAddress.valueOf("00:00:00:00:00:02");
 
-    private DeviceId deviceId = DeviceId.deviceId("of:0000000000000001");
+    private static final IpPrefix PREFIX1 = Ip4Prefix.valueOf("1.1.1.0/24");
+    private static final IpAddress NEXT_HOP1 = IpAddress.valueOf("192.168.10.1");
+    private static final IpAddress NEXT_HOP2 = IpAddress.valueOf("192.168.20.1");
+    private static final InterfaceIpAddress INTF1 =
+            InterfaceIpAddress.valueOf("192.168.10.2/24");
+    private static final InterfaceIpAddress INTF2 =
+            InterfaceIpAddress.valueOf("192.168.20.2/24");
+
+
     private final Set<Interface> interfaces = Sets.newHashSet();
     private InterfaceService interfaceService;
     private NetworkConfigService networkConfigService;
     private FlowObjectiveService flowObjectiveService;
     private DeviceService deviceService;
-    private static final ApplicationId APPID = TestApplicationId.create("update fib");
-    private FibListener fibListener;
+    private static final ApplicationId APPID = TestApplicationId.create("foo");
+
+    private RouteListener routeListener;
     private DeviceListener deviceListener;
-    private CoreService coreService;
+
     private RouterConfig routerConfig;
-    private RoutingService routingService;
     private SingleSwitchFibInstaller sSfibInstaller;
     private InterfaceListener interfaceListener;
 
     @Before
     public void setUp() throws Exception {
-        super.setUp();
         sSfibInstaller = new SingleSwitchFibInstaller();
 
-        //component config service
-        ComponentConfigService mockComponenetConfigServ = EasyMock.createMock(ComponentConfigService.class);
-        expect(mockComponenetConfigServ.getProperties(anyObject())).andReturn(ImmutableSet.of());
-        mockComponenetConfigServ.registerProperties(sSfibInstaller.getClass());
-        EasyMock.expectLastCall();
-        mockComponenetConfigServ.unregisterProperties(sSfibInstaller.getClass(), false);
-        EasyMock.expectLastCall();
-        expect(mockComponenetConfigServ.getProperties(anyObject())).andReturn(ImmutableSet.of());
-        sSfibInstaller.componentConfigService = mockComponenetConfigServ;
-        replay(mockComponenetConfigServ);
+        sSfibInstaller.componentConfigService = createNiceMock(ComponentConfigService.class);
 
-        //component context
-        ComponentContext mockContext = EasyMock.createMock(ComponentContext.class);
-        Dictionary properties = null;
-        expect(mockContext.getProperties()).andReturn(properties);
-        replay(mockContext);
+        ComponentContext mockContext = createNiceMock(ComponentContext.class);
 
-        coreService = new TestCoreService();
-        routingService = new TestRoutingService();
         routerConfig = new TestRouterConfig();
-        //interfaceService = createMock(InterfaceService.class);
-        interfaceService = new TestInterfaceService();
+        interfaceService = createMock(InterfaceService.class);
+
         networkConfigService = createMock(NetworkConfigService.class);
         flowObjectiveService = createMock(FlowObjectiveService.class);
         deviceService = new TestDeviceService();
+        CoreService coreService = createNiceMock(CoreService.class);
+        expect(coreService.registerApplication(anyString())).andReturn(APPID);
+        replay(coreService);
 
         sSfibInstaller.networkConfigService = networkConfigService;
         sSfibInstaller.interfaceService = interfaceService;
         sSfibInstaller.flowObjectiveService = flowObjectiveService;
         sSfibInstaller.coreService = coreService;
-        sSfibInstaller.routingService = new TestRoutingService();
+        sSfibInstaller.routeService = new TestRouteService();
         sSfibInstaller.deviceService = deviceService;
 
         setUpNetworkConfigService();
@@ -160,48 +150,32 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
      * Sets up InterfaceService.
      */
     private void setUpInterfaceService() {
-        Set<InterfaceIpAddress> interfaceIpAddresses1 = Sets.newHashSet();
-        interfaceIpAddresses1.add(new InterfaceIpAddress(
-                IpAddress.valueOf("192.168.10.1"),
-                IpPrefix.valueOf("192.168.10.0/24")));
-        Interface sw1Eth1 = new Interface(SW1_ETH1.deviceId().toString(), SW1_ETH1,
-                  interfaceIpAddresses1, MacAddress.valueOf("00:00:00:00:00:01"),
-                  VlanId.NONE);
+        interfaceService.addListener(anyObject(InterfaceListener.class));
+        expectLastCall().andDelegateTo(new TestInterfaceService());
+
+        // Interface with no VLAN
+        Interface sw1Eth1 = new Interface("intf1", SW1_ETH1,
+                Collections.singletonList(INTF1), MAC1, VlanId.NONE);
+        expect(interfaceService.getMatchingInterface(NEXT_HOP1)).andReturn(sw1Eth1);
         interfaces.add(sw1Eth1);
 
-        Set<InterfaceIpAddress> interfaceIpAddresses2 = Sets.newHashSet();
-        interfaceIpAddresses2.add(new InterfaceIpAddress(IpAddress.valueOf("192.168.20.1"),
-           IpPrefix.valueOf("192.168.20.0/24")));
-        Interface sw2Eth1 = new Interface(SW2_ETH1.deviceId().toString(), SW2_ETH1,
-           interfaceIpAddresses2, MacAddress.valueOf("00:00:00:00:00:02"),
-           VlanId.NONE);
+        // Interface with a VLAN
+        Interface sw2Eth1 = new Interface("intf2", SW1_ETH2,
+                Collections.singletonList(INTF2), MAC2, VLAN1);
+        expect(interfaceService.getMatchingInterface(NEXT_HOP2)).andReturn(sw2Eth1);
         interfaces.add(sw2Eth1);
 
-        Set<InterfaceIpAddress> interfaceIpAddresses3 = Sets.newHashSet();
-        interfaceIpAddresses3.add(
-                new InterfaceIpAddress(IpAddress.valueOf("192.168.30.101"),
-                IpPrefix.valueOf("192.168.30.0/24")));
-        Interface sw3Eth1 = new Interface(SW3_ETH1.deviceId().toString(), SW3_ETH1,
-           interfaceIpAddresses3, MacAddress.valueOf("00:00:00:00:00:03"), VlanId.NONE);
-        interfaces.add(sw3Eth1);
+        expect(interfaceService.getInterfaces()).andReturn(interfaces);
 
-        InterfaceIpAddress interfaceIpAddress4 =
-           new InterfaceIpAddress(IpAddress.valueOf("192.168.40.1"),
-           IpPrefix.valueOf("192.168.40.0/24"));
-
-        Interface sw4Eth1 = new Interface(SW4_ETH1.deviceId().toString(), SW4_ETH1,
-           Sets.newHashSet(interfaceIpAddress4),
-           MacAddress.valueOf("00:00:00:00:00:04"),
-           VlanId.vlanId((short) 1));
-        interfaces.add(sw4Eth1);
+        replay(interfaceService);
     }
 
     /*
      * Sets up NetworkConfigService.
      */
     private void setUpNetworkConfigService() {
-        ApplicationId routerAppId = coreService.registerApplication(RoutingService.ROUTER_APP_ID);
-        expect(networkConfigService.getConfig(routerAppId, RoutingService.ROUTER_CONFIG_CLASS)).
+        expect(networkConfigService.getConfig(
+                anyObject(ApplicationId.class), eq(RoutingService.ROUTER_CONFIG_CLASS))).
         andReturn(routerConfig);
         replay(networkConfigService);
     }
@@ -210,41 +184,41 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
      * Sets up FlowObjectiveService.
      */
     private void setUpFlowObjectiveService() {
-        expect(flowObjectiveService.allocateNextId()).andReturn(11);
+        expect(flowObjectiveService.allocateNextId()).andReturn(NEXT_ID);
         replay(flowObjectiveService);
     }
 
     /**
-     * Tests adding a FIB entry to the flowObjectiveService.
+     * Creates a next objective with the given parameters.
      *
-     * We verify that the flowObjectiveService records the correct state and that the
-     * correct flow is submitted to the flowObjectiveService.
+     * @param srcMac source MAC address
+     * @param dstMac destination MAC address
+     * @param port port number
+     * @param vlan vlan ID
+     * @param add whether to create an add objective or remove objective
+     * @return new next objective
      */
-    @Test
-    public void testFibAdd() {
-        IpPrefix prefix = Ip4Prefix.valueOf("1.1.1.0/24");
-        FibEntry fibEntry = new FibEntry(prefix,
-                Ip4Address.valueOf("192.168.10.1"),
-                MacAddress.valueOf("00:00:00:00:00:01"));
-
-        //create the next Objective
-        Interface egressIntf = interfaceService.getMatchingInterface(fibEntry.nextHopIp());
+    private NextObjective createNextObjective(MacAddress srcMac,
+                                              MacAddress dstMac,
+                                              PortNumber port,
+                                              VlanId vlan,
+                                              boolean add) {
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
-                .setEthSrc(MacAddress.valueOf("00:00:00:00:00:01"))
-                .setEthDst(MacAddress.valueOf("00:00:00:00:00:01"));
+                .setEthSrc(srcMac)
+                .setEthDst(dstMac);
         TrafficSelector.Builder metabuilder = null;
-        if (!egressIntf.vlan().equals(VlanId.NONE)) {
+        if (!vlan.equals(VlanId.NONE)) {
             treatment.pushVlan()
-                    .setVlanId(egressIntf.vlan())
-                    .setVlanPcp((byte) 0);
+                     .setVlanId(vlan)
+                     .setVlanPcp((byte) 0);
         } else {
             metabuilder = DefaultTrafficSelector.builder();
             metabuilder.matchVlanId(VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN));
         }
-        treatment.setOutput(PortNumber.portNumber(1));
-        int nextId = 11;
+
+        treatment.setOutput(port);
         NextObjective.Builder nextBuilder = DefaultNextObjective.builder()
-                .withId(nextId)
+                .withId(NEXT_ID)
                 .addTreatment(treatment.build())
                 .withType(NextObjective.Type.SIMPLE)
                 .fromApp(APPID);
@@ -252,10 +226,18 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
             nextBuilder.withMeta(metabuilder.build());
         }
 
-        NextObjective nextObjective = nextBuilder.add();
-        flowObjectiveService.next(deviceId, nextObjective);
+        return add ? nextBuilder.add() : nextBuilder.remove();
+    }
 
-        //set up the flowObjective
+    /**
+     * Creates a new forwarding objective with the given parameters.
+     *
+     * @param prefix IP prefix
+     * @param add whether to create an add objective or a remove objective
+     * @return new forwarding objective
+     */
+    private ForwardingObjective createForwardingObjective(IpPrefix prefix,
+                                                          boolean add) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(prefix)
@@ -269,260 +251,134 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
                 .withPriority(priority)
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
 
-        Integer nextId1 = 11;
-        fwdBuilder.nextStep(nextId1);
-        flowObjectiveService.forward(deviceId, fwdBuilder.add());
+        if (add) {
+            fwdBuilder.nextStep(NEXT_ID);
+        } else {
+            fwdBuilder.withTreatment(DefaultTrafficTreatment.builder().build());
+        }
+
+        return add ? fwdBuilder.add() : fwdBuilder.remove();
+    }
+
+    /**
+     * Tests adding a route.
+     *
+     * We verify that the flowObjectiveService records the correct state and that the
+     * correct flow is submitted to the flowObjectiveService.
+     */
+    @Test
+    public void testRouteAdd() {
+        ResolvedRoute resolvedRoute = new ResolvedRoute(PREFIX1, NEXT_HOP1, MAC1);
+
+        // Create the next objective
+        NextObjective nextObjective = createNextObjective(MAC1, MAC1, SW1_ETH1.port(), VlanId.NONE, true);
+        flowObjectiveService.next(DEVICE_ID, nextObjective);
+
+        // Create the flow objective
+        ForwardingObjective fwd = createForwardingObjective(PREFIX1, true);
+        flowObjectiveService.forward(DEVICE_ID, fwd);
         EasyMock.expectLastCall().once();
         setUpFlowObjectiveService();
 
-        // Send in the UPDATE FibUpdate
-        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE, fibEntry);
-        fibListener.update(Collections.singleton(fibUpdate), Collections.emptyList());
+        // Send in the add event
+        RouteEvent routeEvent = new RouteEvent(RouteEvent.Type.ROUTE_ADDED, resolvedRoute);
+        routeListener.event(routeEvent);
         verify(flowObjectiveService);
     }
 
     /**
-     * Tests adding a FIB entry with to a next hop in a VLAN.
+     * Tests adding a route with to a next hop in a VLAN.
      *
      * We verify that the flowObjectiveService records the correct state and that the
      * correct flowObjectiveService is submitted to the flowObjectiveService.
      */
     @Test
-    public void testFibAddWithVlan() {
-        IpPrefix prefix = Ip4Prefix.valueOf("3.3.3.0/24");
-        FibEntry fibEntry = new FibEntry(prefix,
-                Ip4Address.valueOf("192.168.40.1"),
-                MacAddress.valueOf("00:00:00:00:00:04"));
+    public void testRouteAddWithVlan() {
+        ResolvedRoute route = new ResolvedRoute(PREFIX1, NEXT_HOP2, MAC2);
 
-        //create the next Objective
-        Interface egressIntf = interfaceService.getMatchingInterface(fibEntry.nextHopIp());
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
-                .setEthSrc(MacAddress.valueOf("00:00:00:00:00:04"))
-                .setEthDst(MacAddress.valueOf("00:00:00:00:00:04"));
-        TrafficSelector.Builder metabuilder = null;
-        if (!egressIntf.vlan().equals(VlanId.NONE)) {
-            treatment.pushVlan()
-                    .setVlanId(egressIntf.vlan())
-                    .setVlanPcp((byte) 0);
-        } else {
-            metabuilder = DefaultTrafficSelector.builder();
-            metabuilder.matchVlanId(VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN));
-        }
-        treatment.setOutput(PortNumber.portNumber(1));
-        int nextId = 11;
-        NextObjective.Builder nextBuilder = DefaultNextObjective.builder()
-                .withId(nextId)
-                .addTreatment(treatment.build())
-                .withType(NextObjective.Type.SIMPLE)
-                .fromApp(APPID);
-        if (metabuilder != null) {
-            nextBuilder.withMeta(metabuilder.build());
-        }
+        // Create the next objective
+        NextObjective nextObjective = createNextObjective(MAC2, MAC2, SW1_ETH2.port(), VLAN1, true);
+        flowObjectiveService.next(DEVICE_ID, nextObjective);
 
-        NextObjective nextObjective = nextBuilder.add();
-        flowObjectiveService.next(deviceId, nextObjective);
-
-        //set up the flowObjective
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(prefix)
-                .build();
-
-        int priority = prefix.prefixLength() * 5 + 100;
-        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective.builder()
-                .fromApp(APPID)
-                .makePermanent()
-                .withSelector(selector)
-                .withPriority(priority)
-                .withFlag(ForwardingObjective.Flag.SPECIFIC);
-
-        Integer nextId1 = 11;
-        fwdBuilder.nextStep(nextId1);
-        flowObjectiveService.forward(deviceId, fwdBuilder.add());
+        // Create the flow objective
+        ForwardingObjective fwd = createForwardingObjective(PREFIX1, true);
+        flowObjectiveService.forward(DEVICE_ID, fwd);
         EasyMock.expectLastCall().once();
         setUpFlowObjectiveService();
 
-        // Send in the UPDATE FibUpdate
-        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE, fibEntry);
-        fibListener.update(Collections.singleton(fibUpdate), Collections.emptyList());
+        // Send in the add event
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED, route));
 
         verify(flowObjectiveService);
     }
 
     /**
-     * Tests updating a FIB entry.
+     * Tests updating a route.
      *
      * We verify that the flowObjectiveService records the correct state and that the
      * correct flow is submitted to the flowObjectiveService.
      */
     @Test
-    public void testFibUpdate() {
+    public void testRouteUpdate() {
         // Firstly add a route
-        testFibAdd();
+        testRouteAdd();
         reset(flowObjectiveService);
-        IpPrefix prefix = Ip4Prefix.valueOf("1.1.1.0/24");
-        // Start to construct a new route entry and new intent
-        FibEntry fibEntryUpdate = new FibEntry(prefix,
-                Ip4Address.valueOf("192.168.20.1"),
-                MacAddress.valueOf("00:00:00:00:00:02"));
 
-        //create the next Objective
-        Interface egressIntf = interfaceService.getMatchingInterface(fibEntryUpdate.nextHopIp());
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
-                .setEthSrc(MacAddress.valueOf("00:00:00:00:00:02"))
-                .setEthDst(MacAddress.valueOf("00:00:00:00:00:02"));
-        TrafficSelector.Builder metabuilder = null;
-        if (!egressIntf.vlan().equals(VlanId.NONE)) {
-            treatment.pushVlan()
-                    .setVlanId(egressIntf.vlan())
-                    .setVlanPcp((byte) 0);
-        } else {
-            metabuilder = DefaultTrafficSelector.builder();
-            metabuilder.matchVlanId(VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN));
-        }
-        treatment.setOutput(PortNumber.portNumber(1));
-        int nextId = 11;
-        NextObjective.Builder nextBuilder = DefaultNextObjective.builder()
-                .withId(nextId)
-                .addTreatment(treatment.build())
-                .withType(NextObjective.Type.SIMPLE)
-                .fromApp(APPID);
-        if (metabuilder != null) {
-            nextBuilder.withMeta(metabuilder.build());
-        }
+        ResolvedRoute route = new ResolvedRoute(PREFIX1, NEXT_HOP2, MAC2);
 
-        NextObjective nextObjective = nextBuilder.add();
-        flowObjectiveService.next(deviceId, nextObjective);
+        // Create the next objective
+        NextObjective nextObjective = createNextObjective(MAC2, MAC2, SW1_ETH2.port(), VLAN1, true);
+        flowObjectiveService.next(DEVICE_ID, nextObjective);
 
-        //set up the flowObjective
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(prefix)
-                .build();
-
-        int priority = prefix.prefixLength() * 5 + 100;
-        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective.builder()
-                .fromApp(APPID)
-                .makePermanent()
-                .withSelector(selector)
-                .withPriority(priority)
-                .withFlag(ForwardingObjective.Flag.SPECIFIC);
-
-        Integer nextId1 = 11;
-        fwdBuilder.nextStep(nextId1);
-        flowObjectiveService.forward(deviceId, fwdBuilder.add());
+        // Create the flow objective
+        ForwardingObjective fwd = createForwardingObjective(PREFIX1, true);
+        flowObjectiveService.forward(DEVICE_ID, fwd);
         EasyMock.expectLastCall().once();
         setUpFlowObjectiveService();
 
-        // Send in the UPDATE FibUpdate
-        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE,
-                fibEntryUpdate);
-        fibListener.update(Collections.singletonList(fibUpdate),
-                Collections.emptyList());
+        // Send in the update event
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, route));
 
         verify(flowObjectiveService);
     }
 
     /**
-     * Tests deleting a FIB entry.
+     * Tests deleting a route.
      *
      * We verify that the flowObjectiveService records the correct state and that the
      * correct flow is withdrawn from the flowObjectiveService.
      */
     @Test
-    public void testFibDelete() {
+    public void testRouteDelete() {
         // Firstly add a route
-        testFibAdd();
-        IpPrefix prefix = Ip4Prefix.valueOf("1.1.1.0/24");
+        testRouteAdd();
 
-        // Construct the existing route entry
-        FibEntry fibEntry = new FibEntry(prefix, null, null);
+        // Construct the existing route
+        ResolvedRoute route = new ResolvedRoute(PREFIX1, null, null);
 
-        //set up the flowObjective
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(prefix)
-                .build();
-
-        int priority = prefix.prefixLength() * 5 + 100;
-
-        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective.builder()
-                .fromApp(APPID)
-                .makePermanent()
-                .withSelector(selector)
-                .withPriority(priority)
-                .withFlag(ForwardingObjective.Flag.SPECIFIC);
-        fwdBuilder.withTreatment(DefaultTrafficTreatment.builder().build());
+        // Create the flow objective
         reset(flowObjectiveService);
-        flowObjectiveService.forward(deviceId, fwdBuilder.remove());
+        ForwardingObjective fwd = createForwardingObjective(PREFIX1, false);
+        flowObjectiveService.forward(DEVICE_ID, fwd);
         replay(flowObjectiveService);
 
-        // Send in the DELETE FibUpdate
-        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.DELETE, fibEntry);
-        fibListener.update(Collections.emptyList(), Collections.singletonList(fibUpdate));
+        // Send in the delete event
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, route));
 
         verify(flowObjectiveService);
     }
 
     private class TestInterfaceService extends InterfaceServiceAdapter {
-
         @Override
         public void addListener(InterfaceListener listener) {
-            SingleSwitchFibInstallerTest.this.interfaceListener = listener;
-        }
-
-        @Override
-        public Set<Interface> getInterfaces() {
-            return interfaces;
-        }
-
-        @Override
-        public Set<Interface> getInterfacesByPort(ConnectPoint port) {
-
-            Set<Interface> setIntf = new HashSet<Interface>();
-            for (Interface intf : interfaces) {
-                if (intf.connectPoint().equals(port)) {
-                    setIntf.add(intf);
-
-                }
-            }
-            return setIntf;
-        }
-
-        @Override
-        public Interface getMatchingInterface(IpAddress ip) {
-            Interface intff = null;
-            for (Interface intf : interfaces) {
-                for (InterfaceIpAddress address : intf.ipAddresses()) {
-                    if (address.ipAddress().equals(ip)) {
-                        intff = intf;
-                        break;
-                    }
-                }
-            }
-
-            return intff;
+            interfaceListener = listener;
         }
     }
 
-    private class TestCoreService extends CoreServiceAdapter {
-
+    private class TestRouteService extends RouteServiceAdapter {
         @Override
-        public ApplicationId getAppId(String name) {
-            return APPID;
-        }
-
-        @Override
-        public ApplicationId registerApplication(String name) {
-            return APPID;
-        }
-    }
-
-    private class TestRoutingService extends RoutingServiceAdapter {
-
-        @Override
-        public void addFibListener(FibListener fibListener) {
-            SingleSwitchFibInstallerTest.this.fibListener = fibListener;
+        public void addListener(RouteListener listener) {
+            SingleSwitchFibInstallerTest.this.routeListener = listener;
         }
     }
 
@@ -532,9 +388,7 @@ public class SingleSwitchFibInstallerTest extends AbstractIntentTest {
         public List<String> getInterfaces() {
             ArrayList<String> interfaces = new ArrayList<>();
             interfaces.add("of:0000000000000001/1");
-            interfaces.add("of:0000000000000002/1");
-            interfaces.add("of:0000000000000003/1");
-            interfaces.add("of:0000000000000004/1");
+            interfaces.add("of:0000000000000001/2");
             return interfaces;
         }
 

@@ -89,9 +89,9 @@ public class IntentSynchronizer implements IntentSynchronizationService,
 
     @Activate
     public void activate() {
-        intentsSynchronizerExecutor = createExecutor();
         this.localNodeId = clusterService.getLocalNode().id();
         this.appId = coreService.registerApplication(APP_NAME);
+        intentsSynchronizerExecutor = createExecutor();
 
         leadershipService.addListener(leadershipEventListener);
         leadershipService.runForLeadership(appId.name());

@@ -73,7 +73,6 @@ public class SdnIp {
     private static List<String> components = new ArrayList<>();
     static {
         components.add("org.onosproject.routing.bgp.BgpSessionManager");
-        components.add("org.onosproject.routing.impl.Router");
         components.add(org.onosproject.sdnip.SdnIpFib.class.getName());
     }
 

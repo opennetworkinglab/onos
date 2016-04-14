@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
-import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -35,6 +34,10 @@ import org.onosproject.incubator.net.intf.InterfaceEvent;
 import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.incubator.net.intf.InterfaceServiceAdapter;
+import org.onosproject.incubator.net.routing.ResolvedRoute;
+import org.onosproject.incubator.net.routing.RouteEvent;
+import org.onosproject.incubator.net.routing.RouteListener;
+import org.onosproject.incubator.net.routing.RouteServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -46,11 +49,7 @@ import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.routing.FibEntry;
-import org.onosproject.routing.FibListener;
-import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.IntentSynchronizationService;
-import org.onosproject.routing.RoutingServiceAdapter;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -81,10 +80,6 @@ public class SdnIpFibTest extends AbstractIntentTest {
             DeviceId.deviceId("of:0000000000000002"),
             PortNumber.portNumber(1));
 
-    private static final ConnectPoint SW3_ETH1 = new ConnectPoint(
-            DeviceId.deviceId("of:0000000000000003"),
-            PortNumber.portNumber(1));
-
     private static final ConnectPoint SW4_ETH1 = new ConnectPoint(
             DeviceId.deviceId("of:0000000000000004"),
             PortNumber.portNumber(1));
@@ -93,13 +88,15 @@ public class SdnIpFibTest extends AbstractIntentTest {
             DeviceId.deviceId("of:0000000000000005"),
             PortNumber.portNumber(1));
 
+    private static final IpPrefix PREFIX1 = Ip4Prefix.valueOf("1.1.1.0/24");
+
     private SdnIpFib sdnipFib;
     private IntentSynchronizationService intentSynchronizer;
     private final Set<Interface> interfaces = Sets.newHashSet();
 
     private static final ApplicationId APPID = TestApplicationId.create("SDNIP");
 
-    private FibListener fibListener;
+    private RouteListener routeListener;
     private InterfaceListener interfaceListener;
 
     @Before
@@ -118,7 +115,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         intentSynchronizer = createMock(IntentSynchronizationService.class);
 
         sdnipFib = new SdnIpFib();
-        sdnipFib.routingService = new TestRoutingService();
+        sdnipFib.routeService = new TestRouteService();
         sdnipFib.coreService = new TestCoreService();
         sdnipFib.interfaceService = interfaceService;
         sdnipFib.intentSynchronizer = intentSynchronizer;
@@ -131,45 +128,24 @@ public class SdnIpFibTest extends AbstractIntentTest {
      */
     private void setUpInterfaceService() {
         List<InterfaceIpAddress> interfaceIpAddresses1 = Lists.newArrayList();
-        interfaceIpAddresses1.add(new InterfaceIpAddress(
-                IpAddress.valueOf("192.168.10.101"),
-                IpPrefix.valueOf("192.168.10.0/24")));
+        interfaceIpAddresses1.add(InterfaceIpAddress.valueOf("192.168.10.101/24"));
         Interface sw1Eth1 = new Interface("sw1-eth1", SW1_ETH1,
                 interfaceIpAddresses1, MacAddress.valueOf("00:00:00:00:00:01"),
                 VlanId.NONE);
         interfaces.add(sw1Eth1);
 
         List<InterfaceIpAddress> interfaceIpAddresses2 = Lists.newArrayList();
-        interfaceIpAddresses2.add(
-                new InterfaceIpAddress(IpAddress.valueOf("192.168.20.101"),
-                        IpPrefix.valueOf("192.168.20.0/24")));
+        interfaceIpAddresses2.add(InterfaceIpAddress.valueOf("192.168.20.101/24"));
         Interface sw2Eth1 = new Interface("sw2-eth1", SW2_ETH1,
                 interfaceIpAddresses2, MacAddress.valueOf("00:00:00:00:00:02"),
                 VlanId.NONE);
         interfaces.add(sw2Eth1);
 
-        List<InterfaceIpAddress> interfaceIpAddresses3 = Lists.newArrayList();
-        interfaceIpAddresses3.add(
-                new InterfaceIpAddress(IpAddress.valueOf("192.168.30.101"),
-                        IpPrefix.valueOf("192.168.30.0/24")));
-        Interface sw3Eth1 = new Interface("sw3-eth1", SW3_ETH1,
-                interfaceIpAddresses3, MacAddress.valueOf("00:00:00:00:00:03"),
-                VlanId.NONE);
-        interfaces.add(sw3Eth1);
-
-        InterfaceIpAddress interfaceIpAddress4 =
-                new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"),
-                        IpPrefix.valueOf("192.168.40.0/24"));
+        InterfaceIpAddress interfaceIpAddress4 = InterfaceIpAddress.valueOf("192.168.40.101/24");
         Interface sw4Eth1 = new Interface("sw4-eth1", SW4_ETH1,
                 Lists.newArrayList(interfaceIpAddress4),
                 MacAddress.valueOf("00:00:00:00:00:04"),
                 VlanId.vlanId((short) 1));
-
-        expect(interfaceService.getInterfacesByPort(SW4_ETH1)).andReturn(
-                Collections.singleton(sw4Eth1)).anyTimes();
-        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.40.1")))
-                .andReturn(sw4Eth1).anyTimes();
-
         interfaces.add(sw4Eth1);
 
         expect(interfaceService.getInterfacesByPort(SW1_ETH1)).andReturn(
@@ -180,31 +156,29 @@ public class SdnIpFibTest extends AbstractIntentTest {
                 Collections.singleton(sw2Eth1)).anyTimes();
         expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.20.1")))
                 .andReturn(sw2Eth1).anyTimes();
-        expect(interfaceService.getInterfacesByPort(SW3_ETH1)).andReturn(
-                Collections.singleton(sw3Eth1)).anyTimes();
-        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.30.1")))
-                .andReturn(sw3Eth1).anyTimes();
+        expect(interfaceService.getInterfacesByPort(SW4_ETH1)).andReturn(
+                Collections.singleton(sw4Eth1)).anyTimes();
+        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.40.1")))
+                .andReturn(sw4Eth1).anyTimes();
         expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
     }
 
     /**
-     * Tests adding a FIB entry to the IntentSynchronizer.
+     * Tests adding a route.
      *
      * We verify that the synchronizer records the correct state and that the
      * correct intent is submitted to the IntentService.
      */
     @Test
-    public void testFibAdd() {
-        IpPrefix prefix = Ip4Prefix.valueOf("1.1.1.0/24");
-        FibEntry fibEntry = new FibEntry(prefix,
+    public void testRouteAdd() {
+        ResolvedRoute route = new ResolvedRoute(PREFIX1,
                 Ip4Address.valueOf("192.168.10.1"),
                 MacAddress.valueOf("00:00:00:00:00:01"));
 
         // Construct a MultiPointToSinglePointIntent intent
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(
-                fibEntry.prefix());
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(PREFIX1);
 
         TrafficTreatment.Builder treatmentBuilder =
                 DefaultTrafficTreatment.builder();
@@ -212,13 +186,12 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
         Set<ConnectPoint> ingressPoints = new HashSet<>();
         ingressPoints.add(SW2_ETH1);
-        ingressPoints.add(SW3_ETH1);
         ingressPoints.add(SW4_ETH1);
 
         MultiPointToSinglePointIntent intent =
                 MultiPointToSinglePointIntent.builder()
                         .appId(APPID)
-                        .key(Key.of(prefix.toString(), APPID))
+                        .key(Key.of(PREFIX1.toString(), APPID))
                         .selector(selectorBuilder.build())
                         .treatment(treatmentBuilder.build())
                         .ingressPoints(ingressPoints)
@@ -230,23 +203,21 @@ public class SdnIpFibTest extends AbstractIntentTest {
         intentSynchronizer.submit(eqExceptId(intent));
         replay(intentSynchronizer);
 
-        // Send in the UPDATE FibUpdate
-        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE, fibEntry);
-        fibListener.update(Collections.singleton(fibUpdate), Collections.emptyList());
+        // Send in the added event
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED, route));
 
         verify(intentSynchronizer);
     }
 
     /**
-     * Tests adding a FIB entry with to a next hop in a VLAN.
+     * Tests adding a route with to a next hop in a VLAN.
      *
      * We verify that the synchronizer records the correct state and that the
      * correct intent is submitted to the IntentService.
      */
     @Test
-    public void testFibAddWithVlan() {
-        IpPrefix prefix = Ip4Prefix.valueOf("3.3.3.0/24");
-        FibEntry fibEntry = new FibEntry(prefix,
+    public void testRouteAddWithVlan() {
+        ResolvedRoute route = new ResolvedRoute(PREFIX1,
                 Ip4Address.valueOf("192.168.40.1"),
                 MacAddress.valueOf("00:00:00:00:00:04"));
 
@@ -254,7 +225,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
         selectorBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(fibEntry.prefix())
+                .matchIPDst(PREFIX1)
                 .matchVlanId(VlanId.ANY);
 
         TrafficTreatment.Builder treatmentBuilder =
@@ -265,12 +236,11 @@ public class SdnIpFibTest extends AbstractIntentTest {
         Set<ConnectPoint> ingressPoints = new HashSet<>();
         ingressPoints.add(SW1_ETH1);
         ingressPoints.add(SW2_ETH1);
-        ingressPoints.add(SW3_ETH1);
 
         MultiPointToSinglePointIntent intent =
                 MultiPointToSinglePointIntent.builder()
                         .appId(APPID)
-                        .key(Key.of(prefix.toString(), APPID))
+                        .key(Key.of(PREFIX1.toString(), APPID))
                         .selector(selectorBuilder.build())
                         .treatment(treatmentBuilder.build())
                         .ingressPoints(ingressPoints)
@@ -283,36 +253,32 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
         replay(intentSynchronizer);
 
-        // Send in the UPDATE FibUpdate
-        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE, fibEntry);
-        fibListener.update(Collections.singleton(fibUpdate), Collections.emptyList());
+        // Send in the added event
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED, route));
 
         verify(intentSynchronizer);
     }
 
     /**
-     * Tests updating a FIB entry.
+     * Tests updating a route.
      *
      * We verify that the synchronizer records the correct state and that the
      * correct intent is submitted to the IntentService.
      */
     @Test
-    public void testFibUpdate() {
+    public void testRouteUpdate() {
         // Firstly add a route
-        testFibAdd();
-
-        IpPrefix prefix = Ip4Prefix.valueOf("1.1.1.0/24");
+        testRouteAdd();
 
         // Start to construct a new route entry and new intent
-        FibEntry fibEntryUpdate = new FibEntry(prefix,
+        ResolvedRoute route = new ResolvedRoute(PREFIX1,
                 Ip4Address.valueOf("192.168.20.1"),
                 MacAddress.valueOf("00:00:00:00:00:02"));
 
         // Construct a new MultiPointToSinglePointIntent intent
         TrafficSelector.Builder selectorBuilderNew =
                 DefaultTrafficSelector.builder();
-        selectorBuilderNew.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(
-                fibEntryUpdate.prefix());
+        selectorBuilderNew.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(PREFIX1);
 
         TrafficTreatment.Builder treatmentBuilderNew =
                 DefaultTrafficTreatment.builder();
@@ -320,13 +286,12 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
         Set<ConnectPoint> ingressPointsNew = new HashSet<>();
         ingressPointsNew.add(SW1_ETH1);
-        ingressPointsNew.add(SW3_ETH1);
         ingressPointsNew.add(SW4_ETH1);
 
         MultiPointToSinglePointIntent intentNew =
                 MultiPointToSinglePointIntent.builder()
                         .appId(APPID)
-                        .key(Key.of(prefix.toString(), APPID))
+                        .key(Key.of(PREFIX1.toString(), APPID))
                         .selector(selectorBuilderNew.build())
                         .treatment(treatmentBuilderNew.build())
                         .ingressPoints(ingressPointsNew)
@@ -341,36 +306,30 @@ public class SdnIpFibTest extends AbstractIntentTest {
         intentSynchronizer.submit(eqExceptId(intentNew));
         replay(intentSynchronizer);
 
-        // Send in the UPDATE FibUpdate
-        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE,
-                fibEntryUpdate);
-        fibListener.update(Collections.singletonList(fibUpdate),
-                Collections.emptyList());
+        // Send in the update event
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, route));
 
         verify(intentSynchronizer);
     }
 
     /**
-     * Tests deleting a FIB entry.
+     * Tests deleting a route.
      *
      * We verify that the synchronizer records the correct state and that the
      * correct intent is withdrawn from the IntentService.
      */
     @Test
-    public void testFibDelete() {
+    public void testRouteDelete() {
         // Firstly add a route
-        testFibAdd();
-
-        IpPrefix prefix = Ip4Prefix.valueOf("1.1.1.0/24");
+        testRouteAdd();
 
         // Construct the existing route entry
-        FibEntry fibEntry = new FibEntry(prefix, null, null);
+        ResolvedRoute route = new ResolvedRoute(PREFIX1, null, null);
 
         // Construct the existing MultiPointToSinglePoint intent
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(
-                fibEntry.prefix());
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(PREFIX1);
 
         TrafficTreatment.Builder treatmentBuilder =
                 DefaultTrafficTreatment.builder();
@@ -378,13 +337,12 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
         Set<ConnectPoint> ingressPoints = new HashSet<>();
         ingressPoints.add(SW2_ETH1);
-        ingressPoints.add(SW3_ETH1);
         ingressPoints.add(SW4_ETH1);
 
         MultiPointToSinglePointIntent addedIntent =
                 MultiPointToSinglePointIntent.builder()
                         .appId(APPID)
-                        .key(Key.of(prefix.toString(), APPID))
+                        .key(Key.of(PREFIX1.toString(), APPID))
                         .selector(selectorBuilder.build())
                         .treatment(treatmentBuilder.build())
                         .ingressPoints(ingressPoints)
@@ -398,23 +356,20 @@ public class SdnIpFibTest extends AbstractIntentTest {
         intentSynchronizer.withdraw(eqExceptId(addedIntent));
         replay(intentSynchronizer);
 
-        // Send in the DELETE FibUpdate
-        FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.DELETE, fibEntry);
-        fibListener.update(Collections.emptyList(), Collections.singletonList(fibUpdate));
+        // Send in the removed event
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, route));
 
         verify(intentSynchronizer);
     }
 
     @Test
     public void testAddInterface() {
-        testFibAdd();
-
-        IpPrefix prefix = Ip4Prefix.valueOf("1.1.1.0/24");
+        testRouteAdd();
 
         // Construct the existing MultiPointToSinglePoint intent
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(prefix);
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(PREFIX1);
 
         TrafficTreatment.Builder treatmentBuilder =
                 DefaultTrafficTreatment.builder();
@@ -422,14 +377,13 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
         Set<ConnectPoint> ingressPoints = new HashSet<>();
         ingressPoints.add(SW2_ETH1);
-        ingressPoints.add(SW3_ETH1);
         ingressPoints.add(SW4_ETH1);
         ingressPoints.add(SW5_ETH1);
 
         MultiPointToSinglePointIntent addedIntent =
                 MultiPointToSinglePointIntent.builder()
                         .appId(APPID)
-                        .key(Key.of(prefix.toString(), APPID))
+                        .key(Key.of(PREFIX1.toString(), APPID))
                         .selector(selectorBuilder.build())
                         .treatment(treatmentBuilder.build())
                         .ingressPoints(ingressPoints)
@@ -455,14 +409,12 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
     @Test
     public void testRemoveInterface() {
-        testFibAdd();
-
-        IpPrefix prefix = Ip4Prefix.valueOf("1.1.1.0/24");
+        testRouteAdd();
 
         // Construct the existing MultiPointToSinglePoint intent
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(prefix);
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(PREFIX1);
 
         TrafficTreatment.Builder treatmentBuilder =
                 DefaultTrafficTreatment.builder();
@@ -470,12 +422,11 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
         Set<ConnectPoint> ingressPoints = new HashSet<>();
         ingressPoints.add(SW2_ETH1);
-        ingressPoints.add(SW3_ETH1);
 
         MultiPointToSinglePointIntent addedIntent =
                 MultiPointToSinglePointIntent.builder()
                         .appId(APPID)
-                        .key(Key.of(prefix.toString(), APPID))
+                        .key(Key.of(PREFIX1.toString(), APPID))
                         .selector(selectorBuilder.build())
                         .treatment(treatmentBuilder.build())
                         .ingressPoints(ingressPoints)
@@ -506,16 +457,14 @@ public class SdnIpFibTest extends AbstractIntentTest {
         }
     }
 
-    private class TestRoutingService extends RoutingServiceAdapter {
-
+    private class TestRouteService extends RouteServiceAdapter {
         @Override
-        public void addFibListener(FibListener fibListener) {
-            SdnIpFibTest.this.fibListener = fibListener;
+        public void addListener(RouteListener routeListener) {
+            SdnIpFibTest.this.routeListener = routeListener;
         }
     }
 
     private class InterfaceServiceDelegate extends InterfaceServiceAdapter {
-
         @Override
         public void addListener(InterfaceListener listener) {
             SdnIpFibTest.this.interfaceListener = listener;

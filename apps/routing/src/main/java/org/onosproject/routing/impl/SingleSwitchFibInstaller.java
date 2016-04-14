@@ -17,9 +17,7 @@
 package org.onosproject.routing.impl;
 
 import com.google.common.collect.ConcurrentHashMultiset;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -40,6 +38,10 @@ import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceEvent;
 import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.incubator.net.routing.ResolvedRoute;
+import org.onosproject.incubator.net.routing.RouteEvent;
+import org.onosproject.incubator.net.routing.RouteListener;
+import org.onosproject.incubator.net.routing.RouteService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -56,24 +58,19 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flowobjective.DefaultFilteringObjective;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
+import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
-import org.onosproject.net.flowobjective.DefaultObjectiveContext;
-import org.onosproject.routing.FibEntry;
-import org.onosproject.routing.FibListener;
-import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RouterConfig;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,7 +93,7 @@ public class SingleSwitchFibInstaller {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected RoutingService routingService;
+    protected RouteService routeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
@@ -137,11 +134,9 @@ public class SingleSwitchFibInstaller {
     // Mapping from next hop IP to next hop object containing group info
     private final Map<IpAddress, Integer> nextHops = Maps.newHashMap();
 
-    // Stores FIB updates that are waiting for groups to be set up
-    private final Multimap<NextHopGroupKey, FibEntry> pendingUpdates = HashMultimap.create();
-
     //interface object for event
     private InternalInterfaceListener internalInterfaceList = new InternalInterfaceListener();
+    private InternalRouteListener routeListener = new InternalRouteListener();
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -155,9 +150,6 @@ public class SingleSwitchFibInstaller {
 
         interfaceService.addListener(internalInterfaceList);
 
-        routingService.addFibListener(new InternalFibListener());
-        routingService.start();
-
         updateConfig();
 
         log.info("Started");
@@ -165,10 +157,8 @@ public class SingleSwitchFibInstaller {
 
     @Deactivate
     protected void deactivate() {
-        routingService.stop();
-
+        routeService.removeListener(routeListener);
         deviceService.removeListener(deviceListener);
-
         interfaceService.removeListener(internalInterfaceList);
 
         //processIntfFilters(false, configService.getInterfaces()); //TODO necessary?
@@ -208,6 +198,8 @@ public class SingleSwitchFibInstaller {
         interfaces = routerConfig.getInterfaces();
         log.info("Using interfaces: {}", interfaces.isEmpty() ? "all" : interfaces);
 
+        routeService.addListener(routeListener);
+
         updateDevice();
     }
 
@@ -229,55 +221,30 @@ public class SingleSwitchFibInstaller {
         }
     }
 
-    private void updateFibEntry(Collection<FibUpdate> updates) {
-        Map<FibEntry, Integer> toInstall = new HashMap<>(updates.size());
+    private void updateRoute(ResolvedRoute route) {
+        addNextHop(route);
 
-        for (FibUpdate update : updates) {
-            FibEntry entry = update.entry();
-
-            addNextHop(entry);
-
-            Integer nextId;
-            synchronized (pendingUpdates) {
-                nextId = nextHops.get(entry.nextHopIp());
-            }
-
-            toInstall.put(update.entry(), nextId);
+        Integer nextId;
+        synchronized (this) {
+            nextId = nextHops.get(route.nextHop());
         }
 
-        installFlows(toInstall);
+        flowObjectiveService.forward(deviceId,
+                generateRibForwardingObj(route.prefix(), nextId).add());
+        log.trace("Sending forwarding objective {} -> nextId:{}", route, nextId);
     }
 
-    private void installFlows(Map<FibEntry, Integer> entriesToInstall) {
+    private synchronized void deleteRoute(ResolvedRoute route) {
+        //Integer nextId = nextHops.get(route.nextHop());
 
-        for (Map.Entry<FibEntry, Integer> entry : entriesToInstall.entrySet()) {
-            FibEntry fibEntry = entry.getKey();
-            Integer nextId = entry.getValue();
+        /* Group group = deleteNextHop(route.prefix());
+        if (group == null) {
+            log.warn("Group not found when deleting {}", route);
+            return;
+        }*/
 
-            flowObjectiveService.forward(deviceId,
-                    generateRibForwardingObj(fibEntry.prefix(), nextId).add());
-            log.trace("Sending forwarding objective {} -> nextId:{}", fibEntry, nextId);
-        }
-
-    }
-
-    private synchronized void deleteFibEntry(Collection<FibUpdate> withdraws) {
-
-        for (FibUpdate update : withdraws) {
-            FibEntry entry = update.entry();
-            //Integer nextId = nextHops.get(entry.nextHopIp());
-
-           /* Group group = deleteNextHop(entry.prefix());
-            if (group == null) {
-                log.warn("Group not found when deleting {}", entry);
-                return;
-            }*/
-
-            flowObjectiveService.forward(deviceId,
-                    generateRibForwardingObj(entry.prefix(), null).remove());
-
-        }
-
+        flowObjectiveService.forward(deviceId,
+                generateRibForwardingObj(route.prefix(), null).remove());
     }
 
     private ForwardingObjective.Builder generateRibForwardingObj(IpPrefix prefix,
@@ -306,20 +273,20 @@ public class SingleSwitchFibInstaller {
         return fwdBuilder;
     }
 
-    private synchronized void addNextHop(FibEntry entry) {
-        prefixToNextHop.put(entry.prefix(), entry.nextHopIp());
-        if (nextHopsCount.count(entry.nextHopIp()) == 0) {
+    private synchronized void addNextHop(ResolvedRoute route) {
+        prefixToNextHop.put(route.prefix(), route.nextHop());
+        if (nextHopsCount.count(route.nextHop()) == 0) {
             // There was no next hop in the multiset
 
-            Interface egressIntf = interfaceService.getMatchingInterface(entry.nextHopIp());
+            Interface egressIntf = interfaceService.getMatchingInterface(route.nextHop());
             if (egressIntf == null) {
-                log.warn("no egress interface found for {}", entry);
+                log.warn("no egress interface found for {}", route);
                 return;
             }
 
-            NextHopGroupKey groupKey = new NextHopGroupKey(entry.nextHopIp());
+            NextHopGroupKey groupKey = new NextHopGroupKey(route.nextHop());
 
-            NextHop nextHop = new NextHop(entry.nextHopIp(), entry.nextHopMac(), groupKey);
+            NextHop nextHop = new NextHop(route.nextHop(), route.nextHopMac(), groupKey);
 
             TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
                     .setEthSrc(egressIntf.mac())
@@ -356,12 +323,12 @@ public class SingleSwitchFibInstaller {
             if (routeToNextHop) {
                 // Install route to next hop
                 ForwardingObjective fob =
-                        generateRibForwardingObj(IpPrefix.valueOf(entry.nextHopIp(), 32), nextId).add();
+                        generateRibForwardingObj(IpPrefix.valueOf(route.nextHop(), 32), nextId).add();
                 flowObjectiveService.forward(deviceId, fob);
             }
         }
 
-        nextHopsCount.add(entry.nextHopIp());
+        nextHopsCount.add(route.nextHop());
     }
 
     /*private synchronized Group deleteNextHop(IpPrefix prefix) {
@@ -452,13 +419,21 @@ public class SingleSwitchFibInstaller {
         flowObjectiveService.filter(deviceId, filter);
     }
 
-    private class InternalFibListener implements FibListener {
-
+    private class InternalRouteListener implements RouteListener {
         @Override
-        public void update(Collection<FibUpdate> updates,
-                           Collection<FibUpdate> withdraws) {
-            SingleSwitchFibInstaller.this.deleteFibEntry(withdraws);
-            SingleSwitchFibInstaller.this.updateFibEntry(updates);
+        public void event(RouteEvent event) {
+            ResolvedRoute route = event.subject();
+            switch (event.type()) {
+            case ROUTE_ADDED:
+            case ROUTE_UPDATED:
+                updateRoute(route);
+                break;
+            case ROUTE_REMOVED:
+                deleteRoute(route);
+                break;
+            default:
+                break;
+            }
         }
     }
 
