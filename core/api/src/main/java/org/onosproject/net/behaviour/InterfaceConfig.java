@@ -27,25 +27,24 @@ import java.util.List;
 public interface InterfaceConfig extends HandlerBehaviour {
 
     /**
-     * Adds an interface to a VLAN.
+     * Adds an access interface to a VLAN.
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @param vlanId the VLAN ID
      * @return the result of operation
      */
-    boolean addInterfaceToVlan(DeviceId deviceId, String intf, VlanId vlanId);
+    boolean addAccessInterface(DeviceId deviceId, String intf, VlanId vlanId);
 
     /**
-     * Removes an interface from a VLAN.
+     * Removes an access interface to a VLAN.
      * @param deviceId the device ID
      * @param intf the name of the interface
-     * @param vlanId the VLAN ID
      * @return the result of operation
      */
-    boolean removeInterfaceFromVlan(DeviceId deviceId, String intf, VlanId vlanId);
+    boolean removeAccessInterface(DeviceId deviceId, String intf);
 
     /**
-     *  Configures an interface as trunk for VLANs.
+     *  Adds a trunk interface for VLANs.
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @param vlanIds the VLAN IDs
@@ -54,13 +53,12 @@ public interface InterfaceConfig extends HandlerBehaviour {
     boolean addTrunkInterface(DeviceId deviceId, String intf, List<VlanId> vlanIds);
 
     /**
-     *  Removes trunk mode configuration for VLANs from an interface.
+     *  Removes trunk mode configuration from an interface.
      * @param deviceId the device ID
      * @param intf the name of the interface
-     * @param vlanIds the VLAN IDs
      * @return the result of operation
      */
-    boolean removeTrunkInterface(DeviceId deviceId, String intf, List<VlanId> vlanIds);
+    boolean removeTrunkInterface(DeviceId deviceId, String intf);
 
     /**
      *  TODO Addition of more methods to make the behavior symmetrical.

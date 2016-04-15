@@ -94,7 +94,7 @@ public class DeviceInterfaceAddCommand extends AbstractShellCommand {
             return;
         }
         VlanId accessVlanId = vlanIds.get(0);
-        if (interfaceConfig.addInterfaceToVlan(deviceId, portName, accessVlanId)) {
+        if (interfaceConfig.addAccessInterface(deviceId, portName, accessVlanId)) {
             print(CONFIG_VLAN_SUCCESS, accessVlanId, deviceId, portName);
         } else {
             print(CONFIG_VLAN_FAILURE, accessVlanId, deviceId, portName);

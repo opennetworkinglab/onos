@@ -18,15 +18,11 @@ package org.onosproject.cli.net;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
-import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.InterfaceConfig;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Removes configured interface from a device.
@@ -35,17 +31,15 @@ import java.util.List;
          description = "Removes an interface configuration from a device")
 public class DeviceInterfaceRemoveCommand extends AbstractShellCommand {
 
-    private static final String REMOVE_VLAN_SUCCESS =
-            "VLAN %s removed from device %s interface %s.";
-    private static final String REMOVE_VLAN_FAILURE =
-            "Failed to remove VLAN %s from device %s interface %s.";
-    private static final String ONE_VLAN_ALLOWED =
-            "Only one VLAN allowed for access mode on device %s interface %s.";
+    private static final String REMOVE_ACCESS_SUCCESS =
+            "Access mode deleted from device %s interface %s.";
+    private static final String REMOVE_ACCESS_FAILURE =
+            "Failed to delete access mode from device %s interface %s.";
 
     private static final String REMOVE_TRUNK_SUCCESS =
-            "Trunk mode removed for VLAN %s on device %s interface %s.";
+            "Trunk mode deleted from device %s interface %s.";
     private static final String REMOVE_TRUNK_FAILURE =
-            "Failed to remove trunk mode for VLAN %s on device %s interface %s.";
+            "Failed to delete trunk mode from device %s interface %s.";
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
@@ -55,11 +49,6 @@ public class DeviceInterfaceRemoveCommand extends AbstractShellCommand {
               description = "Interface name",
               required = true, multiValued = false)
     private String portName = null;
-
-    @Argument(index = 2, name = "vlan",
-            description = "VLAN ID",
-            required = true, multiValued = true)
-    private String[] vlanStrings = null;
 
     @Option(name = "-t", aliases = "--trunk",
             description = "Remove trunk mode for VLAN(s)",
@@ -73,31 +62,21 @@ public class DeviceInterfaceRemoveCommand extends AbstractShellCommand {
         DriverHandler h = service.createHandler(deviceId);
         InterfaceConfig interfaceConfig = h.behaviour(InterfaceConfig.class);
 
-        List<VlanId> vlanIds = new ArrayList<>();
-        for (String vlanString : vlanStrings) {
-            vlanIds.add(VlanId.vlanId(Short.parseShort(vlanString)));
-        }
-
         if (trunkMode) {
             // Trunk mode for VLAN to be removed.
-            if (interfaceConfig.removeTrunkInterface(deviceId, portName, vlanIds)) {
-                print(REMOVE_TRUNK_SUCCESS, vlanIds, deviceId, portName);
+            if (interfaceConfig.removeTrunkInterface(deviceId, portName)) {
+                print(REMOVE_TRUNK_SUCCESS, deviceId, portName);
             } else {
-                print(REMOVE_TRUNK_FAILURE, vlanIds, deviceId, portName);
+                print(REMOVE_TRUNK_FAILURE, deviceId, portName);
             }
             return;
         }
 
         // Access mode for VLAN to be removed.
-        if (vlanIds.size() != 1) {
-            print(ONE_VLAN_ALLOWED, deviceId, portName);
-            return;
-        }
-        VlanId accessVlanId = vlanIds.get(0);
-        if (interfaceConfig.removeInterfaceFromVlan(deviceId, portName, accessVlanId)) {
-            print(REMOVE_VLAN_SUCCESS, accessVlanId, deviceId, portName);
+        if (interfaceConfig.removeAccessInterface(deviceId, portName)) {
+            print(REMOVE_ACCESS_SUCCESS, deviceId, portName);
         } else {
-            print(REMOVE_VLAN_FAILURE, accessVlanId, deviceId, portName);
+            print(REMOVE_ACCESS_FAILURE, deviceId, portName);
         }
     }
 
