@@ -45,6 +45,9 @@ java_library(
     ':jackson-databind',
     ':org.apache.karaf.features.core',
     ':org.apache.karaf.system.core',
+    ':openstack4j-core',
+    ':openstack4j-http-connector',
+    ':openstack4j-httpclient',
 
 # Is this still needed?
     ':jsr305',
@@ -846,6 +849,27 @@ maven_jar(
   license = 'Apache2.0',
 )
 
+# Openstack4j related jars
+maven_jar(
+  name = 'openstack4j-core',
+  id = 'org.pacesys:openstack4j-core:2.11',
+  sha1 = '583f508c55f5dceb90504a4a8a0590afb8a8a03a',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'openstack4j-http-connector',
+  id = 'org.pacesys.openstack4j.connectors:openstack4j-http-connector:2.11',
+  sha1 = 'a153800e114916b4125de2cdb743497c0f99aef5',
+  license = 'Apache2.0',
+)
+
+maven_jar(
+  name = 'openstack4j-httpclient',
+  id = 'org.pacesys.openstack4j.connectors:openstack4j-httpclient:2.11',
+  sha1 = 'd050e21295959a4ce2c07ca193ccbe28d8bfa3c1',
+  license = 'Apache2.0',
+)
 
 # These SNMP libraries don't have release versions, so we access them directly by snapshot id. The SNMP provider is due for a refactoring
 # overhaul to fix some of these bogus dependencies.
