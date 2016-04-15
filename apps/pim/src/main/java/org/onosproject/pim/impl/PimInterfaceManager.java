@@ -28,10 +28,10 @@ import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceEvent;
 import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.incubator.net.routing.Route;
+import org.onosproject.incubator.net.routing.RouteService;
 import org.onosproject.net.ConnectPoint;
-
 import org.onosproject.net.Host;
-
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -43,8 +43,6 @@ import org.onosproject.net.mcast.McastListener;
 import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.routing.RouteEntry;
-import org.onosproject.routing.RoutingService;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -101,7 +99,7 @@ public class PimInterfaceManager implements PimInterfaceService {
     protected MulticastRouteService multicastRouteService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected RoutingService unicastRoutingService;
+    protected RouteService unicastRouteService;
 
     // Store PIM Interfaces in a map key'd by ConnectPoint
     private final Map<ConnectPoint, PimInterface> pimInterfaces = Maps.newConcurrentMap();
@@ -251,17 +249,17 @@ public class PimInterfaceManager implements PimInterfaceService {
     }
 
     private PimInterface getSourceInterface(McastRoute route) {
-        RouteEntry routeEntry = unicastRoutingService.getLongestMatchableRouteEntry(route.source());
+        Route unicastRoute = unicastRouteService.longestPrefixMatch(route.source());
 
-        if (routeEntry == null) {
+        if (unicastRoute == null) {
             log.warn("No route to source {}", route.source());
             return null;
         }
 
-        Interface intf = interfaceService.getMatchingInterface(routeEntry.nextHop());
+        Interface intf = interfaceService.getMatchingInterface(unicastRoute.nextHop());
 
         if (intf == null) {
-            log.warn("No interface with route to next hop {}", routeEntry.nextHop());
+            log.warn("No interface with route to next hop {}", unicastRoute.nextHop());
             return null;
         }
 
@@ -272,7 +270,7 @@ public class PimInterfaceManager implements PimInterfaceService {
             return null;
         }
 
-        Set<Host> hosts = hostService.getHostsByIp(routeEntry.nextHop());
+        Set<Host> hosts = hostService.getHostsByIp(unicastRoute.nextHop());
         Host host = null;
         for (Host h : hosts) {
             if (h.vlan().equals(intf.vlan())) {
@@ -280,11 +278,11 @@ public class PimInterfaceManager implements PimInterfaceService {
             }
         }
         if (host == null) {
-            log.warn("Next hop host entry not found: {}", routeEntry.nextHop());
+            log.warn("Next hop host entry not found: {}", unicastRoute.nextHop());
             return null;
         }
 
-        pimInterface.addRoute(route, routeEntry.nextHop(), host.mac());
+        pimInterface.addRoute(route, unicastRoute.nextHop(), host.mac());
 
         return pimInterface;
     }

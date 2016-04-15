@@ -27,8 +27,7 @@ import java.util.Map;
 /**
  * Command to show the routes in the routing tables.
  */
-// TODO update command name when we switch over to new rib
-@Command(scope = "onos", name = "routes2",
+@Command(scope = "onos", name = "routes",
         description = "Lists all routes in the route store")
 public class RoutesListCommand extends AbstractShellCommand {
 

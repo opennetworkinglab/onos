@@ -23,7 +23,10 @@ import java.util.Collection;
 
 /**
  * Provides a way of interacting with the RIB management component.
+ *
+ * @deprecated in Goldeneye. Use RouteService instead.
  */
+@Deprecated
 public interface RoutingService {
 
     String ROUTER_APP_ID = "org.onosproject.router";

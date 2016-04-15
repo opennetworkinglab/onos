@@ -17,6 +17,8 @@ package org.onosproject.routing;
 
 /**
  * A source of route updates.
+ *
+ * @deprecated in Goldeneye. Use RouteService instead.
  */
 @Deprecated
 public interface RouteSourceService {

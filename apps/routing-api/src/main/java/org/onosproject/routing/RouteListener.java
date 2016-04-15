@@ -19,7 +19,10 @@ import java.util.Collection;
 
 /**
  * An interface to receive route updates from route providers.
+ *
+ * @deprecated in Goldeneye. Use RouteService instead.
  */
+@Deprecated
 public interface RouteListener {
     /**
      * Receives a route update from a route provider.
