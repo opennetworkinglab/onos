@@ -35,6 +35,7 @@ import org.onosproject.cordvtn.api.CordVtnNode;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Port;
@@ -42,11 +43,6 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.DefaultDriverData;
-import org.onosproject.net.driver.DefaultDriverHandler;
-import org.onosproject.net.driver.Driver;
-import org.onosproject.net.driver.DriverHandler;
-import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -127,7 +123,6 @@ public class CordVtnRuleInstaller {
     private final ApplicationId appId;
     private final FlowRuleService flowRuleService;
     private final DeviceService deviceService;
-    private final DriverService driverService;
     private final GroupService groupService;
     private final NetworkConfigRegistry configRegistry;
     private final String tunnelType;
@@ -138,7 +133,6 @@ public class CordVtnRuleInstaller {
      * @param appId application id
      * @param flowRuleService flow rule service
      * @param deviceService device service
-     * @param driverService driver service
      * @param groupService group service
      * @param configRegistry config registry
      * @param tunnelType tunnel type
@@ -146,14 +140,12 @@ public class CordVtnRuleInstaller {
     public CordVtnRuleInstaller(ApplicationId appId,
                                 FlowRuleService flowRuleService,
                                 DeviceService deviceService,
-                                DriverService driverService,
                                 GroupService groupService,
                                 NetworkConfigRegistry configRegistry,
                                 String tunnelType) {
         this.appId = appId;
         this.flowRuleService = flowRuleService;
         this.deviceService = deviceService;
-        this.driverService = driverService;
         this.groupService = groupService;
         this.configRegistry = configRegistry;
         this.tunnelType = checkNotNull(tunnelType);
@@ -1504,16 +1496,20 @@ public class CordVtnRuleInstaller {
      */
     private ExtensionTreatment getTunnelDst(DeviceId deviceId, Ip4Address remoteIp) {
         try {
-            Driver driver = driverService.getDriver(deviceId);
-            DefaultDriverData driverData = new DefaultDriverData(driver, deviceId);
-            DriverHandler handler = new DefaultDriverHandler(driverData);
-            ExtensionTreatmentResolver resolver = handler.behaviour(ExtensionTreatmentResolver.class);
+            Device device = deviceService.getDevice(deviceId);
 
-            ExtensionTreatment treatment =
-                    resolver.getExtensionInstruction(NICIRA_SET_TUNNEL_DST.type());
-            treatment.setPropertyValue("tunnelDst", remoteIp);
+            if (device.is(ExtensionTreatmentResolver.class)) {
+                ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+                ExtensionTreatment treatment =
+                        resolver.getExtensionInstruction(NICIRA_SET_TUNNEL_DST.type());
+                treatment.setPropertyValue("tunnelDst", remoteIp);
 
-            return treatment;
+                return treatment;
+            } else {
+                log.warn("The extension treatment resolving behaviour is not supported in device {}",
+                        device.id().toString());
+                return null;
+            }
         } catch (ItemNotFoundException | UnsupportedOperationException |
                 ExtensionPropertyException e) {
             log.error("Failed to get extension instruction {}", deviceId);

@@ -59,8 +59,6 @@ import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.DriverHandler;
-import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostService;
@@ -146,9 +144,6 @@ public class CordVtnNodeManager {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -241,7 +236,6 @@ public class CordVtnNodeManager {
 
         ruleInstaller = new CordVtnRuleInstaller(appId, flowRuleService,
                                                  deviceService,
-                                                 driverService,
                                                  groupService,
                                                  configRegistry,
                                                  DEFAULT_TUNNEL);
@@ -583,9 +577,13 @@ public class CordVtnNodeManager {
         String dpid = node.intBrId().toString().substring(DPID_BEGIN);
 
         try {
-            DriverHandler handler = driverService.createHandler(node.ovsdbId());
-            BridgeConfig bridgeConfig =  handler.behaviour(BridgeConfig.class);
-            bridgeConfig.addBridge(BridgeName.bridgeName(DEFAULT_BRIDGE), dpid, controllers);
+            Device device = deviceService.getDevice(node.ovsdbId());
+            if (device.is(BridgeConfig.class)) {
+                BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
+                bridgeConfig.addBridge(BridgeName.bridgeName(DEFAULT_BRIDGE), dpid, controllers);
+            } else {
+                log.warn("The bridging behaviour is not supported in device {}", device.id().toString());
+            }
         } catch (ItemNotFoundException e) {
             log.warn("Failed to create integration bridge on {}", node.hostname());
         }
@@ -611,9 +609,13 @@ public class CordVtnNodeManager {
                 optionBuilder.build());
 
         try {
-            DriverHandler handler = driverService.createHandler(node.ovsdbId());
-            TunnelConfig tunnelConfig =  handler.behaviour(TunnelConfig.class);
-            tunnelConfig.createTunnelInterface(BridgeName.bridgeName(DEFAULT_BRIDGE), description);
+            Device device = deviceService.getDevice(node.ovsdbId());
+            if (device.is(TunnelConfig.class)) {
+                TunnelConfig tunnelConfig =  device.as(TunnelConfig.class);
+                tunnelConfig.createTunnelInterface(BridgeName.bridgeName(DEFAULT_BRIDGE), description);
+            } else {
+                log.warn("The tunneling behaviour is not supported in device {}", device.id().toString());
+            }
         } catch (ItemNotFoundException e) {
             log.warn("Failed to create tunnel interface on {}", node.hostname());
         }
@@ -630,9 +632,13 @@ public class CordVtnNodeManager {
         }
 
         try {
-            DriverHandler handler = driverService.createHandler(node.ovsdbId());
-            BridgeConfig bridgeConfig =  handler.behaviour(BridgeConfig.class);
-            bridgeConfig.addPort(BridgeName.bridgeName(DEFAULT_BRIDGE), node.dpIntf());
+            Device device = deviceService.getDevice(node.ovsdbId());
+            if (device.is(BridgeConfig.class)) {
+                BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
+                bridgeConfig.addPort(BridgeName.bridgeName(DEFAULT_BRIDGE), node.dpIntf());
+            } else {
+                log.warn("The bridging behaviour is not supported in device {}", device.id().toString());
+            }
         } catch (ItemNotFoundException e) {
             log.warn("Failed to add {} on {}", node.dpIntf(), node.hostname());
         }

@@ -51,7 +51,6 @@ import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.DefaultHostDescription;
@@ -67,7 +66,6 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.model.identity.Access;
@@ -116,9 +114,6 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
@@ -181,7 +176,6 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         appId = coreService.registerApplication("org.onosproject.cordvtn");
         ruleInstaller = new CordVtnRuleInstaller(appId, flowRuleService,
                                                  deviceService,
-                                                 driverService,
                                                  groupService,
                                                  configRegistry,
                                                  DEFAULT_TUNNEL);
