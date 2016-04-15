@@ -16,7 +16,6 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
-import org.onosproject.yangutils.datamodel.ResolutionType;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangLeaf;
@@ -34,11 +33,14 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.utils.YangConstructType;
 
+import static org.onosproject.yangutils.datamodel.ResolvableStatus.UNRESOLVED;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.addResolutionInfo;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
+        .constructExtendedListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
+        .constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
@@ -123,17 +125,15 @@ public final class TypeListener {
                                 ctx.string().getText(), EXIT));
                     }
 
-                    // Get the prefix information
-                    String prefix = ((YangType<?>) type).getPrefix();
-
                     // Create empty derived info and attach it to type extended info.
                     YangDerivedInfo<?> yangDerivedInfo = new YangDerivedInfo<>();
                     ((YangType<YangDerivedInfo>) type).setDataTypeExtendedInfo(yangDerivedInfo);
 
+                    type.setResolvableStatus(UNRESOLVED);
+
                     // Add resolution information to the list
                     YangResolutionInfo resolutionInfo = new YangResolutionInfo<YangType>(type,
-                            ResolutionType.TYPEDEF_RESOLUTION, (YangNode) parentNodeOfLeaf, prefix, errorLine,
-                            errorPosition);
+                            (YangNode) parentNodeOfLeaf, errorLine, errorPosition);
                     addToResolutionList(resolutionInfo, ctx);
                 }
                 break;
@@ -165,9 +165,9 @@ public final class TypeListener {
                     ((YangType<YangDerivedInfo>) type).setDataTypeExtendedInfo(yangDerivedInfo);
 
                     // Add resolution information to the list
-                    YangResolutionInfo resolutionInfo = new YangResolutionInfo<YangType>(type,
-                            ResolutionType.TYPEDEF_RESOLUTION, (YangNode) parentNodeOfLeafList, prefix, errorLine,
-                            errorPosition);
+                    YangResolutionInfo resolutionInfo =
+                            new YangResolutionInfo<YangType>(type, (YangNode) parentNodeOfLeafList, errorLine,
+                                    errorPosition);
                     addToResolutionList(resolutionInfo, ctx);
                 }
                 break;
@@ -201,8 +201,8 @@ public final class TypeListener {
                     ((YangType<YangDerivedInfo>) type).setDataTypeExtendedInfo(yangDerivedInfo);
 
                     // Add resolution information to the list
-                    YangResolutionInfo resolutionInfo = new YangResolutionInfo<YangType>(type,
-                            ResolutionType.TYPEDEF_RESOLUTION, (YangNode) typeDef, prefix, errorLine, errorPosition);
+                    YangResolutionInfo resolutionInfo =
+                            new YangResolutionInfo<YangType>(type, (YangNode) typeDef, errorLine, errorPosition);
                     addToResolutionList(resolutionInfo, ctx);
                 }
                 break;
@@ -244,7 +244,7 @@ public final class TypeListener {
      * @param ctx context object of the grammar rule
      */
     private static void addToResolutionList(YangResolutionInfo<YangType> resolutionInfo,
-                                            GeneratedYangParser.TypeStatementContext ctx) {
+            GeneratedYangParser.TypeStatementContext ctx) {
         try {
             addResolutionInfo(resolutionInfo);
         } catch (DataModelException e) {

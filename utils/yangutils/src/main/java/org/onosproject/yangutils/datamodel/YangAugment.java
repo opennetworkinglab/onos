@@ -75,6 +75,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  *                | when         | 7.19.5  | 0..1        |-TODO             |
  *                +--------------+---------+-------------+------------------+
  */
+
 /**
  * Representation of data model node to maintain information defined in YANG augment.
  */

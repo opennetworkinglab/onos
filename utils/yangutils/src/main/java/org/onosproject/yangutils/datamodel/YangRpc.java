@@ -104,9 +104,9 @@ public class YangRpc extends YangNode implements YangCommonInfo, Parsable,
 
     @Override
     public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
-        if (this.getName().equals(identifierName)) {
+        if (getName().equals(identifierName)) {
             throw new DataModelException("YANG file error: Duplicate input identifier detected, same as rpc \""
-                    + this.getName() + "\"");
+                    + getName() + "\"");
         }
     }
 

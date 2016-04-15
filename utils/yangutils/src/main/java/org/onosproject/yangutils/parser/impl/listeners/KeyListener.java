@@ -45,8 +45,8 @@ import static org.onosproject.yangutils.utils.YangConstructType.KEY_DATA;
  */
 
 /**
- * Represesnts listener based call back function corresponding to the "key"
- * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
+ * Represesnts listener based call back function corresponding to the "key" rule
+ * defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class KeyListener {
 
@@ -57,15 +57,14 @@ public final class KeyListener {
     }
 
     /**
-     * It is called when parser receives an input matching the grammar
-     * rule (key), perform validations and updates the data model
-     * tree.
+     * It is called when parser receives an input matching the grammar rule
+     * (key), perform validations and updates the data model tree.
      *
      * @param listener listener's object
      * @param ctx context object of the grammar rule
      */
     public static void processKeyEntry(TreeWalkListener listener,
-                                         GeneratedYangParser.KeyStatementContext ctx) {
+            GeneratedYangParser.KeyStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, KEY_DATA, ctx.key().getText(), ENTRY);
@@ -94,7 +93,7 @@ public final class KeyListener {
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, KEY_DATA, ctx.key().getText(),
-                            ENTRY));
+                    ENTRY));
         }
     }
 }

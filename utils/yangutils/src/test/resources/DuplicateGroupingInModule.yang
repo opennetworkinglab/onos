@@ -2,20 +2,23 @@ module Test {
     yang-version 1;
     namespace http://huawei.com;
     prefix Ant;
+    import ietf-yang-types {
+             prefix "P";
+         }
     grouping endpoint {
         leaf address {
-            type ip-address;
+            type P:ip-address;
         }
         leaf port {
-            type port-number;
+            type P:port-number;
         }
     }
     grouping endpoint {
         leaf address {
-            type ip-address;
+            type P:pip-address;
         }
         leaf port {
-            type port-number;
+            type P:port-number;
         }
     }
 }

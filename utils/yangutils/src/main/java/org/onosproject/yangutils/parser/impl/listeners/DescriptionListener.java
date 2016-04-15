@@ -40,8 +40,9 @@ import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA
  */
 
 /**
- * Represents listener based call back function corresponding to the "description"
- * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
+ * Represents listener based call back function corresponding to the
+ * "description" rule defined in ANTLR grammar file for corresponding ABNF rule
+ * in RFC 6020.
  */
 public final class DescriptionListener {
 
@@ -52,15 +53,14 @@ public final class DescriptionListener {
     }
 
     /**
-     * It is called when parser receives an input matching the grammar
-     * rule (description), perform validations and updates the data model
-     * tree.
+     * It is called when parser receives an input matching the grammar rule
+     * (description), perform validations and updates the data model tree.
      *
      * @param listener listener's object
      * @param ctx context object of the grammar rule
      */
     public static void processDescriptionEntry(TreeWalkListener listener,
-                                             GeneratedYangParser.DescriptionStatementContext ctx) {
+            GeneratedYangParser.DescriptionStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, DESCRIPTION_DATA, ctx.string().getText(), ENTRY);

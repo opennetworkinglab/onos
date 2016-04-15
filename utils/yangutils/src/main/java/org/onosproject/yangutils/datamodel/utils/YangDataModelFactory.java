@@ -20,6 +20,7 @@ import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangChoice;
 import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.YangGrouping;
+import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangSubModule;
@@ -34,6 +35,7 @@ import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaCase;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaChoice;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaContainer;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGrouping;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaLeaf;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaList;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
@@ -51,7 +53,7 @@ import org.onosproject.yangutils.translator.exception.TranslatorException;
 public final class YangDataModelFactory {
 
     /**
-     * Creates a YANG data model factory object.
+     * Utility class, hence private to prevent creating objects.
      */
     private YangDataModelFactory() {
     }
@@ -254,6 +256,23 @@ public final class YangDataModelFactory {
         }
     }
 
+    /**
+     * Returns based on the target language generate the inherited data model node.
+     *
+     * @param targetLanguage target language in which YANG mapping needs to be
+     *            generated
+     * @return the corresponding inherited node based on the target language
+     */
+    public static YangLeaf getYangLeaf(GeneratedLanguage targetLanguage) {
+        switch (targetLanguage) {
+            case JAVA_GENERATION: {
+                return new YangJavaLeaf();
+            }
+            default: {
+                throw new RuntimeException("Only YANG to Java is supported.");
+            }
+        }
+    }
     /**
      * Returns based on the target language generate the inherited data model node.
      *

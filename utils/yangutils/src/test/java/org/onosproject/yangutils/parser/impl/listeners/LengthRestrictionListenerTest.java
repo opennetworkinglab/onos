@@ -128,7 +128,7 @@ public class LengthRestrictionListenerTest {
         assertThat(yangNode.getName(), is("Test"));
 
         YangTypeDef typedef = (YangTypeDef) yangNode.getChild();
-        YangStringRestriction stringRestriction = (YangStringRestriction) typedef.getDataType()
+        YangStringRestriction stringRestriction = (YangStringRestriction) typedef.getTypeDefBaseType()
                 .getDataTypeExtendedInfo();
 
         YangRangeRestriction lengthRestriction = stringRestriction.getLengthRestriction();

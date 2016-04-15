@@ -26,7 +26,7 @@ public interface Resolvable {
      * Returns the status of resolution. If completely resolved returns enum
      * value "RESOLVED", if not returns "UNRESOLVED", in case reference of
      * grouping/typedef is added to uses/type but it's not resolved
-     * "PARTIALLY_RESOLVED" is returned.
+     * "INTRA_FILE_RESOLVED" is returned.
      *
      * @return status of resolution
      */
@@ -36,7 +36,7 @@ public interface Resolvable {
      * Set the status of type/uses resolution. If completely resolved set enum
      * value "RESOLVED", if not set it to "UNRESOLVED", in case reference of
      * grouping/typedef is added to uses/type but it's not resolved
-     * "PARTIALLY_RESOLVED" should be set.
+     * "INTRA_FILE_RESOLVED" should be set.
      *
      * @param resolvableStatus status of resolution
      */

@@ -6,6 +6,9 @@ module Test {
     import interface-module {
         prefix "if";
     }
+    import ietf-yang-types {
+             prefix "P";
+         }
     augment "/if:interfaces/if:ifEntry" {
         when "if:ifType='ds0'";
         leaf ds0ChannelNumber {

@@ -20,6 +20,8 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
+import static org.onosproject.yangutils.datamodel.ResolvableStatus.INTRA_FILE_RESOLVED;
+
 /*
  * Reference:RFC 6020.
  * The "type" statement takes as an argument a string that is the name
@@ -49,7 +51,8 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *
  * @param <T> YANG data type info
  */
-public class YangType<T> implements Parsable, Resolvable {
+public class YangType<T>
+        implements Parsable, Resolvable {
 
     /**
      * YANG node identifier.
@@ -89,7 +92,7 @@ public class YangType<T> implements Parsable, Resolvable {
      * Status of resolution. If completely resolved enum value is "RESOLVED",
      * if not enum value is "UNRESOLVED", in case reference of grouping/typedef
      * is added to uses/type but it's not resolved value of enum should be
-     * "PARTIALLY_RESOLVED".
+     * "INTRA_FILE_RESOLVED".
      */
     private ResolvableStatus resolvableStatus;
 
@@ -262,7 +265,8 @@ public class YangType<T> implements Parsable, Resolvable {
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
     }
@@ -273,7 +277,8 @@ public class YangType<T> implements Parsable, Resolvable {
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
     }
@@ -290,6 +295,20 @@ public class YangType<T> implements Parsable, Resolvable {
 
     @Override
     public void resolve() {
-        //TODO: implement the method.
+       /*
+       Inherit the Restriction from the referred typedef definition.
+        */
+        if (getDataType() != YangDataTypes.DERIVED) {
+            throw new RuntimeException("Resolve should only be called for derrived data types");
+        }
+
+        YangDerivedInfo<?> derrivedInfo = (YangDerivedInfo<?>) getDataTypeExtendedInfo();
+        YangType<?> baseType = derrivedInfo.getReferredTypeDef().getTypeDefBaseType();
+        if (YangDataTypes.DERIVED == baseType.getDataType()) {
+            if (baseType.getResolvableStatus() == INTRA_FILE_RESOLVED) {
+                setResolvableStatus(INTRA_FILE_RESOLVED);
+            }
+        }
+        //TODO:
     }
 }

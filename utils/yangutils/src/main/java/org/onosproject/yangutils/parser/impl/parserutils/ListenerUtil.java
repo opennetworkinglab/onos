@@ -205,7 +205,7 @@ public final class ListenerUtil {
 
         Calendar date = Calendar.getInstance();
         SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-        String dateForRevision = ((dateFormat.format(date.getTime())).replaceAll(SLASH, HYPHEN)).replaceAll(SPACE,
+        String dateForRevision = dateFormat.format(date.getTime()).replaceAll(SLASH, HYPHEN).replaceAll(SPACE,
                 EMPTY_STRING);
         return dateForRevision;
     }
@@ -218,8 +218,8 @@ public final class ListenerUtil {
      * @param ctx yang construct's context to get the line number and character position
      * @return valid node identifier
      */
-    public static YangNodeIdentifier getValidNodeIdentifier(String nodeIdentifierString, YangConstructType
-            yangConstruct, ParserRuleContext ctx) {
+    public static YangNodeIdentifier getValidNodeIdentifier(String nodeIdentifierString,
+            YangConstructType yangConstruct, ParserRuleContext ctx) {
         String tmpIdentifierString = removeQuotesAndHandleConcat(nodeIdentifierString);
         String[] tmpData = tmpIdentifierString.split(Pattern.quote(COLON));
         if (tmpData.length == 1) {

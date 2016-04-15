@@ -18,6 +18,7 @@ package org.onosproject.yangutils.linker;
 
 import java.io.IOException;
 import java.util.ListIterator;
+
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.ResolvableStatus;
 import org.onosproject.yangutils.datamodel.YangContainer;
@@ -46,7 +47,8 @@ public class IntraFileTypeLinkingTest {
      * Checks self resolution when typedef and leaf using type are siblings.
      */
     @Test
-    public void processSelfResolutionWhenTypeAndTypedefAtRootLevel() throws IOException, ParserException {
+    public void processSelfResolutionWhenTypeAndTypedefAtRootLevel()
+            throws IOException, ParserException {
 
         YangNode node = manager.getDataModel("src/test/resources/SelfResolutionWhenTypeAndTypedefAtRootLevel.yang");
 
@@ -79,7 +81,8 @@ public class IntraFileTypeLinkingTest {
      * level where typedef is at the root.
      */
     @Test
-    public void processSelfFileLinkingTypedefAtRootTypeTwoLevelInHierarchy() throws IOException, ParserException {
+    public void processSelfFileLinkingTypedefAtRootTypeTwoLevelInHierarchy()
+            throws IOException, ParserException {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfFileLinkingTypedefAtRootTypeTwoLevelInHierarchy.yang");
@@ -118,7 +121,8 @@ public class IntraFileTypeLinkingTest {
      * of type.
      */
     @Test
-    public void processSelfFileLinkingTypedefAtRootIsAfterContainerHavingType() throws IOException, ParserException {
+    public void processSelfFileLinkingTypedefAtRootIsAfterContainerHavingType()
+            throws IOException, ParserException {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfFileLinkingTypedefAtRootIsAfterContainerHavingType.yang");
@@ -157,7 +161,8 @@ public class IntraFileTypeLinkingTest {
      * holder of type.
      */
     @Test
-    public void processSelfFileLinkingTypedefAtMiddleLevelAfterParentHolder() throws IOException, ParserException {
+    public void processSelfFileLinkingTypedefAtMiddleLevelAfterParentHolder()
+            throws IOException, ParserException {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfFileLinkingTypedefAtMiddleLevelAfterParentHolder.yang");
@@ -194,7 +199,8 @@ public class IntraFileTypeLinkingTest {
      * Checks self resolution when typedef hierarchical references are present.
      */
     @Test
-    public void processSelfFileLinkingWithTypdefHierarchicalReference() throws IOException, ParserException {
+    public void processSelfFileLinkingWithTypdefHierarchicalReference()
+            throws IOException, ParserException {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfFileLinkingWithTypdefHierarchicalReference.yang");
@@ -227,16 +233,16 @@ public class IntraFileTypeLinkingTest {
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
 
-        assertThat(((YangDerivedInfo<?>) typeDef1.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
+        assertThat(((YangDerivedInfo<?>) typeDef1.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangContainer.getChild().getNextSibling()));
-        assertThat((typeDef1.getDataType().getResolvableStatus()),
+        assertThat((typeDef1.getTypeDefBaseType().getResolvableStatus()),
                 is(ResolvableStatus.RESOLVED));
 
         YangTypeDef typeDef2 = (YangTypeDef) yangContainer.getChild().getNextSibling();
 
-        assertThat(((YangDerivedInfo<?>) typeDef2.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
+        assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
-        assertThat((typeDef2.getDataType().getResolvableStatus()),
+        assertThat((typeDef2.getTypeDefBaseType().getResolvableStatus()),
                 is(ResolvableStatus.RESOLVED));
     }
 
@@ -245,7 +251,8 @@ public class IntraFileTypeLinkingTest {
      * with last type is unresolved.
      */
     @Test
-    public void processSelfFileLinkingWithTypdefHierarchicalRefUnresolved() throws IOException, ParserException {
+    public void processSelfFileLinkingWithTypdefHierarchicalRefUnresolved()
+            throws IOException, ParserException {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfFileLinkingWithTypdefHierarchicalRefUnresolved.yang");
@@ -274,28 +281,29 @@ public class IntraFileTypeLinkingTest {
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangList.getChild()));
         assertThat((leafInfo.getDataType().getResolvableStatus()),
-                is(ResolvableStatus.PARTIALLY_RESOLVED));
+                is(ResolvableStatus.INTRA_FILE_RESOLVED));
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
 
-        assertThat(((YangDerivedInfo<?>) typeDef1.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
+        assertThat(((YangDerivedInfo<?>) typeDef1.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangContainer.getChild().getNextSibling()));
-        assertThat((typeDef1.getDataType().getResolvableStatus()),
-                is(ResolvableStatus.PARTIALLY_RESOLVED));
+        assertThat((typeDef1.getTypeDefBaseType().getResolvableStatus()),
+                is(ResolvableStatus.INTRA_FILE_RESOLVED));
 
         YangTypeDef typeDef2 = (YangTypeDef) yangContainer.getChild().getNextSibling();
 
-        assertThat(((YangDerivedInfo<?>) typeDef2.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
+        assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
-        assertThat((typeDef2.getDataType().getResolvableStatus()),
-                is(ResolvableStatus.PARTIALLY_RESOLVED));
+        assertThat((typeDef2.getTypeDefBaseType().getResolvableStatus()),
+                is(ResolvableStatus.INTRA_FILE_RESOLVED));
     }
 
     /**
      * Checks self resolution when type uses prefix of self module.
      */
     @Test
-    public void processSelfFileLinkingWithTypeWithSelfModulePrefix() throws IOException, ParserException {
+    public void processSelfFileLinkingWithTypeWithSelfModulePrefix()
+            throws IOException, ParserException {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfFileLinkingWithTypeWithSelfModulePrefix.yang");
@@ -328,16 +336,16 @@ public class IntraFileTypeLinkingTest {
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
 
-        assertThat(((YangDerivedInfo<?>) typeDef1.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
+        assertThat(((YangDerivedInfo<?>) typeDef1.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangContainer.getChild().getNextSibling()));
-        assertThat((typeDef1.getDataType().getResolvableStatus()),
+        assertThat((typeDef1.getTypeDefBaseType().getResolvableStatus()),
                 is(ResolvableStatus.RESOLVED));
 
         YangTypeDef typeDef2 = (YangTypeDef) yangContainer.getChild().getNextSibling();
 
-        assertThat(((YangDerivedInfo<?>) typeDef2.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
+        assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
-        assertThat((typeDef2.getDataType().getResolvableStatus()),
+        assertThat((typeDef2.getTypeDefBaseType().getResolvableStatus()),
                 is(ResolvableStatus.RESOLVED));
     }
 
@@ -346,7 +354,8 @@ public class IntraFileTypeLinkingTest {
      * some uses external prefix.
      */
     @Test
-    public void processSelfFileLinkingWithTypeWithSelfAndExternalPrefixMix() throws IOException, ParserException {
+    public void processSelfFileLinkingWithTypeWithSelfAndExternalPrefixMix()
+            throws IOException, ParserException {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfFileLinkingWithTypeWithSelfAndExternalPrefixMix.yang");
@@ -375,15 +384,15 @@ public class IntraFileTypeLinkingTest {
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangList.getChild()));
         assertThat((leafInfo.getDataType().getResolvableStatus()),
-                is(ResolvableStatus.PARTIALLY_RESOLVED));
+                is(ResolvableStatus.INTRA_FILE_RESOLVED));
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
 
         YangTypeDef typeDef2 = (YangTypeDef) yangContainer.getChild().getNextSibling();
 
-        assertThat(((YangDerivedInfo<?>) typeDef2.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
+        assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
-        assertThat((typeDef2.getDataType().getResolvableStatus()),
+        assertThat((typeDef2.getTypeDefBaseType().getResolvableStatus()),
                 is(ResolvableStatus.RESOLVED));
     }
 
@@ -392,7 +401,8 @@ public class IntraFileTypeLinkingTest {
      * file.
      */
     @Test(expected = ParserException.class)
-    public void processSelfResolutionWhenTypeReferredTypedefNotDefined() throws IOException, ParserException {
+    public void processSelfResolutionWhenTypeReferredTypedefNotDefined()
+            throws IOException, ParserException {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfResolutionWhenTypeReferredTypedefNotDefined.yang");
@@ -403,7 +413,8 @@ public class IntraFileTypeLinkingTest {
      * level where typedef is is not an ancestor of type.
      */
     @Test(expected = ParserException.class)
-    public void processSelfFileLinkingTypedefNotFound() throws IOException, ParserException {
+    public void processSelfFileLinkingTypedefNotFound()
+            throws IOException, ParserException {
 
         YangNode node = manager.getDataModel("src/test/resources/SelfFileLinkingTypedefNotFound.yang");
     }
@@ -412,7 +423,8 @@ public class IntraFileTypeLinkingTest {
      * Checks hierarchical self resolution with self resolution failure scenario.
      */
     @Test(expected = ParserException.class)
-    public void processSelfFileLinkingWithHierarchicalTypeFailureScenario() throws IOException, ParserException {
+    public void processSelfFileLinkingWithHierarchicalTypeFailureScenario()
+            throws IOException, ParserException {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfFileLinkingWithHierarchicalTypeFailureScenario.yang");

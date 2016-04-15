@@ -2,6 +2,9 @@ module rock {
     namespace "http://example.net/rock";
     prefix "rock";
 
+    import ietf-yang-types {
+             prefix "P";
+         }
     notification link-failure {
         description "A link failure has been detected";
         status deprecated;

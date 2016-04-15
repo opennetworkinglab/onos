@@ -33,10 +33,12 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *                | revision-date | 7.1.5.1 | 0..1        | string           |
  *                +---------------+---------+-------------+------------------+
  */
+
 /**
  * Represents the information about the included sub-modules.
  */
-public class YangInclude implements Parsable {
+public class YangInclude
+        implements Parsable {
 
     /**
      * Name of the sub-module that is being included.
@@ -48,11 +50,6 @@ public class YangInclude implements Parsable {
      * version of the submodule to import.
      */
     private String revision;
-
-    /**
-     * Resolution information root node which is also the data model root node.
-     */
-    private HasResolutionInfo resolutionInfoNode;
 
     /**
      * Creates a YANG include.
@@ -112,7 +109,8 @@ public class YangInclude implements Parsable {
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
     }
@@ -123,26 +121,10 @@ public class YangInclude implements Parsable {
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
     }
 
-    /**
-     * Returns the resolution information node.
-     *
-     * @return the resolution information node
-     */
-    public HasResolutionInfo getResolutionInfoNode() {
-        return resolutionInfoNode;
-    }
-
-    /**
-     * Sets the dresolution information node.
-     *
-     * @param resolutionInfoNode the resolution information node
-     */
-    public void setResolutionInfoNode(HasResolutionInfo resolutionInfoNode) {
-        this.resolutionInfoNode = resolutionInfoNode;
-    }
 }

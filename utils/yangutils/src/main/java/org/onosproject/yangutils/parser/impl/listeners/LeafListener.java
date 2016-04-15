@@ -27,10 +27,13 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
+import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangLeaf;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
+        .constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
@@ -108,7 +111,7 @@ public final class LeafListener {
         int charPositionInLine = ctx.getStart().getCharPositionInLine();
         detectCollidingChildUtil(listener, line, charPositionInLine, identifier, LEAF_DATA);
 
-        YangLeaf leaf = new YangLeaf();
+        YangLeaf leaf = getYangLeaf(JAVA_GENERATION);
         leaf.setLeafName(identifier);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
@@ -142,7 +145,7 @@ public final class LeafListener {
             listener.getParsedDataStack().pop();
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, LEAF_DATA,
-                            ctx.identifier().getText(), EXIT));
+                    ctx.identifier().getText(), EXIT));
         }
     }
 

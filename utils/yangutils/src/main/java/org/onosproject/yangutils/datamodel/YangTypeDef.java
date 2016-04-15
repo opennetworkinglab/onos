@@ -179,7 +179,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      *
      * @return the data type
      */
-    public YangType<?> getDataType() {
+    public YangType<?> getTypeDefBaseType() {
         return dataType;
     }
 

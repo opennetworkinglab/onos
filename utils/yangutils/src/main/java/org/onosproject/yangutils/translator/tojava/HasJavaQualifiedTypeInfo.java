@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,33 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.onosproject.yangutils.datamodel;
+package org.onosproject.yangutils.translator.tojava;
 
 /**
- * Represents the status of resolvable entity.
+ * Maintain the java qualified access details for an attribute or a class.
  */
-public enum ResolvableStatus {
+public interface HasJavaQualifiedTypeInfo {
 
     /**
-     * Identifies that resolvable entity is unresolved.
+     * Obtain the java qualified details.
+     *
+     * @return java qualified type details
      */
-    UNRESOLVED,
+    JavaQualifiedTypeInfo getJavaQualifiedInfo();
 
     /**
-     * Identifies that resolvable entity's reference is linked.
+     * Assign the qualified type info.
+     *
+     * @param typeInfo qualified type information
      */
-    LINKED,
-
-    /**
-     * Identifies that resolvable entity is IntraFile resolved (i.e. complete
-     * linking with in the intra file).
-     */
-    INTRA_FILE_RESOLVED,
-
-    /**
-     * Identifies that resolvable entity is resolved.
-     */
-    RESOLVED;
-
+    void setJavaQualifiedInfo(JavaQualifiedTypeInfo typeInfo);
 }

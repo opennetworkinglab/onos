@@ -2,6 +2,9 @@ module Test {
     yang-version 1;
     namespace http://huawei.com;
     prefix Ant;
+    import ietf-yang-types {
+             prefix "P";
+         }
     list valid {
         key address;
         grouping endpoint {

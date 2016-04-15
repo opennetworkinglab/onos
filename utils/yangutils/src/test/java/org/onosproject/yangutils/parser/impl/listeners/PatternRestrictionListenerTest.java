@@ -108,7 +108,7 @@ public class PatternRestrictionListenerTest {
         assertThat(yangNode.getName(), is("Test"));
 
         YangTypeDef typedef = (YangTypeDef) yangNode.getChild();
-        YangStringRestriction stringRestriction = (YangStringRestriction) typedef.getDataType()
+        YangStringRestriction stringRestriction = (YangStringRestriction) typedef.getTypeDefBaseType()
                 .getDataTypeExtendedInfo();
 
         YangPatternRestriction yangPatternRestriction = stringRestriction.getPatternRestriction();

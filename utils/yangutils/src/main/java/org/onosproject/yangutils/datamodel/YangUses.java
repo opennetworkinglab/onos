@@ -48,10 +48,13 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *                | when         | 7.19.5  | 0..1        | -TODO            |
  *                +--------------+---------+-------------+------------------+
  */
+
 /**
  * Represents data model node to maintain information defined in YANG uses.
  */
-public class YangUses extends YangNode implements YangCommonInfo, Parsable, Resolvable {
+public class YangUses
+        extends YangNode
+        implements YangCommonInfo, Parsable, Resolvable {
 
     /**
      * YANG node identifier.
@@ -82,7 +85,7 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable, Reso
      * Status of resolution. If completely resolved enum value is "RESOLVED",
      * if not enum value is "UNRESOLVED", in case reference of grouping/typedef
      * is added to uses/type but it's not resolved value of enum should be
-     * "PARTIALLY_RESOLVED".
+     * "INTRA_FILE_RESOLVED".
      */
     private ResolvableStatus resolvableStatus;
 
@@ -189,7 +192,8 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable, Reso
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
@@ -199,7 +203,8 @@ public class YangUses extends YangNode implements YangCommonInfo, Parsable, Reso
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 

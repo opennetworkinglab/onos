@@ -108,6 +108,6 @@ public class OutputListenerTest {
         assertThat(typeDef.getStatus(), is(YangStatusType.DEPRECATED));
         assertThat(typeDef.getName(), is("my-type"));
         assertThat(typeDef.getStatus(), is(YangStatusType.DEPRECATED));
-        assertThat(typeDef.getDataType().getDataType(), is(YangDataTypes.INT32));
+        assertThat(typeDef.getTypeDefBaseType().getDataType(), is(YangDataTypes.INT32));
     }
 }

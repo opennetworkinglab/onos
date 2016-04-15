@@ -59,10 +59,12 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *                | revision-date | 7.1.5.1 | 0..1        | string           |
  *                +---------------+---------+-------------+------------------+
  */
+
 /**
  * Represents the information about the imported modules.
  */
-public class YangImport implements Parsable {
+public class YangImport
+        implements Parsable {
 
     /**
      * Name of the module that is being imported.
@@ -73,11 +75,6 @@ public class YangImport implements Parsable {
      * Prefix used to identify the entities from the imported module.
      */
     private String prefixId;
-
-    /**
-     * Resolution information root node which is also the data model root node.
-     */
-    private HasResolutionInfo resolutionInfoNode;
 
     /**
      * Reference:RFC 6020.
@@ -118,7 +115,7 @@ public class YangImport implements Parsable {
      * Returns the prefix used to identify the entities from the imported module.
      *
      * @return the prefix used to identify the entities from the imported
-     *         module
+     * module
      */
     public String getPrefixId() {
         return prefixId;
@@ -167,7 +164,8 @@ public class YangImport implements Parsable {
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
     }
@@ -178,26 +176,9 @@ public class YangImport implements Parsable {
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
-    }
-
-    /**
-     * Returns the resolution information node.
-     *
-     * @return the resolution information node
-     */
-    public HasResolutionInfo getResolutionInfoNode() {
-        return resolutionInfoNode;
-    }
-
-    /**
-     * Sets the dresolution information node.
-     *
-     * @param resolutionInfoNode the resolution information node
-     */
-    public void setResolutionInfoNode(HasResolutionInfo resolutionInfoNode) {
-        this.resolutionInfoNode = resolutionInfoNode;
     }
 }

@@ -1055,7 +1055,7 @@ public class TempJavaCodeFragmentFiles {
     public void addTypeDefAttributeToTempFiles(YangNode curNode) throws IOException {
 
         JavaAttributeInfo javaAttributeInfo = getAttributeInfoOfTypeDef(curNode,
-                ((YangTypeDef) curNode).getDataType(),
+                ((YangTypeDef) curNode).getTypeDefBaseType(),
                 ((YangTypeDef) curNode).getName(), false);
         addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo);
     }
