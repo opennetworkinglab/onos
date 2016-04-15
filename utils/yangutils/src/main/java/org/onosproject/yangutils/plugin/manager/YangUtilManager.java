@@ -32,6 +32,8 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.YangUtilsParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
+import org.onosproject.yangutils.translator.tojava.utils.YangToJavaNamingConflictUtil;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
@@ -87,6 +89,24 @@ public class YangUtilManager extends AbstractMojo {
     private MavenProject project;
 
     /**
+     * Replacement required for period special character in the identifier.
+     */
+    @Parameter(property = "replacementForPeriod")
+    private String replacementForPeriod;
+
+    /**
+     * Replacement required for underscore special character in the identifier.
+     */
+    @Parameter(property = "replacementForUnderscore")
+    private String replacementForUnderscore;
+
+    /**
+     * Replacement required for hyphen special character in the identifier.
+     */
+    @Parameter(property = "replacementForHyphen")
+    private String replacementForHyphen;
+
+    /**
      * Build context.
      */
     @Component
@@ -112,15 +132,21 @@ public class YangUtilManager extends AbstractMojo {
 
             searchDir = getDirectory(baseDir, yangFilesDir);
             codeGenDir = getDirectory(baseDir, genFilesDir) + SLASH;
-
+            YangToJavaNamingConflictUtil conflictResolver = new YangToJavaNamingConflictUtil();
+            conflictResolver.setReplacementForPeriod(replacementForPeriod);
+            conflictResolver.setReplacementForHyphen(replacementForHyphen);
+            conflictResolver.setReplacementForUnderscore(replacementForHyphen);
             List<String> yangFiles = YangFileScanner.getYangFiles(searchDir);
+            YangPluginConfig yangPlugin = new YangPluginConfig();
+            yangPlugin.setCodeGenDir(codeGenDir);
+            yangPlugin.setConflictResolver(conflictResolver);
             Iterator<String> yangFileIterator = yangFiles.iterator();
             while (yangFileIterator.hasNext()) {
                 String yangFile = yangFileIterator.next();
                 try {
                     YangNode yangNode = yangUtilsParser.getDataModel(yangFile);
                     setRootNode(yangNode);
-                    generateJavaCode(yangNode, codeGenDir);
+                    generateJavaCode(yangNode, yangPlugin);
                 } catch (ParserException e) {
                     String logInfo = "Error in file: " + e.getFileName();
                     if (e.getLineNumber() != 0) {
@@ -181,7 +207,6 @@ public class YangUtilManager extends AbstractMojo {
      *
      * @param rootNode current root YANG node of data-model tree
      */
-
     public void setRootNode(YangNode rootNode) {
         this.rootNode = rootNode;
     }

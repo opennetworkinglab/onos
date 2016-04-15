@@ -23,6 +23,7 @@ import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfNode;
@@ -127,12 +128,12 @@ public class YangJavaOutput extends YangOutput implements JavaCodeGeneratorInfo,
      * Prepare the information for java code generation corresponding to YANG
      * container info.
      *
-     * @param codeGenDir code generation directory
+     * @param yangPlugin YANG plugin config
      * @throws IOException IO operation fail
      */
     @Override
-    public void generateCodeEntry(String codeGenDir) throws IOException {
-        generateCodeOfNode(this, codeGenDir, false);
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
+        generateCodeOfNode(this, yangPlugin, false);
     }
 
     /**

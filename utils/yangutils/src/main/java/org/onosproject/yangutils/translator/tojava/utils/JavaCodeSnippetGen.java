@@ -79,7 +79,7 @@ public final class JavaCodeSnippetGen {
         /*
          * get the camel case name for java class / interface.
          */
-        yangName = getCamelCase(yangName);
+        yangName = getCamelCase(yangName, null);
         return generateClassDefinition(genFileTypes, yangName);
     }
 

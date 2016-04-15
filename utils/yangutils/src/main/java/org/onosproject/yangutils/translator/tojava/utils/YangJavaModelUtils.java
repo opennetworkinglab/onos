@@ -43,34 +43,37 @@ public final class YangJavaModelUtils {
      * Updates YANG java file package information.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param codeGenDir code generation directory
+     * @param yangPlugin YANG plugin config
      * @throws IOException IO operations fails
      */
-    private static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo, String codeGenDir)
+    private static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin)
             throws IOException {
         javaCodeGeneratorInfo.getJavaFileInfo()
-                .setJavaName(getCaptialCase(getCamelCase(((YangNode) javaCodeGeneratorInfo).getName())));
+                .setJavaName(getCaptialCase(
+                        getCamelCase(((YangNode) javaCodeGeneratorInfo).getName(), yangPlugin.getConflictResolver())));
         javaCodeGeneratorInfo.getJavaFileInfo().setPackage(getCurNodePackage((YangNode) javaCodeGeneratorInfo));
         javaCodeGeneratorInfo.getJavaFileInfo().setPackageFilePath(
                 getPackageDirPathFromJavaJPackage(javaCodeGeneratorInfo.getJavaFileInfo().getPackage()));
-        javaCodeGeneratorInfo.getJavaFileInfo().setBaseCodeGenPath(codeGenDir);
+        javaCodeGeneratorInfo.getJavaFileInfo().setBaseCodeGenPath(yangPlugin.getCodeGenDir());
     }
 
     /**
      * Updates YANG java file package information for specified package.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param codeGenDir code generation directory
+     * @param yangPlugin YANG plugin config
      * @throws IOException IO operations fails
      */
-    private static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo, String codeGenDir, String pkg)
+    private static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin,
+            String pkg)
             throws IOException {
         javaCodeGeneratorInfo.getJavaFileInfo()
-                .setJavaName(getCaptialCase(getCamelCase(((YangNode) javaCodeGeneratorInfo).getName())));
+                .setJavaName(getCaptialCase(
+                        getCamelCase(((YangNode) javaCodeGeneratorInfo).getName(), yangPlugin.getConflictResolver())));
         javaCodeGeneratorInfo.getJavaFileInfo().setPackage(pkg);
         javaCodeGeneratorInfo.getJavaFileInfo().setPackageFilePath(
                 getPackageDirPathFromJavaJPackage(javaCodeGeneratorInfo.getJavaFileInfo().getPackage()));
-        javaCodeGeneratorInfo.getJavaFileInfo().setBaseCodeGenPath(codeGenDir);
+        javaCodeGeneratorInfo.getJavaFileInfo().setBaseCodeGenPath(yangPlugin.getCodeGenDir());
     }
 
     /**
@@ -96,7 +99,6 @@ public final class YangJavaModelUtils {
      */
     private static void updateLeafInfoInTempFragmentFiles(JavaCodeGeneratorInfo javaCodeGeneratorInfo)
             throws IOException {
-
         if (javaCodeGeneratorInfo instanceof YangLeavesHolder) {
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                     .addCurNodeLeavesInfoToTempFiles((YangNode) javaCodeGeneratorInfo);
@@ -127,17 +129,17 @@ public final class YangJavaModelUtils {
      * Process generate code entry of YANG node.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param codeGenDir code generation directory
+     * @param yangPlugin YANG plugin config
      * @param isMultiInstance flag to indicate whether it's a list
      * @throws IOException IO operations fails
      */
-    public static void generateCodeOfNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo, String codeGenDir,
+    public static void generateCodeOfNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin,
             boolean isMultiInstance) throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
             // TODO:throw exception
         }
-        updatePackageInfo(javaCodeGeneratorInfo, codeGenDir);
-        generateTempFiles(javaCodeGeneratorInfo, codeGenDir);
+        updatePackageInfo(javaCodeGeneratorInfo, yangPlugin);
+        generateTempFiles(javaCodeGeneratorInfo, yangPlugin.getCodeGenDir());
 
         javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                 .addCurNodeInfoInParentTempFile((YangNode) javaCodeGeneratorInfo, isMultiInstance);
@@ -147,16 +149,16 @@ public final class YangJavaModelUtils {
      * Process generate code entry of root node.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param codeGenDir code generation directory
+     * @param yangPlugin YANG plugin config
      * @param rootPkg package of the root node
      * @throws IOException IO operations fails
      */
-    public static void generateCodeOfRootNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo, String codeGenDir,
+    public static void generateCodeOfRootNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin,
             String rootPkg) throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
             // TODO:throw exception
         }
-        updatePackageInfo(javaCodeGeneratorInfo, codeGenDir, rootPkg);
-        generateTempFiles(javaCodeGeneratorInfo, codeGenDir);
+        updatePackageInfo(javaCodeGeneratorInfo, yangPlugin, rootPkg);
+        generateTempFiles(javaCodeGeneratorInfo, yangPlugin.getCodeGenDir());
     }
 }

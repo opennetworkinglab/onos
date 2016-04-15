@@ -22,6 +22,7 @@ import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
@@ -104,16 +105,16 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
      * Prepare the information for java code generation corresponding to YANG
      * container info.
      *
-     * @param codeGenDir code generation directory
+     * @param yangPlugin YANG plugin config
      */
     @Override
-    public void generateCodeEntry(String codeGenDir) {
+    public void generateCodeEntry(YangPluginConfig yangPlugin) {
 
-        getJavaFileInfo().setJavaName(getCaptialCase(getCamelCase(getName())));
+        getJavaFileInfo().setJavaName(getCaptialCase(getCamelCase(getName(), yangPlugin.getConflictResolver())));
         getJavaFileInfo().setPackage(getCurNodePackage(this));
         getJavaFileInfo().setPackageFilePath(
                 getPackageDirPathFromJavaJPackage(getJavaFileInfo().getPackage()));
-        getJavaFileInfo().setBaseCodeGenPath(codeGenDir);
+        getJavaFileInfo().setBaseCodeGenPath(yangPlugin.getCodeGenDir());
         //TODO:addCurNodeLeavesInfoToTempFiles(this);
         //TODO:addCurNodeInfoInParentTempFile(this, false);
     }

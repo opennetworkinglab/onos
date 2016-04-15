@@ -923,7 +923,7 @@ public class TempJavaCodeFragmentFiles {
         /*
          * TODO: check if this utility needs to be called or move to the caller
          */
-        String attributeName = getCamelCase(getSmallCase(attr.getAttributeName()));
+        String attributeName = getCamelCase(getSmallCase(attr.getAttributeName()), null);
         if (attr.isQualifiedName()) {
             return getJavaAttributeDefination(attr.getImportInfo().getPkgInfo(), attr.getImportInfo().getClassInfo(),
                     attributeName, attr.isListAttr());

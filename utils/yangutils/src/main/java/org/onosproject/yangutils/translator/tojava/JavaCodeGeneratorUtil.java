@@ -21,6 +21,7 @@ import java.io.IOException;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.TraversalType.CHILD;
 import static org.onosproject.yangutils.translator.tojava.TraversalType.PARENT;
@@ -65,11 +66,11 @@ public final class JavaCodeGeneratorUtil {
      * Generates Java code files corresponding to the YANG schema.
      *
      * @param rootNode root node of the data model tree
-     * @param codeGenDir code generation directory
+     * @param yangPlugin YANG plugin config
      * @throws IOException when fails to generate java code file the current
      *             node
      */
-    public static void generateJavaCode(YangNode rootNode, String codeGenDir) throws IOException {
+    public static void generateJavaCode(YangNode rootNode, YangPluginConfig yangPlugin) throws IOException {
 
         YangNode curNode = rootNode;
         TraversalType curTraversal = ROOT;
@@ -77,7 +78,7 @@ public final class JavaCodeGeneratorUtil {
         while (!(curNode == null)) {
             if (curTraversal != PARENT) {
                 setCurNode(curNode);
-                generateCodeEntry(curNode, codeGenDir);
+                generateCodeEntry(curNode, yangPlugin);
             }
             if (curTraversal != PARENT && curNode.getChild() != null) {
                 curTraversal = CHILD;
@@ -99,14 +100,13 @@ public final class JavaCodeGeneratorUtil {
      *
      * @param curNode current data model node for which the code needs to be
      *            generated
-     * @param codeGenDir the base directory where the code needs to be generated
+     * @param yangPlugin YANG plugin config
      * @throws IOException IO operation exception
      */
-    private static void generateCodeEntry(YangNode curNode,
-            String codeGenDir) throws IOException {
+    private static void generateCodeEntry(YangNode curNode, YangPluginConfig yangPlugin) throws IOException {
 
         if (curNode instanceof JavaCodeGenerator) {
-            ((JavaCodeGenerator) curNode).generateCodeEntry(codeGenDir);
+            ((JavaCodeGenerator) curNode).generateCodeEntry(yangPlugin);
         } else {
             throw new TranslatorException(
                     "Generated data model node cannot be translated to target language code");

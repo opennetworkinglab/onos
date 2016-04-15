@@ -19,6 +19,7 @@ package org.onosproject.yangutils.translator.tojava.javamodel;
 import java.io.IOException;
 import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 /**
  * Represents rpc information extended to support java code generation.
@@ -35,11 +36,11 @@ public class YangJavaRpc extends YangRpc implements JavaCodeGenerator {
      * Prepares the information for java code generation corresponding to YANG
      * rpc info.
      *
-     * @param codeGenDir code generation directory
+     * @param yangPlugin YANG plugin config
      * @throws IOException IO operation fail
      */
     @Override
-    public void generateCodeEntry(String codeGenDir) throws IOException {
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
           // TODO
     }
 

@@ -196,7 +196,7 @@ public final class AttributesJavaDataType {
             } else if (type.equals(INSTANCE_IDENTIFIER)) {
                 //TODO:INSTANCE_IDENTIFIER
             } else if (type.equals(DERIVED)) {
-                return getCaptialCase(getCamelCase(yangType.getDataTypeName()));
+                return getCaptialCase(getCamelCase(yangType.getDataTypeName(), null));
             }
         } else {
             if (type.equals(UINT64)) {
@@ -222,7 +222,7 @@ public final class AttributesJavaDataType {
             } else if (type.equals(INSTANCE_IDENTIFIER)) {
                 //TODO:INSTANCE_IDENTIFIER
             } else if (type.equals(DERIVED)) {
-                return getCaptialCase(getCamelCase(yangType.getDataTypeName()));
+                return getCaptialCase(getCamelCase(yangType.getDataTypeName(), null));
             }
         }
         return null;

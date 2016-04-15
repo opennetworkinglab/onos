@@ -49,10 +49,18 @@ public final class JavaIdentifierSyntaxTest {
     private static final String VERSION_NUMBER = "v1";
     private static final String INVALID_NAME_SPACE1 = "byte:#test2:9test3";
     private static final String INVALID_NAME_SPACE2 = "const:#test2://9test3";
-    private static final String VALID_NAME_SPACE1 = "_byte.test2._9test3";
-    private static final String VALID_NAME_SPACE2 = "_const.test2._9test3";
+    private static final String VALID_NAME_SPACE1 = "yangautoprefixbyte.test2.yangautoprefix9test3";
+    private static final String VALID_NAME_SPACE2 = "yangautoprefixconst.test2.yangautoprefix9test3";
     private static final String WITHOUT_CAMEL_CASE = "test-camel-case-identifier";
     private static final String WITH_CAMEL_CASE = "testCamelCaseIdentifier";
+    private static final String WITHOUT_CAMEL_CASE1 = ".-_try-._-.123";
+    private static final String WITH_CAMEL_CASE1 = "try123";
+    private static final String WITHOUT_CAMEL_CASE2 = "_try";
+    private static final String WITH_CAMEL_CASE2 = "yangAutoPrefixTry";
+    private static final String WITHOUT_CAMEL_CASE3 = "-1-123g-123ga-a";
+    private static final String WITH_CAMEL_CASE3 = "yangAutoPrefix1123G123Gaa";
+    private static final String WITHOUT_CAMEL_CASE4 = "a-b-c-d-e-f-g-h";
+    private static final String WITH_CAMEL_CASE4 = "aBcDeFgh";
     private static final String WITHOUT_CAPITAL = "test_this";
     private static final String WITH_CAPITAL = "Test_this";
     private static final String WITH_SMALL = "test_this";
@@ -130,8 +138,16 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getCamelCaseTest() {
-        String camelCase = getCamelCase(WITHOUT_CAMEL_CASE);
+        String camelCase = getCamelCase(WITHOUT_CAMEL_CASE, null);
         assertThat(camelCase.equals(WITH_CAMEL_CASE), is(true));
+        String camelCase1 = getCamelCase(WITHOUT_CAMEL_CASE1, null);
+        assertThat(camelCase1.equals(WITH_CAMEL_CASE1), is(true));
+        String camelCase2 = getCamelCase(WITHOUT_CAMEL_CASE2, null);
+        assertThat(camelCase2.equals(WITH_CAMEL_CASE2), is(true));
+        String camelCase3 = getCamelCase(WITHOUT_CAMEL_CASE3, null);
+        assertThat(camelCase3.equals(WITH_CAMEL_CASE3), is(true));
+        String camelCase4 = getCamelCase(WITHOUT_CAMEL_CASE4, null);
+        assertThat(camelCase4.equals(WITH_CAMEL_CASE4), is(true));
     }
 
     /**

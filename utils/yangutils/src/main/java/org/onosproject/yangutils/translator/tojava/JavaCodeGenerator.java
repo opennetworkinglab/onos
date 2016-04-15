@@ -18,6 +18,8 @@ package org.onosproject.yangutils.translator.tojava;
 
 import java.io.IOException;
 
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
+
 /**
  * Abstraction of an entity which provides Code generator functionalities.
  */
@@ -26,10 +28,10 @@ public interface JavaCodeGenerator {
     /**
      * Traverse the schema of application and generate corresponding code.
      *
-     * @param codeGenDir code generation directory
+     * @param yangPlugin YANG plugin config
      * @throws IOException when fails to translate the data model tree
      */
-    void generateCodeEntry(String codeGenDir) throws IOException;
+    void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException;
 
     /**
      * Traverse the schema of application and generate corresponding code.

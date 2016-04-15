@@ -140,7 +140,7 @@ public final class JavaDocGen {
      */
     public static String getJavaDoc(JavaDocType type, String name, boolean isList) {
 
-        name = JavaIdentifierSyntax.getSmallCase(JavaIdentifierSyntax.getCamelCase(name));
+        name = JavaIdentifierSyntax.getSmallCase(JavaIdentifierSyntax.getCamelCase(name, null));
         String javaDoc = UtilConstants.EMPTY_STRING;
         if (type.equals(JavaDocType.IMPL_CLASS)) {
             javaDoc = generateForImplClass(name);

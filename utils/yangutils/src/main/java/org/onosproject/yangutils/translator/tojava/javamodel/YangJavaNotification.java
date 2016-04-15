@@ -27,6 +27,7 @@ import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
@@ -138,17 +139,17 @@ public class YangJavaNotification extends YangNotification
      * Prepare the information for java code generation corresponding to YANG
      * notification info.
      *
-     * @param codeGenDir code generation directory
+     * @param yangPlugin YANG plugin config
      * @throws IOException IO operation fail
      */
     @Override
-    public void generateCodeEntry(String codeGenDir) throws IOException {
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
 
-        getJavaFileInfo().setJavaName(getCaptialCase(getCamelCase(getName())));
+        getJavaFileInfo().setJavaName(getCaptialCase(getCamelCase(getName(), yangPlugin.getConflictResolver())));
         getJavaFileInfo().setPackage(getCurNodePackage(this));
         getJavaFileInfo().setPackageFilePath(
                 getPackageDirPathFromJavaJPackage(getJavaFileInfo().getPackage()));
-        getJavaFileInfo().setBaseCodeGenPath(codeGenDir);
+        getJavaFileInfo().setBaseCodeGenPath(yangPlugin.getCodeGenDir());
 
         String absolutePath = getAbsolutePackagePath(
                 getJavaFileInfo().getBaseCodeGenPath(),

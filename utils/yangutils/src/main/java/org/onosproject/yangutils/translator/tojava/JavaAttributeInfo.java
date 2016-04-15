@@ -276,7 +276,7 @@ public final class JavaAttributeInfo {
         JavaAttributeInfo newAttr = new JavaAttributeInfo();
         newAttr.setImportInfo(importInfo);
         newAttr.setIsQualifiedAccess(getIsQualifiedAccessOrAddToImportList(curNode, importInfo));
-        newAttr.setAttributeName(getCamelCase(attributeName));
+        newAttr.setAttributeName(getCamelCase(attributeName, null));
         newAttr.setListAttr(isListAttribute);
         newAttr.setImportInfo(importInfo);
         newAttr.setAttributeType(attributeType);

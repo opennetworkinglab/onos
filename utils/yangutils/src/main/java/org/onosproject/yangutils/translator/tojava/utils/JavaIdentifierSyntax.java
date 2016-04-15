@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
@@ -30,12 +31,19 @@ import static org.onosproject.yangutils.utils.UtilConstants.HYPHEN;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_KEY_WORDS;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.QUOTES;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_DIGITS_WITH_SINGLE_LETTER;
 import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_FIRST_DIGIT;
-import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_SPECIAL_CHAR;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_HYPHEN;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_IDENTIFIER_SPECIAL_CHAR;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_SINGLE_LETTER;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_UNDERSCORE;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_ALL_SPECIAL_CHAR;
 import static org.onosproject.yangutils.utils.UtilConstants.REVISION_PREFIX;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.UNDER_SCORE;
 import static org.onosproject.yangutils.utils.UtilConstants.VERSION_PREFIX;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUTO_PREFIX;
 
 /**
  * Represents an utility Class for translating the name from YANG to java convention.
@@ -137,7 +145,7 @@ public final class JavaIdentifierSyntax {
 
         ArrayList<String> pkgArr = new ArrayList<String>();
         nameSpace = nameSpace.replace(QUOTES, EMPTY_STRING);
-        String properNameSpace = nameSpace.replaceAll(REGEX_WITH_SPECIAL_CHAR, COLAN);
+        String properNameSpace = nameSpace.replaceAll(REGEX_WITH_ALL_SPECIAL_CHAR, COLAN);
         String[] nameSpaceArr = properNameSpace.split(COLAN);
 
         for (String nameSpaceString : nameSpaceArr) {
@@ -191,7 +199,7 @@ public final class JavaIdentifierSyntax {
         for (String member : pkgArr) {
             boolean presenceOfKeyword = JAVA_KEY_WORDS.contains(member);
             if (presenceOfKeyword || member.matches(REGEX_FOR_FIRST_DIGIT)) {
-                member = UNDER_SCORE + member;
+                member = YANG_AUTO_PREFIX + member;
             }
             pkg = pkg + member;
             if (i != size - 1) {
@@ -223,16 +231,121 @@ public final class JavaIdentifierSyntax {
      * Returns the YANG identifier name as java identifier.
      *
      * @param yangIdentifier identifier in YANG file
+     * @param conflictResolver object of YANG to java naming confilct util
      * @return corresponding java identifier
      */
-    public static String getCamelCase(String yangIdentifier) {
+    public static String getCamelCase(String yangIdentifier, YangToJavaNamingConflictUtil conflictResolver) {
 
-        String[] strArray = yangIdentifier.split(HYPHEN);
-        String camelCase = strArray[0];
-        for (int i = 1; i < strArray.length; i++) {
-            camelCase = camelCase + strArray[i].substring(0, 1).toUpperCase() + strArray[i].substring(1);
+        if (conflictResolver != null) {
+            String replacementForHyphen = conflictResolver.getReplacementForHyphen();
+            String replacementForPeriod = conflictResolver.getReplacementForPeriod();
+            String replacementForUnderscore = conflictResolver.getReplacementForUnderscore();
+            if (replacementForPeriod != null) {
+                yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_PERIOD,
+                        PERIOD + replacementForPeriod.toLowerCase() + PERIOD);
+            }
+            if (replacementForUnderscore != null) {
+                yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_UNDERSCORE,
+                        UNDER_SCORE + replacementForUnderscore.toLowerCase() + UNDER_SCORE);
+            }
+            if (replacementForHyphen != null) {
+                yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_HYPHEN,
+                        HYPHEN + replacementForHyphen.toLowerCase() + HYPHEN);
+            }
         }
-        return camelCase;
+        yangIdentifier = yangIdentifier.replaceAll(REGEX_FOR_IDENTIFIER_SPECIAL_CHAR, COLAN);
+        String[] strArray = yangIdentifier.split(COLAN);
+        if (strArray[0].isEmpty()) {
+            List<String> stringArrangement = new ArrayList<String>();
+            for (int i = 1; i < strArray.length; i++) {
+                stringArrangement.add(strArray[i]);
+            }
+            strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
+        }
+        return applyCamelCaseRule(strArray);
+    }
+
+    /**
+     * Applies the rule that a string does not end with a capitalized letter and capitalizes
+     * the letter next to a number in an array.
+     *
+     * @param stringArray containing strings for camel case separation
+     * @return camel cased string
+     */
+    public static String applyCamelCaseRule(String[] stringArray) {
+
+        String ruleChecker = stringArray[0];
+        int i;
+        if (ruleChecker.matches(REGEX_FOR_FIRST_DIGIT)) {
+            i = 0;
+            ruleChecker = EMPTY_STRING;
+        } else {
+            i = 1;
+        }
+        for (; i < stringArray.length; i++) {
+            if ((i + 1) == stringArray.length) {
+                if (stringArray[i].matches(REGEX_FOR_SINGLE_LETTER)
+                        || stringArray[i].matches(REGEX_FOR_DIGITS_WITH_SINGLE_LETTER)) {
+                    ruleChecker = ruleChecker + stringArray[i];
+                    break;
+                }
+            }
+            if (stringArray[i].matches(REGEX_FOR_FIRST_DIGIT)) {
+                for (int j = 0; j < stringArray[i].length(); j++) {
+                    char letterCheck = stringArray[i].charAt(j);
+                    if (Character.isLetter(letterCheck)) {
+                        stringArray[i] = stringArray[i].substring(0, j)
+                                + stringArray[i].substring(j, j + 1).toUpperCase() + stringArray[i].substring(j + 1);
+                        break;
+                    }
+                }
+                ruleChecker = ruleChecker + stringArray[i];
+            } else {
+                ruleChecker = ruleChecker + stringArray[i].substring(0, 1).toUpperCase() + stringArray[i].substring(1);
+            }
+        }
+        String ruleCheckerWithPrefix = addPrefix(ruleChecker);
+        return restrictConsecutiveCapitalCase(ruleCheckerWithPrefix);
+    }
+
+    /**
+     * Adds prefix YANG auto prefix if the string begins with digit or is a java key word.
+     *
+     * @param camelCasePrefixer string for adding prefix
+     * @return prefixed camel case string
+     */
+    public static String addPrefix(String camelCasePrefixer) {
+
+        if (camelCasePrefixer.matches(REGEX_FOR_FIRST_DIGIT)) {
+            camelCasePrefixer = YANG_AUTO_PREFIX + camelCasePrefixer;
+        }
+        if (JAVA_KEY_WORDS.contains(camelCasePrefixer)) {
+            camelCasePrefixer = YANG_AUTO_PREFIX + camelCasePrefixer.substring(0, 1).toUpperCase()
+                    + camelCasePrefixer.substring(1);
+        }
+        return camelCasePrefixer;
+    }
+
+    /**
+     * Restricts consecutive capital cased string as a rule in camel case.
+     *
+     * @param consecCapitalCaseRemover which requires the restriction of consecutive capital case
+     * @return string without consecutive capital case
+     */
+    public static String restrictConsecutiveCapitalCase(String consecCapitalCaseRemover) {
+
+        for (int k = 0; k < consecCapitalCaseRemover.length(); k++) {
+            if (k + 1 < consecCapitalCaseRemover.length()) {
+                if (Character.isUpperCase(consecCapitalCaseRemover.charAt(k))) {
+                    if (Character.isUpperCase(consecCapitalCaseRemover.charAt(k + 1))) {
+                        consecCapitalCaseRemover = consecCapitalCaseRemover.substring(0, k + 1)
+                                + consecCapitalCaseRemover.substring(k + 1, k + 2).toLowerCase()
+                                + consecCapitalCaseRemover.substring(k + 2);
+                    }
+                }
+            }
+        }
+        return consecCapitalCaseRemover;
     }
 
     /**

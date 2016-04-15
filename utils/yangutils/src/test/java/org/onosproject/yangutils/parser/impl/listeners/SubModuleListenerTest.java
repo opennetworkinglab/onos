@@ -109,7 +109,7 @@ public class SubModuleListenerTest {
         // Checks for the version value in data model tree.
         assertThat(yangNode.getBelongsTo().getPrefix(), is("On1"));
         //Checks the revision with current date is created for empty revision statement.
-        assertThat(((YangSubModule) node).getRevision().getRevDate(),   notNullValue());
+        assertThat(((YangSubModule) node).getRevision().getRevDate(), notNullValue());
     }
 
     /**

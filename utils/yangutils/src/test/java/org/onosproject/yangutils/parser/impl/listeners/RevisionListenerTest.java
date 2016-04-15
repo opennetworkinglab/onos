@@ -73,6 +73,6 @@ public class RevisionListenerTest {
     public void processWithoutRevision() throws IOException, ParserException {
 
         YangNode node = manager.getDataModel("src/test/resources/RevisionAbsence.yang");
-        assertThat(((YangModule) node).getRevision().getRevDate(),   notNullValue());
+        assertThat(((YangModule) node).getRevision().getRevDate(), notNullValue());
     }
 }

@@ -23,6 +23,7 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
@@ -126,13 +127,13 @@ public class YangJavaModule extends YangModule implements JavaCodeGeneratorInfo,
     /**
      * Generates java code for module.
      *
-     * @param baseCodeGenDir code generation directory
+     * @param yangPlugin YANG plugin config
      * @throws IOException when fails to generate the source files
      */
     @Override
-    public void generateCodeEntry(String baseCodeGenDir) throws IOException {
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
         String modulePkg = getRootPackage(getVersion(), getNameSpace().getUri(), getRevision().getRevDate());
-        YangJavaModelUtils.generateCodeOfRootNode(this, baseCodeGenDir, modulePkg);
+        YangJavaModelUtils.generateCodeOfRootNode(this, yangPlugin, modulePkg);
     }
 
     @Override

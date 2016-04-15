@@ -408,6 +408,11 @@ public final class UtilConstants {
     public static final String REVISION_PREFIX = "rev";
 
     /**
+     * Static attribute for YANG automatic prefix for identifiers with keywords and beginning with digits.
+     */
+    public static final String YANG_AUTO_PREFIX = "yangAutoPrefix";
+
+    /**
      * Static attribute for YANG version perifx.
      */
     public static final String VERSION_PREFIX = "v";
@@ -522,14 +527,44 @@ public final class UtilConstants {
             "synchronized", "this", "throw", "throws", "transient", "true", "try", "void", "volatile", "while");
 
     /**
-     * Static attribute for regex for special char.
+     * Static attribute for regex for all the special characters.
      */
-    public static final String REGEX_WITH_SPECIAL_CHAR = "[ : / - @ $ # ' * + , ; = ]+";
+    public static final String REGEX_WITH_ALL_SPECIAL_CHAR = "\\p{Punct}+";
+
+    /**
+     * Static attribute for regex for three special characters used in identifier.
+     */
+    public static final String REGEX_FOR_IDENTIFIER_SPECIAL_CHAR = "[. _ -]+";
+
+    /**
+     * Static attribute for regex for period.
+     */
+    public static final String REGEX_FOR_PERIOD = "[.]";
+
+    /**
+     * Static attribute for regex for underscore.
+     */
+    public static final String REGEX_FOR_UNDERSCORE = "[_]";
+
+    /**
+     * Static attribute for regex for hyphen.
+     */
+    public static final String REGEX_FOR_HYPHEN = "[-]";
 
     /**
      * Static attribute for regex for digits.
      */
     public static final String REGEX_FOR_FIRST_DIGIT = "\\d.*";
+
+    /**
+     * Static attribute for regex for single letter.
+     */
+    public static final String REGEX_FOR_SINGLE_LETTER = "[a-zA-Z]";
+
+    /**
+     * Static attribute for regex for digits with single letter.
+     */
+    public static final String REGEX_FOR_DIGITS_WITH_SINGLE_LETTER = "[0-9]+[a-zA-Z]";
 
     /**
      * Static attribute for class syntax.
