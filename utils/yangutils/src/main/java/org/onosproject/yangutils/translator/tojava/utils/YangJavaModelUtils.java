@@ -17,8 +17,17 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import java.io.IOException;
+
+import org.onosproject.yangutils.datamodel.YangAugment;
+import org.onosproject.yangutils.datamodel.YangCase;
+import org.onosproject.yangutils.datamodel.YangChoice;
+import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
+import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangNotification;
+import org.onosproject.yangutils.datamodel.YangOutput;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
 
@@ -26,6 +35,8 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
+import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
+import static org.onosproject.yangutils.utils.UtilConstants.HAS_AUGMENTATION;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
@@ -143,6 +154,21 @@ public final class YangJavaModelUtils {
 
         javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                 .addCurNodeInfoInParentTempFile((YangNode) javaCodeGeneratorInfo, isMultiInstance);
+
+        /**
+         * For augmentation of nodes.
+         */
+        if (javaCodeGeneratorInfo instanceof YangContainer
+                || javaCodeGeneratorInfo instanceof YangCase
+                || javaCodeGeneratorInfo instanceof YangChoice
+                || javaCodeGeneratorInfo instanceof YangInput
+                || javaCodeGeneratorInfo instanceof YangList
+                || javaCodeGeneratorInfo instanceof YangNotification
+                || javaCodeGeneratorInfo instanceof YangOutput) {
+            javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().addToExtendsList(HAS_AUGMENTATION);
+        } else if (javaCodeGeneratorInfo instanceof YangAugment) {
+            javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().addToExtendsList(AUGMENTED_INFO);
+        }
     }
 
     /**

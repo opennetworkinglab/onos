@@ -126,7 +126,7 @@ public class YangJavaOutput extends YangOutput implements JavaCodeGeneratorInfo,
 
     /**
      * Prepare the information for java code generation corresponding to YANG
-     * container info.
+     * output info.
      *
      * @param yangPlugin YANG plugin config
      * @throws IOException IO operation fail
@@ -137,7 +137,7 @@ public class YangJavaOutput extends YangOutput implements JavaCodeGeneratorInfo,
     }
 
     /**
-     * Creates a java file using the YANG grouping info.
+     * Creates a java file using the YANG output info.
      *
      * @throws IOException IO operation fail
      */

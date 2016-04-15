@@ -30,7 +30,6 @@ import org.onosproject.yangutils.translator.exception.TranslatorException;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
@@ -74,6 +73,14 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getTypeDefConstructor;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.parseBuilderInterfaceBuildMethodString;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addArrayListImport;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addAugmentedInfoImport;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addHasAugmentationImport;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addImportsToStringAndHasCodeMethods;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isAugmentedInfoExtended;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isHasAugmentationExtended;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.prepareJavaFileGeneratorForExtendsList;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
@@ -84,7 +91,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPackage;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.readAppendFile;
-import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OF_METHOD;
@@ -120,6 +126,11 @@ public class TempJavaCodeFragmentFiles {
      * Name of java file that needs to be generated.
      */
     private String generatedJavaClassName;
+
+    /**
+     * Contains all the class name which will be extended by generated files.
+     */
+    private List<String> extendsList = new ArrayList<>();
 
     /**
      * File type extension for java classes.
@@ -302,6 +313,7 @@ public class TempJavaCodeFragmentFiles {
     public TempJavaCodeFragmentFiles(int genFileType, String genDir, String className)
             throws IOException {
 
+        setExtendsList(new ArrayList<>());
         generatedTempFiles = 0;
         absoluteDirPath = genDir;
         generatedJavaClassName = className;
@@ -399,7 +411,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @return java file handle for interface file
      */
-    public File getInterfaceJavaFileHandle() {
+    private File getInterfaceJavaFileHandle() {
         return interfaceJavaFileHandle;
     }
 
@@ -408,7 +420,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param interfaceJavaFileHandle java file handle
      */
-    public void setInterfaceJavaFileHandle(File interfaceJavaFileHandle) {
+    private void setInterfaceJavaFileHandle(File interfaceJavaFileHandle) {
         this.interfaceJavaFileHandle = interfaceJavaFileHandle;
     }
 
@@ -417,7 +429,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @return java file handle for builder interface file
      */
-    public File getBuilderInterfaceJavaFileHandle() {
+    private File getBuilderInterfaceJavaFileHandle() {
         return builderInterfaceJavaFileHandle;
     }
 
@@ -426,7 +438,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param builderInterfaceJavaFileHandle java file handle
      */
-    public void setBuilderInterfaceJavaFileHandle(File builderInterfaceJavaFileHandle) {
+    private void setBuilderInterfaceJavaFileHandle(File builderInterfaceJavaFileHandle) {
         this.builderInterfaceJavaFileHandle = builderInterfaceJavaFileHandle;
     }
 
@@ -435,7 +447,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @return java file handle for builder class file
      */
-    public File getBuilderClassJavaFileHandle() {
+    private File getBuilderClassJavaFileHandle() {
         return builderClassJavaFileHandle;
     }
 
@@ -444,7 +456,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param builderClassJavaFileHandle java file handle
      */
-    public void setBuilderClassJavaFileHandle(File builderClassJavaFileHandle) {
+    private void setBuilderClassJavaFileHandle(File builderClassJavaFileHandle) {
         this.builderClassJavaFileHandle = builderClassJavaFileHandle;
     }
 
@@ -453,7 +465,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @return java file handle for impl class file
      */
-    public File getImplClassJavaFileHandle() {
+    private File getImplClassJavaFileHandle() {
         return implClassJavaFileHandle;
     }
 
@@ -462,7 +474,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param implClassJavaFileHandle java file handle
      */
-    public void setImplClassJavaFileHandle(File implClassJavaFileHandle) {
+    private void setImplClassJavaFileHandle(File implClassJavaFileHandle) {
         this.implClassJavaFileHandle = implClassJavaFileHandle;
     }
 
@@ -471,7 +483,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @return java file handle for typedef class file
      */
-    public File getTypedefClassJavaFileHandle() {
+    private File getTypedefClassJavaFileHandle() {
         return typedefClassJavaFileHandle;
     }
 
@@ -480,7 +492,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param typedefClassJavaFileHandle java file handle
      */
-    public void setTypedefClassJavaFileHandle(File typedefClassJavaFileHandle) {
+    private void setTypedefClassJavaFileHandle(File typedefClassJavaFileHandle) {
         this.typedefClassJavaFileHandle = typedefClassJavaFileHandle;
     }
 
@@ -498,7 +510,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param attributeForClass file handle for attribute
      */
-    public void setAttributesTempFileHandle(File attributeForClass) {
+    private void setAttributesTempFileHandle(File attributeForClass) {
         attributesTempFileHandle = attributeForClass;
     }
 
@@ -516,7 +528,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param getterForInterface file handle for to getter method
      */
-    public void setGetterInterfaceTempFileHandle(File getterForInterface) {
+    private void setGetterInterfaceTempFileHandle(File getterForInterface) {
         getterInterfaceTempFileHandle = getterForInterface;
     }
 
@@ -534,7 +546,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param getterImpl file handle for to getter method's impl
      */
-    public void setGetterImplTempFileHandle(File getterImpl) {
+    private void setGetterImplTempFileHandle(File getterImpl) {
         getterImplTempFileHandle = getterImpl;
     }
 
@@ -552,7 +564,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param setterForInterface file handle for to setter method
      */
-    public void setSetterInterfaceTempFileHandle(File setterForInterface) {
+    private void setSetterInterfaceTempFileHandle(File setterForInterface) {
         setterInterfaceTempFileHandle = setterForInterface;
     }
 
@@ -570,7 +582,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param setterImpl file handle for to setter method's implementation class
      */
-    public void setSetterImplTempFileHandle(File setterImpl) {
+    private void setSetterImplTempFileHandle(File setterImpl) {
         setterImplTempFileHandle = setterImpl;
     }
 
@@ -588,7 +600,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param constructor file handle for to constructor
      */
-    public void setConstructorImplTempFileHandle(File constructor) {
+    private void setConstructorImplTempFileHandle(File constructor) {
         constructorImplTempFileHandle = constructor;
     }
 
@@ -606,7 +618,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param hashCodeMethod file handle for hash code method
      */
-    public void setHashCodeImplTempFileHandle(File hashCodeMethod) {
+    private void setHashCodeImplTempFileHandle(File hashCodeMethod) {
         hashCodeImplTempFileHandle = hashCodeMethod;
     }
 
@@ -624,7 +636,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param equalsMethod file handle for to equals method
      */
-    public void setEqualsImplTempFileHandle(File equalsMethod) {
+    private void setEqualsImplTempFileHandle(File equalsMethod) {
         equalsImplTempFileHandle = equalsMethod;
     }
 
@@ -642,7 +654,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param toStringMethod file handle for to string method
      */
-    public void setToStringImplTempFileHandle(File toStringMethod) {
+    private void setToStringImplTempFileHandle(File toStringMethod) {
         toStringImplTempFileHandle = toStringMethod;
     }
 
@@ -651,7 +663,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @return java attribute info
      */
-    public JavaAttributeInfo getNewAttrInfo() {
+    private JavaAttributeInfo getNewAttrInfo() {
         return newAttrInfo;
     }
 
@@ -660,7 +672,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param newAttrInfo java attribute info
      */
-    public void setNewAttrInfo(JavaAttributeInfo newAttrInfo) {
+    private void setNewAttrInfo(JavaAttributeInfo newAttrInfo) {
 
         if (newAttrInfo != null) {
             isAttributePresent = true;
@@ -673,7 +685,7 @@ public class TempJavaCodeFragmentFiles {
      *
      * @return current YANG node
      */
-    public YangNode getCurYangNode() {
+    private YangNode getCurYangNode() {
         return curYangNode;
     }
 
@@ -682,8 +694,36 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param curYangNode YANG node
      */
-    public void setCurYangNode(YangNode curYangNode) {
+    private void setCurYangNode(YangNode curYangNode) {
         this.curYangNode = curYangNode;
+    }
+
+    /**
+     * Returns list of classes to be extended by generated files.
+     *
+     * @return list of classes to be extended by generated files
+     */
+    private List<String> getExtendsList() {
+        return extendsList;
+    }
+
+    /**
+     * Sets class to be extended by generated file.
+     *
+     * @param extendsList list of classes to be extended
+     */
+
+    private void setExtendsList(List<String> extendsList) {
+        this.extendsList = extendsList;
+    }
+
+    /**
+     * Adds class to the extends list.
+     *
+     * @param extend class to be extended
+     */
+    public void addToExtendsList(String extend) {
+        getExtendsList().add(extend);
     }
 
     /**
@@ -692,7 +732,7 @@ public class TempJavaCodeFragmentFiles {
      * @param attr attribute info
      * @throws IOException when fails to append to temporary file
      */
-    public void addAttribute(JavaAttributeInfo attr) throws IOException {
+    private void addAttribute(JavaAttributeInfo attr) throws IOException {
         appendToFile(getAttributesTempFileHandle(), parseAttribute(attr) + FOUR_SPACE_INDENTATION);
     }
 
@@ -702,7 +742,7 @@ public class TempJavaCodeFragmentFiles {
      * @param attr attribute info
      * @throws IOException when fails to append to temporary file
      */
-    public void addGetterForInterface(JavaAttributeInfo attr) throws IOException {
+    private void addGetterForInterface(JavaAttributeInfo attr) throws IOException {
         appendToFile(getGetterInterfaceTempFileHandle(), getGetterString(attr) + NEW_LINE);
     }
 
@@ -713,7 +753,7 @@ public class TempJavaCodeFragmentFiles {
      * @param genFiletype generated file type
      * @throws IOException when fails to append to temporary file
      */
-    public void addGetterImpl(JavaAttributeInfo attr, int genFiletype) throws IOException {
+    private void addGetterImpl(JavaAttributeInfo attr, int genFiletype) throws IOException {
 
         if ((genFiletype & BUILDER_CLASS_MASK) != 0) {
             appendToFile(getGetterImplTempFileHandle(), getOverRideString() + getGetterForClass(attr) + NEW_LINE);
@@ -729,7 +769,7 @@ public class TempJavaCodeFragmentFiles {
      * @param attr attribute info
      * @throws IOException when fails to append to temporary file
      */
-    public void addSetterForInterface(JavaAttributeInfo attr) throws IOException {
+    private void addSetterForInterface(JavaAttributeInfo attr) throws IOException {
         appendToFile(getSetterInterfaceTempFileHandle(),
                 getSetterString(attr, generatedJavaClassName) + NEW_LINE);
     }
@@ -740,7 +780,7 @@ public class TempJavaCodeFragmentFiles {
      * @param attr attribute info
      * @throws IOException when fails to append to temporary file
      */
-    public void addSetterImpl(JavaAttributeInfo attr) throws IOException {
+    private void addSetterImpl(JavaAttributeInfo attr) throws IOException {
         appendToFile(getSetterImplTempFileHandle(),
                 getOverRideString() + getSetterForClass(attr, generatedJavaClassName) + NEW_LINE);
     }
@@ -771,7 +811,7 @@ public class TempJavaCodeFragmentFiles {
      * @param attr attribute info
      * @throws IOException when fails to append to temporary file
      */
-    public void addConstructor(JavaAttributeInfo attr) throws IOException {
+    private void addConstructor(JavaAttributeInfo attr) throws IOException {
         appendToFile(getConstructorImplTempFileHandle(), getConstructor(generatedJavaClassName, attr));
     }
 
@@ -826,7 +866,7 @@ public class TempJavaCodeFragmentFiles {
      * @param attr attribute info
      * @throws IOException when fails to append to temporary file
      */
-    public void addHashCodeMethod(JavaAttributeInfo attr) throws IOException {
+    private void addHashCodeMethod(JavaAttributeInfo attr) throws IOException {
         appendToFile(getHashCodeImplTempFileHandle(), getHashCodeMethod(attr) + NEW_LINE);
     }
 
@@ -836,7 +876,7 @@ public class TempJavaCodeFragmentFiles {
      * @param attr attribute info
      * @throws IOException when fails to append to temporary file
      */
-    public void addEqualsMethod(JavaAttributeInfo attr) throws IOException {
+    private void addEqualsMethod(JavaAttributeInfo attr) throws IOException {
         appendToFile(getEqualsImplTempFileHandle(), getEqualsMethod(attr) + NEW_LINE);
     }
 
@@ -846,7 +886,7 @@ public class TempJavaCodeFragmentFiles {
      * @param attr attribute info
      * @throws IOException when fails to append to temporary file
      */
-    public void addToStringMethod(JavaAttributeInfo attr) throws IOException {
+    private void addToStringMethod(JavaAttributeInfo attr) throws IOException {
         appendToFile(getToStringImplTempFileHandle(), getToStringMethod(attr) + NEW_LINE);
     }
 
@@ -1031,7 +1071,7 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
-     * Add all the leaves in the current data model node as part of the
+     * Adds all the leaves in the current data model node as part of the
      * generated temporary file.
      *
      * @param curNode java file info of the generated file
@@ -1139,7 +1179,7 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
-     * Construct java code exit.
+     * Constructs java code exit.
      *
      * @param fileType generated file type
      * @param curNode current YANG node
@@ -1152,11 +1192,27 @@ public class TempJavaCodeFragmentFiles {
         if (curNode instanceof HasJavaImportData && isAttributePresent) {
             imports = ((HasJavaImportData) curNode).getJavaImportData().getImports(getNewAttrInfo());
         }
+
         /**
-         * Start generation of files.
+         * Prepares java file generator for extends list.
          */
-        if ((fileType & INTERFACE_MASK) != 0 | (fileType & BUILDER_INTERFACE_MASK) != 0
-                | fileType == GENERATE_INTERFACE_WITH_BUILDER) {
+        prepareJavaFileGeneratorForExtendsList(getExtendsList());
+
+        /**
+         * Generate java code.
+         */
+        if ((fileType & INTERFACE_MASK) != 0 | (fileType & BUILDER_INTERFACE_MASK) != 0) {
+
+            /**
+             * Adds import for HasAugmentation class.
+             */
+            if (isHasAugmentationExtended(getExtendsList())) {
+                addHasAugmentationImport(curNode, imports, true);
+            }
+
+            if (isAugmentedInfoExtended(getExtendsList())) {
+                addAugmentedInfoImport(curNode, imports, true);
+            }
 
             /**
              * Create interface file.
@@ -1167,25 +1223,36 @@ public class TempJavaCodeFragmentFiles {
             /**
              * Create builder interface file.
              */
-            setBuilderInterfaceJavaFileHandle(getJavaFileHandle(getJavaClassName(BUILDER_INTERFACE_FILE_NAME_SUFFIX)));
-            setBuilderInterfaceJavaFileHandle(
-                    generateBuilderInterfaceFile(getBuilderInterfaceJavaFileHandle(), curNode, isAttributePresent));
-            /**
-             * Append builder interface file to interface file and close it.
-             */
-            mergeJavaFiles(getBuilderInterfaceJavaFileHandle(), getInterfaceJavaFileHandle());
+            if ((fileType & BUILDER_INTERFACE_MASK) != 0) {
+
+                setBuilderInterfaceJavaFileHandle(
+                        getJavaFileHandle(getJavaClassName(BUILDER_INTERFACE_FILE_NAME_SUFFIX)));
+                setBuilderInterfaceJavaFileHandle(
+                        generateBuilderInterfaceFile(getBuilderInterfaceJavaFileHandle(), curNode, isAttributePresent));
+                /**
+                 * Append builder interface file to interface file and close it.
+                 */
+                mergeJavaFiles(getBuilderInterfaceJavaFileHandle(), getInterfaceJavaFileHandle());
+            }
             insertDataIntoJavaFile(getInterfaceJavaFileHandle(), getJavaClassDefClose());
 
+            if (isHasAugmentationExtended(getExtendsList())) {
+                addHasAugmentationImport(curNode, imports, false);
+            }
+            if (isAugmentedInfoExtended(getExtendsList())) {
+                addAugmentedInfoImport(curNode, imports, false);
+            }
         }
 
-        if (curNode instanceof HasJavaImportData && isAttributePresent) {
-            imports.add(((HasJavaImportData) curNode).getJavaImportData().getImportForHashAndEquals());
-            imports.add(((HasJavaImportData) curNode).getJavaImportData().getImportForToString());
-            java.util.Collections.sort(imports);
-        }
+        if ((fileType & BUILDER_CLASS_MASK) != 0 | (fileType & IMPL_CLASS_MASK) != 0) {
 
-        if ((fileType & BUILDER_CLASS_MASK) != 0 | (fileType & IMPL_CLASS_MASK) != 0
-                | fileType == GENERATE_INTERFACE_WITH_BUILDER) {
+            if (isAttributePresent) {
+                addImportsToStringAndHasCodeMethods(curNode, imports);
+            }
+            if (isHasAugmentationExtended(getExtendsList())) {
+                addAugmentedInfoImport(curNode, imports, true);
+                addArrayListImport(curNode, imports, true);
+            }
 
             /**
              * Create builder class file.
@@ -1196,13 +1263,15 @@ public class TempJavaCodeFragmentFiles {
             /**
              * Create impl class file.
              */
-            setImplClassJavaFileHandle(getJavaFileHandle(getJavaClassName(IMPL_CLASS_FILE_NAME_SUFFIX)));
-            setImplClassJavaFileHandle(
-                    generateImplClassFile(getImplClassJavaFileHandle(), curNode, isAttributePresent));
-            /**
-             * Append impl class to builder class and close it.
-             */
-            mergeJavaFiles(getImplClassJavaFileHandle(), getBuilderClassJavaFileHandle());
+            if ((fileType & IMPL_CLASS_MASK) != 0) {
+                setImplClassJavaFileHandle(getJavaFileHandle(getJavaClassName(IMPL_CLASS_FILE_NAME_SUFFIX)));
+                setImplClassJavaFileHandle(
+                        generateImplClassFile(getImplClassJavaFileHandle(), curNode, isAttributePresent));
+                /**
+                 * Append impl class to builder class and close it.
+                 */
+                mergeJavaFiles(getImplClassJavaFileHandle(), getBuilderClassJavaFileHandle());
+            }
             insertDataIntoJavaFile(getBuilderClassJavaFileHandle(), getJavaClassDefClose());
         }
 
@@ -1210,6 +1279,7 @@ public class TempJavaCodeFragmentFiles {
          * Creates type def class file.
          */
         if ((fileType & GENERATE_TYPEDEF_CLASS) != 0) {
+            addImportsToStringAndHasCodeMethods(curNode, imports);
             setTypedefClassJavaFileHandle(getJavaFileHandle(getJavaClassName(TYPEDEF_CLASS_FILE_NAME_SUFFIX)));
             setTypedefClassJavaFileHandle(generateTypeDefClassFile(getTypedefClassJavaFileHandle(), curNode, imports));
         }
@@ -1285,19 +1355,4 @@ public class TempJavaCodeFragmentFiles {
         generatedTempFiles = 0;
     }
 
-    /**
-     * Closes the file handle for temporary file.
-     *
-     * @param fileName temporary file's name
-     * @throws IOException when failed to close the file handle
-     */
-    private void closeFile(File file, boolean toBeDeleted) throws IOException {
-
-        if (file != null) {
-            updateFileHandle(file, null, true);
-            if (toBeDeleted) {
-                file.delete();
-            }
-        }
-    }
 }

@@ -34,7 +34,7 @@ public class YangJavaRpc extends YangRpc implements JavaCodeGenerator {
 
     /**
      * Prepares the information for java code generation corresponding to YANG
-     * rpc info.
+     * RPC info.
      *
      * @param yangPlugin YANG plugin config
      * @throws IOException IO operation fail
@@ -45,7 +45,7 @@ public class YangJavaRpc extends YangRpc implements JavaCodeGenerator {
     }
 
     /**
-     * Creates a java file using the YANG rpc info.
+     * Creates a java file using the YANG RPC info.
      *
      * @throws IOException IO operation fail
      */

@@ -20,12 +20,20 @@ import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 
 import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
+import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
+import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.NEW;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
@@ -124,6 +132,18 @@ public final class JavaCodeSnippetGen {
      */
     public static String getListAttribute(String type) {
         return LIST + DIAMOND_OPEN_BRACKET + type + DIAMOND_CLOSE_BRACKET;
+    }
+
+    /**
+     * Returns attribute of augmented info for generated impl file.
+     *
+     * @return attribute of augmented info for generated impl file
+     */
+    public static String getAugmentedInfoAttribute() {
+        return FOUR_SPACE_INDENTATION + PRIVATE + SPACE + getListAttribute(AUGMENTED_INFO) + SPACE
+                + getSmallCase(AUGMENTED_INFO) + LIST + SPACE + EQUAL + SPACE + NEW + SPACE + ARRAY_LIST
+                + DIAMOND_OPEN_BRACKET + DIAMOND_CLOSE_BRACKET + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN
+                + NEW_LINE;
     }
 
     /**

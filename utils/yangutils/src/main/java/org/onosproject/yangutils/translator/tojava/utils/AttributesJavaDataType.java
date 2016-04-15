@@ -16,35 +16,19 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.onosproject.yangutils.datamodel.YangDataTypes;
+import org.onosproject.yangutils.datamodel.YangDerivedInfo;
+import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
-import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeDef;
 
-import static org.onosproject.yangutils.datamodel.YangDataTypes.BINARY;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.BITS;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.BOOLEAN;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.DECIMAL64;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.EMPTY;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.ENUMERATION;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.IDENTITYREF;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.INSTANCE_IDENTIFIER;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.INT16;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.INT32;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.INT64;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.INT8;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.LEAFREF;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT16;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT32;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT64;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT8;
-import static org.onosproject.yangutils.datamodel.YangDataTypes.UNION;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
+import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.BYTE;
@@ -52,8 +36,10 @@ import static org.onosproject.yangutils.utils.UtilConstants.BYTE_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.INTEGER_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_MATH;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG_WRAPPER;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SHORT;
 import static org.onosproject.yangutils.utils.UtilConstants.SHORT_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
@@ -63,32 +49,10 @@ import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
  */
 public final class AttributesJavaDataType {
 
-    private static Set<JavaQualifiedTypeInfo> importInfo = new TreeSet<>();
-
     /**
      * Creates an instance of attribute java data type.
      */
     private AttributesJavaDataType() {
-    }
-
-    /**
-     * Returns import info.
-     *
-     * @return import info
-     */
-    public static Set<JavaQualifiedTypeInfo> getImportInfo() {
-
-        return importInfo;
-    }
-
-    /**
-     * Adds import info to the import info set.
-     *
-     * @param importData import info
-     */
-    public static void addImportInfo(JavaQualifiedTypeInfo importData) {
-
-        getImportInfo().add(importData);
     }
 
     /**
@@ -101,48 +65,32 @@ public final class AttributesJavaDataType {
 
         YangDataTypes type = yangType.getDataType();
 
-        if (type.equals(INT8)) {
-            return BYTE;
-        } else if (type.equals(INT16)) {
-            return SHORT;
-        } else if (type.equals(INT32)) {
-            return INT;
-        } else if (type.equals(INT64)) {
-            return LONG;
-        } else if (type.equals(UINT8)) {
-            return SHORT;
-        } else if (type.equals(UINT16)) {
-            return INT;
-        } else if (type.equals(UINT32)) {
-            return LONG;
-        } else if (type.equals(UINT64)) {
-            //TODO: BIGINTEGER.
-        } else if (type.equals(DECIMAL64)) {
-            //TODO: DECIMAL64.
-        } else if (type.equals(STRING)) {
-            return STRING_DATA_TYPE;
-        } else if (type.equals(BOOLEAN)) {
-            return BOOLEAN_DATA_TYPE;
-        } else if (type.equals(ENUMERATION)) {
-            //TODO: ENUMERATION.
-        } else if (type.equals(BITS)) {
-            //TODO:BITS
-        } else if (type.equals(BINARY)) {
-            //TODO:BINARY
-        } else if (type.equals(LEAFREF)) {
-            //TODO:LEAFREF
-        } else if (type.equals(IDENTITYREF)) {
-            //TODO:IDENTITYREF
-        } else if (type.equals(EMPTY)) {
-            //TODO:EMPTY
-        } else if (type.equals(UNION)) {
-            //TODO:UNION
-        } else if (type.equals(INSTANCE_IDENTIFIER)) {
-            //TODO:INSTANCE_IDENTIFIER
-        } else if (type.equals(DERIVED)) {
-            return yangType.getDataTypeName();
+        switch (type) {
+            case INT8:
+                return BYTE;
+            case INT16:
+                return SHORT;
+            case INT32:
+                return INT;
+            case INT64:
+                return LONG;
+            case UINT8:
+                return SHORT;
+            case UINT16:
+                return INT;
+            case UINT32:
+                return LONG;
+            case UINT64:
+                return BIG_INTEGER;
+            case DECIMAL64:
+                //TODO: DECIMAL64.
+            case STRING:
+                return STRING_DATA_TYPE;
+            case BOOLEAN:
+                return BOOLEAN_DATA_TYPE;
+            default:
+                throw new TranslatorException("given data type is not supported.");
         }
-        return null;
     }
 
     /**
@@ -157,75 +105,80 @@ public final class AttributesJavaDataType {
         YangDataTypes type = yangType.getDataType();
 
         if (isListAttr) {
-            if (type.equals(INT8)) {
-                return BYTE_WRAPPER;
-            } else if (type.equals(INT16)) {
-                return SHORT_WRAPPER;
-            } else if (type.equals(INT32)) {
-                return INTEGER_WRAPPER;
-            } else if (type.equals(INT64)) {
-                return LONG_WRAPPER;
-            } else if (type.equals(UINT8)) {
-                return SHORT_WRAPPER;
-            } else if (type.equals(UINT16)) {
-                return INTEGER_WRAPPER;
-            } else if (type.equals(UINT32)) {
-                return LONG_WRAPPER;
-            } else if (type.equals(UINT64)) {
-                //TODO: BIGINTEGER.
-            } else if (type.equals(DECIMAL64)) {
-                //TODO: DECIMAL64.
-            } else if (type.equals(STRING)) {
-                return STRING_DATA_TYPE;
-            } else if (type.equals(BOOLEAN)) {
-                return BOOLEAN_WRAPPER;
-            } else if (type.equals(ENUMERATION)) {
-                //TODO: ENUMERATION.
-            } else if (type.equals(BITS)) {
-                //TODO:BITS
-            } else if (type.equals(BINARY)) {
-                //TODO:BINARY
-            } else if (type.equals(LEAFREF)) {
-                //TODO:LEAFREF
-            } else if (type.equals(IDENTITYREF)) {
-                //TODO:IDENTITYREF
-            } else if (type.equals(EMPTY)) {
-                //TODO:EMPTY
-            } else if (type.equals(UNION)) {
-                //TODO:UNION
-            } else if (type.equals(INSTANCE_IDENTIFIER)) {
-                //TODO:INSTANCE_IDENTIFIER
-            } else if (type.equals(DERIVED)) {
-                return getCaptialCase(getCamelCase(yangType.getDataTypeName(), null));
+            switch (type) {
+                case INT8:
+                    return BYTE_WRAPPER;
+                case INT16:
+                    return SHORT_WRAPPER;
+                case INT32:
+                    return INTEGER_WRAPPER;
+                case INT64:
+                    return LONG_WRAPPER;
+                case UINT8:
+                    return SHORT_WRAPPER;
+                case UINT16:
+                    return INTEGER_WRAPPER;
+                case UINT32:
+                    return LONG_WRAPPER;
+                case UINT64:
+                    return BIG_INTEGER;
+                case DECIMAL64:
+                    //TODO: DECIMAL64.
+                case STRING:
+                    return STRING_DATA_TYPE;
+                case BOOLEAN:
+                    return BOOLEAN_WRAPPER;
+                case ENUMERATION:
+                    //TODO: ENUMERATION.
+                case BITS:
+                    //TODO:BITS
+                case BINARY:
+                    //TODO:BINARY
+                case LEAFREF:
+                    //TODO:LEAFREF
+                case IDENTITYREF:
+                    //TODO:IDENTITYREF
+                case EMPTY:
+                    return BOOLEAN_WRAPPER;
+                case UNION:
+                    //TODO:UNION
+                case INSTANCE_IDENTIFIER:
+                    //TODO:INSTANCE_IDENTIFIER
+                case DERIVED:
+                    return getCaptialCase(getCamelCase(yangType.getDataTypeName(), null));
+                default:
+                    throw new TranslatorException("given data type is not supported.");
             }
         } else {
-            if (type.equals(UINT64)) {
-                //TODO: BIGINTEGER.
-            } else if (type.equals(DECIMAL64)) {
-                //TODO: DECIMAL64.
-            } else if (type.equals(STRING)) {
-                return STRING_DATA_TYPE;
-            } else if (type.equals(ENUMERATION)) {
-                //TODO: ENUMERATION.
-            } else if (type.equals(BITS)) {
-                //TODO:BITS
-            } else if (type.equals(BINARY)) {
-                //TODO:BINARY
-            } else if (type.equals(LEAFREF)) {
-                //TODO:LEAFREF
-            } else if (type.equals(IDENTITYREF)) {
-                //TODO:IDENTITYREF
-            } else if (type.equals(EMPTY)) {
-                //TODO:EMPTY
-            } else if (type.equals(UNION)) {
-                //TODO:UNION
-            } else if (type.equals(INSTANCE_IDENTIFIER)) {
-                //TODO:INSTANCE_IDENTIFIER
-            } else if (type.equals(DERIVED)) {
-                return getCaptialCase(getCamelCase(yangType.getDataTypeName(), null));
+            switch (type) {
+                case UINT64:
+                    return BIG_INTEGER;
+                case DECIMAL64:
+                    //TODO: DECIMAL64.
+                case STRING:
+                    return STRING_DATA_TYPE;
+                case ENUMERATION:
+                    //TODO: ENUMERATION.
+                case BITS:
+                    //TODO:BITS
+                case BINARY:
+                    //TODO:BINARY
+                case LEAFREF:
+                    //TODO:LEAFREF
+                case IDENTITYREF:
+                    //TODO:IDENTITYREF
+                case EMPTY:
+                    //TODO:EMPTY
+                case UNION:
+                    //TODO:UNION
+                case INSTANCE_IDENTIFIER:
+                    //TODO:INSTANCE_IDENTIFIER
+                case DERIVED:
+                    return getCaptialCase(getCamelCase(yangType.getDataTypeName(), null));
+                default:
+                    return null;
             }
         }
-        return null;
     }
 
     /**
@@ -241,75 +194,108 @@ public final class AttributesJavaDataType {
         YangDataTypes type = yangType.getDataType();
 
         if (isListAttr) {
-            if (type.equals(INT8)
-                    || type.equals(INT16)
-                    || type.equals(INT32)
-                    || type.equals(INT64)
-                    || type.equals(UINT8)
-                    || type.equals(UINT16)
-                    || type.equals(UINT32)
-                    || type.equals(STRING)
-                    || type.equals(BOOLEAN)) {
-                return JAVA_LANG;
-            } else if (type.equals(UINT64)) {
-                //TODO: BIGINTEGER.
-            } else if (type.equals(DECIMAL64)) {
-                //TODO: DECIMAL64.
-            } else if (type.equals(ENUMERATION)) {
-                //TODO: ENUMERATION.
-            } else if (type.equals(BITS)) {
-                //TODO:BITS
-            } else if (type.equals(BINARY)) {
-                //TODO:BINARY
-            } else if (type.equals(LEAFREF)) {
-                //TODO:LEAFREF
-            } else if (type.equals(IDENTITYREF)) {
-                //TODO:IDENTITYREF
-            } else if (type.equals(EMPTY)) {
-                //TODO:EMPTY
-            } else if (type.equals(UNION)) {
-                //TODO:UNION
-            } else if (type.equals(INSTANCE_IDENTIFIER)) {
-                //TODO:INSTANCE_IDENTIFIER
-            } else if (type.equals(DERIVED)) {
-                for (JavaQualifiedTypeInfo imports : getImportInfo()) {
-                    if (imports.getClassInfo().equals(classInfo)) {
-                        return imports.getPkgInfo();
-                    }
-                }
+            switch (type) {
+                case INT8:
+                case INT16:
+                case INT32:
+                case INT64:
+                case UINT8:
+                case UINT16:
+                case UINT32:
+                case STRING:
+                case BOOLEAN:
+                    return JAVA_LANG;
+                case UINT64:
+                    return JAVA_MATH;
+                case DECIMAL64:
+                    //TODO: DECIMAL64.
+                case ENUMERATION:
+                    //TODO: ENUMERATION.
+                case BITS:
+                    //TODO:BITS
+                case BINARY:
+                    //TODO:BINARY
+                case LEAFREF:
+                    //TODO:LEAFREF
+                case IDENTITYREF:
+                    //TODO:IDENTITYREF
+                case EMPTY:
+                    //TODO:EMPTY
+                case UNION:
+                    //TODO:UNION
+                case INSTANCE_IDENTIFIER:
+                    //TODO:INSTANCE_IDENTIFIER
+                case DERIVED:
+                    return getTypDefsPackage(yangType);
+                default:
+                    throw new TranslatorException("given data type is not supported.");
             }
         } else {
-
-            if (type.equals(UINT64)) {
-                //TODO: BIGINTEGER.
-            } else if (type.equals(DECIMAL64)) {
-                //TODO: DECIMAL64.
-            } else if (type.equals(STRING)) {
-                return JAVA_LANG;
-            } else if (type.equals(ENUMERATION)) {
-                //TODO: ENUMERATION.
-            } else if (type.equals(BITS)) {
-                //TODO:BITS
-            } else if (type.equals(BINARY)) {
-                //TODO:BINARY
-            } else if (type.equals(LEAFREF)) {
-                //TODO:LEAFREF
-            } else if (type.equals(IDENTITYREF)) {
-                //TODO:IDENTITYREF
-            } else if (type.equals(EMPTY)) {
-                //TODO:EMPTY
-            } else if (type.equals(UNION)) {
-                //TODO:UNION
-            } else if (type.equals(INSTANCE_IDENTIFIER)) {
-                //TODO:INSTANCE_IDENTIFIER
-            } else if (type.equals(DERIVED)) {
-                for (JavaQualifiedTypeInfo imports : getImportInfo()) {
-                    if (imports.getClassInfo().equals(classInfo)) {
-                        return imports.getPkgInfo();
-                    }
-                }
+            switch (type) {
+                case UINT64:
+                    //TODO: BIGINTEGER.
+                case DECIMAL64:
+                    //TODO: DECIMAL64
+                case STRING:
+                    return JAVA_LANG;
+                case ENUMERATION:
+                    //TODO: ENUMERATION.
+                case BITS:
+                    //TODO:BITS
+                case BINARY:
+                    //TODO:BINARY
+                case LEAFREF:
+                    //TODO:LEAFREF
+                case IDENTITYREF:
+                    //TODO:IDENTITYREF
+                case EMPTY:
+                    //TODO:EMPTY
+                case UNION:
+                    //TODO:UNION
+                case INSTANCE_IDENTIFIER:
+                    //TODO:INSTANCE_IDENTIFIER
+                case DERIVED:
+                    return getTypDefsPackage(yangType);
+                default:
+                    return null;
             }
         }
-        return null;
+    }
+
+    /**
+     * Returns java package for typedef node.
+     *
+     * @param type YANG type
+     * @return java package for typedef node
+     */
+    private static String getTypDefsPackage(YangType<?> type) {
+        Object var = type.getDataTypeExtendedInfo();
+        if (!(var instanceof YangDerivedInfo)) {
+            throw new TranslatorException("type should have been derived.");
+        }
+
+        if (!(((YangDerivedInfo<?>) var).getReferredTypeDef() instanceof YangTypeDef)) {
+            throw new TranslatorException("derived info is not an instance of typedef.");
+        }
+
+        YangJavaTypeDef typedef = (YangJavaTypeDef) ((YangDerivedInfo<?>) var).getReferredTypeDef();
+        if (typedef.getJavaFileInfo().getPackage() == null) {
+            return getPackageFromParent(typedef.getParent());
+        }
+        return typedef.getJavaFileInfo().getPackage();
+    }
+
+    /**
+     * Returns package from parent node.
+     *
+     * @param parent parent YANG node
+     * @return java package from parent node
+     */
+    private static String getPackageFromParent(YangNode parent) {
+        if (!(parent instanceof HasJavaFileInfo)) {
+            throw new TranslatorException("Invalid child node is being processed.");
+        }
+        JavaFileInfo parentInfo = ((HasJavaFileInfo) parent).getJavaFileInfo();
+        return parentInfo.getPackage() + PERIOD + parentInfo.getJavaName().toLowerCase();
     }
 }

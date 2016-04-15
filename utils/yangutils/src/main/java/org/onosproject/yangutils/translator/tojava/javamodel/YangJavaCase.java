@@ -136,7 +136,7 @@ public class YangJavaCase extends YangCase implements JavaCodeGeneratorInfo, Jav
     }
 
     /**
-     * Creates a java file using the YANG grouping info.
+     * Creates a java file using the YANG case info.
      */
     @Override
     public void generateCodeExit() {

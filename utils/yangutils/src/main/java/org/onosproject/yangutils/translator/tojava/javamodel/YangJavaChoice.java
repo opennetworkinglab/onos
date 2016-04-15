@@ -125,7 +125,7 @@ public class YangJavaChoice extends YangChoice implements JavaCodeGeneratorInfo,
 
     /**
      * Prepare the information for java code generation corresponding to YANG
-     * case info.
+     * choice info.
      *
      * @param yangPlugin YANG plugin config
      * @throws IOException IO operation fail
@@ -137,7 +137,7 @@ public class YangJavaChoice extends YangChoice implements JavaCodeGeneratorInfo,
     }
 
     /**
-     * Creates a java file using the YANG grouping info.
+     * Creates a java file using the YANG choice info.
      */
     @Override
     public void generateCodeExit() {

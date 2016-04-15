@@ -135,7 +135,7 @@ public class YangJavaTypeDef extends YangTypeDef
 
     /**
      * Prepare the information for java code generation corresponding to YANG
-     * container info.
+     * typedef info.
      *
      * @param yangPlugin YANG plugin config
      * @throws IOException IO operations fails
@@ -162,7 +162,7 @@ public class YangJavaTypeDef extends YangTypeDef
     }
 
     /**
-     * Create a java file using the YANG grouping info.
+     * Create a java file using the YANG typedef info.
      *
      * @throws IOException IO operations fails
      */

@@ -24,10 +24,15 @@ import static java.util.Collections.sort;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 
+import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO_CLASS_IMPORT_CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.COLLECTION_IMPORTS;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_IMPORT_PKG;
+import static org.onosproject.yangutils.utils.UtilConstants.HAS_AUGMENTATION_CLASS_IMPORT_CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.HAS_AUGMENTATION_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_CLASS;
@@ -88,7 +93,7 @@ public class JavaImportData {
     }
 
     /**
-     * Assign the set containing the imported class/interface info.
+     * Assigns the set containing the imported class/interface info.
      *
      * @param importSet the set containing the imported class/interface info
      */
@@ -97,7 +102,7 @@ public class JavaImportData {
     }
 
     /**
-     * Add an imported class/interface info if it is not already part of the
+     * Adds an imported class/interface info if it is not already part of the
      * collection.
      *
      * If already part of the collection, check if the packages are same, if so
@@ -177,10 +182,36 @@ public class JavaImportData {
     /**
      * Returns import for list attribute.
      *
-     * @return import for for list attribute
+     * @return import for list attribute
      */
-
-    private static String getImportForList() {
+    public static String getImportForList() {
         return IMPORT + COLLECTION_IMPORTS + PERIOD + LIST + SEMI_COLAN + NEW_LINE;
+    }
+
+    /**
+     * Returns import for array list attribute.
+     *
+     * @return import for array list attribute
+     */
+    public static String getImportForArrayList() {
+        return IMPORT + COLLECTION_IMPORTS + PERIOD + ARRAY_LIST + SEMI_COLAN + NEW_LINE;
+    }
+
+    /**
+     * Returns import string for HasAugmentation class.
+     *
+     * @return import string for HasAugmentation class
+     */
+    public static String getHasAugmentationImport() {
+        return IMPORT + HAS_AUGMENTATION_CLASS_IMPORT_PKG + PERIOD + HAS_AUGMENTATION_CLASS_IMPORT_CLASS;
+    }
+
+    /**
+     * Returns import string for AugmentedInfo class.
+     *
+     * @return import string for AugmentedInfo class
+     */
+    public static String getAugmentedInfoImport() {
+        return IMPORT + AUGMENTED_INFO_CLASS_IMPORT_PKG + PERIOD + AUGMENTED_INFO_CLASS_IMPORT_CLASS;
     }
 }

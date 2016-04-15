@@ -19,7 +19,6 @@ package org.onosproject.yangutils.translator.tojava;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
 
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getIsQualifiedAccessOrAddToImportList;
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
@@ -163,7 +162,7 @@ public final class JavaAttributeInfo {
     }
 
     /**
-     * Returns the import info for the attribute type. It will be null, of the type
+     * Returns the import info for the attribute type. It will be null, if the type
      * is basic built-in java type.
      *
      * @return import info
@@ -255,7 +254,6 @@ public final class JavaAttributeInfo {
          */
         JavaQualifiedTypeInfo importInfo = getQualifiedTypeInfoOfLeafAttribute(curNode,
                 attributeType, attributeName, isListAttribute);
-        AttributesJavaDataType.addImportInfo(importInfo);
 
         return getAttributeInfoForTheData(importInfo, attributeName, attributeType, curNode, isListAttribute);
     }

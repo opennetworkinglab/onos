@@ -441,58 +441,69 @@ public final class UtilConstants {
      * String built in java type.
      */
     public static final String STRING_DATA_TYPE = "String";
+
     /**
-     * java.lang.* packages.
+     * Java.lang.* packages.
      */
     public static final String JAVA_LANG = "java.lang";
 
     /**
-     * boolean built in java type.
+     * Java.math.* packages.
+     */
+    public static final String JAVA_MATH = "java.math";
+
+    /**
+     * Boolean built in java type.
      */
     public static final String BOOLEAN_DATA_TYPE = "boolean";
 
     /**
-     * byte java built in type.
+     * BigInteger built in java type.
+     */
+    public static final String BIG_INTEGER = "BigInteger";
+
+    /**
+     * Byte java built in type.
      */
     public static final String BYTE = "byte";
 
     /**
-     * short java built in type.
+     * Short java built in type.
      */
     public static final String SHORT = "short";
 
     /**
-     * int java built in type.
+     * Int java built in type.
      */
     public static final String INT = "int";
 
     /**
-     * long java built in type.
+     * Long java built in type.
      */
     public static final String LONG = "long";
 
     /**
-     * float java built in type.
+     * Float java built in type.
      */
     public static final String FLOAT = "float";
 
     /**
-     * double java built in type.
+     * Double java built in type.
      */
     public static final String DOUBLE = "double";
 
     /**
-     * boolean built in java wrapper type.
+     * Boolean built in java wrapper type.
      */
     public static final String BOOLEAN_WRAPPER = "Boolean";
 
     /**
-     * byte java built in wrapper type.
+     * Byte java built in wrapper type.
      */
     public static final String BYTE_WRAPPER = "Byte";
 
     /**
-     * short java built in wrapper type.
+     * Short java built in wrapper type.
      */
     public static final String SHORT_WRAPPER = "Short";
 
@@ -502,17 +513,17 @@ public final class UtilConstants {
     public static final String INTEGER_WRAPPER = "Integer";
 
     /**
-     * long java built in wrapper type.
+     * Long java built in wrapper type.
      */
     public static final String LONG_WRAPPER = "Long";
 
     /**
-     * float java built in wrapper type.
+     * Float java built in wrapper type.
      */
     public static final String FLOAT_WRAPPER = "Float";
 
     /**
-     * double java built in wrapper type.
+     * Double java built in wrapper type.
      */
     public static final String DOUBLE_WRAPPER = "Double";
 
@@ -685,6 +696,41 @@ public final class UtilConstants {
      * Static attribute for java utilities objects import class.
      */
     public static final String JAVA_UTIL_OBJECTS_IMPORT_CLASS = "Objects;\n";
+
+    /**
+     * Static attribute for HasAugmentation class import package.
+     */
+    public static final String HAS_AUGMENTATION_CLASS_IMPORT_PKG = "org.onosproject.yangutils.translator.tojava";
+
+    /**
+     * Static attribute for HasAugmentation class import class.
+     */
+    public static final String HAS_AUGMENTATION_CLASS_IMPORT_CLASS = "HasAugmentation;\n";
+
+    /**
+     * Static attribute for AugmentedInfo class import package.
+     */
+    public static final String AUGMENTED_INFO_CLASS_IMPORT_PKG = "org.onosproject.yangutils.translator.tojava";
+
+    /**
+     * Static attribute for AugmentedInfo class import class.
+     */
+    public static final String AUGMENTED_INFO_CLASS_IMPORT_CLASS = "AugmentedInfo;\n";
+
+    /**
+     * Static attribute for augmentation class.
+     */
+    public static final String AUGMENTATION = "Augmentation";
+
+    /**
+     * Static attribute for HasAugmentation class.
+     */
+    public static final String HAS_AUGMENTATION = "HasAugmentation";
+
+    /**
+     * Static attribute for AugmentedInfo class.
+     */
+    public static final String AUGMENTED_INFO = "AugmentedInfo";
 
     /**
      * Static attribute for abstract collection.

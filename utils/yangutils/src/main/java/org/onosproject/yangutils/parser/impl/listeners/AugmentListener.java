@@ -17,11 +17,13 @@
 package org.onosproject.yangutils.parser.impl.listeners;
 
 import java.util.List;
+
 import org.onosproject.yangutils.datamodel.YangAugment;
-import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangModule;
-import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
+import org.onosproject.yangutils.datamodel.YangSubModule;
+import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
@@ -35,21 +37,22 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLoc
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidAbsoluteSchemaNodeId;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateMutuallyExclusiveChilds;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidAbsoluteSchemaNodeId;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
 import static org.onosproject.yangutils.utils.YangConstructType.AUGMENT_DATA;
-import static org.onosproject.yangutils.utils.YangConstructType.DATA_DEF_DATA;
-import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
-import static org.onosproject.yangutils.utils.YangConstructType.REFERENCE_DATA;
-import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
-import static org.onosproject.yangutils.utils.YangConstructType.WHEN_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.CASE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.DATA_DEF_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.REFERENCE_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.WHEN_DATA;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -73,10 +76,12 @@ import static org.onosproject.yangutils.utils.YangConstructType.CASE_DATA;
  */
 
 /**
- * Implements listener based call back function corresponding to the "augment"
+ * Represents listener based call back function corresponding to the "augment"
  * rule defined in ANTLR grammar file for corresponding ABNF rule in RFC 6020.
  */
 public final class AugmentListener {
+
+    private static final String AUGMENTED = "Augmented";
 
     /**
      * Creates a new augment listener.
@@ -110,11 +115,12 @@ public final class AugmentListener {
         detectCollidingChildUtil(listener, line, charPositionInLine, "", AUGMENT_DATA);
 
         Parsable curData = listener.getParsedDataStack().peek();
-        if (curData instanceof YangModule || curData instanceof YangSubModule) {
+        if (curData instanceof YangModule || curData instanceof YangSubModule || curData instanceof YangUses) {
 
             YangNode curNode = (YangNode) curData;
             YangAugment yangAugment = getYangAugmentNode(JAVA_GENERATION);
             yangAugment.setTargetNode(targetNodes);
+            yangAugment.setName(getValidNameForAugment(targetNodes));
             try {
                 curNode.addChild(yangAugment);
             } catch (DataModelException e) {
@@ -162,5 +168,31 @@ public final class AugmentListener {
         validateCardinalityMaxOne(ctx.whenStatement(), WHEN_DATA, AUGMENT_DATA, ctx.augment().getText());
         validateMutuallyExclusiveChilds(ctx.dataDefStatement(), DATA_DEF_DATA, ctx.caseStatement(),
                                         CASE_DATA, AUGMENT_DATA, ctx.augment().getText());
+    }
+
+    /**
+     * Returns a name identifier for augment.
+     *
+     * @param targetNode list of target nodes
+     * @return name identifier
+     */
+    private static String getValidNameForAugment(List<YangNodeIdentifier> targetNodes) {
+        String name = "";
+        YangNodeIdentifier nodeId = targetNodes.get(targetNodes.size() - 1);
+
+        if (nodeId.getPrefix() != null) {
+            name = AUGMENTED + getCaptialCase(nodeId.getPrefix()) + getCaptialCase(nodeId.getName());
+        } else {
+           //TODO: name = name + ((HasAugmentation)getParentNode()).getAugmentPrefix(nodeId);
+        }
+        return name;
+    }
+
+    /**
+     * Validates for the child nodes of augment node.
+     */
+    private static void validateForChildNodes() {
+        //TODO: implement with linker.
+        return;
     }
 }

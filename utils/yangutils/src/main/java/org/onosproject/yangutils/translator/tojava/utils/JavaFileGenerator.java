@@ -40,16 +40,21 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getAugmentedInfoAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getDataFromTempFileHandle;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.initiateJavaFileGeneration;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAddAugmentInfoMethodImpl;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentInfoListImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getConstructorStart;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEqualsMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEqualsMethodOpen;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getHashCodeMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getHashCodeMethodOpen;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRemoveAugmentationImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodOpen;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isHasAugmentationExtended;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
@@ -67,9 +72,55 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.partString;
 public final class JavaFileGenerator {
 
     /**
-     * Creates an instance of java file generator.
+     * Flag to check whether generated interface file need to extends any class.
      */
+    private static boolean isExtendsList = false;
+
+    /**
+     * List of classes to be extended by generated interface file.
+     */
+    private static List<String> extendsList = new ArrayList<>();
+
+    /**
+    * Creates an instance of java file generator.
+    */
     private JavaFileGenerator() {
+    }
+
+    /**
+     * Returns true if extends list is not empty.
+     *
+     * @return true or false
+     */
+    public static boolean isExtendsList() {
+        return isExtendsList;
+    }
+
+    /**
+     * Sets the value of is extends list.
+     *
+     * @param isExtends true or false
+     */
+    public static void setIsExtendsList(boolean isExtends) {
+        isExtendsList = isExtends;
+    }
+
+    /**
+     * Returns list of extended classes.
+     *
+     * @return list of extended classes
+     */
+    public static List<String> getExtendsList() {
+        return extendsList;
+    }
+
+    /**
+     * Sets the list of extended classes.
+     *
+     * @param extendList list of extended classes
+     */
+    public static void setExtendsList(List<String> extendList) {
+        extendsList = extendList;
     }
 
     /**
@@ -91,6 +142,7 @@ public final class JavaFileGenerator {
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, INTERFACE_MASK, imports, path);
+
         if (isAttrPresent) {
             /**
              * Add getter methods to interface file.
@@ -258,6 +310,12 @@ public final class JavaFileGenerator {
                         + " while impl class file generation");
             }
 
+            /**
+             * Add attribute for augmented info's list.
+             */
+            if (isHasAugmentationExtended(getExtendsList())) {
+                insertDataIntoJavaFile(file, getAugmentedInfoAttribute());
+            }
             insertDataIntoJavaFile(file, NEW_LINE);
             try {
                 /**
@@ -298,6 +356,16 @@ public final class JavaFileGenerator {
             throw new IOException("No data found in temporary java code fragment files for " + className
                     + " while impl class file generation");
         }
+
+        /**
+         * Add method for augment info's list.
+         */
+        if (isHasAugmentationExtended(getExtendsList())) {
+            methods.add(getAddAugmentInfoMethodImpl());
+            methods.add(getAugmentInfoListImpl());
+            methods.add(getRemoveAugmentationImpl());
+        }
+
         /**
          * Add methods in impl class.
          */
@@ -310,7 +378,7 @@ public final class JavaFileGenerator {
     }
 
     /**
-     * Generate class file for type def.
+     * Generates class file for type def.
      *
      * @param file generated file
      * @param curNode current YANG node
@@ -364,11 +432,6 @@ public final class JavaFileGenerator {
             methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK, curNode));
 
             /**
-             * Setter method.
-             */
-            methods.add(((HasTempJavaCodeFragmentFiles) curNode).getTempJavaCodeFragmentFiles().addTypeDefsSetter());
-
-            /**
              * Hash code method.
              */
             methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() + partString(
@@ -388,7 +451,7 @@ public final class JavaFileGenerator {
 
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className
-                    + " while tyoe def class file generation");
+                    + " while type def class file generation");
         }
 
         for (String method : methods) {

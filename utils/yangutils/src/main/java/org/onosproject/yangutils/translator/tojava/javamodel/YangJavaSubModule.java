@@ -139,7 +139,7 @@ public class YangJavaSubModule extends YangSubModule implements JavaCodeGenerato
 
     /**
      * Prepare the information for java code generation corresponding to YANG
-     * container info.
+     * submodule info.
      *
      * @param yangPlugin YANG plugin config
      * @throws IOException IO operation fail
@@ -152,7 +152,7 @@ public class YangJavaSubModule extends YangSubModule implements JavaCodeGenerato
     }
 
     /**
-     * Creates a java file using the YANG grouping info.
+     * Creates a java file using the YANG submodule info.
      */
     @Override
     public void generateCodeExit() {

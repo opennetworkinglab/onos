@@ -87,11 +87,11 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
      * generation for import or for qualified access.
      *
      * @param curNode current data model node for which the java file is being
-     *            generated.
+     *            generated
      * @param attrType type of attribute being added, it will be null, when the
      *            child class is added as an attribute
      * @param attributeName name of the attribute being added, it will used in
-     *            import info for child class.
+     *            import info for child class
      * @param isListAttr is the added attribute going to be used as a list
      * @return return the import info for this attribute
      */
@@ -140,9 +140,9 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
      * generation for import or for qualified access.
      *
      * @param curNode current data model node for which the java file is being
-     *            generated.
+     *            generated
      * @param attributeName name of the attribute being added, it will used in
-     *            import info for child class.
+     *            import info for child class
      * @param isListAttr is the added attribute going to be used as a list
      * @return return the import info for this attribute
      */
@@ -241,8 +241,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
             throw new TranslatorException("missing java file info for the data model node");
         }
         return ((HasJavaFileInfo) curNode).getJavaFileInfo().getPackage()
-                .contentEquals(importInfo.getPkgInfo()
-                        + "." + importInfo.getClassInfo());
+                .contentEquals(importInfo.getPkgInfo());
     }
 
     @Override
@@ -265,7 +264,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
-     * checks if the import info matches.
+     * Checks if the import info matches.
      *
      * @param importInfo matched import
      * @return if equal or not

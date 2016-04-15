@@ -16,6 +16,7 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
+
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
@@ -137,11 +138,12 @@ public class YangJavaAugment extends YangAugment implements JavaCodeGeneratorInf
     }
 
     /**
-     * Creates a java file using the YANG grouping info.
+     * Create a java file using the YANG augment info.
+     *
+     * @throws IOException when failed to do IO operations
      */
     @Override
-    public void generateCodeExit() {
-        // TODO Auto-generated method stub
-
+    public void generateCodeExit() throws IOException {
+        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
     }
 }

@@ -125,7 +125,7 @@ public class YangJavaGrouping extends YangGrouping implements JavaCodeGeneratorI
 
     /**
      * Prepare the information for java code generation corresponding to YANG
-     * container info.
+     * grouping info.
      *
      * @param yangPlugin YANG plugin config
      * @throws IOException IO operation fail

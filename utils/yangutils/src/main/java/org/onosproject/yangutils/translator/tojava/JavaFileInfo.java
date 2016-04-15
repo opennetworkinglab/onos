@@ -16,8 +16,6 @@
 
 package org.onosproject.yangutils.translator.tojava;
 
-import org.onosproject.yangutils.translator.exception.TranslatorException;
-
 /**
  * Represents cached java file handle, which supports the addition of member attributes and
  * methods.
@@ -36,7 +34,7 @@ public class JavaFileInfo {
     private String javaName;
 
     /**
-     * java Package of the mapped java class.
+     * Java Package of the mapped java class.
      */
     private String pkg;
 
@@ -96,10 +94,6 @@ public class JavaFileInfo {
      * @return the java package
      */
     public String getPackage() {
-
-        if (pkg == null) {
-            throw new TranslatorException("Referencing package of a generated java file which is not set");
-        }
         return pkg;
     }
 

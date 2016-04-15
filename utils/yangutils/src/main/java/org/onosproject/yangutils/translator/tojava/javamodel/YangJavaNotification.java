@@ -165,7 +165,7 @@ public class YangJavaNotification extends YangNotification
     }
 
     /**
-     * Create a java file using the YANG notification info.
+     * Creates a java file using the YANG notification info.
      */
     @Override
     public void generateCodeExit() {

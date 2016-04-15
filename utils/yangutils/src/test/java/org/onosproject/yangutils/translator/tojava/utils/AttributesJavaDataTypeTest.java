@@ -21,12 +21,19 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
+import org.onosproject.yangutils.datamodel.YangDerivedInfo;
+import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeDef;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.BOOLEAN;
+import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.INT32;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.UINT8;
@@ -44,11 +51,13 @@ public class AttributesJavaDataTypeTest {
     private static final YangDataTypes TYPE2 = INT32;
     private static final YangDataTypes TYPE3 = BOOLEAN;
     private static final YangDataTypes TYPE4 = UINT8;
+    private static final YangDataTypes TYPE_DEF = DERIVED;
     private static final String CLASS_INFO1 = "String";
     private static final String CLASS_INFO2 = "int";
     private static final String CLASS_INFO3 = "boolean";
     private static final String CLASS_INFO4 = "short";
     private static final String CLASS_INFO5 = "Integer";
+    private static final String TYPE_DEF_PKG = "target.test";
     private static String test = "";
 
     /**
@@ -128,14 +137,65 @@ public class AttributesJavaDataTypeTest {
     }
 
     /**
+     * Unit test case for typedef.
+     *
+     * @throws DataModelException when fails to do data model operations
+     */
+    @Test
+    public void testForTypeDef() throws DataModelException {
+        test = getJavaImportPackage(getStubExtendedInfo(getStubYangType(TYPE_DEF)), false, TYPE_DEF_PKG);
+        assertThat(true, is(test.equals(TYPE_DEF_PKG)));
+    }
+
+    /**
      * Returns stub YANG type for test.
      *
      * @param dataTypes YANG data types
      * @return YANG type
      */
     private YangType<?> getStubYangType(YangDataTypes dataTypes) {
-        YangType<?> type = new YangType();
+        YangType<?> type = new YangType<>();
         type.setDataType(dataTypes);
         return type;
+    }
+
+    /**
+     * Returns YANG type with extended info.
+     *
+     * @param type YANG type
+     * @return YANG type with extended info
+     * @throws DataModelException when fails to do data model operations
+     */
+    @SuppressWarnings("unchecked")
+    private YangType<?> getStubExtendedInfo(YangType<?> type) throws DataModelException {
+        YangJavaTypeDef typedef = new YangJavaTypeDef();
+        getStubParent().addChild(typedef);
+        YangDerivedInfo<?> derInfo = new YangDerivedInfo<>();
+        derInfo.setReferredTypeDef(typedef);
+        ((YangType<YangDerivedInfo<?>>) type).setDataTypeExtendedInfo(derInfo);
+        return type;
+    }
+
+    /**
+     * Returns java file info.
+     *
+     * @return java file info
+     */
+    private JavaFileInfo addStubJavaFileInfo() {
+        JavaFileInfo fileInfo = new JavaFileInfo();
+        fileInfo.setJavaName("test");
+        fileInfo.setPackage("target");
+        return fileInfo;
+    }
+
+    /**
+     * Adds stub parent module for typedef.
+     *
+     * @return stub parent module
+     */
+    private YangNode getStubParent() {
+        YangJavaModule parent = new YangJavaModule();
+        parent.setJavaFileInfo(addStubJavaFileInfo());
+        return parent;
     }
 }

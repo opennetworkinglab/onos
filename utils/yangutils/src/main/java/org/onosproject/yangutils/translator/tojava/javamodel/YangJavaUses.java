@@ -103,7 +103,7 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
 
     /**
      * Prepare the information for java code generation corresponding to YANG
-     * container info.
+     * uses info.
      *
      * @param yangPlugin YANG plugin config
      */
@@ -120,7 +120,7 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
     }
 
     /**
-     * Create a java file using the YANG grouping info.
+     * Create a java file using the YANG uses info.
      */
     @Override
     public void generateCodeExit() {

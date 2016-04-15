@@ -23,6 +23,8 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
 import static org.onosproject.yangutils.utils.UtilConstants.ADD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.AND;
+import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILD;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
@@ -100,7 +102,6 @@ public final class MethodsGenerator {
      * @return method string for builder interface
      */
     public static String parseBuilderInterfaceBuildMethodString(String name) {
-
         return getJavaDoc(BUILD_METHOD, name, false) + getBuildForInterface(name);
     }
 
@@ -142,7 +143,6 @@ public final class MethodsGenerator {
      * @return constructor string
      */
     public static String getConstructorString(String name) {
-
         return getJavaDoc(CONSTRUCTOR, name, false);
     }
 
@@ -154,7 +154,6 @@ public final class MethodsGenerator {
      * @return default constructor string
      */
     public static String getDefaultConstructorString(String name, String modifierType) {
-
         return getJavaDoc(DEFAULT_CONSTRUCTOR, name, false) + getDefaultConstructor(name, modifierType);
     }
 
@@ -186,7 +185,6 @@ public final class MethodsGenerator {
      * @return setter for type def's attribute
      */
     private static String getTypeDefConstructorString(String type, String name, String className) {
-
         return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + className + OPEN_PARENTHESIS + type + SPACE + VALUE
                 + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + THIS + PERIOD
                 + name + SPACE + EQUAL + SPACE + VALUE + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION
@@ -200,7 +198,6 @@ public final class MethodsGenerator {
      * @return check not null string
      */
     public static String getCheckNotNull(String name) {
-
         return EIGHT_SPACE_INDENTATION + CHECK_NOT_NULL_STRING + OPEN_PARENTHESIS + name + COMMA + SPACE + name
                 + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE;
     }
@@ -212,7 +209,6 @@ public final class MethodsGenerator {
      * @return build string
      */
     public static String getBuildString(String name) {
-
         return FOUR_SPACE_INDENTATION + OVERRIDE + NEW_LINE + getBuild(name);
     }
 
@@ -242,7 +238,6 @@ public final class MethodsGenerator {
      * @return getter for attribute
      */
     private static String getGetter(String type, String name) {
-
         return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + type + SPACE + GET_METHOD_PREFIX + getCaptialCase(name)
                 + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
                 + RETURN + SPACE + name + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
@@ -275,7 +270,6 @@ public final class MethodsGenerator {
      * @return setter for attribute
      */
     private static String getSetter(String className, String name, String type) {
-
         return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + className + BUILDER + SPACE + SET_METHOD_PREFIX
                 + getCaptialCase(name) + OPEN_PARENTHESIS + type + SPACE + name + CLOSE_PARENTHESIS + SPACE
                 + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + THIS + PERIOD + name + SPACE + EQUAL + SPACE
@@ -304,7 +298,6 @@ public final class MethodsGenerator {
      * @return setter for type def's attribute
      */
     private static String getTypeDefSetter(String type, String name) {
-
         return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + SET_METHOD_PREFIX + getCaptialCase(name)
                 + OPEN_PARENTHESIS + type + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
                 + EIGHT_SPACE_INDENTATION + THIS + PERIOD + name + SPACE + EQUAL + SPACE + VALUE + SEMI_COLAN + NEW_LINE
@@ -317,7 +310,6 @@ public final class MethodsGenerator {
      * @return override string
      */
     public static String getOverRideString() {
-
         return NEW_LINE + FOUR_SPACE_INDENTATION + OVERRIDE + NEW_LINE;
     }
 
@@ -346,7 +338,6 @@ public final class MethodsGenerator {
      * @return getter for interface
      */
     private static String getGetterInterfaceString(String returnType, String yangName) {
-
         return FOUR_SPACE_INDENTATION + returnType + SPACE + GET_METHOD_PREFIX + getCaptialCase(yangName)
                 + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN;
     }
@@ -378,7 +369,6 @@ public final class MethodsGenerator {
      * @return setter string
      */
     private static String getSetterInterfaceString(String className, String attrName, String attrType) {
-
         return FOUR_SPACE_INDENTATION + className + BUILDER + SPACE + SET_METHOD_PREFIX + getCaptialCase(attrName)
                 + OPEN_PARENTHESIS + attrType + SPACE + attrName + CLOSE_PARENTHESIS + SEMI_COLAN;
     }
@@ -389,7 +379,6 @@ public final class MethodsGenerator {
      * @return list string
      */
     private static String getListString() {
-
         return LIST + DIAMOND_OPEN_BRACKET;
     }
 
@@ -416,7 +405,6 @@ public final class MethodsGenerator {
      * @return build method for interface
      */
     public static String getBuildForInterface(String yangName) {
-
         return FOUR_SPACE_INDENTATION + yangName + SPACE + BUILD + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN
                 + NEW_LINE;
     }
@@ -462,7 +450,6 @@ public final class MethodsGenerator {
      * @return build method string for class
      */
     public static String getBuild(String yangName) {
-
         return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + yangName + SPACE + BUILD + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
                 + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + RETURN + SPACE + NEW + SPACE
                 + yangName + IMPL + OPEN_PARENTHESIS + THIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE
@@ -477,7 +464,6 @@ public final class MethodsGenerator {
      * @return Default constructor for class
      */
     private static String getDefaultConstructor(String name, String modifierType) {
-
         return FOUR_SPACE_INDENTATION + modifierType + SPACE + name + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE
                 + OPEN_CURLY_BRACKET + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
     }
@@ -488,7 +474,6 @@ public final class MethodsGenerator {
      * @return to string method open string
      */
     public static String getToStringMethodOpen() {
-
         return getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STRING_DATA_TYPE + SPACE + TO
                 + STRING_DATA_TYPE + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
                 + EIGHT_SPACE_INDENTATION + RETURN + GOOGLE_MORE_OBJECT_METHOD_STRING + NEW_LINE;
@@ -500,7 +485,6 @@ public final class MethodsGenerator {
      * @return to string method close string
      */
     public static String getToStringMethodClose() {
-
         return TWELVE_SPACE_INDENTATION + PERIOD + TO + STRING_DATA_TYPE + OPEN_PARENTHESIS + CLOSE_PARENTHESIS
                 + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
     }
@@ -514,10 +498,8 @@ public final class MethodsGenerator {
     public static String getToStringMethod(JavaAttributeInfo attr) {
 
         String attributeName = getSmallCase(attr.getAttributeName());
-
         return TWELVE_SPACE_INDENTATION + PERIOD + ADD_STRING + OPEN_PARENTHESIS + QUOTES + attributeName + QUOTES
                 + COMMA + SPACE + attributeName + CLOSE_PARENTHESIS;
-
     }
 
     /**
@@ -526,7 +508,6 @@ public final class MethodsGenerator {
      * @return hash code method open string
      */
     public static String getHashCodeMethodOpen() {
-
         return getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + INT + SPACE + HASH_CODE_STRING
                 + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
                 + RETURN + SPACE + OBJECT_STRING + SUFFIX_S + PERIOD + HASH + OPEN_PARENTHESIS;
@@ -539,7 +520,6 @@ public final class MethodsGenerator {
      * @return to hash code method close string
      */
     public static String getHashCodeMethodClose(String hashcodeString) {
-
         hashcodeString = trimAtLast(hashcodeString, COMMA);
         hashcodeString = trimAtLast(hashcodeString, SPACE);
         return hashcodeString + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET
@@ -553,7 +533,6 @@ public final class MethodsGenerator {
      * @return hash code method
      */
     public static String getHashCodeMethod(JavaAttributeInfo attr) {
-
         return getSmallCase(attr.getAttributeName()) + COMMA + SPACE;
     }
 
@@ -564,7 +543,6 @@ public final class MethodsGenerator {
      * @return equals method open string
      */
     public static String getEqualsMethodOpen(String className) {
-
         return getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + BOOLEAN_DATA_TYPE + SPACE + EQUALS_STRING
                 + OPEN_PARENTHESIS + OBJECT_STRING + SPACE + OBJ + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET
                 + NEW_LINE + getEqualsMethodsCommonIfCondition() + getEqualsMethodsSpecificIfCondition(className);
@@ -576,7 +554,6 @@ public final class MethodsGenerator {
      * @return if condition string
      */
     private static String getEqualsMethodsCommonIfCondition() {
-
         return EIGHT_SPACE_INDENTATION + IF + SPACE + OPEN_PARENTHESIS + THIS + SPACE + EQUAL + EQUAL + SPACE + OBJ
                 + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + TWELVE_SPACE_INDENTATION + RETURN + SPACE
                 + TRUE + SEMI_COLAN + NEW_LINE + EIGHT_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
@@ -589,7 +566,6 @@ public final class MethodsGenerator {
      * @return if condition string
      */
     private static String getEqualsMethodsSpecificIfCondition(String className) {
-
         return EIGHT_SPACE_INDENTATION + IF + SPACE + OPEN_PARENTHESIS + OBJ + INSTANCE_OF + className
                 + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + TWELVE_SPACE_INDENTATION + className
                 + SPACE + OTHER + SPACE + EQUAL + SPACE + OPEN_PARENTHESIS + className + CLOSE_PARENTHESIS + SPACE
@@ -603,7 +579,6 @@ public final class MethodsGenerator {
      * @return equals method close string
      */
     public static String getEqualsMethodClose(String equalMethodString) {
-
         equalMethodString = trimAtLast(equalMethodString, AND);
         equalMethodString = trimAtLast(equalMethodString, AND);
         equalMethodString = trimAtLast(equalMethodString, SPACE);
@@ -622,11 +597,9 @@ public final class MethodsGenerator {
     public static String getEqualsMethod(JavaAttributeInfo attr) {
 
         String attributeName = getSmallCase(attr.getAttributeName());
-
         return SIXTEEN_SPACE_INDENTATION + SPACE + OBJECT_STRING + SUFFIX_S + PERIOD + EQUALS_STRING + OPEN_PARENTHESIS
                 + attributeName + COMMA + SPACE + OTHER + PERIOD + attributeName + CLOSE_PARENTHESIS + SPACE + AND
                 + AND;
-
     }
 
     /**
@@ -639,11 +612,57 @@ public final class MethodsGenerator {
     public static String getOfMethod(String name, JavaAttributeInfo attr) {
 
         String attrQuaifiedType = getReturnType(attr);
-
         return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STATIC + SPACE + name + SPACE + OF + OPEN_PARENTHESIS
                 + attrQuaifiedType + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
                 + EIGHT_SPACE_INDENTATION + RETURN + SPACE + NEW + SPACE + name + OPEN_PARENTHESIS + VALUE
                 + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
+     * Returns implementation of add augmentation method of HasAugmentation class.
+     *
+     * @return implementation of add augmentation method of HasAugmentation class
+     */
+    public static String getAddAugmentInfoMethodImpl() {
+        String method = FOUR_SPACE_INDENTATION;
+        method = method + getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + ADD_STRING
+                + AUGMENTATION + OPEN_PARENTHESIS + AUGMENTED_INFO + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE
+                + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + GET_METHOD_PREFIX + AUGMENTED_INFO + LIST
+                + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + PERIOD + ADD_STRING + OPEN_PARENTHESIS + VALUE
+                + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+
+        return method;
+    }
+
+    /**
+     * Returns implementation of get augment info list method of HasAugmentation class.
+     *
+     * @return implementation of get augment info list method of HasAugmentation class
+     */
+    public static String getAugmentInfoListImpl() {
+
+        String method = FOUR_SPACE_INDENTATION;
+        method = method + getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + LIST + DIAMOND_OPEN_BRACKET
+                + AUGMENTED_INFO + DIAMOND_CLOSE_BRACKET + SPACE + GET_METHOD_PREFIX + AUGMENTED_INFO + LIST
+                + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
+                + RETURN + SPACE + getSmallCase(AUGMENTED_INFO) + LIST + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION
+                + CLOSE_CURLY_BRACKET;
+        return method;
+    }
+
+    /**
+     * Returns implementation of remove augmentation method of HasAugmentation class.
+     *
+     * @return implementation of remove augmentation method of HasAugmentation class
+     */
+    public static String getRemoveAugmentationImpl() {
+        String method = FOUR_SPACE_INDENTATION;
+        method = method + getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + "remove"
+                + AUGMENTATION + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
+                + EIGHT_SPACE_INDENTATION + GET_METHOD_PREFIX + AUGMENTED_INFO + LIST + OPEN_PARENTHESIS
+                + CLOSE_PARENTHESIS + PERIOD + "clear" + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE
+                + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+        return method;
     }
 
 }
