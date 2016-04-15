@@ -19,8 +19,8 @@ import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.Host;
-import org.onosproject.openstackinterface.OpenstackNetwork;
-import org.onosproject.openstackinterface.OpenstackSubnet;
+import org.openstack4j.model.network.Network;
+import org.openstack4j.model.network.Subnet;
 
 import java.util.Map;
 import java.util.Objects;
@@ -47,18 +47,18 @@ public final class CordService {
     /**
      * Default constructor.
      *
-     * @param vNet OpenStack network
-     * @param subnet OpenStack subnet
+     * @param osNet OpenStack network
+     * @param osSubnet OpenStack subnet
      * @param hosts host and tunnel ip map
      * @param tenantServices list of tenant service ids
      */
-    public CordService(OpenstackNetwork vNet, OpenstackSubnet subnet,
+    public CordService(Network osNet, Subnet osSubnet,
                        Map<Host, IpAddress> hosts, Set<CordServiceId> tenantServices) {
-        this.id = CordServiceId.of(vNet.id());
-        this.segmentationId = Long.parseLong(vNet.segmentId());
-        this.serviceType = getServiceType(vNet.name());
-        this.serviceIpRange = IpPrefix.valueOf(subnet.cidr());
-        this.serviceIp = IpAddress.valueOf(subnet.gatewayIp());
+        this.id = CordServiceId.of(osNet.getId());
+        this.segmentationId = Long.parseLong(osNet.getProviderSegID());
+        this.serviceType = getServiceType(osNet.getName());
+        this.serviceIpRange = IpPrefix.valueOf(osSubnet.getCidr());
+        this.serviceIp = IpAddress.valueOf(osSubnet.getGateway());
         this.hosts = hosts;
         this.tenantServices = tenantServices;
     }

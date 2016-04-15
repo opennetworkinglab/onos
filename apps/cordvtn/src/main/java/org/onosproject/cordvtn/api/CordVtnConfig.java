@@ -46,16 +46,23 @@ public class CordVtnConfig extends Config<ApplicationId> {
     public static final String LOCAL_MANAGEMENT_IP = "localManagementIp";
     public static final String OVSDB_PORT = "ovsdbPort";
 
-    public static final String SSH_PORT = "sshPort";
-    public static final String SSH_USER = "sshUser";
-    public static final String SSH_KEY_FILE = "sshKeyFile";
-
     public static final String CORDVTN_NODES = "nodes";
     public static final String HOSTNAME = "hostname";
     public static final String HOST_MANAGEMENT_IP = "hostManagementIp";
     public static final String DATA_PLANE_IP = "dataPlaneIp";
     public static final String DATA_PLANE_INTF = "dataPlaneIntf";
     public static final String BRIDGE_ID = "bridgeId";
+
+    public static final String SSH = "ssh";
+    public static final String SSH_PORT = "sshPort";
+    public static final String SSH_USER = "sshUser";
+    public static final String SSH_KEY_FILE = "sshKeyFile";
+
+    public static final String OPENSTACK = "openstack";
+    public static final String OPENSTACK_ENDPOINT = "endpoint";
+    public static final String OPENSTACK_TENANT = "tenant";
+    public static final String OPENSTACK_USER = "user";
+    public static final String OPENSTACK_PASSWORD = "password";
 
     /**
      * Returns the set of nodes read from network config.
@@ -65,15 +72,22 @@ public class CordVtnConfig extends Config<ApplicationId> {
     public Set<CordVtnNode> cordVtnNodes() {
 
         Set<CordVtnNode> nodes = Sets.newHashSet();
-        JsonNode jsonNodes = object.get(CORDVTN_NODES);
-        if (jsonNodes == null) {
+
+        JsonNode cordvtnNodes = object.get(CORDVTN_NODES);
+        if (cordvtnNodes == null) {
             log.debug("No CORD VTN nodes found");
             return nodes;
         }
 
-        for (JsonNode jsonNode : jsonNodes) {
+        JsonNode sshNode = object.get(SSH);
+        if (sshNode == null) {
+            log.warn("SSH information not found");
+            return nodes;
+        }
+
+        for (JsonNode cordvtnNode : cordvtnNodes) {
             try {
-                NetworkAddress hostMgmt = NetworkAddress.valueOf(getConfig(jsonNode, HOST_MANAGEMENT_IP));
+                NetworkAddress hostMgmt = NetworkAddress.valueOf(getConfig(cordvtnNode, HOST_MANAGEMENT_IP));
                 NetworkAddress localMgmt = NetworkAddress.valueOf(getConfig(object, LOCAL_MANAGEMENT_IP));
                 if (hostMgmt.prefix().contains(localMgmt.prefix()) ||
                         localMgmt.prefix().contains(hostMgmt.prefix())) {
@@ -84,22 +98,22 @@ public class CordVtnConfig extends Config<ApplicationId> {
                 Ip4Address hostMgmtIp = hostMgmt.ip().getIp4Address();
                 SshAccessInfo sshInfo = new SshAccessInfo(
                         hostMgmtIp,
-                        TpPort.tpPort(Integer.parseInt(getConfig(object, SSH_PORT))),
-                        getConfig(object, SSH_USER), getConfig(object, SSH_KEY_FILE));
+                        TpPort.tpPort(Integer.parseInt(getConfig(sshNode, SSH_PORT))),
+                        getConfig(sshNode, SSH_USER), getConfig(sshNode, SSH_KEY_FILE));
 
-                String hostname = getConfig(jsonNode, HOSTNAME);
+                String hostname = getConfig(cordvtnNode, HOSTNAME);
                 CordVtnNode newNode = new CordVtnNode(
                         hostname, hostMgmt, localMgmt,
-                        NetworkAddress.valueOf(getConfig(jsonNode, DATA_PLANE_IP)),
+                        NetworkAddress.valueOf(getConfig(cordvtnNode, DATA_PLANE_IP)),
                         TpPort.tpPort(Integer.parseInt(getConfig(object, OVSDB_PORT))),
                         sshInfo,
-                        DeviceId.deviceId(getConfig(jsonNode, BRIDGE_ID)),
-                        getConfig(jsonNode, DATA_PLANE_INTF),
+                        DeviceId.deviceId(getConfig(cordvtnNode, BRIDGE_ID)),
+                        getConfig(cordvtnNode, DATA_PLANE_INTF),
                         CordVtnNodeState.noState());
 
                 nodes.add(newNode);
             } catch (IllegalArgumentException | NullPointerException e) {
-                log.error("{}", e.toString());
+                log.error("{}", e);
             }
         }
 
@@ -167,5 +181,90 @@ public class CordVtnConfig extends Config<ApplicationId> {
 
         return publicGateways;
     }
-}
 
+    /**
+     * Returns OpenStack API access information.
+     *
+     * @return openstack config
+     */
+    public OpenStackConfig openstackConfig() {
+        JsonNode jsonNode = object.get(OPENSTACK);
+        if (jsonNode == null) {
+            log.error("Failed to get OpenStack configurations");
+            return null;
+        }
+
+        try {
+            return new OpenStackConfig(
+                    jsonNode.path(OPENSTACK_ENDPOINT).asText(),
+                    jsonNode.path(OPENSTACK_TENANT).asText(),
+                    jsonNode.path(OPENSTACK_USER).asText(),
+                    jsonNode.path(OPENSTACK_PASSWORD).asText());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            log.error("Failed to get OpenStack configurations");
+            return null;
+        }
+    }
+
+    /**
+     * Configuration for OpenStack API access.
+     */
+    public static class OpenStackConfig {
+
+        private final String endpoint;
+        private final String tenant;
+        private final String user;
+        private final String password;
+
+        /**
+         * Default constructor.
+         *
+         * @param endpoint Keystone endpoint
+         * @param tenant tenant name
+         * @param user user name
+         * @param password passwowrd
+         */
+        public OpenStackConfig(String endpoint, String tenant, String user, String password) {
+            this.endpoint = endpoint;
+            this.tenant = tenant;
+            this.user = user;
+            this.password = password;
+        }
+
+        /**
+         * Returns OpenStack API endpoint.
+         *
+         * @return endpoint
+         */
+        public String endpoint() {
+            return this.endpoint;
+        }
+
+        /**
+         * Returns OpenStack tenant name.
+         *
+         * @return tenant name
+         */
+        public String tenant() {
+            return this.tenant;
+        }
+
+        /**
+         * Returns OpenStack user.
+         *
+         * @return user name
+         */
+        public String user() {
+            return this.user;
+        }
+
+        /**
+         * Returns OpenStack password for the user.
+         *
+         * @return password
+         */
+        public String password() {
+            return this.password;
+        }
+    }
+}

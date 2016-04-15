@@ -75,8 +75,8 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
-import org.onosproject.openstackinterface.OpenstackNetwork;
-import org.onosproject.openstackinterface.OpenstackSubnet;
+import org.openstack4j.model.network.Network;
+import org.openstack4j.model.network.Subnet;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -190,30 +190,31 @@ public class CordVtnRuleInstaller {
      *
      * @param host host
      * @param tunnelIp tunnel ip
-     * @param vNet openstack network
+     * @param osNet openstack network
      */
-    public void populateBasicConnectionRules(Host host, IpAddress tunnelIp, OpenstackNetwork vNet) {
+    public void populateBasicConnectionRules(Host host, IpAddress tunnelIp, Network osNet) {
         checkNotNull(host);
-        checkNotNull(vNet);
+        checkNotNull(osNet);
 
         DeviceId deviceId = host.location().deviceId();
         PortNumber inPort = host.location().port();
         MacAddress dstMac = host.mac();
         IpAddress hostIp = host.ipAddresses().stream().findFirst().get();
-        long tunnelId = Long.parseLong(vNet.segmentId());
+        long tunnelId = Long.parseLong(osNet.getProviderSegID());
 
-        OpenstackSubnet subnet = vNet.subnets().stream()
+        Subnet osSubnet = osNet.getNeutronSubnets().stream()
                 .findFirst()
                 .orElse(null);
 
-        if (subnet == null) {
+        if (osSubnet == null) {
             log.error("Failed to get subnet for {}", host.id());
             return;
         }
+        Ip4Prefix cidr = Ip4Prefix.valueOf(osSubnet.getCidr());
 
         populateLocalInPortRule(deviceId, inPort, hostIp);
-        populateDirectAccessRule(Ip4Prefix.valueOf(subnet.cidr()), Ip4Prefix.valueOf(subnet.cidr()));
-        populateServiceIsolationRule(Ip4Prefix.valueOf(subnet.cidr()));
+        populateDirectAccessRule(cidr, cidr);
+        populateServiceIsolationRule(cidr);
         populateDstIpRule(deviceId, inPort, dstMac, hostIp, tunnelId, tunnelIp);
         populateTunnelInRule(deviceId, inPort, dstMac, tunnelId);
     }
