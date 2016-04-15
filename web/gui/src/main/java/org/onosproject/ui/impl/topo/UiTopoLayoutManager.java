@@ -16,16 +16,26 @@
 
 package org.onosproject.ui.impl.topo;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
 import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.model.topo.UiTopoLayout;
+import org.onosproject.ui.model.topo.UiTopoLayoutId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Manages the user interface topology layouts.
@@ -35,39 +45,54 @@ import java.util.List;
 @Service
 public class UiTopoLayoutManager implements UiTopoLayoutService {
 
-//    private static final ClassLoader CL =
-//            UiTopoLayoutManager.class.getClassLoader();
-
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
+    private ConsistentMap<UiTopoLayoutId, UiTopoLayout> layouts;
+    private Map<UiTopoLayoutId, UiTopoLayout> layoutMap;
 
     @Activate
     public void activate() {
-        // TODO: implement starting stuff
+        KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
+                .register(KryoNamespaces.API)
+                .register(UiTopoLayout.class);
+
+        layouts = storageService.<UiTopoLayoutId, UiTopoLayout>consistentMapBuilder()
+                .withSerializer(Serializer.using(kryoBuilder.build()))
+                .withName("onos-topo-layouts")
+                .withRelaxedReadConsistency()
+                .build();
+        layoutMap = layouts.asJavaMap();
+
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        // TODO: implement stopping stuff
         log.info("Stopped");
     }
 
 
     @Override
-    public List<UiTopoLayout> getLayouts() {
-        // TODO: implement
-        return null;
+    public Set<UiTopoLayout> getLayouts() {
+        return ImmutableSet.copyOf(layoutMap.values());
     }
 
     @Override
     public boolean addLayout(UiTopoLayout layout) {
-        // TODO: implement
-        return false;
+        return layouts.put(layout.id(), layout) == null;
+    }
+
+    @Override
+    public UiTopoLayout getLayout(UiTopoLayoutId layoutId) {
+        return layoutMap.get(layoutId);
     }
 
     @Override
     public boolean removeLayout(UiTopoLayout layout) {
-        // TODO: implement
-        return false;
+        return layouts.remove(layout.id()) != null;
     }
+
 }

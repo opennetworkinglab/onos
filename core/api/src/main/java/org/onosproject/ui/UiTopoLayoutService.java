@@ -16,8 +16,9 @@
 package org.onosproject.ui;
 
 import org.onosproject.ui.model.topo.UiTopoLayout;
+import org.onosproject.ui.model.topo.UiTopoLayoutId;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Service for managing {@link UiTopoLayout} instances.
@@ -25,19 +26,27 @@ import java.util.List;
 public interface UiTopoLayoutService {
 
     /**
-     * Returns the list of available layouts.
+     * Returns the set of available layouts.
      *
-     * @return available layouts
+     * @return set of available layouts
      */
-    List<UiTopoLayout> getLayouts();
+    Set<UiTopoLayout> getLayouts();
 
     /**
-     * Adds a layout to the system.
+     * Adds a layout to the system or updates an existing one.
      *
-     * @param layout the layout to add
+     * @param layout the layout to add or update
      * @return an indication of success
      */
     boolean addLayout(UiTopoLayout layout);
+
+
+    /**
+     * Returns the layout with the specified identifier.
+     * @param layoutId layout identifier
+     * @return layout or null if no such layout is found
+     */
+    UiTopoLayout getLayout(UiTopoLayoutId layoutId);
 
     /**
      * Removes a layout from the system.

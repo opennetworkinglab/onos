@@ -24,6 +24,37 @@ import org.onosproject.net.region.Region;
  */
 public class UiTopoLayout {
 
-    private Region backingRegion;
+    private final UiTopoLayoutId id;
+    private final Region region;
 
+    /**
+     * Created a new UI topology layout.
+     *
+     * @param id     layout identifier
+     * @param region backing region
+     */
+    public UiTopoLayout(UiTopoLayoutId id, Region region) {
+        this.id = id;
+        this.region = region;
+    }
+
+    /**
+     * Returns the UI layout identifier.
+     *
+     * @return identifier of the layout
+     */
+    public UiTopoLayoutId id() {
+        return id;
+    }
+
+    /**
+     * Returns the backing region with which this layout is associated.
+     *
+     * @return backing region
+     */
+    public Region region() {
+        return region;
+    }
+
+    // TODO: additional properties pertinent to the layout
 }
