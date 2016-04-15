@@ -17,7 +17,6 @@ TEST_DEPS = [
     '//lib:jersey-test-framework-grizzly2',
     '//utils/osgi:onlab-osgi-tests',
     '//web/api:onos-rest-tests',
-    '//utils/osgi:onlab-osgi',
     '//incubator/api:onos-incubator-api-tests',
 ]
 
