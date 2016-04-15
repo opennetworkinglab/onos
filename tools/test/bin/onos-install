@@ -55,7 +55,7 @@ $(dirname $0)/onos-push-bits $node
 
 [ ! -z "$mvn_settings" ] && scp -q $mvn_settings $remote:/tmp/settings.xml
 
-ssh $remote "
+ssh -tt $remote "
     [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1
 
     # Prepare a landing zone and unroll the bits
