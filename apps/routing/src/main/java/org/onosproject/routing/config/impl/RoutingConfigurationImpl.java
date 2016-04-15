@@ -58,7 +58,7 @@ import static org.onosproject.routing.RouteEntry.createBinaryString;
 
 /**
  * Implementation of RoutingConfigurationService which reads routing
- * configuration from a file.
+ * configuration from the network configuration service.
  */
 @Component(immediate = true)
 @Service

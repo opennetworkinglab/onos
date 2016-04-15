@@ -18,7 +18,6 @@ package org.onosproject.sdnip;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
@@ -47,7 +46,6 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.config.BgpConfig;
-import org.onosproject.routing.config.BgpPeer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,7 +80,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
     private Set<BgpConfig.BgpSpeakerConfig> bgpSpeakers;
     private Map<String, Interface> interfaces;
-    private Map<IpAddress, BgpPeer> peers;
 
     private BgpConfig bgpConfig;
 
@@ -135,7 +132,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         // These will set expectations on routingConfig and interfaceService
         bgpSpeakers = setUpBgpSpeakers();
         interfaces = Collections.unmodifiableMap(setUpInterfaces());
-        peers = setUpPeers();
 
         initPeerConnectivity();
         intentList = setUpIntentList();
@@ -277,39 +273,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 Sets.newHashSet(configuredInterfaces.values())).anyTimes();
 
         return configuredInterfaces;
-    }
-
-    /**
-     * Sets up BGP daemon peers.
-     *
-     * @return configured BGP peers as a MAP from peer IP address to BgpPeer
-     */
-    private Map<IpAddress, BgpPeer> setUpPeers() {
-
-        Map<IpAddress, BgpPeer> configuredPeers = new HashMap<>();
-
-        String peerSw1Eth1 = "192.168.10.1";
-        configuredPeers.put(IpAddress.valueOf(peerSw1Eth1),
-                new BgpPeer(dpid1, 1, peerSw1Eth1));
-
-        // Two BGP peers are connected to switch 2 port 1.
-        String peer1Sw2Eth1 = "192.168.20.1";
-        configuredPeers.put(IpAddress.valueOf(peer1Sw2Eth1),
-                new BgpPeer(dpid2, 1, peer1Sw2Eth1));
-
-        String peer2Sw2Eth1 = "192.168.30.1";
-        configuredPeers.put(IpAddress.valueOf(peer2Sw2Eth1),
-                new BgpPeer(dpid2, 1, peer2Sw2Eth1));
-
-        String peer3Sw3Eth1 = "192.168.40.1";
-        configuredPeers.put(IpAddress.valueOf(peer3Sw3Eth1),
-                            new BgpPeer(dpid3, 1, peer3Sw3Eth1));
-
-        String peer4Sw3Eth1 = "192.168.50.1";
-        configuredPeers.put(IpAddress.valueOf(peer4Sw3Eth1),
-                            new BgpPeer(dpid3, 1, peer4Sw3Eth1));
-
-        return configuredPeers;
     }
 
     /**
@@ -613,10 +576,8 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
     /**
      * Initializes peer connectivity testing environment.
-     *
-     * @throws TestUtilsException if exceptions when using TestUtils
      */
-    private void initPeerConnectivity() throws TestUtilsException {
+    private void initPeerConnectivity() {
         expect(bgpConfig.bgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
         replay(bgpConfig);
         expect(networkConfigService.getConfig(APPID, BgpConfig.class))
@@ -710,6 +671,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         expect(bgpConfig.bgpSpeakers()).andReturn(Collections.emptySet()).anyTimes();
         replay(bgpConfig);
 
+        // We don't expect any intents in this case
         reset(intentSynchronizer);
         replay(intentSynchronizer);
         peerConnectivityManager.start();
@@ -722,10 +684,20 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     @Test
     public void testNoPeerInterface() {
-        String peerSw100Eth1 = "192.168.200.1";
-        peers.put(IpAddress.valueOf(peerSw100Eth1),
-                new BgpPeer("00:00:00:00:00:00:01:00", 1, peerSw100Eth1));
-        testConnectionSetup();
+        IpAddress ip = IpAddress.valueOf("1.1.1.1");
+        bgpSpeakers.clear();
+        bgpSpeakers.add(new BgpConfig.BgpSpeakerConfig(Optional.of("foo"),
+                VlanId.NONE, s1Eth100, Collections.singleton(ip)));
+        reset(interfaceService);
+        interfaceService.addListener(anyObject(InterfaceListener.class));
+        expect(interfaceService.getMatchingInterface(ip)).andReturn(null).anyTimes();
+        replay(interfaceService);
+
+        // We don't expect any intents in this case
+        reset(intentSynchronizer);
+        replay(intentSynchronizer);
+        peerConnectivityManager.start();
+        verify(intentSynchronizer);
     }
 
 }
