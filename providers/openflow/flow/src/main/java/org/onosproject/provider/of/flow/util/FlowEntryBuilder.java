@@ -94,16 +94,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static org.onosproject.net.flow.criteria.Criteria.matchLambda;
-import static org.onosproject.net.flow.criteria.Criteria.matchOchSignalType;
-import static org.onosproject.net.flow.criteria.Criteria.matchOduSignalId;
-import static org.onosproject.net.flow.criteria.Criteria.matchOduSignalType;
+import static org.onosproject.net.flow.criteria.Criteria.*;
 import static org.onosproject.net.flow.instructions.Instructions.modL0Lambda;
 import static org.onosproject.net.flow.instructions.Instructions.modL1OduSignalId;
-import static org.onosproject.provider.of.flow.util.OpenFlowValueMapper.lookupChannelSpacing;
-import static org.onosproject.provider.of.flow.util.OpenFlowValueMapper.lookupGridType;
-import static org.onosproject.provider.of.flow.util.OpenFlowValueMapper.lookupOchSignalType;
-import static org.onosproject.provider.of.flow.util.OpenFlowValueMapper.lookupOduSignalType;
+import static org.onosproject.provider.of.flow.util.OpenFlowValueMapper.*;
 
 public class FlowEntryBuilder {
     private static final Logger log = LoggerFactory.getLogger(FlowEntryBuilder.class);
@@ -447,17 +441,15 @@ public class FlowEntryBuilder {
             builder.setVlanPcp(vlanpcp.getValue().getValue());
             break;
         case VLAN_VID:
-            if (treatmentInterpreter != null) {
-                try {
-                    builder.extension(treatmentInterpreter.mapAction(action), deviceId);
-                } catch (UnsupportedOperationException e) {
-                    log.warn(e.getMessage());
-                }
-            } else {
-                @SuppressWarnings("unchecked")
-                OFOxm<OFVlanVidMatch> vlanvid = (OFOxm<OFVlanVidMatch>) oxm;
-                builder.setVlanId(VlanId.vlanId(vlanvid.getValue().getVlan()));
+            try {
+                builder.extension(treatmentInterpreter.mapAction(action), deviceId);
+                break;
+            } catch (UnsupportedOperationException e) {
+                log.debug("Unsupported action extension; defaulting to native OF");
             }
+            @SuppressWarnings("unchecked")
+            OFOxm<OFVlanVidMatch> vlanvid = (OFOxm<OFVlanVidMatch>) oxm;
+            builder.setVlanId(VlanId.vlanId(vlanvid.getValue().getVlan()));
             break;
         case ETH_DST:
             @SuppressWarnings("unchecked")
@@ -521,7 +513,7 @@ public class FlowEntryBuilder {
                 try {
                     builder.extension(treatmentInterpreter.mapAction(action), deviceId);
                 } catch (UnsupportedOperationException e) {
-                    log.warn(e.getMessage());
+                    log.debug(e.getMessage());
                 }
             }
             break;
