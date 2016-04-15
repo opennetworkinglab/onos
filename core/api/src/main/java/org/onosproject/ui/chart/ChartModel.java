@@ -16,16 +16,20 @@
 
 package org.onosproject.ui.chart;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A simple model of chart data.
+ * A simple model of time series chart data.
  *
  * <p>
  * Note that this is not a full MVC type model; the expected usage pattern
@@ -35,32 +39,44 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ChartModel {
 
-    // key is series name, value is series index
-    private final Map<String, Integer> seriesMap;
-    private final DataPoint[] dataPoints;
+    private final Set<String> seriesSet;
+    private final String[] seriesArray;
+    private final List<Long> labels = Lists.newArrayList();
+    private final List<DataPoint> dataPoints = Lists.newArrayList();
 
     /**
      * Constructs a chart model with initialized series set.
      *
-     * @param size datapoints size
      * @param series a set of series
      */
-    public ChartModel(int size, String... series) {
+    public ChartModel(String... series) {
         checkNotNull(series, "series cannot be null");
         checkArgument(series.length > 0, "must be at least one series");
-        seriesMap = Maps.newConcurrentMap();
 
-        for (int index = 0; index < series.length; index++) {
-            seriesMap.put(series[index], index);
+        seriesSet = Sets.newHashSet(series);
+
+        if (seriesSet.size() != series.length) {
+            throw new IllegalArgumentException("duplicate series detected");
         }
 
-        checkArgument(size > 0, "must have at least one data point");
-        dataPoints = new DataPoint[size];
+        this.seriesArray = Arrays.copyOf(series, series.length);
     }
 
     private void checkDataPoint(DataPoint dataPoint) {
-        checkArgument(dataPoint.getSize() == seriesCount(),
+        checkArgument(dataPoint.size() == seriesCount(),
                 "data size should be equal to number of series");
+    }
+
+    /**
+     * Checks the validity of the given series.
+     *
+     * @param series series name
+     */
+    private void checkSeries(String series) {
+        checkNotNull(series, "must provide a series name");
+        if (!seriesSet.contains(series)) {
+            throw new IllegalArgumentException("unknown series: " + series);
+        }
     }
 
     /**
@@ -69,24 +85,19 @@ public class ChartModel {
      * @return number of series
      */
     public int seriesCount() {
-        return seriesMap.size();
+        return seriesSet.size();
     }
 
     /**
-     * Shifts all of the data points to the left,
-     * and adds a new data point to the tail of the array.
+     * Adds a data point to the chart model.
      *
-     * @param label label name
-     * @param values a set of data values
+     * @return the data point, for chaining
      */
-    public void addDataPoint(String label, Double[] values) {
-        DataPoint dp = new DataPoint(label, values);
-        checkDataPoint(dp);
-
-        for (int index = 1; index < dataPoints.length; index++) {
-            dataPoints[index - 1] = dataPoints[index];
-        }
-        dataPoints[dataPoints.length - 1] = dp;
+    public DataPoint addDataPoint(Long label) {
+        DataPoint dp = new DataPoint();
+        labels.add(label);
+        dataPoints.add(dp);
+        return dp;
     }
 
     /**
@@ -95,16 +106,34 @@ public class ChartModel {
      * @return an array of series
      */
     public String[] getSeries() {
-        return seriesMap.keySet().toArray(new String[seriesMap.size()]);
+        return seriesArray;
     }
 
     /**
-     * Returns all of data points.
+     * Returns all of data points in order.
      *
      * @return an array of data points
      */
     public DataPoint[] getDataPoints() {
-        return Arrays.copyOf(dataPoints, dataPoints.length);
+        return dataPoints.toArray(new DataPoint[dataPoints.size()]);
+    }
+
+    /**
+     * Returns all of labels in order.
+     *
+     * @return an array of labels
+     */
+    public Object[] getLabels() {
+        return labels.toArray(new Long[labels.size()]);
+    }
+
+    /**
+     * Returns the number of data points in this chart model.
+     *
+     * @return number of data points
+     */
+    public int dataPointCount() {
+        return dataPoints.size();
     }
 
     /**
@@ -113,7 +142,7 @@ public class ChartModel {
      * @return data point
      */
     public DataPoint getLastDataPoint() {
-        return dataPoints[dataPoints.length - 1];
+        return dataPoints.get(dataPoints.size() - 1);
     }
 
     /**
@@ -121,47 +150,52 @@ public class ChartModel {
      */
     public class DataPoint {
         // values for all series
-        private final Double[] values;
-        private final String label;
+        private final Map<String, Double> data = Maps.newHashMap();
 
         /**
-         * Constructs a data point.
+         * Sets the data value for the given series of this data point.
          *
-         * @param label label name
-         * @param values a set of data values for all series
+         * @param series series name
+         * @param value value to set
+         * @return self, for chaining
          */
-        public DataPoint(String label, Double[] values) {
-            this.label = label;
-            this.values = values;
+        public DataPoint data(String series, Double value) {
+            checkSeries(series);
+            data.put(series, value);
+            return this;
         }
 
         /**
-         * Returns the label name of this data point.
+         * Returns the data value with the given series for this data point.
          *
-         * @return label name
+         * @return data value
          */
-        public String getLabel() {
-            return label;
+        public Double get(String series) {
+            return data.get(series);
+        }
+
+        /**
+         * Return the data value with the same order of series.
+         *
+         * @return an array of ordered data values
+         */
+        public Double[] getAll() {
+            Double[] value = new Double[getSeries().length];
+            int idx = 0;
+            for (String s : getSeries()) {
+                value[idx] = get(s);
+                idx++;
+            }
+            return value;
         }
 
         /**
          * Returns the size of data point.
-         * This should be identical to the size of series.
          *
-         * @return size of data point
+         * @return the size of data point
          */
-        public int getSize() {
-            return values.length;
-        }
-
-        /**
-         * Returns the value of the data point of the given series.
-         *
-         * @param series series name
-         * @return data value of a specific series
-         */
-        public Double getValue(String series) {
-            return values[seriesMap.get(series)];
+        public int size() {
+            return data.size();
         }
     }
 }
