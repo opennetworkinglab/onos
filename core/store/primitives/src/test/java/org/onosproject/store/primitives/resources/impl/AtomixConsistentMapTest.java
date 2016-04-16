@@ -16,6 +16,8 @@
 package org.onosproject.store.primitives.resources.impl;
 
 import io.atomix.resource.ResourceType;
+
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
@@ -348,6 +350,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
 
         map.addListener(listener).join();
 
+        // PUT_IF_ABSENT
         MapUpdate<String, byte[]> update1 =
                 MapUpdate.<String, byte[]>newBuilder().withType(MapUpdate.Type.PUT_IF_ABSENT)
                 .withKey("foo")
@@ -359,6 +362,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
         map.prepare(tx).thenAccept(result -> {
             assertEquals(true, result);
         }).join();
+        // verify changes in Tx is not visible yet until commit
         assertFalse(listener.eventReceived());
 
         map.size().thenAccept(result -> {
@@ -371,7 +375,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
 
         try {
             map.put("foo", value2).join();
-            assertTrue(false);
+            fail("update to map entry in open tx should fail with Exception");
         } catch (CompletionException e) {
             assertEquals(ConcurrentModificationException.class, e.getCause().getClass());
         }
@@ -384,6 +388,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
         assertEquals(MapEvent.Type.INSERT, event.type());
         assertTrue(Arrays.equals(value1, event.newValue().value()));
 
+        // map should be update-able after commit
         map.put("foo", value2).thenAccept(result -> {
             assertTrue(Arrays.equals(Versioned.valueOrElse(result, null), value1));
         }).join();
@@ -391,6 +396,43 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
         assertNotNull(event);
         assertEquals(MapEvent.Type.UPDATE, event.type());
         assertTrue(Arrays.equals(value2, event.newValue().value()));
+
+
+        // REMOVE_IF_VERSION_MATCH
+        byte[] currFoo = map.get("foo").get().value();
+        long currFooVersion = map.get("foo").get().version();
+        MapUpdate<String, byte[]> remove1 =
+                MapUpdate.<String, byte[]>newBuilder().withType(MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
+                .withKey("foo")
+                .withCurrentVersion(currFooVersion)
+                .build();
+
+        tx = new MapTransaction<>(TransactionId.from("tx2"), Arrays.asList(remove1));
+
+        map.prepare(tx).thenAccept(result -> {
+            assertTrue("prepare should succeed", result);
+        }).join();
+        // verify changes in Tx is not visible yet until commit
+        assertFalse(listener.eventReceived());
+
+        map.size().thenAccept(size -> {
+            assertThat(size, is(1));
+        }).join();
+
+        map.get("foo").thenAccept(result -> {
+            assertThat(result.value(), is(currFoo));
+        }).join();
+
+        map.commit(tx.transactionId()).join();
+        event = listener.event();
+        assertNotNull(event);
+        assertEquals(MapEvent.Type.REMOVE, event.type());
+        assertArrayEquals(currFoo, event.oldValue().value());
+
+        map.size().thenAccept(size -> {
+            assertThat(size, is(0));
+        }).join();
+
     }
 
     protected void transactionRollbackTests(int clusterSize) throws Throwable {
