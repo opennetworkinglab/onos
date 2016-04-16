@@ -19,6 +19,5 @@
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/onos-app-cordvtn/${project.version}</bundle>
         <bundle>wrap:mvn:com.jcraft/jsch/0.1.53$Bundle-SymbolicName=jsch&amp;Bundle-Version=0.1.53</bundle>
-        <bundle>wrap:mvn:org.pacesys/openstack4j/2.11/jar/withdeps$Bundle-SymbolicName=openstack4j&amp;Bundle-Version=2.11</bundle>
     </feature>
 </features>

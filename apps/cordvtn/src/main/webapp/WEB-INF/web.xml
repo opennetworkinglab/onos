@@ -47,10 +47,6 @@
             <param-name>javax.ws.rs.Application</param-name>
             <param-value>org.onosproject.cordvtn.rest.CordVtnWebApplication</param-value>
         </init-param>
-        <init-param>
-            <param-name>jersey.config.server.disableAutoDiscovery</param-name>
-            <param-value>true</param-value>
-        </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
 

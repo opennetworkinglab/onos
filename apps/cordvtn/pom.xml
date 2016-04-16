@@ -99,11 +99,6 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-openstackinterface-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onos-app-dhcp-api</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -147,6 +142,7 @@
                         </Bundle-SymbolicName>
                         <Import-Package>
                             !org.apache.http.*,
+                            !com.fasterxml.jackson.dataformat.*,
                             *,org.glassfish.jersey.servlet
                         </Import-Package>
                         <Embed-Dependency>
