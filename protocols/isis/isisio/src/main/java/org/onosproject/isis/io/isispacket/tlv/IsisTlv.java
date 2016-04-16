@@ -16,7 +16,7 @@
 package org.onosproject.isis.io.isispacket.tlv;
 
 /**
- * Represents ISIS TLV.
+ * Representation of  ISIS TLV.
  */
 public interface IsisTlv {
 }

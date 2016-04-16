@@ -17,7 +17,7 @@ package org.onosproject.isis.io.isispacket.tlv;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.primitives.Bytes;
-import io.netty.buffer.ByteBuf;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.isis.io.util.IsisUtil;
 
@@ -25,13 +25,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents IP interface address TLV.
+ * Representation of IP interface address TLV.
  */
 public class IpInterfaceAddressTlv extends TlvHeader implements IsisTlv {
-    private List<Ip4Address> interfaceAddress = new ArrayList();
+
+    private List<Ip4Address> interfaceAddress = new ArrayList<>();
 
     /**
-     * Sets TLV type and TLV length of IP interface address TLV.
+     * Creates an instance of IP interface address TLV.
      *
      * @param tlvHeader tlvHeader.
      */
@@ -43,58 +44,60 @@ public class IpInterfaceAddressTlv extends TlvHeader implements IsisTlv {
     }
 
     /**
-     * Gets interface address of interface address TLV.
+     * Adds the interface address to IP interface address TLV.
      *
-     * @return interfaceAddress interface address
+     * @param interfaceAddress interface address
+     */
+    public void addInterfaceAddres(Ip4Address interfaceAddress) {
+        this.interfaceAddress.add(interfaceAddress);
+    }
+
+    /**
+     * Returns the interface address of IP interface address TLV.
+     *
+     * @return interface address
      */
     public List<Ip4Address> interfaceAddress() {
         return interfaceAddress;
     }
 
     @Override
-    public void readFrom(ByteBuf byteBuf) {
-        while (byteBuf.readableBytes() >= 4) {
+    public void readFrom(ChannelBuffer channelBuffer) {
+        while (channelBuffer.readableBytes() >= 4) {
             byte[] addressbytes = new byte[IsisUtil.FOUR_BYTES];
-            byteBuf.readBytes(addressbytes, 0, IsisUtil.FOUR_BYTES);
+            channelBuffer.readBytes(addressbytes, 0, IsisUtil.FOUR_BYTES);
             this.interfaceAddress.add(Ip4Address.valueOf(addressbytes));
         }
-
     }
 
     @Override
     public byte[] asBytes() {
         byte[] bytes = null;
-
         byte[] tlvHeader = tlvHeaderAsByteArray();
         byte[] tlvBody = tlvBodyAsBytes();
+        tlvHeader[1] = (byte) tlvBody.length;
         bytes = Bytes.concat(tlvHeader, tlvBody);
-
         return bytes;
     }
 
     /**
-     * Gets TLV body of interface address TLV.
+     * Returns TLV body of IP interface address TLV.
      *
-     * @return byteArray TLV body of interface address TLV.
+     * @return byteArray TLV body of IP interface address TLV
      */
-    public byte[] tlvBodyAsBytes() {
-
-        List<Byte> bytes = new ArrayList();
+    private byte[] tlvBodyAsBytes() {
+        List<Byte> bytes = new ArrayList<>();
         for (Ip4Address ip4Address : this.interfaceAddress) {
             bytes.addAll(Bytes.asList(ip4Address.toOctets()));
         }
-        byte[] byteArray = new byte[bytes.size()];
-        int i = 0;
-        for (byte byt : bytes) {
-            byteArray[i++] = byt;
-        }
-        return byteArray;
+        return Bytes.toArray(bytes);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
+                .add("interfaceAddress", interfaceAddress)
                 .toString();
     }
 }

@@ -23,53 +23,51 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Representation of  protocol supported TLV.
+ * Representation of LSP entries TLV.
  */
-public class ProtocolSupportedTlv extends TlvHeader implements IsisTlv {
-
-    private List<Byte> protocolSupported = new ArrayList<>();
+public class LspEntriesTlv extends TlvHeader implements IsisTlv {
+    private List<LspEntry> lspEntryList = new ArrayList<>();
 
     /**
-     * Creates an instance of protocol supported TLV.
+     * Creates an instance of LSP entries TLV.
      *
      * @param tlvHeader tlvHeader.
      */
-    public ProtocolSupportedTlv(TlvHeader tlvHeader) {
-
+    public LspEntriesTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());
         this.setTlvLength(tlvHeader.tlvLength());
-
     }
 
     /**
-     * Adds the protocol supported to protocol supported TLV.
+     * Returns the LSP entry of LSP entries TLV.
      *
-     * @param protocolValue protocol supported
+     * @return LSP entries
      */
-    public void addProtocolSupported(byte protocolValue) {
-        protocolSupported.add(protocolValue);
+    public List<LspEntry> lspEntry() {
+        return lspEntryList;
     }
 
     /**
-     * Returns protocols supported of protocol supported TLV.
+     * Adds the the LSP entry to LSP entries TLV.
      *
-     * @return protocol supported
+     * @param lspEntry LSP entry
      */
-    public List<Byte> protocolSupported() {
-        return this.protocolSupported;
+    public void addLspEntry(LspEntry lspEntry) {
+        this.lspEntryList.add(lspEntry);
     }
 
     @Override
     public void readFrom(ChannelBuffer channelBuffer) {
-        while (channelBuffer.readableBytes() > 0) {
-            this.protocolSupported.add(channelBuffer.readByte());
+        while (channelBuffer.readableBytes() >= 16) {
+            LspEntry lspEntry = new LspEntry();
+            lspEntry.readFrom(channelBuffer.readBytes(16));
+            lspEntryList.add(lspEntry);
         }
     }
 
     @Override
     public byte[] asBytes() {
         byte[] bytes = null;
-
         byte[] tlvHeader = tlvHeaderAsByteArray();
         byte[] tlvBody = tlvBodyAsBytes();
         tlvHeader[1] = (byte) tlvBody.length;
@@ -78,28 +76,23 @@ public class ProtocolSupportedTlv extends TlvHeader implements IsisTlv {
     }
 
     /**
-     * Gets TLV body of protocol supported TLV.
+     * Returns TLV body of LSP entries TLV.
      *
-     * @return byteArray TLV body of protocol supported TLV
+     * @return byteArray TLV body of LSP entries TLV
      */
     private byte[] tlvBodyAsBytes() {
         List<Byte> bytes = new ArrayList<>();
-        for (byte byt : this.protocolSupported) {
-            bytes.add(byt);
+        for (LspEntry lspEntry : lspEntryList) {
+            bytes.addAll(Bytes.asList(lspEntry.lspEntryAsBytes()));
         }
-        byte[] byteArray = new byte[bytes.size()];
-        int i = 0;
-        for (byte byt : bytes) {
-            byteArray[i++] = byt;
-        }
-        return byteArray;
+        return Bytes.toArray(bytes);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
-                .add("protocolSupported", protocolSupported)
+                .add("lspEntryList", lspEntryList)
                 .toString();
     }
 }

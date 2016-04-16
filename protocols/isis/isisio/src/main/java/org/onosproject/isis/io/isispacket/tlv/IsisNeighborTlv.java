@@ -17,7 +17,7 @@ package org.onosproject.isis.io.isispacket.tlv;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.primitives.Bytes;
-import io.netty.buffer.ByteBuf;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.MacAddress;
 import org.onosproject.isis.io.util.IsisUtil;
 
@@ -25,78 +25,77 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents ISIS neighbor TLV.
+ * Representation of  ISIS neighbor TLV.
  */
 public class IsisNeighborTlv extends TlvHeader implements IsisTlv {
 
-    private List<MacAddress> neighbor = new ArrayList();
+    private List<MacAddress> neighbor = new ArrayList<>();
 
     /**
-     * Sets TLV type and TLV length of ISIS neighbor TLV.
+     * Creates an instance of ISIS neighbor TLV.
      *
-     * @param tlvHeader tlvHeader.
+     * @param tlvHeader tlvHeader
      */
     public IsisNeighborTlv(TlvHeader tlvHeader) {
-
         this.setTlvType(tlvHeader.tlvType());
         this.setTlvLength(tlvHeader.tlvLength());
-
     }
 
     /**
-     * Gets the MAC address of the neighbor TLV.
+     * Adds the MAC address of the neighbor to ISIS neighbor TLV.
      *
-     * @return neighbor MAC address of the neighbor TLV
+     * @param macAddress MAC address
+     */
+    public void addNeighbor(MacAddress macAddress) {
+        neighbor.add(macAddress);
+    }
+
+    /**
+     * Returns the MAC address of the ISIS neighbor TLV.
+     *
+     * @return neighbor
      */
     public List<MacAddress> neighbor() {
         return this.neighbor;
     }
 
     @Override
-    public void readFrom(ByteBuf byteBuf) {
-        while (byteBuf.readableBytes() >= 6) {
+    public void readFrom(ChannelBuffer channelBuffer) {
+        while (channelBuffer.readableBytes() >= 6) {
             byte[] addressbytes = new byte[IsisUtil.SIX_BYTES];
-            byteBuf.readBytes(addressbytes, 0, IsisUtil.SIX_BYTES);
+            channelBuffer.readBytes(addressbytes, 0, IsisUtil.SIX_BYTES);
             this.neighbor.add(MacAddress.valueOf(addressbytes));
         }
-
     }
 
     @Override
     public byte[] asBytes() {
         byte[] bytes = null;
-
         byte[] tlvHeader = tlvHeaderAsByteArray();
         byte[] tlvBody = tlvBodyAsBytes();
+        tlvHeader[1] = (byte) tlvBody.length;
         bytes = Bytes.concat(tlvHeader, tlvBody);
-
         return bytes;
-
     }
 
     /**
-     * Gets TLV body of neighbor TLV.
+     * Returns TLV body of ISIS neighbor TLV.
      *
-     * @return byteArray TLV body of neighbor TLV
+     * @return byteArray TLV body of area address TLV
      */
-    public byte[] tlvBodyAsBytes() {
-
-        List<Byte> bytes = new ArrayList();
+    private byte[] tlvBodyAsBytes() {
+        List<Byte> bytes = new ArrayList<>();
         for (MacAddress macAddress : this.neighbor) {
             bytes.addAll(Bytes.asList(macAddress.toBytes()));
         }
-        byte[] byteArray = new byte[bytes.size()];
-        int i = 0;
-        for (byte byt : bytes) {
-            byteArray[i++] = byt;
-        }
-        return byteArray;
+        return Bytes.toArray(bytes);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
+                .add("neighbor", neighbor)
                 .toString();
     }
 }

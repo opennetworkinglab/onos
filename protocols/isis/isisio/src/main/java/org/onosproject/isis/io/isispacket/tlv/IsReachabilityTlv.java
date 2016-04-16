@@ -23,53 +23,63 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Representation of  protocol supported TLV.
+ * Representation of IS reachability TLV.
  */
-public class ProtocolSupportedTlv extends TlvHeader implements IsisTlv {
+public class IsReachabilityTlv extends TlvHeader {
 
-    private List<Byte> protocolSupported = new ArrayList<>();
+    private int reserved;
+    private List<MetricsOfReachability> metricsOfReachabilities = new ArrayList<>();
 
     /**
-     * Creates an instance of protocol supported TLV.
+     * Creates an instance of IS reachability TLV.
      *
      * @param tlvHeader tlvHeader.
      */
-    public ProtocolSupportedTlv(TlvHeader tlvHeader) {
-
+    public IsReachabilityTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());
         this.setTlvLength(tlvHeader.tlvLength());
-
     }
 
     /**
-     * Adds the protocol supported to protocol supported TLV.
+     * Returns the reserved value of IS reachability TLV.
      *
-     * @param protocolValue protocol supported
+     * @return reserved
      */
-    public void addProtocolSupported(byte protocolValue) {
-        protocolSupported.add(protocolValue);
+    public int reserved() {
+        return reserved;
     }
 
     /**
-     * Returns protocols supported of protocol supported TLV.
+     * Sets the reserved value for IS reachability TLV.
      *
-     * @return protocol supported
+     * @param reserved reserved
      */
-    public List<Byte> protocolSupported() {
-        return this.protocolSupported;
+    public void setReserved(int reserved) {
+        this.reserved = reserved;
+    }
+
+    /**
+     * Adds the metric of reachability to IS reachability TLV..
+     *
+     * @param metricsOfReachability metric of reachability
+     */
+    public void addMeticsOfReachability(MetricsOfReachability metricsOfReachability) {
+        this.metricsOfReachabilities.add(metricsOfReachability);
     }
 
     @Override
     public void readFrom(ChannelBuffer channelBuffer) {
+        this.setReserved(channelBuffer.readByte());
         while (channelBuffer.readableBytes() > 0) {
-            this.protocolSupported.add(channelBuffer.readByte());
+            MetricsOfReachability metricsOfReachability = new MetricsOfReachability();
+            metricsOfReachability.readFrom(channelBuffer);
+            this.metricsOfReachabilities.add(metricsOfReachability);
         }
     }
 
     @Override
     public byte[] asBytes() {
         byte[] bytes = null;
-
         byte[] tlvHeader = tlvHeaderAsByteArray();
         byte[] tlvBody = tlvBodyAsBytes();
         tlvHeader[1] = (byte) tlvBody.length;
@@ -78,28 +88,24 @@ public class ProtocolSupportedTlv extends TlvHeader implements IsisTlv {
     }
 
     /**
-     * Gets TLV body of protocol supported TLV.
+     * Returns TLV body of IS reachability TLV.
      *
-     * @return byteArray TLV body of protocol supported TLV
+     * @return byteArray TLV body of area address TLV
      */
     private byte[] tlvBodyAsBytes() {
         List<Byte> bytes = new ArrayList<>();
-        for (byte byt : this.protocolSupported) {
-            bytes.add(byt);
+        bytes.add((byte) this.reserved());
+        for (MetricsOfReachability metricsOfReachability : this.metricsOfReachabilities) {
+            bytes.addAll(Bytes.asList(metricsOfReachability.asBytes()));
         }
-        byte[] byteArray = new byte[bytes.size()];
-        int i = 0;
-        for (byte byt : bytes) {
-            byteArray[i++] = byt;
-        }
-        return byteArray;
+        return Bytes.toArray(bytes);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
-                .add("protocolSupported", protocolSupported)
+                .add("metricsOfReachabilities", metricsOfReachabilities)
                 .toString();
     }
 }

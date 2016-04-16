@@ -16,23 +16,33 @@
 package org.onosproject.isis.io.isispacket.tlv;
 
 import com.google.common.primitives.Bytes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents conversion of TLV's to bytes.
+ * Representation of conversion of TLV's to bytes.
  */
 public final class TlvsToBytes {
+
+    protected static final Logger log = LoggerFactory.getLogger(TlvsToBytes.class);
+
+    /**
+     * Creates an instance.
+     */
+    private TlvsToBytes() {
+    }
+
     /**
      * Sets the ISIS TLV and returns in the form of bytes.
      *
-     * @param isisTlv isisTlv
-     * @return tlvBytes TLV bytes
+     * @param isisTlv isisTlv.
+     * @return tlvBytes
      */
     public static List<Byte> tlvToBytes(IsisTlv isisTlv) {
-
-        List<Byte> tlvBytes = new ArrayList();
+        List<Byte> tlvBytes = new ArrayList<>();
         if (isisTlv instanceof AreaAddressTlv) {
             AreaAddressTlv areaAddressTlv = (AreaAddressTlv) isisTlv;
             tlvBytes.addAll(Bytes.asList(areaAddressTlv.asBytes()));
@@ -48,16 +58,33 @@ public final class TlvsToBytes {
         } else if (isisTlv instanceof IsisNeighborTlv) {
             IsisNeighborTlv isisNeighborTlv = (IsisNeighborTlv) isisTlv;
             tlvBytes.addAll(Bytes.asList(isisNeighborTlv.asBytes()));
+        } else if (isisTlv instanceof AdjacencyStateTlv) {
+            AdjacencyStateTlv isisAdjacencyState
+                    = (AdjacencyStateTlv) isisTlv;
+            tlvBytes.addAll(Bytes.asList(isisAdjacencyState.asBytes()));
+        } else if (isisTlv instanceof HostNameTlv) {
+            HostNameTlv hostNameTlv
+                    = (HostNameTlv) isisTlv;
+            tlvBytes.addAll(Bytes.asList(hostNameTlv.asBytes()));
+        } else if (isisTlv instanceof IpExtendedReachabilityTlv) {
+            IpExtendedReachabilityTlv ipExtendedReachabilityTlv
+                    = (IpExtendedReachabilityTlv) isisTlv;
+            tlvBytes.addAll(Bytes.asList(ipExtendedReachabilityTlv.asBytes()));
+        } else if (isisTlv instanceof IpInternalReachabilityTlv) {
+            IpInternalReachabilityTlv ipInternalReachabilityTlv
+                    = (IpInternalReachabilityTlv) isisTlv;
+            tlvBytes.addAll(Bytes.asList(ipInternalReachabilityTlv.asBytes()));
+        } else if (isisTlv instanceof IsReachabilityTlv) {
+            IsReachabilityTlv isReachabilityTlv
+                    = (IsReachabilityTlv) isisTlv;
+            tlvBytes.addAll(Bytes.asList(isReachabilityTlv.asBytes()));
+        } else if (isisTlv instanceof LspEntriesTlv) {
+            LspEntriesTlv lspEntriesTlv
+                    = (LspEntriesTlv) isisTlv;
+            tlvBytes.addAll(Bytes.asList(lspEntriesTlv.asBytes()));
         } else {
-            System.out.println("UNKNOWN TLV TYPE ::TlvsToBytes ");
+            log.debug("TlvsToBytes::UNKNOWN TLV TYPE ::TlvsToBytes ");
         }
-
         return tlvBytes;
-    }
-    /**
-     * Creates an instance.
-     */
-    private TlvsToBytes() {
-        //private constructor
     }
 }

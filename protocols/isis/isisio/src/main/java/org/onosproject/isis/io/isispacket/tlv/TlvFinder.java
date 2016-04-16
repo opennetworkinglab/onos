@@ -15,55 +15,90 @@
  */
 package org.onosproject.isis.io.isispacket.tlv;
 
-import io.netty.buffer.ByteBuf;
-import org.onosproject.isis.io.util.IsisUtil;
+import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
- * Represents TLV finder.
+ * Representation of TLV Finder.
  */
 public class TlvFinder extends TlvHeader {
 
     /**
-     * Sets the value for TLV header and the body of the TLV.
+     * Sets the value for TLV header.
      *
-     * @param tlvHeader tlvHeader
-     * @param byteBuf   byteBuf
-     * @return isisTlv ISIS TLV
+     * @param tlvHeader     tlvHeader
+     * @param channelBuffer byteBuf
+     * @return isisTlv
      */
-    public static IsisTlv findTlv(TlvHeader tlvHeader, ByteBuf byteBuf) {
+    public static IsisTlv findTlv(TlvHeader tlvHeader, ChannelBuffer channelBuffer) {
 
         IsisTlv isisTlv = null;
-
-        switch (tlvHeader.tlvType()) {
-            case IsisUtil.AREAADDRESS:
+        switch (TlvType.get(tlvHeader.tlvType())) {
+            case AREAADDRESS:
                 AreaAddressTlv areaAddressTlv = new AreaAddressTlv(tlvHeader);
-                areaAddressTlv.readFrom(byteBuf);
+                areaAddressTlv.readFrom(channelBuffer);
                 isisTlv = areaAddressTlv;
                 break;
-            case IsisUtil.IPINTERFACEADDRESS:
+            case AUTHENTICATION:
+                //TODO
+                break;
+            case EXTENDEDISREACHABILITY:
+                //TODO
+                break;
+            case IDRPINFORMATION:
+                IdrpInformationTlv idrpInformationTlv = new IdrpInformationTlv(tlvHeader);
+                idrpInformationTlv.readFrom(channelBuffer);
+                isisTlv = idrpInformationTlv;
+                break;
+            case IPEXTENDEDREACHABILITY:
+                IpExtendedReachabilityTlv iperTlv = new IpExtendedReachabilityTlv(tlvHeader);
+                iperTlv.readFrom(channelBuffer);
+                isisTlv = iperTlv;
+                break;
+            case IPINTERFACEADDRESS:
                 IpInterfaceAddressTlv ipTlv = new IpInterfaceAddressTlv(tlvHeader);
-                ipTlv.readFrom(byteBuf);
+                ipTlv.readFrom(channelBuffer);
                 isisTlv = ipTlv;
                 break;
-            case IsisUtil.PROTOCOLSUPPORTED:
+            case IPINTERNALREACHABILITY:
+                IpInternalReachabilityTlv iprTlv = new IpInternalReachabilityTlv(tlvHeader);
+                iprTlv.readFrom(channelBuffer);
+                isisTlv = iprTlv;
+                break;
+            case ISALIAS:
+                break;
+            case PROTOCOLSUPPORTED:
                 ProtocolSupportedTlv psTlv = new ProtocolSupportedTlv(tlvHeader);
-                psTlv.readFrom(byteBuf);
+                psTlv.readFrom(channelBuffer);
                 isisTlv = psTlv;
                 break;
-            case IsisUtil.ISNEIGHBORS:
+            case ISREACHABILITY:
+                IsReachabilityTlv isrTlv = new IsReachabilityTlv(tlvHeader);
+                isrTlv.readFrom(channelBuffer);
+                isisTlv = isrTlv;
+                break;
+            case ISNEIGHBORS:
                 IsisNeighborTlv isisNeighborTlv = new IsisNeighborTlv(tlvHeader);
-                isisNeighborTlv.readFrom(byteBuf);
+                isisNeighborTlv.readFrom(channelBuffer);
                 isisTlv = isisNeighborTlv;
                 break;
-            case IsisUtil.PADDING:
+            case LSPENTRY:
+                LspEntriesTlv lspEntriesTlv = new LspEntriesTlv(tlvHeader);
+                lspEntriesTlv.readFrom(channelBuffer);
+                isisTlv = lspEntriesTlv;
+                break;
+            case PADDING:
                 PaddingTlv paddingTlv = new PaddingTlv(tlvHeader);
-                paddingTlv.readFrom(byteBuf);
+                paddingTlv.readFrom(channelBuffer);
                 isisTlv = paddingTlv;
+                break;
+            case ADJACENCYSTATE:
+                AdjacencyStateTlv adjacencyStateTlv = new AdjacencyStateTlv(tlvHeader);
+                adjacencyStateTlv.readFrom(channelBuffer);
+                isisTlv = adjacencyStateTlv;
                 break;
             default:
                 break;
         }
-
         return isisTlv;
     }
 }

@@ -19,57 +19,51 @@ import com.google.common.base.MoreObjects;
 import com.google.common.primitives.Bytes;
 import org.jboss.netty.buffer.ChannelBuffer;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Representation of  protocol supported TLV.
+ * Representation of host name TLV.
  */
-public class ProtocolSupportedTlv extends TlvHeader implements IsisTlv {
-
-    private List<Byte> protocolSupported = new ArrayList<>();
+public class HostNameTlv extends TlvHeader {
+    private String hostName;
 
     /**
-     * Creates an instance of protocol supported TLV.
+     * Creates an instance of host name TLV.
      *
      * @param tlvHeader tlvHeader.
      */
-    public ProtocolSupportedTlv(TlvHeader tlvHeader) {
-
+    public HostNameTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());
         this.setTlvLength(tlvHeader.tlvLength());
 
     }
 
     /**
-     * Adds the protocol supported to protocol supported TLV.
+     * Returns host name of host name TLV.
      *
-     * @param protocolValue protocol supported
+     * @return host name
      */
-    public void addProtocolSupported(byte protocolValue) {
-        protocolSupported.add(protocolValue);
+    public String hostName() {
+        return hostName;
     }
 
     /**
-     * Returns protocols supported of protocol supported TLV.
+     * Sets host name for host name TLV.
      *
-     * @return protocol supported
+     * @param hostName host name.
      */
-    public List<Byte> protocolSupported() {
-        return this.protocolSupported;
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
     }
 
     @Override
     public void readFrom(ChannelBuffer channelBuffer) {
-        while (channelBuffer.readableBytes() > 0) {
-            this.protocolSupported.add(channelBuffer.readByte());
-        }
+        byte[] addressbytes = new byte[this.tlvLength()];
+        channelBuffer.readBytes(addressbytes, 0, this.tlvLength());
+        this.hostName = new String(addressbytes);
     }
 
     @Override
     public byte[] asBytes() {
         byte[] bytes = null;
-
         byte[] tlvHeader = tlvHeaderAsByteArray();
         byte[] tlvBody = tlvBodyAsBytes();
         tlvHeader[1] = (byte) tlvBody.length;
@@ -78,28 +72,20 @@ public class ProtocolSupportedTlv extends TlvHeader implements IsisTlv {
     }
 
     /**
-     * Gets TLV body of protocol supported TLV.
+     * Returns TLV body of host name TLV.
      *
-     * @return byteArray TLV body of protocol supported TLV
+     * @return byteArray TLV body of host name TLV
      */
     private byte[] tlvBodyAsBytes() {
-        List<Byte> bytes = new ArrayList<>();
-        for (byte byt : this.protocolSupported) {
-            bytes.add(byt);
-        }
-        byte[] byteArray = new byte[bytes.size()];
-        int i = 0;
-        for (byte byt : bytes) {
-            byteArray[i++] = byt;
-        }
-        return byteArray;
+        byte[] bytes = this.hostName.getBytes();
+        return bytes;
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
-                .add("protocolSupported", protocolSupported)
+                .add("hostName", hostName)
                 .toString();
     }
 }

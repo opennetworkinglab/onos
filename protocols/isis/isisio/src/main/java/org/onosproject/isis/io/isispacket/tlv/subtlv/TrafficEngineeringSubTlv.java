@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+package org.onosproject.isis.io.isispacket.tlv.subtlv;
+
 /**
- * Implementation of the ISIS protocol.
+ * Representation of traffic engineering sub tlv.
  */
-package org.onosproject.isis.io.isispacket;
+public interface TrafficEngineeringSubTlv {
+}

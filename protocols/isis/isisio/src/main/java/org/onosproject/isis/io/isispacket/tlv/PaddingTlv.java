@@ -17,19 +17,19 @@ package org.onosproject.isis.io.isispacket.tlv;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.primitives.Bytes;
-import io.netty.buffer.ByteBuf;
+import org.jboss.netty.buffer.ChannelBuffer;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents padding TLV.
+ * Representation of padding TLV.
  */
 public class PaddingTlv extends TlvHeader implements IsisTlv {
-    private List<Byte> paddings = new ArrayList();
+    private List<Byte> paddings = new ArrayList<>();
 
     /**
-     * Sets TLV type and TLV length of padding TLV.
+     * Creates an instance of padding TLV.
      *
      * @param tlvHeader tlvHeader.
      */
@@ -39,9 +39,9 @@ public class PaddingTlv extends TlvHeader implements IsisTlv {
     }
 
     @Override
-    public void readFrom(ByteBuf byteBuf) {
-        while (byteBuf.readableBytes() > 0) {
-            this.paddings.add(byteBuf.readByte());
+    public void readFrom(ChannelBuffer channelBuffer) {
+        while (channelBuffer.readableBytes() > 0) {
+            this.paddings.add(channelBuffer.readByte());
         }
     }
 
@@ -51,17 +51,18 @@ public class PaddingTlv extends TlvHeader implements IsisTlv {
 
         byte[] tlvHeader = tlvHeaderAsByteArray();
         byte[] tlvBody = tlvBodyAsBytes();
+        tlvHeader[1] = (byte) tlvBody.length;
         bytes = Bytes.concat(tlvHeader, tlvBody);
 
         return bytes;
     }
 
     /**
-     * Gets TLV body padding TLV.
+     * Returns TLV body of padding TLV.
      *
-     * @return areaArea TLV body padding TLV\\
+     * @return byteArray TLV body of padding TLV
      */
-    public byte[] tlvBodyAsBytes() {
+    private byte[] tlvBodyAsBytes() {
         byte[] areaArea = new byte[this.tlvLength()];
         return areaArea;
     }
@@ -70,6 +71,7 @@ public class PaddingTlv extends TlvHeader implements IsisTlv {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
+                .add("paddings", paddings)
                 .toString();
     }
 }

@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of the ISIS protocol.
+ * Implementation of the ISIS protocol IO.
  */
 package org.onosproject.isis.io;

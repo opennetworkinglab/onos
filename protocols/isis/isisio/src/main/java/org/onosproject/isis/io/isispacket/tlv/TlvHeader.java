@@ -17,29 +17,29 @@ package org.onosproject.isis.io.isispacket.tlv;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.primitives.Bytes;
-import io.netty.buffer.ByteBuf;
+import org.jboss.netty.buffer.ChannelBuffer;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents TLV header.
+ * Representation of TLV header.
  */
 public class TlvHeader implements IsisTlv {
     private int tlvType;
     private int tlvLength;
 
     /**
-     * Gets the TLV length of the TLV.
+     * Returns TLV length of TLV.
      *
-     * @return tlvLength TLV length
+     * @return TLV length
      */
     public int tlvLength() {
         return tlvLength;
     }
 
     /**
-     * Sets the TLV length for the mTLV.
+     * Sets TLV length for TLV.
      *
      * @param tlvLength TLV length
      */
@@ -48,16 +48,16 @@ public class TlvHeader implements IsisTlv {
     }
 
     /**
-     * Gets the TLV type of the TLV.
+     * Returns TLV type of TLV.
      *
-     * @return tlvType TLV type
+     * @return TLV type
      */
     public int tlvType() {
         return tlvType;
     }
 
     /**
-     * Sets TLV type for the TLV.
+     * Sets TLV type for TLV.
      *
      * @param tlvType TLV type
      */
@@ -66,32 +66,31 @@ public class TlvHeader implements IsisTlv {
     }
 
     /**
-     * Sets the TLV values of TLV from b yte buffer.
+     * Sets TLV values from channel buffer.
      *
-     * @param byteBuf byteBuf.
+     * @param channelBuffer channel Buffer instance
      */
-    public void readFrom(ByteBuf byteBuf) {
+    public void readFrom(ChannelBuffer channelBuffer) {
         //implemented in sub classes
     }
 
 
     /**
-     * Gets the TLV of the TLV as bytes.
+     * Returns TLV as byte array.
      *
-     * @return null
+     * @return byteArray TLV body of area address TLV
      */
     public byte[] asBytes() {
-        //implemented the subclasses
         return null;
     }
 
     /**
-     * Gets the TLV header of the TLV.
+     * Returns TLV header of TLV as bytes.
      *
-     * @return headerLst TLV of the TLV
+     * @return TLV header as bytes
      */
     public byte[] tlvHeaderAsByteArray() {
-        List<Byte> headerLst = new ArrayList();
+        List<Byte> headerLst = new ArrayList<>();
         headerLst.add((byte) this.tlvType);
         headerLst.add((byte) this.tlvLength);
         return Bytes.toArray(headerLst);

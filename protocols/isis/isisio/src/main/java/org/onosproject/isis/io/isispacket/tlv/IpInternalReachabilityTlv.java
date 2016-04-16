@@ -23,53 +23,42 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Representation of  protocol supported TLV.
+ * Representation of IP internal reachability TLV.
  */
-public class ProtocolSupportedTlv extends TlvHeader implements IsisTlv {
-
-    private List<Byte> protocolSupported = new ArrayList<>();
+public class IpInternalReachabilityTlv extends TlvHeader implements IsisTlv {
+    private List<MetricOfInternalReachability> metricOfInternalReachability = new ArrayList<>();
 
     /**
-     * Creates an instance of protocol supported TLV.
+     * Creates an instance of IP internal reachability TLV.
      *
      * @param tlvHeader tlvHeader.
      */
-    public ProtocolSupportedTlv(TlvHeader tlvHeader) {
-
+    public IpInternalReachabilityTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());
         this.setTlvLength(tlvHeader.tlvLength());
-
     }
 
     /**
-     * Adds the protocol supported to protocol supported TLV.
+     * Adds the metric of internal reachability to internal reachability TLV.
      *
-     * @param protocolValue protocol supported
+     * @param metricValue metric of internal reachability
      */
-    public void addProtocolSupported(byte protocolValue) {
-        protocolSupported.add(protocolValue);
-    }
-
-    /**
-     * Returns protocols supported of protocol supported TLV.
-     *
-     * @return protocol supported
-     */
-    public List<Byte> protocolSupported() {
-        return this.protocolSupported;
+    public void addInternalReachabilityMetric(MetricOfInternalReachability metricValue) {
+        this.metricOfInternalReachability.add(metricValue);
     }
 
     @Override
     public void readFrom(ChannelBuffer channelBuffer) {
         while (channelBuffer.readableBytes() > 0) {
-            this.protocolSupported.add(channelBuffer.readByte());
+            MetricOfInternalReachability metricOfInternalReachability = new MetricOfInternalReachability();
+            metricOfInternalReachability.readFrom(channelBuffer);
+            this.metricOfInternalReachability.add(metricOfInternalReachability);
         }
     }
 
     @Override
     public byte[] asBytes() {
         byte[] bytes = null;
-
         byte[] tlvHeader = tlvHeaderAsByteArray();
         byte[] tlvBody = tlvBodyAsBytes();
         tlvHeader[1] = (byte) tlvBody.length;
@@ -78,28 +67,24 @@ public class ProtocolSupportedTlv extends TlvHeader implements IsisTlv {
     }
 
     /**
-     * Gets TLV body of protocol supported TLV.
+     * Returns TLV body of internal reachability TLV.
      *
-     * @return byteArray TLV body of protocol supported TLV
+     * @return byteArray TLV body of area address TLV
      */
     private byte[] tlvBodyAsBytes() {
         List<Byte> bytes = new ArrayList<>();
-        for (byte byt : this.protocolSupported) {
-            bytes.add(byt);
+        for (MetricOfInternalReachability metricOfInternalReachability :
+                this.metricOfInternalReachability) {
+            bytes.addAll(Bytes.asList(metricOfInternalReachability.asBytes()));
         }
-        byte[] byteArray = new byte[bytes.size()];
-        int i = 0;
-        for (byte byt : bytes) {
-            byteArray[i++] = byt;
-        }
-        return byteArray;
+        return Bytes.toArray(bytes);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
-                .add("protocolSupported", protocolSupported)
+                .add("metricOfInternalReachability", metricOfInternalReachability)
                 .toString();
     }
 }

@@ -17,4 +17,4 @@
 /**
  * Implementation of the ISIS protocol.
  */
-package org.onosproject.isis.io.isispacket;
+package org.onosproject.isis.io.isispacket.tlv.subtlv;
