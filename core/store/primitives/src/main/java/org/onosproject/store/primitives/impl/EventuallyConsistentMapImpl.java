@@ -256,11 +256,13 @@ public class EventuallyConsistentMapImpl<K, V>
                                           serializer::encode,
                                           this.backgroundExecutor);
 
-        previousTombstonePurgeTime = 0;
-        this.backgroundExecutor.scheduleWithFixedDelay(this::purgeTombstones,
-                                                       initialDelaySec,
-                                                       antiEntropyPeriod,
-                                                       TimeUnit.SECONDS);
+        if (!tombstonesDisabled) {
+            previousTombstonePurgeTime = 0;
+            this.backgroundExecutor.scheduleWithFixedDelay(this::purgeTombstones,
+                                                           initialDelaySec,
+                                                           antiEntropyPeriod,
+                                                           TimeUnit.SECONDS);
+        }
 
         this.tombstonesDisabled = tombstonesDisabled;
         this.lightweightAntiEntropy = !convergeFaster;
@@ -659,10 +661,13 @@ public class EventuallyConsistentMapImpl<K, V>
          * AE exchange with each peer. The smallest (or oldest) such time across *all* peers is regarded
          * as the time before which all tombstones are considered safe to purge.
          */
-        if (tombstonesDisabled || antiEntropyTimes.size() != clusterService.getNodes().size() - 1) {
-            return;
-        }
-        long currentSafeTombstonePurgeTime = antiEntropyTimes.values().stream().reduce(Math::min).orElse(0L);
+        long currentSafeTombstonePurgeTime =  clusterService.getNodes()
+                                                            .stream()
+                                                            .map(ControllerNode::id)
+                                                            .filter(id -> !id.equals(localNodeId))
+                                                            .map(id -> antiEntropyTimes.getOrDefault(id, 0L))
+                                                            .reduce(Math::min)
+                                                            .orElse(0L);
         if (currentSafeTombstonePurgeTime == previousTombstonePurgeTime) {
             return;
         }
