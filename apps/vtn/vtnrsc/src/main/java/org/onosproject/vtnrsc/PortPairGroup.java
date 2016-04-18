@@ -16,6 +16,7 @@
 package org.onosproject.vtnrsc;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Abstraction of an entity providing Port Pair Group information.
@@ -63,7 +64,7 @@ public interface PortPairGroup {
      *
      * @param portPairId port pair id.
      */
-    public void addLoad(PortPairId portPairId);
+    void addLoad(PortPairId portPairId);
 
     /**
      * Get the load on the given port pair id.
@@ -71,7 +72,14 @@ public interface PortPairGroup {
      * @param portPairId port pair id
      * @return load on the given port pair id.
      */
-    public int getLoad(PortPairId portPairId);
+    int getLoad(PortPairId portPairId);
+
+    /**
+     * Get the map of port pair id and its load.
+     *
+     * @return port pair and load map
+     */
+    Map<PortPairId, Integer> portPairLoadMap();
 
     /**
      * Returns whether this port pair group is an exact match to the

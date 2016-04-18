@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Implementation of port pair group.
@@ -96,6 +97,11 @@ public final class DefaultPortPairGroup implements PortPairGroup {
     @Override
     public int getLoad(PortPairId portPairId) {
         return portPairLoadMap.get(portPairId);
+    }
+
+    @Override
+    public Map<PortPairId, Integer> portPairLoadMap() {
+        return ImmutableMap.copyOf(portPairLoadMap);
     }
 
     @Override

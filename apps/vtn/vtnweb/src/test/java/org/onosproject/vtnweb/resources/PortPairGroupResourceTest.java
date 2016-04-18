@@ -19,6 +19,7 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -116,21 +117,24 @@ public class PortPairGroupResourceTest extends VtnResourceTest {
         }
 
         @Override
-        public boolean exactMatch(PortPairGroup portPairGroup) {
-            return this.equals(portPairGroup) &&
-                    Objects.equals(this.portPairGroupId, portPairGroup.portPairGroupId()) &&
-                    Objects.equals(this.tenantId, portPairGroup.tenantId());
-        }
-
-        @Override
         public void addLoad(PortPairId portPairId) {
-            // TODO Auto-generated method stub
         }
 
         @Override
         public int getLoad(PortPairId portPairId) {
-            // TODO Auto-generated method stub
             return 0;
+        }
+
+        @Override
+        public Map<PortPairId, Integer> portPairLoadMap() {
+            return null;
+        }
+
+        @Override
+        public boolean exactMatch(PortPairGroup portPairGroup) {
+            return this.equals(portPairGroup) &&
+                    Objects.equals(this.portPairGroupId, portPairGroup.portPairGroupId()) &&
+                    Objects.equals(this.tenantId, portPairGroup.tenantId());
         }
     }
 
