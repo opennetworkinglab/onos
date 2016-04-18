@@ -18,6 +18,7 @@ package org.onosproject.yangutils.translator.tojava.utils;
 
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 
+import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getParseFromStringMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
@@ -28,7 +29,9 @@ import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILD;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
+import static org.onosproject.yangutils.utils.UtilConstants.CATCH;
 import static org.onosproject.yangutils.utils.UtilConstants.CHECK_NOT_NULL_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.CLEAR;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
@@ -38,8 +41,12 @@ import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTAT
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
 import static org.onosproject.yangutils.utils.UtilConstants.EQUALS_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.EXCEPTION;
+import static org.onosproject.yangutils.utils.UtilConstants.EXCEPTION_VAR;
 import static org.onosproject.yangutils.utils.UtilConstants.FALSE;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_METHOD_NAME;
+import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_PARAM_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.GET_METHOD_PREFIX;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_METHOD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.HASH;
@@ -51,10 +58,12 @@ import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.NULL;
 import static org.onosproject.yangutils.utils.UtilConstants.OBJ;
 import static org.onosproject.yangutils.utils.UtilConstants.OBJECT;
 import static org.onosproject.yangutils.utils.UtilConstants.OBJECT_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.OF;
+import static org.onosproject.yangutils.utils.UtilConstants.OMIT_NULL_VALUE_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.OTHER;
@@ -71,17 +80,22 @@ import static org.onosproject.yangutils.utils.UtilConstants.STATIC;
 import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.SUFFIX_S;
 import static org.onosproject.yangutils.utils.UtilConstants.THIS;
+import static org.onosproject.yangutils.utils.UtilConstants.TMP_VAL;
 import static org.onosproject.yangutils.utils.UtilConstants.TO;
 import static org.onosproject.yangutils.utils.UtilConstants.TRUE;
+import static org.onosproject.yangutils.utils.UtilConstants.TRY;
 import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
 import static org.onosproject.yangutils.utils.UtilConstants.VOID;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILD_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.DEFAULT_CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OF_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.SETTER_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.TYPE_CONSTRUCTOR;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.UNION_FROM_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
 /**
@@ -123,7 +137,7 @@ public final class MethodsGenerator {
     /**
      * Returns setter string.
      *
-     * @param attr attribute info
+     * @param attr      attribute info
      * @param className java class name
      * @return setter string
      */
@@ -149,46 +163,13 @@ public final class MethodsGenerator {
     /**
      * Returns default constructor method string.
      *
-     * @param name class name
+     * @param name         class name
      * @param modifierType modifier type
      * @return default constructor string
      */
     public static String getDefaultConstructorString(String name, String modifierType) {
-        return getJavaDoc(DEFAULT_CONSTRUCTOR, name, false) + getDefaultConstructor(name, modifierType);
-    }
-
-    /**
-     * Returns default constructor method string.
-     *
-     * @param attr attribute info
-     * @param className class name
-     * @return default constructor string
-     */
-    public static String getTypeDefConstructor(JavaAttributeInfo attr, String className) {
-
-        String attrQuaifiedType = getReturnType(attr);
-        String attributeName = getSmallCase(attr.getAttributeName());
-
-        if (!attr.isListAttr()) {
-            return getTypeDefConstructorString(attrQuaifiedType, attributeName, className);
-        }
-        String listAttr = getListString() + attrQuaifiedType + DIAMOND_CLOSE_BRACKET;
-        return getTypeDefConstructorString(listAttr, attributeName, className);
-    }
-
-    /**
-     * Returns type def's constructor for attribute.
-     *
-     * @param type data type
-     * @param name attribute name
-     * @param className class name
-     * @return setter for type def's attribute
-     */
-    private static String getTypeDefConstructorString(String type, String name, String className) {
-        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + className + OPEN_PARENTHESIS + type + SPACE + VALUE
-                + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + THIS + PERIOD
-                + name + SPACE + EQUAL + SPACE + VALUE + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION
-                + CLOSE_CURLY_BRACKET;
+        return getJavaDoc(DEFAULT_CONSTRUCTOR, name, false) + getDefaultConstructor(name, modifierType)
+                + NEW_LINE;
     }
 
     /**
@@ -246,7 +227,7 @@ public final class MethodsGenerator {
     /**
      * Returns the setter method strings for class file.
      *
-     * @param attr attribute info
+     * @param attr      attribute info
      * @param className name of the class
      * @return setter method for class
      */
@@ -265,8 +246,8 @@ public final class MethodsGenerator {
      * Returns setter for attribute.
      *
      * @param className class name
-     * @param name attribute name
-     * @param type return type
+     * @param name      attribute name
+     * @param type      return type
      * @return setter for attribute
      */
     private static String getSetter(String className, String name, String type) {
@@ -316,9 +297,9 @@ public final class MethodsGenerator {
     /**
      * Returns the getter method strings for interface file.
      *
-     * @param yangName name of the attribute
+     * @param yangName   name of the attribute
      * @param returnType return type of attribute
-     * @param isList is list attribute
+     * @param isList     is list attribute
      * @return getter method for interface
      */
     public static String getGetterForInterface(String yangName, String returnType, boolean isList) {
@@ -334,7 +315,7 @@ public final class MethodsGenerator {
      * Returns getter for attribute in interface.
      *
      * @param returnType return type
-     * @param yangName attribute name
+     * @param yangName   attribute name
      * @return getter for interface
      */
     private static String getGetterInterfaceString(String returnType, String yangName) {
@@ -345,10 +326,10 @@ public final class MethodsGenerator {
     /**
      * Returns the setter method strings for interface file.
      *
-     * @param attrName name of the attribute
-     * @param attrType return type of attribute
+     * @param attrName  name of the attribute
+     * @param attrType  return type of attribute
      * @param className name of the java class being generated
-     * @param isList is list attribute
+     * @param isList    is list attribute
      * @return setter method for interface
      */
     public static String getSetterForInterface(String attrName, String attrType, String className, boolean isList) {
@@ -364,8 +345,8 @@ public final class MethodsGenerator {
      * Returns setter string for interface.
      *
      * @param className class name
-     * @param attrName attribute name
-     * @param attrType attribute type
+     * @param attrName  attribute name
+     * @param attrType  attribute type
      * @return setter string
      */
     private static String getSetterInterfaceString(String className, String attrName, String attrType) {
@@ -428,7 +409,7 @@ public final class MethodsGenerator {
      * Returns the constructor strings for class file.
      *
      * @param yangName name of the class
-     * @param attr attribute info
+     * @param attr     attribute info
      * @return constructor for class
      */
     public static String getConstructor(String yangName, JavaAttributeInfo attr) {
@@ -459,7 +440,7 @@ public final class MethodsGenerator {
     /**
      * Returns the Default constructor strings for class file.
      *
-     * @param name name of the class
+     * @param name         name of the class
      * @param modifierType modifier type for default constructor
      * @return Default constructor for class
      */
@@ -469,9 +450,9 @@ public final class MethodsGenerator {
     }
 
     /**
-     * Returns to string method open strings.
+     * Returns to string method's open strings.
      *
-     * @return to string method open string
+     * @return string method's open string
      */
     public static String getToStringMethodOpen() {
         return getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STRING_DATA_TYPE + SPACE + TO
@@ -480,7 +461,16 @@ public final class MethodsGenerator {
     }
 
     /**
-     * Returns to string methods close string.
+     * Returns omit null value string.
+     *
+     * @return omit null value string
+     */
+    public static String getOmitNullValueString() {
+        return TWELVE_SPACE_INDENTATION + PERIOD + OMIT_NULL_VALUE_STRING + NEW_LINE;
+    }
+
+    /**
+     * Returns to string method's close string.
      *
      * @return to string method close string
      */
@@ -501,6 +491,90 @@ public final class MethodsGenerator {
         return TWELVE_SPACE_INDENTATION + PERIOD + ADD_STRING + OPEN_PARENTHESIS + QUOTES + attributeName + QUOTES
                 + COMMA + SPACE + attributeName + CLOSE_PARENTHESIS;
     }
+
+    /**
+     * Returns from string method's open string.
+     *
+     * @param className name of the class
+     * @return from string method's open string
+     */
+    public static String getFromStringMethodSignature(String className) {
+        return getJavaDoc(UNION_FROM_METHOD, className, false) + FOUR_SPACE_INDENTATION + PUBLIC + SPACE
+                + className + SPACE + FROM_STRING_METHOD_NAME + OPEN_PARENTHESIS + STRING_DATA_TYPE + SPACE
+                + FROM_STRING_PARAM_NAME + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
+     * Return from string method's close string.
+     *
+     * @return from string method's close string
+     */
+    public static String getFromStringMethodClose() {
+        return EIGHT_SPACE_INDENTATION + RETURN + SPACE + NULL + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION +
+                CLOSE_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
+     * Return from string method's body string.
+     *
+     * @param attr                    attribute info
+     * @param fromStringAttributeInfo attribute info for the from string
+     *                                wrapper type
+     * @return from string method's body string
+     */
+    public static String getFromStringMethod(JavaAttributeInfo attr,
+                                             JavaAttributeInfo fromStringAttributeInfo) {
+
+        return EIGHT_SPACE_INDENTATION + getTrySubString() + NEW_LINE + TWELVE_SPACE_INDENTATION
+                + getParsedSubString(attr, fromStringAttributeInfo) + SEMI_COLAN + NEW_LINE + TWELVE_SPACE_INDENTATION
+                + getReturnOfSubString() + NEW_LINE + EIGHT_SPACE_INDENTATION + getCatchSubString()
+                + NEW_LINE + EIGHT_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+    }
+
+    /**
+     * Returns sub string with try statement for union's from string method.
+     *
+     * @return sub string with try statement for union's from string method
+     */
+    public static String getTrySubString() {
+        return TRY + SPACE + OPEN_CURLY_BRACKET;
+    }
+
+    /**
+     * Returns sub string with return statement for union's from string method.
+     *
+     * @return sub string with return statement for union's from string method
+     */
+    public static String getReturnOfSubString() {
+        return RETURN + SPACE + OF + OPEN_PARENTHESIS + TMP_VAL + CLOSE_PARENTHESIS + SEMI_COLAN;
+    }
+
+    /**
+     * Returns sub string with catch statement for union's from string method.
+     *
+     * @return sub string with catch statement for union's from string method
+     */
+    public static String getCatchSubString() {
+        return CLOSE_CURLY_BRACKET + SPACE + CATCH + SPACE + OPEN_PARENTHESIS + EXCEPTION + SPACE + EXCEPTION_VAR
+                + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET;
+    }
+
+    /**
+     * Returns sub string with parsed statement for union's from string method.
+     *
+     * @param attr attribute info
+     * @return sub string with parsed statement for union's from string method
+     */
+    private static String getParsedSubString(JavaAttributeInfo attr,
+                                             JavaAttributeInfo fromStringAttributeInfo) {
+
+        String targetDataType = getReturnType(attr);
+        String parseFromStringMethod = getParseFromStringMethod(targetDataType,
+                fromStringAttributeInfo.getAttributeType());
+        return targetDataType + SPACE + TMP_VAL + SPACE + EQUAL + SPACE + parseFromStringMethod
+                + OPEN_PARENTHESIS + FROM_STRING_PARAM_NAME + CLOSE_PARENTHESIS;
+    }
+
 
     /**
      * Returns hash code method open strings.
@@ -611,9 +685,10 @@ public final class MethodsGenerator {
      */
     public static String getOfMethod(String name, JavaAttributeInfo attr) {
 
-        String attrQuaifiedType = getReturnType(attr);
+        String attrQualifiedType = getReturnType(attr);
+
         return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STATIC + SPACE + name + SPACE + OF + OPEN_PARENTHESIS
-                + attrQuaifiedType + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
+                + attrQualifiedType + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
                 + EIGHT_SPACE_INDENTATION + RETURN + SPACE + NEW + SPACE + name + OPEN_PARENTHESIS + VALUE
                 + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE;
     }
@@ -632,6 +707,69 @@ public final class MethodsGenerator {
                 + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
 
         return method;
+    }
+
+    /**
+     * Returns of method's string and java doc for special type.
+     *
+     * @param attr                   attribute info
+     * @param generatedJavaClassName class name
+     * @return of method's string and java doc for special type
+     */
+    public static String getOfMethodStringAndJavaDoc(JavaAttributeInfo attr, String generatedJavaClassName) {
+
+        String attrType = getReturnType(attr);
+        String attrName = getSmallCase(attr.getAttributeName());
+
+        return getJavaDoc(OF_METHOD, generatedJavaClassName + " for type " + attrName, false)
+                + getOfMethodString(attrType, generatedJavaClassName);
+    }
+
+    /**
+     * Returns of method's string.
+     *
+     * @param type      data type
+     * @param className class name
+     * @return of method's string
+     */
+    private static String getOfMethodString(String type, String className) {
+
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STATIC + SPACE + className + SPACE + OF + OPEN_PARENTHESIS
+                + type + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
+                + EIGHT_SPACE_INDENTATION + RETURN + SPACE + NEW + SPACE + className + OPEN_PARENTHESIS + VALUE
+                + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+    }
+
+    /**
+     * Returns string and java doc for constructor of type class.
+     *
+     * @param attr                   attribute info
+     * @param generatedJavaClassName class name
+     * @return string and java doc for constructor of type class
+     */
+    public static String getTypeConstructorStringAndJavaDoc(JavaAttributeInfo attr, String generatedJavaClassName) {
+
+        String attrType = getReturnType(attr);
+        String attrName = getSmallCase(attr.getAttributeName());
+
+        return getJavaDoc(TYPE_CONSTRUCTOR, generatedJavaClassName + " for type " + attrName, false)
+                + getTypeConstructorString(attrType, attrName, generatedJavaClassName);
+    }
+
+    /**
+     * Returns type constructor string.
+     *
+     * @param type      data type
+     * @param name      attribute name
+     * @param className class name
+     * @return type constructor string
+     */
+    private static String getTypeConstructorString(String type, String name, String className) {
+
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + className + OPEN_PARENTHESIS + type + SPACE + VALUE
+                + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + THIS + PERIOD
+                + name + SPACE + EQUAL + SPACE + VALUE + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION
+                + CLOSE_CURLY_BRACKET;
     }
 
     /**
@@ -660,7 +798,7 @@ public final class MethodsGenerator {
         method = method + getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + "remove"
                 + AUGMENTATION + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
                 + EIGHT_SPACE_INDENTATION + GET_METHOD_PREFIX + AUGMENTED_INFO + LIST + OPEN_PARENTHESIS
-                + CLOSE_PARENTHESIS + PERIOD + "clear" + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE
+                + CLOSE_PARENTHESIS + PERIOD + CLEAR + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN + NEW_LINE
                 + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
         return method;
     }

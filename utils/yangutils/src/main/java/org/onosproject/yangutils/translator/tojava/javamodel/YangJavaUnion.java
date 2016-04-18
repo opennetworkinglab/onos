@@ -16,21 +16,20 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
-import org.onosproject.yangutils.datamodel.YangTypeDef;
-import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.datamodel.YangUnion;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfType;
 
 /**
- * Represents type define information extended to support java code generation.
+ * Represents union information extended to support java code generation.
  */
-public class YangJavaTypeDef extends YangTypeDef implements JavaCodeGeneratorInfo, JavaCodeGenerator {
+public class YangJavaUnion extends YangUnion implements JavaCodeGeneratorInfo, JavaCodeGenerator {
 
     /**
      * Contains the information of the java file being generated.
@@ -50,13 +49,13 @@ public class YangJavaTypeDef extends YangTypeDef implements JavaCodeGeneratorInf
     private TempJavaCodeFragmentFiles tempFileHandle;
 
     /**
-     * Creates a YANG java typedef object.
+     * Creates an instance of YANG java union.
      */
-    public YangJavaTypeDef() {
+    public YangJavaUnion() {
         super();
         setJavaFileInfo(new JavaFileInfo());
         setJavaImportData(new JavaImportData());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_TYPEDEF_CLASS);
+        getJavaFileInfo().setGeneratedFileTypes(GENERATE_UNION_CLASS);
     }
 
     /**
@@ -66,9 +65,8 @@ public class YangJavaTypeDef extends YangTypeDef implements JavaCodeGeneratorInf
      */
     @Override
     public JavaFileInfo getJavaFileInfo() {
-
         if (javaFileInfo == null) {
-            throw new TranslatorException("Missing java info in java datamodel node");
+            throw new RuntimeException("Missing java info in java datamodel node");
         }
         return javaFileInfo;
     }
@@ -111,6 +109,10 @@ public class YangJavaTypeDef extends YangTypeDef implements JavaCodeGeneratorInf
      */
     @Override
     public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
+        if (tempFileHandle == null) {
+            throw new RuntimeException("Missing temp file hand for current node "
+                    + getJavaFileInfo().getJavaName());
+        }
         return tempFileHandle;
     }
 
@@ -126,7 +128,7 @@ public class YangJavaTypeDef extends YangTypeDef implements JavaCodeGeneratorInf
 
     /**
      * Prepare the information for java code generation corresponding to YANG
-     * typedef info.
+     * union info.
      *
      * @param yangPlugin YANG plugin config
      * @throws IOException IO operations fails
@@ -137,13 +139,12 @@ public class YangJavaTypeDef extends YangTypeDef implements JavaCodeGeneratorInf
     }
 
     /**
-     * Create a java file using the YANG typedef info.
+     * Creates a java file using the YANG union info.
      *
      * @throws IOException IO operations fails
      */
     @Override
     public void generateCodeExit() throws IOException {
-        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_TYPEDEF_CLASS, this);
+        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_UNION_CLASS, this);
     }
-
 }

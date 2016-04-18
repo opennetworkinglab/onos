@@ -15,6 +15,8 @@
  */
 package org.onosproject.yangutils.datamodel;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
@@ -48,10 +50,11 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *                | units        | 7.3.3   | 0..1        |-string           |
  *                +--------------+---------+-------------+------------------+
  */
+
 /**
  * Represents data model node to maintain information defined in YANG typedef.
  */
-public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
+public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, HasType {
 
     /**
      * Default value in string, needs to be converted to the target object,
@@ -90,10 +93,17 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     private String units;
 
     /**
+     * List of YANG type, for typedef it will have single type.
+     * This is done to unify the code with union.
+     */
+    private List<YangType<?>> typeList;
+
+    /**
      * Creates a typedef node.
      */
     public YangTypeDef() {
         super(YangNodeType.TYPEDEF_NODE);
+        typeList = new LinkedList<>();
     }
 
     /**
@@ -180,7 +190,10 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      * @return the data type
      */
     public YangType<?> getTypeDefBaseType() {
-        return dataType;
+        if (!(getTypeList().isEmpty())) {
+            return getTypeList().get(0);
+        }
+        return null;
     }
 
     /**
@@ -189,7 +202,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
      * @param dataType the data type
      */
     public void setDataType(YangType<?> dataType) {
-        this.dataType = dataType;
+        getTypeList().add(0, dataType);
     }
 
     /**
@@ -258,5 +271,10 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable {
     @Override
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public List<YangType<?>> getTypeList() {
+        return typeList;
     }
 }

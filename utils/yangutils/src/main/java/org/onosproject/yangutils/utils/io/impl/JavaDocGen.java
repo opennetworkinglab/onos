@@ -23,8 +23,11 @@ import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_CLASS_JAVA_D
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_INTERFACE_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_OBJECT;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_METHOD_NAME;
+import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_PARAM_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPL_CLASS_JAVA_DOC;
+import static org.onosproject.yangutils.utils.UtilConstants.INPUT;
 import static org.onosproject.yangutils.utils.UtilConstants.INTERFACE_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_BUILD;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_BUILD_RETURN;
@@ -45,6 +48,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.OF;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE_INFO_JAVADOC;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
+import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
 
 /**
@@ -104,11 +108,6 @@ public final class JavaDocGen {
         TYPE_DEF_SETTER_METHOD,
 
         /**
-         * For type def's constructor.
-         */
-        TYPE_DEF_CONSTRUCTOR,
-
-        /**
          * For of method.
          */
         OF_METHOD,
@@ -124,6 +123,16 @@ public final class JavaDocGen {
         CONSTRUCTOR,
 
         /**
+         * For union's from method.
+         */
+        UNION_FROM_METHOD,
+
+        /**
+         * For type constructor.
+         */
+        TYPE_CONSTRUCTOR,
+
+        /**
          * For build.
          */
         BUILD_METHOD
@@ -132,8 +141,8 @@ public final class JavaDocGen {
     /**
      * Returns java docs.
      *
-     * @param type java doc type
-     * @param name name of the YangNode
+     * @param type   java doc type
+     * @param name   name of the YangNode
      * @param isList is list attribute
      * @return javadocs.
      */
@@ -155,8 +164,6 @@ public final class JavaDocGen {
             javaDoc = generateForGetters(name, isList);
         } else if (type.equals(JavaDocType.TYPE_DEF_SETTER_METHOD)) {
             javaDoc = generateForTypeDefSetter(name);
-        } else if (type.equals(JavaDocType.TYPE_DEF_CONSTRUCTOR)) {
-            javaDoc = generateForTypeDefConstructor(name);
         } else if (type.equals(JavaDocType.SETTER_METHOD)) {
             javaDoc = generateForSetters(name, isList);
         } else if (type.equals(JavaDocType.OF_METHOD)) {
@@ -165,6 +172,10 @@ public final class JavaDocGen {
             javaDoc = generateForDefaultConstructors(name);
         } else if (type.equals(JavaDocType.BUILD_METHOD)) {
             javaDoc = generateForBuild(name);
+        } else if (type.equals(JavaDocType.TYPE_CONSTRUCTOR)) {
+            javaDoc = generateForTypeConstructor(name);
+        } else if (type.equals(JavaDocType.UNION_FROM_METHOD)) {
+            javaDoc = generateForUnionFrom(name);
         } else {
             javaDoc = generateForConstructors(name);
         }
@@ -175,7 +186,7 @@ public final class JavaDocGen {
      * Generate javaDocs for getter method.
      *
      * @param attribute attribute
-     * @param isList is list attribute
+     * @param isList    is list attribute
      * @return javaDocs
      */
     private static String generateForGetters(String attribute, boolean isList) {
@@ -198,7 +209,7 @@ public final class JavaDocGen {
      * Generates javaDocs for setter method.
      *
      * @param attribute attribute
-     * @param isList is list attribute
+     * @param isList    is list attribute
      * @return javaDocs
      */
     private static String generateForSetters(String attribute, boolean isList) {
@@ -227,6 +238,22 @@ public final class JavaDocGen {
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_OF
                 + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + OBJECT + SPACE + OF + SPACE + attribute + NEW_LINE
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
+    }
+
+    /**
+     * Generates javaDocs for from method.
+     *
+     * @param attribute attribute
+     * @return javaDocs
+     */
+    private static String generateForUnionFrom(String attribute) {
+
+        return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_OF
+                + attribute + SPACE + FROM_STRING_METHOD_NAME + SPACE + INPUT + SPACE + STRING_DATA_TYPE + PERIOD
+                + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM
+                + FROM_STRING_PARAM_NAME + SPACE + INPUT + SPACE + STRING_DATA_TYPE + PERIOD + NEW_LINE
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + OBJECT + SPACE + OF + SPACE + attribute + NEW_LINE
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
     }
@@ -346,5 +373,19 @@ public final class JavaDocGen {
                 + buildName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_RETURN + JAVA_DOC_BUILD_RETURN + buildName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_END_LINE;
+    }
+
+    /**
+     * Generates javaDocs for type constructor.
+     *
+     * @param attribute attribute string
+     * @return javaDocs for type constructor
+     */
+    private static String generateForTypeConstructor(String attribute) {
+
+        return (NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR
+                + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE);
     }
 }

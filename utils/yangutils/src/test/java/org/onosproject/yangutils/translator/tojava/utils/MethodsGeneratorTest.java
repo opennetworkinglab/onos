@@ -43,7 +43,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterForInterface;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterForTypeDefClass;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethod;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getTypeDefConstructor;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getTypeConstructorStringAndJavaDoc;
 import static org.onosproject.yangutils.utils.UtilConstants.ADD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILD;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
@@ -113,12 +113,12 @@ public final class MethodsGeneratorTest {
     }
 
     /**
-     * Unit test case for checking the parse builder and typedef constructor.
+     * Unit test case for checking the parse builder and type constructor.
      */
     @Test
-    public void getTypeDefConstructorTest() {
+    public void getTypeConstructorTest() {
         JavaAttributeInfo testAttr = getTestAttribute();
-        String test = getTypeDefConstructor(testAttr, CLASS_NAME);
+        String test = getTypeConstructorStringAndJavaDoc(testAttr, CLASS_NAME);
         assertThat(true, is(test.contains(PUBLIC + SPACE + CLASS_NAME + OPEN_PARENTHESIS)));
     }
 
@@ -178,7 +178,7 @@ public final class MethodsGeneratorTest {
     }
 
     /**
-     * Test case for quals method.
+     * Test case for equals method.
      */
     @Test
     public void getEqualsMethodTest() {

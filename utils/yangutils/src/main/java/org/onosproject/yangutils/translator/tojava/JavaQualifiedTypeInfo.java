@@ -17,13 +17,14 @@
 package org.onosproject.yangutils.translator.tojava;
 
 import java.util.Objects;
-
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
-
 import com.google.common.base.MoreObjects;
+
+import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaImportClass;
+import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaImportPackage;
 
 /**
  * Represents the information about individual imports in the generated file.
@@ -86,18 +87,18 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
      * Returns the import info for an attribute, which needs to be used for code
      * generation for import or for qualified access.
      *
-     * @param curNode current data model node for which the java file is being
-     *            generated
-     * @param attrType type of attribute being added, it will be null, when the
-     *            child class is added as an attribute
+     * @param curNode       current data model node for which the java file is being
+     *                      generated
+     * @param attrType      type of attribute being added, it will be null, when the
+     *                      child class is added as an attribute
      * @param attributeName name of the attribute being added, it will used in
-     *            import info for child class
-     * @param isListAttr is the added attribute going to be used as a list
+     *                      import info for child class
+     * @param isListAttr    is the added attribute going to be used as a list
      * @return return the import info for this attribute
      */
-    public static JavaQualifiedTypeInfo getQualifiedTypeInfoOfLeafAttribute(YangNode curNode,
-            YangType<?> attrType, String attributeName,
-            boolean isListAttr) {
+    public static JavaQualifiedTypeInfo getQualifiedTypeInfoOfAttribute(YangNode curNode,
+                                                                        YangType<?> attrType, String attributeName,
+                                                                        boolean isListAttr) {
 
         JavaQualifiedTypeInfo importInfo = new JavaQualifiedTypeInfo();
 
@@ -139,15 +140,15 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
      * Returns the import info for an attribute, which needs to be used for code
      * generation for import or for qualified access.
      *
-     * @param curNode current data model node for which the java file is being
-     *            generated
+     * @param curNode       current data model node for which the java file is being
+     *                      generated
      * @param attributeName name of the attribute being added, it will used in
-     *            import info for child class
-     * @param isListAttr is the added attribute going to be used as a list
+     *                      import info for child class
+     * @param isListAttr    is the added attribute going to be used as a list
      * @return return the import info for this attribute
      */
     public static JavaQualifiedTypeInfo getQualifiedTypeInfoOfCurNode(YangNode curNode,
-            String attributeName, boolean isListAttr) {
+                                                                      String attributeName, boolean isListAttr) {
 
         JavaQualifiedTypeInfo importInfo = new JavaQualifiedTypeInfo();
 
@@ -168,16 +169,35 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
+     * Get the java qualified type information for the wrapper classes.
+     *
+     * @param referredTypesAttrInfo attribute of referred type
+     * @return return the import info for this attribute
+     */
+    public static JavaQualifiedTypeInfo getQualifiedInfoOfFromString(JavaAttributeInfo referredTypesAttrInfo) {
+        /*
+         * Get the java qualified type information for the wrapper classes and
+         * set it in new java attribute information.
+         */
+        JavaQualifiedTypeInfo qualifiedInfoOfFromString = new JavaQualifiedTypeInfo();
+        qualifiedInfoOfFromString.setClassInfo(
+                getJavaImportClass(referredTypesAttrInfo.getAttributeType(), true));
+        qualifiedInfoOfFromString.setPkgInfo(
+                getJavaImportPackage(referredTypesAttrInfo.getAttributeType(), true, null));
+        return qualifiedInfoOfFromString;
+    }
+
+    /**
      * Returns if the attribute needs to be accessed in a qualified manner or not,
      * if it needs to be imported, then the same needs to be done.
      *
-     * @param curNode current cache of the data model node for which java file
-     *            is bing generated
+     * @param curNode    current cache of the data model node for which java file
+     *                   is bing generated
      * @param importInfo import info for the current attribute being added
      * @return status of the qualified access to the attribute
      */
     public static boolean getIsQualifiedAccessOrAddToImportList(YangNode curNode,
-            JavaQualifiedTypeInfo importInfo) {
+                                                                JavaQualifiedTypeInfo importInfo) {
 
         boolean isImportPkgEqualCurNodePkg;
         if (!(curNode instanceof HasJavaFileInfo)) {
@@ -229,10 +249,10 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
      * Checks if the import info is same as the package of the current generated
      * java file.
      *
-     * @param curNode Java identifier of the current data model node
+     * @param curNode    Java identifier of the current data model node
      * @param importInfo import info for an attribute
      * @return true if the import info is same as the current nodes package
-     *         false otherwise
+     * false otherwise
      */
     public static boolean isImportPkgEqualCurNodePkg(
             YangNode curNode, JavaQualifiedTypeInfo importInfo) {

@@ -17,7 +17,7 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import java.io.IOException;
-
+import org.onosproject.yangutils.datamodel.HasType;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangChoice;
@@ -54,7 +54,7 @@ public final class YangJavaModelUtils {
      * Updates YANG java file package information.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPlugin YANG plugin config
+     * @param yangPlugin            YANG plugin config
      * @throws IOException IO operations fails
      */
     private static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin)
@@ -72,11 +72,11 @@ public final class YangJavaModelUtils {
      * Updates YANG java file package information for specified package.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPlugin YANG plugin config
+     * @param yangPlugin            YANG plugin config
      * @throws IOException IO operations fails
      */
     private static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin,
-            String pkg)
+                                          String pkg)
             throws IOException {
         javaCodeGeneratorInfo.getJavaFileInfo()
                 .setJavaName(getCaptialCase(
@@ -113,9 +113,11 @@ public final class YangJavaModelUtils {
         if (javaCodeGeneratorInfo instanceof YangLeavesHolder) {
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                     .addCurNodeLeavesInfoToTempFiles((YangNode) javaCodeGeneratorInfo);
+        } else if (javaCodeGeneratorInfo instanceof HasType) {
+            javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
+                    .addTypeInfoToTempFiles((HasType) javaCodeGeneratorInfo);
         } else {
-            // TODO: either write a util for ENUM and UNION or, call the
-            // corresponding implementation in ENUM and UNION
+            //TODO throw exception
         }
     }
 
@@ -123,7 +125,7 @@ public final class YangJavaModelUtils {
      * Process generate code entry of YANG node.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param codeGenDir code generation directory
+     * @param codeGenDir            code generation directory
      * @throws IOException IO operations fails
      */
     private static void generateTempFiles(JavaCodeGeneratorInfo javaCodeGeneratorInfo, String codeGenDir)
@@ -140,12 +142,12 @@ public final class YangJavaModelUtils {
      * Process generate code entry of YANG node.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPlugin YANG plugin config
-     * @param isMultiInstance flag to indicate whether it's a list
+     * @param yangPlugin            YANG plugin config
+     * @param isMultiInstance       flag to indicate whether it's a list
      * @throws IOException IO operations fails
      */
     public static void generateCodeOfNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin,
-            boolean isMultiInstance) throws IOException {
+                                          boolean isMultiInstance) throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
             // TODO:throw exception
         }
@@ -172,15 +174,32 @@ public final class YangJavaModelUtils {
     }
 
     /**
+     * Process generate code entry of YANG type.
+     *
+     * @param javaCodeGeneratorInfo YANG java file info node
+     * @param yangPlugin            YANG plugin config
+     * @param isMultiInstance       flag to indicate whether it's a list
+     * @throws IOException IO operations fails
+     */
+    public static void generateCodeOfType(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin,
+                                          boolean isMultiInstance) throws IOException {
+        if (!(javaCodeGeneratorInfo instanceof YangNode)) {
+            // TODO:throw exception
+        }
+        updatePackageInfo(javaCodeGeneratorInfo, yangPlugin);
+        generateTempFiles(javaCodeGeneratorInfo, yangPlugin.getCodeGenDir());
+    }
+
+    /**
      * Process generate code entry of root node.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPlugin YANG plugin config
-     * @param rootPkg package of the root node
+     * @param yangPlugin            YANG plugin config
+     * @param rootPkg               package of the root node
      * @throws IOException IO operations fails
      */
     public static void generateCodeOfRootNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin,
-            String rootPkg) throws IOException {
+                                              String rootPkg) throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
             // TODO:throw exception
         }

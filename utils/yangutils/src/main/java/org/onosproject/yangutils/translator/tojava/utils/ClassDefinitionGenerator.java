@@ -19,6 +19,7 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.getExtendsList;
@@ -54,7 +55,7 @@ public final class ClassDefinitionGenerator {
      * / interface definition start.
      *
      * @param genFileTypes generated file type
-     * @param yangName class name
+     * @param yangName     class name
      * @return class definition
      */
     public static String generateClassDefinition(int genFileTypes, String yangName) {
@@ -64,20 +65,17 @@ public final class ClassDefinitionGenerator {
          * class / interface definition start.
          */
         if ((genFileTypes & INTERFACE_MASK) != 0) {
-
             return getInterfaceDefinition(yangName);
         } else if ((genFileTypes & BUILDER_CLASS_MASK) != 0) {
-
             return getBuilderClassDefinition(yangName);
         } else if ((genFileTypes & IMPL_CLASS_MASK) != 0) {
-
             return getImplClassDefinition(yangName);
         } else if ((genFileTypes & BUILDER_INTERFACE_MASK) != 0) {
-
             return getBuilderInterfaceDefinition(yangName);
         } else if ((genFileTypes & GENERATE_TYPEDEF_CLASS) != 0) {
-
-            return getTypeDefClassDefinition(yangName);
+            return getTypeClassDefinition(yangName);
+        } else if ((genFileTypes & GENERATE_UNION_CLASS) != 0) {
+            return getTypeClassDefinition(yangName);
         }
         return null;
     }
@@ -105,7 +103,7 @@ public final class ClassDefinitionGenerator {
      * Returns builder interface file class definition.
      *
      * @param yangName java class name, corresponding to which the builder class
-     *            is being generated
+     *                 is being generated
      * @return definition
      */
     private static String getBuilderInterfaceDefinition(String yangName) {
@@ -135,12 +133,12 @@ public final class ClassDefinitionGenerator {
     }
 
     /**
-     * Returns typeDef file class definition.
+     * Returns type file class definition.
      *
      * @param yangName file name
      * @return definition
      */
-    private static String getTypeDefClassDefinition(String yangName) {
+    private static String getTypeClassDefinition(String yangName) {
         return PUBLIC + SPACE + FINAL + SPACE + CLASS + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 }

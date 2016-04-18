@@ -22,12 +22,6 @@ package org.onosproject.yangutils.translator.tojava;
 public final class GeneratedJavaFileType {
 
     /**
-     * Creates an instance of generate java file type.
-     */
-    private GeneratedJavaFileType() {
-    }
-
-    /**
      * Interface file.
      */
     public static final int INTERFACE_MASK = 1;
@@ -56,4 +50,15 @@ public final class GeneratedJavaFileType {
      * Java class corresponding to typedef.
      */
     public static final int GENERATE_TYPEDEF_CLASS = 16;
+
+    /**
+     * Java class corresponding to union.
+     */
+    public static final int GENERATE_UNION_CLASS = 32;
+
+    /**
+     * Creates an instance of generate java file type.
+     */
+    private GeneratedJavaFileType() {
+    }
 }

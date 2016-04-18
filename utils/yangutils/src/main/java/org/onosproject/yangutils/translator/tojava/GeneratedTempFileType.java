@@ -22,53 +22,68 @@ package org.onosproject.yangutils.translator.tojava;
 public final class GeneratedTempFileType {
 
     /**
-     * Creates an instance of generated temp file type.
-     */
-    private GeneratedTempFileType() {
-    }
-
-    /**
-     * attributes definition temporary file.
+     * Attributes definition temporary file.
      */
     public static final int ATTRIBUTES_MASK = 1;
 
     /**
-     * getter methods for interface.
+     * Getter methods for interface.
      */
     public static final int GETTER_FOR_INTERFACE_MASK = 2;
 
     /**
-     * getter methods for class.
+     * Getter methods for class.
      */
     public static final int GETTER_FOR_CLASS_MASK = 4;
 
     /**
-     * setter methods for interface.
+     * Setter methods for interface.
      */
     public static final int SETTER_FOR_INTERFACE_MASK = 8;
 
     /**
-     * setter methods for class.
+     * Setter methods for class.
      */
     public static final int SETTER_FOR_CLASS_MASK = 16;
 
     /**
-     * constructor method of class.
+     * Constructor method of class.
      */
     public static final int CONSTRUCTOR_IMPL_MASK = 32;
 
     /**
-     * hash code implementation of class.
+     * Hash code implementation of class.
      */
     public static final int HASH_CODE_IMPL_MASK = 64;
 
     /**
-     * equals implementation of class.
+     * Equals implementation of class.
      */
     public static final int EQUALS_IMPL_MASK = 128;
 
     /**
-     * to string implementation of class.
+     * To string implementation of class.
      */
     public static final int TO_STRING_IMPL_MASK = 256;
+
+    /**
+     * Of string implementation of class.
+     */
+    public static final int OF_STRING_IMPL_MASK = 512;
+
+    /**
+     * Constructor for type class like typedef, union.
+     */
+    public static final int CONSTRUCTOR_FOR_TYPE_MASK = 1024;
+
+    /**
+     * From string implementation of class.
+     */
+    public static final int UNION_FROM_STRING_IMPL_MASK = 2048;
+
+    /**
+     * Creates an instance of generated temp file type.
+     */
+    private GeneratedTempFileType() {
+    }
 }

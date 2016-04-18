@@ -146,7 +146,7 @@ public final class TypeListener {
                  * in resolution list.
                  */
                 if (yangDataTypes == YangDataTypes.DERIVED) {
-                    // Parent YANG node of leaf to be added in resolution information.
+                    // Parent YANG node of leaf list to be added in resolution information.
                     Parsable leafListData = listener.getParsedDataStack().pop();
                     Parsable parentNodeOfLeafList = listener.getParsedDataStack().peek();
                     listener.getParsedDataStack().push(leafListData);
@@ -181,6 +181,26 @@ public final class TypeListener {
                     parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
                     throw parserException;
                 }
+
+                /*
+                 * If data type is derived, resolution information to be added
+                 * in resolution list.
+                 */
+                if (yangDataTypes == YangDataTypes.DERIVED) {
+
+                    // Get the prefix information
+                    String prefix = ((YangType<?>) type).getPrefix();
+
+                    // Create empty derived info and attach it to type extended info.
+                    YangDerivedInfo<?> yangDerivedInfo = new YangDerivedInfo<>();
+                    ((YangType<YangDerivedInfo>) type).setDataTypeExtendedInfo(yangDerivedInfo);
+
+                    // Add resolution information to the list
+                    YangResolutionInfo resolutionInfo =
+                            new YangResolutionInfo<YangType>(type, (YangNode) unionNode, errorLine, errorPosition);
+                    addToResolutionList(resolutionInfo, ctx);
+                }
+
                 break;
             case TYPEDEF_DATA:
                 /* Prepare the base type info and set in derived type */
@@ -244,7 +264,7 @@ public final class TypeListener {
      * @param ctx context object of the grammar rule
      */
     private static void addToResolutionList(YangResolutionInfo<YangType> resolutionInfo,
-            GeneratedYangParser.TypeStatementContext ctx) {
+                                            GeneratedYangParser.TypeStatementContext ctx) {
         try {
             addResolutionInfo(resolutionInfo);
         } catch (DataModelException e) {

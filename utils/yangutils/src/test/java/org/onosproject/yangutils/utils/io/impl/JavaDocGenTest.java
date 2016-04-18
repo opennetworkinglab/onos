@@ -56,7 +56,7 @@ public final class JavaDocGenTest {
     @Test
     public void builderClassGenerationTest() {
         String builderClassJavaDoc = getJavaDoc(BUILDER_CLASS, TEST_NAME, false);
-        assertThat(true, is(builderClassJavaDoc.contains("Reperesents the builder implementation of")
+        assertThat(true, is(builderClassJavaDoc.contains("Represents the builder implementation of")
                 && builderClassJavaDoc.contains(END_STRING)));
     }
 
@@ -138,7 +138,7 @@ public final class JavaDocGenTest {
     public void implClassGenerationTest() {
         String implClassJavaDoc = getJavaDoc(IMPL_CLASS, TEST_NAME, false);
         assertThat(true,
-                is(implClassJavaDoc.contains("Reperesents the implementation of")
+                is(implClassJavaDoc.contains("Represents the implementation of")
                         && implClassJavaDoc.contains(END_STRING)));
     }
 
@@ -149,7 +149,7 @@ public final class JavaDocGenTest {
     public void interfaceGenerationTest() {
         String interfaceJavaDoc = getJavaDoc(INTERFACE, TEST_NAME, false);
         assertThat(true,
-                is(interfaceJavaDoc.contains("Abstraction of an entity which Reperesents the functionalities of")
+                is(interfaceJavaDoc.contains("Abstraction of an entity which represents the functionality of")
                         && interfaceJavaDoc.contains(END_STRING)));
     }
 

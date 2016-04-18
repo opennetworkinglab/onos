@@ -34,18 +34,18 @@ public final class UtilConstants {
     /**
      * JavaDocs for impl class.
      */
-    public static final String IMPL_CLASS_JAVA_DOC = " * Reperesents the implementation of ";
+    public static final String IMPL_CLASS_JAVA_DOC = " * Represents the implementation of ";
 
     /**
      * JavaDocs for builder class.
      */
-    public static final String BUILDER_CLASS_JAVA_DOC = " * Reperesents the builder implementation of ";
+    public static final String BUILDER_CLASS_JAVA_DOC = " * Represents the builder implementation of ";
 
     /**
      * JavaDocs for interface class.
      */
-    public static final String INTERFACE_JAVA_DOC = " * Abstraction of an entity which Reperesents the"
-            + " functionalities of ";
+    public static final String INTERFACE_JAVA_DOC = " * Abstraction of an entity which represents the"
+            + " functionality of ";
 
     /**
      * JavaDocs for builder interface class.
@@ -148,6 +148,31 @@ public final class UtilConstants {
     public static final String PERIOD = ".";
 
     /**
+     * Static attribute for parse byte.
+     */
+    public static final String PARSE_BYTE = "parseByte";
+
+    /**
+     * Static attribute for parse short.
+     */
+    public static final String PARSE_SHORT = "parseShort";
+
+    /**
+     * Static attribute for parse int.
+     */
+    public static final String PARSE_INT = "parseInt";
+
+    /**
+     * Static attribute for parse long.
+     */
+    public static final String PARSE_LONG = "parseLong";
+
+    /**
+     * Static attribute for omit null value.
+     */
+    public static final String OMIT_NULL_VALUE_STRING = "omitNullValues()";
+
+    /**
      * Static attribute for colan.
      */
     public static final String COLAN = ":";
@@ -173,9 +198,9 @@ public final class UtilConstants {
     public static final String SPACE = " ";
 
     /**
-     * Static attribute for tab.
+     * Static attribute for input string.
      */
-    public static final String TAB = "\t";
+    public static final String INPUT = "input";
 
     /**
      * Static attribute for new line.
@@ -221,6 +246,11 @@ public final class UtilConstants {
      * Static attribute for add syntax.
      */
     public static final String ADD_STRING = "add";
+
+    /**
+     * Static attribute for from syntax.
+     */
+    public static final String FROM_STRING_METHOD_NAME = "fromString";
 
     /**
      * Static attribute for check not null syntax.
@@ -333,19 +363,34 @@ public final class UtilConstants {
     public static final String DIAMOND_CLOSE_BRACKET = ">";
 
     /**
-     * Static attribute for square open bracket syntax.
+     * Static attribute for exception syntax.
      */
-    public static final String SQUARE_OPEN_BRACKET = "[";
+    public static final String EXCEPTION = "Exception";
 
     /**
-     * Static attribute for square close bracket syntax.
+     * Static attribute for exception variable syntax.
      */
-    public static final String SQUARE_CLOSE_BRACKET = "]";
+    public static final String EXCEPTION_VAR = "e";
 
     /**
      * Static attribute for open parenthesis syntax.
      */
     public static final String OPEN_PARENTHESIS = "(";
+
+    /**
+     * Static attribute for clear syntax.
+     */
+    public static final String CLEAR = "clear";
+
+    /**
+     * Static attribute for temp val syntax.
+     */
+    public static final String TMP_VAL = "tmpVal";
+
+    /**
+     * From string parameter name.
+     */
+    public static final String FROM_STRING_PARAM_NAME = "valInString";
 
     /**
      * Static attribute for close parenthesis syntax.
@@ -376,6 +421,21 @@ public final class UtilConstants {
      * Static attribute for four space indentation.
      */
     public static final String FOUR_SPACE_INDENTATION = "    ";
+
+    /**
+     * Static attribute for not syntax.
+     */
+    public static final String NOT = "!";
+
+    /**
+     * Static attribute for try syntax.
+     */
+    public static final String TRY = "try";
+
+    /**
+     * Static attribute for catch syntax.
+     */
+    public static final String CATCH = "catch";
 
     /**
      * Static attribute for eight space indentation.
@@ -518,14 +578,9 @@ public final class UtilConstants {
     public static final String LONG_WRAPPER = "Long";
 
     /**
-     * Float java built in wrapper type.
+     * YangUint64 java built in wrapper type.
      */
-    public static final String FLOAT_WRAPPER = "Float";
-
-    /**
-     * Double java built in wrapper type.
-     */
-    public static final String DOUBLE_WRAPPER = "Double";
+    public static final String YANG_UINT64 = "YangUint64";
 
     /**
      * List of keywords in java, this is used for checking if the input does not contain these keywords.
@@ -733,92 +788,12 @@ public final class UtilConstants {
     public static final String AUGMENTED_INFO = "AugmentedInfo";
 
     /**
-     * Static attribute for abstract collection.
-     */
-    public static final String ABSTRACT_COLLECTION = "AbstractCollection";
-
-    /**
      * Static attribute for list.
      */
     public static final String LIST = "List";
 
     /**
-     * Static attribute for linked list.
-     */
-    public static final String LINKED_LIST = "LinkedList";
-
-    /**
      * Static attribute for array list.
      */
     public static final String ARRAY_LIST = "ArrayList";
-
-    /**
-     * Static attribute for abstract list.
-     */
-    public static final String ABSTRACT_LIST = "AbstractList";
-
-    /**
-     * Static attribute for abstract sequential list.
-     */
-    public static final String ABSTRACT_SEQUENTAIL_LIST = "AbstractSequentialList";
-
-    /**
-     * Static attribute for set.
-     */
-    public static final String SET = "Set";
-
-    /**
-     * Static attribute for hash set.
-     */
-    public static final String HASH_SET = "HashSet";
-
-    /**
-     * Static attribute for abstract set.
-     */
-    public static final String ABSTRACT_SET = "AbstractSet";
-
-    /**
-     * Static attribute for linked has set.
-     */
-    public static final String LINKED_HASH_SET = "LinkedHashSet";
-
-    /**
-     * Static attribute for tree set.
-     */
-    public static final String TREE_SET = "TreeSet";
-
-    /**
-     * Static attribute for map.
-     */
-    public static final String MAP = "Map";
-
-    /**
-     * Static attribute for abstract map.
-     */
-    public static final String ABSTRACT_MAP = "AbstractMap";
-
-    /**
-     * Static attribute for hash map.
-     */
-    public static final String HASH_MAP = "HashMap";
-
-    /**
-     * Static attribute for tree map.
-     */
-    public static final String TREE_MAP = "TreeMap";
-
-    /**
-     * Static attribute for concurrent map.
-     */
-    public static final String CONCURRENT_MAP = "ConcurrentMap";
-
-    /**
-     * Static attribute for eventually consistent map.
-     */
-    public static final String EVENTUALLY_CONSISTENT_MAP = "EventuallyConsitentMap";
-
-    /**
-     * Static attribute for stack syntax.
-     */
-    public static final String STACK = "stack";
 }

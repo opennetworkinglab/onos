@@ -18,7 +18,6 @@ package org.onosproject.yangutils.datamodel;
 
 import java.util.LinkedList;
 import java.util.List;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
@@ -48,7 +47,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Represents data model node to maintain information defined in YANG union.
  */
-public class YangUnion extends YangNode implements Parsable {
+public class YangUnion extends YangNode implements Parsable, HasType {
 
     // List of YANG type.
     private List<YangType<?>> typeList;
@@ -68,11 +67,7 @@ public class YangUnion extends YangNode implements Parsable {
         childUnionNumber = 1;
     }
 
-    /**
-     * Returns list of YANG type.
-     *
-     * @return the list of YANG type
-     */
+    @Override
     public List<YangType<?>> getTypeList() {
         return typeList;
     }
@@ -105,11 +100,11 @@ public class YangUnion extends YangNode implements Parsable {
     }
 
     /**
-     * Add YANG type to type list.
+     * Adds YANG type to type list.
      *
      * @param yangType YANG type to be added to list
      * @throws DataModelException union member type must not be one of the
-     * built-in types "empty" or "leafref"
+     *                            built-in types "empty" or "leafref"
      */
     public void addType(YangType<?> yangType) throws DataModelException {
         if (yangType.getDataType() == YangDataTypes.EMPTY || yangType.getDataType() == YangDataTypes.LEAFREF) {
@@ -144,11 +139,21 @@ public class YangUnion extends YangNode implements Parsable {
         return YangConstructType.UNION_DATA;
     }
 
+    /**
+     * Validates the data on entering the corresponding parse tree node.
+     *
+     * @throws DataModelException a violation of data model rules
+     */
     @Override
     public void validateDataOnEntry() throws DataModelException {
         //TODO: implement the method.
     }
 
+    /**
+     * Validates the data on exiting the corresponding parse tree node.
+     *
+     * @throws DataModelException a violation of data model rules
+     */
     @Override
     public void validateDataOnExit() throws DataModelException {
         //TODO: implement the method.
