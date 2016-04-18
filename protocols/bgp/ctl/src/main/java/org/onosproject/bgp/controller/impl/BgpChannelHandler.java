@@ -55,9 +55,9 @@ import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.ClosedChannelException;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
@@ -85,6 +85,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
     static final short AFI = 16388;
     static final byte RES = 0;
     static final byte SAFI = 71;
+    static final byte MAX_UNSUPPORTED_CAPABILITY = 5;
 
     // State needs to be volatile because the HandshakeTimeoutHandler
     // needs to check if the handshake is complete
@@ -520,7 +521,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             byte errorSubCode = errMsg.getErrorSubCode();
             ChannelBuffer tempCb = errMsg.getData();
             if (tempCb != null) {
-                int dataLength = tempCb.capacity();
+                int dataLength = tempCb.readableBytes();
                 data = new byte[dataLength];
                 tempCb.readBytes(data, 0, dataLength);
             }
@@ -685,7 +686,8 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                 .setLsCapabilityTlv(bgpconfig.getLsCapability())
                 .setLargeAsCapabilityTlv(bgpconfig.getLargeASCapability())
                 .setFlowSpecCapabilityTlv(flowSpecStatus)
-                .setVpnFlowSpecCapabilityTlv(vpnFlowSpecStatus).build();
+                .setVpnFlowSpecCapabilityTlv(vpnFlowSpecStatus)
+                .setFlowSpecRpdCapabilityTlv(bgpconfig.flowSpecRpdCapability()).build();
         log.debug("Sending open message to {}", channel.getRemoteAddress());
         channel.write(Collections.singletonList(msg));
 
@@ -786,20 +788,28 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
 
         List<BgpValueType> capabilityTlv = openmsg.getCapabilityTlv();
         ListIterator<BgpValueType> listIterator = capabilityTlv.listIterator();
-        List<BgpValueType> unSupportedCapabilityTlv = new LinkedList<>();
+        List<BgpValueType> unSupportedCapabilityTlv = new CopyOnWriteArrayList<BgpValueType>();
         ListIterator<BgpValueType> unSupportedCaplistIterator = unSupportedCapabilityTlv.listIterator();
         BgpValueType tempTlv;
         boolean isLargeAsCapabilityCfg = h.bgpconfig.getLargeASCapability();
+        boolean isFlowSpecRpdCapabilityCfg = h.bgpconfig.flowSpecRpdCapability();
         boolean isLsCapabilityCfg = h.bgpconfig.getLsCapability();
-        boolean isFlowSpecCapabilityCfg = false;
+        boolean isFlowSpecIpv4CapabilityCfg = false;
+        boolean isFlowSpecVpnv4CapabilityCfg = false;
         MultiProtocolExtnCapabilityTlv tempCapability;
         boolean isMultiProtocolLsCapability = false;
+        boolean isMultiProtocolFlowSpecRpdCapability = false;
         boolean isMultiProtocolFlowSpecCapability = false;
         boolean isMultiProtocolVpnFlowSpecCapability = false;
         BgpCfg.FlowSpec flowSpec = h.bgpconfig.flowSpecCapability();
 
-        if (flowSpec != BgpCfg.FlowSpec.NONE) {
-            isFlowSpecCapabilityCfg = true;
+        if (flowSpec == BgpCfg.FlowSpec.IPV4) {
+            isFlowSpecIpv4CapabilityCfg = true;
+        } else if (flowSpec == BgpCfg.FlowSpec.VPNV4) {
+            isFlowSpecVpnv4CapabilityCfg = true;
+        } else if (flowSpec == BgpCfg.FlowSpec.IPV4_VPNV4) {
+            isFlowSpecIpv4CapabilityCfg = true;
+            isFlowSpecVpnv4CapabilityCfg = true;
         }
 
         while (listIterator.hasNext()) {
@@ -816,6 +826,10 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
 
                 if (SAFI == tempCapability.getSafi()) {
                     isMultiProtocolLsCapability = true;
+                }
+
+                if (Constants.SAFI_FLOWSPEC_RPD_VALUE == tempCapability.getSafi()) {
+                    isMultiProtocolFlowSpecRpdCapability = true;
                 }
             }
             if (tlv.getType() == FOUR_OCTET_AS_NUM_CAPA_TYPE) {
@@ -843,13 +857,15 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             }
         }
 
-        if ((isFlowSpecCapabilityCfg)) {
+        if (isFlowSpecIpv4CapabilityCfg) {
             if (!isMultiProtocolFlowSpecCapability) {
                 tempTlv = new MultiProtocolExtnCapabilityTlv(Constants.AFI_FLOWSPEC_VALUE,
                                                              RES, Constants.SAFI_FLOWSPEC_VALUE);
                 unSupportedCapabilityTlv.add(tempTlv);
             }
+        }
 
+        if (isFlowSpecVpnv4CapabilityCfg) {
             if (!isMultiProtocolVpnFlowSpecCapability) {
                 tempTlv = new MultiProtocolExtnCapabilityTlv(Constants.AFI_FLOWSPEC_VALUE,
                                                              RES, Constants.VPN_SAFI_FLOWSPEC_VALUE);
@@ -864,7 +880,16 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             }
         }
 
-        if (unSupportedCapabilityTlv.size() == 3) {
+        if ((isFlowSpecRpdCapabilityCfg)) {
+            if (!isMultiProtocolFlowSpecRpdCapability) {
+                tempTlv = new MultiProtocolExtnCapabilityTlv(Constants.AFI_FLOWSPEC_RPD_VALUE,
+                                                             RES, Constants.SAFI_FLOWSPEC_RPD_VALUE,
+                                                             Constants.RPD_CAPABILITY_SEND_VALUE);
+                unSupportedCapabilityTlv.add(tempTlv);
+            }
+        }
+
+        if (unSupportedCapabilityTlv.size() == MAX_UNSUPPORTED_CAPABILITY) {
             ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
             while (unSupportedCaplistIterator.hasNext()) {
                 BgpValueType tlv = unSupportedCaplistIterator.next();

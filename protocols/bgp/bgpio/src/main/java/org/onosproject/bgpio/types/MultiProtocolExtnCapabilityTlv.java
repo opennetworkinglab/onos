@@ -19,6 +19,7 @@ import com.google.common.base.MoreObjects;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.onosproject.bgpio.util.Constants;
 
 import java.util.Objects;
 
@@ -45,6 +46,7 @@ public class MultiProtocolExtnCapabilityTlv implements BgpValueType {
     private final short afi;
     private final byte res;
     private final byte safi;
+    private final byte rpdSendReceive;
 
     /**
      * Constructor to initialize variables.
@@ -56,6 +58,24 @@ public class MultiProtocolExtnCapabilityTlv implements BgpValueType {
         this.afi = afi;
         this.res = res;
         this.safi = safi;
+        this.rpdSendReceive = Constants.RPD_CAPABILITY_SEND_VALUE;
+    }
+
+        /**
+     * Constructor to initialize variables.
+     * @param afi Address Family Identifiers
+     * @param res reserved field
+     * @param safi Subsequent Address Family Identifier
+     * @param rpdSendReceive indicates whether the sender is
+                                    (a) willing  to receive Route Policies via BGP FLowSpec from its peer (value 1).
+                                    (b) would like to send Route Policies via BGP FLowSpec to its peer (value 2).
+                                    (c) both (value 3).
+     */
+    public MultiProtocolExtnCapabilityTlv(short afi, byte res, byte safi, byte rpdSendReceive) {
+        this.afi = afi;
+        this.res = res;
+        this.safi = safi;
+        this.rpdSendReceive = rpdSendReceive;
     }
 
     /**
@@ -120,9 +140,16 @@ public class MultiProtocolExtnCapabilityTlv implements BgpValueType {
 
     @Override
     public int write(ChannelBuffer cb) {
+        boolean isFsRpd = false;
         int iLenStartIndex = cb.writerIndex();
         cb.writeByte(TYPE);
-        cb.writeByte(LENGTH);
+
+        if ((afi == Constants.AFI_FLOWSPEC_RPD_VALUE) && (safi == Constants.SAFI_FLOWSPEC_RPD_VALUE)) {
+            cb.writeByte(LENGTH + 1);
+            isFsRpd = true;
+        } else {
+            cb.writeByte(LENGTH);
+        }
 
         // write afi
         cb.writeShort(afi);
@@ -132,6 +159,11 @@ public class MultiProtocolExtnCapabilityTlv implements BgpValueType {
 
         // write safi
         cb.writeByte(safi);
+
+        if (isFsRpd) {
+            // write Send/Receive (1 octet)
+            cb.writeByte(rpdSendReceive);
+        }
 
         return cb.writerIndex() - iLenStartIndex;
     }
@@ -145,6 +177,10 @@ public class MultiProtocolExtnCapabilityTlv implements BgpValueType {
         short afi = cb.readShort();
         byte res = cb.readByte();
         byte safi = cb.readByte();
+
+        if ((afi == Constants.AFI_FLOWSPEC_RPD_VALUE) && (safi == Constants.SAFI_FLOWSPEC_RPD_VALUE)) {
+            return new MultiProtocolExtnCapabilityTlv(afi, res, safi, cb.readByte());
+        }
         return new MultiProtocolExtnCapabilityTlv(afi, res, safi);
     }
 

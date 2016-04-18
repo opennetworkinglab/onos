@@ -258,16 +258,24 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
                 break;
             case MultiProtocolExtnCapabilityTlv.TYPE:
                 log.debug("MultiProtocolExtnCapabilityTlv");
-                if (MultiProtocolExtnCapabilityTlv.LENGTH != length) {
-                    throw new BgpParseException("Invalid length received for MultiProtocolExtnCapabilityTlv.");
-                }
+
                 if (length > cb.readableBytes()) {
                     throw new BgpParseException("BGP LS tlv length is more than readableBytes.");
                 }
                 short afi = cb.readShort();
                 byte res = cb.readByte();
                 byte safi = cb.readByte();
-                tlv = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
+                if ((afi == Constants.AFI_FLOWSPEC_RPD_VALUE) && (safi == Constants.SAFI_FLOWSPEC_RPD_VALUE)) {
+                    if ((MultiProtocolExtnCapabilityTlv.LENGTH + 1) != length) {
+                        throw new BgpParseException("Invalid length received for MultiProtocolExtnCapabilityTlv.");
+                    }
+                    tlv = new MultiProtocolExtnCapabilityTlv(afi, res, safi, cb.readByte());
+                } else {
+                    if (MultiProtocolExtnCapabilityTlv.LENGTH != length) {
+                        throw new BgpParseException("Invalid length received for MultiProtocolExtnCapabilityTlv.");
+                    }
+                    tlv = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
+                }
                 break;
             default:
                 log.debug("Warning: Unsupported TLV: " + type);
@@ -297,6 +305,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
         private boolean isLsCapabilityTlvSet = false;
         private boolean isFlowSpecCapabilityTlvSet = false;
         private boolean isVpnFlowSpecCapabilityTlvSet = false;
+        private boolean isFlowSpecRpdCapabilityTlvSet = false;
 
         LinkedList<BgpValueType> capabilityTlv = new LinkedList<>();
 
@@ -346,6 +355,15 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
                                                          RES, Constants.VPN_SAFI_FLOWSPEC_VALUE);
                 this.capabilityTlv.add(tlv);
             }
+
+            if (this.isFlowSpecRpdCapabilityTlvSet) {
+                BgpValueType tlv;
+                tlv = new MultiProtocolExtnCapabilityTlv(Constants.AFI_FLOWSPEC_RPD_VALUE,
+                                                         RES, Constants.SAFI_FLOWSPEC_RPD_VALUE,
+                                                         Constants.RPD_CAPABILITY_SEND_VALUE);
+                this.capabilityTlv.add(tlv);
+            }
+
 
             return new BgpOpenMsgVer4(bgpMsgHeader, PACKET_VERSION, this.asNumber, holdTime, this.bgpId,
                        this.capabilityTlv);
@@ -405,6 +423,12 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
         @Override
         public Builder setVpnFlowSpecCapabilityTlv(boolean isVpnFlowSpecCapabilitySet) {
             this.isVpnFlowSpecCapabilityTlvSet = isVpnFlowSpecCapabilitySet;
+            return this;
+        }
+
+        @Override
+        public Builder setFlowSpecRpdCapabilityTlv(boolean isFlowSpecRpdCapabilityTlvSet) {
+            this.isFlowSpecRpdCapabilityTlvSet = isFlowSpecRpdCapabilityTlvSet;
             return this;
         }
     }

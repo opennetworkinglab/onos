@@ -57,6 +57,7 @@ public class BgpConfig implements BgpCfg {
     private BgpConnectPeer connectPeer;
     private BgpPeerManagerImpl peerManager;
     private BgpController bgpController;
+    private boolean rpdCapability;
 
     /*
      * Constructor to initialize the values.
@@ -126,6 +127,16 @@ public class BgpConfig implements BgpCfg {
     @Override
     public void setFlowSpecCapability(FlowSpec flowSpec) {
         this.flowSpec = flowSpec;
+    }
+
+    @Override
+    public boolean flowSpecRpdCapability() {
+        return this.rpdCapability;
+    }
+
+    @Override
+    public void setFlowSpecRpdCapability(boolean rpdCapability) {
+        this.rpdCapability = rpdCapability;
     }
 
     @Override

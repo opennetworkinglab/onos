@@ -331,4 +331,18 @@ public interface BgpCfg {
      * @param flowSpec flow specification capability
      */
     void setFlowSpecCapability(FlowSpec flowSpec);
+
+    /**
+     * Returns the flow specification route policy distribution capability.
+     *
+     * @return RDP flow specification capability
+     */
+    boolean flowSpecRpdCapability();
+
+    /**
+     * Sets the flow specification route policy distribution capability.
+     *
+     * @param rpdCapability flow specification RPD capability
+     */
+    void setFlowSpecRpdCapability(boolean rpdCapability);
 }

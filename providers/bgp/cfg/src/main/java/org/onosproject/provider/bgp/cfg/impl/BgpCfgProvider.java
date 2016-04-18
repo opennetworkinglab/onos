@@ -137,6 +137,7 @@ public class BgpCfgProvider extends AbstractProvider {
         } else {
             bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.NONE);
         }
+        bgpConfig.setFlowSpecRpdCapability(config.rpdCapability());
 
         nodes = config.bgpPeer();
         for (int i = 0; i < nodes.size(); i++) {
@@ -186,6 +187,7 @@ public class BgpCfgProvider extends AbstractProvider {
         } else {
             log.info(" Self configuration cannot be modified as there is existing connections ");
         }
+        bgpConfig.setFlowSpecRpdCapability(config.rpdCapability());
 
         /* update the peer configuration */
         bgpPeerTree = bgpConfig.getPeerTree();

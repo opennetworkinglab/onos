@@ -291,15 +291,73 @@ public class BgpOpenMsgTest {
     public void openMessageTest8() throws BgpParseException {
 
         // OPEN Message with invalid message type.
-        byte[] openMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff,
-                (byte) 0xff, (byte) 0xff, (byte) 0xff,
-                (byte) 0xff, (byte) 0xff, (byte) 0xff,
-                (byte) 0xff, (byte) 0xff, (byte) 0xff,
-                (byte) 0xff, (byte) 0xff, (byte) 0xff,
-                (byte) 0xff, 0x00, 0x1d, 0x05, 0X04,
-                (byte) 0xfe, 0x09, 0x00, (byte) 0xb4,
-                (byte) 0xc0, (byte) 0xa8, 0x00, 0x0f,
-                0x00};
+        byte[] openMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                                     (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                                     (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, 0x00, 0x1d, 0x05, 0X04,
+                                     (byte) 0xfe, 0x09, 0x00, (byte) 0xb4, (byte) 0xc0, (byte) 0xa8, 0x00, 0x0f, 0x00 };
+
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        buffer.writeBytes(openMsg);
+
+        BgpMessageReader<BgpMessage> reader = BgpFactories.getGenericReader();
+        BgpMessage message;
+        BgpHeader bgpHeader = new BgpHeader();
+        message = reader.readFrom(buffer, bgpHeader);
+
+        assertThat(message, instanceOf(BgpOpenMsg.class));
+    }
+
+    /**
+     * This test case checks open message with route policy distribution capability.
+     */
+    @Test
+    public void openMessageTest9() throws BgpParseException {
+
+        // OPEN Message with capabilities.
+        byte[] openMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                                     (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                                     (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, 0x00, 0x38, 0x01, 0x04, 0x00,
+                                     0x64, 0x00, (byte) 0xb4, (byte) 0xc0, (byte) 0xa8, 0x07, 0x35, 0x1b, 0x02, 0x19,
+                                     0x01, 0x04, 0x00, 0x01, 0x00, 0x01, 0x01, 0x04, 0x40, 0x04, 0x00, 0x47, 0x01,
+                                     0x04, 0x00, 0x01, 0x00, (byte) 0x85, 0x01, 0x05, 0x00, 0x01, 0x00, (byte) 0xc8,
+                                     0x00 }; // Four Octet AS Number-CAPABILITY-TLV
+
+        byte[] testOpenMsg;
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        buffer.writeBytes(openMsg);
+
+        BgpMessageReader<BgpMessage> reader = BgpFactories.getGenericReader();
+        BgpMessage message;
+        BgpHeader bgpHeader = new BgpHeader();
+
+        message = reader.readFrom(buffer, bgpHeader);
+
+        assertThat(message, instanceOf(BgpOpenMsg.class));
+
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+
+        int readLen = buf.writerIndex();
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+    }
+
+    /**
+     * In this test case, Invalid multiprotocol capability length is given as input and expecting an exception.
+     */
+    @Test(expected = BgpParseException.class)
+    public void openMessageTest10() throws BgpParseException {
+
+        // OPEN Message with invalid message type.
+        byte[] openMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                                      (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                                      (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, 0x00, 0x38, 0x01, 0x04, 0x00,
+                                      0x64, 0x00, (byte) 0xb4, (byte) 0xc0, (byte) 0xa8, 0x07, 0x35, 0x1b, 0x02, 0x19,
+                                      0x01, 0x04, 0x00, 0x01, 0x00, 0x01, 0x01, 0x04, 0x40, 0x04, 0x00, 0x47, 0x01,
+                                      0x04, 0x00, 0x01, 0x00, (byte) 0x85, 0x01, 0x04, 0x00, 0x01, 0x00, (byte) 0xc8,
+                                      0x00 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(openMsg);

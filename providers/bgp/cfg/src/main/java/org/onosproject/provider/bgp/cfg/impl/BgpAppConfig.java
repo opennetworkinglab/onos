@@ -48,6 +48,7 @@ public class BgpAppConfig extends Config<ApplicationId> {
     public static final String HOLD_TIME = "holdTime";
     public static final String LARGE_AS_CAPABILITY = "largeAsCapability";
     public static final String FLOW_SPEC_CAPABILITY = "flowSpecCapability";
+    public static final String FLOW_SPEC_RPD_CAPABILITY = "flowSpecRpdCapability";
 
     public static final String BGP_PEER = "bgpPeer";
     public static final String PEER_IP = "peerIp";
@@ -68,11 +69,11 @@ public class BgpAppConfig extends Config<ApplicationId> {
         bgpConfig = bgpController.getConfig();
 
         fields = hasOnlyFields(ROUTER_ID, LOCAL_AS, MAX_SESSION, LS_CAPABILITY,
-                HOLD_TIME, LARGE_AS_CAPABILITY, FLOW_SPEC_CAPABILITY, BGP_PEER) &&
+                HOLD_TIME, LARGE_AS_CAPABILITY, FLOW_SPEC_CAPABILITY, FLOW_SPEC_RPD_CAPABILITY, BGP_PEER) &&
                 isIpAddress(ROUTER_ID, MANDATORY) && isNumber(LOCAL_AS, MANDATORY) &&
                 isNumber(MAX_SESSION, OPTIONAL, 20) && isNumber(HOLD_TIME, OPTIONAL, 180) &&
                 isBoolean(LS_CAPABILITY, OPTIONAL) && isBoolean(LARGE_AS_CAPABILITY, OPTIONAL) &&
-                isString(FLOW_SPEC_CAPABILITY, OPTIONAL);
+                isString(FLOW_SPEC_CAPABILITY, OPTIONAL) && isBoolean(FLOW_SPEC_RPD_CAPABILITY, OPTIONAL);
 
         if (!fields) {
             return fields;
@@ -115,6 +116,15 @@ public class BgpAppConfig extends Config<ApplicationId> {
      */
     public boolean lsCapability() {
         return Boolean.parseBoolean(get(LS_CAPABILITY, null));
+    }
+
+    /**
+     * Returns flow spec route policy distribution capability support from the configuration.
+     *
+     * @return true if flow spec route policy distribution capability is set otherwise false
+     */
+    public boolean rpdCapability() {
+        return Boolean.parseBoolean(get(FLOW_SPEC_RPD_CAPABILITY, null));
     }
 
     /**
