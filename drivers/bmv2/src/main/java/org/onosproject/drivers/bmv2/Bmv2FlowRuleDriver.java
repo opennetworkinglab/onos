@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
+import org.onosproject.bmv2.api.runtime.Bmv2Client;
 import org.onosproject.bmv2.api.runtime.Bmv2MatchKey;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.api.runtime.Bmv2TableEntry;
@@ -84,7 +85,7 @@ public class Bmv2FlowRuleDriver extends AbstractHandlerBehaviour
 
         DeviceId deviceId = handler().data().deviceId();
 
-        Bmv2ThriftClient deviceClient;
+        Bmv2Client deviceClient;
         try {
             deviceClient = Bmv2ThriftClient.of(deviceId);
         } catch (Bmv2RuntimeException e) {

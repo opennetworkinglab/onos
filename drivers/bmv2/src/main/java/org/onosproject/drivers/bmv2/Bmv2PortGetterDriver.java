@@ -18,6 +18,7 @@ package org.onosproject.drivers.bmv2;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.onosproject.bmv2.api.runtime.Bmv2Client;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.ctl.Bmv2ThriftClient;
 import org.onosproject.net.DefaultAnnotations;
@@ -41,7 +42,7 @@ public class Bmv2PortGetterDriver extends AbstractHandlerBehaviour
 
     @Override
     public List<PortDescription> getPorts() {
-        Bmv2ThriftClient deviceClient;
+        Bmv2Client deviceClient;
         try {
             deviceClient = Bmv2ThriftClient.of(handler().data().deviceId());
         } catch (Bmv2RuntimeException e) {

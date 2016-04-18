@@ -31,13 +31,13 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
-import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.bmv2.api.runtime.Bmv2Action;
+import org.onosproject.bmv2.api.runtime.Bmv2Client;
 import org.onosproject.bmv2.api.runtime.Bmv2ExactMatchParam;
-import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.api.runtime.Bmv2LpmMatchParam;
 import org.onosproject.bmv2.api.runtime.Bmv2MatchKey;
 import org.onosproject.bmv2.api.runtime.Bmv2PortInfo;
+import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
 import org.onosproject.bmv2.api.runtime.Bmv2TableEntry;
 import org.onosproject.bmv2.api.runtime.Bmv2TernaryMatchParam;
 import org.onosproject.bmv2.api.runtime.Bmv2ValidMatchParam;
@@ -51,6 +51,8 @@ import org.p4.bmv2.thrift.BmMatchParamType;
 import org.p4.bmv2.thrift.BmMatchParamValid;
 import org.p4.bmv2.thrift.DevMgrPortInfo;
 import org.p4.bmv2.thrift.Standard;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -60,38 +62,43 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.bmv2.ctl.SafeThriftClient.Options;
 
 /**
  * Implementation of a Thrift client to control the Bmv2 switch.
  */
-public final class Bmv2ThriftClient {
-    /*
-    FIXME: derive context_id from device id
-    Using different context id values should serve to control different
-    switches responding to the same IP address and port
-    */
+public final class Bmv2ThriftClient implements Bmv2Client {
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(Bmv2ThriftClient.class);
+
+    // FIXME: make context_id arbitrary for each call
+    // See: https://github.com/p4lang/behavioral-model/blob/master/modules/bm_sim/include/bm_sim/context.h
     private static final int CONTEXT_ID = 0;
-    /*
-    Static transport/client cache:
-        - avoids opening a new transport session when there's one already open
-        - close the connection after a predefined timeout of 5 seconds
-     */
-    private static LoadingCache<DeviceId, Bmv2ThriftClient>
-            clientCache = CacheBuilder.newBuilder()
-            .expireAfterAccess(5, TimeUnit.SECONDS)
+    // Seconds after a client is expired (and connection closed) in the cache.
+    private static final int CLIENT_CACHE_TIMEOUT = 60;
+    // Number of connection retries after a network error.
+    private static final int NUM_CONNECTION_RETRIES = 10;
+    // Time between retries in milliseconds.
+    private static final int TIME_BETWEEN_RETRIES = 200;
+
+    // Static client cache where clients are removed after a predefined timeout.
+    private static final LoadingCache<DeviceId, Bmv2ThriftClient>
+            CLIENT_CACHE = CacheBuilder.newBuilder()
+            .expireAfterAccess(CLIENT_CACHE_TIMEOUT, TimeUnit.SECONDS)
             .removalListener(new ClientRemovalListener())
             .build(new ClientLoader());
     private final Standard.Iface stdClient;
     private final TTransport transport;
+    private final DeviceId deviceId;
 
     // ban constructor
-    private Bmv2ThriftClient(TTransport transport, Standard.Iface stdClient) {
+    private Bmv2ThriftClient(DeviceId deviceId, TTransport transport, Standard.Iface stdClient) {
+        this.deviceId = deviceId;
         this.transport = transport;
         this.stdClient = stdClient;
-    }
 
-    private void closeTransport() {
-        this.transport.close();
+        LOG.debug("New client created! > deviceId={}", deviceId);
     }
 
     /**
@@ -104,8 +111,10 @@ public final class Bmv2ThriftClient {
     public static Bmv2ThriftClient of(DeviceId deviceId) throws Bmv2RuntimeException {
         try {
             checkNotNull(deviceId, "deviceId cannot be null");
-            return clientCache.get(deviceId);
+            LOG.debug("Getting a client from cache... > deviceId{}", deviceId);
+            return CLIENT_CACHE.get(deviceId);
         } catch (ExecutionException e) {
+            LOG.debug("Exception while getting a client from cache: {} > ", e, deviceId);
             throw new Bmv2RuntimeException(e.getMessage(), e.getCause());
         }
     }
@@ -120,9 +129,13 @@ public final class Bmv2ThriftClient {
     public static boolean ping(DeviceId deviceId) {
         // poll ports status as workaround to assess device reachability
         try {
-            of(deviceId).stdClient.bm_dev_mgr_show_ports();
+            LOG.debug("Pinging device... > deviceId={}", deviceId);
+            Bmv2ThriftClient client = of(deviceId);
+            client.stdClient.bm_dev_mgr_show_ports();
+            LOG.debug("Device reachable! > deviceId={}", deviceId);
             return true;
         } catch (TException | Bmv2RuntimeException e) {
+            LOG.debug("Device NOT reachable! > deviceId={}", deviceId);
             return false;
         }
     }
@@ -156,32 +169,34 @@ public final class Bmv2ThriftClient {
     private static List<BmMatchParam> buildMatchParamsList(Bmv2MatchKey matchKey) {
         List<BmMatchParam> paramsList = Lists.newArrayList();
         matchKey.matchParams().forEach(x -> {
+            ByteBuffer value;
+            ByteBuffer mask;
             switch (x.type()) {
                 case EXACT:
+                    value = ByteBuffer.wrap(((Bmv2ExactMatchParam) x).value().asArray());
                     paramsList.add(
                             new BmMatchParam(BmMatchParamType.EXACT)
-                                    .setExact(new BmMatchParamExact(
-                                            ((Bmv2ExactMatchParam) x).value().asReadOnlyBuffer())));
+                                    .setExact(new BmMatchParamExact(value)));
                     break;
                 case TERNARY:
+                    value = ByteBuffer.wrap(((Bmv2TernaryMatchParam) x).value().asArray());
+                    mask = ByteBuffer.wrap(((Bmv2TernaryMatchParam) x).mask().asArray());
                     paramsList.add(
                             new BmMatchParam(BmMatchParamType.TERNARY)
-                                    .setTernary(new BmMatchParamTernary(
-                                            ((Bmv2TernaryMatchParam) x).value().asReadOnlyBuffer(),
-                                            ((Bmv2TernaryMatchParam) x).mask().asReadOnlyBuffer())));
+                                    .setTernary(new BmMatchParamTernary(value, mask)));
                     break;
                 case LPM:
+                    value = ByteBuffer.wrap(((Bmv2LpmMatchParam) x).value().asArray());
+                    int prefixLength = ((Bmv2LpmMatchParam) x).prefixLength();
                     paramsList.add(
                             new BmMatchParam(BmMatchParamType.LPM)
-                                    .setLpm(new BmMatchParamLPM(
-                                            ((Bmv2LpmMatchParam) x).value().asReadOnlyBuffer(),
-                                            ((Bmv2LpmMatchParam) x).prefixLength())));
+                                    .setLpm(new BmMatchParamLPM(value, prefixLength)));
                     break;
                 case VALID:
+                    boolean flag = ((Bmv2ValidMatchParam) x).flag();
                     paramsList.add(
                             new BmMatchParam(BmMatchParamType.VALID)
-                                    .setValid(new BmMatchParamValid(
-                                            ((Bmv2ValidMatchParam) x).flag())));
+                                    .setValid(new BmMatchParamValid(flag)));
                     break;
                 default:
                     // should never be here
@@ -198,20 +213,25 @@ public final class Bmv2ThriftClient {
      * @return list of ByteBuffers
      */
     private static List<ByteBuffer> buildActionParamsList(Bmv2Action action) {
-        return action.parameters()
-                .stream()
-                .map(ImmutableByteSequence::asReadOnlyBuffer)
-                .collect(Collectors.toList());
+        List<ByteBuffer> buffers = Lists.newArrayList();
+        action.parameters().forEach(p -> buffers.add(ByteBuffer.wrap(p.asArray())));
+        return buffers;
     }
 
-    /**
-     * Adds a new table entry.
-     *
-     * @param entry a table entry value
-     * @return table-specific entry ID
-     * @throws Bmv2RuntimeException if any error occurs
-     */
+    private void closeTransport() {
+        LOG.debug("Closing transport session... > deviceId={}", deviceId);
+        if (this.transport.isOpen()) {
+            this.transport.close();
+            LOG.debug("Transport session closed! > deviceId={}", deviceId);
+        } else {
+            LOG.debug("Transport session was already closed! deviceId={}", deviceId);
+        }
+    }
+
+    @Override
     public final long addTableEntry(Bmv2TableEntry entry) throws Bmv2RuntimeException {
+
+        LOG.debug("Adding table entry... > deviceId={}, entry={}", deviceId, entry);
 
         long entryId = -1;
 
@@ -237,33 +257,32 @@ public final class Bmv2ThriftClient {
                         CONTEXT_ID, entry.tableName(), entryId, msTimeout);
             }
 
+            LOG.debug("Table entry added! > deviceId={}, entryId={}/{}", deviceId, entry.tableName(), entryId);
+
             return entryId;
 
         } catch (TException e) {
+            LOG.debug("Exception while adding table entry: {} > deviceId={}, tableName={}",
+                      e, deviceId, entry.tableName());
             if (entryId != -1) {
+                // entry is in inconsistent state (unable to add timeout), remove it
                 try {
-                    stdClient.bm_mt_delete_entry(
-                            CONTEXT_ID, entry.tableName(), entryId);
-                } catch (TException e1) {
-                    // this should never happen as we know the entry is there
-                    throw new Bmv2RuntimeException(e1.getMessage(), e1);
+                    deleteTableEntry(entry.tableName(), entryId);
+                } catch (Bmv2RuntimeException e1) {
+                    LOG.debug("Unable to remove failed table entry: {} > deviceId={}, tableName={}",
+                              e1, deviceId, entry.tableName());
                 }
             }
             throw new Bmv2RuntimeException(e.getMessage(), e);
         }
     }
 
-    /**
-     * Modifies a currently installed entry by updating its action.
-     *
-     * @param tableName string value of table name
-     * @param entryId   long value of entry ID
-     * @param action    an action value
-     * @throws Bmv2RuntimeException if any error occurs
-     */
+    @Override
     public final void modifyTableEntry(String tableName,
                                        long entryId, Bmv2Action action)
             throws Bmv2RuntimeException {
+
+        LOG.debug("Modifying table entry... > deviceId={}, entryId={}/{}", deviceId, tableName, entryId);
 
         try {
             stdClient.bm_mt_modify_entry(
@@ -272,37 +291,35 @@ public final class Bmv2ThriftClient {
                     entryId,
                     action.name(),
                     buildActionParamsList(action));
+            LOG.debug("Table entry modified! > deviceId={}, entryId={}/{}", deviceId, tableName, entryId);
         } catch (TException e) {
+            LOG.debug("Exception while modifying table entry: {} > deviceId={}, entryId={}/{}",
+                      e, deviceId, tableName, entryId);
             throw new Bmv2RuntimeException(e.getMessage(), e);
         }
     }
 
-    /**
-     * Deletes currently installed entry.
-     *
-     * @param tableName string value of table name
-     * @param entryId   long value of entry ID
-     * @throws Bmv2RuntimeException if any error occurs
-     */
+    @Override
     public final void deleteTableEntry(String tableName,
                                        long entryId) throws Bmv2RuntimeException {
 
+        LOG.debug("Deleting table entry... > deviceId={}, entryId={}/{}", deviceId, tableName, entryId);
+
         try {
             stdClient.bm_mt_delete_entry(CONTEXT_ID, tableName, entryId);
+            LOG.debug("Table entry deleted! > deviceId={}, entryId={}/{}", deviceId, tableName, entryId);
         } catch (TException e) {
+            LOG.debug("Exception while deleting table entry: {} > deviceId={}, entryId={}/{}",
+                      e, deviceId, tableName, entryId);
             throw new Bmv2RuntimeException(e.getMessage(), e);
         }
     }
 
-    /**
-     * Sets table default action.
-     *
-     * @param tableName string value of table name
-     * @param action    an action value
-     * @throws Bmv2RuntimeException if any error occurs
-     */
+    @Override
     public final void setTableDefaultAction(String tableName, Bmv2Action action)
             throws Bmv2RuntimeException {
+
+        LOG.debug("Setting table default... > deviceId={}, tableName={}, action={}", deviceId, tableName, action);
 
         try {
             stdClient.bm_mt_set_default_action(
@@ -310,18 +327,18 @@ public final class Bmv2ThriftClient {
                     tableName,
                     action.name(),
                     buildActionParamsList(action));
+            LOG.debug("Table default set! > deviceId={}, tableName={}, action={}", deviceId, tableName, action);
         } catch (TException e) {
+            LOG.debug("Exception while setting table default : {} > deviceId={}, tableName={}, action={}",
+                      e, deviceId, tableName, action);
             throw new Bmv2RuntimeException(e.getMessage(), e);
         }
     }
 
-    /**
-     * Returns information of the ports currently configured in the switch.
-     *
-     * @return collection of port information
-     * @throws Bmv2RuntimeException if any error occurs
-     */
+    @Override
     public Collection<Bmv2PortInfo> getPortsInfo() throws Bmv2RuntimeException {
+
+        LOG.debug("Retrieving port info... > deviceId={}", deviceId);
 
         try {
             List<DevMgrPortInfo> portInfos = stdClient.bm_dev_mgr_show_ports();
@@ -333,39 +350,42 @@ public final class Bmv2ThriftClient {
                             .map(Bmv2PortInfo::new)
                             .collect(Collectors.toList()));
 
+            LOG.debug("Port info retrieved! > deviceId={}, portInfos={}", deviceId, bmv2PortInfos);
+
             return bmv2PortInfos;
 
         } catch (TException e) {
+            LOG.debug("Exception while retrieving port info: {} > deviceId={}", e, deviceId);
             throw new Bmv2RuntimeException(e.getMessage(), e);
         }
     }
 
-    /**
-     * Return a string representation of a table content.
-     *
-     * @param tableName string value of table name
-     * @return table string dump
-     * @throws Bmv2RuntimeException if any error occurs
-     */
+    @Override
     public String dumpTable(String tableName) throws Bmv2RuntimeException {
 
+        LOG.debug("Retrieving table dump... > deviceId={}, tableName={}", deviceId, tableName);
+
         try {
-            return stdClient.bm_dump_table(CONTEXT_ID, tableName);
+            String dump = stdClient.bm_dump_table(CONTEXT_ID, tableName);
+            LOG.debug("Table dump retrieved! > deviceId={}, tableName={}", deviceId, tableName);
+            return dump;
         } catch (TException e) {
+            LOG.debug("Exception while retrieving table dump: {} > deviceId={}, tableName={}",
+                      e, deviceId, tableName);
             throw new Bmv2RuntimeException(e.getMessage(), e);
         }
     }
 
-    /**
-     * Reset the state of the switch (e.g. delete all entries, etc.).
-     *
-     * @throws Bmv2RuntimeException if any error occurs
-     */
+    @Override
     public void resetState() throws Bmv2RuntimeException {
+
+        LOG.debug("Resetting device state... > deviceId={}", deviceId);
 
         try {
             stdClient.bm_reset_state();
+            LOG.debug("Device state reset! > deviceId={}", deviceId);
         } catch (TException e) {
+            LOG.debug("Exception while resetting device state: {} > deviceId={}", e, deviceId);
             throw new Bmv2RuntimeException(e.getMessage(), e);
         }
     }
@@ -376,20 +396,26 @@ public final class Bmv2ThriftClient {
     private static class ClientLoader
             extends CacheLoader<DeviceId, Bmv2ThriftClient> {
 
+        // Connection retries options: max 10 retries each 200 ms
+        private static final Options RECONN_OPTIONS = new Options(NUM_CONNECTION_RETRIES, TIME_BETWEEN_RETRIES);
+
         @Override
         public Bmv2ThriftClient load(DeviceId deviceId)
                 throws TTransportException {
+            LOG.debug("Creating new client in cache... > deviceId={}", deviceId);
             Pair<String, Integer> info = parseDeviceId(deviceId);
             //make the expensive call
             TTransport transport = new TSocket(
                     info.getLeft(), info.getRight());
             TProtocol protocol = new TBinaryProtocol(transport);
-            Standard.Iface stdClient = new Standard.Client(
+            Standard.Client stdClient = new Standard.Client(
                     new TMultiplexedProtocol(protocol, "standard"));
+            // Wrap the client so to automatically have synchronization and resiliency to connectivity problems
+            Standard.Iface reconnStdIface = SafeThriftClient.wrap(stdClient,
+                                                                  Standard.Iface.class,
+                                                                  RECONN_OPTIONS);
 
-            transport.open();
-
-            return new Bmv2ThriftClient(transport, stdClient);
+            return new Bmv2ThriftClient(deviceId, transport, reconnStdIface);
         }
     }
 
@@ -403,6 +429,7 @@ public final class Bmv2ThriftClient {
         public void onRemoval(
                 RemovalNotification<DeviceId, Bmv2ThriftClient> notification) {
             // close the transport connection
+            LOG.debug("Removing client from cache... > deviceId={}", notification.getKey());
             notification.getValue().closeTransport();
         }
     }
