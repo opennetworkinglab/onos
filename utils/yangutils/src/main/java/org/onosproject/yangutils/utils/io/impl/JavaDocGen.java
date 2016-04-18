@@ -22,6 +22,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_CLASS_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_INTERFACE_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_OBJECT;
+import static org.onosproject.yangutils.utils.UtilConstants.ENUM_ATTRIBUTE_JAVADOC;
+import static org.onosproject.yangutils.utils.UtilConstants.ENUM_CLASS_JAVADOC;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_METHOD_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_PARAM_NAME;
@@ -135,7 +137,17 @@ public final class JavaDocGen {
         /**
          * For build.
          */
-        BUILD_METHOD
+        BUILD_METHOD,
+
+        /**
+         * For enum.
+         */
+        ENUM_CLASS,
+
+        /**
+         * For enum's attributes.
+         */
+        ENUM_ATTRIBUTE
     }
 
     /**
@@ -176,6 +188,10 @@ public final class JavaDocGen {
             javaDoc = generateForTypeConstructor(name);
         } else if (type.equals(JavaDocType.UNION_FROM_METHOD)) {
             javaDoc = generateForUnionFrom(name);
+        } else if (type.equals(JavaDocType.ENUM_CLASS)) {
+            javaDoc = generateForEnum(name);
+        } else if (type.equals(JavaDocType.ENUM_ATTRIBUTE)) {
+            javaDoc = generateForEnumAttr(name);
         } else {
             javaDoc = generateForConstructors(name);
         }
@@ -183,7 +199,18 @@ public final class JavaDocGen {
     }
 
     /**
-     * Generate javaDocs for getter method.
+     * Generates javaDocs for enum's attributes.
+     *
+     * @param name attribute name
+     * @return javaDocs
+     */
+    private static String generateForEnumAttr(String name) {
+        return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + ENUM_ATTRIBUTE_JAVADOC
+                + name + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
+    }
+
+    /**
+     * Generates javaDocs for getter method.
      *
      * @param attribute attribute
      * @param isList    is list attribute
@@ -272,20 +299,7 @@ public final class JavaDocGen {
     }
 
     /**
-     * Generates javaDocs for typedef constructor.
-     *
-     * @param attribute attribute
-     * @return javaDocs
-     */
-    private static String generateForTypeDefConstructor(String attribute) {
-        return (NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR
-                + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
-                + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
-                + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE);
-    }
-
-    /**
-     * Generate javaDocs for the impl class.
+     * Generates javaDocs for the impl class.
      *
      * @param className class name
      * @return javaDocs
@@ -295,7 +309,18 @@ public final class JavaDocGen {
     }
 
     /**
-     * Generate javaDocs for the builder class.
+     * Generates javaDocs for enum.
+     *
+     * @param className enum class name
+     * @return javaDocs
+     */
+    private static String generateForEnum(String className) {
+        return NEW_LINE + NEW_LINE + JAVA_DOC_FIRST_LINE + ENUM_CLASS_JAVADOC + className + PERIOD + NEW_LINE
+                + JAVA_DOC_END_LINE;
+    }
+
+    /**
+     * Generates javaDocs for the builder class.
      *
      * @param className class name
      * @return javaDocs
@@ -306,7 +331,7 @@ public final class JavaDocGen {
     }
 
     /**
-     * Generate javaDoc for the interface.
+     * Generates javaDoc for the interface.
      *
      * @param interfaceName interface name
      * @return javaDocs
@@ -317,7 +342,7 @@ public final class JavaDocGen {
     }
 
     /**
-     * Generate javaDoc for the builder interface.
+     * Generates javaDoc for the builder interface.
      *
      * @param builderforName builder for name
      * @return javaDocs
@@ -328,7 +353,7 @@ public final class JavaDocGen {
     }
 
     /**
-     * Generate javaDocs for package-info.
+     * Generates javaDocs for package-info.
      *
      * @param packageName package name
      * @return javaDocs
@@ -338,7 +363,7 @@ public final class JavaDocGen {
     }
 
     /**
-     * Generate javaDocs for default constructor.
+     * Generates javaDocs for default constructor.
      *
      * @param className class name
      * @return javaDocs
@@ -349,7 +374,7 @@ public final class JavaDocGen {
     }
 
     /**
-     * Generate javaDocs for constructor with parameters.
+     * Generates javaDocs for constructor with parameters.
      *
      * @param className class name
      * @return javaDocs
@@ -363,7 +388,7 @@ public final class JavaDocGen {
     }
 
     /**
-     * Generate javaDocs for build.
+     * Generates javaDocs for build.
      *
      * @param buildName builder name
      * @return javaDocs

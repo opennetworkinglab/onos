@@ -57,6 +57,11 @@ public final class GeneratedJavaFileType {
     public static final int GENERATE_UNION_CLASS = 32;
 
     /**
+     * Java class corresponding to YANG enumeration.
+     */
+    public static final int GENERATE_ENUM_CLASS = 64;
+
+    /**
      * Creates an instance of generate java file type.
      */
     private GeneratedJavaFileType() {

@@ -18,6 +18,7 @@ package org.onosproject.yangutils.translator.tojava.utils;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
@@ -27,6 +28,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerato
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
+import static org.onosproject.yangutils.utils.UtilConstants.ENUM;
 import static org.onosproject.yangutils.utils.UtilConstants.EXTEND;
 import static org.onosproject.yangutils.utils.UtilConstants.FINAL;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
@@ -76,8 +78,20 @@ public final class ClassDefinitionGenerator {
             return getTypeClassDefinition(yangName);
         } else if ((genFileTypes & GENERATE_UNION_CLASS) != 0) {
             return getTypeClassDefinition(yangName);
+        } else if ((genFileTypes & GENERATE_ENUM_CLASS) != 0) {
+            return getEnumClassDefinition(yangName);
         }
         return null;
+    }
+
+    /**
+     * Returns enum file class definition.
+     *
+     * @param yangName class name
+     * @return enum file class definiton
+     */
+    private static String getEnumClassDefinition(String yangName) {
+        return PUBLIC + SPACE + ENUM + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 
     /**

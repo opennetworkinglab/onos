@@ -44,6 +44,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTA
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_RESOURCES;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.appendFileContents;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.PACKAGE_INFO;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -96,7 +97,7 @@ public final class YangIoUtils {
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 
             bufferedWriter.write(CopyrightHeader.getCopyrightHeader());
-            bufferedWriter.write(JavaDocGen.getJavaDoc(PACKAGE_INFO, classInfo, false));
+            bufferedWriter.write(getJavaDoc(PACKAGE_INFO, classInfo, false));
             bufferedWriter.write(PACKAGE + SPACE + pack + SEMI_COLAN);
 
             bufferedWriter.close();

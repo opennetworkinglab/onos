@@ -124,6 +124,29 @@ public final class JavaAttributeInfo {
     }
 
     /**
+     * Creates an attribute info object corresponding to the passed enumeration attribute
+     * information and return it.
+     *
+     * @param curNode current data model node for which the java file is being
+     *            generated
+     * @param attributeName attribute name
+     * @return AttributeInfo attribute details required to add in temporary
+     *         files
+     */
+    public static JavaAttributeInfo getAttributeInfoOfEnumAttribute(YangNode curNode, String attributeName) {
+
+        String curNodeName = ((HasJavaFileInfo) curNode).getJavaFileInfo().getJavaName();
+
+        /*
+         * Get the import info corresponding to the attribute for import in
+         * generated java files or qualified access
+         */
+        JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode,
+                curNodeName, false);
+
+        return getAttributeInfoForTheData(qualifiedTypeInfo, attributeName, null, curNode, false);
+    }
+    /**
      * Returns the data type info of attribute.
      *
      * @return the data type info of attribute

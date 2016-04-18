@@ -53,9 +53,24 @@ public final class UtilConstants {
     public static final String BUILDER_INTERFACE_JAVA_DOC = " * Builder for ";
 
     /**
+     * JavaDocs for enum class.
+     */
+    public static final String ENUM_CLASS_JAVADOC = " * Represents ENUM data of ";
+
+    /**
+     * JavaDocs for enum attribute.
+     */
+    public static final String ENUM_ATTRIBUTE_JAVADOC = " * Represents ";
+
+    /**
      * JavaDocs for package info class.
      */
-    public static final String PACKAGE_INFO_JAVADOC = " * Implementation of YANG file ";
+    public static final String PACKAGE_INFO_JAVADOC = " * Implementation of YANG node ";
+
+    /**
+     * JavaDocs for package info class.
+     */
+    public static final String PACKAGE_INFO_JAVADOC_OF_CHILD = "'s children nodes";
 
     /**
      * JavaDocs's first line.
@@ -281,6 +296,11 @@ public final class UtilConstants {
      * Static attribute for value syntax.
      */
     public static final String VALUE = "value";
+
+    /**
+     * Static attribute for enumValue syntax.
+     */
+    public static final String ENUM_VALUE = "enumValue";
 
     /**
      * Static attribute for suffix s.

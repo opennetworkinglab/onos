@@ -23,6 +23,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Calendar;
 
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 
@@ -33,6 +34,8 @@ public final class CopyrightHeader {
 
     private static final int EOF = -1;
     private static final String COPYRIGHT_HEADER_FILE = "CopyrightHeader.txt";
+    private static final String COPYRIGHTS_FIRST_LINE = "/*\n * Copyright " + Calendar.getInstance().get(Calendar.YEAR)
+            + "-present Open Networking Laboratory\n";
     private static final String TEMP_FILE = "temp.txt";
     private static ClassLoader classLoader = CopyrightHeader.class.getClassLoader();
 
@@ -82,6 +85,7 @@ public final class CopyrightHeader {
             OutputStream out = new FileOutputStream(temp);
 
             int index;
+            out.write(COPYRIGHTS_FIRST_LINE.getBytes());
             while ((index = stream.read()) != EOF) {
                 out.write(index);
             }

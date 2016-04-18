@@ -381,6 +381,25 @@ public final class JavaIdentifierSyntax {
     }
 
     /**
+     * Returns enum's java name.
+     *
+     * @param name enum's name
+     * @return enum's java name
+     */
+    public static String getEnumJavaAttribute(String name) {
+
+        String[] strArray = name.split(HYPHEN);
+        String output = EMPTY_STRING;
+        for (int i = 0; i < strArray.length; i++) {
+            output = output + strArray[i];
+            if (i > 0 && i < strArray.length - 1) {
+                output = output + UNDER_SCORE;
+            }
+        }
+        return output;
+    }
+
+    /**
      * Returns the directory path corresponding to java package.
      *
      * @param packagePath package path

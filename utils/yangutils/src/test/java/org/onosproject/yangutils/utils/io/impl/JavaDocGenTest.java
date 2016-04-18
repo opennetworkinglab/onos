@@ -159,7 +159,7 @@ public final class JavaDocGenTest {
     @Test
     public void packageInfoGenerationTest() {
         String packageInfo = getJavaDoc(PACKAGE_INFO, TEST_NAME, false);
-        assertThat(true, is(packageInfo.contains("Implementation of YANG file") && packageInfo.contains(END_STRING)));
+        assertThat(true, is(packageInfo.contains("Implementation of YANG node") && packageInfo.contains(END_STRING)));
     }
 
     /**

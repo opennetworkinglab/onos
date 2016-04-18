@@ -17,10 +17,13 @@
 package org.onosproject.yangutils.utils.io.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Calendar;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +43,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 public final class CopyrightHeaderTest {
 
     private final Logger log = getLogger(getClass());
-
+    private static final String COPYRIGHTS_FIRST_LINE = "/*\n * Copyright " + Calendar.getInstance().get(Calendar.YEAR)
+            + "-present Open Networking Laboratory\n";
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -74,16 +78,30 @@ public final class CopyrightHeaderTest {
     @Test
     public void testGetCopyrightHeader() throws IOException {
 
-        String baseDir = System.getProperty("basedir");
-        String path = "/src/test/resources/CopyrightHeader.txt";
+        String path = "src/test/resources/CopyrightHeader.txt";
+
+        File testRsc = new File(path);
+        FileInputStream in = new FileInputStream(testRsc);
+
+        File testFile = new File("target/TestHeader.txt");
+        FileOutputStream out = new FileOutputStream(testFile);
+
+        out.write(COPYRIGHTS_FIRST_LINE.getBytes());
+        int c = 0;
+        while ((c = in.read()) != -1) {
+            out.write(c);
+        }
 
         String licenseHeader = getCopyrightHeader();
         File test = new File("target/TestCopyrightHeader.txt");
 
-        FileWriter out = new FileWriter(test);
-        out.write(licenseHeader);
+        FileWriter writer = new FileWriter(test);
+        writer.write(licenseHeader);
+        writer.close();
         out.close();
+        out.flush();
+        in.close();
 
-        assertThat(true, is(contentEquals(test, new File(baseDir + path))));
+        assertThat(true, is(contentEquals(test, testFile)));
     }
 }

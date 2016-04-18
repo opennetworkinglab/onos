@@ -20,11 +20,13 @@ import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 
 import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
 import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
+import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
@@ -38,6 +40,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_ATTRIBUTE;
 
 /**
  * Represents utility class to generate the java snippet.
@@ -155,4 +159,17 @@ public final class JavaCodeSnippetGen {
     public static String getJavaClassDefClose() {
         return CLOSE_CURLY_BRACKET;
     }
+
+    /**
+     * Returns string for enum's attribute.
+     *
+     * @param name name of attribute
+     * @param value value of the enum
+     * @return string for enum's attribute
+     */
+    public static String generateEnumAttributeString(String name, int value) {
+        return getJavaDoc(ENUM_ATTRIBUTE, name, false) + FOUR_SPACE_INDENTATION + getEnumJavaAttribute(name)
+                + OPEN_PARENTHESIS + value + CLOSE_PARENTHESIS + COMMA + NEW_LINE;
+    }
+
 }

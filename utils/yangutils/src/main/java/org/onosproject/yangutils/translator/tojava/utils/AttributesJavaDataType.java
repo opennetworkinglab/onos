@@ -18,6 +18,7 @@ package org.onosproject.yangutils.translator.tojava.utils;
 
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
+import org.onosproject.yangutils.datamodel.YangEnumeration;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
@@ -25,6 +26,7 @@ import org.onosproject.yangutils.datamodel.YangUnion;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumeration;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeDef;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUnion;
 
@@ -186,7 +188,8 @@ public final class AttributesJavaDataType {
                 case BOOLEAN:
                     return BOOLEAN_WRAPPER;
                 case ENUMERATION:
-                    //TODO: ENUMERATION.
+                    return getCaptialCase(
+                            getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(), null));
                 case BITS:
                     //TODO:BITS
                 case BINARY:
@@ -205,7 +208,7 @@ public final class AttributesJavaDataType {
                 case DERIVED:
                     return getCaptialCase(getCamelCase(yangType.getDataTypeName(), null));
                 default:
-                    return null;
+                    throw new TranslatorException("given data type is not supported.");
             }
         } else {
             switch (type) {
@@ -216,7 +219,8 @@ public final class AttributesJavaDataType {
                 case STRING:
                     return STRING_DATA_TYPE;
                 case ENUMERATION:
-                    //TODO: ENUMERATION.
+                    return getCaptialCase(
+                            getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(), null));
                 case BITS:
                     //TODO:BITS
                 case BINARY:
@@ -269,7 +273,7 @@ public final class AttributesJavaDataType {
                 case DECIMAL64:
                     //TODO: DECIMAL64.
                 case ENUMERATION:
-                    //TODO: ENUMERATION.
+                    return getEnumsPackage(yangType);
                 case BITS:
                     //TODO:BITS
                 case BINARY:
@@ -287,7 +291,7 @@ public final class AttributesJavaDataType {
                 case DERIVED:
                     return getTypDefsPackage(yangType);
                 default:
-                    return null;
+                    throw new TranslatorException("given data type is not supported.");
             }
         } else {
             switch (type) {
@@ -298,7 +302,7 @@ public final class AttributesJavaDataType {
                 case STRING:
                     return JAVA_LANG;
                 case ENUMERATION:
-                    //TODO: ENUMERATION.
+                    return getEnumsPackage(yangType);
                 case BITS:
                     //TODO:BITS
                 case BINARY:
@@ -361,6 +365,24 @@ public final class AttributesJavaDataType {
             return getPackageFromParent(union.getParent());
         }
         return union.getJavaFileInfo().getPackage();
+    }
+
+    /**
+     * Returns YANG enumeration's java package.
+     *
+     * @param type YANG type
+     * @return YANG enumeration's java package
+     */
+    private static String getEnumsPackage(YangType<?> type) {
+
+        if (!(type.getDataTypeExtendedInfo() instanceof YangEnumeration)) {
+            throw new TranslatorException("type should have been enumeration.");
+        }
+        YangJavaEnumeration enumeration = (YangJavaEnumeration) type.getDataTypeExtendedInfo();
+        if (enumeration.getJavaFileInfo().getPackage() == null) {
+            return getPackageFromParent(enumeration.getParent());
+        }
+        return enumeration.getJavaFileInfo().getPackage();
     }
 
     /**

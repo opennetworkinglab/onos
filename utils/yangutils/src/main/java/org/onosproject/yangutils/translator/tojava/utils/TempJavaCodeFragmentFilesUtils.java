@@ -31,6 +31,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.HAS_AUGMENTATION;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
 
+import static java.util.Collections.sort;
+
 /**
  * Represents utilities for temporary java code fragments.
  */
@@ -128,7 +130,7 @@ public final class TempJavaCodeFragmentFilesUtils {
         } else {
             imports.remove(curImport);
         }
-        java.util.Collections.sort(imports);
+        sort(imports);
         return imports;
     }
 

@@ -55,6 +55,8 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.utils.YangConstructType;
 
+import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
+import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangEnumerationNode;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
@@ -99,7 +101,7 @@ public final class EnumerationListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, ENUMERATION_DATA, "", ENTRY);
 
         if (listener.getParsedDataStack().peek() instanceof YangType) {
-            YangEnumeration enumerationNode = new YangEnumeration();
+            YangEnumeration enumerationNode = getYangEnumerationNode(JAVA_GENERATION);
             Parsable typeData = listener.getParsedDataStack().pop();
 
             // Check for stack to be non empty.

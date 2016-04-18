@@ -28,6 +28,7 @@ import org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
@@ -35,6 +36,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ATTRIBUTES_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_FOR_TYPE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ENUM_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EQUALS_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_INTERFACE_MASK;
@@ -46,17 +48,22 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.UNION_FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaClassDefStart;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getJavaPackageFromPackagePath;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
+import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.ORG;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
+import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_INTERFACE;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.IMPL_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INTERFACE;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
 
 /**
@@ -134,6 +141,9 @@ public final class JavaFileGeneratorUtils {
         } else if ((generatedTempFiles & UNION_FROM_STRING_IMPL_MASK) != 0) {
             return tempJavaCodeFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getUnionFromStringImplTempFileHandle());
+        } else if ((generatedTempFiles & ENUM_IMPL_MASK) != 0) {
+            return tempJavaCodeFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getEnumClassTempFileHandle());
         }
         return null;
     }
@@ -190,6 +200,9 @@ public final class JavaFileGeneratorUtils {
         } else if ((type & GENERATE_UNION_CLASS) != 0) {
             appendHeaderContents(file, pkgString, importsList);
             write(file, fileName, type, IMPL_CLASS);
+        } else if ((type & GENERATE_ENUM_CLASS) != 0) {
+            appendHeaderContents(file, pkgString, importsList);
+            write(file, fileName, type, ENUM_CLASS);
         }
     }
 
@@ -257,6 +270,17 @@ public final class JavaFileGeneratorUtils {
             throws IOException {
         insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false));
         insertDataIntoJavaFile(file, getJavaClassDefStart(genType, fileName));
+    }
+
+    /**
+     * Returns integer attribute for enum's class to get the values.
+     *
+     * @param className enum's class name
+     * @return enum's attribute
+     */
+    public static String getEnumsValueAttribute(String className) {
+        return NEW_LINE + FOUR_SPACE_INDENTATION + PRIVATE + SPACE + INT + SPACE + getSmallCase(className) + SEMI_COLAN
+                + NEW_LINE;
     }
 
 }

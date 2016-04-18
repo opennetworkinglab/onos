@@ -30,6 +30,7 @@ import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.datamodel.YangOutput;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumeration;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
@@ -116,6 +117,9 @@ public final class YangJavaModelUtils {
         } else if (javaCodeGeneratorInfo instanceof HasType) {
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                     .addTypeInfoToTempFiles((HasType) javaCodeGeneratorInfo);
+        } else if (javaCodeGeneratorInfo instanceof YangJavaEnumeration) {
+            javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
+                    .addEnumAttributeToTempFiles((YangNode) javaCodeGeneratorInfo);
         } else {
             //TODO throw exception
         }
