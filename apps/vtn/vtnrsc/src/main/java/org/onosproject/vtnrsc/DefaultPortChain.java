@@ -26,6 +26,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.onosproject.net.DeviceId;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -43,7 +45,8 @@ public final class DefaultPortChain implements PortChain {
 
     private final Map<FiveTuple, LoadBalanceId> sfcLoadBalanceIdMap = new ConcurrentHashMap<>();
     private final Map<LoadBalanceId, List<PortPairId>> sfcLoadBalancePathMap = new ConcurrentHashMap<>();
-
+    private final Map<LoadBalanceId, List<DeviceId>> sfcClassifiersMap = new ConcurrentHashMap<>();
+    private final Map<LoadBalanceId, List<DeviceId>> sfcForwardersMap = new ConcurrentHashMap<>();
     /**
      * Default constructor to create port chain.
      *
@@ -122,6 +125,40 @@ public final class DefaultPortChain implements PortChain {
     }
 
     @Override
+    public void addSfcClassifiers(LoadBalanceId id, List<DeviceId> classifierList) {
+        this.sfcClassifiersMap.put(id, classifierList);
+    }
+
+    @Override
+    public void addSfcForwarders(LoadBalanceId id, List<DeviceId> forwarderList) {
+        this.sfcForwardersMap.put(id, forwarderList);
+    }
+
+    @Override
+    public void removeSfcClassifiers(LoadBalanceId id, List<DeviceId> classifierList) {
+        List<DeviceId> list = getSfcClassifiers(id);
+        list.removeAll(classifierList);
+        this.sfcForwardersMap.put(id, list);
+    }
+
+    @Override
+    public void removeSfcForwarders(LoadBalanceId id, List<DeviceId> forwarderList) {
+        List<DeviceId> list = getSfcForwarders(id);
+        list.removeAll(forwarderList);
+        this.sfcForwardersMap.put(id, list);
+    }
+
+    @Override
+    public List<DeviceId> getSfcClassifiers(LoadBalanceId id) {
+        return ImmutableList.copyOf(this.sfcClassifiersMap.get(id));
+    }
+
+    @Override
+    public List<DeviceId> getSfcForwarders(LoadBalanceId id) {
+        return ImmutableList.copyOf(this.sfcForwardersMap.get(id));
+    }
+
+    @Override
     public LoadBalanceId getLoadBalanceId(FiveTuple fiveTuple) {
         return this.sfcLoadBalanceIdMap.get(fiveTuple);
     }
@@ -129,6 +166,11 @@ public final class DefaultPortChain implements PortChain {
     @Override
     public Set<FiveTuple> getLoadBalanceIdMapKeys() {
         return ImmutableSet.copyOf(sfcLoadBalanceIdMap.keySet());
+    }
+
+    @Override
+    public Set<LoadBalanceId> getLoadBalancePathMapKeys() {
+        return ImmutableSet.copyOf(sfcLoadBalancePathMap.keySet());
     }
 
     @Override

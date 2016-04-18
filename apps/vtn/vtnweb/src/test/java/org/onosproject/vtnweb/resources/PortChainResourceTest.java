@@ -26,6 +26,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.vtnrsc.FiveTuple;
 import org.onosproject.vtnrsc.FlowClassifierId;
 import org.onosproject.vtnrsc.LoadBalanceId;
@@ -171,6 +172,37 @@ public class PortChainResourceTest extends VtnResourceTest {
         @Override
         public int getLoadBalancePathSize() {
             return 0;
+        }
+
+        @Override
+        public void addSfcClassifiers(LoadBalanceId id, List<DeviceId> classifierList) {
+        }
+
+        @Override
+        public void addSfcForwarders(LoadBalanceId id, List<DeviceId> forwarderList) {
+        }
+
+        @Override
+        public void removeSfcClassifiers(LoadBalanceId id, List<DeviceId> classifierList) {
+        }
+
+        @Override
+        public void removeSfcForwarders(LoadBalanceId id, List<DeviceId> forwarderList) {
+        }
+
+        @Override
+        public List<DeviceId> getSfcClassifiers(LoadBalanceId id) {
+            return null;
+        }
+
+        @Override
+        public List<DeviceId> getSfcForwarders(LoadBalanceId id) {
+            return null;
+        }
+
+        @Override
+        public Set<LoadBalanceId> getLoadBalancePathMapKeys() {
+            return null;
         }
     }
 
