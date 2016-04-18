@@ -22,10 +22,10 @@ import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
+import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_CONTENT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
@@ -44,7 +44,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
  *                        deprecated-keyword
  *
  * ANTLR grammar rule
- * statusStatement : STATUS_KEYWORD (CURRENT_KEYWORD | OBSOLETE_KEYWORD | DEPRECATED_KEYWORD) STMTEND;
+ * statusStatement : STATUS_KEYWORD status STMTEND;
  */
 
 /**
@@ -99,14 +99,27 @@ public final class StatusListener {
         YangStatusType status;
 
         String value = removeQuotesAndHandleConcat(ctx.status().getText());
-        if (value.equals(CURRENT_KEYWORD)) {
-            status = YangStatusType.CURRENT;
-        } else if (value.equals(DEPRECATED_KEYWORD)) {
-            status = YangStatusType.DEPRECATED;
-        } else if (value.equals(OBSOLETE_KEYWORD)) {
-            status = YangStatusType.OBSOLETE;
-        } else {
-            throw new ParserException(constructListenerErrorMessage(INVALID_CONTENT, STATUS_DATA, value, ENTRY));
+        switch (value) {
+            case CURRENT_KEYWORD: {
+                status = YangStatusType.CURRENT;
+                break;
+            }
+            case DEPRECATED_KEYWORD: {
+                status = YangStatusType.DEPRECATED;
+                break;
+            }
+            case OBSOLETE_KEYWORD: {
+                status = YangStatusType.OBSOLETE;
+                break;
+            }
+            default: {
+                ParserException parserException = new ParserException("YANG file error : " +
+                        YangConstructType.getYangConstructType(STATUS_DATA) + " " + ctx.status().getText() +
+                        " is not valid.");
+                parserException.setLine(ctx.getStart().getLine());
+                parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+                throw parserException;
+            }
         }
 
         return status;

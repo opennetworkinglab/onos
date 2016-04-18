@@ -25,7 +25,7 @@ public interface HasJavaImportData {
      *
      * @return data of java imports to be included in generated file
      */
-    public JavaImportData getJavaImportData();
+    JavaImportData getJavaImportData();
 
     /**
      * Sets the data of java imports to be included in generated file.
@@ -33,5 +33,5 @@ public interface HasJavaImportData {
      * @param javaImportData data of java imports to be included in generated
      *            file
      */
-    public void setJavaImportData(JavaImportData javaImportData);
+    void setJavaImportData(JavaImportData javaImportData);
 }

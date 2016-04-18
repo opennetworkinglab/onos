@@ -43,12 +43,11 @@ public class YangUtilsParserManager implements YangUtilsParser {
          * Create a char stream that reads from YANG file. Throws an exception
          * in case input YANG file is either null or non existent.
          */
-        ANTLRInputStream input = null;
+        ANTLRInputStream input;
         try {
             input = new ANTLRFileStream(yangFile);
         } catch (IOException e) {
-            e.printStackTrace();
-            throw e;
+            throw new ParserException("YANG file error : YANG file does not exist.");
         }
 
         // Create a lexer that feeds off of input char stream.

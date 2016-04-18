@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import static java.util.Collections.sort;
 
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
@@ -62,7 +63,7 @@ public class JavaImportData {
     /**
      * Returns if the list needs to be imported.
      *
-     * @return true if any of the attribute needs to be maintained as a list.
+     * @return true if any of the attribute needs to be maintained as a list
      */
     public boolean getIfListImported() {
         return isListToImport;
@@ -71,7 +72,7 @@ public class JavaImportData {
     /**
      * Sets the status of importing list.
      *
-     * @param isList status to mention list is bing imported.
+     * @param isList status to mention list is bing imported
      */
     public void setIfListImported(boolean isList) {
         isListToImport = isList;
@@ -138,10 +139,9 @@ public class JavaImportData {
         List<String> imports = new ArrayList<>();
 
         for (JavaQualifiedTypeInfo importInfo : getImportSet()) {
-            importString = IMPORT;
-            if (importInfo.getPkgInfo() != EMPTY_STRING && importInfo.getClassInfo() != null
-                    && importInfo.getPkgInfo() != JAVA_LANG) {
-                importString = importString + importInfo.getPkgInfo() + PERIOD + importInfo.getClassInfo() + SEMI_COLAN
+            if (!importInfo.getPkgInfo().equals(EMPTY_STRING) && importInfo.getClassInfo() != null
+                    && !importInfo.getPkgInfo().equals(JAVA_LANG)) {
+                importString = IMPORT + importInfo.getPkgInfo() + PERIOD + importInfo.getClassInfo() + SEMI_COLAN
                         + NEW_LINE;
 
                 imports.add(importString);
@@ -152,7 +152,7 @@ public class JavaImportData {
             imports.add(getImportForList());
         }
 
-        java.util.Collections.sort(imports);
+        sort(imports);
         return imports;
     }
 

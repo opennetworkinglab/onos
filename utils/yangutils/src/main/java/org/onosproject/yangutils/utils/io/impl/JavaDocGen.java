@@ -17,7 +17,6 @@
 package org.onosproject.yangutils.utils.io.impl;
 
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
-import org.onosproject.yangutils.utils.UtilConstants;
 
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_CLASS_JAVA_DOC;
@@ -62,7 +61,7 @@ public final class JavaDocGen {
     /**
      * JavaDocs types.
      */
-    public static enum JavaDocType {
+    public enum JavaDocType {
 
         /**
          * For class.
@@ -141,7 +140,7 @@ public final class JavaDocGen {
     public static String getJavaDoc(JavaDocType type, String name, boolean isList) {
 
         name = JavaIdentifierSyntax.getSmallCase(JavaIdentifierSyntax.getCamelCase(name, null));
-        String javaDoc = UtilConstants.EMPTY_STRING;
+        String javaDoc;
         if (type.equals(JavaDocType.IMPL_CLASS)) {
             javaDoc = generateForImplClass(name);
         } else if (type.equals(JavaDocType.BUILDER_CLASS)) {

@@ -60,7 +60,7 @@ public class YangUtilsParserManagerTest {
      * This test case checks whether the io exception is generated
      * when the input YANG file is non existent.
      */
-    @Test(expected = IOException.class)
+    @Test(expected = ParserException.class)
     public void getDataModelNonExistentFileTest() throws IOException, ParserException {
 
         YangUtilsParserManager manager = new YangUtilsParserManager();

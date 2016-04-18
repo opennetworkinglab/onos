@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,28 +28,28 @@ public interface YangLeavesHolder {
     /**
      * Returns the list of leaves from data holder like container / list.
      *
-     * @return the list of leaves.
+     * @return the list of leaves
      */
-    public List<YangLeaf> getListOfLeaf();
+    List<YangLeaf> getListOfLeaf();
 
     /**
-     * Add a leaf in data holder like container / list.
+     * Adds leaf in data holder like container / list.
      *
-     * @param leaf the leaf to be added.
+     * @param leaf the leaf to be added
      */
     void addLeaf(YangLeaf leaf);
 
     /**
      * Returns the list of leaf-list from data holder like container / list.
      *
-     * @return the list of leaf-list.
+     * @return the list of leaf-list
      */
     List<YangLeafList> getListOfLeafList();
 
     /**
-     * Add a leaf-list in data holder like container / list.
+     * Adds leaf-list in data holder like container / list.
      *
-     * @param leafList the leaf-list to be added.
+     * @param leafList the leaf-list to be added
      */
     void addLeafList(YangLeafList leafList);
 }

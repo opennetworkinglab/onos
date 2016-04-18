@@ -1108,7 +1108,6 @@ public class TempJavaCodeFragmentFiles {
                 addToStringMethod(newAttrInfo);
             }
         }
-        return;
     }
 
     /**

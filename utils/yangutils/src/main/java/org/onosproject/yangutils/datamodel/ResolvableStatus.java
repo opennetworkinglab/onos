@@ -40,6 +40,6 @@ public enum ResolvableStatus {
     /**
      * Identifies that resolvable entity is resolved.
      */
-    RESOLVED;
+    RESOLVED
 
 }

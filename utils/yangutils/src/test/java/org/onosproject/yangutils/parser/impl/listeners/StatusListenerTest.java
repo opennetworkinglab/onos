@@ -140,7 +140,7 @@ public class StatusListenerTest {
     @Test
     public void processStatusInvalidValue() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Invalid content in status \"invalid\" before processing.");
+        thrown.expectMessage("YANG file error : status invalid is not valid.");
         YangNode node = manager.getDataModel("src/test/resources/StatusInvalidValue.yang");
     }
 

@@ -29,7 +29,7 @@ import static org.onosproject.yangutils.translator.tojava.TraversalType.ROOT;
 import static org.onosproject.yangutils.translator.tojava.TraversalType.SIBILING;
 
 /**
- * Representation of Java code generator based on application schema.
+ * Representation of java code generator based on application schema.
  */
 public final class JavaCodeGeneratorUtil {
 
@@ -75,7 +75,7 @@ public final class JavaCodeGeneratorUtil {
         YangNode curNode = rootNode;
         TraversalType curTraversal = ROOT;
 
-        while (!(curNode == null)) {
+        while (curNode != null) {
             if (curTraversal != PARENT) {
                 setCurNode(curNode);
                 generateCodeEntry(curNode, yangPlugin);
@@ -166,9 +166,8 @@ public final class JavaCodeGeneratorUtil {
      * Free the current node.
      *
      * @param node YANG node
-     * @throws DataModelException when fails to do datamodel operations
      */
-    private static void free(YangNode node) throws DataModelException {
+    private static void free(YangNode node) {
 
         YangNode parent = node.getParent();
         parent.setChild(null);
@@ -202,7 +201,7 @@ public final class JavaCodeGeneratorUtil {
         setCurNode(curNode.getChild());
         TraversalType curTraversal = ROOT;
 
-        while (!(curNode == null)) {
+        while (curNode != null) {
 
             if (curTraversal != PARENT) {
                 close(curNode);
@@ -220,7 +219,6 @@ public final class JavaCodeGeneratorUtil {
         }
 
         freeRestResources();
-        curNode = null;
     }
 
     /**

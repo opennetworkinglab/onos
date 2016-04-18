@@ -20,7 +20,7 @@ package org.onosproject.yangutils.datamodel.utils;
  */
 public enum GeneratedLanguage {
     /**
-     * Java.
+     * Target language is java.
      */
-    JAVA_GENERATION;
+    JAVA_GENERATION
 }

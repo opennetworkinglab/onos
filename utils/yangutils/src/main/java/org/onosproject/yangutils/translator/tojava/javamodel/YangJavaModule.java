@@ -136,9 +136,11 @@ public class YangJavaModule extends YangModule implements JavaCodeGeneratorInfo,
         YangJavaModelUtils.generateCodeOfRootNode(this, yangPlugin, modulePkg);
     }
 
+    /**
+     * Creates a java file using the YANG module info.
+     */
     @Override
     public void generateCodeExit() throws IOException {
         getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
-        return;
     }
 }

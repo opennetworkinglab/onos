@@ -26,12 +26,12 @@ public interface HasJavaFileInfo {
      *
      * @return generated java file information
      */
-    public JavaFileInfo getJavaFileInfo();
+    JavaFileInfo getJavaFileInfo();
 
     /**
      * Sets the java file info object.
      *
      * @param javaInfo java file info object
      */
-    public void setJavaFileInfo(JavaFileInfo javaInfo);
+    void setJavaFileInfo(JavaFileInfo javaInfo);
 }

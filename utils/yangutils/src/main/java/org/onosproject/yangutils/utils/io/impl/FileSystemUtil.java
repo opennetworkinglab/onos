@@ -53,7 +53,6 @@ public final class FileSystemUtil {
      * @return existence status of package
      */
     public static boolean doesPackageExist(String pkg) {
-
         File pkgDir = new File(getPackageDirPathFromJavaJPackage(pkg));
         File pkgWithFile = new File(pkgDir + SLASH + "package-info.java");
         if (pkgDir.exists() && pkgWithFile.isFile()) {
@@ -70,7 +69,6 @@ public final class FileSystemUtil {
      * @throws IOException any IO exception
      */
     public static void createPackage(String pkg, String pkgInfo) throws IOException {
-
         if (!doesPackageExist(pkg)) {
             try {
                 File pack = createDirectories(pkg);
@@ -92,9 +90,7 @@ public final class FileSystemUtil {
      * @throws IOException any IO errors
      */
     public static void appendFileContents(File toAppend, File srcFile) throws IOException {
-
         updateFileHandle(srcFile, NEW_LINE + readAppendFile(toAppend.toString(), FOUR_SPACE_INDENTATION), false);
-        return;
     }
 
     /**
@@ -106,7 +102,6 @@ public final class FileSystemUtil {
      * @throws IOException when fails to convert to string
      */
     public static String readAppendFile(String toAppend, String spaces) throws IOException {
-
         FileReader fileReader = new FileReader(toAppend);
         BufferedReader bufferReader = new BufferedReader(fileReader);
         try {
@@ -114,8 +109,8 @@ public final class FileSystemUtil {
             String line = bufferReader.readLine();
 
             while (line != null) {
-                if (line.equals(SPACE) | line.equals(EMPTY_STRING) | line.equals(EIGHT_SPACE_INDENTATION)
-                        | line.equals(MULTIPLE_NEW_LINE)) {
+                if (line.equals(SPACE) || line.equals(EMPTY_STRING) || line.equals(EIGHT_SPACE_INDENTATION)
+                        || line.equals(MULTIPLE_NEW_LINE)) {
                     stringBuilder.append(NEW_LINE);
                 } else if (line.equals(FOUR_SPACE_INDENTATION)) {
                     stringBuilder.append(EMPTY_STRING);
@@ -142,7 +137,6 @@ public final class FileSystemUtil {
      * does not exist but cannot be created, or cannot be opened for any other reason
      */
     public static void updateFileHandle(File inputFile, String contentTobeAdded, boolean isClose) throws IOException {
-
         FileWriter fileWriter = new FileWriter(inputFile, true);
         PrintWriter outputPrintWriter = new PrintWriter(fileWriter, true);
         if (!isClose) {
