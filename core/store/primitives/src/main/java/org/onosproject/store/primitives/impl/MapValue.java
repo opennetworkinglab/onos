@@ -30,6 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class MapValue<V> implements Comparable<MapValue<V>> {
     private final Timestamp timestamp;
     private final V value;
+    private long creationTime;
 
     /**
      * Creates a tombstone value with the specified timestamp.
@@ -39,12 +40,35 @@ public class MapValue<V> implements Comparable<MapValue<V>> {
      * @param <U> value type
      */
     public static <U> MapValue<U> tombstone(Timestamp timestamp) {
-        return new MapValue<>(null, timestamp);
+        return new MapValue<>(null, timestamp, System.currentTimeMillis());
     }
 
     public MapValue(V value, Timestamp timestamp) {
+        this(value, timestamp, System.currentTimeMillis());
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param value value
+     * @param timestamp value timestamp.
+     * @param creationTime the system time (on local instance) of construction
+     */
+    public MapValue(V value, Timestamp timestamp, long creationTime) {
         this.value = value;
         this.timestamp = checkNotNull(timestamp, "Timestamp cannot be null");
+        this.creationTime = creationTime;
+    }
+
+    /**
+     * Creates a copy of MapValue.
+     * <p>
+     * The copy will have an updated creation time corresponding to when the copy was constructed.
+     *
+     * @return MapValue copy
+     */
+    public MapValue<V> copy() {
+        return new MapValue<>(this.value, this.timestamp, System.currentTimeMillis());
     }
 
     public boolean isTombstone() {
@@ -61,6 +85,10 @@ public class MapValue<V> implements Comparable<MapValue<V>> {
 
     public V get() {
         return value;
+    }
+
+    public long creationTime() {
+        return creationTime;
     }
 
     @Override
