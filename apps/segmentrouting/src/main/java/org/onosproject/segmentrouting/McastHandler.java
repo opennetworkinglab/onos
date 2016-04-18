@@ -48,7 +48,7 @@ import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.mcast.McastEvent;
 import org.onosproject.net.mcast.McastRouteInfo;
 import org.onosproject.net.topology.TopologyService;
-import org.onosproject.segmentrouting.grouphandler.McastNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.storekey.McastNextObjectiveStoreKey;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
@@ -63,10 +63,10 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Multicast event handler.
+ * Handles multicast-related events.
  */
-public class McastEventHandler {
-    private static final Logger log = LoggerFactory.getLogger(McastEventHandler.class);
+public class McastHandler {
+    private static final Logger log = LoggerFactory.getLogger(McastHandler.class);
     private final SegmentRoutingManager srManager;
     private final ApplicationId coreAppId;
     private StorageService storageService;
@@ -79,7 +79,7 @@ public class McastEventHandler {
      *
      * @param srManager Segment Routing manager
      */
-    public McastEventHandler(SegmentRoutingManager srManager) {
+    public McastHandler(SegmentRoutingManager srManager) {
         coreAppId = srManager.coreService.getAppId(CoreService.CORE_APP_NAME);
 
         this.srManager = srManager;

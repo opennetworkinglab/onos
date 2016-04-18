@@ -14,33 +14,34 @@
  * limitations under the License.
  */
 
-package org.onosproject.segmentrouting.grouphandler;
-
-import org.onlab.packet.VlanId;
-import org.onosproject.net.DeviceId;
+package org.onosproject.segmentrouting.storekey;
 
 import java.util.Objects;
 
+import org.onosproject.net.DeviceId;
+import org.onosproject.segmentrouting.grouphandler.NeighborSet;
+
 /**
- * Key of VLAN cross-connect next objective store.
+ * Key of Neighborset next objective store.
  */
-public class XConnectNextObjectiveStoreKey {
+public class NeighborSetNextObjectiveStoreKey {
     private final DeviceId deviceId;
-    private final VlanId vlanId;
+    private final NeighborSet ns;
 
     /**
-     * Constructs the key of cross-connect next objective store.
+     * Constructs the key of neighbor set next objective store.
      *
-     * @param deviceId device ID of the VLAN cross-connection
-     * @param vlanId VLAN ID of the VLAN cross-connection
+     * @param deviceId device ID
+     * @param ns neighbor set
      */
-    public XConnectNextObjectiveStoreKey(DeviceId deviceId, VlanId vlanId) {
+    public NeighborSetNextObjectiveStoreKey(DeviceId deviceId,
+                                            NeighborSet ns) {
         this.deviceId = deviceId;
-        this.vlanId = vlanId;
+        this.ns = ns;
     }
 
     /**
-     * Returns the device ID of this key.
+     * Returns the device ID in the key.
      *
      * @return device ID
      */
@@ -49,12 +50,12 @@ public class XConnectNextObjectiveStoreKey {
     }
 
     /**
-     * Returns the VLAN ID of this key.
+     * Returns the neighbor set in the key.
      *
-     * @return VLAN ID
+     * @return neighbor set
      */
-    public VlanId vlanId() {
-        return this.vlanId;
+    public NeighborSet neighborSet() {
+        return this.ns;
     }
 
     @Override
@@ -62,23 +63,27 @@ public class XConnectNextObjectiveStoreKey {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof XConnectNextObjectiveStoreKey)) {
+        if (!(o instanceof NeighborSetNextObjectiveStoreKey)) {
             return false;
         }
-        XConnectNextObjectiveStoreKey that =
-                (XConnectNextObjectiveStoreKey) o;
+        NeighborSetNextObjectiveStoreKey that =
+                (NeighborSetNextObjectiveStoreKey) o;
         return (Objects.equals(this.deviceId, that.deviceId) &&
-                Objects.equals(this.vlanId, that.vlanId));
+                Objects.equals(this.ns, that.ns));
     }
 
     // The list of neighbor ids and label are used for comparison.
     @Override
     public int hashCode() {
-         return Objects.hash(deviceId, vlanId);
+        int result = 17;
+        result = 31 * result + Objects.hashCode(this.deviceId)
+                + Objects.hashCode(this.ns);
+
+        return result;
     }
 
     @Override
     public String toString() {
-        return "Device: " + deviceId + " VlanId: " + vlanId;
+        return "Device: " + deviceId + " Neighborset: " + ns;
     }
 }

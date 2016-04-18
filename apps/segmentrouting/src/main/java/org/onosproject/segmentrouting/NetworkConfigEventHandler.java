@@ -23,7 +23,9 @@ import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flowobjective.DefaultFilteringObjective;
+import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.FilteringObjective;
+import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.slf4j.Logger;
@@ -117,9 +119,11 @@ public class NetworkConfigEventHandler {
             return;
         }
         getVRouterFlowObjBuilders(pendingAdd).forEach(foBuilder -> {
-            srManager.flowObjectiveService.
-                    filter(deviceId, foBuilder.add(new SRObjectiveContext(deviceId,
-                            SRObjectiveContext.ObjectiveType.FILTER)));
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("vRouterMac filter for {} populated", pendingAdd),
+                    (objective, error) ->
+                            log.warn("Failed to populate vRouterMac filter for {}: {}", pendingAdd, error));
+            srManager.flowObjectiveService.filter(deviceId, foBuilder.add(context));
         });
     }
 
@@ -128,9 +132,11 @@ public class NetworkConfigEventHandler {
             return;
         }
         getVRouterFlowObjBuilders(pendingRemove).forEach(foBuilder -> {
-            srManager.flowObjectiveService.
-                    filter(deviceId, foBuilder.remove(new SRObjectiveContext(deviceId,
-                            SRObjectiveContext.ObjectiveType.FILTER)));
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("vRouterMac filter for {} revoked", pendingRemove),
+                    (objective, error) ->
+                            log.warn("Failed to revoke vRouterMac filter for {}: {}", pendingRemove, error));
+            srManager.flowObjectiveService.filter(deviceId, foBuilder.remove(context));
         });
     }
 
