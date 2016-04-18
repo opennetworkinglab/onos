@@ -101,6 +101,11 @@
         <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
                    impl="org.onosproject.driver.extensions.OfdpaExtensionSelectorInterpreter" />
     </driver>
+    <driver name="celestica" extends="default"
+            manufacturer="PMC GPON Networks" hwVersion="PAS5211 v2" swVersion="vOLT version 1.5.3.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.OltPipeline"/>
+    </driver>
     <driver name="pmc-olt" extends="default"
             manufacturer="PMC GPON Networks" hwVersion="PASffffffff v-1" swVersion="vOLT.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
