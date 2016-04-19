@@ -10,24 +10,29 @@
   ],
   "properties": {
     "networkId": {
-      "type": "String",
-      "example": "Network identifier"
+      "type": "int64",
+      "description": "Network identifier",
+      "example": 3
     },
     "deviceId": {
       "type": "String",
-      "example": "Virtual device identifier"
+      "description": "Virtual device identifier",
+      "example": "of:0000000000000042"
     },
     "portNum": {
-      "type": "String",
-      "example": "Virtual device port number"
+      "type": "int64",
+      "description": "Virtual device port number",
+      "example": 34
     },
     "physDeviceId": {
       "type": "String",
-      "example": "Physical device identifier"
+      "description": "Physical device identifier",
+      "example": "of:0000000000000003"
     },
     "physPortNum": {
-      "type": "String",
-      "example": "Physical device port number"
+      "type": "int64",
+      "description": "Physical device port number",
+      "example": 2
     }
   }
 }

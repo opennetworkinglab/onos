@@ -7,7 +7,8 @@
   "properties": {
     "id": {
       "type": "String",
-      "example": "Tenant unique identifier"
+      "description": "Tenant identifier",
+      "example": "Tenant123"
     }
   }
 }

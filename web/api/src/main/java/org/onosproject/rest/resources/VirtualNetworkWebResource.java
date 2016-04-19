@@ -75,6 +75,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      * Returns all virtual networks.
      *
      * @return 200 OK
+     * @onos.rsModel VirtualNetworks
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -92,6 +93,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      *
      * @param tenantId tenant identifier
      * @return 200 OK, 404 not found
+     * @onos.rsModel VirtualNetworks
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -106,7 +108,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     /**
      * Creates a virtual network from the JSON input stream.
      *
-     * @param stream TenantId JSON stream
+     * @param stream tenant identifier JSON stream
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
      * @onos.rsModel TenantId
@@ -150,6 +152,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      *
      * @param networkId network identifier
      * @return 200 OK
+     * @onos.rsModel VirtualDevices
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -164,7 +167,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      * Creates a virtual device from the JSON input stream.
      *
      * @param networkId network identifier
-     * @param stream    Virtual device JSON stream
+     * @param stream    virtual device JSON stream
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
      * @onos.rsModel VirtualDevice
@@ -220,6 +223,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      * @param networkId network identifier
      * @param deviceId  virtual device identifier
      * @return 200 OK
+     * @onos.rsModel VirtualPorts
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -236,7 +240,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      *
      * @param networkId    network identifier
      * @param virtDeviceId virtual device identifier
-     * @param stream       Virtual device JSON stream
+     * @param stream       virtual port JSON stream
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
      * @onos.rsModel VirtualPort
@@ -309,6 +313,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      *
      * @param networkId network identifier
      * @return 200 OK
+     * @onos.rsModel VirtualLinks
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -323,7 +328,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      * Creates a virtual network link from the JSON input stream.
      *
      * @param networkId network identifier
-     * @param stream    Virtual device JSON stream
+     * @param stream    virtual link JSON stream
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
      * @onos.rsModel VirtualLink
@@ -358,7 +363,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      * Removes the virtual network link from the JSON input stream.
      *
      * @param networkId network identifier
-     * @param stream    deviceIds JSON stream
+     * @param stream    virtual link JSON stream
      * @return 200 OK, 404 not found
      * @onos.rsModel VirtualLink
      */

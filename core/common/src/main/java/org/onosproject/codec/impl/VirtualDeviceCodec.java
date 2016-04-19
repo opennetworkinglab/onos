@@ -43,8 +43,8 @@ public class VirtualDeviceCodec extends JsonCodec<VirtualDevice> {
         checkNotNull(vDev, NULL_OBJECT_MSG);
 
         ObjectNode result = context.mapper().createObjectNode()
-                .put(ID, vDev.id().toString())
-                .put(NETWORK_ID, vDev.networkId().toString());
+                .put(NETWORK_ID, vDev.networkId().toString())
+                .put(ID, vDev.id().toString());
 
         return result;
     }
@@ -60,6 +60,13 @@ public class VirtualDeviceCodec extends JsonCodec<VirtualDevice> {
         return new DefaultVirtualDevice(nId, dId);
     }
 
+    /**
+     * Extract member from JSON ObjectNode.
+     *
+     * @param key key for which value is needed
+     * @param json JSON ObjectNode
+     * @return member value
+     */
     private String extractMember(String key, ObjectNode json) {
         return nullIsIllegal(json.get(key), key + MISSING_MEMBER_MSG).asText();
     }

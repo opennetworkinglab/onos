@@ -7,12 +7,14 @@
   ],
   "properties": {
     "networkId": {
-      "type": "String",
-      "example": "Network identifier"
+      "type": "int64",
+      "description": "Network identifier",
+      "example": 3
     },
     "deviceId": {
       "type": "String",
-      "example": "Device identifier"
+      "description": "Device identifier",
+      "example": "of:0000000000000042"
     }
   }
 }

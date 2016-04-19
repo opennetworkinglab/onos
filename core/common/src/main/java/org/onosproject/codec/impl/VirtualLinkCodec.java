@@ -42,9 +42,11 @@ public class VirtualLinkCodec extends JsonCodec<VirtualLink> {
     public ObjectNode encode(VirtualLink vLink, CodecContext context) {
         checkNotNull(vLink, NULL_OBJECT_MSG);
 
+        ObjectNode result = context.mapper().createObjectNode()
+                .put(NETWORK_ID, vLink.networkId().toString());
         JsonCodec<Link> codec = context.codec(Link.class);
-        ObjectNode result = codec.encode(vLink, context);
-        result.put(NETWORK_ID, vLink.networkId().toString());
+        ObjectNode linkResult = codec.encode(vLink, context);
+        result.setAll(linkResult);
         return result;
     }
 
