@@ -18,6 +18,7 @@ package org.onosproject.store.cluster.impl;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -234,7 +235,7 @@ public class DistributedClusterStore
                     .filter(node -> !(node.id().equals(localNode.id())))
                     .collect(Collectors.toSet());
             State state = nodeStates.get(localNode.id());
-            byte[] hbMessagePayload = SERIALIZER.encode(new HeartbeatMessage(localNode, state, peers));
+            byte[] hbMessagePayload = SERIALIZER.encode(new HeartbeatMessage(localNode, state));
             peers.forEach((node) -> {
                 heartbeatToPeer(hbMessagePayload, node);
                 State currentState = nodeStates.get(node.id());
@@ -277,31 +278,24 @@ public class DistributedClusterStore
         @Override
         public void accept(Endpoint sender, byte[] message) {
             HeartbeatMessage hb = SERIALIZER.decode(message);
-            failureDetector.report(hb.source().id());
-            updateState(hb.source().id(), hb.state);
-            hb.knownPeers().forEach(node -> {
-                allNodes.put(node.id(), node);
-            });
+            if (clusterMetadataService.getClusterMetadata().getNodes().contains(hb.source())) {
+                failureDetector.report(hb.source().id());
+                updateState(hb.source().id(), hb.state);
+            }
         }
     }
 
     private static class HeartbeatMessage {
         private ControllerNode source;
         private State state;
-        private Set<ControllerNode> knownPeers;
 
-        public HeartbeatMessage(ControllerNode source, State state, Set<ControllerNode> members) {
+        public HeartbeatMessage(ControllerNode source, State state) {
             this.source = source;
             this.state = state != null ? state : State.ACTIVE;
-            this.knownPeers = ImmutableSet.copyOf(members);
         }
 
         public ControllerNode source() {
             return source;
-        }
-
-        public Set<ControllerNode> knownPeers() {
-            return knownPeers;
         }
     }
 
@@ -371,7 +365,6 @@ public class DistributedClusterStore
 
     /**
      * Restarts heartbeatSender executor.
-     *
      */
     private void restartHeartbeatSender() {
         try {
@@ -385,23 +378,4 @@ public class DistributedClusterStore
             log.warn(e.getMessage());
         }
     }
-
-    /**
-     * Gets current heartbeat interval.
-     *
-     * @return heartbeatInterval
-     */
-    private int getHeartbeatInterval() {
-        return heartbeatInterval;
-    }
-
-    /**
-     * Gets current Phi failure threshold for Accrual Failure Detector.
-     *
-     * @return phiFailureThreshold
-     */
-    private int getPhiFailureThreshold() {
-        return phiFailureThreshold;
-    }
-
 }
