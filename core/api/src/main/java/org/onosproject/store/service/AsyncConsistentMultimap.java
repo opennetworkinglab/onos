@@ -109,6 +109,28 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
     CompletableFuture<Boolean> remove(K key, V value);
 
     /**
+     * Removes the key-value pairs with the specified key and values if they
+     * exist. In implementations that allow duplicates each instance of a key
+     * will remove one matching entry, which one is not defined. Equivalent to
+     * repeated calls to {@code remove()} for each key value pair but more
+     * efficient.
+     * @param key the key of the pair to be removed
+     * @param values the set of values to be removed
+     * @return a future whose value will be true if the map changes because of
+     * this call, false otherwise.
+     */
+    CompletableFuture<Boolean> removeAll(K key, Iterable<? extends V> values);
+
+    /**
+     * Removes all values associated with the specified key as well as the key
+     * itself.
+     * @param key the key whose key-value pairs will be removed
+     * @return a future whose value is the set of values that were removed,
+     * which may be empty
+     */
+    CompletableFuture<Versioned<Collection<byte[]>>> removeAll(K key);
+
+    /**
      * Adds the set of key-value pairs of the specified key with each of the
      * values in the iterable if each key-value pair does not already exist,
      * if the pair does exist the behavior is implementation specific.
@@ -140,15 +162,6 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * which may be empty
      */
     CompletableFuture<Collection<V>> replaceValues(K key, Iterable<V> values);
-
-    /**
-     * Removes all values associated with the specified key as well as the key
-     * itself.
-     * @param key the key whose key-value pairs will be removed
-     * @return a future whose value is the set of values that were removed,
-     * which may be empty
-     */
-    CompletableFuture<Collection<V>> removeAll(K key);
 
     /**
      * Removes all key-value pairs, after which it will be empty.
