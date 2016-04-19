@@ -61,7 +61,7 @@ public class TenantWebResource extends AbstractWebResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getVirtualNetworkTenants() {
+    public Response getVirtualNetworkTenantIds() {
         Iterable<TenantId> tenantIds = vnetAdminService.getTenantIds();
         return ok(encodeArray(TenantId.class, "tenants", tenantIds)).build();
     }
@@ -105,24 +105,6 @@ public class TenantWebResource extends AbstractWebResource {
         final TenantId tid = TenantId.tenantId(tenantId);
         final TenantId existingTid = getExistingTenantId(vnetAdminService, tid);
         vnetAdminService.unregisterTenantId(existingTid);
-        return Response.ok().build();
-    }
-
-    /**
-     * Removes the specified tenant with the specified tenant identifier.
-     *
-     * @param stream deviceIds JSON stream
-     * @return 200 OK, 404 not found
-     * @onos.rsModel TenantId
-     */
-    @DELETE
-    public Response removeTenantId(InputStream stream) {
-        try {
-            final TenantId tid = getTenantIdFromJsonStream(stream);
-            vnetAdminService.unregisterTenantId(tid);
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e);
-        }
         return Response.ok().build();
     }
 

@@ -295,26 +295,6 @@ public class TenantWebResourceTest extends ResourceTest {
     }
 
     /**
-     * Tests removing a tenant id with DELETE request via JSON stream.
-     */
-    @Test
-    public void testDeleteViaJson() {
-        mockVnetAdminService.unregisterTenantId(anyObject());
-        expectLastCall();
-        replay(mockVnetAdminService);
-
-        WebTarget wt = target()
-                .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
-        InputStream jsonStream = TenantWebResourceTest.class
-                .getResourceAsStream("post-tenant.json");
-        Response response = wt.request().method("DELETE", Entity.json(jsonStream));
-
-//        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
-
-//        verify(mockVnetAdminService);
-    }
-
-    /**
      * Tests that a DELETE of a non-existent tenant id throws an exception.
      */
     @Test

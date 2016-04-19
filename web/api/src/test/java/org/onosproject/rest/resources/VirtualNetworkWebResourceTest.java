@@ -226,12 +226,12 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
      * @param obj            virtual network object we are looking for
      * @param jsonFieldNames JSON field names to check against
      * @param getValue       function to retrieve value from virtual network object
-     * @param <T>
-     * @return JsonObjectMatcher
+     * @param <T>            the type of virtual network object
+     * @return matcher
      */
     private static <T> JsonObjectMatcher matchesVnetEntity(T obj, List<String> jsonFieldNames,
                                                            BiFunction<T, String, String> getValue) {
-        return new JsonObjectMatcher(obj, jsonFieldNames, getValue);
+        return new JsonObjectMatcher<T>(obj, jsonFieldNames, getValue);
     }
 
     /**
