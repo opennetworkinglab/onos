@@ -8,7 +8,6 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//utils/rest:onlab-rest',
     '//lib:javax.ws.rs-api',
-    '//core/store/serializers:onos-core-serializers',
     '//utils/osgi:onlab-osgi',
     '//core/store/serializers:onos-core-serializers',
 ]

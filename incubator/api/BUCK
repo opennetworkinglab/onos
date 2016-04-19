@@ -26,4 +26,6 @@ java_test(
            [CURRENT_TARGET],
     source_under_test = [CURRENT_TARGET],
     visibility = ['PUBLIC'],
+    resources_root = 'src/test/resources',
+    resources = glob(['src/test/resources/**']),
 )

@@ -9,7 +9,6 @@ BUNDLES = [
     '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
     '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
     '//apps/openstacknetworking/openstackrouting:onos-apps-openstacknetworking-openstackrouting',
-    #'//apps/dhcp/api:onos-apps-dhcp-api',
 ]
 
 osgi_jar_with_tests (
