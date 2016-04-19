@@ -139,7 +139,7 @@ public final class AtomixConsistentMapCommands {
     }
 
     /**
-     * Abstract key-based query.
+     * Abstract value-based query.
      */
     @SuppressWarnings("serial")
     public abstract static class ValueQuery<V> extends MapQuery<V> {
@@ -153,8 +153,8 @@ public final class AtomixConsistentMapCommands {
         }
 
         /**
-         * Returns the key.
-         * @return key
+         * Returns the value.
+         * @return value
          */
         public byte[] value() {
             return value;
@@ -187,7 +187,7 @@ public final class AtomixConsistentMapCommands {
     }
 
     /**
-     * Contains key command.
+     * Contains value command.
      */
     @SuppressWarnings("serial")
     public static class ContainsValue extends ValueQuery<Boolean> {
