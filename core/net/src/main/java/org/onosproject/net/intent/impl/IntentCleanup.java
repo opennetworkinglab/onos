@@ -195,6 +195,9 @@ public class IntentCleanup implements Runnable, IntentListener {
             case WITHDRAW_REQ:
                 service.withdraw(intentData.intent());
                 break;
+            case PURGE_REQ:
+                service.purge(intentData.intent());
+                break;
             default:
                 log.warn("Failed to resubmit pending intent {} in state {} with request {}",
                          intentData.key(), intentData.state(), intentData.request());
