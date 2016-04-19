@@ -13,33 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.isis.controller;
-
-import java.util.List;
+package org.onosproject.isis.controller.topology;
 
 /**
- * Representation of an ISIS process.
+ * Abstraction of an ISIS Router Listener.
+ * Allows for providers interested in switch events to be notified.
  */
-public interface IsisProcess {
+public interface IsisRouterListener {
 
     /**
-     * Sets process ID.
+     * Notifies that a router is added.
      *
-     * @param processId process ID
+     * @param isisRouter ISIS router instance
      */
-    void setProcessId(String processId);
+    void routerAdded(IsisRouter isisRouter);
 
     /**
-     * Sets list of ISIS interfaces.
+     * Notifies that a router is removed.
      *
-     * @param isisInterfaceList list of ISIS interface details
+     * @param isisRouter ISIS router instance
      */
-    void setIsisInterfaceList(List<IsisInterface> isisInterfaceList);
+    void routerRemoved(IsisRouter isisRouter);
 
     /**
-     * Returns list of ISIS interface details.
+     * Notifies that the router has changed in some way.
      *
-     * @return list of ISIS interface details
+     * @param isisRouter ISIS router instance
      */
-    List<IsisInterface> isisInterfaceList();
+    void routerChanged(IsisRouter isisRouter);
 }

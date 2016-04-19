@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.isis.controller;
+
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Representation of ISIS PDU types.
@@ -58,8 +61,17 @@ public enum IsisPduType {
      */
     L2PSNP(27);
 
-    private int value;
+    // Reverse lookup table
+    private static final Map<Integer, IsisPduType> LOOKUP = new HashMap<>();
 
+    // Populate the lookup table on loading time
+    static {
+        for (IsisPduType isisPduType : EnumSet.allOf(IsisPduType.class)) {
+            LOOKUP.put(isisPduType.value(), isisPduType);
+        }
+    }
+
+    private int value;
 
     /**
      * Creates an instance of ISIS PDU type.
@@ -68,6 +80,16 @@ public enum IsisPduType {
      */
     private IsisPduType(int value) {
         this.value = value;
+    }
+
+    /**
+     * Gets the enum instance from type value - reverse lookup purpose.
+     *
+     * @param pduTypeValue PDU type value
+     * @return ISIS PDU type instance
+     */
+    public static IsisPduType get(int pduTypeValue) {
+        return LOOKUP.get(pduTypeValue);
     }
 
     /**

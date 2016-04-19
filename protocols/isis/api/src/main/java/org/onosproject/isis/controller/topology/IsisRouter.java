@@ -13,33 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.isis.controller;
+package org.onosproject.isis.controller.topology;
 
-import java.util.List;
+import org.onlab.packet.Ip4Address;
 
 /**
- * Representation of an ISIS process.
+ * Abstraction of an ISIS Router.
  */
-public interface IsisProcess {
+public interface IsisRouter {
 
     /**
-     * Sets process ID.
+     * Returns IP address of the router.
      *
-     * @param processId process ID
+     * @return IP address of the router
      */
-    void setProcessId(String processId);
+    Ip4Address routerIp();
 
     /**
-     * Sets list of ISIS interfaces.
+     * Returns IP address of the interface.
      *
-     * @param isisInterfaceList list of ISIS interface details
+     * @return IP address of the interface
      */
-    void setIsisInterfaceList(List<IsisInterface> isisInterfaceList);
+    Ip4Address interfaceId();
 
     /**
-     * Returns list of ISIS interface details.
+     * Sets IP address of the Router.
      *
-     * @return list of ISIS interface details
+     * @param routerIp IP address of the router
      */
-    List<IsisInterface> isisInterfaceList();
+    void setRouterIp(Ip4Address routerIp);
 }

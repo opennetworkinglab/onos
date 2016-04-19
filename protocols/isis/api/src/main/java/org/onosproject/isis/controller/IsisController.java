@@ -15,6 +15,8 @@
  */
 package org.onosproject.isis.controller;
 
+import org.onosproject.isis.controller.topology.IsisRouterListener;
+
 import java.util.List;
 
 /**
@@ -25,14 +27,14 @@ public interface IsisController {
     /**
      * Registers a listener for router meta events.
      *
-     * @param isisRouterListener isis router listener instance
+     * @param isisRouterListener ISIS router listener instance
      */
     void addRouterListener(IsisRouterListener isisRouterListener);
 
     /**
      * Unregisters a router listener.
      *
-     * @param isisRouterListener isis router listener instance
+     * @param isisRouterListener ISIS router listener instance
      */
     void removeRouterListener(IsisRouterListener isisRouterListener);
 
@@ -47,7 +49,8 @@ public interface IsisController {
      * Deletes configuration parameters.
      *
      * @param processes list of process instance
-     * @param attribute attribute to delete
+     * @param attribute string key which deletes the particular node or element
+     * from the controller
      */
     void deleteConfig(List<IsisProcess> processes, String attribute);
 

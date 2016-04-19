@@ -15,30 +15,33 @@
  */
 package org.onosproject.isis.controller;
 
+import java.util.Map;
+
 /**
- * Abstraction of an ISIS Router Listener.
- * Allows for providers interested in switch events to be notified.
+ * Representation of an ISIS LSP bin which is part of LSP aging process.
  */
-public interface IsisRouterListener {
+public interface IsisLspBin {
 
     /**
-     * Notifies that a router is added.
+     * Returns all the LSPs in the bin.
      *
-     * @param isisRouter ISIS router instance
+     * @return all LSPs in the bin
      */
-    void routerAdded(IsisRouter isisRouter);
+    Map<String, LspWrapper> listOfLsp();
 
     /**
-     * Notifies that a router is removed.
+     * Adds LSP to bin for aging.
      *
-     * @param isisRouter ISIS router instance
+     * @param lspKey     key to add the LSP
+     * @param lspWrapper LSP wrapper instance
      */
-    void routerRemoved(IsisRouter isisRouter);
+    void addIsisLsp(String lspKey, LspWrapper lspWrapper);
 
     /**
-     * Notifies that the router has changed in some way.
+     * Removes LSP from bin.
      *
-     * @param isisRouter ISIS router instance
+     * @param lspKey     LSP key
+     * @param lspWrapper LSP wrapper instance
      */
-    void routerChanged(IsisRouter isisRouter);
+    void removeIsisLsp(String lspKey, LspWrapper lspWrapper);
 }

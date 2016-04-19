@@ -15,10 +15,23 @@
  */
 package org.onosproject.isis.controller;
 
+import org.jboss.netty.channel.Channel;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.MacAddress;
+
+import java.util.Set;
+
 /**
  * Representation of an ISIS interface.
  */
 public interface IsisInterface {
+
+    /**
+     * Returns interface index.
+     *
+     * @return interface index
+     */
+    int interfaceIndex();
 
     /**
      * Sets interface index.
@@ -28,11 +41,60 @@ public interface IsisInterface {
     void setInterfaceIndex(int interfaceIndex);
 
     /**
+     * Returns the interface IP address.
+     *
+     * @return interface IP address
+     */
+    Ip4Address interfaceIpAddress();
+
+    /**
+     * Sets the interface IP address.
+     *
+     * @param interfaceIpAddress interface IP address interface IP address
+     */
+    void setInterfaceIpAddress(Ip4Address interfaceIpAddress);
+
+    /**
+     * Returns the network mask.
+     *
+     * @return network mask
+     */
+    byte[] networkMask();
+
+    /**
+     * Sets the network mask.
+     *
+     * @param networkMask network mask
+     */
+    void setNetworkMask(byte[] networkMask);
+
+    /**
+     * Sets the interface MAC address.
+     *
+     * @param interfaceMacAddress interface MAC address
+     */
+    void setInterfaceMacAddress(MacAddress interfaceMacAddress);
+
+    /**
+     * Returns the neighbors list.
+     *
+     * @return neighbors list
+     */
+    Set<MacAddress> neighbors();
+
+    /**
      * Sets intermediate system name.
      *
      * @param intermediateSystemName intermediate system name
      */
     void setIntermediateSystemName(String intermediateSystemName);
+
+    /**
+     * Returns system ID.
+     *
+     * @return systemID system ID
+     */
+    String systemId();
 
     /**
      * Sets system ID.
@@ -42,11 +104,32 @@ public interface IsisInterface {
     void setSystemId(String systemId);
 
     /**
+     * Returns LAN ID.
+     *
+     * @return LAN ID
+     */
+    String l1LanId();
+
+    /**
      * Sets LAN ID.
      *
      * @param lanId LAN ID
      */
-    void setLanId(String lanId);
+    void setL1LanId(String lanId);
+
+    /**
+     * Returns LAN ID.
+     *
+     * @return LAN ID
+     */
+    String l2LanId();
+
+    /**
+     * Sets LAN ID.
+     *
+     * @param lanId LAN ID
+     */
+    void setL2LanId(String lanId);
 
     /**
      * Sets ID length.
@@ -63,6 +146,13 @@ public interface IsisInterface {
     void setMaxAreaAddresses(int maxAreaAddresses);
 
     /**
+     * Returns reserved packet circuit type.
+     *
+     * @return reserved packet circuit type
+     */
+    int reservedPacketCircuitType();
+
+    /**
      * Sets reserved packet circuit type.
      *
      * @param reservedPacketCircuitType reserved packet circuit type
@@ -70,11 +160,25 @@ public interface IsisInterface {
     void setReservedPacketCircuitType(int reservedPacketCircuitType);
 
     /**
+     * Returns point to point or broadcast.
+     *
+     * @return 1 if point to point, 2 broadcast
+     */
+    IsisNetworkType networkType();
+
+    /**
      * Sets point to point.
      *
-     * @param p2p point to point
+     * @param networkType point to point
      */
-    void setP2p(int p2p);
+    void setNetworkType(IsisNetworkType networkType);
+
+    /**
+     * Returns area address.
+     *
+     * @return area address
+     */
+    String areaAddress();
 
     /**
      * Sets area address.
@@ -98,11 +202,25 @@ public interface IsisInterface {
     void setLspId(String lspId);
 
     /**
+     * Returns holding time.
+     *
+     * @return holding time
+     */
+    int holdingTime();
+
+    /**
      * Sets holding time.
      *
      * @param holdingTime holding time
      */
     void setHoldingTime(int holdingTime);
+
+    /**
+     * Returns priority.
+     *
+     * @return priority
+     */
+    int priority();
 
     /**
      * Sets priority.
@@ -117,4 +235,70 @@ public interface IsisInterface {
      * @param helloInterval hello interval
      */
     void setHelloInterval(int helloInterval);
+
+    /**
+     * Starts the hello timer which sends hello packet every configured seconds.
+     *
+     * @param channel netty channel instance
+     */
+    void startHelloSender(Channel channel);
+
+    /**
+     * Processes an ISIS message which is received on this interface.
+     *
+     * @param isisMessage ISIS message instance
+     * @param isisLsdb    ISIS LSDB instance
+     * @param channel     channel instance
+     */
+    void processIsisMessage(IsisMessage isisMessage, IsisLsdb isisLsdb, Channel channel);
+
+    /**
+     * Returns the interface state.
+     *
+     * @return interface state
+     */
+    IsisInterfaceState interfaceState();
+
+    /**
+     * Sets the interface state.
+     *
+     * @param interfaceState the interface state
+     */
+    void setInterfaceState(IsisInterfaceState interfaceState);
+
+    /**
+     * Returns the LSDB instance.
+     *
+     * @return LSDB instance
+     */
+    IsisLsdb isisLsdb();
+
+    /**
+     * Returns intermediate system name.
+     *
+     * @return intermediate system name
+     */
+    String intermediateSystemName();
+
+    /**
+     * Returns the ISIS neighbor instance if exists.
+     *
+     * @param isisNeighborMac mac address of the neighbor router
+     * @return ISIS neighbor instance if exists else null
+     */
+    IsisNeighbor lookup(MacAddress isisNeighborMac);
+
+    /**
+     * Returns circuit ID.
+     *
+     * @return circuit ID
+     */
+    String circuitId();
+
+    /**
+     * Sets circuit ID.
+     *
+     * @param circuitId circuit ID
+     */
+    void setCircuitId(String circuitId);
 }

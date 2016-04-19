@@ -13,33 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.isis.controller;
-
-import org.onlab.packet.Ip4Address;
 
 /**
- * Abstraction of an ISIS Router.
+ * Implementation of the ISIS topology provider.
  */
-public interface IsisRouter {
-
-    /**
-     * Gets IP address of the router.
-     *
-     * @return IP address of the router
-     */
-    Ip4Address routerIp();
-
-    /**
-     * Gets IP address of the interface.
-     *
-     * @return IP address of the interface
-     */
-    Ip4Address interfaceId();
-
-    /**
-     * Sets IP address of the Router.
-     *
-     * @param routerIp IP address of the router
-     */
-    void setRouterIp(Ip4Address routerIp);
-}
+package org.onosproject.isis.controller.topology;

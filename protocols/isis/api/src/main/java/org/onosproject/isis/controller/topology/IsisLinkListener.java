@@ -13,33 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.isis.controller;
-
-import java.util.List;
+package org.onosproject.isis.controller.topology;
 
 /**
- * Representation of an ISIS process.
+ * Abstraction of an ISIS link listener.
  */
-public interface IsisProcess {
+public interface IsisLinkListener {
 
     /**
-     * Sets process ID.
+     * Notifies that we got a link from network.
      *
-     * @param processId process ID
+     * @param isisRouter  router instance
+     * @param isisLinkTed link TED information of router
      */
-    void setProcessId(String processId);
+    void addLink(IsisRouter isisRouter, IsisLinkTed isisLinkTed);
 
     /**
-     * Sets list of ISIS interfaces.
+     * Notifies that a link got removed from network.
      *
-     * @param isisInterfaceList list of ISIS interface details
+     * @param isisRouter router instance
+     * @param isisLinkTed isis link ted infromation
      */
-    void setIsisInterfaceList(List<IsisInterface> isisInterfaceList);
-
-    /**
-     * Returns list of ISIS interface details.
-     *
-     * @return list of ISIS interface details
-     */
-    List<IsisInterface> isisInterfaceList();
+    void deleteLink(IsisRouter isisRouter, IsisLinkTed isisLinkTed);
 }

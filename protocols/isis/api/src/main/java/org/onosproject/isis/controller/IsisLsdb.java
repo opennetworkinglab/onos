@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.isis.controller;
+
+import java.util.List;
 
 /**
  * Representation of an ISIS link state database.
@@ -22,9 +23,74 @@ package org.onosproject.isis.controller;
 public interface IsisLsdb {
 
     /**
-     * Gets the ISIS LSDB.
+     * Returns the ISIS LSDB.
      *
      * @return ISIS LSDB
      */
     IsisLsdb isisLsdb();
+
+    /**
+     * Initializes LSDB.
+     */
+    void initializeDb();
+
+    /**
+     * Returns the LSDB LSP key.
+     *
+     * @param systemId system ID
+     * @return LSP key
+     */
+    String lspKey(String systemId);
+
+    /**
+     * Returns the sequence number.
+     *
+     * @param lspType L1 or L2 LSP
+     * @return sequence number
+     */
+    int lsSequenceNumber(IsisPduType lspType);
+
+    /**
+     * Finds the LSP from LSDB.
+     *
+     * @param pduType L1 or L2 LSP
+     * @param lspId   LSP ID
+     * @return LSP wrapper object
+     */
+    LspWrapper findLsp(IsisPduType pduType, String lspId);
+
+    /**
+     * Installs a new self-originated LSA in LSDB.
+     * Return true if installing was successful else false.
+     *
+     * @param lsPdu            PDU instance
+     * @param isSelfOriginated true if self originated else false
+     * @param isisInterface    ISIS interface instance
+     * @return true if successfully added
+     */
+    boolean addLsp(IsisMessage lsPdu, boolean isSelfOriginated, IsisInterface isisInterface);
+
+    /**
+     * Checks received LSP is latest, same or old.
+     *
+     * @param receivedLsp received LSP
+     * @param lspFromDb   existing LSP
+     * @return "latest", "old" or "same"
+     */
+    String isNewerOrSameLsp(IsisMessage receivedLsp, IsisMessage lspFromDb);
+
+    /**
+     * Returns all LSPs (L1 and L2).
+     *
+     * @param excludeMaxAgeLsp exclude the max age LSPs
+     * @return List of LSPs
+     */
+    List<LspWrapper> allLspHeaders(boolean excludeMaxAgeLsp);
+
+    /**
+     * Deletes the given LSP.
+     *
+     * @param lsp LSP instance
+     */
+    void deleteLsp(IsisMessage lsp);
 }
