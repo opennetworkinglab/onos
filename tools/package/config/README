@@ -1,2 +1,5 @@
 The onos-config command will copy files contained in this directory to ONOS
 instances according to cell definition.
+
+NOTE: Please remember to rename the network config to network-cfg.json if
+      you copy it from the samples directory
