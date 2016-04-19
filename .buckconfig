@@ -5,6 +5,9 @@
   source_level = 8
   target_level = 8
 
+[alias]
+    onos = //:onos
+
 [download]
   maven_repo = https://repo1.maven.org/maven2
   in_build = true
