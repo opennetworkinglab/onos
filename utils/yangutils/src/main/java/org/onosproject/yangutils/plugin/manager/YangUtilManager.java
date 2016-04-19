@@ -52,7 +52,9 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getDirectory;
 
 /**
  * Represents ONOS YANG utility maven plugin.
- * Goal of plugin is yang2java Execution phase in generate-sources requiresDependencyResolution at compile time.
+ * Goal of plugin is yang2java.
+ * Execution phase is generate-sources.
+ * requiresDependencyResolution at compile time.
  */
 @Mojo(name = "yang2java", defaultPhase = GENERATE_SOURCES, requiresDependencyResolution = COMPILE,
         requiresProject = true)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.parser.parseutils;
+package org.onosproject.yangutils.parser.impl.parseutils;
 
 import org.junit.Rule;
 import org.junit.Test;

@@ -18,6 +18,7 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import java.util.List;
 
+import org.onosproject.yangutils.datamodel.CollisionDetector;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
@@ -32,6 +33,9 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
 import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangAugmentNode;
+import static org.onosproject.yangutils.parser.impl.parserutils.AugmentJavaFileNameGenUtil.clearOccurrenceCount;
+import static org.onosproject.yangutils.parser.impl.parserutils.AugmentJavaFileNameGenUtil.createValidNameForAugment;
+import static org.onosproject.yangutils.parser.impl.parserutils.AugmentJavaFileNameGenUtil.updateNameWhenHasMultipleOuccrrence;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
@@ -45,7 +49,6 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.get
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateMutuallyExclusiveChilds;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
 import static org.onosproject.yangutils.utils.YangConstructType.AUGMENT_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.CASE_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.DATA_DEF_DATA;
@@ -81,8 +84,6 @@ import static org.onosproject.yangutils.utils.YangConstructType.WHEN_DATA;
  */
 public final class AugmentListener {
 
-    private static final String AUGMENTED = "Augmented";
-
     /**
      * Creates a new augment listener.
      */
@@ -116,11 +117,11 @@ public final class AugmentListener {
 
         Parsable curData = listener.getParsedDataStack().peek();
         if (curData instanceof YangModule || curData instanceof YangSubModule || curData instanceof YangUses) {
-
             YangNode curNode = (YangNode) curData;
             YangAugment yangAugment = getYangAugmentNode(JAVA_GENERATION);
             yangAugment.setTargetNode(targetNodes);
-            yangAugment.setName(getValidNameForAugment(targetNodes));
+            yangAugment.setName(detectCollisionForTargetNode(curData, targetNodes, line, charPositionInLine, listener));
+
             try {
                 curNode.addChild(yangAugment);
             } catch (DataModelException e) {
@@ -161,7 +162,6 @@ public final class AugmentListener {
      * @param ctx context object of the grammar rule
      */
     private static void validateSubStatementsCardinality(GeneratedYangParser.AugmentStatementContext ctx) {
-
         validateCardinalityMaxOne(ctx.statusStatement(), STATUS_DATA, AUGMENT_DATA, ctx.augment().getText());
         validateCardinalityMaxOne(ctx.descriptionStatement(), DESCRIPTION_DATA, AUGMENT_DATA, ctx.augment().getText());
         validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, AUGMENT_DATA, ctx.augment().getText());
@@ -171,21 +171,52 @@ public final class AugmentListener {
     }
 
     /**
-     * Returns a name identifier for augment.
+     * Detects collision for java file generation of augment node when
+     * it is updating the same target node in same parent multiple times.
+     * Returns name for generated java file of augment node
      *
-     * @param targetNode list of target nodes
-     * @return name identifier
+     * @param curData parsable data
+     * @param targetNodes list of target nodes
+     * @param line line in YANG file
+     * @param charPositionInLine char position in YANG file
+     * @param listener tree walk listener
+     * @return name for generated java file for augment node
      */
-    private static String getValidNameForAugment(List<YangNodeIdentifier> targetNodes) {
-        String name = "";
-        YangNodeIdentifier nodeId = targetNodes.get(targetNodes.size() - 1);
+    private static String detectCollisionForTargetNode(Parsable curData, List<YangNodeIdentifier> targetNodes, int line,
+            int charPositionInLine, TreeWalkListener listener) {
 
-        if (nodeId.getPrefix() != null) {
-            name = AUGMENTED + getCaptialCase(nodeId.getPrefix()) + getCaptialCase(nodeId.getName());
-        } else {
-           //TODO: name = name + ((HasAugmentation)getParentNode()).getAugmentPrefix(nodeId);
+        String curPrefix = null;
+        if (curData instanceof YangModule) {
+            curPrefix = ((YangModule) curData).getPrefix();
+        } else if (curData instanceof YangSubModule) {
+            curPrefix = ((YangSubModule) curData).getPrefix();
         }
-        return name;
+        YangNodeIdentifier nodeId = targetNodes.get(targetNodes.size() - 1);
+        boolean isPrefix = isPrefixPresent(nodeId, curPrefix);
+        String xpath = createValidNameForAugment(nodeId, isPrefix);
+
+        if (listener.getParsedDataStack().peek() instanceof CollisionDetector) {
+            try {
+                ((CollisionDetector) listener.getParsedDataStack().peek()).detectCollidingChild(xpath,
+                        AUGMENT_DATA);
+            } catch (DataModelException e) {
+                return updateNameWhenHasMultipleOuccrrence(nodeId, isPrefix);
+            }
+        }
+
+        clearOccurrenceCount();
+        return xpath;
+    }
+
+    /**
+     * Returns true if a prefix is present and it is not equals to parents prefix.
+     *
+     * @param nodeId YANG node identifier
+     * @param parentsPrefix parent's prefix
+     * @return true if a prefix is present and it is not equals to parents prefix
+     */
+    private static boolean isPrefixPresent(YangNodeIdentifier nodeId, String parentsPrefix) {
+        return nodeId.getPrefix() != null && nodeId.getPrefix() != parentsPrefix;
     }
 
     /**
