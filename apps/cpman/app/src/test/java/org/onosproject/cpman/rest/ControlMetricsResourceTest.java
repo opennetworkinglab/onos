@@ -15,11 +15,7 @@
  */
 package org.onosproject.cpman.rest;
 
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.ws.rs.client.WebTarget;
-
+import com.google.common.collect.ImmutableSet;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,11 +29,14 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.cpman.ControlLoad;
+import org.onosproject.cpman.ControlLoadSnapshot;
 import org.onosproject.cpman.ControlPlaneMonitorService;
-import org.onosproject.cpman.codec.ControlLoadCodec;
+import org.onosproject.cpman.codec.ControlLoadSnapshotCodec;
 import org.onosproject.rest.resources.ResourceTest;
 
-import com.google.common.collect.ImmutableSet;
+import javax.ws.rs.client.WebTarget;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -145,7 +144,7 @@ public class ControlMetricsResourceTest extends ResourceTest {
     public void setUpTest() {
         final CodecManager codecService = new CodecManager();
         codecService.activate();
-        codecService.registerCodec(ControlLoad.class, new ControlLoadCodec());
+        codecService.registerCodec(ControlLoadSnapshot.class, new ControlLoadSnapshotCodec());
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
                         .add(ControlPlaneMonitorService.class,
@@ -184,7 +183,7 @@ public class ControlMetricsResourceTest extends ResourceTest {
     public void testResourcePopulatedArray() {
         expect(mockControlPlaneMonitorService.availableResources(anyObject()))
                 .andReturn(resourceSet).once();
-        expect(mockControlPlaneMonitorService.getLocalLoad(anyObject(),
+        expect(mockControlPlaneMonitorService.getLoad(anyObject(), anyObject(),
                 anyString())).andReturn(null).times(4);
         replay(mockControlPlaneMonitorService);
 

@@ -21,8 +21,9 @@ import org.onosproject.net.DeviceId;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
-import static org.onosproject.cpman.ControlResource.*;
+import static org.onosproject.cpman.ControlResource.Type;
 
 /**
  * Control Plane Statistics Service Interface.
@@ -52,50 +53,65 @@ public interface ControlPlaneMonitorService {
                       String resourceName);
 
     /**
-     * Obtains local control plane load of a specific device.
+     * Obtains snapshot of control plane load of a specific device.
      * The metrics range from control messages and system metrics
-     * (e.g., CPU and memory info)
-     *
-     * @param type     control metric type
-     * @param deviceId device identifier
-     * @return control plane load
-     */
-    ControlLoad getLocalLoad(ControlMetricType type, Optional<DeviceId> deviceId);
-
-    /**
-     * Obtains local control plane load of a specific resource.
-     * The metrics range from I/O device metrics
-     * (e.g., disk and network interface)
-     *
-     * @param type         control metric type
-     * @param resourceName resource name
-     * @return control plane load
-     */
-    ControlLoad getLocalLoad(ControlMetricType type, String resourceName);
-
-    /**
-     * Obtains remote control plane load of a specific device.
+     * (e.g., CPU and memory info).
+     * If the device id is not specified, it returns system metrics, otherwise,
+     * it returns control message stats of the given device.
      *
      * @param nodeId   node identifier
      * @param type     control metric type
      * @param deviceId device identifier
-     * @return completable future object of control load
+     * @return completable future object of control load snapshot
      */
-    CompletableFuture<ControlLoad> getRemoteLoad(NodeId nodeId,
-                                                 ControlMetricType type,
-                                                 Optional<DeviceId> deviceId);
+    CompletableFuture<ControlLoadSnapshot> getLoad(NodeId nodeId,
+                                                   ControlMetricType type,
+                                                   Optional<DeviceId> deviceId);
 
     /**
-     * Obtains remote control plane load of a specific resource.
+     * Obtains snapshot of control plane load of a specific resource.
+     * The metrics include I/O device metrics (e.g., disk and network metrics).
      *
      * @param nodeId       node identifier
      * @param type         control metric type
      * @param resourceName resource name
-     * @return completable future object of control load
+     * @return completable future object of control load snapshot
      */
-    CompletableFuture<ControlLoad> getRemoteLoad(NodeId nodeId,
-                                                 ControlMetricType type,
-                                                 String resourceName);
+    CompletableFuture<ControlLoadSnapshot> getLoad(NodeId nodeId,
+                                                   ControlMetricType type,
+                                                   String resourceName);
+
+    /**
+     * Obtains snapshot of control plane load of a specific device with the
+     * projected range.
+     *
+     * @param nodeId   node identifier
+     * @param type     control metric type
+     * @param duration projected duration
+     * @param unit     projected time unit
+     * @param deviceId device identifier
+     * @return completable future object of control load snapshot
+     */
+    CompletableFuture<ControlLoadSnapshot> getLoad(NodeId nodeId,
+                                                   ControlMetricType type,
+                                                   int duration, TimeUnit unit,
+                                                   Optional<DeviceId> deviceId);
+
+    /**
+     * Obtains snapshot of control plane load of a specific resource with the
+     * projected range.
+     *
+     * @param nodeId       node identifier
+     * @param type         control metric type
+     * @param duration     projected duration
+     * @param unit         projected time unit
+     * @param resourceName resource name
+     * @return completable future object of control load snapshot
+     */
+    CompletableFuture<ControlLoadSnapshot> getLoad(NodeId nodeId,
+                                                   ControlMetricType type,
+                                                   int duration, TimeUnit unit,
+                                                   String resourceName);
 
     /**
      * Obtains a list of names of available resources.

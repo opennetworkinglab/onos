@@ -18,22 +18,22 @@ package org.onosproject.cpman.codec;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.cpman.ControlLoad;
+import org.onosproject.cpman.ControlLoadSnapshot;
 
 /**
- * Control load codec.
+ * Control load snapshot codec.
  */
-public final class ControlLoadCodec extends JsonCodec<ControlLoad> {
+public final class ControlLoadSnapshotCodec extends JsonCodec<ControlLoadSnapshot> {
 
     private static final String TIME = "time";
     private static final String LATEST = "latest";
     private static final String AVERAGE = "average";
 
     @Override
-    public ObjectNode encode(ControlLoad controlLoad, CodecContext context) {
+    public ObjectNode encode(ControlLoadSnapshot controlLoadSnapshot, CodecContext context) {
         return context.mapper().createObjectNode()
-                .put(TIME, controlLoad.time())
-                .put(LATEST, controlLoad.latest())
-                .put(AVERAGE, controlLoad.average());
+                .put(TIME, controlLoadSnapshot.time())
+                .put(LATEST, controlLoadSnapshot.latest())
+                .put(AVERAGE, controlLoadSnapshot.average());
     }
 }

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cpman.impl;
+package org.onosproject.cpman;
 
 import com.google.common.base.MoreObjects;
-import org.onosproject.cpman.ControlMetricType;
 import org.onosproject.net.DeviceId;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -31,10 +31,12 @@ public class ControlMetricsRequest {
     private final ControlMetricType type;
     private Optional<DeviceId> deviceId;
     private String resourceName;
+    private int duration;
+    private TimeUnit unit;
 
     /**
-     * Instantiates a new control metric request with the given control metric
-     * type and device identifier.
+     * Instantiates a new control metric request of the control metric type and
+     * device identifier.
      *
      * @param type     control metric type
      * @param deviceId device identifier
@@ -45,8 +47,25 @@ public class ControlMetricsRequest {
     }
 
     /**
-     * Instantiates a new control metric request with the given control metric
-     * type and resource name.
+     * Instantiates a new control metric request of the control metric type and
+     * device identifier with the given projected time range.
+     *
+     * @param type     control metric type
+     * @param duration projected time duration
+     * @param unit     projected time unit
+     * @param deviceId device dientifer
+     */
+    public ControlMetricsRequest(ControlMetricType type, int duration, TimeUnit unit,
+                                 Optional<DeviceId> deviceId) {
+        this.type = type;
+        this.deviceId = deviceId;
+        this.duration = duration;
+        this.unit = unit;
+    }
+
+    /**
+     * Instantiates a new control metric request of the control metric type and
+     * resource name.
      *
      * @param type         control metric type
      * @param resourceName resource name
@@ -54,6 +73,23 @@ public class ControlMetricsRequest {
     public ControlMetricsRequest(ControlMetricType type, String resourceName) {
         this.type = type;
         this.resourceName = resourceName;
+    }
+
+    /**
+     * Instantiates a new control metric request of the control metric type and
+     * resource name with the given projected time range.
+     *
+     * @param type         control metric type
+     * @param duration     projected time duration
+     * @param unit         projected time unit
+     * @param resourceName resource name
+     */
+    public ControlMetricsRequest(ControlMetricType type, int duration, TimeUnit unit,
+                                 String resourceName) {
+        this.type = type;
+        this.resourceName = resourceName;
+        this.duration = duration;
+        this.unit = unit;
     }
 
     /**
@@ -83,9 +119,27 @@ public class ControlMetricsRequest {
         return deviceId;
     }
 
+    /**
+     * Obtains projected time duration.
+     *
+     * @return projected time duration
+     */
+    public int getDuration() {
+        return duration;
+    }
+
+    /**
+     * Obtains projected time unit.
+     *
+     * @return projected time unit
+     */
+    public TimeUnit getUnit() {
+        return unit;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(type, deviceId, resourceName);
+        return Objects.hash(type, deviceId, resourceName, duration, unit.toString());
     }
 
     @Override
@@ -97,7 +151,9 @@ public class ControlMetricsRequest {
             final ControlMetricsRequest other = (ControlMetricsRequest) obj;
             return Objects.equals(this.type, other.type) &&
                     Objects.equals(this.deviceId, other.deviceId) &&
-                    Objects.equals(this.resourceName, other.resourceName);
+                    Objects.equals(this.resourceName, other.resourceName) &&
+                    Objects.equals(this.duration, other.duration) &&
+                    Objects.equals(this.unit, other.unit);
         }
         return false;
     }
@@ -107,7 +163,9 @@ public class ControlMetricsRequest {
         MoreObjects.ToStringHelper helper;
         helper = toStringHelper(this)
                 .add("type", type)
-                .add("resourceName", resourceName);
+                .add("resourceName", resourceName)
+                .add("duration", duration)
+                .add("timeUnit", unit);
         if (deviceId != null) {
             helper.add("deviceId", deviceId.get());
         }

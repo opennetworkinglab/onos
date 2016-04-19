@@ -31,6 +31,7 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapte
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
@@ -109,11 +110,17 @@ public class ControlPlaneMonitorTest {
 
     private void testUpdateMetricWithoutId(ControlMetricType cmt, MetricValue mv) {
         ControlMetric cm = new ControlMetric(cmt, mv);
-        monitor.updateMetric(cm, UPDATE_INTERVAL, Optional.ofNullable(null));
+        monitor.updateMetric(cm, UPDATE_INTERVAL, Optional.empty());
     }
 
-    private void testLoadMetricWithoutId(ControlMetricType cmt, MetricValue mv) {
-        assertThat(monitor.getLocalLoad(cmt, Optional.ofNullable(null)).latest(), is(mv.getLoad()));
+    private void testLoadMetric(NodeId nodeId, ControlMetricType cmt, MetricValue mv) {
+        try {
+            assertThat(monitor.getLoad(nodeId, cmt, Optional.empty()).get().latest(), is(mv.getLoad()));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
     }
 
     private void testUpdateMetricWithResource(ControlMetricType cmt, MetricValue mv, String resourceName) {
@@ -121,8 +128,14 @@ public class ControlPlaneMonitorTest {
         monitor.updateMetric(cm, UPDATE_INTERVAL, resourceName);
     }
 
-    private void testLoadMetricWithResource(ControlMetricType cmt, MetricValue mv, String resourceName) {
-        assertThat(monitor.getLocalLoad(cmt, resourceName).latest(), is(mv.getLoad()));
+    private void testLoadMetricWithResource(NodeId nodeId, ControlMetricType cmt, MetricValue mv, String resourceName) {
+        try {
+            assertThat(monitor.getLoad(nodeId, cmt, resourceName).get().latest(), is(mv.getLoad()));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
     }
 
     private void testUpdateMetricWithId(ControlMetricType cmt, MetricValue mv, DeviceId did) {
@@ -130,8 +143,14 @@ public class ControlPlaneMonitorTest {
         monitor.updateMetric(cm, UPDATE_INTERVAL, Optional.of(did));
     }
 
-    private void testLoadMetricWithId(ControlMetricType cmt, MetricValue mv, DeviceId did) {
-        assertThat(monitor.getLocalLoad(cmt, Optional.of(did)).latest(), is(mv.getLoad()));
+    private void testLoadMetricWithId(NodeId nodeId, ControlMetricType cmt, MetricValue mv, DeviceId did) {
+        try {
+            assertThat(monitor.getLoad(nodeId, cmt, Optional.of(did)).get().latest(), is(mv.getLoad()));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -142,7 +161,7 @@ public class ControlPlaneMonitorTest {
         MetricValue mv = new MetricValue.Builder().load(30).add();
 
         CPU_METRICS.forEach(cmt -> testUpdateMetricWithoutId(cmt, mv));
-        CPU_METRICS.forEach(cmt -> testLoadMetricWithoutId(cmt, mv));
+        CPU_METRICS.forEach(cmt -> testLoadMetric(nodeId, cmt, mv));
     }
 
     /**
@@ -153,7 +172,7 @@ public class ControlPlaneMonitorTest {
         MetricValue mv = new MetricValue.Builder().load(40).add();
 
         MEMORY_METRICS.forEach(cmt -> testUpdateMetricWithoutId(cmt, mv));
-        MEMORY_METRICS.forEach(cmt -> testLoadMetricWithoutId(cmt, mv));
+        MEMORY_METRICS.forEach(cmt -> testLoadMetric(nodeId, cmt, mv));
     }
 
     /**
@@ -169,7 +188,7 @@ public class ControlPlaneMonitorTest {
                 testUpdateMetricWithResource(cmt, mv, disk)));
 
         set.forEach(disk -> DISK_METRICS.forEach(cmt ->
-                testLoadMetricWithResource(cmt, mv, disk)));
+                testLoadMetricWithResource(nodeId, cmt, mv, disk)));
     }
 
     /**
@@ -185,7 +204,7 @@ public class ControlPlaneMonitorTest {
                 testUpdateMetricWithResource(cmt, mv, network)));
 
         set.forEach(network -> NETWORK_METRICS.forEach(cmt ->
-                testLoadMetricWithResource(cmt, mv, network)));
+                testLoadMetricWithResource(nodeId, cmt, mv, network)));
     }
 
     /**
@@ -201,7 +220,7 @@ public class ControlPlaneMonitorTest {
                 testUpdateMetricWithId(cmt, mv, devId)));
 
         set.forEach(devId -> CONTROL_MESSAGE_METRICS.forEach(cmt ->
-                testLoadMetricWithId(cmt, mv, devId)));
+                testLoadMetricWithId(nodeId, cmt, mv, devId)));
     }
 
     /**

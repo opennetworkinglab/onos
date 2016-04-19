@@ -18,9 +18,10 @@ package org.onosproject.cpman.rest;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
+import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.cpman.ControlLoad;
+import org.onosproject.cpman.ControlLoadSnapshot;
 import org.onosproject.cpman.ControlMetricType;
 import org.onosproject.cpman.ControlPlaneMonitorService;
 import org.onosproject.net.DeviceId;
@@ -34,6 +35,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static org.onosproject.cpman.ControlResource.CONTROL_MESSAGE_METRICS;
 import static org.onosproject.cpman.ControlResource.CPU_METRICS;
@@ -55,6 +58,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
     private final ClusterService clusterService = get(ClusterService.class);
     private final NodeId localNodeId = clusterService.getLocalNode().id();
     private final ObjectNode root = mapper().createObjectNode();
+    private static final long TIMEOUT_MILLIS = 1000;
 
     /**
      * Returns control message metrics of all devices.
@@ -248,31 +252,51 @@ public class ControlMetricsWebResource extends AbstractWebResource {
         if (name == null && did == null) {
             typeSet.forEach(type -> {
                 ObjectNode metricNode = mapper().createObjectNode();
-                ControlLoad load = service.getLocalLoad(type, Optional.ofNullable(null));
-                if (load != null) {
-                    metricNode.set(toCamelCase(type.toString(), true), codec(ControlLoad.class)
-                            .encode(service.getLocalLoad(type, Optional.ofNullable(null)), this));
-                    metricsNode.add(metricNode);
+                CompletableFuture<ControlLoadSnapshot> cf =
+                        service.getLoad(nodeId, type, Optional.empty());
+
+                if (cf != null) {
+                    ControlLoadSnapshot cmr =
+                            Tools.futureGetOrElse(cf, TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, null);
+
+                    if (cmr != null) {
+                        metricNode.set(toCamelCase(type.toString(), true),
+                                codec(ControlLoadSnapshot.class).encode(cmr, this));
+                        metricsNode.add(metricNode);
+                    }
                 }
             });
         } else if (name == null) {
             typeSet.forEach(type -> {
                 ObjectNode metricNode = mapper().createObjectNode();
-                ControlLoad load = service.getLocalLoad(type, Optional.of(did));
-                if (load != null) {
-                    metricNode.set(toCamelCase(type.toString(), true),
-                            codec(ControlLoad.class).encode(load, this));
-                    metricsNode.add(metricNode);
+                CompletableFuture<ControlLoadSnapshot> cf =
+                        service.getLoad(nodeId, type, Optional.of(did));
+
+                if (cf != null) {
+                    ControlLoadSnapshot cmr =
+                            Tools.futureGetOrElse(cf, TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, null);
+                    if (cmr != null) {
+                        metricNode.set(toCamelCase(type.toString(), true),
+                                codec(ControlLoadSnapshot.class).encode(cmr, this));
+                        metricsNode.add(metricNode);
+                    }
                 }
+
             });
         } else if (did == null) {
             typeSet.forEach(type -> {
                 ObjectNode metricNode = mapper().createObjectNode();
-                ControlLoad load = service.getLocalLoad(type, name);
-                if (load != null) {
-                    metricNode.set(toCamelCase(type.toString(), true),
-                            codec(ControlLoad.class).encode(load, this));
-                    metricsNode.add(metricNode);
+                CompletableFuture<ControlLoadSnapshot> cf =
+                        service.getLoad(nodeId, type, name);
+
+                if (cf != null) {
+                    ControlLoadSnapshot cmr =
+                            Tools.futureGetOrElse(cf, TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, null);
+                    if (cmr != null) {
+                        metricNode.set(toCamelCase(type.toString(), true),
+                                codec(ControlLoadSnapshot.class).encode(cmr, this));
+                        metricsNode.add(metricNode);
+                    }
                 }
             });
         }

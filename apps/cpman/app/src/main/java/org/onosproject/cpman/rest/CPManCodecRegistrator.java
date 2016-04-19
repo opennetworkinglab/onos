@@ -21,8 +21,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.codec.CodecService;
-import org.onosproject.cpman.ControlLoad;
-import org.onosproject.cpman.codec.ControlLoadCodec;
+import org.onosproject.cpman.ControlLoadSnapshot;
+import org.onosproject.cpman.codec.ControlLoadSnapshotCodec;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -40,14 +40,14 @@ public class CPManCodecRegistrator {
 
     @Activate
     public void activate() {
-        codecService.registerCodec(ControlLoad.class, new ControlLoadCodec());
+        codecService.registerCodec(ControlLoadSnapshot.class, new ControlLoadSnapshotCodec());
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        codecService.unregisterCodec(ControlLoad.class);
+        codecService.unregisterCodec(ControlLoadSnapshot.class);
 
         log.info("Stopped");
     }

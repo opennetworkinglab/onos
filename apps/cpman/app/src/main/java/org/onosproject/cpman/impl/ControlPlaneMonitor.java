@@ -29,8 +29,10 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cpman.ControlLoad;
+import org.onosproject.cpman.ControlLoadSnapshot;
 import org.onosproject.cpman.ControlMetric;
 import org.onosproject.cpman.ControlMetricType;
+import org.onosproject.cpman.ControlMetricsRequest;
 import org.onosproject.cpman.ControlPlaneMonitorService;
 import org.onosproject.cpman.MetricsDatabase;
 import org.onosproject.net.DeviceId;
@@ -45,12 +47,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.cpman.ControlResource.CONTROL_MESSAGE_METRICS;
 import static org.onosproject.cpman.ControlResource.CPU_METRICS;
 import static org.onosproject.cpman.ControlResource.DISK_METRICS;
@@ -84,7 +84,7 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
             ImmutableSet.of(Type.CONTROL_MESSAGE, Type.DISK, Type.NETWORK);
 
     private static final MessageSubject CONTROL_STATS =
-                         new MessageSubject("control-plane-stats");
+            new MessageSubject("control-plane-stats");
 
     private Map<ControlMetricType, Double> cpuBuf;
     private Map<ControlMetricType, Double> memoryBuf;
@@ -95,19 +95,16 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     private Map<Type, Set<String>> availableResourceMap;
     private Set<DeviceId> availableDeviceIdSet;
 
-    private ExecutorService messageHandlingExecutor;
-
     private static final String METRIC_TYPE_NULL = "Control metric type cannot be null";
-
-    Set<Map<ControlMetricType, Double>> debugSets = Sets.newHashSet();
 
     private static final Serializer SERIALIZER = Serializer
             .using(new KryoNamespace.Builder()
                     .register(KryoNamespaces.API)
+                    .register(KryoNamespaces.BASIC)
                     .register(ControlMetricsRequest.class)
-                    .register(DefaultControlLoad.class)
-                    .register(DefaultMetricsDatabase.class)
+                    .register(ControlLoadSnapshot.class)
                     .register(ControlMetricType.class)
+                    .register(TimeUnit.class)
                     .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID).build());
 
     @Activate
@@ -127,11 +124,8 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
         availableResourceMap = Maps.newConcurrentMap();
         availableDeviceIdSet = Sets.newConcurrentHashSet();
 
-        messageHandlingExecutor = Executors.newSingleThreadScheduledExecutor(
-                groupedThreads("onos/app/cpman", "message-handlers", log));
-
-        communicationService.addSubscriber(CONTROL_STATS,
-                SERIALIZER::decode, this::handleRequest, messageHandlingExecutor);
+        communicationService.<ControlMetricsRequest, ControlLoadSnapshot>addSubscriber(CONTROL_STATS,
+                SERIALIZER::decode, this::handleRequest, SERIALIZER::encode);
 
         log.info("Started");
     }
@@ -243,9 +237,263 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     }
 
     @Override
-    public ControlLoad getLocalLoad(ControlMetricType type,
-                                    Optional<DeviceId> deviceId) {
+    public CompletableFuture<ControlLoadSnapshot> getLoad(NodeId nodeId,
+                                                          ControlMetricType type,
+                                                          Optional<DeviceId> deviceId) {
+        if (clusterService.getLocalNode().id().equals(nodeId)) {
+            return CompletableFuture.completedFuture(snapshot(getLocalLoad(type, deviceId)));
+        } else {
+            return communicationService.sendAndReceive(createRequest(type, deviceId),
+                    CONTROL_STATS, SERIALIZER::encode, SERIALIZER::decode, nodeId);
+        }
+    }
+
+    @Override
+    public CompletableFuture<ControlLoadSnapshot> getLoad(NodeId nodeId,
+                                                          ControlMetricType type,
+                                                          String resourceName) {
+        if (clusterService.getLocalNode().id().equals(nodeId)) {
+            return CompletableFuture.completedFuture(snapshot(getLocalLoad(type, resourceName)));
+        } else {
+            return communicationService.sendAndReceive(createRequest(type, resourceName),
+                    CONTROL_STATS, SERIALIZER::encode, SERIALIZER::decode, nodeId);
+        }
+    }
+
+    @Override
+    public CompletableFuture<ControlLoadSnapshot> getLoad(NodeId nodeId,
+                                                          ControlMetricType type,
+                                                          int duration, TimeUnit unit,
+                                                          Optional<DeviceId> deviceId) {
+        if (clusterService.getLocalNode().id().equals(nodeId)) {
+            return CompletableFuture.completedFuture(snapshot(getLocalLoad(type, deviceId), duration, unit));
+        } else {
+            return communicationService.sendAndReceive(createRequest(type, duration, unit, deviceId),
+                    CONTROL_STATS, SERIALIZER::encode, SERIALIZER::decode, nodeId);
+        }
+    }
+
+    @Override
+    public CompletableFuture<ControlLoadSnapshot> getLoad(NodeId nodeId,
+                                                          ControlMetricType type,
+                                                          int duration, TimeUnit unit,
+                                                          String resourceName) {
+        if (clusterService.getLocalNode().id().equals(nodeId)) {
+            return CompletableFuture.completedFuture(snapshot(getLocalLoad(type, resourceName), duration, unit));
+        } else {
+            return communicationService.sendAndReceive(createRequest(type, duration, unit, resourceName),
+                    CONTROL_STATS, SERIALIZER::encode, SERIALIZER::decode, nodeId);
+        }
+    }
+
+    @Override
+    public Set<String> availableResources(Type resourceType) {
+        if (RESOURCE_TYPE_SET.contains(resourceType)) {
+            if (Type.CONTROL_MESSAGE.equals(resourceType)) {
+                return availableDeviceIdSet.stream().map(id ->
+                        id.toString()).collect(Collectors.toSet());
+            } else {
+                Set<String> res = availableResourceMap.get(resourceType);
+                return res == null ? ImmutableSet.of() : res;
+            }
+        }
+        return ImmutableSet.of();
+    }
+
+    /**
+     * Builds and returns metric database instance with given resource name,
+     * resource type and metric type.
+     *
+     * @param resourceName resource name
+     * @param resourceType resource type
+     * @param metricTypes  metric type
+     * @return metric database instance
+     */
+    private MetricsDatabase genMDbBuilder(String resourceName,
+                                          Type resourceType,
+                                          Set<ControlMetricType> metricTypes) {
+        MetricsDatabase.Builder builder = new DefaultMetricsDatabase.Builder();
+        builder.withMetricName(resourceType.toString());
+        builder.withResourceName(resourceName);
+        metricTypes.forEach(type -> builder.addMetricType(type.toString()));
+        return builder.build();
+    }
+
+    /**
+     * Updates network metrics with given metric map and resource name.
+     *
+     * @param metricMap    a metric map which is comprised of metric type and value
+     * @param resourceName resource name
+     */
+    private void updateNetworkMetrics(Map<ControlMetricType, Double> metricMap,
+                                      String resourceName) {
+        networkMetricsMap.putIfAbsent(resourceName, genMDbBuilder(resourceName,
+                Type.NETWORK, NETWORK_METRICS));
+        networkMetricsMap.get(resourceName).updateMetrics(convertMap(metricMap));
+    }
+
+    /**
+     * Updates disk metrics with given metric map and resource name.
+     *
+     * @param metricMap    a metric map which is comprised of metric type and value
+     * @param resourceName resource name
+     */
+    private void updateDiskMetrics(Map<ControlMetricType, Double> metricMap,
+                                   String resourceName) {
+        diskMetricsMap.putIfAbsent(resourceName, genMDbBuilder(resourceName,
+                Type.DISK, DISK_METRICS));
+        diskMetricsMap.get(resourceName).updateMetrics(convertMap(metricMap));
+    }
+
+    /**
+     * Updates control message metrics with given metric map and device identifier.
+     *
+     * @param metricMap a metric map which is comprised of metric type and value
+     * @param deviceId  device identifier
+     */
+    private void updateControlMessages(Map<ControlMetricType, Double> metricMap,
+                                       DeviceId deviceId) {
+        controlMessageMap.putIfAbsent(deviceId, genMDbBuilder(deviceId.toString(),
+                Type.CONTROL_MESSAGE, CONTROL_MESSAGE_METRICS));
+        controlMessageMap.get(deviceId).updateMetrics(convertMap(metricMap));
+    }
+
+    /**
+     * Converts metric map into a new map which contains string formatted metric type as key.
+     *
+     * @param metricMap metric map in which ControlMetricType is key
+     * @return a new map in which string formatted metric type is key
+     */
+    private Map<String, Double> convertMap(Map<ControlMetricType, Double> metricMap) {
+        if (metricMap == null) {
+            return ImmutableMap.of();
+        }
+        Map newMap = Maps.newConcurrentMap();
+        metricMap.forEach((k, v) -> newMap.putIfAbsent(k.toString(), v));
+        return newMap;
+    }
+
+    /**
+     * Handles control metric request from remote node.
+     *
+     * @param request control metric request
+     * @return completable future object of control load snapshot
+     */
+    private CompletableFuture<ControlLoadSnapshot> handleRequest(ControlMetricsRequest request) {
+
+        checkArgument(request.getType() != null, METRIC_TYPE_NULL);
+
+        ControlLoad load;
+        if (request.getResourceName() != null && request.getUnit() != null) {
+            load = getLocalLoad(request.getType(), request.getResourceName());
+        } else {
+            load = getLocalLoad(request.getType(), request.getDeviceId());
+        }
+
+        long average;
+        if (request.getUnit() != null) {
+            average = load.average(request.getDuration(), request.getUnit());
+        } else {
+            average = load.average();
+        }
+        ControlLoadSnapshot resp =
+                new ControlLoadSnapshot(load.latest(), average, load.time());
+        return CompletableFuture.completedFuture(resp);
+    }
+
+    /**
+     * Generates a control metric request.
+     *
+     * @param type     control metric type
+     * @param deviceId device identifier
+     * @return control metric request instance
+     */
+    private ControlMetricsRequest createRequest(ControlMetricType type,
+                                                Optional<DeviceId> deviceId) {
+        return new ControlMetricsRequest(type, deviceId);
+    }
+
+    /**
+     * Generates a control metric request with given projected time range.
+     *
+     * @param type     control metric type
+     * @param duration projected time duration
+     * @param unit     projected time unit
+     * @param deviceId device identifier
+     * @return control metric request instance
+     */
+    private ControlMetricsRequest createRequest(ControlMetricType type,
+                                                int duration, TimeUnit unit,
+                                                Optional<DeviceId> deviceId) {
+        return new ControlMetricsRequest(type, duration, unit, deviceId);
+    }
+
+    /**
+     * Generates a control metric request.
+     *
+     * @param type         control metric type
+     * @param resourceName resource name
+     * @return control metric request instance
+     */
+    private ControlMetricsRequest createRequest(ControlMetricType type,
+                                                String resourceName) {
+        return new ControlMetricsRequest(type, resourceName);
+    }
+
+    /**
+     * Generates a control metric request with given projected time range.
+     *
+     * @param type         control metric type
+     * @param duration     projected time duration
+     * @param unit         projected time unit
+     * @param resourceName resource name
+     * @return control metric request instance
+     */
+    private ControlMetricsRequest createRequest(ControlMetricType type,
+                                                int duration, TimeUnit unit,
+                                                String resourceName) {
+        return new ControlMetricsRequest(type, duration, unit, resourceName);
+    }
+
+    /**
+     * Returns a snapshot of control load.
+     *
+     * @param cl control load
+     * @return a snapshot of control load
+     */
+    private ControlLoadSnapshot snapshot(ControlLoad cl) {
+        if (cl != null) {
+            return new ControlLoadSnapshot(cl.latest(), cl.average(), cl.time());
+        }
+        return null;
+    }
+
+    /**
+     * Returns a snapshot of control load with given projected time range.
+     *
+     * @param cl       control load
+     * @param duration projected time duration
+     * @param unit     projected time unit
+     * @return a snapshot of control load
+     */
+    private ControlLoadSnapshot snapshot(ControlLoad cl, int duration, TimeUnit unit) {
+        if (cl != null) {
+            return new ControlLoadSnapshot(cl.latest(), cl.average(duration, unit), cl.time());
+        }
+        return null;
+    }
+
+    /**
+     * Returns local control load.
+     *
+     * @param type     metric type
+     * @param deviceId device identifier
+     * @return control load
+     */
+    private ControlLoad getLocalLoad(ControlMetricType type,
+                                     Optional<DeviceId> deviceId) {
         if (deviceId.isPresent()) {
+            // returns control message stats
             if (CONTROL_MESSAGE_METRICS.contains(type) &&
                     availableDeviceIdSet.contains(deviceId.get())) {
                 return new DefaultControlLoad(controlMessageMap.get(deviceId.get()), type);
@@ -264,111 +512,25 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
         return null;
     }
 
-    @Override
-    public ControlLoad getLocalLoad(ControlMetricType type, String resourceName) {
+    /**
+     * Returns local control load.
+     *
+     * @param type         metric type
+     * @param resourceName resource name
+     * @return control load
+     */
+    private ControlLoad getLocalLoad(ControlMetricType type, String resourceName) {
+        // returns disk I/O stats
         if (DISK_METRICS.contains(type) &&
                 availableResources(Type.DISK).contains(resourceName)) {
             return new DefaultControlLoad(diskMetricsMap.get(resourceName), type);
         }
 
+        // returns network I/O stats
         if (NETWORK_METRICS.contains(type) &&
                 availableResources(Type.NETWORK).contains(resourceName)) {
             return new DefaultControlLoad(networkMetricsMap.get(resourceName), type);
         }
         return null;
-    }
-
-    @Override
-    public CompletableFuture<ControlLoad> getRemoteLoad(NodeId nodeId,
-                                                        ControlMetricType type,
-                                                        Optional<DeviceId> deviceId) {
-        return communicationService.sendAndReceive(createRequest(type, deviceId),
-                CONTROL_STATS, SERIALIZER::encode, SERIALIZER::decode, nodeId);
-    }
-
-    @Override
-    public CompletableFuture<ControlLoad> getRemoteLoad(NodeId nodeId,
-                                                        ControlMetricType type,
-                                                        String resourceName) {
-        return communicationService.sendAndReceive(createRequest(type, resourceName),
-                CONTROL_STATS, SERIALIZER::encode, SERIALIZER::decode, nodeId);
-    }
-
-
-    @Override
-    public Set<String> availableResources(Type resourceType) {
-        if (RESOURCE_TYPE_SET.contains(resourceType)) {
-            if (Type.CONTROL_MESSAGE.equals(resourceType)) {
-                return availableDeviceIdSet.stream().map(id ->
-                        id.toString()).collect(Collectors.toSet());
-            } else {
-                Set<String> res = availableResourceMap.get(resourceType);
-                return res == null ? ImmutableSet.of() : res;
-            }
-        }
-        return ImmutableSet.of();
-    }
-
-    private MetricsDatabase genMDbBuilder(String resourceName,
-                                          Type resourceType,
-                                          Set<ControlMetricType> metricTypes) {
-        MetricsDatabase.Builder builder = new DefaultMetricsDatabase.Builder();
-        builder.withMetricName(resourceType.toString());
-        builder.withResourceName(resourceName);
-        metricTypes.forEach(type -> builder.addMetricType(type.toString()));
-        return builder.build();
-    }
-
-    private void updateNetworkMetrics(Map<ControlMetricType, Double> metricMap,
-                                      String resName) {
-        networkMetricsMap.putIfAbsent(resName, genMDbBuilder(resName,
-                Type.NETWORK, NETWORK_METRICS));
-        networkMetricsMap.get(resName).updateMetrics(convertMap(metricMap));
-    }
-
-    private void updateDiskMetrics(Map<ControlMetricType, Double> metricMap,
-                                   String resName) {
-        diskMetricsMap.putIfAbsent(resName, genMDbBuilder(resName,
-                Type.DISK, DISK_METRICS));
-        diskMetricsMap.get(resName).updateMetrics(convertMap(metricMap));
-    }
-
-    private void updateControlMessages(Map<ControlMetricType, Double> metricMap,
-                                       DeviceId devId) {
-        controlMessageMap.putIfAbsent(devId, genMDbBuilder(devId.toString(),
-                Type.CONTROL_MESSAGE, CONTROL_MESSAGE_METRICS));
-        controlMessageMap.get(devId).updateMetrics(convertMap(metricMap));
-    }
-
-    private Map convertMap(Map<ControlMetricType, Double> map) {
-        if (map == null) {
-            return ImmutableMap.of();
-        }
-        Map newMap = Maps.newConcurrentMap();
-        map.forEach((k, v) -> newMap.putIfAbsent(k.toString(), v));
-        return newMap;
-    }
-
-    private CompletableFuture<ControlLoad> handleRequest(ControlMetricsRequest request) {
-
-        checkArgument(request.getType() != null, METRIC_TYPE_NULL);
-
-        ControlLoad load;
-        if (request.getResourceName() != null) {
-            load = getLocalLoad(request.getType(), request.getResourceName());
-        } else {
-            load = getLocalLoad(request.getType(), request.getDeviceId());
-        }
-        return CompletableFuture.completedFuture(load);
-    }
-
-    private ControlMetricsRequest createRequest(ControlMetricType type,
-                                                Optional<DeviceId> deviceId) {
-        return new ControlMetricsRequest(type, deviceId);
-    }
-
-    private ControlMetricsRequest createRequest(ControlMetricType type,
-                                                String resourceName) {
-        return new ControlMetricsRequest(type, resourceName);
     }
 }
