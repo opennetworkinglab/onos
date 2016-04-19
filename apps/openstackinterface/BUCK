@@ -1,32 +1,12 @@
-SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/test/java/org/onosproject/**/'
-
-COMPILE_DEPS = [
-    '//lib:CORE_DEPS',
-    '//lib:jersey-client',
-    '//lib:javax.ws.rs-api',
-]
-
 BUNDLES = [
-    '//apps/openstackinterface:onos-apps-openstackinterface-api',
-    # TODO - this doesn't actually work now, have to refactor the BUCK files into each sub directory
+    '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
+    '//apps/openstackinterface/app:onos-apps-openstackinterface-app',
 ]
-
-osgi_jar_with_tests (
-    name = 'onos-apps-openstackinterface-api',
-    srcs = glob(['api/' + SRC + '*.java']),
-    deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
-)
-
-osgi_jar_with_tests (
-    deps = COMPILE_DEPS,
-)
 
 onos_app (
-    title = 'Authentication App',
-    category = 'Security',
+    title = 'OpenStack Interface App',
+    category = 'Utility',
     url = 'http://onosproject.org',
-    description = 'ONOS authentication application.',
+    description = 'Openstack Interface Application.',
     included_bundles = BUNDLES,
 )

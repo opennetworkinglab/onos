@@ -1,102 +1,12 @@
-SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/test/java/org/onosproject/**/'
-
-COMPILE_DEPS = [
-    '//lib:CORE_DEPS',
-    '//lib:jersey-client',
-    '//lib:javax.ws.rs-api',
-    '//apps/openstackinterface:onos-apps-openstackinterface-api',
-    '//core/store/serializers:onos-core-serializers',
+BUNDLES = [
+    '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
+    '//apps/openstacknetworking/web:onos-apps-openstacknetworking-web',
 ]
 
-java_library(
-   name = 'onos-app-openstacknetworking',
-   visibility = ['PUBLIC'],
-   deps = [
-       ':onos-app-openstacknetworking-api',
-       ':onos-app-openstacknetworking-app',
-       ':onos-app-openstackrouting',
-       ':onos-app-openstackswitching',
-       ':onos-app-openstacknetworking-web',
-   ]
-)
-
-TEST_DEPS = [
-    '//lib:TEST',
-    ':onos-app-openstacknetworking',
-]
-
-java_library(
-    name = 'onos-app-openstacknetworking-api',
-    srcs = glob(['api/' + SRC + '*.java']),
-    deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
-)
-
-java_test(
-    name = 'onos-app-openstacknetworking-api-tests',
-    srcs = glob([TEST + 'api/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS,
-    source_under_test = [':onos-app-openstacknetworking-api'],
-)
-
-java_library(
-    name = 'onos-app-openstacknetworking-app',
-    srcs = glob(['app/' + SRC + '*.java']),
-    deps = COMPILE_DEPS + [':onos-app-openstacknetworking-api'],
-    visibility = ['PUBLIC'],
-)
-
-java_test(
-    name = 'onos-app-openstacknetworking-app-tests',
-    srcs = glob([TEST + 'app/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS,
-    source_under_test = [':onos-app-openstacknetworking-app'],
-)
-
-java_library(
-    name = 'onos-app-openstackrouting',
-    srcs = glob(['openstackrouting/' + SRC + '*.java']),
-    deps = COMPILE_DEPS + [':onos-app-openstacknetworking-api'],
-    visibility = ['PUBLIC'],
-)
-
-java_test(
-    name = 'onos-app-openstackrouting-tests',
-    srcs = glob([TEST + 'openstackrouting/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS,
-    source_under_test = [':onos-app-openstackrouting'],
-)
-
-java_library(
-    name = 'onos-app-openstackswitching',
-    srcs = glob(['openstgackswitching/' + SRC + '*.java']),
-    deps = COMPILE_DEPS + [':onos-app-openstacknetworking-api'],
-    visibility = ['PUBLIC'],
-)
-
-java_test(
-    name = 'onos-app-openstackswitching-tests',
-    srcs = glob([TEST + 'openstackswitching/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS,
-    source_under_test = [':onos-app-openstackswitching'],
-)
-
-java_library(
-    name = 'onos-app-openstacknetworking-web',
-    srcs = glob(['openstgacknetworking/' + SRC + '*.java']),
-    deps = COMPILE_DEPS + [':onos-app-openstacknetworking-api'],
-    visibility = ['PUBLIC'],
-)
-
-java_test(
-    name = 'onos-app-openstacknetworking-web-tests',
-    srcs = glob([TEST + 'openstackswitching/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS,
-    source_under_test = [':onos-app-openstacknetworking-web'],
+onos_app (
+  title = 'OpenStack Networking App',
+  category = 'Utility',
+  url = 'http://onosproject.org',
+  included_bundles = BUNDLES,
+  required_apps = [ 'org.onosproject.openstackinterface' ],
 )

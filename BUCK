@@ -99,6 +99,9 @@ APPS = [
     '//apps/mfwd:onos-apps-mfwd-oar',
     '//apps/mlb:onos-apps-mlb-oar',
     '//apps/openstackinterface:onos-apps-openstackinterface-oar',
+    '//apps/openstacknetworking:onos-apps-openstacknetworking-oar',
+    '//apps/openstacknetworking/openstackrouting:onos-apps-openstacknetworking-openstackrouting-oar',
+    '//apps/openstacknetworking/openstackswitching:onos-apps-openstacknetworking-openstackswitching-oar',
     '//apps/mobility:onos-apps-mobility-oar',
     '//apps/optical:onos-apps-optical-oar',
     '//apps/pathpainter:onos-apps-pathpainter-oar',
@@ -110,6 +113,7 @@ APPS = [
     '//apps/cordvtn:onos-apps-cordvtn-oar',
     '//apps/vpls:onos-apps-vpls-oar',
     '//apps/vrouter:onos-apps-vrouter-oar',
+    '//apps/vtn:onos-apps-vtn-oar',
 ]
 
 APP_JARS = [
@@ -126,12 +130,13 @@ APP_JARS = [
     '//apps/fwd:onos-apps-fwd',
     '//apps/olt:onos-apps-olt-api',
     '//apps/iptopology-api:onos-apps-iptopology-api',
-    '//apps/openstackinterface:onos-apps-openstackinterface-api',
-    '//apps/openstacknetworking:onos-app-openstacknetworking',
     '//apps/openstacknode:onos-apps-openstacknode',
     '//apps/routing:onos-apps-routing',
     '//apps/test:onos-app-test',
-    '//apps/vtn:onos-app-vtn',
+    '//apps/vtn/vtnrsc:onos-apps-vtn-vtnrsc',
+    '//apps/vtn/sfcmgr:onos-apps-vtn-sfcmgr',
+    '//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr',
+    '//apps/vtn/vtnweb:onos-apps-vtn-vtnweb',
 ]
 
 java_library(

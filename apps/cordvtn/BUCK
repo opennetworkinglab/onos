@@ -9,14 +9,14 @@ COMPILE_DEPS = [
     '//utils/rest:onlab-rest',
     '//cli:onos-cli',
     '//core/store/serializers:onos-core-serializers',
-    '//apps/openstackinterface:onos-apps-openstackinterface-api',
+    '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
     '//apps/dhcp/api:onos-apps-dhcp-api',
     '//protocols/ovsdb/api:onos-ovsdb-api',
     '//protocols/ovsdb/rfc:onos-ovsdb-rfc',
 ]
 
 BUNDLES = [
-    '//apps/openstackinterface:onos-apps-openstackinterface-api',
+    '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
     '//apps/cordvtn:onos-apps-cordvtn',
 ]
 
