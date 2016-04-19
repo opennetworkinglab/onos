@@ -95,9 +95,8 @@ public class DistributedConsensusLoadTest {
         appId = coreService.registerApplication("org.onosproject.loadtest");
         log.info("Started with {}", appId);
         for (int i = 0; i < TOTAL_COUNTERS; ++i) {
-            AsyncAtomicCounter counter = storageService.atomicCounterBuilder()
-                                .withName(String.format("onos-app-loadtest-counter-%d", i))
-                                .build();
+            AsyncAtomicCounter counter =
+                storageService.getAsyncAtomicCounter(String.format("onos-app-loadtest-counter-%d", i));
             counters.add(counter);
         }
         reporter.scheduleWithFixedDelay(() -> {

@@ -132,10 +132,7 @@ public class Ofdpa2GroupHandler {
         this.serviceDirectory = context.directory();
         this.groupService = serviceDirectory.get(GroupService.class);
         this.storageService = serviceDirectory.get(StorageService.class);
-        this.nextIndex = storageService.atomicCounterBuilder()
-                            .withName("group-id-index-counter")
-                            .build()
-                            .asAtomicCounter();
+        this.nextIndex = storageService.getAtomicCounter("group-id-index-counter");
 
         pendingNextObjectives = CacheBuilder.newBuilder()
                 .expireAfterWrite(20, TimeUnit.SECONDS)

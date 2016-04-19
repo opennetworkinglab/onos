@@ -87,4 +87,24 @@ public interface StorageService {
      * @return a builder for a transaction context.
      */
     TransactionContextBuilder transactionContextBuilder();
+
+    /**
+     * Returns an instance of {@code AsyncAtomicCounter} with specified name.
+     * @param name counter name
+     *
+     * @return AsyncAtomicCounter instance
+     */
+    default AsyncAtomicCounter getAsyncAtomicCounter(String name) {
+        return atomicCounterBuilder().withName(name).build();
+    }
+
+    /**
+     * Returns an instance of {@code AtomicCounter} with specified name.
+     * @param name counter name
+     *
+     * @return AtomicCounter instance
+     */
+    default AtomicCounter getAtomicCounter(String name) {
+        return getAsyncAtomicCounter(name).asAtomicCounter();
+    }
 }

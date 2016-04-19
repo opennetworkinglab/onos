@@ -50,11 +50,7 @@ public class LogicalClockManager implements LogicalClockService {
 
     @Activate
     public void activate() {
-        atomicCounter = storageService.atomicCounterBuilder()
-                                      .withName(SYSTEM_LOGICAL_CLOCK_COUNTER_NAME)
-                                      .withPartitionsDisabled()
-                                      .build()
-                                      .asAtomicCounter();
+        atomicCounter = storageService.getAtomicCounter(SYSTEM_LOGICAL_CLOCK_COUNTER_NAME);
         log.info("Started");
     }
 

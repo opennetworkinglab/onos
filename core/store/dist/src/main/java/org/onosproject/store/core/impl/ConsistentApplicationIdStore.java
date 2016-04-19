@@ -67,10 +67,7 @@ public class ConsistentApplicationIdStore implements ApplicationIdStore {
 
     @Activate
     public void activate() {
-        appIdCounter = storageService.atomicCounterBuilder()
-                                      .withName("onos-app-id-counter")
-                                      .build()
-                                      .asAtomicCounter();
+        appIdCounter = storageService.getAtomicCounter("onos-app-id-counter");
 
         registeredIds = storageService.<String, ApplicationId>consistentMapBuilder()
                 .withName("onos-app-ids")
