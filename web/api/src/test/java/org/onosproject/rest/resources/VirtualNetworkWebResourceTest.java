@@ -70,9 +70,19 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
-import static org.easymock.EasyMock.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.onosproject.net.PortNumber.portNumber;
 
 /**
@@ -281,14 +291,11 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         public VnetJsonArrayMatcher(VirtualNetwork vnetIn) {
             super(vnetIn,
                   vnet -> "Virtual network " + vnet.id().toString(),
-                  (vnet, jsonObject) -> {
-                      return jsonObject.get(ID).asString().equals(vnet.id().toString()); },
+                  (vnet, jsonObject) -> jsonObject.get(ID).asString().equals(vnet.id().toString()),
                   ImmutableList.of(ID, TENANT_ID),
-                  (vnet, s) -> {
-                      return s.equals(ID) ? vnet.id().toString()
-                              : s.equals(TENANT_ID) ? vnet.tenantId().toString()
-                              : null;
-                      }
+                  (vnet, s) -> s.equals(ID) ? vnet.id().toString()
+                          : s.equals(TENANT_ID) ? vnet.tenantId().toString()
+                          : null
             );
         }
     }
@@ -447,7 +454,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
 
         WebTarget wt = target();
         try {
-            String response = wt.path("vnets")
+            wt.path("vnets")
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     .post(Entity.json(null), String.class);
             fail("POST of null virtual network did not throw an exception");
@@ -564,15 +571,12 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
             super(vdevIn,
                   vdev -> "Virtual device " + vdev.networkId().toString()
                           + " " + vdev.id().toString(),
-                  (vdev, jsonObject) -> {
-                      return jsonObject.get(ID).asString().equals(vdev.networkId().toString())
-                              && jsonObject.get(DEVICE_ID).asString().equals(vdev.id().toString()); },
+                  (vdev, jsonObject) -> jsonObject.get(ID).asString().equals(vdev.networkId().toString())
+                          && jsonObject.get(DEVICE_ID).asString().equals(vdev.id().toString()),
                   ImmutableList.of(ID, DEVICE_ID),
-                  (vdev, s) -> {
-                      return s.equals(ID) ? vdev.networkId().toString()
-                              : s.equals(DEVICE_ID) ? vdev.id().toString()
-                              : null;
-                  }
+                  (vdev, s) -> s.equals(ID) ? vdev.networkId().toString()
+                          : s.equals(DEVICE_ID) ? vdev.id().toString()
+                          : null
             );
         }
     }
@@ -623,7 +627,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         WebTarget wt = target();
         try {
             String reqLocation = "vnets/" + networkId.toString() + "/devices";
-            String response = wt.path(reqLocation)
+            wt.path(reqLocation)
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     .post(Entity.json(null), String.class);
             fail("POST of null virtual device did not throw an exception");
@@ -722,19 +726,16 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
             super(vportIn,
                   vport -> "Virtual port " + vport.networkId().toString() + " "
                     + vport.element().id().toString() + " " + vport.number().toString(),
-                  (vport, jsonObject) -> {
-                      return jsonObject.get(ID).asString().equals(vport.networkId().toString())
-                              && jsonObject.get(PORT_NUM).asString().equals(vport.number().toString())
-                              && jsonObject.get(DEVICE_ID).asString().equals(vport.element().id().toString()); },
+                  (vport, jsonObject) -> jsonObject.get(ID).asString().equals(vport.networkId().toString())
+                          && jsonObject.get(PORT_NUM).asString().equals(vport.number().toString())
+                          && jsonObject.get(DEVICE_ID).asString().equals(vport.element().id().toString()),
                   ImmutableList.of(ID, DEVICE_ID, PORT_NUM, PHYS_DEVICE_ID, PHYS_PORT_NUM),
-                  (vport, s) -> {
-                      return s.equals(ID) ? vport.networkId().toString()
-                              : s.equals(DEVICE_ID) ? vport.element().id().toString()
-                              : s.equals(PORT_NUM) ? vport.number().toString()
-                              : s.equals(PHYS_DEVICE_ID) ? vport.realizedBy().element().id().toString()
-                              : s.equals(PHYS_PORT_NUM) ? vport.realizedBy().number().toString()
-                              : null;
-                  }
+                  (vport, s) -> s.equals(ID) ? vport.networkId().toString()
+                          : s.equals(DEVICE_ID) ? vport.element().id().toString()
+                          : s.equals(PORT_NUM) ? vport.number().toString()
+                          : s.equals(PHYS_DEVICE_ID) ? vport.realizedBy().element().id().toString()
+                          : s.equals(PHYS_PORT_NUM) ? vport.realizedBy().number().toString()
+                          : null
             );
         }
     }
@@ -790,7 +791,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         try {
             String reqLocation = "vnets/" + networkId.toString()
                     + "/devices/" + deviceId.toString() + "/ports";
-            String response = wt.path(reqLocation)
+            wt.path(reqLocation)
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     .post(Entity.json(null), String.class);
             fail("POST of null virtual port did not throw an exception");
@@ -1034,35 +1035,9 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         InputStream jsonStream = VirtualNetworkWebResourceTest.class
                 .getResourceAsStream("post-virtual-link.json");
         String reqLocation = "vnets/" + networkId.toString() + "/links";
-        Response response = wt.path(reqLocation).request().accept(MediaType.APPLICATION_JSON_TYPE)
-                .method("DELETE", Entity.json(jsonStream));
-//        Response response = wt.path(reqLocation).request().method("DELETE", Entity.json(jsonStream));
-
-//        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
-//        verify(mockVnetAdminService);
-    }
-
-    /**
-     * Tests removing a virtual link with PUT request.
-     */
-    @Test
-    public void testDeleteVirtualLink2() {
-        NetworkId networkId = networkId3;
-        mockVnetAdminService.removeVirtualLink(networkId, cp22, cp11);
-        expectLastCall();
-        replay(mockVnetAdminService);
-
-        WebTarget wt = target()
-                .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
-        InputStream jsonStream = VirtualNetworkWebResourceTest.class
-                .getResourceAsStream("post-virtual-link.json");
-        String reqLocation = "vnets/" + networkId.toString() + "/links/remove";
-        Response response = wt.path(reqLocation).request().accept(MediaType.APPLICATION_JSON_TYPE)
-                .method("PUT", Entity.json(jsonStream));
+        Response response = wt.path(reqLocation).request().method("DELETE", Entity.json(jsonStream));
 
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
         verify(mockVnetAdminService);
     }
-
-    // All Tests done
 }

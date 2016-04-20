@@ -41,7 +41,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -373,38 +372,6 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     @Path("{networkId}/links")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response removeVirtualLink(@PathParam("networkId") long networkId,
-                                        InputStream stream) {
-        try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            JsonNode specifiedNetworkId = jsonTree.get("networkId");
-            if (specifiedNetworkId != null &&
-                    specifiedNetworkId.asLong() != (networkId)) {
-                throw new IllegalArgumentException(INVALID_FIELD + "networkId");
-            }
-            final VirtualLink vlinkReq = codec(VirtualLink.class).decode(jsonTree, this);
-            vnetAdminService.removeVirtualLink(vlinkReq.networkId(),
-                    vlinkReq.src(), vlinkReq.dst());
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e);
-        }
-
-        return Response.ok().build();
-    }
-
-    /**
-     * Removes the virtual network link from the JSON input stream.
-     *
-     * @param networkId network identifier
-     * @param stream deviceIds JSON stream
-     * @return 200 OK, 404 not found
-     * @onos.rsModel VirtualLink
-     */
-
-    @PUT
-    @Path("{networkId}/links/remove")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response removeVirtualLink2(@PathParam("networkId") long networkId,
                                         InputStream stream) {
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
