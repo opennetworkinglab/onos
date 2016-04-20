@@ -72,7 +72,8 @@
         <module>influxdbmetrics</module>
         <module>gangliametrics</module>
         <module>graphitemetrics</module>
-    </modules>
+        <module>xosclient</module>
+  </modules>
 
     <properties>
         <web.context>default</web.context>
