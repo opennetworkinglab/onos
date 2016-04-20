@@ -1,15 +1,9 @@
-SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/test/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-app-cpman-app'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:org.apache.karaf.shell.console',
     '//lib:javax.ws.rs-api',
     '//lib:rrd4j',
-    '//apps/cpman/api:onos-app-cpman-api',
+    '//apps/cpman/api:onos-apps-cpman-api',
     '//utils/rest:onlab-rest',
     '//cli:onos-cli',
     '//core/store/serializers:onos-core-serializers',
@@ -20,20 +14,24 @@ TEST_DEPS = [
     '//web/api:onos-rest-tests',
 ]
 
-java_library(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+BUNDLES = [
+    '//apps/cpman/api:onos-apps-cpman-api',
+]
+
+EXCLUDED_BUNDLES = [
+    '//lib:rrd4j', # FIXME - needs wrap
+]
+
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
+    test_deps = TEST_DEPS,
 )
 
-java_test(
-    name = 'tests',
-    srcs = glob([TEST + '/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS +
-           [CURRENT_TARGET],
-    source_under_test = [CURRENT_TARGET],
-    resources_root = 'src/test/resources',
-    resources = glob(['src/test/resources/**']),
+onos_app (
+    title = 'Control Plane Manager REST API',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'APIs for interacting with the Control Plane Management application.',
+    included_bundles = BUNDLES,
+    excluded_bundles = EXCLUDED_BUNDLES,
 )

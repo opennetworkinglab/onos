@@ -5,10 +5,6 @@ BUNDLES = [
     '//protocols/pcep/pcepio:onos-pcep-pcepio',
 ]
 
-COMPILE_DEPS = [
-    '//lib:CORE_DEPS',
-]
-
 onos_app (
     title = 'PCEP Provider',
     category = 'Provider',

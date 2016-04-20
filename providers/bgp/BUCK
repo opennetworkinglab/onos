@@ -1,0 +1,17 @@
+BUNDLES = [
+    '//providers/bgp/cfg:onos-providers-bgp-cfg',
+    '//providers/bgp/flow:onos-providers-bgp-flow',
+    '//providers/bgp/topology:onos-providers-bgp-topology',
+    '//protocols/bgp/api:onos-bgp-api',
+    '//protocols/bgp/ctl:onos-bgp-ctl',
+    '//protocols/bgp/bgpio:onos-bgpio',
+]
+
+onos_app (
+    title = 'BGP Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'BGP protocol southbound providers.',
+)
+

@@ -1,30 +1,26 @@
-SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/test/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-netcfg-links-provider'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//providers/lldpcommon:onos-lldp-provider-common',
+    '//providers/lldpcommon:onos-providers-lldpcommon',
 ]
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
 ]
 
-osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+BUNDLES = [
+    '//providers/lldpcommon:onos-providers-lldpcommon',
+    '//providers/netcfglinks:onos-providers-netcfglinks',
+]
+
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
+    test_deps = TEST_DEPS,
 )
 
-java_test(
-    name = 'tests',
-    srcs = glob([TEST + '/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS +
-           [CURRENT_TARGET],
-    source_under_test = [CURRENT_TARGET],
+onos_app (
+    title = 'Network Config Link Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'Links provider that uses network config service to predefine devices and links.',
+    included_bundles = BUNDLES,
 )

@@ -1,15 +1,20 @@
-SRC = 'src/main/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-host-provider'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
 ]
 
-osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//utils/osgi:onlab-osgi-tests',
+]
+
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    title = 'Host Location Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'ONOS host location provider.',
 )

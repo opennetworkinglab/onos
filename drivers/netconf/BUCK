@@ -6,7 +6,7 @@ CURRENT_TARGET = ':' + CURRENT_NAME
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//drivers/utilities:onos-drivers-utilities',
-    '//protocols/netconf/api:onos-netconf-api',
+    '//protocols/netconf/api:onos-protocols-netconf-api',
 ]
 
 osgi_jar(

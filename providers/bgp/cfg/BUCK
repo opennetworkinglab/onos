@@ -1,16 +1,8 @@
-SRC = 'src/main/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-bgp-provider-cfg'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/bgp/api:onos-bgp-api',
 ]
 
-osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
 )
