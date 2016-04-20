@@ -8,3 +8,11 @@ COMPILE_DEPS = [
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
 )
+
+onos_app (
+    title = 'OpenStack Node Bootstrap App',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'SONA Openstack Node Bootstrap Application.',
+    required_app = [ 'org.onosproject.ovsdb' ],
+)

@@ -82,6 +82,7 @@ CORE = [
 
 APPS = [
     '//providers/pcep:onos-providers-pcep-oar',
+    '//providers/ovsdb:onos-providers-ovsdb-oar',
     '//apps/dhcp:onos-apps-dhcp-oar',
     '//apps/fwd:onos-apps-fwd-oar',
     '//apps/aaa:onos-apps-aaa-oar',
@@ -114,6 +115,8 @@ APPS = [
     '//apps/vpls:onos-apps-vpls-oar',
     '//apps/vrouter:onos-apps-vrouter-oar',
     '//apps/vtn:onos-apps-vtn-oar',
+    '//apps/faultmanagement:onos-apps-faultmanagement-oar',
+    '//apps/openstacknode:onos-apps-openstacknode-oar',
 ]
 
 APP_JARS = [
@@ -125,7 +128,6 @@ APP_JARS = [
     '//apps/dhcp/app:onos-apps-dhcp-app',
     '//apps/drivermatrix:onos-app-drivermatrix',
     '//apps/events:onos-app-events',
-    '//apps/faultmanagement:onos-app-fm',
     '//apps/flowanalyzer:onos-app-flowanalyzer',
     '//apps/fwd:onos-apps-fwd',
     '//apps/olt:onos-apps-olt-api',

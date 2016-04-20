@@ -20,4 +20,5 @@ onos_app (
     category = 'Utility',
     url = 'http://onosproject.org',
     description = 'OpenStack routing application.',
+    included_bundles = BUNDLES,
 )
