@@ -16,6 +16,7 @@
 package org.onosproject.isis.controller;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Representation of an ISIS link state database.
@@ -93,4 +94,18 @@ public interface IsisLsdb {
      * @param lsp LSP instance
      */
     void deleteLsp(IsisMessage lsp);
+
+    /**
+     * Gets the neighbor database information.
+     *
+     * @return neighbor database information
+     */
+    Map<String, LspWrapper> getL1Db();
+
+    /**
+     * Gets the neighbor database information.
+     *
+     * @return neighbor database information
+     */
+    Map<String, LspWrapper> getL2Db();
 }

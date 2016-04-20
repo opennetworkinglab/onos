@@ -34,7 +34,7 @@ public class IpInterfaceAddressTlv extends TlvHeader implements IsisTlv {
     /**
      * Creates an instance of IP interface address TLV.
      *
-     * @param tlvHeader tlvHeader.
+     * @param tlvHeader TLV header
      */
     public IpInterfaceAddressTlv(TlvHeader tlvHeader) {
 

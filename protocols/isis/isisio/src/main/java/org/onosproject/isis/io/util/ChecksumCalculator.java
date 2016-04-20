@@ -32,6 +32,7 @@ public class ChecksumCalculator {
      * @return true if valid else false
      */
     public boolean validateLspCheckSum(byte[] lspPacket, int lspChecksumPos1, int lspChecksumPos2) {
+
         byte[] checksum = calculateLspChecksum(lspPacket, lspChecksumPos1, lspChecksumPos2);
         if (lspPacket[lspChecksumPos1] == checksum[0] && lspPacket[lspChecksumPos2] == checksum[1]) {
             return true;

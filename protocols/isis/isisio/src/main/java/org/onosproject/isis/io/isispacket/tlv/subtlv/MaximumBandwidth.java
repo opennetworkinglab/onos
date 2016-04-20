@@ -31,7 +31,7 @@ public class MaximumBandwidth extends TlvHeader implements TrafficEngineeringSub
     /**
      * Creates an instance of maximum bandwidth.
      *
-     * @param header tlv header instance
+     * @param header TLV header instance
      */
     public MaximumBandwidth(TlvHeader header) {
         this.setTlvType(header.tlvType());
@@ -48,7 +48,7 @@ public class MaximumBandwidth extends TlvHeader implements TrafficEngineeringSub
     }
 
     /**
-     * Gets value of maximum bandwidth.
+     * Returns value of maximum bandwidth.
      *
      * @return maximumBandwidth value of maximum bandwidth
      */
@@ -69,7 +69,7 @@ public class MaximumBandwidth extends TlvHeader implements TrafficEngineeringSub
     }
 
     /**
-     * Gets byte array of maximum bandwidth sub tlv.
+     * Returns byte array of maximum bandwidth sub tlv.
      *
      * @return byte array of maximum bandwidth sub tlv
      */
@@ -83,7 +83,7 @@ public class MaximumBandwidth extends TlvHeader implements TrafficEngineeringSub
     }
 
     /**
-     * Gets maximum bandwidth sub tlv byte array.
+     * Returns maximum bandwidth sub tlv byte array.
      *
      * @return byte array of maximum bandwidth sub tlv
      */
@@ -92,7 +92,7 @@ public class MaximumBandwidth extends TlvHeader implements TrafficEngineeringSub
         linkSubTypeBody = IsisUtil.convertToFourBytes(Float.floatToIntBits(this.maximumBandwidth));
         return linkSubTypeBody;
     }
-
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("maximumBandwidth", maximumBandwidth)

@@ -51,7 +51,7 @@ public enum SubTlvType {
     }
 
     /**
-     * Gets the enum instance from type value - reverse lookup purpose.
+     * Returns the enum instance from type value - reverse lookup purpose.
      *
      * @param subTlvTypeValue TLV type value
      * @return ISIS  sub TLV type instance
@@ -61,7 +61,7 @@ public enum SubTlvType {
     }
 
     /**
-     * Gets value.
+     * Returns value.
      *
      * @return value
      */

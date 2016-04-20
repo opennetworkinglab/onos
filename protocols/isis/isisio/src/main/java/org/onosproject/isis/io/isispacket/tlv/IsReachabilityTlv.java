@@ -33,7 +33,7 @@ public class IsReachabilityTlv extends TlvHeader {
     /**
      * Creates an instance of IS reachability TLV.
      *
-     * @param tlvHeader tlvHeader.
+     * @param tlvHeader TLV header
      */
     public IsReachabilityTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());

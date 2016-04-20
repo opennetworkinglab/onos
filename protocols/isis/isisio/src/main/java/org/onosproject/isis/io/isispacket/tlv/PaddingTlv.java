@@ -31,7 +31,7 @@ public class PaddingTlv extends TlvHeader implements IsisTlv {
     /**
      * Creates an instance of padding TLV.
      *
-     * @param tlvHeader tlvHeader.
+     * @param tlvHeader TLV header
      */
     public PaddingTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());

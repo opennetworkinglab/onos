@@ -17,7 +17,20 @@ package org.onosproject.isis.io.util;
 
 import com.google.common.primitives.Bytes;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.MacAddress;
+import org.onosproject.isis.controller.IsisInterface;
+import org.onosproject.isis.controller.IsisInterfaceState;
+import org.onosproject.isis.controller.IsisNeighbor;
+import org.onosproject.isis.controller.IsisPduType;
+import org.onosproject.isis.io.isispacket.IsisHeader;
+import org.onosproject.isis.io.isispacket.pdu.L1L2HelloPdu;
+import org.onosproject.isis.io.isispacket.pdu.P2PHelloPdu;
+import org.onosproject.isis.io.isispacket.tlv.AdjacencyStateTlv;
+import org.onosproject.isis.io.isispacket.tlv.AreaAddressTlv;
+import org.onosproject.isis.io.isispacket.tlv.IpInterfaceAddressTlv;
+import org.onosproject.isis.io.isispacket.tlv.IsisNeighborTlv;
 import org.onosproject.isis.io.isispacket.tlv.PaddingTlv;
+import org.onosproject.isis.io.isispacket.tlv.ProtocolSupportedTlv;
 import org.onosproject.isis.io.isispacket.tlv.TlvHeader;
 import org.onosproject.isis.io.isispacket.tlv.TlvType;
 import org.slf4j.Logger;
@@ -26,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import javax.xml.bind.DatatypeConverter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 /**
@@ -37,6 +51,7 @@ public final class IsisUtil {
     public static final int ID_PLUS_ONE_BYTE = 7;
     public static final int ID_PLUS_TWO_BYTE = 8;
     public static final int THREE_BYTES = 3;
+    public static final int TWO_BYTES = 2;
     public static final int SIX_BYTES = 6;
     public static final int EIGHT_BYTES = 8;
     public static final int FOUR_BYTES = 4;
@@ -103,17 +118,23 @@ public final class IsisUtil {
      * @return systemIdPlus system ID
      */
     public static String systemIdPlus(byte[] bytes) {
+        int count = 1;
         String systemId = "";
         for (Byte byt : bytes) {
             String hexa = Integer.toHexString(Byte.toUnsignedInt(byt));
             if (hexa.length() % 2 != 0) {
                 hexa = "0" + hexa;
             }
-            systemId = systemId + hexa;
+            if (count == 7 && bytes.length == 8) {
+                systemId = systemId + hexa + "-";
+            } else {
+                systemId = systemId + hexa;
+            }
             if (systemId.length() == 4 || systemId.length() == 9
                     || systemId.length() == 14) {
                 systemId = systemId + ".";
             }
+            count++;
         }
         return systemId;
     }
@@ -154,6 +175,38 @@ public final class IsisUtil {
     }
 
     /**
+     * Returns PDU headaer length.
+     *
+     * @param pduType PDU type
+     * @return headerLength header length
+     */
+    public static int getPduHeaderLength(int pduType) {
+        int headerLength = 0;
+        switch (IsisPduType.get(pduType)) {
+            case L1HELLOPDU:
+            case L2HELLOPDU:
+            case L1LSPDU:
+            case L2LSPDU:
+                headerLength = IsisConstants.HELLOHEADERLENGTH;
+                break;
+            case P2PHELLOPDU:
+                headerLength = IsisConstants.P2PHELLOHEADERLENGTH;
+                break;
+            case L1PSNP:
+            case L2PSNP:
+                headerLength = IsisConstants.PSNPDUHEADERLENGTH;
+                break;
+            case L1CSNP:
+            case L2CSNP:
+                headerLength = IsisConstants.CSNPDUHEADERLENGTH;
+                break;
+            default:
+                break;
+        }
+        return headerLength;
+    }
+
+    /**
      * Adds the PDU length in packet.
      *
      * @param isisPacket      ISIS packet
@@ -186,7 +239,7 @@ public final class IsisUtil {
      */
     public static byte[] addChecksum(byte[] isisPacket, int checksumBytePos1, int checksumBytePos2) {
         //Set the checksum for the packet
-        //Convert the lenth to two bytes as the length field is 2 bytes
+        //Convert the length to two bytes as the length field is 2 bytes
         byte[] checksumInTwoBytes = new ChecksumCalculator().calculateLspChecksum(
                 isisPacket, checksumBytePos1, checksumBytePos2);
         //isis header 3rd and 4th position represents length
@@ -296,7 +349,6 @@ public final class IsisUtil {
      * @return numInBytes given number as bytes
      */
     public static byte[] convertToFourBytes(int numberToConvert) {
-
         byte[] numInBytes = new byte[4];
         String s1 = Integer.toHexString(numberToConvert);
         if (s1.length() % 2 != 0) {
@@ -325,6 +377,168 @@ public final class IsisUtil {
             numInBytes[3] = hexas[3];
         }
         return numInBytes;
+    }
+
+    /**
+     * Returns the P2P hello PDU.
+     *
+     * @param isisInterface  ISIS interface instance
+     * @param paddingEnabled padding enabled or not
+     * @return hello PDU
+     */
+    public static byte[] getP2pHelloPdu(IsisInterface isisInterface, boolean paddingEnabled) {
+        IsisHeader isisHeader = new IsisHeader();
+        isisHeader.setIrpDiscriminator((byte) IsisConstants.IRPDISCRIMINATOR);
+        isisHeader.setPduHeaderLength((byte) IsisConstants.P2PHELLOHEADERLENGTH);
+        isisHeader.setVersion((byte) IsisConstants.ISISVERSION);
+        isisHeader.setIdLength((byte) IsisConstants.IDLENGTH);
+        isisHeader.setIsisPduType(IsisPduType.P2PHELLOPDU.value());
+        isisHeader.setVersion2((byte) IsisConstants.ISISVERSION);
+        //isisHeader.setReserved((byte) IsisConstants.RESERVED);
+        isisHeader.setReserved((byte) IsisConstants.PDULENGTHPOSITION);
+        isisHeader.setMaximumAreaAddresses((byte) IsisConstants.MAXAREAADDRESS);
+        P2PHelloPdu p2pHelloPdu = new P2PHelloPdu(isisHeader);
+        p2pHelloPdu.setCircuitType((byte) isisInterface.reservedPacketCircuitType());
+        p2pHelloPdu.setSourceId(isisInterface.systemId());
+        p2pHelloPdu.setHoldingTime(isisInterface.holdingTime());
+        p2pHelloPdu.setPduLength(IsisConstants.PDU_LENGTH);
+        p2pHelloPdu.setLocalCircuitId((byte) IsisConstants.LOCALCIRCUITIDFORP2P);
+
+        TlvHeader tlvHeader = new TlvHeader();
+        tlvHeader.setTlvType(TlvType.AREAADDRESS.value());
+        tlvHeader.setTlvLength(0);
+        AreaAddressTlv areaAddressTlv = new AreaAddressTlv(tlvHeader);
+        areaAddressTlv.addAddress(isisInterface.areaAddress());
+        p2pHelloPdu.addTlv(areaAddressTlv);
+
+        tlvHeader.setTlvType(TlvType.PROTOCOLSUPPORTED.value());
+        tlvHeader.setTlvLength(0);
+        ProtocolSupportedTlv protocolSupportedTlv = new ProtocolSupportedTlv(tlvHeader);
+        protocolSupportedTlv.addProtocolSupported((byte) IsisConstants.PROTOCOLSUPPORTED);
+        p2pHelloPdu.addTlv(protocolSupportedTlv);
+
+        tlvHeader.setTlvType(TlvType.ADJACENCYSTATE.value());
+        tlvHeader.setTlvLength(0);
+        AdjacencyStateTlv adjacencyStateTlv = new AdjacencyStateTlv(tlvHeader);
+        adjacencyStateTlv.setAdjacencyType((byte) IsisInterfaceState.DOWN.value());
+        adjacencyStateTlv.setLocalCircuitId(Integer.parseInt(isisInterface.circuitId()));
+        Set<MacAddress> neighbors = isisInterface.neighbors();
+        if (neighbors.size() > 0) {
+            IsisNeighbor neighbor = isisInterface.lookup(neighbors.iterator().next());
+            adjacencyStateTlv.setAdjacencyType((byte) neighbor.interfaceState().value());
+            adjacencyStateTlv.setNeighborSystemId(neighbor.neighborSystemId());
+            adjacencyStateTlv.setNeighborLocalCircuitId(neighbor.localExtendedCircuitId());
+        }
+        p2pHelloPdu.addTlv(adjacencyStateTlv);
+
+        tlvHeader.setTlvType(TlvType.IPINTERFACEADDRESS.value());
+        tlvHeader.setTlvLength(0);
+        IpInterfaceAddressTlv ipInterfaceAddressTlv = new IpInterfaceAddressTlv(tlvHeader);
+        ipInterfaceAddressTlv.addInterfaceAddres(isisInterface.interfaceIpAddress());
+        p2pHelloPdu.addTlv(ipInterfaceAddressTlv);
+
+        byte[] beforePadding = p2pHelloPdu.asBytes();
+        byte[] helloMessage;
+        if (paddingEnabled) {
+            byte[] paddingTlvs = getPaddingTlvs(beforePadding.length);
+            helloMessage = Bytes.concat(beforePadding, paddingTlvs);
+        } else {
+            helloMessage = beforePadding;
+        }
+        return helloMessage;
+    }
+
+    /**
+     * Returns the L1 hello PDU.
+     *
+     * @param isisInterface  ISIS interface instance
+     * @param paddingEnabled padding enabled or not
+     * @return helloMessage hello PDU
+     */
+    public static byte[] getL1HelloPdu(IsisInterface isisInterface, boolean paddingEnabled) {
+        return getL1OrL2HelloPdu(isisInterface, IsisPduType.L1HELLOPDU, paddingEnabled);
+    }
+
+    /**
+     * Returns the L2 hello PDU.
+     *
+     * @param isisInterface  ISIS interface instance
+     * @param paddingEnabled padding enabled or not
+     * @return helloMessage hello PDU
+     */
+    public static byte[] getL2HelloPdu(IsisInterface isisInterface, boolean paddingEnabled) {
+        return getL1OrL2HelloPdu(isisInterface, IsisPduType.L2HELLOPDU, paddingEnabled);
+    }
+
+    /**
+     * Returns the hello PDU.
+     *
+     * @param isisInterface  ISIS interface instance
+     * @param paddingEnabled padding enabled or not
+     * @return helloMessage hello PDU
+     */
+    private static byte[] getL1OrL2HelloPdu(IsisInterface isisInterface, IsisPduType isisPduType,
+                                            boolean paddingEnabled) {
+        String lanId = "";
+        IsisHeader isisHeader = new IsisHeader();
+        isisHeader.setIrpDiscriminator((byte) IsisConstants.IRPDISCRIMINATOR);
+        isisHeader.setPduHeaderLength((byte) IsisConstants.HELLOHEADERLENGTH);
+        isisHeader.setVersion((byte) IsisConstants.ISISVERSION);
+        isisHeader.setIdLength((byte) IsisConstants.IDLENGTH);
+        if (isisPduType == IsisPduType.L1HELLOPDU) {
+            isisHeader.setIsisPduType(IsisPduType.L1HELLOPDU.value());
+            lanId = isisInterface.l1LanId();
+        } else if (isisPduType == IsisPduType.L2HELLOPDU) {
+            isisHeader.setIsisPduType(IsisPduType.L2HELLOPDU.value());
+            lanId = isisInterface.l2LanId();
+        }
+        isisHeader.setVersion2((byte) IsisConstants.ISISVERSION);
+        isisHeader.setReserved((byte) IsisConstants.PDULENGTHPOSITION);
+        isisHeader.setMaximumAreaAddresses((byte) IsisConstants.MAXAREAADDRESS);
+        L1L2HelloPdu l1L2HelloPdu = new L1L2HelloPdu(isisHeader);
+        l1L2HelloPdu.setCircuitType((byte) isisInterface.reservedPacketCircuitType());
+        l1L2HelloPdu.setSourceId(isisInterface.systemId());
+        l1L2HelloPdu.setHoldingTime(isisInterface.holdingTime());
+        l1L2HelloPdu.setPduLength(IsisConstants.PDU_LENGTH);
+        l1L2HelloPdu.setPriority((byte) isisInterface.priority());
+        l1L2HelloPdu.setLanId(lanId);
+        TlvHeader tlvHeader = new TlvHeader();
+        tlvHeader.setTlvType(TlvType.AREAADDRESS.value());
+        tlvHeader.setTlvLength(0);
+        AreaAddressTlv areaAddressTlv = new AreaAddressTlv(tlvHeader);
+        areaAddressTlv.addAddress(isisInterface.areaAddress());
+        l1L2HelloPdu.addTlv(areaAddressTlv);
+        Set<MacAddress> neighbors = isisInterface.neighbors();
+        if (neighbors.size() > 0) {
+            tlvHeader.setTlvType(TlvType.ISNEIGHBORS.value());
+            tlvHeader.setTlvLength(0);
+            IsisNeighborTlv isisNeighborTlv = new IsisNeighborTlv(tlvHeader);
+            for (MacAddress neighbor : neighbors) {
+                isisNeighborTlv.addNeighbor(neighbor);
+            }
+            l1L2HelloPdu.addTlv(isisNeighborTlv);
+        }
+        tlvHeader.setTlvType(TlvType.PROTOCOLSUPPORTED.value());
+        tlvHeader.setTlvLength(0);
+        ProtocolSupportedTlv protocolSupportedTlv = new ProtocolSupportedTlv(tlvHeader);
+        protocolSupportedTlv.addProtocolSupported((byte) IsisConstants.PROTOCOLSUPPORTED);
+        l1L2HelloPdu.addTlv(protocolSupportedTlv);
+
+        tlvHeader.setTlvType(TlvType.IPINTERFACEADDRESS.value());
+        tlvHeader.setTlvLength(0);
+        IpInterfaceAddressTlv ipInterfaceAddressTlv = new IpInterfaceAddressTlv(tlvHeader);
+        ipInterfaceAddressTlv.addInterfaceAddres(isisInterface.interfaceIpAddress());
+        l1L2HelloPdu.addTlv(ipInterfaceAddressTlv);
+
+        byte[] beforePadding = l1L2HelloPdu.asBytes();
+        byte[] helloMessage;
+        if (paddingEnabled) {
+            byte[] paddingTlvs = getPaddingTlvs(beforePadding.length);
+            helloMessage = Bytes.concat(beforePadding, paddingTlvs);
+        } else {
+            helloMessage = beforePadding;
+        }
+        return helloMessage;
     }
 
     /**
@@ -460,5 +674,23 @@ public final class IsisUtil {
             numInBytes[2] = hexas[2];
         }
         return numInBytes;
+    }
+
+    /**
+     * Converts the bytes of prefix to string type value.
+     *
+     * @param bytes array of prefix
+     * @return string value of prefix
+     */
+    public static String prefixConversion(byte[] bytes) {
+        String prefix = "";
+        for (int i = 0; i < bytes.length; i++) {
+            if (i < (bytes.length - 1)) {
+                prefix = prefix + bytes[i] + ".";
+            } else {
+                prefix = prefix + bytes[i];
+            }
+        }
+        return prefix;
     }
 }

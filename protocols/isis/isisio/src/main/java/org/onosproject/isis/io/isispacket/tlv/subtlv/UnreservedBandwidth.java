@@ -50,7 +50,7 @@ public class UnreservedBandwidth extends TlvHeader implements TrafficEngineering
     }
 
     /**
-     * Gets list of un reserved bandwidth .
+     * Returns list of un reserved bandwidth .
      *
      * @return List of un reserved bandwidth
      */
@@ -71,7 +71,7 @@ public class UnreservedBandwidth extends TlvHeader implements TrafficEngineering
     }
 
     /**
-     * Gets instance as byte array.
+     * Returns instance as byte array.
      *
      * @return instance as byte array
      */
@@ -86,7 +86,7 @@ public class UnreservedBandwidth extends TlvHeader implements TrafficEngineering
     }
 
     /**
-     * Gets unreserved bandwidth as byte array.
+     * Returns unreserved bandwidth as byte array.
      *
      * @return unreserved bandwidth as byte array
      */

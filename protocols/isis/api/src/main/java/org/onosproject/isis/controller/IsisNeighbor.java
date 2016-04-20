@@ -84,4 +84,18 @@ public interface IsisNeighbor {
      * @param localExtendedCircuitId neighbor extended circuit ID
      */
     void setLocalExtendedCircuitId(int localExtendedCircuitId);
+
+    /**
+     * Returns Holding time of neighbor.
+     *
+     * @return Holding time of neighbor
+     */
+    int holdingTime();
+
+    /**
+     * Sets Holding time of neighbor.
+     *
+     * @param holdingTime Holding time of neighbor
+     */
+    void setHoldingTime(int holdingTime);
 }

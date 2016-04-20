@@ -36,7 +36,7 @@ public class AdjacencyStateTlv extends TlvHeader implements IsisTlv {
     /**
      * Creates an instance of adjacency state TLV..
      *
-     * @param tlvHeader tlvHeader
+     * @param tlvHeader TLV header
      */
     public AdjacencyStateTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());
@@ -118,8 +118,8 @@ public class AdjacencyStateTlv extends TlvHeader implements IsisTlv {
     @Override
     public void readFrom(ChannelBuffer channelBuffer) {
         this.setAdjacencyType(channelBuffer.readByte());
+        this.setLocalCircuitId(channelBuffer.readInt());
         if (channelBuffer.readableBytes() > 0) {
-            this.setLocalCircuitId(channelBuffer.readInt());
             byte[] tempByteArray = new byte[IsisUtil.ID_SIX_BYTES];
             channelBuffer.readBytes(tempByteArray, 0, IsisUtil.ID_SIX_BYTES);
             this.setNeighborSystemId(IsisUtil.systemId(tempByteArray));
@@ -146,8 +146,10 @@ public class AdjacencyStateTlv extends TlvHeader implements IsisTlv {
         List<Byte> bytes = new ArrayList<>();
         bytes.add(this.adjacencyType);
         bytes.addAll(Bytes.asList(IsisUtil.convertToFourBytes(this.localCircuitId)));
+        if (this.neighborSystemId != null) {
         bytes.addAll(IsisUtil.sourceAndLanIdToBytes(this.neighborSystemId));
         bytes.addAll(Bytes.asList(IsisUtil.convertToFourBytes(this.neighborLocalCircuitId)));
+        }
         return Bytes.toArray(bytes);
     }
 

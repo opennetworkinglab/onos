@@ -226,7 +226,7 @@ public class MetricOfInternalReachability {
     /**
      * Returns error metric of metric of internal reachability.
      *
-     * @return errorMetric error metic
+     * @return errorMetric error metric
      */
     public byte errorMetric() {
         return errorMetric;

@@ -31,7 +31,7 @@ public class MaximumReservableBandwidth extends TlvHeader implements TrafficEngi
     /**
      * Creates an instance of maximum reservable bandwidth.
      *
-     * @param header tlv header
+     * @param header TLV header
      */
     public MaximumReservableBandwidth(TlvHeader header) {
         this.setTlvType(header.tlvType());
@@ -48,7 +48,7 @@ public class MaximumReservableBandwidth extends TlvHeader implements TrafficEngi
     }
 
     /**
-     * Gets value of maximum reversible bandwidth.
+     * Returns value of maximum reversible bandwidth.
      *
      * @return maximumBandwidth maximum reversible bandwidth
      */
@@ -84,7 +84,7 @@ public class MaximumReservableBandwidth extends TlvHeader implements TrafficEngi
     }
 
     /**
-     * Gets maximum reservable bandwidth sub tlv body as byte array.
+     * Returns maximum reservable bandwidth sub tlv body as byte array.
      *
      * @return byte of maximum reservable bandwidth sub tlv body
      */

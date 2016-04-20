@@ -29,7 +29,7 @@ public class IdrpInformationTlv extends TlvHeader implements IsisTlv {
     /**
      * Creates an instance of IDRP information TLV.
      *
-     * @param tlvHeader tlvHeader
+     * @param tlvHeader TLV header
      */
     public IdrpInformationTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());

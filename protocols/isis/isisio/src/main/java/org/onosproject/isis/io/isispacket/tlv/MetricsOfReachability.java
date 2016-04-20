@@ -217,7 +217,7 @@ public class MetricsOfReachability {
     /**
      * Sets delay metric for metric of reachability.
      *
-     * @param delayMetric delay metric.
+     * @param delayMetric delay metric
      */
     public void setDelayMetric(byte delayMetric) {
         this.delayMetric = delayMetric;
@@ -235,7 +235,7 @@ public class MetricsOfReachability {
     /**
      * Sets Expense metric for metric of reachability.
      *
-     * @param expenseMetric Expense metric.
+     * @param expenseMetric Expense metric
      */
     public void setExpenseMetric(byte expenseMetric) {
         this.expenseMetric = expenseMetric;
@@ -253,7 +253,7 @@ public class MetricsOfReachability {
     /**
      * Sets Error metric for metric of reachability.
      *
-     * @param errorMetric Error metric.
+     * @param errorMetric Error metric
      */
     public void setErrorMetric(byte errorMetric) {
         this.errorMetric = errorMetric;

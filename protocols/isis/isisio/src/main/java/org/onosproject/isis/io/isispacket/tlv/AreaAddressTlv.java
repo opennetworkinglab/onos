@@ -33,7 +33,7 @@ public class AreaAddressTlv extends TlvHeader implements IsisTlv {
     /**
      * Creates an instance of area address TLV.
      *
-     * @param tlvHeader tlvHeader
+     * @param tlvHeader TLV header
      */
     public AreaAddressTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());

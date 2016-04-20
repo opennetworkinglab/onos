@@ -40,7 +40,7 @@ public class AdministrativeGroup extends TlvHeader implements TrafficEngineering
     }
 
     /**
-     * Gets administrative group value.
+     * Returns administrative group value.
      *
      * @return administrative group value
      */
@@ -58,7 +58,7 @@ public class AdministrativeGroup extends TlvHeader implements TrafficEngineering
     }
 
     /**
-     * Gets administrative group value.
+     * Returns administrative group value.
      *
      * @return administrativeGroup value
      */
@@ -93,7 +93,7 @@ public class AdministrativeGroup extends TlvHeader implements TrafficEngineering
     }
 
     /**
-     * Gets administrative group body as byte array.
+     * Returns administrative group body as byte array.
      *
      * @return byte array of sub tlv administrative group
      */

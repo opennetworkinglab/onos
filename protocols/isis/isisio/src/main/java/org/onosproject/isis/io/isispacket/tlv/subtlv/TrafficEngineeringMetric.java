@@ -47,7 +47,7 @@ public class TrafficEngineeringMetric extends TlvHeader implements TrafficEngine
     }
 
     /**
-     * Gets TE metric value.
+     * Returns TE metric value.
      *
      * @return value of traffic engineering metric
      */
@@ -67,7 +67,7 @@ public class TrafficEngineeringMetric extends TlvHeader implements TrafficEngine
     }
 
     /**
-     * Gets instance as byte array.
+     * Returns instance as byte array.
      *
      * @return instance as byte array
      */
@@ -82,7 +82,7 @@ public class TrafficEngineeringMetric extends TlvHeader implements TrafficEngine
     }
 
     /**
-     * Gets trafficEngineeringMetric as byte array .
+     * Returns trafficEngineeringMetric as byte array .
      *
      * @return byte array of trafficEngineeringMetric
      */

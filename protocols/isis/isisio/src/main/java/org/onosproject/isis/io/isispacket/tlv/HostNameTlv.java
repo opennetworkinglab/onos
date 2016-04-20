@@ -28,7 +28,7 @@ public class HostNameTlv extends TlvHeader {
     /**
      * Creates an instance of host name TLV.
      *
-     * @param tlvHeader tlvHeader.
+     * @param tlvHeader TLV header
      */
     public HostNameTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());

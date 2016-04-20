@@ -31,7 +31,7 @@ public class LspEntriesTlv extends TlvHeader implements IsisTlv {
     /**
      * Creates an instance of LSP entries TLV.
      *
-     * @param tlvHeader tlvHeader.
+     * @param tlvHeader TLV header
      */
     public LspEntriesTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());

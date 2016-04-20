@@ -44,6 +44,11 @@ public class TlvFinder extends TlvHeader {
             case EXTENDEDISREACHABILITY:
                 //TODO
                 break;
+            case HOSTNAME:
+                HostNameTlv hostNameTlv = new HostNameTlv(tlvHeader);
+                hostNameTlv.readFrom(channelBuffer);
+                isisTlv = hostNameTlv;
+                break;
             case IDRPINFORMATION:
                 IdrpInformationTlv idrpInformationTlv = new IdrpInformationTlv(tlvHeader);
                 idrpInformationTlv.readFrom(channelBuffer);

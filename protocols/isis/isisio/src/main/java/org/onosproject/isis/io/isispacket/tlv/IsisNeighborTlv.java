@@ -34,7 +34,7 @@ public class IsisNeighborTlv extends TlvHeader implements IsisTlv {
     /**
      * Creates an instance of ISIS neighbor TLV.
      *
-     * @param tlvHeader tlvHeader
+     * @param tlvHeader TLV header
      */
     public IsisNeighborTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());

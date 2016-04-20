@@ -46,7 +46,7 @@ public class LspEntry {
     /**
      * Sets LSP sequenceNumber for LSP entry.
      *
-     * @param lspSequenceNumber lspSequenceNumber.
+     * @param lspSequenceNumber lspSequenceNumber
      */
     public void setLspSequenceNumber(int lspSequenceNumber) {
         this.lspSequenceNumber = lspSequenceNumber;
@@ -113,11 +113,11 @@ public class LspEntry {
      */
     public void readFrom(ChannelBuffer channelBuffer) {
         this.setRemainingTime(channelBuffer.readUnsignedShort());
-        byte[] tempByteArray = new byte[IsisUtil.ID_PLUS_ONE_BYTE];
-        channelBuffer.readBytes(tempByteArray, 0, IsisUtil.ID_PLUS_ONE_BYTE);
+        byte[] tempByteArray = new byte[IsisUtil.ID_PLUS_TWO_BYTE];
+        channelBuffer.readBytes(tempByteArray, 0, IsisUtil.ID_PLUS_TWO_BYTE);
         this.setLspId(IsisUtil.systemIdPlus(tempByteArray));
         this.setLspSequenceNumber(channelBuffer.readInt());
-        this.setLspChecksum(channelBuffer.readUnsignedByte());
+        this.setLspChecksum(channelBuffer.readUnsignedShort());
     }
 
     /**

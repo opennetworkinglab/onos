@@ -32,7 +32,7 @@ public class ProtocolSupportedTlv extends TlvHeader implements IsisTlv {
     /**
      * Creates an instance of protocol supported TLV.
      *
-     * @param tlvHeader tlvHeader.
+     * @param tlvHeader TLV header
      */
     public ProtocolSupportedTlv(TlvHeader tlvHeader) {
 

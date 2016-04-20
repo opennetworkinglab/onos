@@ -31,7 +31,7 @@ public class IpInternalReachabilityTlv extends TlvHeader implements IsisTlv {
     /**
      * Creates an instance of IP internal reachability TLV.
      *
-     * @param tlvHeader tlvHeader.
+     * @param tlvHeader TLV header
      */
     public IpInternalReachabilityTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());

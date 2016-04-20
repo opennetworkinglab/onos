@@ -21,6 +21,7 @@ import com.google.common.primitives.Bytes;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.isis.io.isispacket.tlv.subtlv.SubTlvFinder;
 import org.onosproject.isis.io.isispacket.tlv.subtlv.SubTlvToBytes;
+import org.onosproject.isis.io.isispacket.tlv.subtlv.SubTlvType;
 import org.onosproject.isis.io.isispacket.tlv.subtlv.TrafficEngineeringSubTlv;
 import org.onosproject.isis.io.util.IsisUtil;
 
@@ -32,15 +33,18 @@ import java.util.List;
  */
 public class IpExtendedReachabilityTlv extends TlvHeader implements IsisTlv {
 
-    private String sysIdAndPseudoNumber;
-    private int defaultMetric;
+    private boolean down;
+    private boolean subTlvPresence;
+    private int prefixLength;
+    private int metric;
     private byte subTlvLength;
+    private String prefix;
     private List<TrafficEngineeringSubTlv> trafEnginSubTlv = new ArrayList<>();
 
     /**
      * Creates an instance of IP external reachability TLV.
      *
-     * @param tlvHeader tlvHeader
+     * @param tlvHeader TLV header
      */
     public IpExtendedReachabilityTlv(TlvHeader tlvHeader) {
         this.setTlvType(tlvHeader.tlvType());
@@ -48,21 +52,75 @@ public class IpExtendedReachabilityTlv extends TlvHeader implements IsisTlv {
     }
 
     /**
-     * Returns the system ID and pseudo number of IP external reachability TLV.
+     * Returns the prefix of IP external reachability TLV.
      *
-     * @return sysIdAndPseudoNumber system ID and pseudo number
+     * @return prefix
      */
-    public String sysIdAndPseudoNumber() {
-        return sysIdAndPseudoNumber;
+    public String prefix() {
+        return prefix;
     }
 
     /**
-     * Sets the system ID and pseudo number for IP external reachability TLV.
+     * Sets the prefix of IP external reachability TLV.
      *
-     * @param sysIdAndPseudoNumber system ID and pseudo number
+     * @param prefix prefix
      */
-    public void setSysIdAndPseudoNumber(String sysIdAndPseudoNumber) {
-        this.sysIdAndPseudoNumber = sysIdAndPseudoNumber;
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+    /**
+     * Returns if down true else false of IP external reachability TLV.
+     *
+     * @return if down true else false
+     */
+    public boolean isDown() {
+        return down;
+    }
+
+    /**
+     * Sets if down true else false of IP external reachability TLV.
+     *
+     * @param upOrDown if down true else false
+     */
+    public void setDown(boolean upOrDown) {
+        this.down = upOrDown;
+    }
+
+    /**
+     * Returns true if sub TLV present else false of IP external reachability TLV.
+     *
+     * @return true if present else false
+     */
+    public boolean isSubTlvPresence() {
+        return subTlvPresence;
+    }
+
+    /**
+     * Sets true if sub TLV present else false of IP external reachability TLV.
+     *
+     * @param subTlvPresence true if present else false
+     */
+    public void setSubTlvPresence(boolean subTlvPresence) {
+        this.subTlvPresence = subTlvPresence;
+    }
+
+    /**
+     * Sets the prefix length of IP external reachability TLV.
+     *
+     * @return prefix length
+     */
+    public int prefixLength() {
+        return prefixLength;
+    }
+
+    /**
+     * Returns the prefix length of IP external reachability TLV.
+     *
+     * @param prefixLength the prefix length of IP external reachability TLV
+     */
+    public void setPrefixLength(int prefixLength) {
+        this.prefixLength = prefixLength;
     }
 
     /**
@@ -93,38 +151,69 @@ public class IpExtendedReachabilityTlv extends TlvHeader implements IsisTlv {
     }
 
     /**
-     * Returns default metric of IP external reachability TLV.
+     * Returns metric of IP external reachability TLV.
      *
-     * @return default metric
+     * @return metric
      */
-    public int defaultMetric() {
-        return defaultMetric;
+    public int metric() {
+        return metric;
     }
 
     /**
      * Sets default metric for IP external reachability TLV.
      *
-     * @param defaultMetric default metric
+     * @param metric default metric
      */
-    public void setDefaultMetric(int defaultMetric) {
-        this.defaultMetric = defaultMetric;
+    public void setMetric(int metric) {
+        this.metric = metric;
     }
 
     @Override
     public void readFrom(ChannelBuffer channelBuffer) {
-        byte[] tempByteArray = new byte[IsisUtil.ID_PLUS_ONE_BYTE];
-        channelBuffer.readBytes(tempByteArray, 0, IsisUtil.ID_PLUS_ONE_BYTE);
-        this.setSysIdAndPseudoNumber(IsisUtil.systemIdPlus(tempByteArray));
-        this.setDefaultMetric(channelBuffer.readUnsignedMedium());
-        this.setSubTlvLength((byte) channelBuffer.readByte());
-        while (channelBuffer.readableBytes() > 0) {
-            TlvHeader tlvHeader = new TlvHeader();
-            tlvHeader.setTlvType(channelBuffer.readByte());
-            tlvHeader.setTlvLength(channelBuffer.readByte());
-            this.addSubTlv(SubTlvFinder.findSubTlv(tlvHeader,
-                                                   channelBuffer.readBytes(tlvHeader.tlvLength())));
+        this.setMetric(channelBuffer.readInt());
+        int controlInfo = channelBuffer.readByte();
+        byte[] tempByteArray = null;
+
+        String string = IsisUtil.toEightBitBinary(Integer.toBinaryString(controlInfo));
+        if (string.charAt(0) == '0') {
+            this.setDown(false);
+        }
+        if (string.charAt(1) == '1') {
+            this.setSubTlvPresence(true);
+        }
+        this.setPrefixLength(Integer.parseInt(string.substring(2, string.length()), 2));
+        if (this.prefixLength >= 0 && this.prefixLength <= 8) {
+            channelBuffer.readByte();
+        } else if (this.prefixLength >= 8 && this.prefixLength <= 16) {
+            tempByteArray = new byte[IsisUtil.TWO_BYTES];
+            channelBuffer.readBytes(tempByteArray, 0, IsisUtil.TWO_BYTES);
+            this.setPrefix(IsisUtil.prefixConversion(tempByteArray));
+        } else if (this.prefixLength >= 17 && this.prefixLength <= 24) {
+            tempByteArray = new byte[IsisUtil.THREE_BYTES];
+            channelBuffer.readBytes(tempByteArray, 0, IsisUtil.THREE_BYTES);
+            this.setPrefix(IsisUtil.prefixConversion(tempByteArray));
+        } else if (this.prefixLength >= 24 && this.prefixLength <= 32) {
+            tempByteArray = new byte[IsisUtil.FOUR_BYTES];
+            channelBuffer.readBytes(tempByteArray, 0, IsisUtil.FOUR_BYTES);
+            this.setPrefix(IsisUtil.prefixConversion(tempByteArray));
+        }
+        if (this.isSubTlvPresence()) {
+            this.setSubTlvLength(channelBuffer.readByte());
+            while (channelBuffer.readableBytes() > 0) {
+                TlvHeader tlvHeader = new TlvHeader();
+                tlvHeader.setTlvType(channelBuffer.readByte());
+                tlvHeader.setTlvLength(channelBuffer.readByte());
+                SubTlvType tlvValue = SubTlvType.get(tlvHeader.tlvType());
+                if (tlvValue != null) {
+                    this.addSubTlv(SubTlvFinder.findSubTlv(tlvHeader,
+                                                           channelBuffer.readBytes(tlvHeader.tlvLength())));
+                } else {
+                    channelBuffer.readBytes(tlvHeader.tlvLength());
+                }
+            }
         }
     }
+
 
     @Override
     public byte[] asBytes() {
@@ -145,11 +234,26 @@ public class IpExtendedReachabilityTlv extends TlvHeader implements IsisTlv {
      */
     private byte[] tlvBodyAsBytes() {
         List<Byte> bodyLst = new ArrayList<>();
-        bodyLst.addAll(IsisUtil.sourceAndLanIdToBytes(this.sysIdAndPseudoNumber()));
-        bodyLst.addAll(Bytes.asList(IsisUtil.convertToThreeBytes(this.defaultMetric())));
-        bodyLst.add(this.subTlvLength());
-        for (TrafficEngineeringSubTlv trafficEngineeringSubTlv : this.trafEnginSubTlv) {
-            bodyLst.addAll(SubTlvToBytes.tlvToBytes(trafficEngineeringSubTlv));
+        bodyLst.addAll(Bytes.asList(IsisUtil.convertToFourBytes(this.metric())));
+        String controlInfo = "";
+        if (this.isDown()) {
+            controlInfo = controlInfo + "1";
+        } else {
+            controlInfo = controlInfo + "0";
+        }
+        if (this.isSubTlvPresence()) {
+            controlInfo = controlInfo + "1";
+        } else {
+            controlInfo = controlInfo + "0";
+        }
+        String prefixlength = IsisUtil.toEightBitBinary(Integer.toBinaryString(this.prefixLength()));
+        controlInfo = controlInfo + prefixlength.substring(2, prefixlength.length());
+        bodyLst.add(Byte.parseByte(controlInfo, 2));
+        if (this.isSubTlvPresence()) {
+            bodyLst.add(this.subTlvLength());
+            for (TrafficEngineeringSubTlv trafficEngineeringSubTlv : this.trafEnginSubTlv) {
+                bodyLst.addAll(SubTlvToBytes.tlvToBytes(trafficEngineeringSubTlv));
+            }
         }
         return Bytes.toArray(bodyLst);
     }
@@ -158,9 +262,12 @@ public class IpExtendedReachabilityTlv extends TlvHeader implements IsisTlv {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
-                .add("sysIdAndPseudoNumber", sysIdAndPseudoNumber)
-                .add("defaultMetric", defaultMetric)
+                .add("down", down)
+                .add("subTlvPresence", subTlvPresence)
+                .add("prefixLength", prefixLength)
+                .add("metric", metric)
                 .add("subTlvLength", subTlvLength)
+                .add("prefix", prefix)
                 .add("trafEnginSubTlv", trafEnginSubTlv)
                 .toString();
     }

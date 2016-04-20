@@ -17,7 +17,7 @@
 package org.onosproject.isis.io.util;
 
 /**
- * Representation of ISIS constants.
+ * Representation of ISIS Constants.
  */
 public final class IsisConstants {
     public static final char PDU_LENGTH = 1497; // mtu (1500) - (3) LLC
