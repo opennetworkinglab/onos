@@ -17,7 +17,10 @@
 /*
  ONOS GUI -- Remote -- Web Socket Event Service - Unit Tests
  */
-describe('factory: fw/remote/wsevent.js', function () {
+
+// NOTE WsEventService does not exist
+
+xdescribe('factory: fw/remote/wsevent.js', function () {
     var $log, fs, wse;
 
     beforeEach(module('onosRemote'));

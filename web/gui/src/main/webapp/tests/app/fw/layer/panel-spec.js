@@ -44,7 +44,7 @@ describe('factory: fw/layer/panel.js', function () {
         expect(ps).toBeDefined();
     });
 
-    it('should define api functions', function () {
+    xit('should define api functions', function () {
         expect(fs.areFunctions(ps, [
             'init', 'createPanel', 'destroyPanel'
         ])).toBeTruthy();
@@ -62,7 +62,7 @@ describe('factory: fw/layer/panel.js', function () {
         expect(floatPanelSelection().size()).toBe(0);
     });
 
-    it('should create a default panel', function () {
+    xit('should create a default panel', function () {
         spyOn($log, 'warn');
         spyOn($log, 'debug');
         var p = ps.createPanel('foo');
@@ -107,13 +107,13 @@ describe('factory: fw/layer/panel.js', function () {
         expect(floatPanelSelection().size()).toBe(1);
     });
 
-    it('should note when there is no panel to destroy', function () {
+    xit('should note when there is no panel to destroy', function () {
         spyOn($log, 'debug');
         ps.destroyPanel('bar');
         expect($log.debug).toHaveBeenCalledWith('no panel to destroy:', 'bar');
     });
 
-    it('should destroy the panel', function () {
+    xit('should destroy the panel', function () {
         spyOn($log, 'debug');
         var p = ps.createPanel('foo');
         expect(floatPanelSelection().size()).toBe(1);
@@ -123,7 +123,7 @@ describe('factory: fw/layer/panel.js', function () {
         expect(floatPanelSelection().size()).toBe(0);
     });
 
-    it('should allow alternate settings to be given', function () {
+    xit('should allow alternate settings to be given', function () {
         spyOn($log, 'debug');
         var p = ps.createPanel('foo', { width: 250, edge: 'left' });
         expect($log.debug).toHaveBeenCalledWith('creating panel:', 'foo', {

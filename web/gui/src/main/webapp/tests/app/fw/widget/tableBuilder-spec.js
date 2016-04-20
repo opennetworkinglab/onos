@@ -18,7 +18,7 @@
  ONOS GUI -- Widget -- Table Builder Service - Unit Tests
  */
 
-describe('factory: fw/widget/tableBuilder.js', function () {
+xdescribe('factory: fw/widget/tableBuilder.js', function () {
     var $log, $rootScope, fs, tbs, is;
 
     var mockObj,
@@ -28,7 +28,7 @@ describe('factory: fw/widget/tableBuilder.js', function () {
             unbindHandlers: function () {}
         };
 
-    beforeEach(module('onosWidget', 'onosUtil', 'onosRemote', 'onosSvg'));
+    beforeEach(module('onosWidget', 'onosUtil', 'onosRemote', 'onosSvg', 'onosLayer'));
 
     beforeEach(function () {
         module(function ($provide) {

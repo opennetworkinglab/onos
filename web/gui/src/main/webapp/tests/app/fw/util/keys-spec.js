@@ -17,12 +17,12 @@
 /*
  ONOS GUI -- Key Handler Service - Unit Tests
  */
-describe('factory: fw/util/keys.js', function() {
+xdescribe('factory: fw/util/keys.js', function() {
     var $log, ks, fs, qhs,
         d3Elem, elem, last;
   
 
-    beforeEach(module('onosUtil', 'onosSvg', 'onosLayer', 'onosNav'));
+    beforeEach(module('onosUtil', 'onosSvg', 'onosLayer', 'onosNav', 'onosRemote'));
 
     beforeEach(inject(function (_$log_, KeyService, FnService, QuickHelpService) {
         $log = _$log_;

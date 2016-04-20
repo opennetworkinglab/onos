@@ -17,10 +17,10 @@
 /*
  ONOS GUI -- Util -- User Preference Service - Unit Tests
  */
-describe('factory: fw/util/prefs.js', function() {
+xdescribe('factory: fw/util/prefs.js', function() {
     var $cookies, ps, fs;
 
-    beforeEach(module('onosUtil'));
+    beforeEach(module('onosUtil', 'onosRemote'));
 
     var mockCookies = {
         foo: 'bar'

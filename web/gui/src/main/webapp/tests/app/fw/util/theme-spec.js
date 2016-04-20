@@ -17,10 +17,10 @@
 /*
  ONOS GUI -- Util -- Theme Service - Unit Tests
  */
-describe('factory: fw/util/theme.js', function() {
+xdescribe('factory: fw/util/theme.js', function() {
     var ts, $log, fs;
 
-    beforeEach(module('onosUtil'));
+    beforeEach(module('onosUtil', 'onosRemote'));
 
     beforeEach(inject(function (ThemeService, _$log_, FnService) {
         ts = ThemeService;

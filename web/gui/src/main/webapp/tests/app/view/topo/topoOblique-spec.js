@@ -20,7 +20,7 @@
 describe('factory: view/topo/topoOblique.js', function() {
     var $log, fs, tos, flash;
 
-    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer'));
+    beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'onosNav', 'onosWidget', 'onosMast'));
 
     beforeEach(inject(function (_$log_, FnService,
                                 TopoObliqueService, FlashService) {

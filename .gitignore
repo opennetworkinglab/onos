@@ -21,3 +21,5 @@ core/store/trivial/data/
 core/store/apps
 core/store/data
 /bin/
+
+web/gui/src/main/webapp/tests/node_modules

@@ -17,7 +17,7 @@
 /*
  ONOS GUI -- Remote -- REST Service - Unit Tests
  */
-describe('factory: fw/remote/rest.js', function() {
+xdescribe('factory: fw/remote/rest.js', function() {
     var $log, $httpBackend, fs, rs, promise;
 
     beforeEach(module('onosUtil', 'onosRemote'));

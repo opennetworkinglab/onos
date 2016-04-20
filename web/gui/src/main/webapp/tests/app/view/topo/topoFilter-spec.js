@@ -30,7 +30,7 @@ describe('factory: view/topo/topoFilter.js', function() {
         };
 
     beforeEach(module('ovTopo', 'onosUtil', 'onosLayer', 'ngRoute', 'onosNav',
-        'onosWidget'));
+        'onosWidget', 'onosMast'));
 
     beforeEach(inject(function (_$log_, FnService,
                                 TopoFilterService, ButtonService) {
