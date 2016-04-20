@@ -72,6 +72,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
 import static org.onosproject.yangutils.utils.UtilConstants.QUOTES;
 import static org.onosproject.yangutils.utils.UtilConstants.RETURN;
+import static org.onosproject.yangutils.utils.UtilConstants.RPC_INPUT_VAR_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SET_METHOD_PREFIX;
 import static org.onosproject.yangutils.utils.UtilConstants.SIXTEEN_SPACE_INDENTATION;
@@ -87,15 +88,15 @@ import static org.onosproject.yangutils.utils.UtilConstants.TRY;
 import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
 import static org.onosproject.yangutils.utils.UtilConstants.VOID;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILD_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.DEFAULT_CONSTRUCTOR;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.FROM_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OF_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.SETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.TYPE_CONSTRUCTOR;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.UNION_FROM_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
 /**
@@ -425,6 +426,24 @@ public final class MethodsGenerator {
     }
 
     /**
+     * Returns the rpc strings for service interface.
+     *
+     * @param rpcName    name of the rpc
+     * @param inputName  name of input
+     * @param outputName name of output
+     * @return rpc method string
+     */
+    public static String getRpcStringMethod(String rpcName, String inputName, String outputName) {
+
+        rpcName = getSmallCase(getCamelCase(rpcName, null));
+        inputName = getCaptialCase(inputName);
+        outputName = getCaptialCase(outputName);
+
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + outputName + SPACE + rpcName + OPEN_PARENTHESIS
+                + inputName + SPACE + RPC_INPUT_VAR_NAME + CLOSE_PARENTHESIS + SEMI_COLAN;
+    }
+
+    /**
      * Returns the build method strings for class file.
      *
      * @param yangName class name
@@ -499,7 +518,7 @@ public final class MethodsGenerator {
      * @return from string method's open string
      */
     public static String getFromStringMethodSignature(String className) {
-        return getJavaDoc(UNION_FROM_METHOD, className, false) + FOUR_SPACE_INDENTATION + PUBLIC + SPACE
+        return getJavaDoc(FROM_METHOD, className, false) + FOUR_SPACE_INDENTATION + PUBLIC + SPACE
                 + className + SPACE + FROM_STRING_METHOD_NAME + OPEN_PARENTHESIS + STRING_DATA_TYPE + SPACE
                 + FROM_STRING_PARAM_NAME + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }

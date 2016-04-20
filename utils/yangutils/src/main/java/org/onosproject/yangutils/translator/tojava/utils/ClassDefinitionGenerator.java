@@ -19,6 +19,7 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_RPC_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
@@ -63,7 +64,7 @@ public final class ClassDefinitionGenerator {
     public static String generateClassDefinition(int genFileTypes, String yangName) {
 
         /**
-         * based on the file type and the YANG name of the file, generate the
+         * Based on the file type and the YANG name of the file, generate the
          * class / interface definition start.
          */
         if ((genFileTypes & INTERFACE_MASK) != 0) {
@@ -80,6 +81,8 @@ public final class ClassDefinitionGenerator {
             return getTypeClassDefinition(yangName);
         } else if ((genFileTypes & GENERATE_ENUM_CLASS) != 0) {
             return getEnumClassDefinition(yangName);
+        } else if ((genFileTypes & GENERATE_RPC_INTERFACE) != 0) {
+            return getRpcInterfaceDefinition(yangName);
         }
         return null;
     }
@@ -88,7 +91,7 @@ public final class ClassDefinitionGenerator {
      * Returns enum file class definition.
      *
      * @param yangName class name
-     * @return enum file class definiton
+     * @return enum file class definition
      */
     private static String getEnumClassDefinition(String yangName) {
         return PUBLIC + SPACE + ENUM + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
@@ -154,5 +157,15 @@ public final class ClassDefinitionGenerator {
      */
     private static String getTypeClassDefinition(String yangName) {
         return PUBLIC + SPACE + FINAL + SPACE + CLASS + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
+     * Returns rpc file interface definition.
+     *
+     * @param yangName file name
+     * @return definition
+     */
+    private static String getRpcInterfaceDefinition(String yangName) {
+        return INTERFACE + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 }

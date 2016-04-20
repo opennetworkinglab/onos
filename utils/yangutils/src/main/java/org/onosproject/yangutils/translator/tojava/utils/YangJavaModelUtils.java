@@ -28,6 +28,7 @@ import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.datamodel.YangOutput;
+import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumeration;
@@ -54,19 +55,19 @@ public final class YangJavaModelUtils {
     /**
      * Updates YANG java file package information.
      *
-     * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPlugin            YANG plugin config
+     * @param hasJavaFileInfo YANG java file info node
+     * @param yangPlugin      YANG plugin config
      * @throws IOException IO operations fails
      */
-    private static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin)
+    public static void updatePackageInfo(HasJavaFileInfo hasJavaFileInfo, YangPluginConfig yangPlugin)
             throws IOException {
-        javaCodeGeneratorInfo.getJavaFileInfo()
+        hasJavaFileInfo.getJavaFileInfo()
                 .setJavaName(getCaptialCase(
-                        getCamelCase(((YangNode) javaCodeGeneratorInfo).getName(), yangPlugin.getConflictResolver())));
-        javaCodeGeneratorInfo.getJavaFileInfo().setPackage(getCurNodePackage((YangNode) javaCodeGeneratorInfo));
-        javaCodeGeneratorInfo.getJavaFileInfo().setPackageFilePath(
-                getPackageDirPathFromJavaJPackage(javaCodeGeneratorInfo.getJavaFileInfo().getPackage()));
-        javaCodeGeneratorInfo.getJavaFileInfo().setBaseCodeGenPath(yangPlugin.getCodeGenDir());
+                        getCamelCase(((YangNode) hasJavaFileInfo).getName(), yangPlugin.getConflictResolver())));
+        hasJavaFileInfo.getJavaFileInfo().setPackage(getCurNodePackage((YangNode) hasJavaFileInfo));
+        hasJavaFileInfo.getJavaFileInfo().setPackageFilePath(
+                getPackageDirPathFromJavaJPackage(hasJavaFileInfo.getJavaFileInfo().getPackage()));
+        hasJavaFileInfo.getJavaFileInfo().setBaseCodeGenPath(yangPlugin.getCodeGenDir());
     }
 
     /**
@@ -155,7 +156,7 @@ public final class YangJavaModelUtils {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
             // TODO:throw exception
         }
-        updatePackageInfo(javaCodeGeneratorInfo, yangPlugin);
+        updatePackageInfo((HasJavaFileInfo) javaCodeGeneratorInfo, yangPlugin);
         generateTempFiles(javaCodeGeneratorInfo, yangPlugin.getCodeGenDir());
 
         javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
@@ -182,15 +183,14 @@ public final class YangJavaModelUtils {
      *
      * @param javaCodeGeneratorInfo YANG java file info node
      * @param yangPlugin            YANG plugin config
-     * @param isMultiInstance       flag to indicate whether it's a list
      * @throws IOException IO operations fails
      */
-    public static void generateCodeOfType(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin,
-                                          boolean isMultiInstance) throws IOException {
+    public static void generateCodeOfNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin)
+            throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
             // TODO:throw exception
         }
-        updatePackageInfo(javaCodeGeneratorInfo, yangPlugin);
+        updatePackageInfo((HasJavaFileInfo) javaCodeGeneratorInfo, yangPlugin);
         generateTempFiles(javaCodeGeneratorInfo, yangPlugin.getCodeGenDir());
     }
 

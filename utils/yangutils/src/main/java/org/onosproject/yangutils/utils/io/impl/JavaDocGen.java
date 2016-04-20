@@ -18,6 +18,8 @@ package org.onosproject.yangutils.utils.io.impl;
 
 import org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax;
 
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_CLASS_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_INTERFACE_JAVA_DOC;
@@ -40,6 +42,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_GETTERS;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_OF;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_PARAM;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_RETURN;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_RPC;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_SETTERS;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_SETTERS_COMMON;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
@@ -49,6 +52,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.OBJECT;
 import static org.onosproject.yangutils.utils.UtilConstants.OF;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE_INFO_JAVADOC;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.RPC_INPUT_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.RPC_OUTPUT_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
@@ -100,6 +105,11 @@ public final class JavaDocGen {
         GETTER_METHOD,
 
         /**
+         * For rpc.
+         */
+        RPC_INTERFACE,
+
+        /**
          * For setters.
          */
         SETTER_METHOD,
@@ -125,9 +135,9 @@ public final class JavaDocGen {
         CONSTRUCTOR,
 
         /**
-         * For union's from method.
+         * For from method.
          */
-        UNION_FROM_METHOD,
+        FROM_METHOD,
 
         /**
          * For type constructor.
@@ -160,42 +170,60 @@ public final class JavaDocGen {
      */
     public static String getJavaDoc(JavaDocType type, String name, boolean isList) {
 
-        name = JavaIdentifierSyntax.getSmallCase(JavaIdentifierSyntax.getCamelCase(name, null));
-        String javaDoc;
-        if (type.equals(JavaDocType.IMPL_CLASS)) {
-            javaDoc = generateForImplClass(name);
-        } else if (type.equals(JavaDocType.BUILDER_CLASS)) {
-            javaDoc = generateForBuilderClass(name);
-        } else if (type.equals(JavaDocType.INTERFACE)) {
-            javaDoc = generateForInterface(name);
-        } else if (type.equals(JavaDocType.BUILDER_INTERFACE)) {
-            javaDoc = generateForBuilderInterface(name);
-        } else if (type.equals(JavaDocType.PACKAGE_INFO)) {
-            javaDoc = generateForPackage(name);
-        } else if (type.equals(JavaDocType.GETTER_METHOD)) {
-            javaDoc = generateForGetters(name, isList);
-        } else if (type.equals(JavaDocType.TYPE_DEF_SETTER_METHOD)) {
-            javaDoc = generateForTypeDefSetter(name);
-        } else if (type.equals(JavaDocType.SETTER_METHOD)) {
-            javaDoc = generateForSetters(name, isList);
-        } else if (type.equals(JavaDocType.OF_METHOD)) {
-            javaDoc = generateForOf(name);
-        } else if (type.equals(JavaDocType.DEFAULT_CONSTRUCTOR)) {
-            javaDoc = generateForDefaultConstructors(name);
-        } else if (type.equals(JavaDocType.BUILD_METHOD)) {
-            javaDoc = generateForBuild(name);
-        } else if (type.equals(JavaDocType.TYPE_CONSTRUCTOR)) {
-            javaDoc = generateForTypeConstructor(name);
-        } else if (type.equals(JavaDocType.UNION_FROM_METHOD)) {
-            javaDoc = generateForUnionFrom(name);
-        } else if (type.equals(JavaDocType.ENUM_CLASS)) {
-            javaDoc = generateForEnum(name);
-        } else if (type.equals(JavaDocType.ENUM_ATTRIBUTE)) {
-            javaDoc = generateForEnumAttr(name);
-        } else {
-            javaDoc = generateForConstructors(name);
+        name = JavaIdentifierSyntax.getSmallCase(getCamelCase(name, null));
+        switch (type) {
+            case IMPL_CLASS: {
+                return generateForImplClass(name);
+            }
+            case BUILDER_CLASS: {
+                return generateForBuilderClass(name);
+            }
+            case INTERFACE: {
+                return generateForInterface(name);
+            }
+            case BUILDER_INTERFACE: {
+                return generateForBuilderInterface(name);
+            }
+            case PACKAGE_INFO: {
+                return generateForPackage(name);
+            }
+            case GETTER_METHOD: {
+                return generateForGetters(name, isList);
+            }
+            case TYPE_DEF_SETTER_METHOD: {
+                return generateForTypeDefSetter(name);
+            }
+            case SETTER_METHOD: {
+                return generateForSetters(name, isList);
+            }
+            case OF_METHOD: {
+                return generateForOf(name);
+            }
+            case DEFAULT_CONSTRUCTOR: {
+                return generateForDefaultConstructors(name);
+            }
+            case BUILD_METHOD: {
+                return generateForBuild(name);
+            }
+            case TYPE_CONSTRUCTOR: {
+                return generateForTypeConstructor(name);
+            }
+            case FROM_METHOD: {
+                return generateForFromString(name);
+            }
+            case ENUM_CLASS: {
+                return generateForEnum(name);
+            }
+            case ENUM_ATTRIBUTE: {
+                return generateForEnumAttr(name);
+            }
+            case RPC_INTERFACE: {
+                return generateForRpcInterface(name);
+            }
+            default: {
+                return generateForConstructors(name);
+            }
         }
-        return javaDoc;
     }
 
     /**
@@ -207,6 +235,62 @@ public final class JavaDocGen {
     private static String generateForEnumAttr(String name) {
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + ENUM_ATTRIBUTE_JAVADOC
                 + name + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
+    }
+
+    /**
+     * Generates javaDocs for rpc method.
+     *
+     * @param rpcName    name of the rpc
+     * @param inputName  name of input
+     * @param outputName name of output
+     * @return javaDocs of rpc method
+     */
+    public static String generateJavaDocForRpc(String rpcName, String inputName, String outputName) {
+        rpcName = getCamelCase(rpcName, null);
+        inputName = getCaptialCase(inputName);
+        outputName = getCaptialCase(outputName);
+
+        return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_RPC
+                + rpcName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
+                + getInputString(inputName, rpcName) + getOutputString(outputName, rpcName) + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_END_LINE;
+    }
+
+    /**
+     * Returns output string of rpc.
+     *
+     * @param outputName name of output
+     * @param rpcName    name of rpc
+     * @return javaDocs for output string of rpc
+     */
+    private static String getOutputString(String outputName, String rpcName) {
+        return FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + outputName + SPACE + RPC_OUTPUT_STRING + rpcName + NEW_LINE;
+    }
+
+    /**
+     * Returns input string of rpc.
+     *
+     * @param inputName name of input
+     * @param rpcName   name of rpc
+     * @return javaDocs for input string of rpc
+     */
+    private static String getInputString(String inputName, String rpcName) {
+        if (inputName.equals("")) {
+            return null;
+        } else {
+            return FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + inputName + SPACE + RPC_INPUT_STRING + rpcName + NEW_LINE;
+        }
+    }
+
+    /**
+     * Generates javaDoc for the interface.
+     *
+     * @param interfaceName interface name
+     * @return javaDocs
+     */
+    private static String generateForRpcInterface(String interfaceName) {
+        return NEW_LINE + JAVA_DOC_FIRST_LINE + INTERFACE_JAVA_DOC + interfaceName + PERIOD + NEW_LINE
+                + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -275,7 +359,7 @@ public final class JavaDocGen {
      * @param attribute attribute
      * @return javaDocs
      */
-    private static String generateForUnionFrom(String attribute) {
+    private static String generateForFromString(String attribute) {
 
         return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_OF
                 + attribute + SPACE + FROM_STRING_METHOD_NAME + SPACE + INPUT + SPACE + STRING_DATA_TYPE + PERIOD

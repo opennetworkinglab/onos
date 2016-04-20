@@ -127,11 +127,11 @@ public final class JavaAttributeInfo {
      * Creates an attribute info object corresponding to the passed enumeration attribute
      * information and return it.
      *
-     * @param curNode current data model node for which the java file is being
-     *            generated
+     * @param curNode       current data model node for which the java file is being
+     *                      generated
      * @param attributeName attribute name
      * @return AttributeInfo attribute details required to add in temporary
-     *         files
+     * files
      */
     public static JavaAttributeInfo getAttributeInfoOfEnumAttribute(YangNode curNode, String attributeName) {
 
@@ -146,6 +146,7 @@ public final class JavaAttributeInfo {
 
         return getAttributeInfoForTheData(qualifiedTypeInfo, attributeName, null, curNode, false);
     }
+
     /**
      * Returns the data type info of attribute.
      *
@@ -300,6 +301,30 @@ public final class JavaAttributeInfo {
 
         return getAttributeInfoForTheData(qualifiedTypeInfo, curNodeName, null, parentNode, isListNode);
     }
+
+    /**
+     * Creates an attribute info object corresponding to a data model node and
+     * return it.
+     *
+     * @param parentNode  parent node in which the current node is an attribute
+     * @param isListNode  is the current added attribute needs to be a list
+     * @param curNodeName is the current added attribute needs to be a list
+     * @return AttributeInfo attribute details required to add in temporary
+     * files
+     */
+    public static JavaAttributeInfo getCurNodeAsAttributeInParent(YangNode parentNode, boolean isListNode,
+                                                                  String curNodeName) {
+
+        /*
+         * Get the import info corresponding to the attribute for import in
+         * generated java files or qualified access
+         */
+        JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(parentNode,
+                curNodeName, isListNode);
+
+        return getAttributeInfoForTheData(qualifiedTypeInfo, curNodeName, null, parentNode, isListNode);
+    }
+
 
     /**
      * Returns java attribute info.

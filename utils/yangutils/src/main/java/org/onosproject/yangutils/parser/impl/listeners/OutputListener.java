@@ -31,7 +31,10 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLoc
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.*;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.YangConstructType.OUTPUT_DATA;
 
@@ -62,7 +65,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.OUTPUT_DATA;
  */
 public final class OutputListener {
 
-    private static final String OUTPUT_KEYWORD = "Output";
+    private static final String OUTPUT_KEYWORD = "_output";
 
     /**
      * Creates a new output listener.
@@ -75,10 +78,10 @@ public final class OutputListener {
      * (output), performs validation and updates the data model tree.
      *
      * @param listener listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processOutputEntry(TreeWalkListener listener,
-                                         GeneratedYangParser.OutputStatementContext ctx) {
+                                          GeneratedYangParser.OutputStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, OUTPUT_DATA, "", ENTRY);
@@ -107,10 +110,10 @@ public final class OutputListener {
      * validations and updates the data model tree.
      *
      * @param listener listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processOutputExit(TreeWalkListener listener,
-                                        GeneratedYangParser.OutputStatementContext ctx) {
+                                         GeneratedYangParser.OutputStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, OUTPUT_DATA, "", EXIT);

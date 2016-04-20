@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 import org.onosproject.yangutils.datamodel.HasType;
 import org.onosproject.yangutils.datamodel.YangEnum;
 import org.onosproject.yangutils.datamodel.YangEnumeration;
@@ -36,6 +35,7 @@ import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_RPC_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
@@ -45,14 +45,15 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ENUM_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EQUALS_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.HASH_CODE_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.OF_STRING_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.UNION_FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoOfEnumAttribute;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoOfLeaf;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoOfType;
@@ -66,6 +67,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerato
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEnumClassFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateImplClassFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateInterfaceFile;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateRpcInterfaceFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateTypeDefClassFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateUnionClassFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getFileObject;
@@ -85,6 +87,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOfMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOfMethodStringAndJavaDoc;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOverRideString;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRpcStringMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterForClass;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getSetterString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethod;
@@ -109,9 +112,10 @@ import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPackage;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.readAppendFile;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OF_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.generateJavaDocForRpc;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.clean;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.mergeJavaFiles;
@@ -226,7 +230,7 @@ public class TempJavaCodeFragmentFiles {
     /**
      * File name for from string method.
      */
-    private static final String UNION_FROM_STRING_METHOD_FILE_NAME = "UnionFromString";
+    private static final String FROM_STRING_METHOD_FILE_NAME = "FromString";
 
     /**
      * File name for interface java file name suffix.
@@ -257,6 +261,16 @@ public class TempJavaCodeFragmentFiles {
      * File name for enum class file name suffix.
      */
     private static final String ENUM_CLASS_FILE_NAME_SUFFIX = EMPTY_STRING;
+
+    /**
+     * File name for rpc method.
+     */
+    private static final String RPC_FILE_NAME = "Rpc";
+
+    /**
+     * File name for generated class file for special type like union, typedef suffix.
+     */
+    private static final String RPC_INTERFACE_FILE_NAME_SUFFIX = "Service";
 
     /**
      * File name for generated class file for special type like union, typedef suffix.
@@ -354,9 +368,19 @@ public class TempJavaCodeFragmentFiles {
     private File constructorForTypeTempFileHandle;
 
     /**
-     * Temporary file handle for union's from string method of class.
+     * Temporary file handle for from string method of class.
      */
-    private File unionFromStringImplTempFileHandle;
+    private File fromStringImplTempFileHandle;
+
+    /**
+     * Temporary file handle for rpc interface.
+     */
+    private File rpcInterfaceImplTempFileHandle;
+
+    /**
+     * Java file handle for rpc interface file.
+     */
+    private File rpcInterfaceJavaFileHandle;
 
     /**
      * Java attribute info.
@@ -439,6 +463,10 @@ public class TempJavaCodeFragmentFiles {
             generatedTempFiles |= TO_STRING_IMPL_MASK;
         }
 
+        if ((genFileType & GENERATE_RPC_INTERFACE) != 0) {
+            generatedTempFiles |= RPC_IMPL_MASK;
+        }
+
         /**
          * Initialize getterImpl, attributes,  hash code, equals and
          * to strings when generation file type matches to typeDef class mask.
@@ -451,11 +479,12 @@ public class TempJavaCodeFragmentFiles {
             generatedTempFiles |= TO_STRING_IMPL_MASK;
             generatedTempFiles |= OF_STRING_IMPL_MASK;
             generatedTempFiles |= CONSTRUCTOR_FOR_TYPE_MASK;
+            generatedTempFiles |= FROM_STRING_IMPL_MASK;
         }
 
         /**
          * Initialize getterImpl, attributes, hash code, equals, of string,
-         * constructor, union's to string, union's from string when generation
+         * constructor, union's to string, from string when generation
          * file type matches to union class mask.
          */
         if ((genFileType & GENERATE_UNION_CLASS) != 0) {
@@ -466,7 +495,7 @@ public class TempJavaCodeFragmentFiles {
             generatedTempFiles |= OF_STRING_IMPL_MASK;
             generatedTempFiles |= CONSTRUCTOR_FOR_TYPE_MASK;
             generatedTempFiles |= TO_STRING_IMPL_MASK;
-            generatedTempFiles |= UNION_FROM_STRING_IMPL_MASK;
+            generatedTempFiles |= FROM_STRING_IMPL_MASK;
         }
         /**
          * Initialize enum when generation file type matches to enum class mask.
@@ -523,8 +552,12 @@ public class TempJavaCodeFragmentFiles {
             setConstructorForTypeTempFileHandle(getTemporaryFileHandle(CONSTRUCTOR_FOR_TYPE_FILE_NAME));
         }
 
-        if ((generatedTempFiles & UNION_FROM_STRING_IMPL_MASK) != 0) {
-            setUnionFromStringImplTempFileHandle(getTemporaryFileHandle(UNION_FROM_STRING_METHOD_FILE_NAME));
+        if ((generatedTempFiles & FROM_STRING_IMPL_MASK) != 0) {
+            setFromStringImplTempFileHandle(getTemporaryFileHandle(FROM_STRING_METHOD_FILE_NAME));
+        }
+
+        if ((generatedTempFiles & RPC_IMPL_MASK) != 0) {
+            setRpcInterfaceImplTempFileHandle(getTemporaryFileHandle(RPC_FILE_NAME));
         }
     }
 
@@ -800,6 +833,42 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
+     * Returns rpc method's temporary file handle.
+     *
+     * @return temporary file handle
+     */
+    public File getRpcInterfaceImplTempFileHandle() {
+        return rpcInterfaceImplTempFileHandle;
+    }
+
+    /**
+     * Sets rpc method's temporary file handle.
+     *
+     * @param rpcInterfaceImplTempFileHandle file handle for to rpc method
+     */
+    public void setRpcInterfaceImplTempFileHandle(File rpcInterfaceImplTempFileHandle) {
+        this.rpcInterfaceImplTempFileHandle = rpcInterfaceImplTempFileHandle;
+    }
+
+    /**
+     * Returns rpc method's java file handle.
+     *
+     * @return java file handle
+     */
+    public File getRpcInterfaceJavaFileHandle() {
+        return rpcInterfaceJavaFileHandle;
+    }
+
+    /**
+     * Sets rpc method's java file handle.
+     *
+     * @param rpcInterfaceJavaFileHandle file handle for to rpc method
+     */
+    public void setRpcInterfaceJavaFileHandle(File rpcInterfaceJavaFileHandle) {
+        this.rpcInterfaceJavaFileHandle = rpcInterfaceJavaFileHandle;
+    }
+
+    /**
      * Returns to string method's temporary file handle.
      *
      * @return temporary file handle
@@ -873,21 +942,21 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
-     * Returns union's from string method's temporary file handle.
+     * Returns from string method's temporary file handle.
      *
-     * @return union's from string method's temporary file handle
+     * @return from string method's temporary file handle
      */
-    public File getUnionFromStringImplTempFileHandle() {
-        return unionFromStringImplTempFileHandle;
+    public File getFromStringImplTempFileHandle() {
+        return fromStringImplTempFileHandle;
     }
 
     /**
-     * Sets union's from string method's temporary file handle.
+     * Sets from string method's temporary file handle.
      *
-     * @param unionFromStringImplTempFileHandle union's from string method's temporary file handle
+     * @param fromStringImplTempFileHandle from string method's temporary file handle
      */
-    private void setUnionFromStringImplTempFileHandle(File unionFromStringImplTempFileHandle) {
-        this.unionFromStringImplTempFileHandle = unionFromStringImplTempFileHandle;
+    private void setFromStringImplTempFileHandle(File fromStringImplTempFileHandle) {
+        this.fromStringImplTempFileHandle = fromStringImplTempFileHandle;
     }
 
     /**
@@ -1158,10 +1227,32 @@ public class TempJavaCodeFragmentFiles {
      * @param fromStringAttributeInfo from string attribute info
      * @throws IOException when fails to append to temporary file
      */
-    private void addUnionFromStringMethod(JavaAttributeInfo javaAttributeInfo,
-                                          JavaAttributeInfo fromStringAttributeInfo) throws IOException {
-        appendToFile(getUnionFromStringImplTempFileHandle(), getFromStringMethod(javaAttributeInfo,
+    private void addFromStringMethod(JavaAttributeInfo javaAttributeInfo,
+                                     JavaAttributeInfo fromStringAttributeInfo) throws IOException {
+        appendToFile(getFromStringImplTempFileHandle(), getFromStringMethod(javaAttributeInfo,
                 fromStringAttributeInfo) + NEW_LINE);
+    }
+
+    /**
+     * Adds rpc string information to applicable temp file.
+     *
+     * @param javaAttributeInfoOfInput  rpc's input node attribute info
+     * @param javaAttributeInfoOfOutput rpc's output node attribute info
+     * @param rpcName                   name of the rpc function
+     * @throws IOException IO operation fail
+     */
+    private void addRpcString(JavaAttributeInfo javaAttributeInfoOfInput, JavaAttributeInfo javaAttributeInfoOfOutput,
+                              String rpcName) throws IOException {
+        String rpcInput = "";
+        String rpcOutput = "void";
+        if (javaAttributeInfoOfInput != null) {
+            rpcInput = javaAttributeInfoOfInput.getAttributeName();
+        }
+        if (javaAttributeInfoOfOutput != null) {
+            rpcOutput = javaAttributeInfoOfOutput.getAttributeName();
+        }
+        appendToFile(getRpcInterfaceImplTempFileHandle(), generateJavaDocForRpc(rpcName, rpcInput, rpcOutput) +
+                getRpcStringMethod(rpcName, rpcInput, rpcOutput) + NEW_LINE);
     }
 
     /**
@@ -1416,10 +1507,26 @@ public class TempJavaCodeFragmentFiles {
 
         JavaAttributeInfo fromStringAttributeInfo = getFromStringAttributeInfo(hasType, javaAttributeInfo);
 
-        if ((generatedTempFiles & UNION_FROM_STRING_IMPL_MASK) != 0) {
-            addUnionFromStringMethod(javaAttributeInfo, fromStringAttributeInfo);
+        if ((generatedTempFiles & FROM_STRING_IMPL_MASK) != 0) {
+            addFromStringMethod(javaAttributeInfo, fromStringAttributeInfo);
         }
         addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo);
+    }
+
+    /**
+     * Adds the JAVA rpc snippet information.
+     *
+     * @param javaAttributeInfoOfInput  rpc's input node attribute info
+     * @param javaAttributeInfoOfOutput rpc's output node attribute info
+     * @param rpcName                   name of the rpc function
+     * @throws IOException IO operation fail
+     */
+    public void addJavaSnippetInfoToApplicableTempFiles(JavaAttributeInfo javaAttributeInfoOfInput,
+                                                        JavaAttributeInfo javaAttributeInfoOfOutput,
+                                                        String rpcName) throws IOException {
+        if ((generatedTempFiles & RPC_IMPL_MASK) != 0) {
+            addRpcString(javaAttributeInfoOfInput, javaAttributeInfoOfOutput, rpcName);
+        }
     }
 
     /**
@@ -1642,6 +1749,14 @@ public class TempJavaCodeFragmentFiles {
         }
 
         /**
+         * Creates rpc interface file.
+         */
+        if ((fileType & GENERATE_RPC_INTERFACE) != 0) {
+            setRpcInterfaceJavaFileHandle(getJavaFileHandle(getJavaClassName(RPC_INTERFACE_FILE_NAME_SUFFIX)));
+            setRpcInterfaceJavaFileHandle(generateRpcInterfaceFile(getRpcInterfaceJavaFileHandle(), curNode, imports));
+        }
+
+        /**
          * Close all the file handles.
          */
         close(false);
@@ -1680,6 +1795,9 @@ public class TempJavaCodeFragmentFiles {
         }
         if ((generatedJavaFiles & GENERATE_UNION_CLASS) != 0) {
             closeFile(getTypeClassJavaFileHandle(), isError);
+        }
+        if ((generatedJavaFiles & GENERATE_RPC_INTERFACE) != 0) {
+            closeFile(getRpcInterfaceJavaFileHandle(), isError);
         }
 
         /**
@@ -1721,11 +1839,13 @@ public class TempJavaCodeFragmentFiles {
         if ((generatedTempFiles & OF_STRING_IMPL_MASK) != 0) {
             closeFile(getOfStringImplTempFileHandle(), true);
         }
-        if ((generatedTempFiles & UNION_FROM_STRING_IMPL_MASK) != 0) {
-            closeFile(getUnionFromStringImplTempFileHandle(), true);
+        if ((generatedTempFiles & FROM_STRING_IMPL_MASK) != 0) {
+            closeFile(getFromStringImplTempFileHandle(), true);
+        }
+        if ((generatedTempFiles & RPC_IMPL_MASK) != 0) {
+            closeFile(getRpcInterfaceImplTempFileHandle(), true);
         }
         clean(getTempDirPath());
         generatedTempFiles = 0;
     }
-
 }

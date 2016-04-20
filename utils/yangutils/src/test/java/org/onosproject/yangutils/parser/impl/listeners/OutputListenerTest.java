@@ -19,18 +19,17 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import java.io.IOException;
 import java.util.ListIterator;
 import org.junit.Test;
-
+import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangDataTypes;
+import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
-import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.datamodel.YangOutput;
-import org.onosproject.yangutils.datamodel.YangLeaf;
-import org.onosproject.yangutils.datamodel.YangList;
-import org.onosproject.yangutils.datamodel.YangContainer;
-import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.datamodel.YangStatusType;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
@@ -61,7 +60,7 @@ public class OutputListenerTest {
         assertThat(yangRpc.getName(), is("activate-software-image"));
 
         YangOutput yangOutput = (YangOutput) yangRpc.getChild();
-        assertThat(yangOutput.getName(), is("activate-software-imageOutput"));
+        assertThat(yangOutput.getName(), is("activate-software-image_output"));
         ListIterator<YangLeaf> leafIterator = yangOutput.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
@@ -102,7 +101,7 @@ public class OutputListenerTest {
         assertThat(yangRpc.getName(), is("activate-software-image"));
 
         YangOutput yangOutput = (YangOutput) yangRpc.getChild();
-        assertThat(yangOutput.getName(), is("activate-software-imageOutput"));
+        assertThat(yangOutput.getName(), is("activate-software-image_output"));
         YangTypeDef typeDef = (YangTypeDef) yangOutput.getChild();
         assertThat(typeDef.getName(), is("my-type"));
         assertThat(typeDef.getStatus(), is(YangStatusType.DEPRECATED));

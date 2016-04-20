@@ -47,19 +47,31 @@ public final class GeneratedJavaFileType {
     public static final int GENERATE_INTERFACE_WITH_BUILDER = 15;
 
     /**
-     * Java class corresponding to typedef.
+     * Java interface corresponding to rpc.
      */
-    public static final int GENERATE_TYPEDEF_CLASS = 16;
+    public static final int GENERATE_RPC_INTERFACE = 16;
 
     /**
-     * Java class corresponding to union.
+     * Interface, class file and rpc.
      */
-    public static final int GENERATE_UNION_CLASS = 32;
+    public static final int GENERATE_MANAGER_WITH_RPC = 31;
+
+    // TODO RPC implementation to be integrated with notification.
 
     /**
      * Java class corresponding to YANG enumeration.
      */
     public static final int GENERATE_ENUM_CLASS = 64;
+
+    /**
+     * Java class corresponding to typedef.
+     */
+    public static final int GENERATE_TYPEDEF_CLASS = 1024;
+
+    /**
+     * Java class corresponding to union.
+     */
+    public static final int GENERATE_UNION_CLASS = 2048;
 
     /**
      * Creates an instance of generate java file type.

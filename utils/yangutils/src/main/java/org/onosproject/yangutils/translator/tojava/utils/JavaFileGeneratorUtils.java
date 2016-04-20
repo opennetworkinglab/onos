@@ -29,6 +29,7 @@ import org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_RPC_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
@@ -42,10 +43,11 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.HASH_CODE_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.OF_STRING_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.UNION_FROM_STRING_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaClassDefStart;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getJavaPackageFromPackagePath;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
@@ -58,12 +60,13 @@ import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.IMPL_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INTERFACE;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_INTERFACE;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
 
 /**
@@ -138,12 +141,15 @@ public final class JavaFileGeneratorUtils {
         } else if ((generatedTempFiles & OF_STRING_IMPL_MASK) != 0) {
             return tempJavaCodeFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getOfStringImplTempFileHandle());
-        } else if ((generatedTempFiles & UNION_FROM_STRING_IMPL_MASK) != 0) {
+        } else if ((generatedTempFiles & FROM_STRING_IMPL_MASK) != 0) {
             return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getUnionFromStringImplTempFileHandle());
+                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getFromStringImplTempFileHandle());
         } else if ((generatedTempFiles & ENUM_IMPL_MASK) != 0) {
             return tempJavaCodeFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getEnumClassTempFileHandle());
+        } else if ((generatedTempFiles & RPC_IMPL_MASK) != 0) {
+            return tempJavaCodeFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getRpcInterfaceImplTempFileHandle());
         }
         return null;
     }
@@ -203,6 +209,9 @@ public final class JavaFileGeneratorUtils {
         } else if ((type & GENERATE_ENUM_CLASS) != 0) {
             appendHeaderContents(file, pkgString, importsList);
             write(file, fileName, type, ENUM_CLASS);
+        } else if ((type & GENERATE_RPC_INTERFACE) != 0) {
+            appendHeaderContents(file, pkgString, importsList);
+            write(file, fileName, type, RPC_INTERFACE);
         }
     }
 

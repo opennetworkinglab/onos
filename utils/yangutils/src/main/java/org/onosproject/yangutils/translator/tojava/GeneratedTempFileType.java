@@ -79,12 +79,17 @@ public final class GeneratedTempFileType {
     /**
      * From string implementation of class.
      */
-    public static final int UNION_FROM_STRING_IMPL_MASK = 2048;
+    public static final int FROM_STRING_IMPL_MASK = 2048;
 
     /**
      * Enum implementation of class.
      */
     public static final int ENUM_IMPL_MASK = 4096;
+
+    /**
+     * Rpc implementation of class.
+     */
+    public static final int RPC_IMPL_MASK = 8192;
 
     /**
      * Creates an instance of generated temp file type.

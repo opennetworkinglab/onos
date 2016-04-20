@@ -1,0 +1,17 @@
+module Sfc {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    rpc SFP {
+        input {
+            leaf port {
+                type string;
+            }
+        }
+        output {
+            leaf path {
+                type string;
+            }
+        }
+    }
+}

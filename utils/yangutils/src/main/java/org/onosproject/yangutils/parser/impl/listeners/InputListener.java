@@ -31,10 +31,10 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLoc
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.YangConstructType.INPUT_DATA;
 
@@ -65,7 +65,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.INPUT_DATA;
  */
 public final class InputListener {
 
-    private static final String INPUT_KEYWORD = "Input";
+    private static final String INPUT_KEYWORD = "_input";
 
     /**
      * Creates a new input listener.
@@ -78,10 +78,10 @@ public final class InputListener {
      * (input), performs validation and updates the data model tree.
      *
      * @param listener listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processInputEntry(TreeWalkListener listener,
-                                       GeneratedYangParser.InputStatementContext ctx) {
+                                         GeneratedYangParser.InputStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, INPUT_DATA, "", ENTRY);
@@ -110,10 +110,10 @@ public final class InputListener {
      * validations and updates the data model tree.
      *
      * @param listener listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processInputExit(TreeWalkListener listener,
-                                      GeneratedYangParser.InputStatementContext ctx) {
+                                        GeneratedYangParser.InputStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, INPUT_DATA, "", EXIT);

@@ -28,6 +28,7 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_RPC_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
@@ -37,14 +38,15 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ENUM_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EQUALS_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.HASH_CODE_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.OF_STRING_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.UNION_FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getAugmentedInfoAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getDataFromTempFileHandle;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getEnumsValueAttribute;
@@ -78,9 +80,10 @@ import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
+import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_METHOD_STRING;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.TYPE_CONSTRUCTOR;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.partString;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
@@ -180,7 +183,7 @@ public final class JavaFileGenerator {
     }
 
     /**
-     * Return generated builder interface file for current node.
+     * Returns generated builder interface file for current node.
      *
      * @param file          file
      * @param curNode       current YANG node
@@ -468,6 +471,13 @@ public final class JavaFileGenerator {
             methods.add(getToStringMethodOpen() + getDataFromTempFileHandle(TO_STRING_IMPL_MASK, curNode)
                     + getToStringMethodClose());
 
+            /**
+             * From string method.
+             */
+            methods.add(getFromStringMethodSignature(className)
+                    + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK, curNode)
+                    + getFromStringMethodClose());
+
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className
                     + " while type def class file generation");
@@ -557,7 +567,7 @@ public final class JavaFileGenerator {
              * From string method.
              */
             methods.add(getFromStringMethodSignature(className)
-                    + getDataFromTempFileHandle(UNION_FROM_STRING_IMPL_MASK, curNode)
+                    + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK, curNode)
                     + getFromStringMethodClose());
 
         } catch (IOException e) {
@@ -576,11 +586,11 @@ public final class JavaFileGenerator {
     /**
      * Generates class file for type enum.
      *
-     * @param file generated file
+     * @param file    generated file
      * @param curNode current YANG node
      * @return class file for type enum
      * @throws IOException when fails to generate class file
-    */
+     */
     public static File generateEnumClassFile(File file, YangNode curNode) throws IOException {
 
         JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
@@ -620,6 +630,46 @@ public final class JavaFileGenerator {
                 getJavaDoc(GETTER_METHOD, getSmallCase(className), false) + getGetter(INT, getSmallCase(className))
                         + NEW_LINE);
 
+        insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
+
+        return file;
+    }
+
+    /**
+     * Generates interface file for rpc.
+     *
+     * @param file    generated file
+     * @param curNode current YANG node
+     * @param imports imports for file
+     * @return type def class file
+     * @throws IOException when fails to generate class file
+     */
+    public static File generateRpcInterfaceFile(File file, YangNode curNode, List<String> imports) throws IOException {
+
+        JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
+
+        String className = getCaptialCase(javaFileInfo.getJavaName()) + SERVICE_METHOD_STRING;
+        String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
+
+        initiateJavaFileGeneration(file, className, GENERATE_RPC_INTERFACE, imports, path);
+
+        List<String> methods = new ArrayList<>();
+
+        try {
+
+            /**
+             * Rpc methods
+             */
+            methods.add(getDataFromTempFileHandle(RPC_IMPL_MASK, curNode));
+
+        } catch (IOException e) {
+            throw new IOException("No data found in temporary java code fragment files for " + className
+                    + " while rpc class file generation");
+        }
+
+        for (String method : methods) {
+            insertDataIntoJavaFile(file, method);
+        }
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
 
         return file;

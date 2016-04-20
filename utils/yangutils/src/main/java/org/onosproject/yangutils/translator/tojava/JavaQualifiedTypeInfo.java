@@ -169,7 +169,7 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
     }
 
     /**
-     * Get the java qualified type information for the wrapper classes.
+     * Returns the java qualified type information for the wrapper classes.
      *
      * @param referredTypesAttrInfo attribute of referred type
      * @return return the import info for this attribute

@@ -61,7 +61,7 @@ public class InputListenerTest {
         assertThat(yangRpc.getName(), is("activate-software-image"));
 
         YangInput yangInput = (YangInput) yangRpc.getChild();
-        assertThat(yangInput.getName(), is("activate-software-imageInput"));
+        assertThat(yangInput.getName(), is("activate-software-image_input"));
         ListIterator<YangLeaf> leafIterator = yangInput.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
@@ -102,7 +102,7 @@ public class InputListenerTest {
         assertThat(yangRpc.getName(), is("activate-software-image"));
 
         YangInput yangInput = (YangInput) yangRpc.getChild();
-        assertThat(yangInput.getName(), is("activate-software-imageInput"));
+        assertThat(yangInput.getName(), is("activate-software-image_input"));
         YangTypeDef typeDef = (YangTypeDef) yangInput.getChild();
         assertThat(typeDef.getName(), is("my-type"));
         assertThat(typeDef.getStatus(), is(YangStatusType.DEPRECATED));

@@ -26,7 +26,7 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_MANAGER_WITH_RPC;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 
 /**
@@ -58,7 +58,7 @@ public class YangJavaSubModule extends YangSubModule implements JavaCodeGenerato
         super();
         setJavaFileInfo(new JavaFileInfo());
         setJavaImportData(new JavaImportData());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER);
+        getJavaFileInfo().setGeneratedFileTypes(GENERATE_MANAGER_WITH_RPC);
     }
 
     /**
@@ -98,7 +98,7 @@ public class YangJavaSubModule extends YangSubModule implements JavaCodeGenerato
      * Sets the data of java imports to be included in generated file.
      *
      * @param javaImportData data of java imports to be included in generated
-     *            file
+     *                       file
      */
     @Override
     public void setJavaImportData(JavaImportData javaImportData) {
@@ -129,7 +129,7 @@ public class YangJavaSubModule extends YangSubModule implements JavaCodeGenerato
      * Returns the name space of the module to which the sub module belongs to.
      *
      * @param belongsToInfo Information of the module to which the sub module
-     *            belongs
+     *                      belongs
      * @return the name space string of the module.
      */
     private String getNameSpaceFromModule(YangBelongsTo belongsToInfo) {
@@ -138,7 +138,7 @@ public class YangJavaSubModule extends YangSubModule implements JavaCodeGenerato
     }
 
     /**
-     * Prepare the information for java code generation corresponding to YANG
+     * Prepares the information for java code generation corresponding to YANG
      * submodule info.
      *
      * @param yangPlugin YANG plugin config

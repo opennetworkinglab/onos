@@ -138,6 +138,21 @@ public final class UtilConstants {
     public static final String BUILDER_OBJECT = "builder object of ";
 
     /**
+     * JavaDocs's statement for rpc method.
+     */
+    public static final String JAVA_DOC_RPC = " * Service interface of ";
+
+    /**
+     * JavaDocs's statement for rpc's input string.
+     */
+    public static final String RPC_INPUT_STRING = "input of service interface ";
+
+    /**
+     * JavaDocs's statement for rpc's output string.
+     */
+    public static final String RPC_OUTPUT_STRING = "output of service interface ";
+
+    /**
      * Static attribute for new line.
      */
     public static final String NEW_LINE = "\n";
@@ -216,6 +231,11 @@ public final class UtilConstants {
      * Static attribute for input string.
      */
     public static final String INPUT = "input";
+
+    /**
+     * Static attribute for output variable of rpc.
+     */
+    public static final String RPC_INPUT_VAR_NAME = "inputVar";
 
     /**
      * Static attribute for new line.
@@ -721,6 +741,11 @@ public final class UtilConstants {
      * Static attribute for extends syntax.
      */
     public static final String EXTEND = "extends";
+
+    /**
+     * Static attribute for service interface suffix syntax.
+     */
+    public static final String SERVICE_METHOD_STRING = "Service";
 
     /**
      * Static attribute for impl syntax.

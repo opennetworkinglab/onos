@@ -24,7 +24,7 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
-import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfType;
+import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfNode;
 
 /**
  * Represents union information extended to support java code generation.
@@ -135,7 +135,7 @@ public class YangJavaUnion extends YangUnion implements JavaCodeGeneratorInfo, J
      */
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
-        generateCodeOfType(this, yangPlugin, false);
+        generateCodeOfNode(this, yangPlugin);
     }
 
     /**

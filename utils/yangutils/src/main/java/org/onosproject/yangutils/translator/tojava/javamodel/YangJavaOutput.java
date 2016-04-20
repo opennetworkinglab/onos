@@ -68,7 +68,7 @@ public class YangJavaOutput extends YangOutput implements JavaCodeGeneratorInfo,
     @Override
     public JavaFileInfo getJavaFileInfo() {
         if (javaFileInfo == null) {
-            throw new TranslatorException("Missing java info in java datamodel node");
+            throw new TranslatorException("missing java info in java datamodel node");
         }
         return javaFileInfo;
     }
@@ -97,7 +97,7 @@ public class YangJavaOutput extends YangOutput implements JavaCodeGeneratorInfo,
      * Sets the data of java imports to be included in generated file.
      *
      * @param javaImportData data of java imports to be included in generated
-     *            file
+     *                       file
      */
     @Override
     public void setJavaImportData(JavaImportData javaImportData) {
@@ -133,7 +133,7 @@ public class YangJavaOutput extends YangOutput implements JavaCodeGeneratorInfo,
      */
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
-        generateCodeOfNode(this, yangPlugin, false);
+        generateCodeOfNode(this, yangPlugin);
     }
 
     /**

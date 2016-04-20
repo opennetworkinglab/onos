@@ -17,40 +17,132 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
+import org.onosproject.yangutils.datamodel.HasRpcNotification;
+import org.onosproject.yangutils.datamodel.YangInput;
+import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangOutput;
 import org.onosproject.yangutils.datamodel.YangRpc;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
+
+import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getCurNodeAsAttributeInParent;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getParentNodeInGenCode;
+import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.updatePackageInfo;
 
 /**
  * Represents rpc information extended to support java code generation.
  */
-public class YangJavaRpc extends YangRpc implements JavaCodeGenerator {
+public class YangJavaRpc extends YangRpc implements JavaCodeGenerator, HasJavaFileInfo {
 
     /**
-     * Creates an instance of java Rpc.
+     * Contains the information of the java file being generated.
+     */
+    private JavaFileInfo javaFileInfo;
+
+    /**
+     * Creates an instance of YANG java rpc.
      */
     public YangJavaRpc() {
+        super();
+        setJavaFileInfo(new JavaFileInfo());
     }
 
     /**
      * Prepares the information for java code generation corresponding to YANG
-     * RPC info.
+     * rpc info.
      *
      * @param yangPlugin YANG plugin config
-     * @throws IOException IO operation fail
+     * @throws IOException IO operations fails
      */
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
-          // TODO
+
+        if (!(this instanceof YangNode)) {
+            // TODO:throw exception
+        }
+
+        // Add package information for rpc and create corresponding folder.
+        updatePackageInfo(this, yangPlugin);
+
+        // Get the parent module/sub-module.
+        YangNode parent = getParentNodeInGenCode((YangNode) this);
+
+        // Parent should be holder of rpc or notification.
+        if (!(parent instanceof HasRpcNotification)) {
+            throw new TranslatorException("parent node of rpc can only be module or sub-module");
+        }
+
+        /*
+         * Create attribute info for input and output of rpc and add it to the
+         * parent import list.
+         */
+
+        JavaAttributeInfo javaAttributeInfoOfInput = null;
+        JavaAttributeInfo javaAttributeInfoOfOutput = null;
+
+        // Get the child input and output node and obtain create java attribute info.
+        YangNode yangNode = this.getChild();
+        while (yangNode != null) {
+            if (yangNode instanceof YangInput) {
+                javaAttributeInfoOfInput = getCurNodeAsAttributeInParent(parent, false, yangNode.getName());
+            } else if (yangNode instanceof YangOutput) {
+                javaAttributeInfoOfOutput = getCurNodeAsAttributeInParent(parent, false, yangNode.getName());
+            } else {
+                // TODO throw exception
+            }
+            yangNode = yangNode.getNextSibling();
+        }
+
+        if (!(parent instanceof HasTempJavaCodeFragmentFiles)) {
+            throw new TranslatorException("missing parent temp file handle");
+        }
+
+        /*
+         * Add the rpc information to the parent's service temp file.
+         */
+        ((HasTempJavaCodeFragmentFiles) parent)
+                .getTempJavaCodeFragmentFiles()
+                .addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfoOfInput, javaAttributeInfoOfOutput,
+                        ((YangNode) this).getName());
     }
 
     /**
-     * Creates a java file using the YANG RPC info.
+     * Creates a java file using the YANG rpc info.
      *
-     * @throws IOException IO operation fail
+     * @throws IOException IO operations fails
      */
     @Override
     public void generateCodeExit() throws IOException {
-          // TODO
+        // No file will be generated during RPC exit.
+    }
+
+    /**
+     * Returns the generated java file information.
+     *
+     * @return generated java file information
+     */
+    @Override
+    public JavaFileInfo getJavaFileInfo() {
+
+        if (javaFileInfo == null) {
+            throw new TranslatorException("missing java info in java datamodel node");
+        }
+        return javaFileInfo;
+    }
+
+    /**
+     * Sets the java file info object.
+     *
+     * @param javaInfo java file info object
+     */
+    @Override
+    public void setJavaFileInfo(JavaFileInfo javaInfo) {
+        javaFileInfo = javaInfo;
     }
 }
+

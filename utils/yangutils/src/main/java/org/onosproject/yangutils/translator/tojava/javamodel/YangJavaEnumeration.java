@@ -17,7 +17,6 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
-
 import org.onosproject.yangutils.datamodel.YangEnumeration;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
@@ -27,7 +26,7 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
-import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfType;
+import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfNode;
 
 /**
  * Represents YANG java enumeration information extended to support java code generation.
@@ -101,7 +100,7 @@ public class YangJavaEnumeration extends YangEnumeration implements JavaCodeGene
      * Sets the data of java imports to be included in generated file.
      *
      * @param javaImportData data of java imports to be included in generated
-     *            file
+     *                       file
      */
     @Override
     public void setJavaImportData(JavaImportData javaImportData) {
@@ -140,7 +139,7 @@ public class YangJavaEnumeration extends YangEnumeration implements JavaCodeGene
      */
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
-        generateCodeOfType(this, yangPlugin, false);
+        generateCodeOfNode(this, yangPlugin);
     }
 
     /**
