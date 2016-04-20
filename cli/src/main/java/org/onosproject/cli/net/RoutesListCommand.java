@@ -15,6 +15,10 @@
  */
 package org.onosproject.cli.net;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.routing.Route;
@@ -45,14 +49,54 @@ public class RoutesListCommand extends AbstractShellCommand {
 
         Map<RouteTableId, Collection<Route>> allRoutes = service.getAllRoutes();
 
-        allRoutes.forEach((id, routes) -> {
-            print(FORMAT_TABLE, id);
-            print(FORMAT_HEADER);
-            routes.forEach(r -> print(FORMAT_ROUTE, r.prefix(), r.nextHop()));
-            print(FORMAT_TOTAL, routes.size());
-            print("");
-        });
+        if (outputJson()) {
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode result = mapper.createObjectNode();
+            result.set("routes4", json(allRoutes.get(new RouteTableId("ipv4"))));
+            result.set("routes6", json(allRoutes.get(new RouteTableId("ipv6"))));
+            print("%s", result);
+        } else {
+            allRoutes.forEach((id, routes) -> {
+                print(FORMAT_TABLE, id);
+                print(FORMAT_HEADER);
+                routes.forEach(r -> print(FORMAT_ROUTE, r.prefix(), r.nextHop()));
+                print(FORMAT_TOTAL, routes.size());
+                print("");
+            });
+        }
 
+    }
+
+    /**
+     * Produces a JSON array of routes.
+     *
+     * @param routes the routes with the data
+     * @return JSON array with the routes
+     */
+    private JsonNode json(Collection<Route> routes) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+
+        for (Route route : routes) {
+            result.add(json(mapper, route));
+        }
+        return result;
+    }
+
+    /**
+     * Produces JSON object for a route.
+     *
+     * @param mapper the JSON object mapper to use
+     * @param route the route with the data
+     * @return JSON object for the route
+     */
+    private ObjectNode json(ObjectMapper mapper, Route route) {
+        ObjectNode result = mapper.createObjectNode();
+
+        result.put("prefix", route.prefix().toString());
+        result.put("nextHop", route.nextHop().toString());
+
+        return result;
     }
 
 }
