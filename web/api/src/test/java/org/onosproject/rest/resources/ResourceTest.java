@@ -17,12 +17,16 @@ package org.onosproject.rest.resources;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
+import org.glassfish.jersey.test.jetty.JettyTestContainerFactory;
+import org.glassfish.jersey.test.spi.TestContainerException;
+import org.glassfish.jersey.test.spi.TestContainerFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 
 /**
- * Base class for REST API tests.  Performs common configuration operations.
+ * Base class for REST API tests.
+ * Performs common configuration operations.
  */
 public class ResourceTest extends JerseyTest {
     private static final int DEFAULT_PORT = 9998;
@@ -60,5 +64,16 @@ public class ResourceTest extends JerseyTest {
         } catch (IOException ioe) {
             return defaultPort;
         }
+    }
+
+    /**
+     * Configures the jetty test container as default test container.
+     *
+     * @return test container factory
+     * @throws TestContainerException
+     */
+    @Override
+    protected TestContainerFactory getTestContainerFactory() throws TestContainerException {
+        return new JettyTestContainerFactory();
     }
 }

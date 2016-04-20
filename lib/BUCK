@@ -81,17 +81,20 @@ java_library(
     ':jersey-server',
     ':jersey-common',
     ':jersey-test-framework-core',
-    ':jersey-test-framework-grizzly2',
+    ':jersey-test-framework-jetty',
+    ':jersey-container-jetty-http',
+    ':jetty-continuation',
+    ':jetty-http',
+    ':javax.servlet-api',
+    ':jetty-server',
+    ':jetty-io',
+    ':jetty-util',
     ':jersey-guava',
     ':hk2-api',
     ':hk2-locator',
     ':hk2-utils',
     ':javax.inject',
     ':hk2-osgi-resource-locator',
-    ':jersey-container-grizzly2-http',
-    ':grizzly-http-server',
-    ':grizzly-framework',
-    ':grizzly-http',
     ':javax.annotation-api',
     ':validation-api',
     '//core/common:onos-core-common',
@@ -592,45 +595,87 @@ remote_file(
 )
 
 prebuilt_jar(
-  name = 'grizzly-framework',
-  binary_jar = ':grizzly-framework-2.3.23.jar',
-  maven_coords = 'org.glassfish.grizzly:grizzly-framework:2.3.23',
+  name = 'jetty-server',
+  binary_jar = ':jetty-server-9.1.6.v20160112.jar',
+  maven_coords = 'org.eclipse.jetty:jetty-server:9.1.6.v20160112',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_file(
-  name = 'grizzly-framework-2.3.23.jar',
-  out = 'grizzly-framework-2.3.23.jar',
-  url = 'mvn:org.glassfish.grizzly:grizzly-framework:jar:2.3.23',
-  sha1 = '262913b1a7ec4156e7e6aa3f8854a4d1a54940b0',
+  name = 'jetty-server-9.1.6.v20160112.jar',
+  out = 'jetty-server-9.1.6.v20160112.jar',
+  url = 'mvn:org.eclipse.jetty:jetty-server:jar:9.1.6.v20160112',
+  sha1 = '15f8b12fe0e2105f46d7c3b372054adc85e941a9',
 )
 
 prebuilt_jar(
-  name = 'grizzly-http',
-  binary_jar = ':grizzly-http-2.3.23.jar',
-  maven_coords = 'org.glassfish.grizzly:grizzly-http:2.3.23',
+  name = 'jetty-util',
+  binary_jar = ':jetty-util-9.1.6.v20160112.jar',
+  maven_coords = 'org.eclipse.jetty:jetty-util:9.1.6.v20160112',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_file(
-  name = 'grizzly-http-2.3.23.jar',
-  out = 'grizzly-http-2.3.23.jar',
-  url = 'mvn:org.glassfish.grizzly:grizzly-http:jar:2.3.23',
-  sha1 = '287ea2c8a765b14fbc494749570ff3889ecd7b83',
+  name = 'jetty-util-9.1.6.v20160112.jar',
+  out = 'jetty-util-9.1.6.v20160112.jar',
+  url = 'mvn:org.eclipse.jetty:jetty-util:jar:9.1.6.v20160112',
+  sha1 = 'd4337bc023fe99b072abc56425b8a317ffd3f462',
 )
 
 prebuilt_jar(
-  name = 'grizzly-http-server',
-  binary_jar = ':grizzly-http-server-2.3.23.jar',
-  maven_coords = 'org.glassfish.grizzly:grizzly-http-server:2.3.23',
+  name = 'jetty-continuation',
+  binary_jar = ':jetty-continuation-9.1.6.v20160112.jar',
+  maven_coords = 'org.eclipse.jetty:jetty-continuation:9.1.6.v20160112',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_file(
-  name = 'grizzly-http-server-2.3.23.jar',
-  out = 'grizzly-http-server-2.3.23.jar',
-  url = 'mvn:org.glassfish.grizzly:grizzly-http-server:jar:2.3.23',
-  sha1 = '4aaf209163d8dca1bfb1907f19c7fd1f2f3ebbf9',
+  name = 'jetty-continuation-9.1.6.v20160112.jar',
+  out = 'jetty-continuation-9.1.6.v20160112.jar',
+  url = 'mvn:org.eclipse.jetty:jetty-continuation:jar:9.1.6.v20160112',
+  sha1 = 'c8f35dfc6321cc15224404c9c4ede79988eeae34',
+)
+
+prebuilt_jar(
+  name = 'jetty-http',
+  binary_jar = ':jetty-http-9.1.6.v20160112.jar',
+  maven_coords = 'org.eclipse.jetty:jetty-http:9.1.6.v20160112',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_file(
+  name = 'jetty-http-9.1.6.v20160112.jar',
+  out = 'jetty-http-9.1.6.v20160112.jar',
+  url = 'mvn:org.eclipse.jetty:jetty-http:jar:9.1.6.v20160112',
+  sha1 = 'c3675e6ebc350aafbc9dd7686265af9f65165b36',
+)
+
+prebuilt_jar(
+  name = 'jetty-io',
+  binary_jar = ':jetty-io-9.1.6.v20160112.jar',
+  maven_coords = 'org.eclipse.jetty:jetty-io:9.1.6.v20160112',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_file(
+  name = 'jetty-io-9.1.6.v20160112.jar',
+  out = 'jetty-io-9.1.6.v20160112.jar',
+  url = 'mvn:org.eclipse.jetty:jetty-io:jar:9.1.6.v20160112',
+  sha1 = '717fc5a269becb2537849105de1547dc1a4476b0',
+)
+
+prebuilt_jar(
+  name = 'javax.servlet-api',
+  binary_jar = ':javax.servlet-api-3.1.0.jar',
+  maven_coords = 'javax.servlet:javax.servlet-api:3.1.0',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_file(
+  name = 'javax.servlet-api-3.1.0.jar',
+  out = 'javax.servlet-api-3.1.0.jar',
+  url = 'mvn:javax.servlet:javax.servlet-api:jar:3.1.0',
+  sha1 = '3cd63d075497751784b2fa84be59432f4905bf7c',
 )
 
 prebuilt_jar(
@@ -914,17 +959,17 @@ remote_file(
 )
 
 prebuilt_jar(
-  name = 'jersey-container-grizzly2-http',
-  binary_jar = ':jersey-container-grizzly2-http-2.22.2.jar',
-  maven_coords = 'org.glassfish.jersey.containers:jersey-container-grizzly2-http:2.22.2',
+  name = 'jersey-container-jetty-http',
+  binary_jar = ':jersey-container-jetty-http-2.22.2.jar',
+  maven_coords = 'org.glassfish.jersey.containers:jersey-container-jetty-http:2.22.2',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_file(
-  name = 'jersey-container-grizzly2-http-2.22.2.jar',
-  out = 'jersey-container-grizzly2-http-2.22.2.jar',
-  url = 'mvn:org.glassfish.jersey.containers:jersey-container-grizzly2-http:jar:2.22.2',
-  sha1 = '7f4f0cb7cfad277a4a6d91298d9f2ac309e4383b',
+  name = 'jersey-container-jetty-http-2.22.2.jar',
+  out = 'jersey-container-jetty-http-2.22.2.jar',
+  url = 'mvn:org.glassfish.jersey.containers:jersey-container-jetty-http:jar:2.22.2',
+  sha1 = '7421abf505bda989087745a458b5ccf2cd327297',
 )
 
 prebuilt_jar(
@@ -984,31 +1029,17 @@ remote_file(
 )
 
 prebuilt_jar(
-  name = 'jersey-test-framework-grizzly2',
-  binary_jar = ':jersey-test-framework-provider-grizzly2-2.22.2.jar',
-  maven_coords = 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:2.22.2',
+  name = 'jersey-test-framework-jetty',
+  binary_jar = ':jersey-test-framework-provider-jetty-2.22.2.jar',
+  maven_coords = 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:2.22.2',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_file(
-  name = 'jersey-test-framework-provider-grizzly2-2.22.2.jar',
-  out = 'jersey-test-framework-provider-grizzly2-2.22.2.jar',
-  url = 'mvn:org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:jar:2.22.2',
-  sha1 = '05aa3952528f09ce94360ab238446163d2544344',
-)
-
-prebuilt_jar(
-  name = 'jetty-util',
-  binary_jar = ':jetty-util-8.1.18.v20150929.jar',
-  maven_coords = 'org.eclipse.jetty:jetty-util:8.1.18.v20150929',
-  visibility = [ 'PUBLIC' ],
-)
-
-remote_file(
-  name = 'jetty-util-8.1.18.v20150929.jar',
-  out = 'jetty-util-8.1.18.v20150929.jar',
-  url = 'mvn:org.eclipse.jetty:jetty-util:jar:8.1.18.v20150929',
-  sha1 = 'fb8fb3debf99a626c827535bf06451a337c6b085',
+  name = 'jersey-test-framework-provider-jetty-2.22.2.jar',
+  out = 'jersey-test-framework-provider-jetty-2.22.2.jar',
+  url = 'mvn:org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:jar:2.22.2',
+  sha1 = 'ab3b0418403f6a5cfc311f92b7cd589dc32f60ed',
 )
 
 prebuilt_jar(
