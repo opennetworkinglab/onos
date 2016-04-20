@@ -18,6 +18,10 @@ package org.onosproject.ui.chart;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.ui.RequestHandler;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Message handler specifically for the chart views.
  */
@@ -25,6 +29,7 @@ public abstract class ChartRequestHandler extends RequestHandler {
 
     private final String respType;
     private final String nodeName;
+    protected static final String LABEL = "label";
 
     /**
      * Constructs a chart model handler for a specific graph view. When chart
@@ -61,7 +66,11 @@ public abstract class ChartRequestHandler extends RequestHandler {
      * @return an empty chart model
      */
     protected ChartModel createChartModel() {
-        return new ChartModel(getSeries());
+        List<String> series = new ArrayList<>();
+        series.addAll(Arrays.asList(getSeries()));
+        series.add(LABEL);
+        String[] seiresArray = new String[series.size()];
+        return new ChartModel(series.toArray(seiresArray));
     }
 
     /**

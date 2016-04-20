@@ -17,6 +17,7 @@ package org.onosproject.cpman;
 
 import com.google.common.base.MoreObjects;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -29,18 +30,35 @@ public class ControlLoadSnapshot {
     private final long latest;
     private final long average;
     private final long time;
+    private long[] recent;
 
     /**
      * Instantiates a new control metric response with given latest, average, time.
      *
-     * @param latest latest value of control metric
+     * @param latest  latest value of control metric
      * @param average average value of control metric
-     * @param time last logging time fo control metric
+     * @param time    last logging time of control metric
      */
     public ControlLoadSnapshot(long latest, long average, long time) {
         this.latest = latest;
         this.average = average;
         this.time = time;
+    }
+
+    /**
+     * Instantiates a new control metric response with given latest, average, time,
+     * recent values.
+     *
+     * @param latest  latest value of control metric
+     * @param average average value of control metric
+     * @param time last logging time of control metric
+     * @param recent a set of historical data
+     */
+    public ControlLoadSnapshot(long latest, long average, long time, long[] recent) {
+        this.latest = latest;
+        this.average = average;
+        this.time = time;
+        this.recent = recent;
     }
 
     /**
@@ -70,9 +88,18 @@ public class ControlLoadSnapshot {
         return average;
     }
 
+    /**
+     * Returns a set of historical recent of control metric.
+     *
+     * @return a set of historical recent of control metric
+     */
+    public long[] recent() {
+        return recent;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(latest, average, time);
+        return Objects.hash(latest, average, time, recent);
     }
 
     @Override
@@ -84,7 +111,8 @@ public class ControlLoadSnapshot {
             final ControlLoadSnapshot other = (ControlLoadSnapshot) obj;
             return Objects.equals(this.latest, other.latest) &&
                     Objects.equals(this.average, other.average) &&
-                    Objects.equals(this.time, other.time);
+                    Objects.equals(this.time, other.time) &&
+                    Arrays.equals(this.recent, other.recent);
         }
         return false;
     }
@@ -95,7 +123,9 @@ public class ControlLoadSnapshot {
         helper = toStringHelper(this)
                 .add("latest", latest)
                 .add("average", average)
-                .add("time", time);
+                .add("time", time)
+                .add("recent", recent);
+
         return helper.toString();
     }
 }

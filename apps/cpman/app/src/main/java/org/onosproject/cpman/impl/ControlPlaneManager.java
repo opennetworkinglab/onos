@@ -81,10 +81,10 @@ public class ControlPlaneManager {
             // TODO: this can be changed to switch-case if we have more than
             // one event type
             if (event.type().equals(STATS_UPDATE)) {
-                controlMessages.forEach(c -> {
+                controlMessages.forEach(c ->
                     monitorService.updateMetric(getControlMetric(c), 1,
-                            Optional.of(c.deviceId()));
-                });
+                            Optional.of(c.deviceId()))
+                );
             }
         }
     }

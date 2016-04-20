@@ -1,17 +1,8 @@
 <!-- partial HTML -->
 <div id="ov-cpman">
-    <div class="button-panel">
-        <div class="my-button" ng-click="getData()">
-            Fetch Data
-        </div>
-    </div>
-
-    <div class="data-panel">
-        <table>
-            <tr>
-                <td> Number </td>
-                <td class="number"> {{data.random}} </td>
-            </tr>
-        </table>
+    <div>
+        <canvas id="line" class="chart chart-line" chart-data="data"
+                chart-labels="labels" chart-legend="true" chart-series="series">
+        </canvas>
     </div>
 </div>

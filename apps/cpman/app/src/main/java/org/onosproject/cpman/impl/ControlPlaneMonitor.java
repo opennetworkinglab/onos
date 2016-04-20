@@ -169,7 +169,7 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
                 if (ctrlMsgBuf.get(deviceId.get()).keySet()
                         .containsAll(CONTROL_MESSAGE_METRICS)) {
                     updateControlMessages(ctrlMsgBuf.get(deviceId.get()), deviceId.get());
-                    ctrlMsgBuf.get(deviceId.get());
+                    ctrlMsgBuf.clear();
                 }
             }
         } else {
@@ -327,8 +327,10 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
      */
     private void updateNetworkMetrics(Map<ControlMetricType, Double> metricMap,
                                       String resourceName) {
-        networkMetricsMap.putIfAbsent(resourceName, genMDbBuilder(resourceName,
-                Type.NETWORK, NETWORK_METRICS));
+        if (!networkMetricsMap.containsKey(resourceName)) {
+            networkMetricsMap.put(resourceName, genMDbBuilder(resourceName,
+                    Type.NETWORK, NETWORK_METRICS));
+        }
         networkMetricsMap.get(resourceName).updateMetrics(convertMap(metricMap));
     }
 
@@ -340,8 +342,10 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
      */
     private void updateDiskMetrics(Map<ControlMetricType, Double> metricMap,
                                    String resourceName) {
-        diskMetricsMap.putIfAbsent(resourceName, genMDbBuilder(resourceName,
-                Type.DISK, DISK_METRICS));
+        if (!diskMetricsMap.containsKey(resourceName)) {
+            diskMetricsMap.put(resourceName, genMDbBuilder(resourceName,
+                    Type.DISK, DISK_METRICS));
+        }
         diskMetricsMap.get(resourceName).updateMetrics(convertMap(metricMap));
     }
 
@@ -353,8 +357,10 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
      */
     private void updateControlMessages(Map<ControlMetricType, Double> metricMap,
                                        DeviceId deviceId) {
-        controlMessageMap.putIfAbsent(deviceId, genMDbBuilder(deviceId.toString(),
-                Type.CONTROL_MESSAGE, CONTROL_MESSAGE_METRICS));
+        if (!controlMessageMap.containsKey(deviceId)) {
+            controlMessageMap.put(deviceId, genMDbBuilder(deviceId.toString(),
+                    Type.CONTROL_MESSAGE, CONTROL_MESSAGE_METRICS));
+        }
         controlMessageMap.get(deviceId).updateMetrics(convertMap(metricMap));
     }
 
@@ -478,7 +484,9 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
      */
     private ControlLoadSnapshot snapshot(ControlLoad cl, int duration, TimeUnit unit) {
         if (cl != null) {
-            return new ControlLoadSnapshot(cl.latest(), cl.average(duration, unit), cl.time());
+
+            return new ControlLoadSnapshot(cl.latest(), cl.average(duration, unit),
+                    cl.time(), cl.recent(duration, unit));
         }
         return null;
     }

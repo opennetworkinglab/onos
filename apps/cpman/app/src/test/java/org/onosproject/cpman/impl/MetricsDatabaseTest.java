@@ -149,11 +149,13 @@ public class MetricsDatabaseTest {
         devMetricsMap = Maps.newHashMap();
 
         Set<DeviceId> devices = ImmutableSet.of(devId1, devId2);
-        devices.forEach(dev ->
-            devMetricsMap.putIfAbsent(dev,
-                    genMDbBuilder(type, ControlResource.CONTROL_MESSAGE_METRICS)
-                            .withResourceName(dev.toString())
-                            .build()));
+        devices.forEach(dev -> {
+            if (!devMetricsMap.containsKey(dev)) {
+                devMetricsMap.put(dev, genMDbBuilder(type, ControlResource.CONTROL_MESSAGE_METRICS)
+                        .withResourceName(dev.toString())
+                        .build());
+            }
+        });
 
         Map<String, Double> metrics1 = new HashMap<>();
         ControlResource.CONTROL_MESSAGE_METRICS.forEach(msgType ->

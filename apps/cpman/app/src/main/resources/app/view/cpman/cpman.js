@@ -20,66 +20,60 @@
 (function () {
     'use strict';
 
-    // injected refs
-    var $log, $scope, wss, ks;
+    // injected references
+    var $log, $scope, $location, ks, fs, cbs;
 
-    // constants
-    var dataReq = 'cpmanDataRequest',
-        dataResp = 'cpmanDataResponse';
+    var labels = new Array(60);
+    var data = new Array(new Array(60), new Array(60), new Array(60),
+                         new Array(60), new Array(60), new Array(60));
 
-    function addKeyBindings() {
-        var map = {
-            space: [getData, 'Fetch data from server'],
-
-            _helpFormat: [
-                ['space']
-            ]
-        };
-
-        ks.keyBindings(map);
-    }
-
-    function getData() {
-        wss.sendEvent(dataReq);
-    }
-
-    function respDataCb(data) {
-        $scope.data = data;
-        $scope.$apply();
-    }
-
-
-    angular.module('ovCpman', [])
+    angular.module('ovCpman', ["chart.js"])
         .controller('OvCpmanCtrl',
-        ['$log', '$scope', 'WebSocketService', 'KeyService',
+        ['$log', '$scope', '$location', 'FnService', 'ChartBuilderService',
 
-        function (_$log_, _$scope_, _wss_, _ks_) {
+        function (_$log_, _$scope_, _$location_, _fs_, _cbs_) {
+            var params;
             $log = _$log_;
             $scope = _$scope_;
-            wss = _wss_;
-            ks = _ks_;
+            $location = _$location_;
+            fs = _fs_;
+            cbs = _cbs_;
 
-            var handlers = {};
-            $scope.data = {};
+            params = $location.search();
+            if (params.hasOwnProperty('devId')) {
+                $scope.devId = params['devId'];
+            }
 
-            // data response handler
-            handlers[dataResp] = respDataCb;
-            wss.bindHandlers(handlers);
-
-            addKeyBindings();
-
-            // custom click handler
-            $scope.getData = getData;
-
-            // get data the first time...
-            getData();
-
-            // cleanup
-            $scope.$on('$destroy', function () {
-                wss.unbindHandlers(handlers);
-                ks.unbindKeys();
-                $log.log('OvCpmanCtrl has been destroyed');
+            cbs.buildChart({
+                scope: $scope,
+                tag: 'cpman',
+                query: params
             });
+
+            var idx = 0;
+            var date;
+            $scope.$watch('chartData', function () {
+                idx = 0;
+                if (!fs.isEmptyObject($scope.chartData)) {
+                    $scope.chartData.forEach(function (cm) {
+                        data[0][idx] = cm.inbound_packet;
+                        data[1][idx] = cm.outbound_packet;
+                        data[2][idx] = cm.flow_mod_packet;
+                        data[3][idx] = cm.flow_removed_packet;
+                        data[4][idx] = cm.request_packet;
+                        data[5][idx] = cm.reply_packet;
+                        date = new Date(cm.label);
+                        labels[idx] = date.getHours() + ":" + date.getMinutes();
+                        idx++;
+                    });
+                }
+            });
+
+            $scope.series = ['INBOUND', 'OUTBOUND', 'FLOW-MOD',
+                             'FLOW-REMOVED', 'STATS-REQUEST', 'STATS-REPLY'];
+            $scope.labels = labels;
+
+            $scope.data = data;
 
             $log.log('OvCpmanCtrl has been created');
         }]);
