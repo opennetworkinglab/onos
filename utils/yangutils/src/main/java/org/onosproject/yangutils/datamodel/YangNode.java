@@ -16,11 +16,17 @@
 package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.translator.tojava.TraversalType;
+
+import static org.onosproject.yangutils.translator.tojava.TraversalType.CHILD;
+import static org.onosproject.yangutils.translator.tojava.TraversalType.PARENT;
+import static org.onosproject.yangutils.translator.tojava.TraversalType.SIBILING;
 
 /**
  * Represents base class of a node in data model tree.
  */
-public abstract class YangNode {
+public abstract class YangNode
+        implements Cloneable {
 
     /**
      * Type of node.
@@ -146,7 +152,7 @@ public abstract class YangNode {
      *
      * @param sibling YANG node
      */
-    public void setNextSibling(YangNode sibling) {
+    private void setNextSibling(YangNode sibling) {
         nextSibling = sibling;
     }
 
@@ -164,7 +170,7 @@ public abstract class YangNode {
      *
      * @param previousSibling points to predecessor sibling
      */
-    public void setPreviousSibling(YangNode previousSibling) {
+    private void setPreviousSibling(YangNode previousSibling) {
         this.previousSibling = previousSibling;
     }
 
@@ -175,7 +181,8 @@ public abstract class YangNode {
      * @param newChild refers to a child to be added
      * @throws DataModelException due to violation in data model rules
      */
-    public void addChild(YangNode newChild) throws DataModelException {
+    public void addChild(YangNode newChild)
+            throws DataModelException {
         if (newChild.getNodeType() == null) {
             throw new DataModelException("Abstract node cannot be inserted into a tree");
         }
@@ -207,24 +214,10 @@ public abstract class YangNode {
         YangNode curNode;
         curNode = getChild();
 
-        /*-
-         *  If the new node needs to be the first child
-        if (newChild.getNodeType().ordinal() < curNode.getNodeType().ordinal()) {
-            newChild.setNextSibling(curNode);
-            curNode.setPreviousSibling(newChild);
-            setChild(newChild);
-            return;
-        }
-         */
-
         /*
          * Get the predecessor child of new child
          */
-        while (curNode.getNextSibling() != null
-        /*
-         * && newChild.getNodeType().ordinal() >=
-         * curNode.getNextSibling().getNodeType().ordinal()
-         */) {
+        while (curNode.getNextSibling() != null) {
 
             curNode = curNode.getNextSibling();
         }
@@ -233,16 +226,143 @@ public abstract class YangNode {
         if (curNode.getNextSibling() == null) {
             curNode.setNextSibling(newChild);
             newChild.setPreviousSibling(curNode);
+        }
+    }
+
+    /**
+     * Clone the current node contents and create a new node.
+     *
+     * @return cloned node
+     * @throws CloneNotSupportedException clone is not supported by the referred node
+     */
+    public YangNode clone()
+            throws CloneNotSupportedException {
+        YangNode clonedNode = (YangNode) super.clone();
+        clonedNode.setParent(null);
+        clonedNode.setChild(null);
+        clonedNode.setNextSibling(null);
+        clonedNode.setPreviousSibling(null);
+        return clonedNode;
+    }
+
+    /**
+     * Clone the subtree from the specified source node to the mentioned target node.
+     * The source and target root node cloning is carried out by the caller.
+     *
+     * @param srcRootNode source node for sub tree cloning
+     * @param dstRootNode destination node where the sub tree needs to be cloned
+     * @throws DataModelException data model error
+     */
+    public static void cloneSubTree(YangNode srcRootNode, YangNode dstRootNode)
+            throws DataModelException {
+
+        YangNode nextNodeToClone = srcRootNode;
+        TraversalType curTraversal;
+
+
+        YangNode clonedTreeCurNode = dstRootNode;
+        YangNode newNode = null;
+
+        nextNodeToClone = nextNodeToClone.getChild();
+        if (nextNodeToClone == null) {
             return;
+        } else {
+            /**
+             * Root level cloning is taken care in the caller.
+             */
+            curTraversal = CHILD;
         }
 
-        /*-
-         *  Insert the new node in child node list sorted by type
-        newChild.setNextSibling(curNode.getNextSibling());
-        newChild.setPreviousSibling(curNode);
-        curNode.getNextSibling().setPreviousSibling(newChild);
-        curNode.setNextSibling(newChild);
-        return;
+        /**
+         * Caller ensures the cloning of the root nodes
          */
+        try {
+            while (nextNodeToClone != srcRootNode) {
+                if (nextNodeToClone == null) {
+                    throw new DataModelException("Internal error: Cloning failed, source tree null pointer reached");
+                }
+
+                if (curTraversal == CHILD) {
+                    newNode = nextNodeToClone.clone();
+
+                    /**
+                     * add the new node to the cloned tree.
+                     */
+                    clonedTreeCurNode.addChild(newNode);
+
+                    /**
+                     * update the cloned tree's travesal current node as the new node.
+                     */
+                    clonedTreeCurNode = newNode;
+                } else if (curTraversal == SIBILING) {
+                    newNode = nextNodeToClone.clone();
+
+                    clonedTreeCurNode.addNextSibling(newNode);
+                    clonedTreeCurNode = newNode;
+                } else if (curTraversal == PARENT) {
+                    clonedTreeCurNode = clonedTreeCurNode.getParent();
+                }
+
+                if (curTraversal != PARENT && nextNodeToClone.getChild() != null) {
+                    curTraversal = CHILD;
+
+                    /**
+                     * update the traversal's current node.
+                     */
+                    nextNodeToClone = nextNodeToClone.getChild();
+
+                } else if (nextNodeToClone.getNextSibling() != null) {
+
+                    curTraversal = SIBILING;
+
+                    nextNodeToClone = nextNodeToClone.getNextSibling();
+                } else {
+                    curTraversal = PARENT;
+                    nextNodeToClone = nextNodeToClone.getParent();
+                }
+            }
+        } catch (CloneNotSupportedException e) {
+            throw new DataModelException("Failed to clone the tree");
+        }
+
+    }
+
+    /**
+     * Add a new next sibling.
+     *
+     * @param newSibling new sibling to be added
+     * @throws DataModelException data model error
+     */
+    private void addNextSibling(YangNode newSibling)
+            throws DataModelException {
+
+        if (newSibling.getNodeType() == null) {
+            throw new DataModelException("Cloned abstract node cannot be inserted into a tree");
+        }
+
+        if (newSibling.getParent() == null) {
+            /**
+             * Since the siblings needs to have a common parent, set the parent as the current node's parent
+             */
+            newSibling.setParent(this.getParent());
+
+        } else {
+            throw new DataModelException("Node is already part of a tree, and cannot be added as a sibling");
+        }
+
+        if (newSibling.getPreviousSibling() == null) {
+            newSibling.setPreviousSibling(this);
+            setNextSibling(newSibling);
+        } else {
+            throw new DataModelException("New sibling to be added is not atomic, it already has a previous sibling");
+        }
+
+        if (newSibling.getChild() != null) {
+            throw new DataModelException("Sibling to be added is not atomic, it already has a child");
+        }
+
+        if (newSibling.getNextSibling() != null) {
+            throw new DataModelException("Sibling to be added is not atomic, it already has a next sibling");
+        }
     }
 }

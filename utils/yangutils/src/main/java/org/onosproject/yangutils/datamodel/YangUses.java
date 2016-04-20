@@ -19,6 +19,8 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getParentNodeInGenCode;
+
 /*-
  * Reference RFC 6020.
  *
@@ -255,8 +257,33 @@ public class YangUses
     }
 
     @Override
-    public void resolve() {
-        //TODO: implement the method.
+    public void resolve()
+            throws DataModelException {
+
+        YangGrouping referredGrouping = getRefGroup();
+
+        if (referredGrouping == null) {
+            throw new DataModelException("YANG uses linker error, cannot resolve uses");
+        }
+
+        YangNode usesParentNode = getParentNodeInGenCode(this);
+        if (!(usesParentNode instanceof YangLeavesHolder)) {
+            throw new DataModelException("YANG uses holder construct is wrong");
+        }
+
+        YangLeavesHolder usesParentLeavesHolder = (YangLeavesHolder) usesParentNode;
+        if (referredGrouping.getListOfLeaf() != null) {
+            for (YangLeaf leaf : referredGrouping.getListOfLeaf()) {
+                usesParentLeavesHolder.addLeaf(leaf);
+            }
+        }
+        if (referredGrouping.getListOfLeafList() != null) {
+            for (YangLeafList leafList : referredGrouping.getListOfLeafList()) {
+                usesParentLeavesHolder.addLeafList(leafList);
+            }
+        }
+
+        YangNode.cloneSubTree(getRefGroup(), usesParentNode);
     }
 
     @Override

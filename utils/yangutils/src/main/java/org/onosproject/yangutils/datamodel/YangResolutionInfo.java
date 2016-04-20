@@ -190,7 +190,8 @@ public class YangResolutionInfo<T> {
     /**
      * Resolve the current entity in the stack.
      */
-    private void resolveTopOfStack() {
+    private void resolveTopOfStack()
+            throws DataModelException {
         ((Resolvable) getCurrentEntityToResolveFromStack()).resolve();
 
         if (((Resolvable) getCurrentEntityToResolveFromStack()).getResolvableStatus()

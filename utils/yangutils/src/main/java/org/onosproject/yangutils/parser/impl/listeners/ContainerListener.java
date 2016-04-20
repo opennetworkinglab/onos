@@ -19,6 +19,7 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangGrouping;
 import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
@@ -37,8 +38,10 @@ import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.get
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
+        .constructExtendedListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
+        .constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
@@ -134,7 +137,8 @@ public final class ContainerListener {
                 || curData instanceof YangList || curData instanceof YangCase
                 || curData instanceof YangNotification
                 || curData instanceof YangInput || curData instanceof YangOutput
-                || curData instanceof YangAugment) {
+                || curData instanceof YangAugment
+                || curData instanceof YangGrouping) {
             YangNode curNode = (YangNode) curData;
             try {
                 curNode.addChild(container);
@@ -190,6 +194,6 @@ public final class ContainerListener {
                 ctx.identifier().getText());
         validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, CONTAINER_DATA, ctx.identifier().getText());
         validateCardinalityMaxOne(ctx.statusStatement(), STATUS_DATA, CONTAINER_DATA, ctx.identifier().getText());
-        // TODO when, grouping, typedef.
+        // TODO validate 'when' cardinality
     }
 }

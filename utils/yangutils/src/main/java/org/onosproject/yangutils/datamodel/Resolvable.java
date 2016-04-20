@@ -16,6 +16,8 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+
 /**
  * Abstraction of YANG resolvable information. Abstracted to obtain the
  * information required for linking resolution.
@@ -44,6 +46,9 @@ public interface Resolvable {
 
     /**
      * Resolves the linking.
+     *
+     * @throws DataModelException data model error
      */
-    void resolve();
+    void resolve()
+            throws DataModelException;
 }
