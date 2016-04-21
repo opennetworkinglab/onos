@@ -2988,7 +2988,7 @@ function schemaToHTML(name, schema, models, modelPropertyMacro) {
 
     if (schema.$ref) {
       modelName = schema.title || Helpers.simpleRef(schema.$ref);
-      model = models[modelName];
+      model = models[Helpers.simpleRef(schema.$ref)];
     } else if (_.isUndefined(name)) {
       modelName = schema.title || 'Inline Model ' + (++inlineModels);
       model = {definition: schema};
