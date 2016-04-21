@@ -15,14 +15,11 @@
  */
 package org.onosproject.openflow;
 
-import java.util.List;
-
 import org.jboss.netty.channel.Channel;
 import org.onosproject.net.Device;
 import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.openflow.controller.Dpid;
-import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.driver.OpenFlowAgent;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
@@ -37,6 +34,8 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFVersion;
+
+import java.util.List;
 
 /**
  * Testing adapter for the OpenFlow switch driver class.
@@ -299,13 +298,5 @@ public class OpenflowSwitchDriverAdapter implements OpenFlowSwitchDriver {
     @Override
     public String channelId() {
         return null;
-    }
-
-    @Override
-    public void addEventListener(OpenFlowEventListener listener) {
-    }
-
-    @Override
-    public void removeEventListener(OpenFlowEventListener listener) {
     }
 }

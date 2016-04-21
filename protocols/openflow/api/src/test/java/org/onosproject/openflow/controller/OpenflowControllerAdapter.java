@@ -52,15 +52,21 @@ public class OpenflowControllerAdapter implements OpenFlowController {
     }
 
     @Override
-    public void monitorAllEvents(boolean monitor) {
-    }
-
-    @Override
     public void addListener(OpenFlowSwitchListener listener) {
     }
 
     @Override
     public void removeListener(OpenFlowSwitchListener listener) {
+    }
+
+    @Override
+    public void addMessageListener(OpenFlowMessageListener listener) {
+
+    }
+
+    @Override
+    public void removeMessageListener(OpenFlowMessageListener listener) {
+
     }
 
     @Override

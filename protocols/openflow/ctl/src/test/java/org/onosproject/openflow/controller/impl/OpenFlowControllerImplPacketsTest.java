@@ -104,7 +104,6 @@ public class OpenFlowControllerImplPacketsTest {
         agent = controller.agent;
         switchListener = new OpenFlowSwitchListenerAdapter();
         controller.addListener(switchListener);
-        controller.monitorAllEvents(true);
 
         packetListener = new TestPacketListener();
         controller.addPacketListener(100, packetListener);

@@ -157,18 +157,4 @@ public interface OpenFlowSwitch {
      * @return string representation of the connection to the device
      */
     String channelId();
-
-    /**
-     * Registers a listener for OF msg events.
-     *
-     * @param listener the listener to notify
-     */
-    void addEventListener(OpenFlowEventListener listener);
-
-    /**
-     * Unregisters a listener.
-     *
-     * @param listener the listener to unregister
-     */
-    void removeEventListener(OpenFlowEventListener listener);
 }

@@ -41,6 +41,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
+import org.onosproject.openflow.controller.OpenFlowMessageListener;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.PacketListener;
@@ -225,6 +226,16 @@ public class OpenFlowGroupProviderTest {
         }
 
         @Override
+        public void addMessageListener(OpenFlowMessageListener listener) {
+
+        }
+
+        @Override
+        public void removeMessageListener(OpenFlowMessageListener listener) {
+
+        }
+
+        @Override
         public void addPacketListener(int priority, PacketListener listener) {
 
         }
@@ -288,11 +299,6 @@ public class OpenFlowGroupProviderTest {
         public OpenFlowSwitch getEqualSwitch(Dpid dpid) {
             return null;
         }
-
-        @Override
-        public void monitorAllEvents(boolean monitor) {
-        }
-
     }
 
     private class TestGroupProviderRegistry implements GroupProviderRegistry {
@@ -411,14 +417,5 @@ public class OpenFlowGroupProviderTest {
         public String channelId() {
             return null;
         }
-
-        @Override
-        public void addEventListener(OpenFlowEventListener listener) {
-        }
-
-        @Override
-        public void removeEventListener(OpenFlowEventListener listener) {
-        }
-
     }
 }

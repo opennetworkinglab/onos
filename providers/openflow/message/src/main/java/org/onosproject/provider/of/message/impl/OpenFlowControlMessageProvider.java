@@ -32,7 +32,7 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
-import org.onosproject.openflow.controller.OpenFlowEventListener;
+import org.onosproject.openflow.controller.OpenFlowMessageListener;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
@@ -42,6 +42,7 @@ import org.projectfloodlight.openflow.protocol.OFType;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -71,11 +72,8 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
 
     private final InternalDeviceProvider listener = new InternalDeviceProvider();
 
-    private final InternalIncomingMessageProvider inMsgListener =
-                    new InternalIncomingMessageProvider();
-
-    private final InternalOutgoingMessageProvider outMsgListener =
-                    new InternalOutgoingMessageProvider();
+    private final InternalControlMessageListener messageListener =
+                    new InternalControlMessageListener();
 
     private HashMap<Dpid, OpenFlowControlMessageAggregator> aggregators = Maps.newHashMap();
     private SharedScheduledExecutorService executor;
@@ -98,12 +96,8 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
         // listens all OpenFlow device related events
         controller.addListener(listener);
 
-        // listens all OpenFlow incoming message events
-        controller.addEventListener(inMsgListener);
-        controller.monitorAllEvents(true);
-
-        // listens all OpenFlow outgoing message events
-        controller.getSwitches().forEach(sw -> sw.addEventListener(outMsgListener));
+        // listens all OpenFlow control message
+        controller.addMessageListener(messageListener);
 
         executor = SharedScheduledExecutors.getSingleThreadExecutor();
 
@@ -117,12 +111,8 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
         providerRegistry.unregister(this);
         providerService = null;
 
-        // stops listening all OpenFlow incoming message events
-        controller.monitorAllEvents(false);
-        controller.removeEventListener(inMsgListener);
-
-        // stops listening all OpenFlow outgoing message events
-        controller.getSwitches().forEach(sw -> sw.removeEventListener(outMsgListener));
+        // stops listening all OpenFlow control message events
+        controller.removeMessageListener(messageListener);
 
         log.info("Stopped");
     }
@@ -149,12 +139,6 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
                 return;
             }
 
-            OpenFlowSwitch sw = controller.getSwitch(dpid);
-            if (sw != null) {
-                // start to monitor the outgoing control messages
-                sw.addEventListener(outMsgListener);
-            }
-
             DeviceId deviceId = deviceId(uri(dpid));
             OpenFlowControlMessageAggregator ofcma =
                     new OpenFlowControlMessageAggregator(metricsService,
@@ -169,12 +153,6 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
         public void switchRemoved(Dpid dpid) {
             if (providerService == null) {
                 return;
-            }
-
-            OpenFlowSwitch sw = controller.getSwitch(dpid);
-            if (sw != null) {
-                // stop monitoring the outgoing control messages
-                sw.removeEventListener(outMsgListener);
             }
 
             // removes the aggregator when switch is removed
@@ -200,12 +178,12 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
     }
 
     /**
-     * A listener for incoming OpenFlow messages.
+     * A listener for all OpenFlow control messages.
      */
-    private class InternalIncomingMessageProvider implements OpenFlowEventListener {
+    private class InternalControlMessageListener implements OpenFlowMessageListener {
 
         @Override
-        public void handleMessage(Dpid dpid, OFMessage msg) {
+        public void handleIncomingMessage(Dpid dpid, OFMessage msg) {
             if (msg.getType() == OFType.PACKET_IN ||
                     msg.getType() == OFType.FLOW_MOD ||
                     msg.getType() == OFType.STATS_REPLY) {
@@ -215,19 +193,19 @@ public class OpenFlowControlMessageProvider extends AbstractProvider
                 });
             }
         }
-    }
-
-    /**
-     * A listener for outgoing OpenFlow messages.
-     */
-    private class InternalOutgoingMessageProvider implements OpenFlowEventListener {
 
         @Override
-        public void handleMessage(Dpid dpid, OFMessage msg) {
-            aggregators.computeIfPresent(dpid, (k, v) -> {
-                v.increment(msg);
-                return v;
-            });
+        public void handleOutgoingMessage(Dpid dpid, List<OFMessage> msgs) {
+            for (OFMessage msg : msgs) {
+                if (msg.getType() == OFType.PACKET_OUT ||
+                        msg.getType() == OFType.FLOW_MOD ||
+                        msg.getType() == OFType.STATS_REQUEST) {
+                    aggregators.computeIfPresent(dpid, (k, v) -> {
+                        v.increment(msg);
+                        return v;
+                    });
+                }
+            }
         }
     }
 }

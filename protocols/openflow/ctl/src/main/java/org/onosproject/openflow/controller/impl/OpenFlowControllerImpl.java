@@ -34,6 +34,7 @@ import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
+import org.onosproject.openflow.controller.OpenFlowMessageListener;
 import org.onosproject.openflow.controller.OpenFlowPacketContext;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
@@ -134,7 +135,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     protected Set<OpenFlowEventListener> ofEventListener = new CopyOnWriteArraySet<>();
 
-    protected boolean monitorAllEvents = false;
+    protected Set<OpenFlowMessageListener> ofMessageListener = new CopyOnWriteArraySet<>();
 
     protected Multimap<Dpid, OFFlowStatsEntry> fullFlowStats =
             ArrayListMultimap.create();
@@ -217,11 +218,6 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     }
 
     @Override
-    public void monitorAllEvents(boolean monitor) {
-        this.monitorAllEvents = monitor;
-    }
-
-    @Override
     public void addListener(OpenFlowSwitchListener listener) {
         if (!ofSwitchListener.contains(listener)) {
             this.ofSwitchListener.add(listener);
@@ -231,6 +227,16 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     @Override
     public void removeListener(OpenFlowSwitchListener listener) {
         this.ofSwitchListener.remove(listener);
+    }
+
+    @Override
+    public void addMessageListener(OpenFlowMessageListener listener) {
+        ofMessageListener.add(listener);
+    }
+
+    @Override
+    public void removeMessageListener(OpenFlowMessageListener listener) {
+        ofMessageListener.remove(listener);
     }
 
     @Override
@@ -625,8 +631,20 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         }
 
         @Override
+        public void processDownstreamMessage(Dpid dpid, List<OFMessage> m) {
+            for (OpenFlowMessageListener listener : ofMessageListener) {
+                listener.handleOutgoingMessage(dpid, m);
+            }
+        }
+
+
+        @Override
         public void processMessage(Dpid dpid, OFMessage m) {
             processPacket(dpid, m);
+
+            for (OpenFlowMessageListener listener : ofMessageListener) {
+                listener.handleIncomingMessage(dpid, m);
+            }
         }
 
         @Override
