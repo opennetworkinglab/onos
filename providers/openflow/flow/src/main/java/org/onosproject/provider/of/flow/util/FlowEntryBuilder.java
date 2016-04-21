@@ -441,11 +441,13 @@ public class FlowEntryBuilder {
             builder.setVlanPcp(vlanpcp.getValue().getValue());
             break;
         case VLAN_VID:
-            try {
-                builder.extension(treatmentInterpreter.mapAction(action), deviceId);
-                break;
-            } catch (UnsupportedOperationException e) {
-                log.debug("Unsupported action extension; defaulting to native OF");
+            if (treatmentInterpreter != null) {
+                try {
+                    builder.extension(treatmentInterpreter.mapAction(action), deviceId);
+                    break;
+                } catch (UnsupportedOperationException e) {
+                    log.debug("Unsupported action extension; defaulting to native OF");
+                }
             }
             @SuppressWarnings("unchecked")
             OFOxm<OFVlanVidMatch> vlanvid = (OFOxm<OFVlanVidMatch>) oxm;
