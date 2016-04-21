@@ -48,8 +48,6 @@ import org.projectfloodlight.openflow.protocol.OFExperimenter;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
-import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
-import org.projectfloodlight.openflow.protocol.OFTableStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupStatsEntry;
@@ -62,6 +60,8 @@ import org.projectfloodlight.openflow.protocol.OFPortStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
+import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFTableStatsReply;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.slf4j.Logger;
@@ -79,6 +79,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import static org.onlab.util.Tools.groupedThreads;
 
 @Component(immediate = true)
@@ -114,12 +115,6 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     protected ExecutorService executorMsgs =
         Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d", log));
-
-    protected ExecutorService executorPacketIn =
-        Executors.newCachedThreadPool(groupedThreads("onos/of", "event-pkt-in-stats-%d", log));
-
-    protected ExecutorService executorFlowRemoved =
-        Executors.newCachedThreadPool(groupedThreads("onos/of", "event-flow-removed-stats-%d", log));
 
     private final ExecutorService executorBarrier =
         Executors.newFixedThreadPool(4, groupedThreads("onos/of", "event-barrier-%d", log));
@@ -286,19 +281,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             for (PacketListener p : ofPacketListener.values()) {
                 p.handlePacket(pktCtx);
             }
-            if (monitorAllEvents) {
-                executorPacketIn.execute(new OFMessageHandler(dpid, msg));
-            }
             break;
         // TODO: Consider using separate threadpool for sensitive messages.
         //    ie. Back to back error could cause us to starve.
         case FLOW_REMOVED:
-            if (monitorAllEvents) {
-                executorFlowRemoved.execute(new OFMessageHandler(dpid, msg));
-            }
-            break;
         case ERROR:
-            log.debug("Received error message from {}: {}", dpid, msg);
             executorMsgs.execute(new OFMessageHandler(dpid, msg));
             break;
         case STATS_REPLY:
@@ -648,7 +635,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     }
 
     /**
-     * OpenFlow message handler for incoming control messages.
+     * OpenFlow message handler.
      */
     protected final class OFMessageHandler implements Runnable {
 
