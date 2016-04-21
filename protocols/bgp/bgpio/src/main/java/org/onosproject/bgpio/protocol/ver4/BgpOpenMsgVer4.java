@@ -32,6 +32,7 @@ import org.onosproject.bgpio.types.FourOctetAsNumCapabilityTlv;
 import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
 import org.onosproject.bgpio.util.Validation;
 import org.onosproject.bgpio.util.Constants;
+import org.onosproject.bgpio.types.RpdCapabilityTlv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -256,8 +257,27 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
                 int as4Num = cb.readInt();
                 tlv = new FourOctetAsNumCapabilityTlv(as4Num);
                 break;
+            case RpdCapabilityTlv.TYPE:
+                log.debug("RpdCapability");
+                if (RpdCapabilityTlv.LENGTH != length) {
+                    throw new BgpParseException("Invalid length received for RpdCapability.");
+                }
+                if (length > cb.readableBytes()) {
+                    throw new BgpParseException("Four octet as num tlv length"
+                            + " is more than readableBytes.");
+                }
+                short rpdAfi = cb.readShort();
+                byte rpdAsafi = cb.readByte();
+                byte sendReceive = cb.readByte();
+                tlv = new RpdCapabilityTlv(sendReceive);
+                break;
+
             case MultiProtocolExtnCapabilityTlv.TYPE:
                 log.debug("MultiProtocolExtnCapabilityTlv");
+
+                if (MultiProtocolExtnCapabilityTlv.LENGTH != length) {
+                    throw new BgpParseException("Invalid length received for MultiProtocolExtnCapabilityTlv.");
+                }
 
                 if (length > cb.readableBytes()) {
                     throw new BgpParseException("BGP LS tlv length is more than readableBytes.");
@@ -265,17 +285,8 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
                 short afi = cb.readShort();
                 byte res = cb.readByte();
                 byte safi = cb.readByte();
-                if ((afi == Constants.AFI_FLOWSPEC_RPD_VALUE) && (safi == Constants.SAFI_FLOWSPEC_RPD_VALUE)) {
-                    if ((MultiProtocolExtnCapabilityTlv.LENGTH + 1) != length) {
-                        throw new BgpParseException("Invalid length received for MultiProtocolExtnCapabilityTlv.");
-                    }
-                    tlv = new MultiProtocolExtnCapabilityTlv(afi, res, safi, cb.readByte());
-                } else {
-                    if (MultiProtocolExtnCapabilityTlv.LENGTH != length) {
-                        throw new BgpParseException("Invalid length received for MultiProtocolExtnCapabilityTlv.");
-                    }
-                    tlv = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
-                }
+                tlv = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
+
                 break;
             default:
                 log.debug("Warning: Unsupported TLV: " + type);
@@ -358,9 +369,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
 
             if (this.isFlowSpecRpdCapabilityTlvSet) {
                 BgpValueType tlv;
-                tlv = new MultiProtocolExtnCapabilityTlv(Constants.AFI_FLOWSPEC_RPD_VALUE,
-                                                         RES, Constants.SAFI_FLOWSPEC_RPD_VALUE,
-                                                         Constants.RPD_CAPABILITY_SEND_VALUE);
+                tlv = new RpdCapabilityTlv(Constants.RPD_CAPABILITY_SEND_VALUE);
                 this.capabilityTlv.add(tlv);
             }
 

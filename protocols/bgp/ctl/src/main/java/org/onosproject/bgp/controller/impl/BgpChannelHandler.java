@@ -44,6 +44,7 @@ import org.onosproject.bgpio.types.BgpErrorType;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.FourOctetAsNumCapabilityTlv;
 import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
+import org.onosproject.bgpio.types.RpdCapabilityTlv;
 import org.onosproject.bgpio.util.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -784,7 +785,9 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         log.debug("capabilityValidation");
 
         boolean isFourOctetCapabilityExits = false;
+        boolean isRpdCapabilityExits = false;
         int capAsNum = 0;
+        byte sendReceive = 0;
 
         List<BgpValueType> capabilityTlv = openmsg.getCapabilityTlv();
         ListIterator<BgpValueType> listIterator = capabilityTlv.listIterator();
@@ -798,7 +801,6 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         boolean isFlowSpecVpnv4CapabilityCfg = false;
         MultiProtocolExtnCapabilityTlv tempCapability;
         boolean isMultiProtocolLsCapability = false;
-        boolean isMultiProtocolFlowSpecRpdCapability = false;
         boolean isMultiProtocolFlowSpecCapability = false;
         boolean isMultiProtocolVpnFlowSpecCapability = false;
         BgpCfg.FlowSpec flowSpec = h.bgpconfig.flowSpecCapability();
@@ -827,14 +829,15 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                 if (SAFI == tempCapability.getSafi()) {
                     isMultiProtocolLsCapability = true;
                 }
-
-                if (Constants.SAFI_FLOWSPEC_RPD_VALUE == tempCapability.getSafi()) {
-                    isMultiProtocolFlowSpecRpdCapability = true;
-                }
             }
             if (tlv.getType() == FOUR_OCTET_AS_NUM_CAPA_TYPE) {
                 isFourOctetCapabilityExits = true;
                 capAsNum = ((FourOctetAsNumCapabilityTlv) tlv).getInt();
+            }
+
+            if (tlv.getType() == RpdCapabilityTlv.TYPE) {
+                isRpdCapabilityExits = true;
+                sendReceive = ((RpdCapabilityTlv) tlv).sendReceive();
             }
         }
 
@@ -847,6 +850,12 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                 if (capAsNum != openmsg.getAsNumber()) {
                     throw new BgpParseException(BgpErrorType.OPEN_MESSAGE_ERROR, BgpErrorType.BAD_PEER_AS, null);
                 }
+            }
+        }
+
+        if (isRpdCapabilityExits) {
+            if (sendReceive > 2) {
+                throw new BgpParseException(BgpErrorType.OPEN_MESSAGE_ERROR, BgpErrorType.UNSUPPORTED_CAPABILITY, null);
             }
         }
 
@@ -881,10 +890,8 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         }
 
         if ((isFlowSpecRpdCapabilityCfg)) {
-            if (!isMultiProtocolFlowSpecRpdCapability) {
-                tempTlv = new MultiProtocolExtnCapabilityTlv(Constants.AFI_FLOWSPEC_RPD_VALUE,
-                                                             RES, Constants.SAFI_FLOWSPEC_RPD_VALUE,
-                                                             Constants.RPD_CAPABILITY_SEND_VALUE);
+            if (!isRpdCapabilityExits) {
+                tempTlv = new RpdCapabilityTlv(Constants.RPD_CAPABILITY_SEND_VALUE);
                 unSupportedCapabilityTlv.add(tempTlv);
             }
         }

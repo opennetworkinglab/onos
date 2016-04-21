@@ -43,8 +43,8 @@ public final class Constants {
     /* TODO: The Capability Code
    for this capability is to be specified by the IANA.*/
     public static final short AFI_FLOWSPEC_RPD_VALUE = 1;
-    public static final byte SAFI_FLOWSPEC_RPD_VALUE = (byte) 200;
-    public static final byte VPN_SAFI_FLOWSPEC_RDP_VALUE = (byte) 201;
+    public static final byte SAFI_FLOWSPEC_RPD_VALUE = (byte) 133;
+    public static final byte VPN_SAFI_FLOWSPEC_RDP_VALUE = (byte) 134;
 
     public static final byte RPD_CAPABILITY_RECEIVE_VALUE = 0;
     public static final byte RPD_CAPABILITY_SEND_VALUE = 1;
