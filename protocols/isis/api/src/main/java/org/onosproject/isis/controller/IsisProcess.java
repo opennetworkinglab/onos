@@ -23,6 +23,13 @@ import java.util.List;
 public interface IsisProcess {
 
     /**
+     * Returns process ID.
+     *
+     * @return process ID
+     */
+    public String processId();
+
+    /**
      * Sets process ID.
      *
      * @param processId process ID

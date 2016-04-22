@@ -280,7 +280,7 @@ public class LsPdu extends IsisHeader {
      * Returns the packet data unit length of link state packet.
      * Entire length of this PDU, in octets
      *
-     * @return pduLength packte date unit length
+     * @return pduLength packet data unit length
      */
     public int pduLength() {
         return pduLength;
@@ -290,7 +290,7 @@ public class LsPdu extends IsisHeader {
      * Sets the packet data unit length for link state packet.
      * Entire Length of this PDU, in octets
      *
-     * @param pduLength packte data length
+     * @param pduLength packet data length
      */
     public void setPduLength(int pduLength) {
         this.pduLength = pduLength;

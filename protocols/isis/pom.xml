@@ -34,6 +34,7 @@
     <modules>
         <module>api</module>
         <module>isisio</module>
+        <module>ctl</module>
     </modules>
 
 </project>

@@ -13,32 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.isis.io.util;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * Representation of ISIS config.
+ * Implementation of the ISIS controller.
  */
-public enum IsisConfig {
-    INSTANCE;
-    private JsonNode jsonNodes = null;
-
-    /**
-     * Returns the config value.
-     *
-     * @return jsonNodes json node
-     */
-    public JsonNode config() {
-        return jsonNodes;
-    }
-
-    /**
-     * Sets the config value for jsonNode.
-     *
-     * @param jsonNodes json node
-     */
-    public void setConfig(JsonNode jsonNodes) {
-        this.jsonNodes = jsonNodes;
-    }
-}
+package org.onosproject.isis.controller.impl;

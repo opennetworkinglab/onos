@@ -15,6 +15,7 @@
  */
 package org.onosproject.isis.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.onosproject.isis.controller.topology.IsisRouterListener;
 
 import java.util.List;
@@ -41,18 +42,9 @@ public interface IsisController {
     /**
      * Updates configuration of processes.
      *
-     * @param processes process instance to update
+     * @param processesNode json node represents process
      */
-    void updateConfig(List<IsisProcess> processes);
-
-    /**
-     * Deletes configuration parameters.
-     *
-     * @param processes list of process instance
-     * @param attribute string key which deletes the particular node or element
-     * from the controller
-     */
-    void deleteConfig(List<IsisProcess> processes, String attribute);
+    void updateConfig(JsonNode processesNode);
 
     /**
      * Gets the all configured processes.

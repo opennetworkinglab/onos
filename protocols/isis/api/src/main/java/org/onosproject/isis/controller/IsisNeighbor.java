@@ -98,4 +98,14 @@ public interface IsisNeighbor {
      * @param holdingTime Holding time of neighbor
      */
     void setHoldingTime(int holdingTime);
+
+    /**
+     * Starts the inactivity timer for this neighbor.
+     */
+    void startInactivityTimeCheck();
+
+    /**
+     * Stops the inactivity timer.
+     */
+    void stopInactivityTimeCheck();
 }

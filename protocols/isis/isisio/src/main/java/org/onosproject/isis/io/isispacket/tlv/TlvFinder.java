@@ -42,7 +42,10 @@ public class TlvFinder extends TlvHeader {
                 //TODO
                 break;
             case EXTENDEDISREACHABILITY:
-                //TODO
+                IsExtendedReachability isExtendedReachability =
+                        new IsExtendedReachability(tlvHeader);
+                isExtendedReachability.readFrom(channelBuffer);
+                isisTlv = isExtendedReachability;
                 break;
             case HOSTNAME:
                 HostNameTlv hostNameTlv = new HostNameTlv(tlvHeader);

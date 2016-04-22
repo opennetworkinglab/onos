@@ -82,6 +82,10 @@ public final class TlvsToBytes {
             LspEntriesTlv lspEntriesTlv
                     = (LspEntriesTlv) isisTlv;
             tlvBytes.addAll(Bytes.asList(lspEntriesTlv.asBytes()));
+        } else if (isisTlv instanceof IsExtendedReachability) {
+            IsExtendedReachability isExtendedReachability
+                    = (IsExtendedReachability) isisTlv;
+            tlvBytes.addAll(Bytes.asList(isExtendedReachability.asBytes()));
         } else {
             log.debug("TlvsToBytes::UNKNOWN TLV TYPE ::TlvsToBytes ");
         }

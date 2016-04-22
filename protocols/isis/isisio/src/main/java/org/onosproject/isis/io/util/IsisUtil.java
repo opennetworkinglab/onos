@@ -391,7 +391,7 @@ public final class IsisUtil {
         isisHeader.setIrpDiscriminator((byte) IsisConstants.IRPDISCRIMINATOR);
         isisHeader.setPduHeaderLength((byte) IsisConstants.P2PHELLOHEADERLENGTH);
         isisHeader.setVersion((byte) IsisConstants.ISISVERSION);
-        isisHeader.setIdLength((byte) IsisConstants.IDLENGTH);
+        isisHeader.setIdLength((byte) IsisConstants.SYSTEMIDLENGTH);
         isisHeader.setIsisPduType(IsisPduType.P2PHELLOPDU.value());
         isisHeader.setVersion2((byte) IsisConstants.ISISVERSION);
         //isisHeader.setReserved((byte) IsisConstants.RESERVED);
@@ -484,7 +484,7 @@ public final class IsisUtil {
         isisHeader.setIrpDiscriminator((byte) IsisConstants.IRPDISCRIMINATOR);
         isisHeader.setPduHeaderLength((byte) IsisConstants.HELLOHEADERLENGTH);
         isisHeader.setVersion((byte) IsisConstants.ISISVERSION);
-        isisHeader.setIdLength((byte) IsisConstants.IDLENGTH);
+        isisHeader.setIdLength((byte) IsisConstants.SYSTEMIDLENGTH);
         if (isisPduType == IsisPduType.L1HELLOPDU) {
             isisHeader.setIsisPduType(IsisPduType.L1HELLOPDU.value());
             lanId = isisInterface.l1LanId();
@@ -692,5 +692,20 @@ public final class IsisUtil {
             }
         }
         return prefix;
+    }
+
+    /**
+     * Converts the prefix to bytes.
+     *
+     * @param prefix prefix
+     * @return prefix to bytes
+     */
+    public static byte[] prefixToBytes(String prefix) {
+        List<Byte> byteList = new ArrayList<>();
+        StringTokenizer tokenizer = new StringTokenizer(prefix, ".");
+        while (tokenizer.hasMoreTokens()) {
+            byteList.add((byte) Integer.parseInt(tokenizer.nextToken()));
+        }
+        return Bytes.toArray(byteList);
     }
 }

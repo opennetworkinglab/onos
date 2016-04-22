@@ -220,10 +220,9 @@ public class IpExtendedReachabilityTlv extends TlvHeader implements IsisTlv {
         byte[] bytes = null;
         byte[] tlvHeader = tlvHeaderAsByteArray();
         byte[] tlvBody = tlvBodyAsBytes();
-        //systemID + pseudo number+length of subtlv=11l
-        tlvBody[10] = (byte) (tlvBody.length - 11);
         tlvHeader[1] = (byte) tlvBody.length;
         bytes = Bytes.concat(tlvHeader, tlvBody);
+
         return bytes;
     }
 
@@ -246,8 +245,8 @@ public class IpExtendedReachabilityTlv extends TlvHeader implements IsisTlv {
         } else {
             controlInfo = controlInfo + "0";
         }
-        String prefixlength = IsisUtil.toEightBitBinary(Integer.toBinaryString(this.prefixLength()));
-        controlInfo = controlInfo + prefixlength.substring(2, prefixlength.length());
+        String prefixLength = IsisUtil.toEightBitBinary(Integer.toBinaryString(this.prefixLength()));
+        controlInfo = controlInfo + prefixLength.substring(2, prefixLength.length());
         bodyLst.add(Byte.parseByte(controlInfo, 2));
         if (this.isSubTlvPresence()) {
             bodyLst.add(this.subTlvLength());
@@ -255,6 +254,8 @@ public class IpExtendedReachabilityTlv extends TlvHeader implements IsisTlv {
                 bodyLst.addAll(SubTlvToBytes.tlvToBytes(trafficEngineeringSubTlv));
             }
         }
+        bodyLst.addAll(Bytes.asList(IsisUtil.prefixToBytes(this.prefix())));
+
         return Bytes.toArray(bodyLst);
     }
 

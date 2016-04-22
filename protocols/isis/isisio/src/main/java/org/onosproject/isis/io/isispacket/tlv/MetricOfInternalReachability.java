@@ -358,10 +358,7 @@ public class MetricOfInternalReachability {
         } else {
             this.setErrorMetricSupported(false);
         }
-        List<Byte> byteList = new ArrayList<>();
-        while (channelBuffer.readableBytes() > 0) {
-            byteList.add(channelBuffer.readByte());
-        }
+
         byte[] tempByteArray = new byte[IsisUtil.FOUR_BYTES];
         channelBuffer.readBytes(tempByteArray, 0, IsisUtil.FOUR_BYTES);
         this.setIpAddress(Ip4Address.valueOf(tempByteArray));

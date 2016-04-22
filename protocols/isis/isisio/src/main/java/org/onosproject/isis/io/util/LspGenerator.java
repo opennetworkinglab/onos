@@ -26,6 +26,7 @@ import org.onosproject.isis.io.isispacket.pdu.AttachedToOtherAreas;
 import org.onosproject.isis.io.isispacket.pdu.LsPdu;
 import org.onosproject.isis.io.isispacket.tlv.AreaAddressTlv;
 import org.onosproject.isis.io.isispacket.tlv.HostNameTlv;
+import org.onosproject.isis.io.isispacket.tlv.IpExtendedReachabilityTlv;
 import org.onosproject.isis.io.isispacket.tlv.IpInterfaceAddressTlv;
 import org.onosproject.isis.io.isispacket.tlv.IpInternalReachabilityTlv;
 import org.onosproject.isis.io.isispacket.tlv.IsReachabilityTlv;
@@ -115,7 +116,7 @@ public class LspGenerator {
         } else if (isisInterface.networkType() == IsisNetworkType.P2P) {
             MacAddress neighborMac = isisInterface.neighbors().iterator().next();
             IsisNeighbor neighbor = isisInterface.lookup(neighborMac);
-            metricsOfReachability.setNeighborId(neighbor.neighborSystemId());
+            metricsOfReachability.setNeighborId(neighbor.neighborSystemId() + ".00");
         }
 
         isReachabilityTlv.addMeticsOfReachability(metricsOfReachability);
@@ -137,10 +138,25 @@ public class LspGenerator {
         metricOfIntRea.setErrorMetric((byte) 0);
         metricOfIntRea.setErrorMetricSupported(false);
         metricOfIntRea.setExpenseIsInternal(true);
-        metricOfIntRea.setIpAddress(isisInterface.interfaceIpAddress());
+        Ip4Address ip4Address = isisInterface.interfaceIpAddress();
+        byte[] ipAddress = ip4Address.toOctets();
+        ipAddress[ipAddress.length - 1] = 0;
+        metricOfIntRea.setIpAddress(Ip4Address.valueOf(ipAddress));
         metricOfIntRea.setSubnetAddres(Ip4Address.valueOf(isisInterface.networkMask()));
         ipInterReacTlv.addInternalReachabilityMetric(metricOfIntRea);
         lsp.addTlv(ipInterReacTlv);
+
+        tlvHeader.setTlvType(TlvType.IPEXTENDEDREACHABILITY.value());
+        tlvHeader.setTlvLength(0);
+        IpExtendedReachabilityTlv extendedTlv = new IpExtendedReachabilityTlv(tlvHeader);
+        extendedTlv.setDown(false);
+        extendedTlv.setMetric(10);
+        extendedTlv.setPrefix("192.168.7");
+        extendedTlv.setPrefixLength(24);
+        extendedTlv.setSubTlvLength((byte) 0);
+        extendedTlv.setSubTlvPresence(false);
+        lsp.addTlv(extendedTlv);
+
         return lsp;
     }
 
@@ -149,7 +165,7 @@ public class LspGenerator {
         isisHeader.setIrpDiscriminator((byte) IsisConstants.IRPDISCRIMINATOR);
         isisHeader.setPduHeaderLength((byte) IsisUtil.getPduHeaderLength(pduType.value()));
         isisHeader.setVersion((byte) IsisConstants.ISISVERSION);
-        isisHeader.setIdLength((byte) IsisConstants.IDLENGTH);
+        isisHeader.setIdLength((byte) IsisConstants.SYSTEMIDLENGTH);
         isisHeader.setIsisPduType(pduType.value());
         isisHeader.setVersion2((byte) IsisConstants.ISISVERSION);
         isisHeader.setReserved((byte) IsisConstants.RESERVED);

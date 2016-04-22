@@ -230,6 +230,13 @@ public interface IsisInterface {
     void setPriority(int priority);
 
     /**
+     * Returns hello interval.
+     *
+     * @return hello interval
+     */
+    public int helloInterval();
+
+    /**
      * Sets hello interval.
      *
      * @param helloInterval hello interval
@@ -301,4 +308,11 @@ public interface IsisInterface {
      * @param circuitId circuit ID
      */
     void setCircuitId(String circuitId);
+
+    /**
+     * Removes neighbor from the interface neighbor map.
+     *
+     * @param isisNeighbor ISIS neighbor instance
+     */
+    void removeNeighbor(IsisNeighbor isisNeighbor);
 }
