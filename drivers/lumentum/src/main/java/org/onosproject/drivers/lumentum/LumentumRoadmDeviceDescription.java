@@ -16,6 +16,7 @@
 
 package org.onosproject.drivers.lumentum;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
@@ -45,7 +46,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Device description behaviour for Lumentum Snmp devices.
  */
-public class LumentumRoadmDeviceDescription extends AbstractHandlerBehaviour implements DeviceDescriptionDiscovery  {
+public class LumentumRoadmDeviceDescription extends AbstractHandlerBehaviour implements DeviceDescriptionDiscovery {
 
     private final Logger log = getLogger(getClass());
 
@@ -66,7 +67,7 @@ public class LumentumRoadmDeviceDescription extends AbstractHandlerBehaviour imp
 
     @Override
     public List<PortDescription> discoverPortDetails() {
-        return this.getPorts();
+        return ImmutableList.copyOf(this.getPorts());
     }
 
     private List<PortDescription> getPorts() {

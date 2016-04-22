@@ -26,12 +26,18 @@ import java.util.List;
 /**
  * Discovers the set of ports from a device through a device specific protocol.
  * The returned ports are not retrieved from the information stored in ONOS.
+ *
+ * @deprecated 1.6.0 Goldeneye. Use DeviceDescriptionDiscovery instead
  */
+@Deprecated
 public interface PortDiscovery extends HandlerBehaviour {
 
     /**
      * Retrieves the set of ports from a device.
+     *
      * @return a set of port descriptions.
+     * @deprecated 1.6.0 Goldeneye. Use DeviceDescriptionDiscovery instead
      */
+    @Deprecated
     List<PortDescription> getPorts();
 }

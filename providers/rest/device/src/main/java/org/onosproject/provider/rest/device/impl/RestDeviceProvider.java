@@ -40,11 +40,11 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
-import org.onosproject.net.driver.DriverHandler;
-import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.protocol.rest.RestSBController;
@@ -93,7 +93,7 @@ public class RestDeviceProvider extends AbstractProvider
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
+    protected DeviceService deviceService;
 
 
     private DeviceProviderService providerService;
@@ -219,17 +219,25 @@ public class RestDeviceProvider extends AbstractProvider
             log.error("Configuration error {}", e);
         }
         log.debug("REST Devices {}", controller.getDevices());
-        addedDevices.forEach(deviceId -> {
-            DriverHandler h = driverService.createHandler(deviceId);
-            PortDiscovery portConfig = h.behaviour(PortDiscovery.class);
-            if (portConfig != null) {
-                providerService.updatePorts(deviceId, portConfig.getPorts());
-            } else {
-                log.warn("No portGetter behaviour for device {}", deviceId);
-            }
-        });
+        addedDevices.forEach(this::discoverPorts);
         addedDevices.clear();
 
+    }
+
+    private void discoverPorts(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        //TODO remove when PortDiscovery is removed from master
+        if (device.is(PortDiscovery.class)) {
+            PortDiscovery portConfig = device.as(PortDiscovery.class);
+            providerService.updatePorts(deviceId,
+                                        portConfig.getPorts());
+        } else if (device.is(DeviceDescriptionDiscovery.class)) {
+            DeviceDescriptionDiscovery deviceDescriptionDiscovery =
+                    device.as(DeviceDescriptionDiscovery.class);
+            providerService.updatePorts(deviceId, deviceDescriptionDiscovery.discoverPortDetails());
+        } else {
+            log.warn("No portGetter behaviour for device {}", deviceId);
+        }
     }
 
     private boolean testDeviceConnection(RestSBDevice device) {

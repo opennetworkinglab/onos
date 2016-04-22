@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
@@ -93,10 +94,15 @@ public abstract class AbstractDeviceProvider extends AbstractProvider
     protected void discoverDevice(DriverHandler handler) {
         DeviceId deviceId = handler.data().deviceId();
         DeviceDescriptionDiscovery discovery = handler.behaviour(DeviceDescriptionDiscovery.class);
-        providerService.deviceConnected(deviceId, discovery.discoverDeviceDetails());
+        DeviceDescription description = discovery.discoverDeviceDetails();
+        if (description != null) {
+            providerService.deviceConnected(deviceId, description);
+        } else {
+            log.info("No other description given for device {}", deviceId);
+        }
         providerService.updatePorts(deviceId, discovery.discoverPortDetails());
-    }
 
+    }
     // TODO: inspect NETCONF, SNMP, RESTSB device providers for additional common patterns
     // TODO: provide base for port status update
     // TODO: integrate with network config for learning about management addresses to probe

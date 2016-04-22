@@ -287,9 +287,13 @@ public class SnmpDeviceProvider extends AbstractProvider
                 if (d.is(DeviceDescriptionDiscovery.class)) {
                     DeviceDescriptionDiscovery descriptionDiscovery = d.as(DeviceDescriptionDiscovery.class);
                     DeviceDescription description = descriptionDiscovery.discoverDeviceDetails();
-                    deviceStore.createOrUpdateDevice(
-                            new ProviderId("snmp", "org.onosproject.provider.device"),
-                            did, description);
+                    if (description != null) {
+                        deviceStore.createOrUpdateDevice(
+                                new ProviderId("snmp", "org.onosproject.provider.device"),
+                                did, description);
+                    } else {
+                        log.info("No other description given for device {}", d.id());
+                    }
                     providerService.updatePorts(did, descriptionDiscovery.discoverPortDetails());
                 } else {
                     log.warn("No populate description and ports behaviour for device {}", did);

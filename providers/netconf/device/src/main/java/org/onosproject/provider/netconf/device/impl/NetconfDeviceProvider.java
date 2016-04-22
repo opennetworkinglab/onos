@@ -43,6 +43,7 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceProvider;
@@ -331,10 +332,17 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     private void discoverPorts(DeviceId deviceId) {
         Device device = deviceService.getDevice(deviceId);
+        //TODO remove when PortDiscovery is removed from master
         if (device.is(PortDiscovery.class)) {
             PortDiscovery portConfig = device.as(PortDiscovery.class);
             providerService.updatePorts(deviceId,
                                         portConfig.getPorts());
+        } else if (device.is(DeviceDescriptionDiscovery.class)) {
+            DeviceDescriptionDiscovery deviceDescriptionDiscovery =
+                    device.as(DeviceDescriptionDiscovery.class);
+            providerService.updatePorts(deviceId,
+                                        deviceDescriptionDiscovery.discoverPortDetails());
+
         } else {
             log.warn("No portGetter behaviour for device {}", deviceId);
         }
@@ -343,7 +351,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     /**
      * Return the DeviceId about the device containing the URI.
      *
-     * @param ip IP address
+     * @param ip   IP address
      * @param port port number
      * @return DeviceId
      */

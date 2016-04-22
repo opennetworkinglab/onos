@@ -18,6 +18,7 @@
 
 package org.onosproject.drivers.ciena;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.onosproject.drivers.utilities.XmlConfigParser;
@@ -31,11 +32,13 @@ import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
-import org.onosproject.net.behaviour.PortDiscovery;
+import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.protocol.rest.RestSBController;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,12 +46,15 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Discovers the ports from a Ciena WaveServer Rest device.
  */
-public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
-        implements PortDiscovery {
+public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
+        implements DeviceDescriptionDiscovery {
+
+    private final Logger log = getLogger(getClass());
 
     private static final String SPEED = "speed";
     private static final String GBPS = "Gbps";
@@ -74,9 +80,19 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
 //    private static final String SPECIFIC_PORT_CONFIG =
 //            "/ptp-config?config=true&format=xml&depth=unbounded";
 
+    @Override
+    public DeviceDescription discoverDeviceDetails() {
+        log.info("No description to be added for device");
+        //TODO to be implemented if needed.
+        return null;
+    }
 
     @Override
-    public List<PortDescription> getPorts() {
+    public List<PortDescription> discoverPortDetails() {
+        return getPorts();
+    }
+
+    private List<PortDescription> getPorts() {
         List<PortDescription> ports = Lists.newArrayList();
         DriverHandler handler = handler();
         RestSBController controller = checkNotNull(handler.get(RestSBController.class));
@@ -121,11 +137,11 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
                                 .replace(" ", EMPTY_STRING))) == speed100GbpsinMbps ?
                         CltSignalType.CLT_100GBE : null;
                 ports.add(oduCltPortDescription(PortNumber.portNumber(sub.getLong(PORT_ID)),
-                                                    sub.getString(ADMIN_STATE).equals(ENABLED),
-                                                    cltType, annotations.build()));
+                                                sub.getString(ADMIN_STATE).equals(ENABLED),
+                                                cltType, annotations.build()));
             }
         });
-        return ports;
+        return ImmutableList.copyOf(ports);
     }
 
     public static List<HierarchicalConfiguration> parseWaveServerCienaPorts(HierarchicalConfiguration cfg) {
@@ -156,7 +172,7 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
                 baseFrequency)) / toGbpsFromHz(chSpacing.frequency().asHz())); //FIXME is there a better way ?
 
         return ochPortDescription(PortNumber.portNumber(portNumber), isEnabled, oduSignalType, isTunable,
-                                      new OchSignal(gridType, chSpacing, spacingMult, 1), annotations);
+                                  new OchSignal(gridType, chSpacing, spacingMult, 1), annotations);
     }
 
     //FIXME remove when all optical types have two way information methods, see jira tickets

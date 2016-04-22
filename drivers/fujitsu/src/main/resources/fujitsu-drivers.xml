@@ -20,6 +20,8 @@
                    impl="org.onosproject.drivers.fujitsu.PortGetterFujitsuImpl"/>
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.fujitsu.FujitsuT100DeviceDescription"/>
     </driver>
 </drivers>
 
