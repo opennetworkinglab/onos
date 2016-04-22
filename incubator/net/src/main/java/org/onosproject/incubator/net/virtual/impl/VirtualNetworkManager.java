@@ -249,6 +249,16 @@ public class VirtualNetworkManager
         InternalVirtualNetworkProviderService(VirtualNetworkProvider provider) {
             super(provider);
         }
+
+        @Override
+        public void tunnelUp(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
+
+        }
+
+        @Override
+        public void tunnelDown(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
+
+        }
     }
 
 }

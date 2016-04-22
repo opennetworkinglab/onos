@@ -15,6 +15,7 @@
  */
 package org.onosproject.incubator.net.virtual;
 
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.provider.ProviderService;
 
 /**
@@ -22,5 +23,24 @@ import org.onosproject.net.provider.ProviderService;
  * the core.
  */
 public interface VirtualNetworkProviderService extends ProviderService<VirtualNetworkProvider> {
-    // TODO: Add methods for notification of core about damaged tunnels, etc.
+
+    /**
+     * This method is used to notify the VirtualNetwork service that a tunnel is now ACTIVE.
+     *
+     * @param networkId network identifier
+     * @param src       source connection point
+     * @param dst       destination connection point
+     */
+    void tunnelUp(NetworkId networkId, ConnectPoint src, ConnectPoint dst);
+
+    /**
+     * This method is used to notify the VirtualNetwork service that a tunnel is now
+     * FAILED or INACTIVE.
+     *
+     * @param networkId network identifier
+     * @param src       source connection point
+     * @param dst       destination connection point
+     */
+    void tunnelDown(NetworkId networkId, ConnectPoint src, ConnectPoint dst);
+
 }
