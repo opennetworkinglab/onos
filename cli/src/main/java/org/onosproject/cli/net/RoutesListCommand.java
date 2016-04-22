@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteService;
@@ -35,6 +36,12 @@ import java.util.Map;
         description = "Lists all routes in the route store")
 public class RoutesListCommand extends AbstractShellCommand {
 
+    @Option(name = "-s", aliases = "--summary",
+            description = "Show summary of routes")
+    private boolean summary = false;
+
+    private static final String FORMAT_SUMMARY =
+            "Number of routes in table %s: %s";
     private static final String FORMAT_HEADER =
         "   Network            Next Hop";
     private static final String FORMAT_ROUTE =
@@ -48,6 +55,20 @@ public class RoutesListCommand extends AbstractShellCommand {
         RouteService service = AbstractShellCommand.get(RouteService.class);
 
         Map<RouteTableId, Collection<Route>> allRoutes = service.getAllRoutes();
+
+        if (summary) {
+            if (outputJson()) {
+                ObjectMapper mapper = new ObjectMapper();
+                ObjectNode result = mapper.createObjectNode();
+                result.put("totalRoutes4", allRoutes.get(new RouteTableId("ipv4")).size());
+                result.put("totalRoutes6", allRoutes.get(new RouteTableId("ipv6")).size());
+                print("%s", result);
+            } else {
+                allRoutes.forEach((id, routes) -> print(FORMAT_SUMMARY, id, routes.size()));
+            }
+
+            return;
+        }
 
         if (outputJson()) {
             ObjectMapper mapper = new ObjectMapper();
