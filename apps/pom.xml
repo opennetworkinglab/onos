@@ -46,6 +46,7 @@
         <module>test</module>
         <module>segmentrouting</module>
         <module>xos-integration</module>
+        <module>kafka-integration</module>
         <module>pcep-api</module>
         <module>iptopology-api</module>
         <module>pce</module>

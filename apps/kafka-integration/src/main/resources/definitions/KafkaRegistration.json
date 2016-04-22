@@ -1,0 +1,5 @@
+{
+  "type": "string",
+  "title": "KafkaRegistration",
+  "example": "forwardingApp"
+}
