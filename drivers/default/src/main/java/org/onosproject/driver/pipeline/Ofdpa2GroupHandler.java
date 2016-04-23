@@ -1105,7 +1105,7 @@ public class Ofdpa2GroupHandler {
         Set<GroupChainElem> gceSet = pendingGroups.remove(key);
         if (gceSet != null) {
             for (GroupChainElem gce : gceSet) {
-                log.info("Group service {} group key {} in device {}. "
+                log.debug("Group service {} group key {} in device {}. "
                                 + "Processing next group in group chain with group id 0x{}",
                         (added) ? "ADDED" : "processed",
                         key, deviceId,
@@ -1118,7 +1118,7 @@ public class Ofdpa2GroupHandler {
             if (nextGrpList != null) {
                 pendingNextObjectives.invalidate(key);
                 nextGrpList.forEach(nextGrp -> {
-                    log.info("Group service {} group key {} in device:{}. "
+                    log.debug("Group service {} group key {} in device:{}. "
                                     + "Done implementing next objective: {} <<-->> gid:0x{}",
                             (added) ? "ADDED" : "processed",
                             key, deviceId, nextGrp.nextObjective().id(),

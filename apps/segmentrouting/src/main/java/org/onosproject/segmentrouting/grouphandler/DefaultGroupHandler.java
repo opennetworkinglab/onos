@@ -44,11 +44,10 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
+import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.NextObjective;
-import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
-import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
@@ -258,8 +257,14 @@ public class DefaultGroupHandler {
                         deviceId,
                         newLink.src().port(),
                         nextId);
-                NextObjective nextObjective = nextObjBuilder.
-                        addToExisting(new SRNextObjectiveContext(deviceId));
+
+                ObjectiveContext context = new DefaultObjectiveContext(
+                        (objective) -> log.debug("LinkUp installed NextObj {} on {}",
+                                nextId, deviceId),
+                        (objective, error) ->
+                                log.warn("LinkUp failed to install NextObj {} on {}: {}",
+                                        nextId, deviceId, error));
+                NextObjective nextObjective = nextObjBuilder.addToExisting(context);
                 flowObjectiveService.next(deviceId, nextObjective);
 
                 // the addition of a bucket may actually change the neighborset
@@ -666,9 +671,15 @@ public class DefaultGroupHandler {
             if (meta != null) {
                 nextObjBuilder.withMeta(meta);
             }
-            NextObjective nextObj = nextObjBuilder.
-                    add(new SRNextObjectiveContext(deviceId));
-            log.info("**createGroupsFromNeighborsets: Submited "
+
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("createGroupsFromNeighborsets installed NextObj {} on {}",
+                            nextId, deviceId),
+                    (objective, error) ->
+                            log.warn("createGroupsFromNeighborsets failed to install NextObj {} on {}: {}",
+                                    nextId, deviceId, error));
+            NextObjective nextObj = nextObjBuilder.add(context);
+            log.debug("**createGroupsFromNeighborsets: Submited "
                     + "next objective {} in device {}",
                     nextId, deviceId);
             flowObjectiveService.next(deviceId, nextObj);
@@ -819,8 +830,13 @@ public class DefaultGroupHandler {
             NextObjective.Builder nextObjBuilder = DefaultNextObjective
                     .builder().withId(objectiveId)
                     .withType(NextObjective.Type.HASHED).fromApp(appId);
-            NextObjective nextObjective = nextObjBuilder.
-                    remove(new SRNextObjectiveContext(deviceId));
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("RemoveGroup removes NextObj {} on {}",
+                            objectiveId, deviceId),
+                    (objective, error) ->
+                            log.warn("RemoveGroup failed to remove NextObj {} on {}: {}",
+                                    objectiveId, deviceId, error));
+            NextObjective nextObjective = nextObjBuilder.remove(context);
             log.info("**removeGroup: Submited "
                     + "next objective {} in device {}",
                     objectiveId, deviceId);
@@ -855,24 +871,5 @@ public class DefaultGroupHandler {
             removeGroup(entry.getValue());
         }
         // should probably clean local stores port-neighbor
-    }
-
-    protected static class SRNextObjectiveContext implements ObjectiveContext {
-        final DeviceId deviceId;
-
-        SRNextObjectiveContext(DeviceId deviceId) {
-            this.deviceId = deviceId;
-        }
-        @Override
-        public void onSuccess(Objective objective) {
-            log.info("Next objective {} operation successful in device {}",
-                      objective.id(), deviceId);
-        }
-
-        @Override
-        public void onError(Objective objective, ObjectiveError error) {
-            log.warn("Next objective {} operation failed with error: {} in device {}",
-                     objective.id(), error, deviceId);
-        }
     }
 }

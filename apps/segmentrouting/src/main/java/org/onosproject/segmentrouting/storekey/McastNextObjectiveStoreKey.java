@@ -50,7 +50,7 @@ public class McastNextObjectiveStoreKey {
      * @return multicast IP
      */
     public IpAddress mcastIp() {
-        return this.mcastIp;
+        return mcastIp;
     }
 
     /**
@@ -59,7 +59,7 @@ public class McastNextObjectiveStoreKey {
      * @return device ID
      */
     public DeviceId deviceId() {
-        return this.deviceId;
+        return deviceId;
     }
 
     @Override
