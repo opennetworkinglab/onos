@@ -228,6 +228,10 @@
         "org.onosproject.core" : {
             "core" : {
                 "linkDiscoveryMode" : "STRICT"
+            },
+            "multicast": {
+                "ingressVlan": "None",
+                "egressVlan": "None"
             }
         },
         "org.onosproject.segmentrouting" : {

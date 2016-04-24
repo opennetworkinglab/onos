@@ -26,7 +26,7 @@ import java.util.Objects;
 /**
  * Key of multicast next objective store.
  */
-public class McastNextObjectiveStoreKey {
+public class McastStoreKey {
     private final IpAddress mcastIp;
     private final DeviceId deviceId;
 
@@ -36,7 +36,7 @@ public class McastNextObjectiveStoreKey {
      * @param mcastIp multicast group IP address
      * @param deviceId device ID
      */
-    public McastNextObjectiveStoreKey(IpAddress mcastIp, DeviceId deviceId) {
+    public McastStoreKey(IpAddress mcastIp, DeviceId deviceId) {
         checkNotNull(mcastIp, "mcastIp cannot be null");
         checkNotNull(deviceId, "deviceId cannot be null");
         checkArgument(mcastIp.isMulticast(), "mcastIp must be a multicast address");
@@ -67,11 +67,11 @@ public class McastNextObjectiveStoreKey {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof McastNextObjectiveStoreKey)) {
+        if (!(o instanceof McastStoreKey)) {
             return false;
         }
-        McastNextObjectiveStoreKey that =
-                (McastNextObjectiveStoreKey) o;
+        McastStoreKey that =
+                (McastStoreKey) o;
         return (Objects.equals(this.mcastIp, that.mcastIp) &&
                 Objects.equals(this.deviceId, that.deviceId));
     }

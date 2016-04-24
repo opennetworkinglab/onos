@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Style-Type" content="text/css">
   <title></title>
   <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="1404.34">
+  <meta name="CocoaVersion" content="1404.46">
   <style type="text/css">
     p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #0433ff; -webkit-text-stroke: #0433ff}
     p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #ff9300; -webkit-text-stroke: #ff9300}
@@ -14,6 +14,7 @@
     p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #00c7fc; -webkit-text-stroke: #00c7fc}
     p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #ff2600; -webkit-text-stroke: #ff2600}
     p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #000000; -webkit-text-stroke: #000000}
+    p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Menlo; color: #00c7fc; -webkit-text-stroke: #000000}
     span.s1 {font-kerning: none}
     span.s2 {font-kerning: none; color: #0433ff; -webkit-text-stroke: 0px #0433ff}
     span.s3 {font-kerning: none; color: #000000; -webkit-text-stroke: 0px #000000}
@@ -22,7 +23,8 @@
     span.s6 {font-kerning: none; color: #77bb41; -webkit-text-stroke: 0px #77bb41}
     span.s7 {font-kerning: none; color: #00c7fc; -webkit-text-stroke: 0px #00c7fc}
     span.s8 {font-kerning: none; color: #ff2600; -webkit-text-stroke: 0px #ff2600}
-    span.s9 {font-kerning: none; color: #669c35; -webkit-text-stroke: 0px #669c35}
+    span.s9 {font-kerning: none; color: #000000}
+    span.s10 {font-kerning: none; color: #669c35; -webkit-text-stroke: 0px #669c35}
     span.Apple-tab-span {white-space:pre}
   </style>
 </head>
@@ -31,7 +33,7 @@
 <p class="p2"><span class="s1">Orange: vSG LAN connectivity (cross-connect)</span></p>
 <p class="p3"><span class="s1">Magenta: vSG WAN connectivity (default route)</span></p>
 <p class="p4"><span class="s1">Green: vRouter integration</span></p>
-<p class="p5"><span class="s1">Light Blue: PIM integration</span></p>
+<p class="p5"><span class="s1">Light Blue: Multicast</span></p>
 <p class="p6"><span class="s1">Red: Link validation</span></p>
 <p class="p7"><span class="s1"><br>
 </span></p>
@@ -221,7 +223,11 @@
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"org.onosproject.core" : {</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"core" : {</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"linkDiscoveryMode" : "STRICT" </span><span class="s8">// enable strict link validation</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>} <span class="Apple-converted-space">   </span></span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
+<p class="p8"><span class="s9"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-converted-space">  </span>"multicast": { </span><span class="s1">// The VLAN we expect to see on the multicast ingress and egress</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"ingressVlan": "None",</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"egressVlan": "None"</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>}<span class="Apple-converted-space"> </span></span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>},</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>"org.onosproject.segmentrouting" : {</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>"segmentrouting" : {</span></p>
@@ -243,7 +249,7 @@
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"controlPlaneConnectPoint" : "of:0000000000000002/31", </span><span class="s6">// location of Quagga</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"ospfEnabled" : "true", </span><span class="s6">// enable OSPF</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"pimEnabled" : "true", </span><span class="s7">// enable PIM</span></p>
-<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"interfaces" : [ "external-quagga" ] </span><span class="s9">// </span><span class="s6">VR only handles peers on these ports</span></p>
+<p class="p7"><span class="s1"><span class="Apple-converted-space">                </span>"interfaces" : [ "external-quagga" ] </span><span class="s10">// </span><span class="s6">VR only handles peers on these ports</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
 <p class="p7"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>

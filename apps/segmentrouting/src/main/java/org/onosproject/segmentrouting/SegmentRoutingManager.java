@@ -762,6 +762,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(null);
         //log.trace("processLinkAdded: re-starting route population process");
         //defaultRoutingHandler.startPopulationProcess();
+
+        mcastHandler.init();
     }
 
     private void processLinkRemoved(Link link) {
@@ -775,6 +777,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(link);
         //log.trace("processLinkRemoved: re-starting route population process");
         //defaultRoutingHandler.startPopulationProcess();
+
+        mcastHandler.processLinkDown(link);
     }
 
     private void processDeviceAdded(Device device) {
@@ -784,43 +788,50 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     + "processed after config completes.", device.id());
             return;
         }
+        processDeviceAddedInternal(device.id());
+    }
+
+    private void processDeviceAddedInternal(DeviceId deviceId) {
         // Irrespective of whether the local is a MASTER or not for this device,
         // we need to create a SR-group-handler instance. This is because in a
         // multi-instance setup, any instance can initiate forwarding/next-objectives
         // for any switch (even if this instance is a SLAVE or not even connected
         // to the switch). To handle this, a default-group-handler instance is necessary
         // per switch.
-        if (groupHandlerMap.get(device.id()) == null) {
+        log.debug("Current groupHandlerMap devs: {}", groupHandlerMap.keySet());
+        if (groupHandlerMap.get(deviceId) == null) {
             DefaultGroupHandler groupHandler;
             try {
                 groupHandler = DefaultGroupHandler.
-                        createGroupHandler(device.id(),
-                                           appId,
-                                           deviceConfiguration,
-                                           linkService,
-                                           flowObjectiveService,
-                                           this);
+                        createGroupHandler(deviceId,
+                                appId,
+                                deviceConfiguration,
+                                linkService,
+                                flowObjectiveService,
+                                this);
             } catch (DeviceConfigNotFoundException e) {
                 log.warn(e.getMessage() + " Aborting processDeviceAdded.");
                 return;
             }
-            groupHandlerMap.put(device.id(), groupHandler);
+            log.debug("updating groupHandlerMap with new config for device: {}",
+                    deviceId);
+            groupHandlerMap.put(deviceId, groupHandler);
             // Also, in some cases, drivers may need extra
             // information to process rules (eg. Router IP/MAC); and so, we send
             // port addressing rules to the driver as well irrespective of whether
             // this instance is the master or not.
-            defaultRoutingHandler.populatePortAddressingRules(device.id());
+            defaultRoutingHandler.populatePortAddressingRules(deviceId);
         }
-        if (mastershipService.isLocalMaster(device.id())) {
-            hostHandler.readInitialHosts(device.id());
-            DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
+        if (mastershipService.isLocalMaster(deviceId)) {
+            hostHandler.readInitialHosts(deviceId);
+            DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
             groupHandler.createGroupsFromSubnetConfig();
-            routingRulePopulator.populateSubnetBroadcastRule(device.id());
-            groupHandler.createGroupsForXConnect(device.id());
-            routingRulePopulator.populateXConnectBroadcastRule(device.id());
+            routingRulePopulator.populateSubnetBroadcastRule(deviceId);
+            groupHandler.createGroupsForXConnect(deviceId);
+            routingRulePopulator.populateXConnectBroadcastRule(deviceId);
         }
 
-        netcfgHandler.initVRouters(device.id());
+        netcfgHandler.initVRouters(deviceId);
     }
 
     private void processDeviceRemoved(Device device) {
@@ -829,34 +840,29 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .forEach(entry -> {
                     nsNextObjStore.remove(entry.getKey());
                 });
-
         subnetNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
                 .forEach(entry -> {
                     subnetNextObjStore.remove(entry.getKey());
                 });
-
         portNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
                 .forEach(entry -> {
                     portNextObjStore.remove(entry.getKey());
                 });
-
         xConnectNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
                 .forEach(entry -> {
                     xConnectNextObjStore.remove(entry.getKey());
                 });
-
         subnetVidStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
                 .forEach(entry -> {
                     subnetVidStore.remove(entry.getKey());
                 });
-
         groupHandlerMap.remove(device.id());
-
         defaultRoutingHandler.purgeEcmpGraph(device.id());
+        mcastHandler.removeDevice(device.id());
     }
 
     private void processPortRemoved(Device device, Port port) {
@@ -900,48 +906,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                               tunnelHandler, policyStore);
 
             for (Device device : deviceService.getDevices()) {
-                // Irrespective of whether the local is a MASTER or not for this device,
-                // we need to create a SR-group-handler instance. This is because in a
-                // multi-instance setup, any instance can initiate forwarding/next-objectives
-                // for any switch (even if this instance is a SLAVE or not even connected
-                // to the switch). To handle this, a default-group-handler instance is necessary
-                // per switch.
-                log.debug("Current groupHandlerMap devs: {}", groupHandlerMap.keySet());
-                if (groupHandlerMap.get(device.id()) == null) {
-                    DefaultGroupHandler groupHandler;
-                    try {
-                        groupHandler = DefaultGroupHandler.
-                                createGroupHandler(device.id(),
-                                                   appId,
-                                                   deviceConfiguration,
-                                                   linkService,
-                                                   flowObjectiveService,
-                                                   segmentRoutingManager);
-                    } catch (DeviceConfigNotFoundException e) {
-                        log.warn(e.getMessage() + " Aborting configureNetwork.");
-                        return;
-                    }
-                    log.debug("updating groupHandlerMap with new config for "
-                            + "device: {}", device.id());
-                    groupHandlerMap.put(device.id(), groupHandler);
-
-                    // Also, in some cases, drivers may need extra
-                    // information to process rules (eg. Router IP/MAC); and so, we send
-                    // port addressing rules to the driver as well, irrespective of whether
-                    // this instance is the master or not.
-                    defaultRoutingHandler.populatePortAddressingRules(device.id());
-                }
-                if (mastershipService.isLocalMaster(device.id())) {
-                    hostHandler.readInitialHosts(device.id());
-                    DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
-                    groupHandler.createGroupsFromSubnetConfig();
-                    routingRulePopulator.populateSubnetBroadcastRule(device.id());
-                    groupHandler.createGroupsForXConnect(device.id());
-                    routingRulePopulator.populateXConnectBroadcastRule(device.id());
-                }
+                processDeviceAddedInternal(device.id());
             }
 
             defaultRoutingHandler.startPopulationProcess();
+            mcastHandler.init();
         }
 
         @Override
