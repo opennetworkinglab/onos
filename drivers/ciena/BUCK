@@ -8,7 +8,7 @@ COMPILE_DEPS = [
     '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
     '//drivers/utilities:onos-drivers-utilities',
-    '//protocols/rest/api:onos-restsb-api',
+    '//protocols/rest/api:onos-protocols-rest-api',
 ]
 
 osgi_jar(

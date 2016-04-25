@@ -21,8 +21,8 @@ CORE = [
 
     '//cli:onos-cli',
 
-    '//protocols/rest/api:onos-restsb-api',
-    '//protocols/rest/ctl:onos-restsb-ctl',
+    '//protocols/rest/api:onos-protocols-rest-api',
+    '//protocols/rest/ctl:onos-protocols-rest-ctl',
     '//protocols/bgp/bgpio:onos-bgpio',
     '//protocols/bgp/api:onos-bgp-api',
     '//protocols/bgp/ctl:onos-bgp-ctl',
@@ -62,8 +62,8 @@ CORE = [
     '//providers/openflow/meter:onos-providers-openflow-meter',
     '//providers/ovsdb/device:onos-ovsdb-provider-device',
     '//providers/ovsdb/tunnel:onos-ovsdb-provider-tunnel',
-    '//providers/rest/device:onos-restsb-provider-device',
-    '//providers/snmp/device:onos-snmp-provider-device',
+    '//providers/rest/device:onos-providers-rest-device',
+    '//providers/snmp/device:onos-providers-snmp-device',
 
     '//web/api:onos-rest',
     '//web/gui:onos-gui',
@@ -82,6 +82,7 @@ APPS = [
     '//providers/pcep:onos-providers-pcep-oar',
     '//providers/null:onos-providers-null-oar',
     '//providers/openflow/base:onos-providers-openflow-base-oar',
+    '//providers/rest:onos-providers-rest-oar',
 
     # Apps
     '//apps/dhcp:onos-apps-dhcp-oar',
