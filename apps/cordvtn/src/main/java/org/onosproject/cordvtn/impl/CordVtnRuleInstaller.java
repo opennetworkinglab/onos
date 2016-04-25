@@ -282,12 +282,12 @@ public class CordVtnRuleInstaller {
             GroupId groupId = createServiceGroup(deviceId, pService);
             outGroups.put(deviceId, groupId);
 
-            Set<PortNumber> vms = tService.hosts().keySet()
+            Set<PortNumber> tServiceVms = tService.hosts().keySet()
                     .stream()
                     .filter(host -> host.location().deviceId().equals(deviceId))
                     .map(host -> host.location().port())
                     .collect(Collectors.toSet());
-            inPorts.put(deviceId, vms);
+            inPorts.put(deviceId, tServiceVms);
         });
 
         populateIndirectAccessRule(srcRange, serviceIp, outGroups);

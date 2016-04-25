@@ -30,6 +30,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cordvtn.api.CordService;
+import org.onosproject.cordvtn.api.CordService.ServiceType;
 import org.onosproject.cordvtn.api.CordServiceId;
 import org.onosproject.cordvtn.api.CordVtnConfig;
 import org.onosproject.cordvtn.api.CordVtnNode;
@@ -66,6 +67,8 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.xosclient.api.XosAccess;
+import org.onosproject.xosclient.api.XosClientService;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.model.identity.Access;
@@ -85,6 +88,7 @@ import java.util.stream.StreamSupport;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.cordvtn.api.CordService.getServiceType;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -129,6 +133,9 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DhcpService dhcpService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected XosClientService xosClient;
 
     private final ConfigFactory configFactory =
             new ConfigFactory(SubjectFactories.APP_SUBJECT_FACTORY, CordVtnConfig.class, "cordvtn") {
@@ -412,23 +419,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             return null;
         }
 
-        // here it assumes all cord service networks has only one subnet
-        Subnet osSubnet = osNet.getNeutronSubnets().stream()
-                .findFirst()
-                .orElse(null);
-        if (osSubnet == null) {
-            log.warn("Couldn't find OpenStack subnet for service {}", serviceId.id());
-            return null;
-        }
-
-        Set<CordServiceId> tServices = Sets.newHashSet();
-        // TODO get tenant services from XOS
-
-        Map<Host, IpAddress> hosts = getHostsWithOpenstackNetwork(osNet)
-                .stream()
-                .collect(Collectors.toMap(host -> host, this::getTunnelIp));
-
-        return new CordService(osNet, osSubnet, hosts, tServices);
+        return getCordService(osNet);
     }
 
     /**
@@ -450,14 +441,28 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             return null;
         }
 
-        Set<CordServiceId> tServices = Sets.newHashSet();
-        // TODO get tenant services from XOS
-
         Map<Host, IpAddress> hosts = getHostsWithOpenstackNetwork(osNet)
                 .stream()
                 .collect(Collectors.toMap(host -> host, this::getTunnelIp));
 
-        return new CordService(osNet, osSubnet, hosts, tServices);
+        ServiceType serviceType = getServiceType(osNet.getName());
+        // allows working without XOS for now
+        Set<CordServiceId> tServices = Sets.newHashSet();
+        Set<CordServiceId> pServices = Sets.newHashSet();
+
+        if (xosClient.access() != null && serviceType != ServiceType.MANAGEMENT) {
+            tServices = xosClient.vtnServiceApi().getTenantServices(serviceId.id())
+                    .stream()
+                    .map(CordServiceId::of)
+                    .collect(Collectors.toSet());
+
+            pServices = xosClient.vtnServiceApi().getProviderServices(serviceId.id())
+                    .stream()
+                    .map(CordServiceId::of)
+                    .collect(Collectors.toSet());
+        }
+
+        return new CordService(osNet, osSubnet, hosts, tServices, pServices);
     }
 
     /**
@@ -576,6 +581,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
         CordService service = getCordService(osNet);
         if (service == null) {
+            log.warn("Failed to get CordService for {}", osNet.getName());
             return;
         }
 
@@ -587,7 +593,12 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                 arpProxy.addGateway(service.serviceIp(), privateGatewayMac);
             case PUBLIC:
             default:
-                // TODO check if the service needs an update on its group buckets after done CORD-433
+                // TODO get bidirectional information from XOS once XOS supports
+                service.tenantServices().stream().forEach(
+                        tServiceId -> createServiceDependency(tServiceId, service.id(), true));
+                service.providerServices().stream().forEach(
+                        pServiceId -> createServiceDependency(service.id(), pServiceId, true));
+
                 ruleInstaller.updateServiceGroup(service);
                 // sends gratuitous ARP here for the case of adding existing VMs
                 // when ONOS or cordvtn app is restarted
@@ -648,8 +659,9 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                 }
             case PUBLIC:
             default:
-                // TODO check if the service needs an update on its group buckets after done CORD-433
-                ruleInstaller.updateServiceGroup(service);
+                if (!service.tenantServices().isEmpty()) {
+                    ruleInstaller.updateServiceGroup(service);
+                }
                 break;
         }
     }
@@ -717,6 +729,8 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param newMac mac address to update
      */
     private void setPrivateGatewayMac(MacAddress newMac) {
+        checkNotNull(osAccess, "OpenStack access is not set");
+
         if (newMac == null || newMac.equals(privateGatewayMac)) {
             // no updates, do nothing
             return;
@@ -725,13 +739,11 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         privateGatewayMac = newMac;
         log.debug("Set service gateway MAC address to {}", privateGatewayMac.toString());
 
-        // TODO get existing service list from XOS and replace the loop below
-        Set<String> vNets = Sets.newHashSet();
-        hostService.getHosts().forEach(host -> vNets.add(host.annotations().value(SERVICE_ID)));
-        vNets.remove(null);
+        OSClient osClient = OSFactory.clientFromAccess(osAccess);
+        List<Network> vNets = Lists.newArrayList(osClient.networking().network().list().iterator());
 
         vNets.stream().forEach(vNet -> {
-            CordService service = getCordService(CordServiceId.of(vNet));
+            CordService service = getCordService(vNet);
             if (service != null) {
                 arpProxy.addGateway(service.serviceIp(), privateGatewayMac);
                 arpProxy.sendGratuitousArpForGateway(service.serviceIp(), service.hosts().keySet());
@@ -763,6 +775,8 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param osConfig openstack config
      */
     private void setOpenstackAccess(CordVtnConfig.OpenStackConfig osConfig) {
+        checkNotNull(osConfig, "OpenStack access is not configured");
+
         log.debug("Get OpenStack access with Endpoint: {} Tenant: {} User: {} Passwd: {}",
                   osConfig.endpoint(),
                   osConfig.tenant(),
@@ -781,6 +795,22 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     }
 
     /**
+     * Sets XOS access information.
+     *
+     * @param xosAccess xos access
+     */
+    private void setXosAccess(XosAccess xosAccess) {
+        checkNotNull(xosAccess, "XOS access is not configured");
+
+        log.debug("Set XOS access with Endpoint: {} User: {} Passwd: {}",
+                  xosAccess.endpoint(),
+                  xosAccess.username(),
+                  xosAccess.password());
+
+        xosClient.setAccess(xosAccess);
+    }
+
+    /**
      * Updates configurations.
      */
     private void readConfiguration() {
@@ -790,6 +820,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             return;
         }
 
+        setXosAccess(config.xosAccess());
         setOpenstackAccess(config.openstackConfig());
         setPrivateGatewayMac(config.privateGatewayMac());
         setPublicGatewayMac(config.publicGateways());

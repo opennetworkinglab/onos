@@ -25,6 +25,7 @@ import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
+import org.onosproject.xosclient.api.XosAccess;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -59,10 +60,12 @@ public class CordVtnConfig extends Config<ApplicationId> {
     public static final String SSH_KEY_FILE = "sshKeyFile";
 
     public static final String OPENSTACK = "openstack";
-    public static final String OPENSTACK_ENDPOINT = "endpoint";
-    public static final String OPENSTACK_TENANT = "tenant";
-    public static final String OPENSTACK_USER = "user";
-    public static final String OPENSTACK_PASSWORD = "password";
+    public static final String XOS = "xos";
+
+    public static final String ENDPOINT = "endpoint";
+    public static final String TENANT = "tenant";
+    public static final String USER = "user";
+    public static final String PASSWORD = "password";
 
     /**
      * Returns the set of nodes read from network config.
@@ -183,6 +186,28 @@ public class CordVtnConfig extends Config<ApplicationId> {
     }
 
     /**
+     * Returns XOS access information.
+     *
+     * @return XOS access, or null
+     */
+    public XosAccess xosAccess() {
+        JsonNode jsonNode = object.get(XOS);
+        if (jsonNode == null) {
+            log.error("Failed to get XOS configurations");
+            return null;
+        }
+
+        try {
+            return new XosAccess(getConfig(jsonNode, ENDPOINT),
+                                 getConfig(jsonNode, USER),
+                                 getConfig(jsonNode, PASSWORD));
+        } catch (NullPointerException e) {
+            log.error("Failed to get XOS access");
+            return null;
+        }
+    }
+
+    /**
      * Returns OpenStack API access information.
      *
      * @return openstack config
@@ -196,10 +221,10 @@ public class CordVtnConfig extends Config<ApplicationId> {
 
         try {
             return new OpenStackConfig(
-                    jsonNode.path(OPENSTACK_ENDPOINT).asText(),
-                    jsonNode.path(OPENSTACK_TENANT).asText(),
-                    jsonNode.path(OPENSTACK_USER).asText(),
-                    jsonNode.path(OPENSTACK_PASSWORD).asText());
+                    jsonNode.path(ENDPOINT).asText(),
+                    jsonNode.path(TENANT).asText(),
+                    jsonNode.path(USER).asText(),
+                    jsonNode.path(PASSWORD).asText());
         } catch (IllegalArgumentException | NullPointerException e) {
             log.error("Failed to get OpenStack configurations");
             return null;

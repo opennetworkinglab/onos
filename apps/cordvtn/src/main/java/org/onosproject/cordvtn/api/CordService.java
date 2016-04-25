@@ -43,6 +43,7 @@ public final class CordService {
     private final IpAddress serviceIp;
     private final Map<Host, IpAddress> hosts;
     private final Set<CordServiceId> tenantServices;
+    private final Set<CordServiceId> providerServices;
 
     /**
      * Default constructor.
@@ -51,9 +52,11 @@ public final class CordService {
      * @param osSubnet OpenStack subnet
      * @param hosts host and tunnel ip map
      * @param tenantServices list of tenant service ids
+     * @param providerServices list of provider service ids
      */
     public CordService(Network osNet, Subnet osSubnet,
-                       Map<Host, IpAddress> hosts, Set<CordServiceId> tenantServices) {
+                       Map<Host, IpAddress> hosts, Set<CordServiceId> tenantServices,
+                       Set<CordServiceId> providerServices) {
         this.id = CordServiceId.of(osNet.getId());
         this.segmentationId = Long.parseLong(osNet.getProviderSegID());
         this.serviceType = getServiceType(osNet.getName());
@@ -61,6 +64,7 @@ public final class CordService {
         this.serviceIp = IpAddress.valueOf(osSubnet.getGateway());
         this.hosts = hosts;
         this.tenantServices = tenantServices;
+        this.providerServices = providerServices;
     }
 
     /**
@@ -126,6 +130,15 @@ public final class CordService {
         return tenantServices;
     }
 
+    /**
+     * Returns provider service IDs.
+     *
+     * @return list of provider service id
+     */
+    public Set<CordServiceId> providerServices() {
+        return providerServices;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(id);
@@ -152,6 +165,7 @@ public final class CordService {
                 .add("serviceIpRange", serviceIpRange)
                 .add("serviceIp", serviceIp)
                 .add("tenantServices", tenantServices)
+                .add("providerServices", providerServices)
                 .toString();
     }
 
@@ -162,7 +176,7 @@ public final class CordService {
      * @param netName network name
      * @return network type, or PRIVATE if it doesn't match any type
      */
-    private ServiceType getServiceType(String netName) {
+    public static ServiceType getServiceType(String netName) {
         checkNotNull(netName);
 
         String name = netName.toUpperCase();
