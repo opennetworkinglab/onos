@@ -91,8 +91,6 @@ def osgi_jar(
   if debug:
     bash = stage_jar + DEBUG_ARG + ' ' + wrap_jar
     print bash
-  # TODO this is a hack to add checkstyle as dependency before generating jar
-  bash = 'ls $(location :' + name + '-checkstyle) > /dev/null; ' + bash
 
   genrule(
     name = osgi_jar_name,
@@ -111,20 +109,35 @@ def osgi_jar(
   )
 
   ### Checkstyle
-  chk_cmd = ' '.join(( 'java -jar $(location //lib:checkstyle)',
-                       '-o $OUT',
+  chk_cmd = '#!/bin/sh\n'
+  base = get_base_path()
+  chk_cmd += ' '.join(( 'java -jar $(location //lib:checkstyle)',
                        '-c $(location //tools/build/conf:checkstyle-xml)',
-                       ' '.join(srcs) ))
-  error_cmd = ' | '.join(( '( touch $OUT; cat $OUT',
-                           'grep -E "^[^: ]*:\d+:\d+: error:"',
-                           'sed "s#^.*__srcs/#%s:#g" ; exit 1)' % name, ))
-  cmd = ' || '.join((chk_cmd, error_cmd))
+                       ' '.join(['%s/%s' % (base, s) for s in srcs]) ))
+  chk_cmd += ' | grep -E "^[^: ]*:\d+:\d+: error:"'
+  chk_cmd += ' | sed "s#^.*%s/#%s:#g"\n' % (base, name)
+  chk_cmd += 'test ${PIPESTATUS[0]} -eq 0\n' # status of java command
   genrule(
-    name = name + '-checkstyle',
-    bash = cmd,
+    name = name + '-checkstyle-sh',
+    bash = "echo '%s' > $OUT && chmod +x $OUT" % chk_cmd,
     srcs = srcs,
-    out = 'checkstyle.log',
+    out = 'checkstyle.sh',
   )
+
+  sh_test(
+    name = name + '-checkstyle',
+    test = ':' + name + '-checkstyle-sh',
+    deps = [ ':'+ bare_jar_name ],
+    labels = [ 'checkstyle' ],
+  )
+
+  # TODO add project config for intellij
+  # project_config(
+  #   src_target = ':' + bare_jar_name,
+  #   src_roots = [ 'src/main/java' ],
+  #   test_target = ':' + name + '-tests',
+  #   test_roots = [ 'src/test/java' ],
+  # )
 
   ### .m2 Install
   mvn_cmd = ' '.join(( 'mvn install:install-file',
