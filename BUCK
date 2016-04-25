@@ -119,6 +119,7 @@ APPS = [
     '//apps/faultmanagement:onos-apps-faultmanagement-oar',
     '//apps/openstacknode:onos-apps-openstacknode-oar',
     '//apps/cpman/app:onos-apps-cpman-app-oar',
+    '//apps/xosclient:onos-apps-xosclient-oar',
 ]
 
 APP_JARS = [
