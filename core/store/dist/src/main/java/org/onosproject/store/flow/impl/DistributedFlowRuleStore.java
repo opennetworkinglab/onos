@@ -107,7 +107,7 @@ package org.onosproject.store.flow.impl;
  */
 @Component(immediate = true, enabled = true)
 @Service
-public class NewDistributedFlowRuleStore
+public class DistributedFlowRuleStore
         extends AbstractStore<FlowRuleBatchEvent, FlowRuleStoreDelegate>
         implements FlowRuleStore {
 
