@@ -312,6 +312,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                                                            List<OFPortStatsEntry> entries) {
         HashSet<PortStatistics> stats = Sets.newHashSet();
 
+        if (entries == null) {
+            return Collections.unmodifiableSet(stats);
+        }
+
         for (OFPortStatsEntry entry : entries) {
             try {
                 if (entry == null || entry.getPortNo() == null || entry.getPortNo().getPortNumber() < 0) {
@@ -339,7 +343,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         }
 
         return Collections.unmodifiableSet(stats);
-
     }
 
     private class InternalDeviceProvider implements OpenFlowSwitchListener, OpenFlowEventListener {
