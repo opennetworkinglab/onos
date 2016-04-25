@@ -127,7 +127,7 @@ public class DefaultGraphiteMetricsReporter implements GraphiteMetricsReporter {
         graphiteReporter = buildReporter(graphite);
 
         try {
-            graphiteReporter.start(DEFAULT_REPORT_PERIOD, REPORT_TIME_UNIT);
+            graphiteReporter.start(reportPeriod, REPORT_TIME_UNIT);
         } catch (Exception e) {
             log.error("Errors during reporting to graphite, msg: {}" + e.getMessage());
         }
@@ -154,7 +154,7 @@ public class DefaultGraphiteMetricsReporter implements GraphiteMetricsReporter {
         graphiteReporter = buildReporter(graphite);
 
         try {
-            graphiteReporter.start(DEFAULT_REPORT_PERIOD, REPORT_TIME_UNIT);
+            graphiteReporter.start(reportPeriod, REPORT_TIME_UNIT);
         } catch (Exception e) {
             log.error("Errors during reporting to graphite, msg: {}" + e.getMessage());
         }

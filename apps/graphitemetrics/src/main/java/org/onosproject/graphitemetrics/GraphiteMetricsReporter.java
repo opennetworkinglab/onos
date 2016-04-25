@@ -18,7 +18,7 @@ package org.onosproject.graphitemetrics;
 import org.onlab.metrics.MetricsReporter;
 
 /**
- * Interface of graphite reporter that reports all metrics value to graphite server.
+ * A Metric reporter interface for reporting all metrics to graphite server.
  */
 public interface GraphiteMetricsReporter extends MetricsReporter {
 }
