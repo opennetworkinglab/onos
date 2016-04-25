@@ -339,8 +339,11 @@ public class EventuallyConsistentMapImpl<K, V>
         checkNotNull(value, ERROR_NULL_VALUE);
 
         MapValue<V> newValue = new MapValue<>(value, timestampProvider.apply(key, value));
+        // Before mutating local map, ensure the update can be serialized without errors.
+        // This prevents replica divergence due to serialization failures.
+        UpdateEntry<K, V> update = serializer.copy(new UpdateEntry<K, V>(key, newValue));
         if (putInternal(key, newValue)) {
-            notifyPeers(new UpdateEntry<>(key, newValue), peerUpdateFunction.apply(key, value));
+            notifyPeers(update, peerUpdateFunction.apply(key, value));
             notifyListeners(new EventuallyConsistentMapEvent<>(mapName, PUT, key, value));
         }
     }
@@ -417,13 +420,15 @@ public class EventuallyConsistentMapImpl<K, V>
 
         AtomicBoolean updated = new AtomicBoolean(false);
         AtomicReference<MapValue<V>> previousValue = new AtomicReference<>();
-        MapValue<V> computedValue = items.compute(key, (k, mv) -> {
+        MapValue<V> computedValue = items.compute(serializer.copy(key), (k, mv) -> {
             previousValue.set(mv);
             V newRawValue = recomputeFunction.apply(key, mv == null ? null : mv.get());
             MapValue<V> newValue = new MapValue<>(newRawValue, timestampProvider.apply(key, newRawValue));
             if (mv == null || newValue.isNewerThan(mv)) {
                 updated.set(true);
-                return newValue;
+                // We return a copy to ensure updates to peers can be serialized.
+                // This prevents replica divergence due to serialization failures.
+                return serializer.copy(newValue);
             } else {
                 return mv;
             }

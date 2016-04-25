@@ -78,6 +78,11 @@ public class KryoSerializer implements StoreSerializer {
     }
 
     @Override
+    public <T> T copy(T object) {
+        return decode(encode(object));
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("serializerPool", serializerPool)

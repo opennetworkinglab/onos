@@ -75,4 +75,13 @@ public interface StoreSerializer {
      * @param <T> decoded type
      */
     <T> T decode(final InputStream stream);
+
+    /**
+     * Returns a copy of the specfied object.
+     *
+     * @param object object to copy
+     * @return a copy of the object
+     * @param <T> object type
+     */
+    <T> T copy(final T object);
 }
