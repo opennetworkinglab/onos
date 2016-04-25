@@ -28,9 +28,28 @@ APP_HEADER = '''\
 ARTIFACT = '    <artifact>%s</artifact>\n'
 APP_FOOTER = '</app>'
 
+NON_OSGI_TAG = 'NON-OSGI'
 
 def mvnUrl(bundle):
-    return 'mvn:' + bundle.replace(':', '/')
+    #mvn-uri := 'mvn:' [ repository-url '!' ] group-id '/' artifact-id [ '/' [version] [ '/' [type] [ '/' classifier ] ] ] ]
+    parts = bundle.split(':')
+    prefix = 'mvn:'
+    suffix = ''
+    if len(parts) > 3:
+        parts.insert(2, parts.pop()) # move version to the 3rd position
+    if len(parts) >= 5:
+        # check classifier for special non-OSGi tag
+        i = parts[4].find(NON_OSGI_TAG)
+        if i == 0:
+            prefix = 'wrap:' + prefix
+            suffix = '$Bundle-SymbolicName=%s.%s&amp;Bundle-Version=%s' % tuple(parts[0:3])
+            if len(parts[4]) == len(NON_OSGI_TAG):
+                parts.pop() # pop off empty classifier
+                if parts[3].lower() == 'jar':
+                    parts.pop() # pop off default extension: jar
+            else:
+                parts[4] = parts[4][len(NON_OSGI_TAG):]
+    return prefix + '/'.join(parts) + suffix
 
 def generateFeatureFile(feature_name,
                         version,
