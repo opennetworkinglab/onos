@@ -19,10 +19,13 @@ package org.onosproject.netconf.ctl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -42,10 +45,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Dictionary;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
 
 /**
  * The implementation of NetconfController.
@@ -53,6 +60,15 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @Component(immediate = true)
 @Service
 public class NetconfControllerImpl implements NetconfController {
+    private static final String PROP_NETCONF_REPLY_TIMEOUT = "netconfReplyTimeout";
+    private static final int DEFAULT_REPLY_TIMEOUT_SECONDS = 5;
+    @Property(name = PROP_NETCONF_REPLY_TIMEOUT, intValue = DEFAULT_REPLY_TIMEOUT_SECONDS,
+            label = "Time (in seconds) waiting for a NetConf reply")
+    protected static int netconfReplyTimeout = DEFAULT_REPLY_TIMEOUT_SECONDS;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
@@ -71,13 +87,40 @@ public class NetconfControllerImpl implements NetconfController {
 
     @Activate
     public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
+        modified(context);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         netconfDeviceMap.clear();
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        if (context == null) {
+            netconfReplyTimeout = DEFAULT_REPLY_TIMEOUT_SECONDS;
+            log.info("No component configuration");
+            return;
+        }
+
+        Dictionary<?, ?> properties = context.getProperties();
+
+        int newNetconfReplyTimeout;
+        try {
+            String s = get(properties, PROP_NETCONF_REPLY_TIMEOUT);
+            newNetconfReplyTimeout = isNullOrEmpty(s) ?
+                    netconfReplyTimeout : Integer.parseInt(s.trim());
+        } catch (NumberFormatException e) {
+            log.warn("Component configuration had invalid value", e);
+            return;
+        }
+
+        netconfReplyTimeout = newNetconfReplyTimeout;
+        log.info("Settings: {} = {}", PROP_NETCONF_REPLY_TIMEOUT, netconfReplyTimeout);
     }
 
     @Override

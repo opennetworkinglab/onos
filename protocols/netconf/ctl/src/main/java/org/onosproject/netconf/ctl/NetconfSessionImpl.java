@@ -55,7 +55,6 @@ public class NetconfSessionImpl implements NetconfSession {
     private static final String MESSAGE_ID_STRING = "message-id";
     private static final String HELLO = "<hello";
     private static final String NEW_LINE = "\n";
-    private static final int FUTURE_REPLY_TIMEOUT = 5000;
     private static final String ERROR = "ERROR ";
     private static final String END_OF_RPC_OPEN_TAG = "\">";
     private static final String EQUAL = "=";
@@ -196,9 +195,10 @@ public class NetconfSessionImpl implements NetconfSession {
         request = formatXmlHeader(request);
         CompletableFuture<String> futureReply = request(request);
         messageIdInteger.incrementAndGet();
+        int replyTimeout = NetconfControllerImpl.netconfReplyTimeout;
         String rp;
         try {
-            rp = futureReply.get(FUTURE_REPLY_TIMEOUT, TimeUnit.MILLISECONDS);
+            rp = futureReply.get(replyTimeout, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new NetconfException("No matching reply for request " + request, e);
         }

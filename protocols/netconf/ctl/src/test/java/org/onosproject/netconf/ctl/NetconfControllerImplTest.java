@@ -20,7 +20,10 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cfg.ComponentConfigAdapter;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.key.DeviceKeyService;
@@ -32,8 +35,11 @@ import org.onosproject.netconf.NetconfDeviceOutputEvent;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
+import org.osgi.service.component.ComponentContext;
 
 import java.lang.reflect.Field;
+import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -79,14 +85,17 @@ public class NetconfControllerImplTest {
     private static final int BAD_DEVICE_PORT = 13;
     private static final int IPV6_DEVICE_PORT = 14;
 
+    private static ComponentConfigService cfgService = new ComponentConfigAdapter();
     private static DeviceService deviceService = new NetconfDeviceServiceMock();
     private static DeviceKeyService deviceKeyService = new NetconfDeviceKeyServiceMock();
 
+    private final ComponentContext context = new MockComponentContext();
 
     @Before
     public void setUp() throws Exception {
         ctrl = new NetconfControllerImpl();
         ctrl.deviceFactory = new TestNetconfDeviceFactory();
+        ctrl.cfgService = cfgService;
         ctrl.deviceService = deviceService;
         ctrl.deviceKeyService = deviceKeyService;
 
@@ -122,6 +131,30 @@ public class NetconfControllerImplTest {
     @After
     public void tearDown() {
         ctrl.deactivate();
+    }
+
+    /**
+     * Test initialization of component configuration.
+     */
+    @Test
+    public void testActivate() {
+        assertEquals("Incorrect NetConf session timeout, should be default",
+                     5, ctrl.netconfReplyTimeout);
+        ctrl.activate(null);
+        assertEquals("Incorrect NetConf session timeout, should be default",
+                     5, ctrl.netconfReplyTimeout);
+    }
+
+    /**
+     * Test modification of component configuration.
+     */
+    @Test
+    public void testModified() {
+        assertEquals("Incorrect NetConf session timeout, should be default",
+                     5, ctrl.netconfReplyTimeout);
+        ctrl.modified(context);
+        assertEquals("Incorrect NetConf session timeout",
+                     1, ctrl.netconfReplyTimeout);
     }
 
     /**
@@ -322,5 +355,53 @@ public class NetconfControllerImplTest {
             return netconfDeviceInfo;
         }
 
+    }
+
+    private class MockComponentContext extends ComponentContextAdapter {
+        @Override
+        public Dictionary getProperties() {
+            return new MockDictionary();
+        }
+    }
+
+    private class MockDictionary extends Dictionary {
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public Enumeration keys() {
+            return null;
+        }
+
+        @Override
+        public Enumeration elements() {
+            return null;
+        }
+
+        @Override
+        public Object get(Object key) {
+            if (key.equals("netconfReplyTimeout")) {
+                return "1";
+            }
+            return null;
+        }
+
+        @Override
+        public Object put(Object key, Object value) {
+            return null;
+        }
+
+        @Override
+        public Object remove(Object key) {
+            return null;
+        }
     }
 }
