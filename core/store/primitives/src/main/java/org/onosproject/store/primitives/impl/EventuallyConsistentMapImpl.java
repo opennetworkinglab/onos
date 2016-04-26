@@ -581,6 +581,7 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     private void sendAdvertisementToPeer(NodeId peer) {
+        long adCreationTime = System.currentTimeMillis();
         AntiEntropyAdvertisement<K> ad = createAdvertisement();
         clusterCommunicator.sendAndReceive(ad,
                 antiEntropyAdvertisementSubject,
@@ -591,7 +592,7 @@ public class EventuallyConsistentMapImpl<K, V>
                     if (error != null) {
                         log.debug("Failed to send anti-entropy advertisement to {}", peer, error);
                     } else if (result == AntiEntropyResponse.PROCESSED) {
-                        antiEntropyTimes.put(peer, ad.creationTime());
+                        antiEntropyTimes.put(peer, adCreationTime);
                     }
                 });
     }

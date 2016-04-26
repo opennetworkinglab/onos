@@ -17,6 +17,7 @@ package org.onosproject.store.primitives.impl;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
+
 import org.onosproject.cluster.NodeId;
 
 import java.util.Map;
@@ -28,7 +29,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class AntiEntropyAdvertisement<K> {
 
-    private final long creationTime;
     private final NodeId sender;
     private final Map<K, MapValue.Digest> digest;
 
@@ -40,18 +40,8 @@ public class AntiEntropyAdvertisement<K> {
      */
     public AntiEntropyAdvertisement(NodeId sender,
                                     Map<K, MapValue.Digest> digest) {
-        this.creationTime = System.currentTimeMillis();
         this.sender = checkNotNull(sender);
         this.digest = ImmutableMap.copyOf(checkNotNull(digest));
-    }
-
-    /**
-     * Returns the ad creation time.
-     *
-     * @return ad creation time
-     */
-    public long creationTime() {
-        return creationTime;
     }
 
     /**
