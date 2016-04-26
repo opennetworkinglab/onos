@@ -67,6 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -566,11 +567,41 @@ public class ControlPlaneRedirectManager {
                 2000 * prefix.prefixLength() + MIN_IP_PRIORITY :
                 500 * prefix.prefixLength() + MIN_IP_PRIORITY;
     }
+
+    /**
+     * Update the flows comparing previous event and current event.
+     *
+     * @param prevIntf the previous interface event
+     * @param intf the current occured update envent
+     **/
+    private void updateInterface(Interface prevIntf, Interface intf) {
+        if (!prevIntf.vlan().equals(intf.vlan()) || !prevIntf.mac().equals(intf)) {
+            removeInterface(prevIntf);
+            provisionInterface(intf);
+        } else {
+            List<InterfaceIpAddress> removeIps =
+                    prevIntf.ipAddressesList().stream()
+                    .filter(pre -> !intf.ipAddressesList().contains(pre))
+                    .collect(Collectors.toList());
+            List<InterfaceIpAddress> addIps =
+                    intf.ipAddressesList().stream()
+                    .filter(cur -> !prevIntf.ipAddressesList().contains(cur))
+                    .collect(Collectors.toList());
+            // removing flows with match parameters present in previous subject
+            modifyBasicInterfaceForwarding(new Interface(prevIntf.name(), prevIntf.connectPoint(),
+                    removeIps, prevIntf.mac(), prevIntf.vlan()), false);
+            // adding flows with match parameters present in event subject
+            modifyBasicInterfaceForwarding(new Interface(intf.name(), intf.connectPoint(),
+                    addIps, intf.mac(), intf.vlan()), true);
+        }
+    }
+
     private class InternalInterfaceListener implements InterfaceListener {
 
         @Override
         public void event(InterfaceEvent event) {
              Interface intf = event.subject();
+             Interface prevIntf = event.prevSubject();
                 switch (event.type()) {
                 case INTERFACE_ADDED:
                     if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
@@ -578,6 +609,9 @@ public class ControlPlaneRedirectManager {
                     }
                     break;
                 case INTERFACE_UPDATED:
+                    if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
+                        updateInterface(prevIntf, intf);
+                    }
                     break;
                 case INTERFACE_REMOVED:
                     if (intf != null && !intf.connectPoint().equals(controlPlaneConnectPoint)) {
