@@ -20,7 +20,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +33,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A simple model of time series chart data.
- *
  * <p>
  * Note that this is not a full MVC type model; the expected usage pattern
  * is to create an empty chart, add data points (by consulting the business model),
@@ -43,6 +45,7 @@ public class ChartModel {
     private final String[] seriesArray;
     private final List<Long> labels = Lists.newArrayList();
     private final List<DataPoint> dataPoints = Lists.newArrayList();
+    private final Map<String, Annot> annotations = new HashMap<>();
 
     /**
      * Constructs a chart model with initialized series set.
@@ -146,6 +149,72 @@ public class ChartModel {
     }
 
     /**
+     * Inserts a new annotation.
+     *
+     * @param key key of annotation
+     * @param value value of annotation
+     */
+    public void addAnnotation(String key, Object value) {
+        annotations.put(key, new Annot(key, value));
+    }
+
+    /**
+     * Returns the annotations in this chart.
+     *
+     * @return annotations
+     */
+    public Collection<Annot> getAnnotations() {
+        return new ArrayList<>(annotations.values());
+    }
+
+    /**
+     * Model of an annotation.
+     */
+    public class Annot {
+        private final String key;
+        private final Object value;
+
+        /**
+         * Constructs an annotation with the given key and value.
+         *
+         * @param key the key
+         * @param value the value
+         */
+        public Annot(String key, Object value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        /**
+         * Returns the annotation's key.
+         *
+         * @return key
+         */
+        public String key() {
+            return key;
+        }
+
+        /**
+         * Returns the annotation's value.
+         *
+         * @return value
+         */
+        public Object value() {
+            return value;
+        }
+
+        /**
+         * Returns the value as a string.
+         * This default implementation uses the value's toString() method.
+         *
+         * @return the value as a string
+         */
+        public String valueAsString() {
+            return value.toString();
+        }
+    }
+
+    /**
      * A class of data point.
      */
     public class DataPoint {
@@ -156,7 +225,7 @@ public class ChartModel {
          * Sets the data value for the given series of this data point.
          *
          * @param series series name
-         * @param value value to set
+         * @param value  value to set
          * @return self, for chaining
          */
         public DataPoint data(String series, Double value) {

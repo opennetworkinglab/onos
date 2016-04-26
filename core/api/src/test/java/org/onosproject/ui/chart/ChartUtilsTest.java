@@ -16,6 +16,7 @@
 package org.onosproject.ui.chart;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,6 +30,8 @@ public class ChartUtilsTest {
 
     private static final String ARRAY_AS_STRING =
             "[{\"foo\":1.0,\"bar\":2.0},{\"foo\":3.0,\"bar\":4.0}]";
+    private static final String NODE_AS_STRING =
+            "{\"dev1\":\"of:0000000000000001\",\"dev2\":\"of:0000000000000002\"}";
 
     @Test
     public void basic() {
@@ -38,5 +41,15 @@ public class ChartUtilsTest {
 
         ArrayNode array = ChartUtils.generateDataPointArrayNode(cm);
         Assert.assertEquals("wrong results", ARRAY_AS_STRING, array.toString());
+    }
+
+    @Test
+    public void annot() {
+        ChartModel cm = new ChartModel(FOO, BAR);
+        cm.addAnnotation("dev1", "of:0000000000000001");
+        cm.addAnnotation("dev2", "of:0000000000000002");
+
+        ObjectNode node = ChartUtils.generateAnnotObjectNode(cm);
+        Assert.assertEquals("wrong results", NODE_AS_STRING, node.toString());
     }
 }

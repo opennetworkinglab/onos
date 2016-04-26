@@ -31,6 +31,8 @@ public abstract class ChartRequestHandler extends RequestHandler {
     private final String nodeName;
     protected static final String LABEL = "label";
 
+    private static final String ANNOTS = "annots";
+
     /**
      * Constructs a chart model handler for a specific graph view. When chart
      * requests come in, the handler will generate the appropriate chart data
@@ -53,6 +55,7 @@ public abstract class ChartRequestHandler extends RequestHandler {
 
         ObjectNode rootNode = MAPPER.createObjectNode();
         rootNode.set(nodeName, ChartUtils.generateDataPointArrayNode(cm));
+        rootNode.set(ANNOTS, ChartUtils.generateAnnotObjectNode(cm));
         sendMessage(respType, 0, rootNode);
     }
 

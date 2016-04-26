@@ -46,6 +46,20 @@ public final class ChartUtils {
     }
 
     /**
+     * Generates a JSON object node from the annotations of the given chart model.
+     *
+     * @param cm the chart model
+     * @return the object node representation of the annotations
+     */
+    public static ObjectNode generateAnnotObjectNode(ChartModel cm) {
+        ObjectNode node = MAPPER.createObjectNode();
+        for (ChartModel.Annot a : cm.getAnnotations()) {
+            node.put(a.key(), a.valueAsString());
+        }
+        return node;
+    }
+
+    /**
      * Generate a JSON node from the data point and given chart model.
      *
      * @param dp the data point
