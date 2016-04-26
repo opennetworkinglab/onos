@@ -15,19 +15,11 @@
  */
 package org.onosproject.driver.pipeline;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -65,6 +57,14 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.List;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -713,6 +713,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         // which can be accomplished without a table-miss-entry.
         processTmacTable();
         processIpTable();
+        processMulticastIpTable();
         processMplsTable();
         processBridgingTable();
         processAclTable();
@@ -781,9 +782,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
-        treatment.deferred().setOutput(PortNumber.CONTROLLER);
         treatment.transition(ACL_TABLE);
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
@@ -803,6 +801,34 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
             @Override
             public void onError(FlowRuleOperations ops) {
                 log.info("Failed to initialize unicast IP table");
+            }
+        }));
+    }
+
+    protected void processMulticastIpTable() {
+        //table miss entry
+        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        treatment.transition(ACL_TABLE);
+        FlowRule rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(LOWEST_PRIORITY)
+                .fromApp(driverId)
+                .makePermanent()
+                .forTable(MULTICAST_ROUTING_TABLE).build();
+        ops =  ops.add(rule);
+        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                log.info("Initialized multicast IP table");
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                log.info("Failed to initialize multicast IP table");
             }
         }));
     }
