@@ -16,20 +16,27 @@
 package org.onosproject.xosclient.impl;
 
 import org.onosproject.xosclient.api.XosAccess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 
 import static com.google.common.net.MediaType.JSON_UTF_8;
+import static java.net.HttpURLConnection.HTTP_OK;
 
 /**
  * XOS common REST API implementation.
  */
 public class XosApi {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     protected static final String EMPTY_STRING = "";
+    protected static final String EMPTY_JSON_STRING = "{}";
 
     protected final String baseUrl;
     protected final XosAccess access;
@@ -74,6 +81,12 @@ public class XosApi {
     public String restGet(String path) {
         WebTarget wt = client.target(access.endpoint() + baseUrl).path(path);
         Invocation.Builder builder = wt.request(JSON_UTF_8.toString());
+
+        Response response = builder.get();
+        if (response.getStatus() != HTTP_OK) {
+            log.warn("Failed to get resource {}", access.endpoint() + baseUrl + path);
+            return EMPTY_JSON_STRING;
+        }
 
         return builder.get(String.class);
     }
