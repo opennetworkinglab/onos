@@ -20,6 +20,7 @@
 
 #ov-cpman {
     padding: 20px;
+    position: relative;
 }
 .light #ov-cpman {
     color: navy;
@@ -40,22 +41,17 @@
     background-color: #444;
 }
 
-#ov-cpman .my-button {
-    cursor: pointer;
-    padding: 4px;
+#ov-cpman #chart-loader {
+    position: absolute;
+    width: 200px;
+    height: 50px;
+    margin-left: -100px;
+    margin-top: -25px;
+    z-index: 900;
+    top: 50%;
     text-align: center;
-}
-
-.light #ov-cpman .my-button {
-    color: white;
-    background-color: #99d;
-}
-.dark #ov-cpman .my-button {
-    color: black;
-    background-color: #aaa;
-}
-
-#ov-cpman .number {
-    font-size: 140%;
-    text-align: right;
+    left: 50%;
+    font-size: 25px;
+    font-weight: bold;
+    color: #ccc;
 }
