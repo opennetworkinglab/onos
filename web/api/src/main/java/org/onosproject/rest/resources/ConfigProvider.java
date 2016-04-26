@@ -41,7 +41,6 @@ import org.onosproject.net.MastershipRole;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalType;
-import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
@@ -55,7 +54,6 @@ import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.OduCltPortDescription;
-import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostProvider;
@@ -66,6 +64,7 @@ import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +87,7 @@ import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 /**
@@ -259,7 +259,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
             case FIBER:
                 // Currently, assume OMS when FIBER. Provide sane defaults.
                 annotations = annotations(node.get("annotations"));
-                return new OmsPortDescription(port, node.path("enabled").asBoolean(true),
+                return omsPortDescription(port, node.path("enabled").asBoolean(true),
                         Spectrum.CENTER_FREQUENCY, Spectrum.CENTER_FREQUENCY.add(TOTAL),
                                               Frequency.ofGHz(100), annotations);
             case ODUCLT:
@@ -276,7 +276,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
             case OMS:
                 annotations = annotations(node.get("annotations"));
                 OmsPort omsPort = (OmsPort) deviceService.getPort(deviceId, port);
-                return new OmsPortDescription(port, node.path("enabled").asBoolean(true),
+                return omsPortDescription(port, node.path("enabled").asBoolean(true),
                         omsPort.minFrequency(), omsPort.maxFrequency(), omsPort.grid(), annotations);
             default:
                 log.warn("{}: Unsupported Port Type");
@@ -398,8 +398,8 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
         Frequency min = Spectrum.CENTER_FREQUENCY.add(grid);
         Frequency max = Spectrum.CENTER_FREQUENCY.add(grid.multiply(numChls));
 
-        PortDescription srcPortDesc = new OmsPortDescription(srcCp.port(), true, min, max, grid);
-        PortDescription dstPortDesc = new OmsPortDescription(dstCp.port(), true, min, max, grid);
+        PortDescription srcPortDesc = omsPortDescription(srcCp.port(), true, min, max, grid);
+        PortDescription dstPortDesc = omsPortDescription(dstCp.port(), true, min, max, grid);
         descriptions.put(srcCp, srcPortDesc);
         descriptions.put(dstCp, dstPortDesc);
         deviceProviderService.portStatusChanged(srcCp.deviceId(), srcPortDesc);
@@ -479,7 +479,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
         switch (p.type()) {
             case OMS:
                 OmsPort op = (OmsPort) p;
-                return new OmsPortDescription(
+                return omsPortDescription(
                         op.number(), op.isEnabled(), op.minFrequency(), op.maxFrequency(), op.grid());
             case OCH:
                 OchPort ochp = (OchPort) p;

@@ -18,6 +18,7 @@ package org.onosproject.store.device.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.DefaultAnnotations.union;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 
 import java.util.Collections;
 import java.util.Map;
@@ -105,11 +106,21 @@ class DeviceDescriptions {
             newOne = null;
             switch (newDesc.value().type()) {
                 case OMS:
-                    OmsPortDescription omsDesc = (OmsPortDescription) (newDesc.value());
-                    newOne = new Timestamped<>(
-                            new OmsPortDescription(
-                                    omsDesc, omsDesc.minFrequency(), omsDesc.maxFrequency(), omsDesc.grid(), merged),
-                            newDesc.timestamp());
+                    if (newDesc.value() instanceof OmsPortDescription) {
+                        // remove if-block after deprecation is complete
+                        OmsPortDescription omsDesc = (OmsPortDescription) (newDesc.value());
+                        newOne = new Timestamped<>(
+                                omsPortDescription(omsDesc,
+                                                   omsDesc.minFrequency(),
+                                                   omsDesc.maxFrequency(),
+                                                   omsDesc.grid(), merged),
+                                newDesc.timestamp());
+                    } else {
+                        // same as default case
+                        newOne = new Timestamped<>(
+                                new DefaultPortDescription(newDesc.value(), merged),
+                                newDesc.timestamp());
+                    }
                     break;
                 case OCH:
                     if (newDesc.value() instanceof OchPortDescription) {

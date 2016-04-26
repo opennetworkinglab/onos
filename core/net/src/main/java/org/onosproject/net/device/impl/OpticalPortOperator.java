@@ -16,6 +16,7 @@
 package org.onosproject.net.device.impl;
 
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -25,7 +26,6 @@ import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.OtuPort;
 import org.onosproject.net.OduCltPort;
-import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
@@ -36,6 +36,7 @@ import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.optical.OpticalDevice;
 import org.slf4j.Logger;
 
@@ -103,9 +104,13 @@ public final class OpticalPortOperator implements ConfigOperator {
             PortNumber port, SparseAnnotations sa, PortDescription descr) {
         switch (descr.type()) {
             case OMS:
-                OmsPortDescription oms = (OmsPortDescription) descr;
-                return new OmsPortDescription(port, oms.isEnabled(), oms.minFrequency(),
-                        oms.maxFrequency(), oms.grid(), sa);
+                if (descr instanceof OmsPortDescription) {
+                    // TODO This block can go away once deprecation is complete.
+                    OmsPortDescription oms = (OmsPortDescription) descr;
+                    return omsPortDescription(port, oms.isEnabled(), oms.minFrequency(),
+                                                  oms.maxFrequency(), oms.grid(), sa);
+                }
+                return descr;
             case OCH:
                 // We might need to update lambda below with STATIC_LAMBDA.
                 if (descr instanceof OchPortDescription) {
@@ -185,9 +190,21 @@ public final class OpticalPortOperator implements ConfigOperator {
         final SparseAnnotations an = (SparseAnnotations) port.annotations();
         switch (port.type()) {
             case OMS:
-                OmsPort oms = (OmsPort) port;
-                return new OmsPortDescription(ptn, isup, oms.minFrequency(),
-                        oms.maxFrequency(), oms.grid(), an);
+                if (port instanceof org.onosproject.net.OmsPort) {
+                    // remove if-block once deprecation is complete
+                    org.onosproject.net.OmsPort oms = (org.onosproject.net.OmsPort) port;
+                    return omsPortDescription(ptn, isup, oms.minFrequency(),
+                                              oms.maxFrequency(), oms.grid(), an);
+                }
+                if (port.element().is(OpticalDevice.class)) {
+                    OpticalDevice optDevice = port.element().as(OpticalDevice.class);
+                    if (optDevice.portIs(port, OmsPort.class)) {
+                        OmsPort oms = optDevice.portAs(port, OmsPort.class).get();
+                        return omsPortDescription(ptn, isup, oms.minFrequency(),
+                                                  oms.maxFrequency(), oms.grid(), an);
+                    }
+                }
+                return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
             case OCH:
                 if (port instanceof org.onosproject.net.OchPort) {
                     // remove if-block once old OchPort deprecation is complete

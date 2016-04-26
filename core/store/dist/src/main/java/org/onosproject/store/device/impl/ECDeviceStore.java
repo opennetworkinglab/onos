@@ -530,9 +530,15 @@ public class ECDeviceStore
         // FIXME this switch need to go away once all ports are done.
         switch (description.type()) {
         case OMS:
-            OmsPortDescription omsDesc = (OmsPortDescription) description;
-            return new OmsPort(device, number, isEnabled, omsDesc.minFrequency(),
-                    omsDesc.maxFrequency(), omsDesc.grid(), annotations);
+            if (description instanceof OmsPortDescription) {
+                // remove if-block once deprecation is complete
+                OmsPortDescription omsDesc = (OmsPortDescription) description;
+                return new OmsPort(device, number, isEnabled, omsDesc.minFrequency(),
+                        omsDesc.maxFrequency(), omsDesc.grid(), annotations);
+            }
+            // same as default
+            return new DefaultPort(device, number, isEnabled, description.type(),
+                                   description.portSpeed(), annotations);
         case OCH:
             if (description instanceof OchPortDescription) {
                 // remove if-block once Och deprecation is complete

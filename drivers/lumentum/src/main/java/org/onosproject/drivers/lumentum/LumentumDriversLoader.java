@@ -18,12 +18,20 @@ package org.onosproject.drivers.lumentum;
 
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
+import org.onosproject.net.optical.OpticalDevice;
+import org.onosproject.net.optical.device.DefaultOpticalDevice;
 
 /**
  * Loader for Lumentum device drivers from specific xml.
  */
 @Component(immediate = true)
 public class LumentumDriversLoader extends AbstractDriverLoader {
+
+    // OSGI: help bundle plugin discover runtime package dependency.
+    @SuppressWarnings("unused")
+    private OpticalDevice optical;
+    @SuppressWarnings("unused")
+    private DefaultOpticalDevice driver;
 
     public LumentumDriversLoader() {
         super("/lumentum-drivers.xml");

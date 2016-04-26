@@ -17,12 +17,14 @@ package org.onosproject.driver.query;
 
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.OchSignal;
-import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.net.optical.OmsPort;
+
+import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 import java.util.Collections;
 import java.util.Set;
@@ -46,7 +48,7 @@ public class OFOpticalSwitch13LambdaQuery extends AbstractHandlerBehaviour imple
 
     @Override
     public Set<OchSignal> queryLambdas(PortNumber port) {
-        DeviceService deviceService = this.handler().get(DeviceService.class);
+        DeviceService deviceService = opticalView(this.handler().get(DeviceService.class));
         Port p = deviceService.getPort(this.data().deviceId(), port);
 
         // Only OMS ports expose lambda resources

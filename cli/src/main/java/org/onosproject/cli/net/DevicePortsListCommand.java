@@ -26,12 +26,12 @@ import org.onlab.util.Frequency;
 import org.onosproject.utils.Comparators;
 import org.onosproject.net.Device;
 import org.onosproject.net.OduCltPort;
-import org.onosproject.net.OmsPort;
 import org.onosproject.net.OtuPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.optical.OpticalDevice;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -191,11 +191,27 @@ public class DevicePortsListCommand extends DevicesListCommand {
                             ((OduCltPort) port).signalType().toString(), annotations);
                      break;
                 case OMS:
-                     print(FMT_OMS, portName, portIsEnabled, portType,
-                                ((OmsPort) port).minFrequency().asHz() / Frequency.ofGHz(1).asHz(),
-                                ((OmsPort) port).maxFrequency().asHz() / Frequency.ofGHz(1).asHz(),
-                                ((OmsPort) port).grid().asHz() / Frequency.ofGHz(1).asHz(),
-                                ((OmsPort) port).totalChannels(), annotations);
+                    if (port instanceof org.onosproject.net.OmsPort) {
+                        org.onosproject.net.OmsPort oms = (org.onosproject.net.OmsPort) port;
+                        print("WARN: OmsPort in old model");
+                        print(FMT_OMS, portName, portIsEnabled, portType,
+                              oms.minFrequency().asHz() / Frequency.ofGHz(1).asHz(),
+                              oms.maxFrequency().asHz() / Frequency.ofGHz(1).asHz(),
+                              oms.grid().asHz() / Frequency.ofGHz(1).asHz(),
+                              oms.totalChannels(), annotations);
+                        break;
+                    }
+                    if (port instanceof OmsPort) {
+                        OmsPort oms = (OmsPort) port;
+                        print(FMT_OMS, portName, portIsEnabled, portType,
+                              oms.minFrequency().asHz() / Frequency.ofGHz(1).asHz(),
+                              oms.maxFrequency().asHz() / Frequency.ofGHz(1).asHz(),
+                              oms.grid().asHz() / Frequency.ofGHz(1).asHz(),
+                              oms.totalChannels(), annotations);
+                        break;
+                    }
+                    print("WARN: OmsPort but not on OpticalDevice or ill-formed");
+                    print(FMT, portName, portIsEnabled, portType, port.portSpeed(), annotations);
                     break;
                 case OTU:
                     print(FMT_ODUCLT_OTU, portName, portIsEnabled, portType,

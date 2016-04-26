@@ -22,6 +22,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.Port.Type.COPPER;
 import static org.onosproject.net.Port.Type.FIBER;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 import static org.onosproject.openflow.controller.Dpid.dpid;
 import static org.onosproject.openflow.controller.Dpid.uri;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -67,7 +68,6 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.OduCltPortDescription;
-import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
@@ -582,7 +582,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             PortDescription portDes = null;
             switch (sigType) {
             case OMSN:
-                portDes =  new OmsPortDescription(portNo, enabled,
+                portDes = omsPortDescription(portNo, enabled,
                         FREQ191_7, FREQ191_7.add(FREQ4_4), FREQ50, annotations);
                 break;
             case OCH:
@@ -703,7 +703,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 case 2:     // OMS port
                     // Assume complete optical spectrum and 50 GHz grid
                     // LINC-OE is only supported optical OF device for now
-                    return new OmsPortDescription(portNo, enabled,
+                    return omsPortDescription(portNo, enabled,
                             Spectrum.U_BAND_MIN, Spectrum.O_BAND_MAX, Frequency.ofGHz(50), annotations);
                 case 5:     // OCH port
                     OchSignal signal = new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, 0, 4);
@@ -742,7 +742,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
             // S160 data sheet
             // Wavelength range: 1260 - 1630 nm, grid is irrelevant for this type of switch
-            return new OmsPortDescription(portNo, enabled,
+            return omsPortDescription(portNo, enabled,
                     Spectrum.U_BAND_MIN, Spectrum.O_BAND_MAX, Frequency.ofGHz(100), annotations);
         }
 

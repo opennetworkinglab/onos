@@ -27,7 +27,6 @@ import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.slf4j.Logger;
@@ -40,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -97,7 +97,7 @@ public class LumentumRoadmDeviceDescription extends AbstractHandlerBehaviour imp
                             SparseAnnotations ann = DefaultAnnotations.builder()
                                     .set(AnnotationKeys.PORT_NAME, portDirection + "-" + portNumber)
                                     .build();
-                            PortDescription p = new OmsPortDescription(
+                            PortDescription p = omsPortDescription(
                                     PortNumber.portNumber(ports.size() + 1),
                                     true,
                                     LumentumSnmpDevice.START_CENTER_FREQ,
@@ -115,7 +115,7 @@ public class LumentumRoadmDeviceDescription extends AbstractHandlerBehaviour imp
         SparseAnnotations annLineIn = DefaultAnnotations.builder()
                 .set(AnnotationKeys.PORT_NAME, "LINE IN")
                 .build();
-        ports.add(new OmsPortDescription(
+        ports.add(omsPortDescription(
                 PortNumber.portNumber(ports.size() + 1),
                 true,
                 LumentumSnmpDevice.START_CENTER_FREQ,
@@ -127,7 +127,7 @@ public class LumentumRoadmDeviceDescription extends AbstractHandlerBehaviour imp
         SparseAnnotations annLineOut = DefaultAnnotations.builder()
                 .set(AnnotationKeys.PORT_NAME, "LINE OUT")
                 .build();
-        ports.add(new OmsPortDescription(
+        ports.add(omsPortDescription(
                 PortNumber.portNumber(ports.size() + 1),
                 true,
                 LumentumSnmpDevice.START_CENTER_FREQ,
