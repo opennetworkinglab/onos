@@ -117,8 +117,6 @@ public class YangUtilManager extends AbstractMojo {
     private static final String DEFAULT_PKG = SLASH + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
 
     private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
-    private String searchDir;
-    private String codeGenDir;
     private YangNode rootNode;
 
     @Override
@@ -132,12 +130,12 @@ public class YangUtilManager extends AbstractMojo {
             clean(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG);
             clean(getDirectory(baseDir, outputDirectory));
 
-            searchDir = getDirectory(baseDir, yangFilesDir);
-            codeGenDir = getDirectory(baseDir, genFilesDir) + SLASH;
+            String searchDir = getDirectory(baseDir, yangFilesDir);
+            String codeGenDir = getDirectory(baseDir, genFilesDir) + SLASH;
             YangToJavaNamingConflictUtil conflictResolver = new YangToJavaNamingConflictUtil();
             conflictResolver.setReplacementForPeriod(replacementForPeriod);
             conflictResolver.setReplacementForHyphen(replacementForHyphen);
-            conflictResolver.setReplacementForUnderscore(replacementForHyphen);
+            conflictResolver.setReplacementForUnderscore(replacementForUnderscore);
             List<String> yangFiles = YangFileScanner.getYangFiles(searchDir);
             YangPluginConfig yangPlugin = new YangPluginConfig();
             yangPlugin.setCodeGenDir(codeGenDir);

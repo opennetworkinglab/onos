@@ -139,8 +139,7 @@ public class YangJavaCase extends YangCase implements JavaCodeGeneratorInfo, Jav
      * Creates a java file using the YANG case info.
      */
     @Override
-    public void generateCodeExit() {
-        // TODO Auto-generated method stub
-
+    public void generateCodeExit() throws IOException  {
+        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
     }
 }

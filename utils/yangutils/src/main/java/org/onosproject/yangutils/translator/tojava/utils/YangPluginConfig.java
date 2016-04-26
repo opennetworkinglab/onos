@@ -22,12 +22,6 @@ package org.onosproject.yangutils.translator.tojava.utils;
 public final class YangPluginConfig {
 
     /**
-     * Creates an object for YANG plugin config.
-     */
-    public YangPluginConfig() {
-    }
-
-    /**
      * Contains the code generation directory.
      */
     private String codeGenDir;
@@ -36,6 +30,12 @@ public final class YangPluginConfig {
      * Contains information of naming conflicts that can be resolved.
      */
     private YangToJavaNamingConflictUtil conflictResolver;
+
+    /**
+     * Creates an object for YANG plugin config.
+     */
+    public YangPluginConfig() {
+    }
 
     /**
      * Sets the path of the java code where it has to be generated.

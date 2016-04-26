@@ -162,6 +162,29 @@ public class JavaImportData {
     }
 
     /**
+     * Returns import for class.
+     *
+     * @return imports for class
+     */
+    public List<String> getImports() {
+        String importString;
+        List<String> imports = new ArrayList<>();
+
+        for (JavaQualifiedTypeInfo importInfo : getImportSet()) {
+            if (!importInfo.getPkgInfo().equals(EMPTY_STRING) && importInfo.getClassInfo() != null
+                    && !importInfo.getPkgInfo().equals(JAVA_LANG)) {
+                importString = IMPORT + importInfo.getPkgInfo() + PERIOD + importInfo.getClassInfo() + SEMI_COLAN
+                        + NEW_LINE;
+
+                imports.add(importString);
+            }
+        }
+
+        sort(imports);
+        return imports;
+    }
+
+    /**
      * Returns import for hash and equals method.
      *
      * @return import for hash and equals method

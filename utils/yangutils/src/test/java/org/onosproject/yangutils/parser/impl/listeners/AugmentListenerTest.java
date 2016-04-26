@@ -54,9 +54,6 @@ public class AugmentListenerTest {
         assertThat(yangNode.getName(), is("Test"));
 
         YangAugment yangAugment = (YangAugment) yangNode.getChild();
-        if (yangAugment.getTargetNode().isEmpty()) {
-            System.out.println("list is empty");
-        }
         ListIterator<YangNodeIdentifier> nodeIdentifierIterator = yangAugment.getTargetNode().listIterator();
         YangNodeIdentifier yangNodeIdentifier = nodeIdentifierIterator.next();
         assertThat(yangNodeIdentifier.getPrefix(), is("if"));

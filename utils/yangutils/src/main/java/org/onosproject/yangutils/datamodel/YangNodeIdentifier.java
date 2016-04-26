@@ -22,10 +22,10 @@ package org.onosproject.yangutils.datamodel;
 public class YangNodeIdentifier {
 
     // Name of the node.
-    String name;
+    private String name;
 
     // Prefix of the node.
-    String prefix;
+    private String prefix;
 
     /**
      * Creates an instance of YANG node identifier.

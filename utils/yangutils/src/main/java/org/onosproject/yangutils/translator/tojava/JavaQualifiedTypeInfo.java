@@ -110,14 +110,14 @@ public class JavaQualifiedTypeInfo implements Comparable<JavaQualifiedTypeInfo> 
          * Current leaves holder is adding a leaf info as a attribute to the
          * current class.
          */
-        String className = AttributesJavaDataType.getJavaImportClass(attrType, isListAttr);
+        String className = getJavaImportClass(attrType, isListAttr);
         if (className != null) {
             /*
              * Corresponding to the attribute type a class needs to be imported,
              * since it can be a derived type or a usage of wrapper classes.
              */
             importInfo.setClassInfo(className);
-            String classPkg = AttributesJavaDataType.getJavaImportPackage(attrType, isListAttr, className);
+            String classPkg = getJavaImportPackage(attrType, isListAttr, className);
             if (classPkg == null) {
                 throw new TranslatorException("import package cannot be null when the class is used");
             }

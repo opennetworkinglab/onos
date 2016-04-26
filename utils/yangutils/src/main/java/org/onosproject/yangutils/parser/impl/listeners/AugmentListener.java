@@ -224,6 +224,5 @@ public final class AugmentListener {
      */
     private static void validateForChildNodes() {
         //TODO: implement with linker.
-        return;
     }
 }

@@ -51,7 +51,6 @@ import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
 import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangUnionNode;
@@ -214,7 +213,7 @@ public final class UnionListener {
                 curNode.addChild(unionNode);
             } catch (DataModelException e) {
                 throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
-                        YangConstructType.UNION_DATA, "", ENTRY, e.getMessage()));
+                        UNION_DATA, "", ENTRY, e.getMessage()));
             }
         }
     }

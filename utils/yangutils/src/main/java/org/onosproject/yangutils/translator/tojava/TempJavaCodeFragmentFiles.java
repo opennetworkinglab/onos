@@ -29,6 +29,7 @@ import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 
 import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
@@ -110,6 +111,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE_INFO_JAVADOC_OF_CHILD;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
+import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPackage;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.readAppendFile;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
@@ -391,6 +394,11 @@ public class TempJavaCodeFragmentFiles {
      * Current YANG node.
      */
     private YangNode curYangNode;
+
+    /**
+     * Import info for case.
+     */
+    private JavaQualifiedTypeInfo caseImportInfo;
 
     /**
      * Current enum's value.
@@ -1130,9 +1138,8 @@ public class TempJavaCodeFragmentFiles {
      * Adds build method for interface.
      *
      * @return build method for interface
-     * @throws IOException when fails to append to temporary file
      */
-    public String addBuildMethodForInterface() throws IOException {
+    public String addBuildMethodForInterface() {
         return parseBuilderInterfaceBuildMethodString(generatedJavaClassName);
     }
 
@@ -1140,9 +1147,8 @@ public class TempJavaCodeFragmentFiles {
      * Adds build method's implementation for class.
      *
      * @return build method implementation for class
-     * @throws IOException when fails to append to temporary file
      */
-    public String addBuildMethodImpl() throws IOException {
+    public String addBuildMethodImpl() {
         return getBuildString(generatedJavaClassName) + NEW_LINE;
     }
 
@@ -1162,9 +1168,8 @@ public class TempJavaCodeFragmentFiles {
      * @param modifier modifier for constructor.
      * @param toAppend string which need to be appended with the class name
      * @return default constructor for class
-     * @throws IOException when fails to append to file
      */
-    public String addDefaultConstructor(String modifier, String toAppend) throws IOException {
+    public String addDefaultConstructor(String modifier, String toAppend) {
         return NEW_LINE + getDefaultConstructorString(generatedJavaClassName + toAppend, modifier);
     }
 
@@ -1172,9 +1177,8 @@ public class TempJavaCodeFragmentFiles {
      * Adds default constructor for class.
      *
      * @return default constructor for class
-     * @throws IOException when fails to append to file
      */
-    public String addOfMethod() throws IOException {
+    public String addOfMethod() {
         return getJavaDoc(OF_METHOD, generatedJavaClassName, false)
                 + getOfMethod(generatedJavaClassName, newAttrInfo);
     }
@@ -1380,6 +1384,28 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
+     * Adds parent's info to current node import list.
+     *
+     * @param curNode current node for which import list needs to be updated
+     */
+    public void addParentInfoInCurNodeTempFile(YangNode curNode) {
+        caseImportInfo = new JavaQualifiedTypeInfo();
+        YangNode parent = getParentNodeInGenCode(curNode);
+        if (!(parent instanceof JavaCodeGenerator)) {
+            throw new TranslatorException("missing parent node to contain current node info in generated file");
+        }
+
+        if (!(curNode instanceof HasJavaFileInfo)) {
+            throw new TranslatorException("missing java file information to get the package details "
+                    + "of attribute corresponding to child node");
+        }
+
+        caseImportInfo.setClassInfo(getCaptialCase(getCamelCase(parent.getName(), null)));
+        caseImportInfo.setPkgInfo(((HasJavaFileInfo) parent).getJavaFileInfo().getPackage());
+        ((HasJavaImportData) curNode).getJavaImportData().addImportInfo(curNode, caseImportInfo);
+    }
+
+    /**
      * Adds leaf attributes in generated files.
      *
      * @param listOfLeaves list of YANG leaf
@@ -1415,7 +1441,7 @@ public class TempJavaCodeFragmentFiles {
              * Check if the attribute is of type list, then the java.lang.list
              * needs to be imported.
              */
-            if (listOfLeafList.size() != 0) {
+            if (!listOfLeafList.isEmpty()) {
                 if (!(curNode instanceof HasJavaImportData)) {
                     throw new TranslatorException("missing import info in current data model node");
 
@@ -1651,6 +1677,18 @@ public class TempJavaCodeFragmentFiles {
         if ((fileType & INTERFACE_MASK) != 0 | (fileType & BUILDER_INTERFACE_MASK) != 0) {
 
             /**
+             * Adds import for case.
+             */
+            if (curNode instanceof YangCase) {
+                List<String> importData = ((HasJavaImportData) curNode).getJavaImportData().getImports();
+                for (String  importInfo : importData) {
+                    if (!imports.contains(importInfo)) {
+                        imports.add(importInfo);
+                    }
+                }
+            }
+
+            /**
              * Adds import for HasAugmentation class.
              */
             if (isHasAugmentationExtended(getExtendsList())) {
@@ -1688,6 +1726,10 @@ public class TempJavaCodeFragmentFiles {
             }
             if (isAugmentedInfoExtended(getExtendsList())) {
                 addAugmentedInfoImport(curNode, imports, false);
+            }
+
+            if (curNode instanceof YangCase) {
+                removeCaseImport(imports);
             }
         }
 
@@ -1760,6 +1802,21 @@ public class TempJavaCodeFragmentFiles {
          * Close all the file handles.
          */
         close(false);
+    }
+
+    /**
+     * Removes case import info from import list.
+     *
+     * @param imports list of imports
+     * @return import for class
+     */
+    private List<String> removeCaseImport(List<String> imports) {
+        if (imports != null && caseImportInfo != null) {
+            String caseImport = IMPORT + caseImportInfo.getPkgInfo() + PERIOD + caseImportInfo.getClassInfo() +
+                    SEMI_COLAN + NEW_LINE;
+            imports.remove(caseImport);
+        }
+        return imports;
     }
 
     /**

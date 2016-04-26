@@ -450,8 +450,6 @@ public class YangResolutionInfo<T> {
             }
             curNode = curNode.getNextSibling();
         }
-
-        return;
     }
 
     /**

@@ -132,16 +132,14 @@ public final class JavaCodeGeneratorUtil {
 
     /**
      * Free other YANG nodes of data-model tree when error occurs while file generation of current node.
-     *
-     * @throws DataModelException when fails to do datamodel operations
      */
-    public static void freeRestResources() throws DataModelException {
+    public static void freeRestResources() {
 
         YangNode curNode = getCurNode();
         YangNode tempNode = curNode;
         TraversalType curTraversal = ROOT;
 
-        while (!(curNode == tempNode.getParent())) {
+        while (curNode != tempNode.getParent()) {
 
             if (curTraversal != PARENT && curNode.getChild() != null) {
                 curTraversal = CHILD;

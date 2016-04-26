@@ -131,7 +131,7 @@ public final class EnumListener {
             switch (tmpNode.getYangConstructType()) {
                 case ENUMERATION_DATA: {
                     YangEnumeration yangEnumeration = (YangEnumeration) tmpNode;
-                    if ((ctx.enumStatementBody() == null) || (ctx.enumStatementBody().valueStatement() == null)) {
+                    if (ctx.enumStatementBody() == null || ctx.enumStatementBody().valueStatement() == null) {
                         int maxValue = 0;
                         boolean isValuePresent = false;
 

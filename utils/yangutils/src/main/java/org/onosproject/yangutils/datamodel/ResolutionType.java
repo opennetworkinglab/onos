@@ -28,5 +28,5 @@ public enum ResolutionType {
     /**
      * Identifies that resolution is for grouping.
      */
-    GROUPING_RESOLUTION;
+    GROUPING_RESOLUTION
 }

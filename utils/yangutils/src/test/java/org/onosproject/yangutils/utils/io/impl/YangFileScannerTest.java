@@ -26,14 +26,12 @@ import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.slf4j.Logger;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.utils.io.impl.YangFileScanner.getJavaFiles;
 import static org.onosproject.yangutils.utils.io.impl.YangFileScanner.getYangFiles;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import static java.io.File.separator;
 
@@ -41,8 +39,6 @@ import static java.io.File.separator;
  * Test the file scanner service.
  */
 public final class YangFileScannerTest {
-
-    private final Logger log = getLogger(getClass());
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();

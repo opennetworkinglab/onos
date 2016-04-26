@@ -24,7 +24,7 @@ import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfNode;
 
 /**
@@ -56,7 +56,7 @@ public class YangJavaChoice extends YangChoice implements JavaCodeGeneratorInfo,
         super();
         setJavaFileInfo(new JavaFileInfo());
         setJavaImportData(new JavaImportData());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER);
+        getJavaFileInfo().setGeneratedFileTypes(INTERFACE_MASK);
     }
 
     /**
@@ -133,15 +133,13 @@ public class YangJavaChoice extends YangChoice implements JavaCodeGeneratorInfo,
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
         generateCodeOfNode(this, yangPlugin, false);
-        // TODO:getTempJavaCodeFragmentFiles().addCurNodeLeavesInfoToTempFiles(this);
     }
 
     /**
      * Creates a java file using the YANG choice info.
      */
     @Override
-    public void generateCodeExit() {
-        // TODO Auto-generated method stub
-
+    public void generateCodeExit() throws IOException {
+        getTempJavaCodeFragmentFiles().generateJavaFile(INTERFACE_MASK, this);
     }
 }

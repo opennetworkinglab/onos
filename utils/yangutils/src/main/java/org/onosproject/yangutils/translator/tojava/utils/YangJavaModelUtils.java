@@ -39,6 +39,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.HAS_AUGMENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
@@ -159,8 +160,10 @@ public final class YangJavaModelUtils {
         updatePackageInfo((HasJavaFileInfo) javaCodeGeneratorInfo, yangPlugin);
         generateTempFiles(javaCodeGeneratorInfo, yangPlugin.getCodeGenDir());
 
-        javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
-                .addCurNodeInfoInParentTempFile((YangNode) javaCodeGeneratorInfo, isMultiInstance);
+        if (!(javaCodeGeneratorInfo instanceof YangCase)) {
+            javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
+                    .addCurNodeInfoInParentTempFile((YangNode) javaCodeGeneratorInfo, isMultiInstance);
+        }
 
         /**
          * For augmentation of nodes.
@@ -175,6 +178,21 @@ public final class YangJavaModelUtils {
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().addToExtendsList(HAS_AUGMENTATION);
         } else if (javaCodeGeneratorInfo instanceof YangAugment) {
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().addToExtendsList(AUGMENTED_INFO);
+        }
+
+        if (javaCodeGeneratorInfo instanceof YangCase) {
+            YangNode parent = ((YangCase) javaCodeGeneratorInfo).getParent();
+            String curNodeName = ((YangCase) javaCodeGeneratorInfo).getName();
+            if (!parent.getName().equals(curNodeName)) {
+                javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().addToExtendsList(getCaptialCase(getCamelCase(
+                    parent.getName(), null)));
+                javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().addParentInfoInCurNodeTempFile((YangNode)
+                    javaCodeGeneratorInfo);
+            } else {
+                String parentPackage = ((HasJavaFileInfo) parent).getJavaFileInfo().getPackage();
+                String caseExtendInfo = parentPackage + PERIOD + parent.getName();
+                javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().addToExtendsList(caseExtendInfo);
+            }
         }
     }
 

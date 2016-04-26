@@ -373,7 +373,7 @@ public final class MethodsGenerator {
     private static String getReturnType(JavaAttributeInfo attr) {
 
         String returnType = EMPTY_STRING;
-        if (attr.isQualifiedName() && (attr.getImportInfo().getPkgInfo() != null)) {
+        if (attr.isQualifiedName() && attr.getImportInfo().getPkgInfo() != null) {
             returnType = attr.getImportInfo().getPkgInfo() + PERIOD;
         }
         returnType = returnType + attr.getImportInfo().getClassInfo();

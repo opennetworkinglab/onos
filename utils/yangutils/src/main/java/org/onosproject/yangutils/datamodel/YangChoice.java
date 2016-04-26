@@ -277,11 +277,11 @@ public class YangChoice extends YangNode implements YangCommonInfo, Parsable, Co
     /**
      * Returns the type of the data.
      *
-     * @return returns CHOICE_DATA
+     * @return choice data
      */
     @Override
     public YangConstructType getYangConstructType() {
-        return YangConstructType.CHOICE_DATA;
+        return CHOICE_DATA;
     }
 
     /**

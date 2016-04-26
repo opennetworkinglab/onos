@@ -376,10 +376,10 @@ public final class JavaDocGen {
      * @return javaDocs
      */
     private static String generateForTypeDefSetter(String attribute) {
-        return (NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
+        return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_SETTERS_COMMON + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
                 + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute
-                + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE);
+                + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
     }
 
     /**
@@ -491,10 +491,9 @@ public final class JavaDocGen {
      * @return javaDocs for type constructor
      */
     private static String generateForTypeConstructor(String attribute) {
-
-        return (NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR
+        return NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_CONSTRUCTOR
                 + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK + FOUR_SPACE_INDENTATION
                 + JAVA_DOC_PARAM + VALUE + SPACE + VALUE + SPACE + OF + SPACE + attribute + NEW_LINE
-                + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE);
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
     }
 }

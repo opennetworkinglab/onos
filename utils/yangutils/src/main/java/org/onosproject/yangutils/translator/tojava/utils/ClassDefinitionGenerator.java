@@ -109,7 +109,7 @@ public final class ClassDefinitionGenerator {
         }
         String def = PUBLIC + SPACE + INTERFACE + SPACE + yangName + SPACE + EXTEND + SPACE;
         for (String extend : getExtendsList()) {
-            def = def + extend + COMMA;
+            def = def + extend + COMMA + SPACE;
         }
         def = trimAtLast(def, COMMA);
 

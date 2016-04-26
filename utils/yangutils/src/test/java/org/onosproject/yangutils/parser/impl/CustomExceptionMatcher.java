@@ -27,21 +27,21 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
  */
 public final class CustomExceptionMatcher extends TypeSafeMatcher<ParserException> {
 
+    private int actualLine;
+    private final int expectedLine;
+    private int actualCharPosition;
+    private final int expectedCharPosition;
+
     /**
      * Customized exception matcher to match error location.
      *
      * @param line error line
      * @param charPosition error character position
-     * @return
+     * @return customized exception matcher to match error location
      */
     public static CustomExceptionMatcher errorLocation(int line, int charPosition) {
         return new CustomExceptionMatcher(line, charPosition);
     }
-
-    private int actualLine;
-    private final int expectedLine;
-    private int actualCharPosition;
-    private final int expectedCharPosition;
 
     private CustomExceptionMatcher(int expectedLine, int expectedCharPosition) {
         this.expectedLine = expectedLine;

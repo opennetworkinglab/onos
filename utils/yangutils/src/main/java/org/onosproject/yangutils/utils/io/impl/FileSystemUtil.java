@@ -55,10 +55,7 @@ public final class FileSystemUtil {
     public static boolean doesPackageExist(String pkg) {
         File pkgDir = new File(getPackageDirPathFromJavaJPackage(pkg));
         File pkgWithFile = new File(pkgDir + SLASH + "package-info.java");
-        if (pkgDir.exists() && pkgWithFile.isFile()) {
-            return true;
-        }
-        return false;
+        return (pkgDir.exists() && pkgWithFile.isFile());
     }
 
     /**

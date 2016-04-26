@@ -26,12 +26,6 @@ import java.util.List;
 public final class UtilConstants {
 
     /**
-     * Creates an instance of util constants.
-     */
-    private UtilConstants() {
-    }
-
-    /**
      * JavaDocs for impl class.
      */
     public static final String IMPL_CLASS_JAVA_DOC = " * Represents the implementation of ";
@@ -841,4 +835,10 @@ public final class UtilConstants {
      * Static attribute for array list.
      */
     public static final String ARRAY_LIST = "ArrayList";
+
+    /**
+     * Creates an instance of util constants.
+     */
+    private UtilConstants() {
+    }
 }

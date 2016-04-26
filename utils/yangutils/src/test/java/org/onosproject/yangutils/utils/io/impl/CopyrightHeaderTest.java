@@ -28,21 +28,18 @@ import java.util.Calendar;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.slf4j.Logger;
 
 import static org.apache.commons.io.FileUtils.contentEquals;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.utils.io.impl.CopyrightHeader.getCopyrightHeader;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Unit Tests for the CopyrightHeader contents.
  */
 public final class CopyrightHeaderTest {
 
-    private final Logger log = getLogger(getClass());
     private static final String COPYRIGHTS_FIRST_LINE = "/*\n * Copyright " + Calendar.getInstance().get(Calendar.YEAR)
             + "-present Open Networking Laboratory\n";
     @Rule

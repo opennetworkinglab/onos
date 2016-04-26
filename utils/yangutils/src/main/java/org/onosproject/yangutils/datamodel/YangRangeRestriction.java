@@ -118,7 +118,7 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
         if (getAscendingRangeIntervals() == null) {
             throw new DataModelException("No range restriction info");
         }
-        if (getAscendingRangeIntervals().size() == 0) {
+        if (getAscendingRangeIntervals().isEmpty()) {
             throw new DataModelException("No range interval info");
         }
         return getAscendingRangeIntervals().get(0).getStartValue();
@@ -134,7 +134,7 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
         if (getAscendingRangeIntervals() == null) {
             throw new DataModelException("No range restriction info");
         }
-        if (getAscendingRangeIntervals().size() == 0) {
+        if (getAscendingRangeIntervals().isEmpty()) {
             throw new DataModelException("No range interval info");
         }
         return getAscendingRangeIntervals()
@@ -184,7 +184,7 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
     public boolean isValidValueString(String valueInString) throws DataModelException {
 
         if (getAscendingRangeIntervals() == null
-                || getAscendingRangeIntervals().size() == 0) {
+                || getAscendingRangeIntervals().isEmpty()) {
             // Throw exception, At least one default range needs to be set in constructor or in linker.
             throw new DataModelException("Range interval missing in range restriction.");
 

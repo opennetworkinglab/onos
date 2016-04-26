@@ -141,7 +141,7 @@ public final class TempJavaCodeFragmentFilesUtils {
      */
     public static void prepareJavaFileGeneratorForExtendsList(List<String> extendsList) {
 
-        if (!extendsList.isEmpty() && !extendsList.equals(null)) {
+        if (extendsList != null && !extendsList.isEmpty()) {
             JavaFileGenerator.setExtendsList(extendsList);
             JavaFileGenerator.setIsExtendsList(true);
         } else {
@@ -157,10 +157,7 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @return true or false
      */
     public static boolean isHasAugmentationExtended(List<String> extendsList) {
-        if (extendsList != null && extendsList.contains(HAS_AUGMENTATION)) {
-            return true;
-        }
-        return false;
+        return (extendsList != null && extendsList.contains(HAS_AUGMENTATION));
     }
 
     /**
@@ -170,10 +167,7 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @return true or false
      */
     public static boolean isAugmentedInfoExtended(List<String> extendsList) {
-        if (extendsList != null && extendsList.contains(AUGMENTED_INFO)) {
-            return true;
-        }
-        return false;
+        return (extendsList != null && extendsList.contains(AUGMENTED_INFO));
     }
 
     /**

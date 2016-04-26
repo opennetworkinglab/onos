@@ -72,7 +72,7 @@ public class YangEntityToResolveInfo<T> {
         }
 
         String prefix;
-        T entityToResolve = (T) getEntityToResolve();
+        T entityToResolve = getEntityToResolve();
         if (entityToResolve instanceof YangType) {
             prefix = ((YangType<?>) entityToResolve).getPrefix();
         } else if (entityToResolve instanceof YangUses) {

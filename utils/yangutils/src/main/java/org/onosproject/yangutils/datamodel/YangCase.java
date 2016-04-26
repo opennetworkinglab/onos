@@ -286,7 +286,7 @@ public class YangCase extends YangNode
      */
     @Override
     public YangConstructType getYangConstructType() {
-        return YangConstructType.CASE_DATA;
+        return CASE_DATA;
     }
 
     /**
@@ -311,7 +311,7 @@ public class YangCase extends YangNode
 
     @Override
     public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
-        if (getParent() == null || !(getParent() instanceof YangChoice)) {
+        if (!(getParent() instanceof YangChoice)) {
             throw new DataModelException("Internal Data Model Tree Error: Invalid/Missing holder in case " +
                     getName());
         }

@@ -53,7 +53,7 @@ public class IntraFileTypeLinkingTest {
         YangNode node = manager.getDataModel("src/test/resources/SelfResolutionWhenTypeAndTypedefAtRootLevel.yang");
 
         // Check whether the data model tree returned is of type module.
-        assertThat((node instanceof YangModule), is(true));
+        assertThat(node instanceof YangModule, is(true));
 
         // Check whether the node type is set properly to module.
         assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
@@ -72,7 +72,7 @@ public class IntraFileTypeLinkingTest {
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
 
-        assertThat((leafInfo.getDataType().getResolvableStatus()),
+        assertThat(leafInfo.getDataType().getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
     }
 
@@ -111,7 +111,7 @@ public class IntraFileTypeLinkingTest {
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
 
-        assertThat((leafInfo.getDataType().getResolvableStatus()),
+        assertThat(leafInfo.getDataType().getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
     }
 
@@ -151,7 +151,7 @@ public class IntraFileTypeLinkingTest {
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild().getNextSibling()));
 
-        assertThat((leafInfo.getDataType().getResolvableStatus()),
+        assertThat(leafInfo.getDataType().getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
     }
 
@@ -191,7 +191,7 @@ public class IntraFileTypeLinkingTest {
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangContainer.getChild().getNextSibling()));
 
-        assertThat((leafInfo.getDataType().getResolvableStatus()),
+        assertThat(leafInfo.getDataType().getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
     }
 
@@ -228,21 +228,21 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangList.getChild()));
-        assertThat((leafInfo.getDataType().getResolvableStatus()),
+        assertThat(leafInfo.getDataType().getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
 
         assertThat(((YangDerivedInfo<?>) typeDef1.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangContainer.getChild().getNextSibling()));
-        assertThat((typeDef1.getTypeDefBaseType().getResolvableStatus()),
+        assertThat(typeDef1.getTypeDefBaseType().getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
 
         YangTypeDef typeDef2 = (YangTypeDef) yangContainer.getChild().getNextSibling();
 
         assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
-        assertThat((typeDef2.getTypeDefBaseType().getResolvableStatus()),
+        assertThat(typeDef2.getTypeDefBaseType().getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
     }
 
@@ -280,21 +280,21 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangList.getChild()));
-        assertThat((leafInfo.getDataType().getResolvableStatus()),
+        assertThat(leafInfo.getDataType().getResolvableStatus(),
                 is(ResolvableStatus.INTRA_FILE_RESOLVED));
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
 
         assertThat(((YangDerivedInfo<?>) typeDef1.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangContainer.getChild().getNextSibling()));
-        assertThat((typeDef1.getTypeDefBaseType().getResolvableStatus()),
+        assertThat(typeDef1.getTypeDefBaseType().getResolvableStatus(),
                 is(ResolvableStatus.INTRA_FILE_RESOLVED));
 
         YangTypeDef typeDef2 = (YangTypeDef) yangContainer.getChild().getNextSibling();
 
         assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
-        assertThat((typeDef2.getTypeDefBaseType().getResolvableStatus()),
+        assertThat(typeDef2.getTypeDefBaseType().getResolvableStatus(),
                 is(ResolvableStatus.INTRA_FILE_RESOLVED));
     }
 
@@ -331,21 +331,21 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangList.getChild()));
-        assertThat((leafInfo.getDataType().getResolvableStatus()),
+        assertThat(leafInfo.getDataType().getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
 
         assertThat(((YangDerivedInfo<?>) typeDef1.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangContainer.getChild().getNextSibling()));
-        assertThat((typeDef1.getTypeDefBaseType().getResolvableStatus()),
+        assertThat(typeDef1.getTypeDefBaseType().getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
 
         YangTypeDef typeDef2 = (YangTypeDef) yangContainer.getChild().getNextSibling();
 
         assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
-        assertThat((typeDef2.getTypeDefBaseType().getResolvableStatus()),
+        assertThat(typeDef2.getTypeDefBaseType().getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
     }
 
@@ -383,7 +383,7 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangList.getChild()));
-        assertThat((leafInfo.getDataType().getResolvableStatus()),
+        assertThat(leafInfo.getDataType().getResolvableStatus(),
                 is(ResolvableStatus.INTRA_FILE_RESOLVED));
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
@@ -392,7 +392,7 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
-        assertThat((typeDef2.getTypeDefBaseType().getResolvableStatus()),
+        assertThat(typeDef2.getTypeDefBaseType().getResolvableStatus(),
                 is(ResolvableStatus.RESOLVED));
     }
 

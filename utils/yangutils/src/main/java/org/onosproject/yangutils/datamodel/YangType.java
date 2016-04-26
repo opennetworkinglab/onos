@@ -21,6 +21,7 @@ import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.ResolvableStatus.INTRA_FILE_RESOLVED;
+import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 
 /*
  * Reference:RFC 6020.
@@ -294,20 +295,18 @@ public class YangType<T>
     }
 
     @Override
-    public void resolve() {
+    public void resolve() throws DataModelException {
        /*
        Inherit the Restriction from the referred typedef definition.
         */
-        if (getDataType() != YangDataTypes.DERIVED) {
-            throw new RuntimeException("Resolve should only be called for derrived data types");
+        if (getDataType() != DERIVED) {
+            throw new DataModelException("Resolve should only be called for derived data types");
         }
 
         YangDerivedInfo<?> derrivedInfo = (YangDerivedInfo<?>) getDataTypeExtendedInfo();
         YangType<?> baseType = derrivedInfo.getReferredTypeDef().getTypeDefBaseType();
-        if (YangDataTypes.DERIVED == baseType.getDataType()) {
-            if (baseType.getResolvableStatus() == INTRA_FILE_RESOLVED) {
+        if (DERIVED == baseType.getDataType() && baseType.getResolvableStatus() == INTRA_FILE_RESOLVED) {
                 setResolvableStatus(INTRA_FILE_RESOLVED);
-            }
         }
         //TODO:
     }

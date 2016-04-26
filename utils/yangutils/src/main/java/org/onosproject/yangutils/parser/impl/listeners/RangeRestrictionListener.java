@@ -70,6 +70,8 @@ public final class RangeRestrictionListener {
 
     private static final String PIPE = "|";
     private static final String RANGE_INTERVAL = "..";
+    private static final int MAX_RANGE_BOUNDARY = 2;
+    private static final int MIN_RANGE_BOUNDARY = 1;
 
     /**
      * Creates a new range restriction listener.
@@ -110,18 +112,20 @@ public final class RangeRestrictionListener {
     private static void setRangeRestriction(YangType type,
             GeneratedYangParser.RangeStatementContext ctx) {
 
-        YangBuiltInDataTypeInfo<?> startValue, endValue;
+        YangBuiltInDataTypeInfo<?> startValue;
+        YangBuiltInDataTypeInfo<?> endValue;
         YangRangeRestriction rangeRestriction = new YangRangeRestriction();
 
         String rangeArgument = removeQuotesAndHandleConcat(ctx.range().getText());
         String[] rangeArguments = rangeArgument.trim().split(Pattern.quote(PIPE));
 
         for (String rangePart : rangeArguments) {
-            String startInterval, endInterval;
+            String startInterval;
+            String endInterval;
             YangRangeInterval rangeInterval = new YangRangeInterval();
             String[] rangeBoundary = rangePart.trim().split(Pattern.quote(RANGE_INTERVAL));
 
-            if (rangeBoundary.length > 2) {
+            if (rangeBoundary.length > MAX_RANGE_BOUNDARY) {
                 ParserException parserException = new ParserException("YANG file error : " +
                         YangConstructType.getYangConstructType(RANGE_DATA) + " " + rangeArgument +
                         " is not valid.");
@@ -130,7 +134,7 @@ public final class RangeRestrictionListener {
                 throw parserException;
             }
 
-            if (rangeBoundary.length == 1) {
+            if (rangeBoundary.length == MIN_RANGE_BOUNDARY) {
                 startInterval = rangeBoundary[0];
                 endInterval = rangeBoundary[0];
             } else {

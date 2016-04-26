@@ -73,6 +73,8 @@ public final class LengthRestrictionListener {
 
     private static final String PIPE = "|";
     private static final String LENGTH_INTERVAL = "..";
+    private static final int MAX_RANGE_BOUNDARY = 2;
+    private static final int MIN_RANGE_BOUNDARY = 1;
 
     /**
      * Creates a new length restriction listener.
@@ -114,7 +116,8 @@ public final class LengthRestrictionListener {
                                             GeneratedYangParser.LengthStatementContext ctx) {
 
         YangStringRestriction stringRestriction;
-        YangBuiltInDataTypeInfo<?> startValue, endValue;
+        YangBuiltInDataTypeInfo<?> startValue;
+        YangBuiltInDataTypeInfo<?> endValue;
         YangRangeRestriction lengthRestriction = new YangRangeRestriction<>();
 
         if (type.getDataType() != YangDataTypes.STRING && type.getDataType() != YangDataTypes.DERIVED) {
@@ -148,11 +151,12 @@ public final class LengthRestrictionListener {
         String[] rangeArguments = rangeArgument.trim().split(Pattern.quote(PIPE));
 
         for (String rangePart : rangeArguments) {
-            String startInterval, endInterval;
+            String startInterval;
+            String endInterval;
             YangRangeInterval rangeInterval = new YangRangeInterval<>();
             String[] rangeBoundary = rangePart.trim().split(Pattern.quote(LENGTH_INTERVAL));
 
-            if (rangeBoundary.length > 2) {
+            if (rangeBoundary.length > MAX_RANGE_BOUNDARY) {
                 ParserException parserException = new ParserException("YANG file error : " +
                         YangConstructType.getYangConstructType(LENGTH_DATA) + " " + rangeArgument +
                         " is not valid.");
@@ -161,7 +165,7 @@ public final class LengthRestrictionListener {
                 throw parserException;
             }
 
-            if (rangeBoundary.length == 1) {
+            if (rangeBoundary.length == MIN_RANGE_BOUNDARY) {
                 startInterval = rangeBoundary[0];
                 endInterval = rangeBoundary[0];
             } else {

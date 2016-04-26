@@ -223,7 +223,7 @@ public final class YangIoUtils {
 
         for (File file : files) {
             Files.copy(file.toPath(),
-                    (new File(path + file.getName())).toPath(),
+                    new File(path + file.getName()).toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
         }
         Resource rsc = new Resource();

@@ -31,7 +31,6 @@ import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
-import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.ResolvableStatus.UNRESOLVED;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.addResolutionInfo;
@@ -89,7 +88,7 @@ public final class TypeListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPE_DATA, ctx.string().getText(), ENTRY);
 
         // Validate node identifier.
-        YangNodeIdentifier nodeIdentifier = getValidNodeIdentifier(ctx.string().getText(), YangConstructType.TYPE_DATA,
+        YangNodeIdentifier nodeIdentifier = getValidNodeIdentifier(ctx.string().getText(), TYPE_DATA,
                 ctx);
 
         // Obtain the YANG data type.
@@ -107,7 +106,7 @@ public final class TypeListener {
         switch (tmpData.getYangConstructType()) {
             case LEAF_DATA:
                 YangLeaf leaf = (YangLeaf) tmpData;
-                leaf.setDataType((YangType<?>) type);
+                leaf.setDataType(type);
 
                 /*
                  * If data type is derived, resolution information to be added
@@ -139,7 +138,7 @@ public final class TypeListener {
                 break;
             case LEAF_LIST_DATA:
                 YangLeafList leafList = (YangLeafList) tmpData;
-                leafList.setDataType((YangType<?>) type);
+                leafList.setDataType(type);
 
                 /*
                  * If data type is derived, resolution information to be added
@@ -157,9 +156,6 @@ public final class TypeListener {
                                 ctx.string().getText(), EXIT));
                     }
 
-                    // Get the prefix information
-                    String prefix = ((YangType<?>) type).getPrefix();
-
                     // Create empty derived info and attach it to type extended info.
                     YangDerivedInfo<?> yangDerivedInfo = new YangDerivedInfo<>();
                     ((YangType<YangDerivedInfo>) type).setDataTypeExtendedInfo(yangDerivedInfo);
@@ -174,7 +170,7 @@ public final class TypeListener {
             case UNION_DATA:
                 YangUnion unionNode = (YangUnion) tmpData;
                 try {
-                    unionNode.addType((YangType<?>) type);
+                    unionNode.addType(type);
                 } catch (DataModelException e) {
                     ParserException parserException = new ParserException(e.getMessage());
                     parserException.setLine(ctx.getStart().getLine());
@@ -188,16 +184,13 @@ public final class TypeListener {
                  */
                 if (yangDataTypes == YangDataTypes.DERIVED) {
 
-                    // Get the prefix information
-                    String prefix = ((YangType<?>) type).getPrefix();
-
                     // Create empty derived info and attach it to type extended info.
                     YangDerivedInfo<?> yangDerivedInfo = new YangDerivedInfo<>();
                     ((YangType<YangDerivedInfo>) type).setDataTypeExtendedInfo(yangDerivedInfo);
 
                     // Add resolution information to the list
                     YangResolutionInfo resolutionInfo =
-                            new YangResolutionInfo<YangType>(type, (YangNode) unionNode, errorLine, errorPosition);
+                            new YangResolutionInfo<YangType>(type, unionNode, errorLine, errorPosition);
                     addToResolutionList(resolutionInfo, ctx);
                 }
 
@@ -205,24 +198,20 @@ public final class TypeListener {
             case TYPEDEF_DATA:
                 /* Prepare the base type info and set in derived type */
                 YangTypeDef typeDef = (YangTypeDef) tmpData;
-                typeDef.setDataType((YangType<?>) type);
+                typeDef.setDataType(type);
 
                 /*
                  * If data type is derived, resolution information to be added
                  * in resolution list.
                  */
                 if (yangDataTypes == YangDataTypes.DERIVED) {
-
-                    // Get the prefix information
-                    String prefix = ((YangType<?>) type).getPrefix();
-
                     // Create empty derived info and attach it to type extended info.
                     YangDerivedInfo<?> yangDerivedInfo = new YangDerivedInfo<>();
                     ((YangType<YangDerivedInfo>) type).setDataTypeExtendedInfo(yangDerivedInfo);
 
                     // Add resolution information to the list
                     YangResolutionInfo resolutionInfo =
-                            new YangResolutionInfo<YangType>(type, (YangNode) typeDef, errorLine, errorPosition);
+                            new YangResolutionInfo<YangType>(type, typeDef, errorLine, errorPosition);
                     addToResolutionList(resolutionInfo, ctx);
                 }
                 break;

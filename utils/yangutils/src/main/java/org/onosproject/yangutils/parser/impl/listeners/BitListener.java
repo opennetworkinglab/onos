@@ -137,7 +137,7 @@ public final class BitListener {
             switch (tmpNode.getYangConstructType()) {
                 case BITS_DATA: {
                     YangBits yangBits = (YangBits) tmpNode;
-                    if ((ctx.bitBodyStatement() == null) || (ctx.bitBodyStatement().positionStatement() == null)) {
+                    if (ctx.bitBodyStatement() == null || ctx.bitBodyStatement().positionStatement() == null) {
                         int maxPosition = 0;
                         boolean isPositionPresent = false;
 
