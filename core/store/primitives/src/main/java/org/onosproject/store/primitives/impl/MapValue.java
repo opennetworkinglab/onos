@@ -34,6 +34,7 @@ public class MapValue<V> implements Comparable<MapValue<V>> {
 
     /**
      * Creates a tombstone value with the specified timestamp.
+     *
      * @param timestamp timestamp for tombstone
      * @return tombstone MapValue
      *
@@ -43,12 +44,18 @@ public class MapValue<V> implements Comparable<MapValue<V>> {
         return new MapValue<>(null, timestamp, System.currentTimeMillis());
     }
 
+    /**
+     * Constructor automatically to create the system time of construction.
+     *
+     * @param value value
+     * @param timestamp value timestamp
+     */
     public MapValue(V value, Timestamp timestamp) {
         this(value, timestamp, System.currentTimeMillis());
     }
 
     /**
-     * Constructor.
+     * Creates a map value using value, timestamp, and creation time.
      *
      * @param value value
      * @param timestamp value timestamp.
@@ -71,31 +78,57 @@ public class MapValue<V> implements Comparable<MapValue<V>> {
         return new MapValue<>(this.value, this.timestamp, System.currentTimeMillis());
     }
 
+    /**
+     * Tests if this value is tombstone value with the specified timestamp.
+     *
+     * @return true if this value is null, otherwise false
+     */
     public boolean isTombstone() {
         return value == null;
     }
 
+    /**
+     * Tests if this value is alive.
+     *
+     * @return true if this value is not null, otherwise false
+     */
     public boolean isAlive() {
         return value != null;
     }
 
+    /**
+     * Returns the timestamp of this value.
+     *
+     * @return timestamp
+     */
     public Timestamp timestamp() {
         return timestamp;
     }
 
+    /**
+     * Returns this value.
+     *
+     * @return value
+     */
     public V get() {
         return value;
     }
 
+    /**
+     * Returns the creation time of this value.
+     *
+     * @return creationTime
+     */
     public long creationTime() {
         return creationTime;
     }
 
-    @Override
-    public int compareTo(MapValue<V> o) {
-        return this.timestamp.compareTo(o.timestamp);
-    }
-
+    /**
+     * Tests if this value is newer than the specified MapValue.
+     *
+     * @param other the value to be compared
+     * @return true if this value is newer than other
+     */
     public boolean isNewerThan(MapValue<V> other) {
         if (other == null) {
             return true;
@@ -103,12 +136,28 @@ public class MapValue<V> implements Comparable<MapValue<V>> {
         return this.timestamp.isNewerThan(other.timestamp);
     }
 
+    /**
+     * Tests if this timestamp is newer than the specified timestamp.
+     *
+     * @param timestamp timestamp to be compared
+     * @return true if this instance is newer
+     */
     public boolean isNewerThan(Timestamp timestamp) {
         return this.timestamp.isNewerThan(timestamp);
     }
 
+    /**
+     * Returns summary of a MapValue for use during Anti-Entropy exchanges.
+     *
+     * @return Digest with timestamp and whether this value is null or not
+     */
     public Digest digest() {
         return new Digest(timestamp, isTombstone());
+    }
+
+    @Override
+    public int compareTo(MapValue<V> o) {
+        return this.timestamp.compareTo(o.timestamp);
     }
 
     @Override
