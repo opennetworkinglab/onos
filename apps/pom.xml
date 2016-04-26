@@ -75,7 +75,9 @@
         <module>graphitemetrics</module>
         <module>xosclient</module>
         <module>cordconfig</module>
-  </modules>
+        <module>scalablegateway</module>
+    </modules>
+
 
     <properties>
         <web.context>default</web.context>

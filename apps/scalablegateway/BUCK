@@ -1,0 +1,11 @@
+BUNDLES = [
+    '//apps/scalablegateway/api:onos-app-scalablegateway-api',
+    '//apps/scalablegateway/app:onos-app-scalablegateway-app',
+]
+
+onos_app (
+  title = 'Scalable GW App',
+  category = 'Utility',
+  url = 'http://onosproject.org',
+  included_bundles = BUNDLES,
+)
