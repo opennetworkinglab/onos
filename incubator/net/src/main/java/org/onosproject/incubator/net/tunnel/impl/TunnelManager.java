@@ -93,18 +93,20 @@ public class TunnelManager
     @Override
     public void removeTunnel(TunnelId tunnelId) {
         checkNotNull(tunnelId, TUNNNEL_ID_NULL);
-        store.deleteTunnel(tunnelId);
         Tunnel tunnel = store.queryTunnel(tunnelId);
-        if (tunnel.providerId() != null) {
-            TunnelProvider provider = getProvider(tunnel.providerId());
-            if (provider != null) {
-                provider.releaseTunnel(tunnel);
-            }
-        } else {
-            Set<ProviderId> ids = getProviders();
-            for (ProviderId providerId : ids) {
-                TunnelProvider provider = getProvider(providerId);
-                provider.releaseTunnel(tunnel);
+        if (tunnel != null) {
+            store.deleteTunnel(tunnelId);
+            if (tunnel.providerId() != null) {
+                TunnelProvider provider = getProvider(tunnel.providerId());
+                if (provider != null) {
+                    provider.releaseTunnel(tunnel);
+                }
+            } else {
+                Set<ProviderId> ids = getProviders();
+                for (ProviderId providerId : ids) {
+                    TunnelProvider provider = getProvider(providerId);
+                    provider.releaseTunnel(tunnel);
+                }
             }
         }
     }
@@ -129,23 +131,25 @@ public class TunnelManager
     @Override
     public void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst,
                               ProviderId producerName) {
-        store.deleteTunnel(src, dst, producerName);
         Collection<Tunnel> setTunnels = store.queryTunnel(src, dst);
-        for (Tunnel tunnel : setTunnels) {
-            if (producerName != null
-                    && !tunnel.providerId().equals(producerName)) {
-                continue;
-            }
-            if (tunnel.providerId() != null) {
-                TunnelProvider provider = getProvider(tunnel.providerId());
-                if (provider != null) {
-                    provider.releaseTunnel(tunnel);
+        if (!setTunnels.isEmpty()) {
+            store.deleteTunnel(src, dst, producerName);
+            for (Tunnel tunnel : setTunnels) {
+                if (producerName != null
+                        && !tunnel.providerId().equals(producerName)) {
+                    continue;
                 }
-            } else {
-                Set<ProviderId> ids = getProviders();
-                for (ProviderId providerId : ids) {
-                    TunnelProvider provider = getProvider(providerId);
-                    provider.releaseTunnel(tunnel);
+                if (tunnel.providerId() != null) {
+                    TunnelProvider provider = getProvider(tunnel.providerId());
+                    if (provider != null) {
+                        provider.releaseTunnel(tunnel);
+                    }
+                } else {
+                    Set<ProviderId> ids = getProviders();
+                    for (ProviderId providerId : ids) {
+                        TunnelProvider provider = getProvider(providerId);
+                        provider.releaseTunnel(tunnel);
+                    }
                 }
             }
         }
@@ -154,24 +158,26 @@ public class TunnelManager
     @Override
     public void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst, Type type,
                               ProviderId producerName) {
-        store.deleteTunnel(src, dst, type, producerName);
         Collection<Tunnel> setTunnels = store.queryTunnel(src, dst);
-        for (Tunnel tunnel : setTunnels) {
-            if (producerName != null
-                    && !tunnel.providerId().equals(producerName)
-                    || !type.equals(tunnel.type())) {
-                continue;
-            }
-            if (tunnel.providerId() != null) {
-                TunnelProvider provider = getProvider(tunnel.providerId());
-                if (provider != null) {
-                    provider.releaseTunnel(tunnel);
+        if (!setTunnels.isEmpty()) {
+            store.deleteTunnel(src, dst, type, producerName);
+            for (Tunnel tunnel : setTunnels) {
+                if (producerName != null
+                        && !tunnel.providerId().equals(producerName)
+                        || !type.equals(tunnel.type())) {
+                    continue;
                 }
-            } else {
-                Set<ProviderId> ids = getProviders();
-                for (ProviderId providerId : ids) {
-                    TunnelProvider provider = getProvider(providerId);
-                    provider.releaseTunnel(tunnel);
+                if (tunnel.providerId() != null) {
+                    TunnelProvider provider = getProvider(tunnel.providerId());
+                    if (provider != null) {
+                        provider.releaseTunnel(tunnel);
+                    }
+                } else {
+                    Set<ProviderId> ids = getProviders();
+                    for (ProviderId providerId : ids) {
+                        TunnelProvider provider = getProvider(providerId);
+                        provider.releaseTunnel(tunnel);
+                    }
                 }
             }
         }
