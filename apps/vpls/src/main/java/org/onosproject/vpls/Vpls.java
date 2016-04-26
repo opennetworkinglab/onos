@@ -28,6 +28,8 @@ import org.onlab.packet.VlanId;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.incubator.net.intf.InterfaceEvent;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
@@ -75,6 +77,9 @@ public class Vpls {
 
     private final HostListener hostListener = new InternalHostListener();
 
+    private final InternalInterfaceListener interfaceListener
+            = new InternalInterfaceListener();
+
     private IntentInstaller intentInstaller;
 
     private ApplicationId appId;
@@ -91,6 +96,7 @@ public class Vpls {
                                                   intentSynchronizerAdmin::removeIntents);
 
         hostService.addListener(hostListener);
+        interfaceService.addListener(interfaceListener);
 
         setupConnectivity();
 
@@ -193,6 +199,25 @@ public class Vpls {
                 case HOST_ADDED:
                 case HOST_UPDATED:
                 case HOST_REMOVED:
+                    setupConnectivity();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Listener for interface configuration events.
+     */
+    private class InternalInterfaceListener implements InterfaceListener {
+        @Override
+        public void event(InterfaceEvent event) {
+            log.debug("Received InterfaceConfigEvent {}", event);
+            switch (event.type()) {
+                case INTERFACE_ADDED:
+                case INTERFACE_UPDATED:
+                case INTERFACE_REMOVED:
                     setupConnectivity();
                     break;
                 default:
