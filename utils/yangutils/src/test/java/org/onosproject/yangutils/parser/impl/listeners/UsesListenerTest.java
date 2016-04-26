@@ -19,6 +19,7 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import java.io.IOException;
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangGrouping;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
@@ -56,7 +57,10 @@ public class UsesListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        YangUses yangUses = (YangUses) yangNode.getChild();
+        YangGrouping yangGrouping = (YangGrouping) yangNode.getChild();
+        assertThat(yangGrouping.getName(), is("endpoint"));
+
+        YangUses yangUses = (YangUses) yangGrouping.getNextSibling();
         assertThat(yangUses.getName(), is("endpoint"));
     }
 
@@ -78,7 +82,10 @@ public class UsesListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        YangContainer yangContainer = (YangContainer) yangNode.getChild();
+        YangGrouping yangGrouping = (YangGrouping) yangNode.getChild();
+        assertThat(yangGrouping.getName(), is("endpoint"));
+
+        YangContainer yangContainer = (YangContainer) yangGrouping.getNextSibling();
         assertThat(yangContainer.getName(), is("valid"));
 
         YangUses yangUses = (YangUses) yangContainer.getChild();
@@ -108,7 +115,10 @@ public class UsesListenerTest {
         YangModule yangNode = (YangModule) node;
         assertThat(yangNode.getName(), is("Test"));
 
-        YangList yangList = (YangList) yangNode.getChild();
+        YangGrouping yangGrouping = (YangGrouping) yangNode.getChild();
+        assertThat(yangGrouping.getName(), is("endpoint"));
+
+        YangList yangList = (YangList) yangGrouping.getNextSibling();
         assertThat(yangList.getName(), is("valid"));
 
         YangUses yangUses = (YangUses) yangList.getChild();

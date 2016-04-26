@@ -1565,22 +1565,6 @@ public interface GeneratedYangListener extends ParseTreeListener {
 
     /**
      * Enter a parse tree produced by GeneratedYangParser for grammar rule
-     * inputStatementBody.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void enterInputStatementBody(GeneratedYangParser.InputStatementBodyContext currentContext);
-
-    /**
-     * Exit a parse tree produced by GeneratedYangParser for grammar rule
-     * inputStatementBody.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void exitInputStatementBody(GeneratedYangParser.InputStatementBodyContext currentContext);
-
-    /**
-     * Enter a parse tree produced by GeneratedYangParser for grammar rule
      * outputStatement.
      *
      * @param currentContext current context in the parsed tree
@@ -1594,22 +1578,6 @@ public interface GeneratedYangListener extends ParseTreeListener {
      * @param currentContext current context in the parsed tree
      */
     void exitOutputStatement(GeneratedYangParser.OutputStatementContext currentContext);
-
-    /**
-     * Enter a parse tree produced by GeneratedYangParser for grammar rule
-     * outputStatementBody.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void enterOutputStatementBody(GeneratedYangParser.OutputStatementBodyContext currentContext);
-
-    /**
-     * Exit a parse tree produced by GeneratedYangParser for grammar rule
-     * outputStatementBody.
-     *
-     * @param currentContext current context in the parsed tree
-     */
-    void exitOutputStatementBody(GeneratedYangParser.OutputStatementBodyContext currentContext);
 
     /**
      * Enter a parse tree produced by GeneratedYangParser for grammar rule

@@ -19,6 +19,7 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getParentNodeInGenCode;
 
 /*-
@@ -56,7 +57,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
  */
 public class YangUses
         extends YangNode
-        implements YangCommonInfo, Parsable, Resolvable {
+        implements YangCommonInfo, Parsable, Resolvable, CollisionDetector {
 
     /**
      * YANG node identifier.
@@ -267,18 +268,23 @@ public class YangUses
         }
 
         YangNode usesParentNode = getParentNodeInGenCode(this);
-        if (!(usesParentNode instanceof YangLeavesHolder)) {
+        if ((!(usesParentNode instanceof YangLeavesHolder))
+                || (!(usesParentNode instanceof CollisionDetector))) {
             throw new DataModelException("YANG uses holder construct is wrong");
         }
 
         YangLeavesHolder usesParentLeavesHolder = (YangLeavesHolder) usesParentNode;
         if (referredGrouping.getListOfLeaf() != null) {
             for (YangLeaf leaf : referredGrouping.getListOfLeaf()) {
+                ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leaf.getLeafName(),
+                        YangConstructType.LEAF_DATA);
                 usesParentLeavesHolder.addLeaf(leaf);
             }
         }
         if (referredGrouping.getListOfLeafList() != null) {
             for (YangLeafList leafList : referredGrouping.getListOfLeafList()) {
+                ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leafList.getLeafName(),
+                        YangConstructType.LEAF_LIST_DATA);
                 usesParentLeavesHolder.addLeafList(leafList);
             }
         }
@@ -295,4 +301,19 @@ public class YangUses
     public void setResolvableStatus(ResolvableStatus resolvableStatus) {
         this.resolvableStatus = resolvableStatus;
     }
+
+    @Override
+    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+        detectCollidingChildUtil(identifierName, dataType, this);
+    }
+
+    @Override
+    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+
+        if (getName().equals(identifierName)) {
+            throw new DataModelException("YANG file error: Duplicate input identifier detected, same as uses \""
+                    + getName() + "\"");
+        }
+    }
+
 }

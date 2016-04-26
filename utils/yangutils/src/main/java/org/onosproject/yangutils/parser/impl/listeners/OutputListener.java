@@ -36,6 +36,8 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityNonZero;
+import static org.onosproject.yangutils.utils.YangConstructType.DATA_DEF_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.OUTPUT_DATA;
 
 /*
@@ -85,6 +87,9 @@ public final class OutputListener {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, OUTPUT_DATA, "", ENTRY);
+
+        validateCardinalityNonZero(ctx.dataDefStatement(), DATA_DEF_DATA,
+                OUTPUT_DATA, "", ctx);
 
         Parsable curData = listener.getParsedDataStack().peek();
         if (curData instanceof YangRpc) {

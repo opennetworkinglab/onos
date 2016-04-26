@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.parser.impl.listeners;
 
 import org.onosproject.yangutils.datamodel.YangContainer;
+import org.onosproject.yangutils.datamodel.YangGrouping;
 import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
@@ -127,11 +128,8 @@ public final class TypeDefListener {
 
         if (curData instanceof YangModule || curData instanceof YangSubModule || curData instanceof YangContainer
                 || curData instanceof YangList || curData instanceof YangNotification || curData instanceof YangRpc
-                || curData instanceof YangInput || curData instanceof YangOutput) {
+                || curData instanceof YangInput || curData instanceof YangOutput || curData instanceof YangGrouping) {
 
-            /*
-             * TODO YangGrouping.
-             */
             YangNode curNode = (YangNode) curData;
             try {
                 curNode.addChild(typeDefNode);

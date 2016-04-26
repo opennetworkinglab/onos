@@ -16,6 +16,7 @@
 package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.translator.tojava.TraversalType;
 
 import static org.onosproject.yangutils.translator.tojava.TraversalType.CHILD;
@@ -281,9 +282,11 @@ public abstract class YangNode
                 if (nextNodeToClone == null) {
                     throw new DataModelException("Internal error: Cloning failed, source tree null pointer reached");
                 }
-
-                if (curTraversal == CHILD) {
+                if (curTraversal != PARENT) {
                     newNode = nextNodeToClone.clone();
+                    detectCollisionWhileCloning(clonedTreeCurNode, newNode, curTraversal);
+                }
+                if (curTraversal == CHILD) {
 
                     /**
                      * add the new node to the cloned tree.
@@ -295,7 +298,6 @@ public abstract class YangNode
                      */
                     clonedTreeCurNode = newNode;
                 } else if (curTraversal == SIBILING) {
-                    newNode = nextNodeToClone.clone();
 
                     clonedTreeCurNode.addNextSibling(newNode);
                     clonedTreeCurNode = newNode;
@@ -323,6 +325,38 @@ public abstract class YangNode
             }
         } catch (CloneNotSupportedException e) {
             throw new DataModelException("Failed to clone the tree");
+        }
+
+    }
+
+    /**
+     * Detects collision when the grouping is deep copied to the uses's parent.
+     *
+     * @param currentNode parent/previous sibling node for the new node
+     * @param newNode node which has to be added
+     * @param addAs traversal type of the node
+     * @throws DataModelException data model error
+     */
+    private static void detectCollisionWhileCloning(YangNode currentNode, YangNode newNode, TraversalType addAs)
+            throws DataModelException {
+        if ((!(currentNode instanceof CollisionDetector))
+                || (!(newNode instanceof Parsable))) {
+            throw new DataModelException("Node in data model tree does not support collision detection");
+        }
+
+        CollisionDetector collisionDetector = (CollisionDetector) currentNode;
+        Parsable parsable = (Parsable) newNode;
+        if (addAs == TraversalType.CHILD) {
+            collisionDetector.detectCollidingChild(newNode.getName(), parsable.getYangConstructType());
+        } else if (addAs == TraversalType.SIBILING) {
+            currentNode = currentNode.getParent();
+            if (!(currentNode instanceof CollisionDetector)) {
+                throw new DataModelException("Node in data model tree does not support collision detection");
+            }
+            collisionDetector = (CollisionDetector) currentNode;
+            collisionDetector.detectCollidingChild(newNode.getName(), parsable.getYangConstructType());
+        } else {
+            throw new DataModelException("Errored tree cloning");
         }
 
     }

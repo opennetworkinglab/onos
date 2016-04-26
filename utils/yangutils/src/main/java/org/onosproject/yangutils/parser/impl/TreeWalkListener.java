@@ -52,8 +52,8 @@ import org.onosproject.yangutils.parser.impl.listeners.MandatoryListener;
 import org.onosproject.yangutils.parser.impl.listeners.MaxElementsListener;
 import org.onosproject.yangutils.parser.impl.listeners.MinElementsListener;
 import org.onosproject.yangutils.parser.impl.listeners.ModuleListener;
-import org.onosproject.yangutils.parser.impl.listeners.NotificationListener;
 import org.onosproject.yangutils.parser.impl.listeners.NamespaceListener;
+import org.onosproject.yangutils.parser.impl.listeners.NotificationListener;
 import org.onosproject.yangutils.parser.impl.listeners.OrganizationListener;
 import org.onosproject.yangutils.parser.impl.listeners.OutputListener;
 import org.onosproject.yangutils.parser.impl.listeners.PatternRestrictionListener;
@@ -1087,14 +1087,6 @@ public class TreeWalkListener implements GeneratedYangListener {
     }
 
     @Override
-    public void enterInputStatementBody(GeneratedYangParser.InputStatementBodyContext ctx) {
-    }
-
-    @Override
-    public void exitInputStatementBody(GeneratedYangParser.InputStatementBodyContext ctx) {
-    }
-
-    @Override
     public void enterOutputStatement(GeneratedYangParser.OutputStatementContext ctx) {
         OutputListener.processOutputEntry(this, ctx);
     }
@@ -1102,14 +1094,6 @@ public class TreeWalkListener implements GeneratedYangListener {
     @Override
     public void exitOutputStatement(GeneratedYangParser.OutputStatementContext ctx) {
         OutputListener.processOutputExit(this, ctx);
-    }
-
-    @Override
-    public void enterOutputStatementBody(GeneratedYangParser.OutputStatementBodyContext ctx) {
-    }
-
-    @Override
-    public void exitOutputStatementBody(GeneratedYangParser.OutputStatementBodyContext ctx) {
     }
 
     @Override

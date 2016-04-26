@@ -1098,12 +1098,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                           1*(data-def-stmt stmtsep)
      *                         "}"
      */
-    inputStatement : INPUT_KEYWORD LEFT_CURLY_BRACE inputStatementBody RIGHT_CURLY_BRACE;
-
-    inputStatementBody : typedefStatement* dataDefStatement+
-                       | dataDefStatement+ typedefStatement*
-                       | groupingStatement* dataDefStatement+
-                       | dataDefStatement+ groupingStatement*;
+    inputStatement : INPUT_KEYWORD LEFT_CURLY_BRACE (typedefStatement | groupingStatement | dataDefStatement)* RIGHT_CURLY_BRACE;
 
     /**
      *  output-stmt         = output-keyword optsep
@@ -1114,12 +1109,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                            1*(data-def-stmt stmtsep)
      *                        "}"
      */
-    outputStatement : OUTPUT_KEYWORD LEFT_CURLY_BRACE outputStatementBody RIGHT_CURLY_BRACE;
-
-    outputStatementBody : typedefStatement* dataDefStatement+
-                        | dataDefStatement+ typedefStatement*
-                        | groupingStatement* dataDefStatement+
-                        | dataDefStatement+ groupingStatement*;
+    outputStatement : OUTPUT_KEYWORD LEFT_CURLY_BRACE (typedefStatement | groupingStatement | dataDefStatement)* RIGHT_CURLY_BRACE;
 
     /**
      *  notification-stmt   = notification-keyword sep

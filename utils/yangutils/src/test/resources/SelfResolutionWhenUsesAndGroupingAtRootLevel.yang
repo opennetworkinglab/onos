@@ -2,7 +2,10 @@ module Test {
     yang-version 1;
     namespace http://huawei.com;
     prefix Ant;
-    grouping endpoint {
+    uses hello;
+    grouping hello {
+	leaf hello{
+            type String;
+        }
     }
-    uses endpoint;
 }

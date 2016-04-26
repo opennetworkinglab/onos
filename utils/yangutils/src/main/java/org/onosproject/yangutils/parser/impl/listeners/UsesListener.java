@@ -23,8 +23,10 @@ import org.onosproject.yangutils.datamodel.YangInput;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
 import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.datamodel.YangOutput;
+import org.onosproject.yangutils.datamodel.YangResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
@@ -33,16 +35,18 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.addResolutionInfo;
 import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
 import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangUsesNode;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidNodeIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
 import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
@@ -116,6 +120,11 @@ public final class UsesListener {
         // Validate sub statement cardinality.
         validateSubStatementsCardinality(ctx);
 
+        // Check for identifier collision
+        int line = ctx.getStart().getLine();
+        int charPositionInLine = ctx.getStart().getCharPositionInLine();
+
+        detectCollidingChildUtil(listener, line, charPositionInLine, ctx.string().getText(), USES_DATA);
         Parsable curData = listener.getParsedDataStack().peek();
 
         if (curData instanceof YangModule || curData instanceof YangSubModule
@@ -126,8 +135,8 @@ public final class UsesListener {
                 || curData instanceof YangNotification) {
 
             YangUses usesNode = getYangUsesNode(JAVA_GENERATION);
-            usesNode.setName(ctx.string().getText());
-
+            YangNodeIdentifier nodeIdentifier = getValidNodeIdentifier(ctx.string().getText(), USES_DATA, ctx);
+            usesNode.setNodeIdentifier(nodeIdentifier);
             YangNode curNode = (YangNode) curData;
 
             try {
@@ -156,12 +165,29 @@ public final class UsesListener {
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, USES_DATA, ctx.string().getText(), EXIT);
 
-        if (listener.getParsedDataStack().peek() instanceof YangUses) {
-            listener.getParsedDataStack().pop();
-        } else {
-            throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, USES_DATA,
+        Parsable parsableUses = listener.getParsedDataStack().pop();
+        if (!(parsableUses instanceof YangUses)) {
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, USES_DATA,
                     ctx.string().getText(), EXIT));
         }
+        YangUses uses = (YangUses) parsableUses;
+        int errorLine = ctx.getStart().getLine();
+        int errorPosition = ctx.getStart().getCharPositionInLine();
+
+        // Parent YANG node of uses to be added in resolution information.
+        Parsable parentNode = listener.getParsedDataStack().peek();
+
+        // Verify parent node of leaf
+        if (!(parentNode instanceof YangNode)) {
+            throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, USES_DATA,
+                    ctx.string().getText(), EXIT));
+        }
+
+        // Add resolution information to the list
+        YangResolutionInfo resolutionInfo = new YangResolutionInfo<YangUses>(uses,
+                (YangNode) parentNode, errorLine,
+                errorPosition);
+        addToResolutionList(resolutionInfo, ctx);
     }
 
     // TODO linker to handle collision scenarios like leaf obtained by uses, conflicts with some existing leaf.
@@ -175,5 +201,23 @@ public final class UsesListener {
         validateCardinalityMaxOne(ctx.whenStatement(), WHEN_DATA, USES_DATA, ctx.string().getText());
         validateCardinalityMaxOne(ctx.statusStatement(), STATUS_DATA, USES_DATA, ctx.string().getText());
         validateCardinalityMaxOne(ctx.descriptionStatement(), DESCRIPTION_DATA, USES_DATA, ctx.string().getText());
-        validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, USES_DATA, ctx.string().getText());    }
+        validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, USES_DATA, ctx.string().getText());
+    }
+
+    /**
+     * Add to resolution list.
+     *
+     * @param resolutionInfo resolution information.
+     * @param ctx context object of the grammar rule
+     */
+    private static void addToResolutionList(YangResolutionInfo<YangUses> resolutionInfo,
+            GeneratedYangParser.UsesStatementContext ctx) {
+
+        try {
+            addResolutionInfo(resolutionInfo);
+        } catch (DataModelException e) {
+            throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
+                    USES_DATA, ctx.string().getText(), EXIT, e.getMessage()));
+        }
+    }
 }

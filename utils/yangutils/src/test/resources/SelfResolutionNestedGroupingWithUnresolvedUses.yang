@@ -1,0 +1,17 @@
+module Test {
+    yang-version 1;
+    namespace http://huawei.com;
+    prefix Ant;
+    container test{
+        leaf leaf2{
+            type String;
+        }
+    	grouping treat {
+            grouping create {
+                grouping mass {
+                }
+            }
+        }
+    }
+    uses treat;
+}

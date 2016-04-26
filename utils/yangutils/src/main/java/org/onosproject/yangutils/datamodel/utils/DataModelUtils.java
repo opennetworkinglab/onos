@@ -27,8 +27,8 @@ import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangResolutionInfo;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
-
 
 /**
  * Represents utilities for data model tree.
@@ -53,21 +53,44 @@ public final class DataModelUtils {
     public static void detectCollidingChildUtil(String identifierName, YangConstructType dataType, YangNode node)
             throws DataModelException {
 
-        if (dataType == YangConstructType.LEAF_DATA) {
-            YangLeavesHolder leavesHolder = (YangLeavesHolder) node;
-            if (leavesHolder.getListOfLeaf() != null) {
-                detectCollidingLeaf(leavesHolder, identifierName);
-            }
-        }
-        if (dataType == YangConstructType.LEAF_LIST_DATA) {
-            if (((YangLeavesHolder) node).getListOfLeafList() != null) {
+        if (dataType == YangConstructType.USES_DATA || dataType == YangConstructType.GROUPING_DATA) {
+            detectCollidingForUsesGrouping(identifierName, dataType, node);
+        } else {
+            if (node instanceof YangLeavesHolder) {
                 YangLeavesHolder leavesHolder = (YangLeavesHolder) node;
-                detectCollidingLeafList(leavesHolder, identifierName);
+                detectCollidingLeaf(leavesHolder.getListOfLeaf(), identifierName);
+                detectCollidingLeafList(leavesHolder.getListOfLeafList(), identifierName);
+            }
+            node = node.getChild();
+            while (node != null) {
+                Parsable parsable = (Parsable) node;
+                if (node instanceof CollisionDetector
+                        && (parsable.getYangConstructType() != YangConstructType.USES_DATA)
+                        && (parsable.getYangConstructType() != YangConstructType.GROUPING_DATA)) {
+                    ((CollisionDetector) node).detectSelfCollision(identifierName, dataType);
+                }
+                node = node.getNextSibling();
             }
         }
+    }
+
+    /**
+     * Detects colliding of uses and grouping only with uses and grouping respectively.
+     *
+     * @param identifierName name for which collision detection is to be
+     * checked
+     * @param dataType type of YANG node asking for detecting collision
+     * @param node node instance of calling node
+     * @throws DataModelException a violation of data model rules
+     */
+    public static void detectCollidingForUsesGrouping(String identifierName, YangConstructType dataType, YangNode node)
+            throws DataModelException {
+
         node = node.getChild();
         while (node != null) {
-            if (node instanceof CollisionDetector) {
+            Parsable parsable = (Parsable) node;
+            if (node instanceof CollisionDetector
+                    && (parsable.getYangConstructType() == dataType)) {
                 ((CollisionDetector) node).detectSelfCollision(identifierName, dataType);
             }
             node = node.getNextSibling();
@@ -77,15 +100,18 @@ public final class DataModelUtils {
     /**
      * Detects the colliding identifier name in a given leaf node.
      *
-     * @param leavesHolder leaves node against which collision to be checked
+     * @param listOfLeaf List of leaves to detect collision
      * @param identifierName name for which collision detection is to be
      * checked
      * @throws DataModelException a violation of data model rules
      */
-    private static void detectCollidingLeaf(YangLeavesHolder leavesHolder, String identifierName)
+    private static void detectCollidingLeaf(List<YangLeaf> listOfLeaf, String identifierName)
             throws DataModelException {
 
-        for (YangLeaf leaf : leavesHolder.getListOfLeaf()) {
+        if (listOfLeaf == null) {
+            return;
+        }
+        for (YangLeaf leaf : listOfLeaf) {
             if (leaf.getLeafName().equals(identifierName)) {
                 throw new DataModelException("YANG file error: Duplicate input identifier detected, same as leaf \""
                         + leaf.getLeafName() + "\"");
@@ -96,15 +122,18 @@ public final class DataModelUtils {
     /**
      * Detects the colliding identifier name in a given leaf-list node.
      *
-     * @param leavesHolder leaves node against which collision to be checked
+     * @param listOfLeafList list of leaf-lists to detect collision
      * @param identifierName name for which collision detection is to be
      * checked
      * @throws DataModelException a violation of data model rules
      */
-    private static void detectCollidingLeafList(YangLeavesHolder leavesHolder, String identifierName)
+    private static void detectCollidingLeafList(List<YangLeafList> listOfLeafList, String identifierName)
             throws DataModelException {
 
-        for (YangLeafList leafList : leavesHolder.getListOfLeafList()) {
+        if (listOfLeafList == null) {
+            return;
+        }
+       for (YangLeafList leafList : listOfLeafList) {
             if (leafList.getLeafName().equals(identifierName)) {
                 throw new DataModelException("YANG file error: Duplicate input identifier detected, same as leaf " +
                         "list \"" + leafList.getLeafName() + "\"");
@@ -121,8 +150,6 @@ public final class DataModelUtils {
      */
     public static void addResolutionInfo(YangResolutionInfo resolutionInfo)
             throws DataModelException {
-
-
 
         /* get the module node to add maintain the list of nested reference */
         YangNode curNode = resolutionInfo.getEntityToResolveInfo()
@@ -142,6 +169,13 @@ public final class DataModelUtils {
         resolutionNode.addToResolutionList(resolutionInfo);
     }
 
+    /**
+     * Evaluates whether the prefix in uses/type is valid.
+     *
+     * @param entityPrefix prefix in the current module/sub-module
+     * @param resolutionNode uses/type node which has the prefix with it
+     * @return whether prefix is valid or not
+     */
     private static boolean isPrefixValid(String entityPrefix, HasResolutionInfo resolutionNode) {
         if (entityPrefix == null) {
             return true;

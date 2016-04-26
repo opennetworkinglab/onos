@@ -4,7 +4,9 @@ module Test {
     prefix Ant;
     import ietf-yang-types {
              prefix "P";
-         }
+         }    
+    grouping endpoint {
+    }
     list valid {
         key address;
         leaf address {
