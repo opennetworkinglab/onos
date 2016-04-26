@@ -34,11 +34,11 @@
 
     <properties>
         <!-- BMv2 Commit ID and Thrift version -->
-        <bmv2.commit>a012ee4124c1892a91a359660824d311d5d7fe88</bmv2.commit>
+        <bmv2.commit>4421bafd6d26740b0bbf802c2e9f9f54c1211b13</bmv2.commit>
         <bmv2.thrift.version>0.9.3</bmv2.thrift.version>
         <!-- Do not change below -->
         <bmv2.baseurl>
-            https://raw.githubusercontent.com/p4lang/behavioral-model/${bmv2.commit}
+            https://raw.githubusercontent.com/ccascone/behavioral-model/${bmv2.commit}
         </bmv2.baseurl>
         <bmv2.thrift.srcdir>${project.basedir}/src/main/thrift</bmv2.thrift.srcdir>
         <thrift.path>${project.build.directory}/thrift-compiler/</thrift.path>
@@ -55,6 +55,10 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>
     </dependencies>
 
@@ -84,7 +88,7 @@
                 <executions>
                     <execution>
                         <id>download-bmv2-thrift-standard</id>
-                        <phase>validate</phase>
+                        <phase>initialize</phase>
                         <goals>
                             <goal>download-single</goal>
                         </goals>
@@ -129,6 +133,20 @@
                             <url>${bmv2.baseurl}</url>
                             <fromFile>
                                 targets/simple_switch/thrift/simple_switch.thrift
+                            </fromFile>
+                            <toDir>${bmv2.thrift.srcdir}</toDir>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>download-bmv2-thrift-simple_switch-cpservice</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>download-single</goal>
+                        </goals>
+                        <configuration>
+                            <url>${bmv2.baseurl}</url>
+                            <fromFile>
+                                targets/simple_switch/thrift/control_plane.thrift
                             </fromFile>
                             <toDir>${bmv2.thrift.srcdir}</toDir>
                         </configuration>
@@ -201,11 +219,12 @@
                 <version>0.1.11</version>
                 <configuration>
                     <thriftExecutable>${thrift.path}/${thrift.filename}</thriftExecutable>
+                    <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
                 </configuration>
                 <executions>
                     <execution>
                         <id>thrift-sources</id>
-                        <phase>generate-sources</phase>
+                        <phase>initialize</phase>
                         <goals>
                             <goal>compile</goal>
                         </goals>
@@ -227,12 +246,21 @@
                         <configuration>
                             <sources>
                                 <source>
-                                    ${project.build.directory}/generated-sources/thrift
+                                    ${project.build.directory}/generated-sources
                                 </source>
                             </sources>
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- OSGi -->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

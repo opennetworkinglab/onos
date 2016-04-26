@@ -16,6 +16,8 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import org.onlab.util.ImmutableByteSequence;
+
 import java.util.Collection;
 
 /**
@@ -79,6 +81,15 @@ public interface Bmv2Client {
      * @throws Bmv2RuntimeException if any error occurs
      */
     String dumpTable(String tableName) throws Bmv2RuntimeException;
+
+    /**
+     * Requests the device to transmit a given byte sequence over the given port.
+     *
+     * @param portNumber a port number
+     * @param packet a byte sequence
+     * @throws Bmv2RuntimeException
+     */
+    void transmitPacket(int portNumber, ImmutableByteSequence packet) throws Bmv2RuntimeException;
 
     /**
      * Reset the state of the switch (e.g. delete all entries, etc.).

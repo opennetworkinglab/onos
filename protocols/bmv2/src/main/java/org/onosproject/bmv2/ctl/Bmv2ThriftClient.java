@@ -31,6 +31,7 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
+import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.bmv2.api.runtime.Bmv2Action;
 import org.onosproject.bmv2.api.runtime.Bmv2Client;
 import org.onosproject.bmv2.api.runtime.Bmv2ExactMatchParam;
@@ -50,6 +51,7 @@ import org.p4.bmv2.thrift.BmMatchParamTernary;
 import org.p4.bmv2.thrift.BmMatchParamType;
 import org.p4.bmv2.thrift.BmMatchParamValid;
 import org.p4.bmv2.thrift.DevMgrPortInfo;
+import org.p4.bmv2.thrift.SimpleSwitch;
 import org.p4.bmv2.thrift.Standard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,15 +90,18 @@ public final class Bmv2ThriftClient implements Bmv2Client {
             .expireAfterAccess(CLIENT_CACHE_TIMEOUT, TimeUnit.SECONDS)
             .removalListener(new ClientRemovalListener())
             .build(new ClientLoader());
-    private final Standard.Iface stdClient;
+    private final Standard.Iface standardClient;
+    private final SimpleSwitch.Iface simpleSwitchClient;
     private final TTransport transport;
     private final DeviceId deviceId;
 
     // ban constructor
-    private Bmv2ThriftClient(DeviceId deviceId, TTransport transport, Standard.Iface stdClient) {
+    private Bmv2ThriftClient(DeviceId deviceId, TTransport transport, Standard.Iface standardClient,
+                             SimpleSwitch.Iface simpleSwitchClient) {
         this.deviceId = deviceId;
         this.transport = transport;
-        this.stdClient = stdClient;
+        this.standardClient = standardClient;
+        this.simpleSwitchClient = simpleSwitchClient;
 
         LOG.debug("New client created! > deviceId={}", deviceId);
     }
@@ -131,9 +136,9 @@ public final class Bmv2ThriftClient implements Bmv2Client {
         try {
             LOG.debug("Pinging device... > deviceId={}", deviceId);
             Bmv2ThriftClient client = of(deviceId);
-            client.stdClient.bm_dev_mgr_show_ports();
-            LOG.debug("Device reachable! > deviceId={}", deviceId);
-            return true;
+            boolean result = client.simpleSwitchClient.ping();
+            LOG.debug("Device pinged! > deviceId={}, state={}", deviceId, result);
+            return result;
         } catch (TException | Bmv2RuntimeException e) {
             LOG.debug("Device NOT reachable! > deviceId={}", deviceId);
             return false;
@@ -242,7 +247,7 @@ public final class Bmv2ThriftClient implements Bmv2Client {
                 options.setPriority(entry.priority());
             }
 
-            entryId = stdClient.bm_mt_add_entry(
+            entryId = standardClient.bm_mt_add_entry(
                     CONTEXT_ID,
                     entry.tableName(),
                     buildMatchParamsList(entry.matchKey()),
@@ -253,7 +258,7 @@ public final class Bmv2ThriftClient implements Bmv2Client {
             if (entry.hasTimeout()) {
                 /* bmv2 accepts timeouts in milliseconds */
                 int msTimeout = (int) Math.round(entry.timeout() * 1_000);
-                stdClient.bm_mt_set_entry_ttl(
+                standardClient.bm_mt_set_entry_ttl(
                         CONTEXT_ID, entry.tableName(), entryId, msTimeout);
             }
 
@@ -285,7 +290,7 @@ public final class Bmv2ThriftClient implements Bmv2Client {
         LOG.debug("Modifying table entry... > deviceId={}, entryId={}/{}", deviceId, tableName, entryId);
 
         try {
-            stdClient.bm_mt_modify_entry(
+            standardClient.bm_mt_modify_entry(
                     CONTEXT_ID,
                     tableName,
                     entryId,
@@ -306,7 +311,7 @@ public final class Bmv2ThriftClient implements Bmv2Client {
         LOG.debug("Deleting table entry... > deviceId={}, entryId={}/{}", deviceId, tableName, entryId);
 
         try {
-            stdClient.bm_mt_delete_entry(CONTEXT_ID, tableName, entryId);
+            standardClient.bm_mt_delete_entry(CONTEXT_ID, tableName, entryId);
             LOG.debug("Table entry deleted! > deviceId={}, entryId={}/{}", deviceId, tableName, entryId);
         } catch (TException e) {
             LOG.debug("Exception while deleting table entry: {} > deviceId={}, entryId={}/{}",
@@ -322,7 +327,7 @@ public final class Bmv2ThriftClient implements Bmv2Client {
         LOG.debug("Setting table default... > deviceId={}, tableName={}, action={}", deviceId, tableName, action);
 
         try {
-            stdClient.bm_mt_set_default_action(
+            standardClient.bm_mt_set_default_action(
                     CONTEXT_ID,
                     tableName,
                     action.name(),
@@ -341,7 +346,7 @@ public final class Bmv2ThriftClient implements Bmv2Client {
         LOG.debug("Retrieving port info... > deviceId={}", deviceId);
 
         try {
-            List<DevMgrPortInfo> portInfos = stdClient.bm_dev_mgr_show_ports();
+            List<DevMgrPortInfo> portInfos = standardClient.bm_dev_mgr_show_ports();
 
             Collection<Bmv2PortInfo> bmv2PortInfos = Lists.newArrayList();
 
@@ -366,7 +371,7 @@ public final class Bmv2ThriftClient implements Bmv2Client {
         LOG.debug("Retrieving table dump... > deviceId={}, tableName={}", deviceId, tableName);
 
         try {
-            String dump = stdClient.bm_dump_table(CONTEXT_ID, tableName);
+            String dump = standardClient.bm_dump_table(CONTEXT_ID, tableName);
             LOG.debug("Table dump retrieved! > deviceId={}, tableName={}", deviceId, tableName);
             return dump;
         } catch (TException e) {
@@ -377,12 +382,28 @@ public final class Bmv2ThriftClient implements Bmv2Client {
     }
 
     @Override
+    public void transmitPacket(int portNumber, ImmutableByteSequence packet) throws Bmv2RuntimeException {
+
+        LOG.debug("Requesting packet transmission... > portNumber={}, packet={}", portNumber, packet);
+
+        try {
+
+            simpleSwitchClient.push_packet(portNumber, ByteBuffer.wrap(packet.asArray()));
+            LOG.debug("Packet transmission requested! > portNumber={}, packet={}", portNumber, packet);
+        } catch (TException e) {
+            LOG.debug("Exception while requesting packet transmission: {} > portNumber={}, packet={}",
+                      portNumber, packet);
+            throw new Bmv2RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
     public void resetState() throws Bmv2RuntimeException {
 
         LOG.debug("Resetting device state... > deviceId={}", deviceId);
 
         try {
-            stdClient.bm_reset_state();
+            standardClient.bm_reset_state();
             LOG.debug("Device state reset! > deviceId={}", deviceId);
         } catch (TException e) {
             LOG.debug("Exception while resetting device state: {} > deviceId={}", e, deviceId);
@@ -396,7 +417,6 @@ public final class Bmv2ThriftClient implements Bmv2Client {
     private static class ClientLoader
             extends CacheLoader<DeviceId, Bmv2ThriftClient> {
 
-        // Connection retries options: max 10 retries each 200 ms
         private static final Options RECONN_OPTIONS = new Options(NUM_CONNECTION_RETRIES, TIME_BETWEEN_RETRIES);
 
         @Override
@@ -408,14 +428,20 @@ public final class Bmv2ThriftClient implements Bmv2Client {
             TTransport transport = new TSocket(
                     info.getLeft(), info.getRight());
             TProtocol protocol = new TBinaryProtocol(transport);
-            Standard.Client stdClient = new Standard.Client(
+            // Our BMv2 device implements multiple Thrift services, create a client for each one.
+            Standard.Client standardClient = new Standard.Client(
                     new TMultiplexedProtocol(protocol, "standard"));
-            // Wrap the client so to automatically have synchronization and resiliency to connectivity problems
-            Standard.Iface reconnStdIface = SafeThriftClient.wrap(stdClient,
-                                                                  Standard.Iface.class,
-                                                                  RECONN_OPTIONS);
+            SimpleSwitch.Client simpleSwitch = new SimpleSwitch.Client(
+                    new TMultiplexedProtocol(protocol, "simple_switch"));
+            // Wrap clients so to automatically have synchronization and resiliency to connectivity errors
+            Standard.Iface safeStandardClient = SafeThriftClient.wrap(standardClient,
+                                                                      Standard.Iface.class,
+                                                                      RECONN_OPTIONS);
+            SimpleSwitch.Iface safeSimpleSwitchClient = SafeThriftClient.wrap(simpleSwitch,
+                                                                              SimpleSwitch.Iface.class,
+                                                                              RECONN_OPTIONS);
 
-            return new Bmv2ThriftClient(deviceId, transport, reconnStdIface);
+            return new Bmv2ThriftClient(deviceId, transport, safeStandardClient, safeSimpleSwitchClient);
         }
     }
 
