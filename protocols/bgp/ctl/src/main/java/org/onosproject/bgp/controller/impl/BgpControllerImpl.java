@@ -133,29 +133,23 @@ public class BgpControllerImpl implements BgpController {
             }
             Iterator<BgpValueType> listIterator = pathAttr.iterator();
             boolean isLinkstate = false;
-            boolean isFlowSpec = false;
+
             while (listIterator.hasNext()) {
                 BgpValueType attr = listIterator.next();
                 if (attr instanceof MpReachNlri) {
                     MpReachNlri mpReach = (MpReachNlri) attr;
-                    if (mpReach.bgpFlowSpecInfo() == null) {
+                    if (mpReach.bgpFlowSpecNlri() == null) {
                         isLinkstate = true;
-                    } else {
-                        isFlowSpec = true;
                     }
                 } else if (attr instanceof MpUnReachNlri) {
                     MpUnReachNlri mpUnReach = (MpUnReachNlri) attr;
-                    if (mpUnReach.bgpFlowSpecInfo() == null) {
+                    if (mpUnReach.bgpFlowSpecNlri() == null) {
                         isLinkstate = true;
-                    } else {
-                        isFlowSpec = true;
                     }
                 }
             }
             if (isLinkstate) {
                 peer.buildAdjRibIn(pathAttr);
-            } else if (isFlowSpec) {
-                peer.buildFlowSpecRib(pathAttr);
             }
             break;
         default:

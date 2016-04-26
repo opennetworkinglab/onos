@@ -64,6 +64,22 @@ public class RpdCapabilityTlv implements BgpValueType {
         return sendReceive;
     }
 
+    /**
+     * Returns address family identifier value.
+     * @return afi address family identifier value
+     */
+    public short getAfi() {
+        return afi;
+    }
+
+    /**
+     * Returns subsequent address family identifier value.
+     * @return safi subsequent address family identifier value
+     */
+    public byte getSafi() {
+        return sAfi;
+    }
+
     @Override
     public short getType() {
         return TYPE;

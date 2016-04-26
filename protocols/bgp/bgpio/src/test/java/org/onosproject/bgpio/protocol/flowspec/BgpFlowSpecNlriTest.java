@@ -28,23 +28,23 @@ import org.onosproject.bgpio.types.BgpValueType;
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for BgpFlowSpecDetails flow specification.
+ * Test for BgpFlowSpecNlri flow specification.
  */
-public class BgpFlowSpecDetailsTest {
+public class BgpFlowSpecNlriTest {
 
     List<BgpValueType> flowSpecComponents1 = new LinkedList<>();
     private List<BgpFsOperatorValue> operatorValue1 = new ArrayList<>();
-    BgpFlowSpecDetails flowSpecDetails1 = new BgpFlowSpecDetails(flowSpecComponents1);
+    BgpFlowSpecNlri flowSpecDetails1 = new BgpFlowSpecNlri(flowSpecComponents1);
     BgpFsPortNum portNum1 = new BgpFsPortNum(operatorValue1);
 
     List<BgpValueType> flowSpecComponents = new LinkedList<>();
     private List<BgpFsOperatorValue> operatorValue = new ArrayList<>();
-    BgpFlowSpecDetails flowSpecDetails = new BgpFlowSpecDetails(flowSpecComponents);
+    BgpFlowSpecNlri flowSpecDetails = new BgpFlowSpecNlri(flowSpecComponents);
     BgpFsPortNum portNum = new BgpFsPortNum(operatorValue);
 
     List<BgpValueType> flowSpecComponents2 = new LinkedList<>();
     private List<BgpFsOperatorValue> operatorValue2 = new ArrayList<>();
-    BgpFlowSpecDetails flowSpecDetails2 = new BgpFlowSpecDetails(flowSpecComponents2);
+    BgpFlowSpecNlri flowSpecDetails2 = new BgpFlowSpecNlri(flowSpecComponents2);
     BgpFsPortNum portNum2 = new BgpFsPortNum(operatorValue2);
 
     @Test

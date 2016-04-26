@@ -16,14 +16,15 @@
 package org.onosproject.bgpio.protocol.flowspec;
 
 import org.junit.Test;
+
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for BgpFsDestinationPrefix flow specification component.
+ * Test for BgpFlowSpecRouteKeyTest flow specification component.
  */
-public class BgpFlowSpecPrefixTest {
-    private String routeKey1 = "flowRoute1";
-    private String routeKey2 = "flowRoute2";
+public class BgpFlowSpecRouteKeyTest {
+    private static String routeKey1 = "flowRoute1";
+    private static String routeKey2 = "flowRoute2";
 
     private final BgpFlowSpecRouteKey tlv1 = new BgpFlowSpecRouteKey(routeKey1);
     private final BgpFlowSpecRouteKey sameAsTlv1 = new BgpFlowSpecRouteKey(routeKey1);
