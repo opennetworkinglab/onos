@@ -66,6 +66,11 @@ public final class SubTlvFinder {
                 unreservedBandwidth.readFrom(channelBuffer);
                 subTlv = unreservedBandwidth;
                 break;
+            case INTERFACEADDRESS:
+                InterfaceIpAddress ipInterfaceAddressTlv = new InterfaceIpAddress(tlvHeader);
+                ipInterfaceAddressTlv.readFrom(channelBuffer);
+                subTlv = ipInterfaceAddressTlv;
+                break;
             default:
                 //TODO
                 break;

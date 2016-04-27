@@ -23,11 +23,30 @@ import java.util.Map;
  * Representation of sub tlv type.
  */
 public enum SubTlvType {
-    ADMINISTRATIVEGROUP(9),
-    MAXIMUMBANDWIDTH(6),
-    MAXIMUMRESERVABLEBANDWIDTH(7),
-    TRAFFICENGINEERINGMETRIC(5),
-    UNRESERVEDBANDWIDTH(8);
+    /**
+     * Represents traffic engineering administrative group TLV.
+     */
+    ADMINISTRATIVEGROUP(3),
+    /**
+     * Represents traffic engineering maximum bandwidth TLV.
+     */
+    MAXIMUMBANDWIDTH(9),
+    /**
+     * Represents traffic engineering maximum reservable bandwidth TLV.
+     */
+    MAXIMUMRESERVABLEBANDWIDTH(10),
+    /**
+     * Represents traffic engineering metric TLV.
+     */
+    TRAFFICENGINEERINGMETRIC(18),
+    /**
+     * Represents traffic engineering interface address TLV.
+     */
+    INTERFACEADDRESS(6),
+    /**
+     * Represents traffic engineering unreserved bandwidth TLV.
+     */
+    UNRESERVEDBANDWIDTH(11);
 
     // Reverse lookup table
     private static final Map<Integer, SubTlvType> LOOKUP = new HashMap<>();
