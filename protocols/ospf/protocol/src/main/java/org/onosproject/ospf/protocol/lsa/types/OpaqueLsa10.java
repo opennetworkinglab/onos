@@ -29,6 +29,7 @@ import org.onosproject.ospf.protocol.lsa.tlvtypes.OpaqueTopLevelTlvTypes;
 import org.onosproject.ospf.protocol.lsa.tlvtypes.RouterTlv;
 import org.onosproject.ospf.protocol.util.OspfParameters;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -192,11 +193,11 @@ public class OpaqueLsa10 extends OpaqueLsaHeader {
         }
         OpaqueLsa10 that = (OpaqueLsa10) o;
         return Objects.equal(topLevelValues, that.topLevelValues) &&
-                Objects.equal(opaqueInfo, that.opaqueInfo);
+                            Arrays.equals(opaqueInfo, that.opaqueInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(opaqueInfo, topLevelValues);
+        return Objects.hashCode(Arrays.hashCode(opaqueInfo), topLevelValues);
     }
 }

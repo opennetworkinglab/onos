@@ -16,11 +16,12 @@
 package org.onosproject.ospf.protocol.lsa.types;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.primitives.Bytes;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.ospf.controller.OspfLsaType;
 import org.onosproject.ospf.protocol.lsa.OpaqueLsaHeader;
+
+import java.util.Arrays;
 
 /**
  * Representation of an Opaque LSA of type AS (11).
@@ -106,12 +107,12 @@ public class OpaqueLsa11 extends OpaqueLsaHeader {
             return false;
         }
         OpaqueLsa11 that = (OpaqueLsa11) o;
-        return Objects.equal(opaqueInfo, that.opaqueInfo);
+        return Arrays.equals(opaqueInfo, that.opaqueInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(opaqueInfo);
+        return Arrays.hashCode(opaqueInfo);
     }
 
     @Override
