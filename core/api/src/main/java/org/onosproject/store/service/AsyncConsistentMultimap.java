@@ -16,7 +16,6 @@
 
 package org.onosproject.store.service;
 
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 
 import java.util.Collection;
@@ -92,7 +91,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * and others ignoring put requests for existing entries.
      * @param key the key to add
      * @param value the value to add
-     * @return a future whose value will betrue if the map has changed because
+     * @return a future whose value will be true if the map has changed because
      * of this call, false otherwise
      */
     CompletableFuture<Boolean> put(K key, V value);
@@ -119,16 +118,18 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * @return a future whose value will be true if the map changes because of
      * this call, false otherwise.
      */
-    CompletableFuture<Boolean> removeAll(K key, Iterable<? extends V> values);
+    CompletableFuture<Boolean> removeAll(K key,
+                                         Collection<? extends V> values);
 
     /**
      * Removes all values associated with the specified key as well as the key
      * itself.
      * @param key the key whose key-value pairs will be removed
      * @return a future whose value is the set of values that were removed,
-     * which may be empty
+     * which may be empty, if the values did not exist the version will be
+     * less than one.
      */
-    CompletableFuture<Versioned<Collection<byte[]>>> removeAll(K key);
+    CompletableFuture<Versioned<Collection<? extends V>>> removeAll(K key);
 
     /**
      * Adds the set of key-value pairs of the specified key with each of the
@@ -140,17 +141,8 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * @return a future whose value will be true if any change in the map
      * results from this call, false otherwise
      */
-    CompletableFuture<Boolean> putAll(K key, Iterable<? extends V> values);
-
-    /**
-     * Adds all entries from this multimap that are not already present, and
-     * may or may not add duplicate entries depending on the implementation.
-     * @param multiMap the map whose entries should be added
-     * @return a future whose value will be true if any change results from
-     * this call, false otherwise
-     */
-    CompletableFuture<Boolean> putAll(
-            Multimap<? extends K, ? extends V> multiMap);
+    CompletableFuture<Boolean> putAll(K key,
+                                      Collection<? extends V> values);
 
     /**
      * Stores all the values in values associated with the key specified,
@@ -161,7 +153,8 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * @return a future whose value will be the collection of removed values,
      * which may be empty
      */
-    CompletableFuture<Collection<V>> replaceValues(K key, Iterable<V> values);
+    CompletableFuture<Versioned<Collection<? extends V>>> replaceValues(
+            K key, Collection<V> values);
 
     /**
      * Removes all key-value pairs, after which it will be empty.
@@ -177,7 +170,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * @return a future whose value will be the collection of the values
      * associated with the specified key, the collection may be empty
      */
-    CompletableFuture<Collection<V>> get(K key);
+    CompletableFuture<Versioned<Collection<? extends V>>> get(K key);
 
     /**
      * Returns a set of the keys contained in this multimap with one or more
@@ -203,7 +196,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * @return a future whose value will be a collection of values, this may be
      * empty
      */
-     CompletableFuture<Collection<V>> values();
+    CompletableFuture<Multiset<V>> values();
 
     /**
      * Returns a collection of each key-value pair in this map.

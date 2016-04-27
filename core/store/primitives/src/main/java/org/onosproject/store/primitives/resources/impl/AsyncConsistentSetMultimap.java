@@ -17,11 +17,10 @@
 package org.onosproject.store.primitives.resources.impl;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import io.atomix.copycat.client.CopycatClient;
 import io.atomix.resource.AbstractResource;
-import org.onlab.util.Match;
+import io.atomix.resource.ResourceTypeInfo;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.Versioned;
 
@@ -32,13 +31,28 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.*;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Clear;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.ContainsEntry;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.ContainsKey;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.ContainsValue;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Entries;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Get;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.IsEmpty;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.KeySet;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Keys;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.MultiRemove;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Put;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.RemoveAll;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Replace;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Size;
+import static org.onosproject.store.primitives.resources.impl.AsyncConsistentMultimapCommands.Values;
 
 /**
  * Set based implementation of the {@link AsyncConsistentMultimap}.
  * <p>
  * Note: this implementation does not allow null entries or duplicate entries.
  */
+@ResourceTypeInfo(id = -153, factory = AsyncConsistentSetMultimapFactory.class)
 public class AsyncConsistentSetMultimap
         extends AbstractResource<AsyncConsistentSetMultimap>
         implements AsyncConsistentMultimap<String, byte[]> {
@@ -81,68 +95,50 @@ public class AsyncConsistentSetMultimap
 
     @Override
     public CompletableFuture<Boolean> put(String key, byte[] value) {
-        return submit(new UpdateAndGet(key, Lists.newArrayList(value),
-                                       Lists.newArrayList(Match.NULL),
-                                       Lists.newArrayList(Match.NULL)))
-                .whenComplete((result, e) -> throwIfLocked(result.status()))
-                .thenApply(result ->
-                                   result.status() == MapEntryUpdateResult.Status.OK);
+        return submit(new Put(key, Lists.newArrayList(value), null));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(String key, byte[] value) {
-        return submit(new UpdateAndGet(key, Lists.newArrayList(value),
-                                       Lists.newArrayList(Match.ifValue(value)),
-                                       Lists.newArrayList(Match.NULL)))
-                .whenComplete((result, e) -> throwIfLocked(result.status()))
-                .thenApply(result ->
-                                   result.status() == MapEntryUpdateResult.Status.OK);
+        return submit(new MultiRemove(key,
+                                      Lists.newArrayList(value),
+                                      null));
     }
 
     @Override
-    public CompletableFuture<Boolean> removeAll(String key, Iterable<? extends byte[]> values) {
-
-        throw new UnsupportedOperationException("This operation cannot be " +
-                                                        "used without support for " +
-                                                        "transactions.");
+    public CompletableFuture<Boolean> removeAll(
+            String key, Collection<? extends byte[]> values) {
+        return submit(new MultiRemove(key, (Collection<byte[]>) values, null));
     }
 
     @Override
-    public CompletableFuture<Versioned<Collection<byte[]>>> removeAll(String key) {
-        return submit(new UpdateAndGet(key, null, null, null))
-                .whenComplete((result, e) -> throwIfLocked(result.status()))
-                .thenApply(result -> result.oldValue());
+    public CompletableFuture<
+            Versioned<Collection<? extends byte[]>>> removeAll(String key) {
+        return submit(new RemoveAll(key, null));
     }
 
     @Override
-    public CompletableFuture<Boolean> putAll(String key, Iterable<? extends byte[]> values) {
-        throw new UnsupportedOperationException("This operation cannot be " +
-                                                        "used without support for " +
-                                                        "transactions.");
+    public CompletableFuture<Boolean> putAll(
+            String key, Collection<? extends byte[]> values) {
+        return submit(new Put(key, values, null));
     }
 
     @Override
-    public CompletableFuture<Boolean> putAll(Multimap<? extends String, ? extends byte[]> multiMap) {
-        throw new UnsupportedOperationException("This operation cannot be " +
-                                                        "used without support for " +
-                                                        "transactions.");
-    }
-
-    @Override
-    public CompletableFuture<Collection<byte[]>> replaceValues(String key, Iterable<byte[]> values) {
-        throw new UnsupportedOperationException("This operation cannot be " +
-                                                        "used without support for " +
-                                                        "transactions.");
+    public CompletableFuture<
+            Versioned<Collection<? extends byte[]>>> replaceValues(
+            String key, Collection<byte[]> values) {
+        return submit(new Replace(key, values, null));
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return submit(new AsyncConsistentMultimapCommands.Clear());
+        return submit(new Clear());
     }
 
     @Override
-    public CompletableFuture<Collection<byte[]>> get(String key) {
-        return submit(new Get());
+    public CompletableFuture<
+            Versioned<Collection<? extends byte[]>>> get(String key) {
+        return submit(new Get(key));
     }
 
     @Override
@@ -156,7 +152,7 @@ public class AsyncConsistentSetMultimap
     }
 
     @Override
-    public CompletableFuture<Collection<byte[]>> values() {
+    public CompletableFuture<Multiset<byte[]>> values() {
         return submit(new Values());
     }
 
@@ -182,7 +178,9 @@ public class AsyncConsistentSetMultimap
      */
     private void throwIfLocked(MapEntryUpdateResult.Status status) {
         if (status == MapEntryUpdateResult.Status.WRITE_LOCK) {
-            throw new ConcurrentModificationException("Cannot update map: Another transaction in progress");
+            throw new ConcurrentModificationException("Cannot update map: " +
+                                                      "Another transaction " +
+                                                      "in progress");
         }
     }
 }

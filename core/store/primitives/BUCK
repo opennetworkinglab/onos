@@ -25,6 +25,7 @@ COMPILE_DEPS = [
 TEST_DEPS = [
     '//lib:TEST',
     '//core/api:onos-api-tests',
+    '//lib:onos-atomix',
 ]
 
 osgi_jar_with_tests (
