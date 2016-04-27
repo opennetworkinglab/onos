@@ -172,9 +172,9 @@ public class OchSignal implements Lambda {
      * @return sorted set of flex grid OCh lambdas
      */
     public static SortedSet<OchSignal> toFlexGrid(OchSignal ochSignal) {
-        checkArgument(ochSignal.gridType() != GridType.FLEX);
-        checkArgument(ochSignal.channelSpacing() != ChannelSpacing.CHL_6P25GHZ);
-        checkArgument(FIXED_GRID_SLOT_GRANULARITIES.contains(ochSignal.slotGranularity()));
+        checkArgument(ochSignal.gridType() != GridType.FLEX, ochSignal.gridType());
+        checkArgument(ochSignal.channelSpacing() != ChannelSpacing.CHL_6P25GHZ, ochSignal.channelSpacing());
+        checkArgument(FIXED_GRID_SLOT_GRANULARITIES.contains(ochSignal.slotGranularity()), ochSignal.slotGranularity());
 
         int startMultiplier = (int) (1 - ochSignal.slotGranularity() +
                 ochSignal.spacingMultiplier() * ochSignal.channelSpacing().frequency().asHz() /
@@ -195,10 +195,10 @@ public class OchSignal implements Lambda {
     public static OchSignal toFixedGrid(List<OchSignal> lambdas, ChannelSpacing spacing) {
         // Number of slots of 12.5 GHz that fit into requested spacing
         int ratio = (int) (spacing.frequency().asHz() / ChannelSpacing.CHL_12P5GHZ.frequency().asHz());
-        checkArgument(lambdas.size() == ratio);
-        lambdas.forEach(x -> checkArgument(x.gridType() == GridType.FLEX));
-        lambdas.forEach(x -> checkArgument(x.channelSpacing() == ChannelSpacing.CHL_6P25GHZ));
-        lambdas.forEach(x -> checkArgument(x.slotGranularity() == 1));
+        checkArgument(lambdas.size() == ratio, "%s != %s", lambdas.size(), ratio);
+        lambdas.forEach(x -> checkArgument(x.gridType() == GridType.FLEX, x.gridType()));
+        lambdas.forEach(x -> checkArgument(x.channelSpacing() == ChannelSpacing.CHL_6P25GHZ, x.channelSpacing()));
+        lambdas.forEach(x -> checkArgument(x.slotGranularity() == 1, x.slotGranularity()));
         // Consecutive lambdas (multiplier increments by 2 because spacing is 6.25 GHz but slot width is 12.5 GHz)
         IntStream.range(1, lambdas.size())
                 .forEach(i -> checkArgument(
