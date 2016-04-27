@@ -97,6 +97,7 @@
     "catalyst-local": "mvn:io.atomix.catalyst:catalyst-local:1.0.4",
     "catalyst-serializer": "mvn:io.atomix.catalyst:catalyst-serializer:1.0.4",
     "catalyst-transport": "mvn:io.atomix.catalyst:catalyst-transport:1.0.4",
+    "commons-codec": "mvn:commons-codec:commons-codec:1.10",
     "commons-collections": "mvn:commons-collections:commons-collections:3.2.2",
     "commons-configuration": "mvn:commons-configuration:commons-configuration:1.10",
     "commons-io": "mvn:commons-io:commons-io:2.4",

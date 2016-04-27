@@ -11,6 +11,10 @@ EXCLUDED_BUNDLES = [
     '//lib:influxdb-java',
 ]
 
+BUNDLES = [
+    '//lib:commons-codec',
+]
+
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
 ]
@@ -20,12 +24,11 @@ osgi_jar_with_tests (
     test_deps = TEST_DEPS,
 )
 
-# TODO : Currently non-functional, needs the ability to wrap a non-OSGI jar
-
 onos_app (
     title = 'InfluxDB Report and Query App',
     category = 'Monitoring',
     url = 'http://onosproject.org',
     description = 'Performance metric service reporter and retriever for influxDB.',
+    included_bundles = BUNDLES,
     excluded_bundles = EXCLUDED_BUNDLES,
 )

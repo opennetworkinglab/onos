@@ -1,3 +1,6 @@
+# app builds but is currently non functional. It needs transitive runtime
+# dependencies.
+
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:org.apache.karaf.shell.console',
@@ -19,10 +22,13 @@ COMPILE_DEPS = [
 BUNDLES = [
     '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
     '//apps/cordvtn:onos-apps-cordvtn',
+    '//lib:openstack4j-core',
+    '//lib:openstack4j-http-connector',
+    '//lib:openstack4j-httpclient',
 ]
 
 EXCLUDED_BUNDLES = [
-    '//lib:jsch', # TODO - needs wrap
+    '//lib:jsch',
 ]
 
 osgi_jar_with_tests (
@@ -37,5 +43,5 @@ onos_app (
     included_bundles = BUNDLES,
     excluded_bundles = EXCLUDED_BUNDLES,
     description = 'APIs for interacting with the CORD VTN application.',
-    required_apps = [ 'org.onosproject.xosclient' ],
+    required_apps = [ 'org.onosproject.xosclient', 'org.onosproject.dhcp', 'org.onosproject.ovsdb', 'org.onosproject.openstackinterface' ],
 )

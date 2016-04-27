@@ -1727,3 +1727,19 @@ remote_file(
   sha1 = 'd050e21295959a4ce2c07ca193ccbe28d8bfa3c1',
 )
 
+prebuilt_jar(
+  name = 'commons-codec',
+  binary_jar = ':commons-codec-1.10.jar',
+  maven_coords = 'commons-codec:commons-codec:1.10',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_file(
+  name = 'commons-codec-1.10.jar',
+  out = 'commons-codec-1.10.jar',
+  url = 'mvn:commons-codec:commons-codec:jar:1.10',
+  sha1 = '4b95f4897fa13f2cd904aee711aeafc0c5295cd8',
+)
+
+
+

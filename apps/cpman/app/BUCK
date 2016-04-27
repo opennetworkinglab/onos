@@ -19,7 +19,7 @@ BUNDLES = [
 ]
 
 EXCLUDED_BUNDLES = [
-    '//lib:rrd4j', # FIXME - needs wrap
+    '//lib:rrd4j',
 ]
 
 osgi_jar_with_tests (

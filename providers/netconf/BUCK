@@ -5,7 +5,7 @@ BUNDLES = [
 ]
 
 EXCLUDED_BUNDLES = [
-    '//lib:ganymed-ssh2', # FIXME - Needs wrap
+    '//lib:ganymed-ssh2',
 ]
 
 onos_app (
