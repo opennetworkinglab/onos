@@ -20,6 +20,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITH_SIGNALLING;
+import static org.onosproject.provider.pcep.tunnel.impl.LspType.SR_WITHOUT_SIGNALLING;
+import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
+import static org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys.LSP_SIG_TYPE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,7 +40,9 @@ import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelName;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.IpElementId;
@@ -75,7 +81,7 @@ public class PcepSetupTunnelProviderTest {
         Tunnel tunnel;
         Path path;
         ProviderId pid = new ProviderId("pcep", PROVIDER_ID);
-        List<Link> links = new ArrayList<Link>();
+        List<Link> links = new ArrayList<>();
         IpAddress srcIp = IpAddress.valueOf(0xC010101);
         IpElementId srcElementId = IpElementId.ipElement(srcIp);
 
@@ -98,9 +104,13 @@ public class PcepSetupTunnelProviderTest {
 
         path = new DefaultPath(pid, links, 10, EMPTY);
 
+        Annotations annotations = DefaultAnnotations.builder()
+                .set(LSP_SIG_TYPE, WITH_SIGNALLING.name())
+                .build();
+
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
                                    new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
-                                   path, EMPTY);
+                                   path, annotations);
 
         tunnelProvider.setupTunnel(tunnel, path);
         assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
@@ -114,7 +124,7 @@ public class PcepSetupTunnelProviderTest {
         Tunnel tunnel;
         Path path;
         ProviderId pid = new ProviderId("pcep", PROVIDER_ID);
-        List<Link> links = new ArrayList<Link>();
+        List<Link> links = new ArrayList<>();
         IpAddress srcIp = IpAddress.valueOf(0xC010103);
         IpElementId srcElementId = IpElementId.ipElement(srcIp);
 
@@ -137,12 +147,102 @@ public class PcepSetupTunnelProviderTest {
 
         path = new DefaultPath(pid, links, 10, EMPTY);
 
+        Annotations annotations = DefaultAnnotations.builder()
+                .set(LSP_SIG_TYPE, WITH_SIGNALLING.name())
+                .build();
+
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
                                    new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
-                                   path, EMPTY);
+                                   path, annotations);
 
         tunnelProvider.setupTunnel(tunnel, path);
         assertThat(tunnelProvider.pcepTunnelApiMapper.checkFromTunnelRequestQueue(1), is(false));
+    }
+
+    /**
+     * Sends PCInitiate msg to setup a SR based tunnel.
+     */
+    @Test
+    public void testCasePcepSetupSrTunnel() {
+        Tunnel tunnel;
+        Path path;
+        ProviderId pid = new ProviderId("pcep", PROVIDER_ID);
+        List<Link> links = new ArrayList<>();
+        IpAddress srcIp = IpAddress.valueOf(0xC010101);
+        IpElementId srcElementId = IpElementId.ipElement(srcIp);
+
+        IpAddress dstIp = IpAddress.valueOf(0xC010102);
+        IpElementId dstElementId = IpElementId.ipElement(dstIp);
+
+        IpTunnelEndPoint ipTunnelEndPointSrc;
+        ipTunnelEndPointSrc = IpTunnelEndPoint.ipTunnelPoint(srcIp);
+
+        IpTunnelEndPoint ipTunnelEndPointDst;
+        ipTunnelEndPointDst = IpTunnelEndPoint.ipTunnelPoint(dstIp);
+
+        ConnectPoint src = new ConnectPoint(srcElementId, PortNumber.portNumber(10023));
+
+        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10023));
+
+        Link link = DefaultLink.builder().providerId(pid).src(src).dst(dst)
+                .type(Link.Type.DIRECT).build();
+        links.add(link);
+
+        path = new DefaultPath(pid, links, 10, EMPTY);
+
+        Annotations annotations = DefaultAnnotations.builder()
+                .set(LSP_SIG_TYPE, SR_WITHOUT_SIGNALLING.name())
+                .build();
+
+        tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
+                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
+                                   path, annotations);
+
+        tunnelProvider.setupTunnel(tunnel, path);
+        assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
+    }
+
+    /**
+     * Sends PCInitiate msg to setup a tunnel without signalling and without SR.
+     */
+    @Test
+    public void testCasePcepSetupTunnelWithoutSigSr() {
+        Tunnel tunnel;
+        Path path;
+        ProviderId pid = new ProviderId("pcep", PROVIDER_ID);
+        List<Link> links = new ArrayList<>();
+        IpAddress srcIp = IpAddress.valueOf(0xC010101);
+        IpElementId srcElementId = IpElementId.ipElement(srcIp);
+
+        IpAddress dstIp = IpAddress.valueOf(0xC010102);
+        IpElementId dstElementId = IpElementId.ipElement(dstIp);
+
+        IpTunnelEndPoint ipTunnelEndPointSrc;
+        ipTunnelEndPointSrc = IpTunnelEndPoint.ipTunnelPoint(srcIp);
+
+        IpTunnelEndPoint ipTunnelEndPointDst;
+        ipTunnelEndPointDst = IpTunnelEndPoint.ipTunnelPoint(dstIp);
+
+        ConnectPoint src = new ConnectPoint(srcElementId, PortNumber.portNumber(10023));
+
+        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10023));
+
+        Link link = DefaultLink.builder().providerId(pid).src(src).dst(dst)
+                .type(Link.Type.DIRECT).build();
+        links.add(link);
+
+        path = new DefaultPath(pid, links, 10, EMPTY);
+
+        Annotations annotations = DefaultAnnotations.builder()
+                .set(LSP_SIG_TYPE, WITHOUT_SIGNALLING_AND_WITHOUT_SR.name())
+                .build();
+
+        tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
+                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
+                                   path, annotations);
+
+        tunnelProvider.setupTunnel(tunnel, path);
+        assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
     }
 
     @After

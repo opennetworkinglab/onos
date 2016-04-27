@@ -42,6 +42,7 @@ public class PcepClientAdapter implements PcepClient {
     private ClientCapability capability;
 
     private PcepVersion pcepVersion;
+    private boolean syncCompleted;
 
     /**
      * Initialize instance with specified parameters.
@@ -109,11 +110,12 @@ public class PcepClientAdapter implements PcepClient {
 
     @Override
     public final boolean isSyncComplete() {
-        return false;
+        return syncCompleted;
     }
 
     @Override
     public final void setIsSyncComplete(boolean value) {
+        syncCompleted = value;
     }
 
     @Override

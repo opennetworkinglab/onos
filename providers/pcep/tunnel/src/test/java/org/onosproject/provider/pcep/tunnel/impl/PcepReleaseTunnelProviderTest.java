@@ -20,6 +20,10 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.onosproject.net.DefaultAnnotations.EMPTY;
+import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITH_SIGNALLING;
+import static org.onosproject.provider.pcep.tunnel.impl.LspType.SR_WITHOUT_SIGNALLING;
+import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
+import static org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys.LSP_SIG_TYPE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,7 +40,9 @@ import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelName;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.IpElementId;
@@ -44,7 +50,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.pcepio.types.StatefulIPv4LspIdentidiersTlv;
+import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
 
 /**
  * Test for PCEP release tunnel.
@@ -77,7 +83,7 @@ public class PcepReleaseTunnelProviderTest {
     public void testCasePcepReleaseTunnel() {
         Tunnel tunnel;
         Path path;
-        List<Link> links = new ArrayList<Link>();
+        List<Link> links = new ArrayList<>();
 
         ProviderId pid = new ProviderId("pcep", PROVIDER_ID);
 
@@ -103,14 +109,18 @@ public class PcepReleaseTunnelProviderTest {
 
         path = new DefaultPath(pid, links, 20, EMPTY);
 
+        Annotations annotations = DefaultAnnotations.builder()
+                .set(LSP_SIG_TYPE, WITH_SIGNALLING.name())
+                .build();
+
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
                                    new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
-                                   path, EMPTY);
+                                   path, annotations);
 
         // for releasing tunnel tunnel should exist in db
         PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, path, RequestType.DELETE);
         pcepTunnelData.setPlspId(1);
-        StatefulIPv4LspIdentidiersTlv tlv = new StatefulIPv4LspIdentidiersTlv(0, (short) 1, (short) 2, 3, 4);
+        StatefulIPv4LspIdentifiersTlv tlv = new StatefulIPv4LspIdentifiersTlv(0, (short) 1, (short) 2, 3, 4);
         pcepTunnelData.setStatefulIpv4IndentifierTlv(tlv);
         tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
 
@@ -127,7 +137,7 @@ public class PcepReleaseTunnelProviderTest {
     public void testCasePcepReleaseTunnel2() {
         Tunnel tunnel;
         Path path;
-        List<Link> links = new ArrayList<Link>();
+        List<Link> links = new ArrayList<>();
 
         ProviderId pid = new ProviderId("pcep", PROVIDER_ID);
 
@@ -153,14 +163,18 @@ public class PcepReleaseTunnelProviderTest {
 
         path = new DefaultPath(pid, links, 20, EMPTY);
 
+        Annotations annotations = DefaultAnnotations.builder()
+                .set(LSP_SIG_TYPE, WITH_SIGNALLING.name())
+                .build();
+
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
                                    new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
-                                   path, EMPTY);
+                                   path, annotations);
 
         // for releasing tunnel tunnel should exist in db
         PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, path, RequestType.DELETE);
         pcepTunnelData.setPlspId(1);
-        StatefulIPv4LspIdentidiersTlv tlv = new StatefulIPv4LspIdentidiersTlv(0, (short) 1, (short) 2, 3, 4);
+        StatefulIPv4LspIdentifiersTlv tlv = new StatefulIPv4LspIdentifiersTlv(0, (short) 1, (short) 2, 3, 4);
         pcepTunnelData.setStatefulIpv4IndentifierTlv(tlv);
         tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
 
@@ -168,6 +182,114 @@ public class PcepReleaseTunnelProviderTest {
 
         tunnelProvider.releaseTunnel(tunnel);
         assertThat(tunnelProvider.pcepTunnelApiMapper.checkFromTunnelRequestQueue(1), is(false));
+    }
+
+    /**
+     * Tests releasing SR based tunnel.
+     */
+    @Test
+    public void testCasePcepReleaseSrTunnel() {
+        Tunnel tunnel;
+        Path path;
+        List<Link> links = new ArrayList<>();
+
+        ProviderId pid = new ProviderId("pcep", PROVIDER_ID);
+
+        IpAddress srcIp = IpAddress.valueOf(0xB6024E20);
+        IpElementId srcElementId = IpElementId.ipElement(srcIp);
+
+        IpAddress dstIp = IpAddress.valueOf(0xB6024E21);
+        IpElementId dstElementId = IpElementId.ipElement(dstIp);
+
+        IpTunnelEndPoint ipTunnelEndPointSrc;
+        ipTunnelEndPointSrc = IpTunnelEndPoint.ipTunnelPoint(srcIp);
+
+        IpTunnelEndPoint ipTunnelEndPointDst;
+        ipTunnelEndPointDst = IpTunnelEndPoint.ipTunnelPoint(dstIp);
+
+        ConnectPoint src = new ConnectPoint(srcElementId, PortNumber.portNumber(10023));
+
+        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10023));
+
+        Link link = DefaultLink.builder().providerId(pid).src(src).dst(dst)
+                .type(Link.Type.DIRECT).build();
+        links.add(link);
+
+        path = new DefaultPath(pid, links, 20, EMPTY);
+
+        Annotations annotations = DefaultAnnotations.builder()
+                .set(LSP_SIG_TYPE, SR_WITHOUT_SIGNALLING.name())
+                .build();
+
+        tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
+                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
+                                   path, annotations);
+
+        // for releasing tunnel tunnel should exist in db
+        PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, path, RequestType.DELETE);
+        pcepTunnelData.setPlspId(1);
+        StatefulIPv4LspIdentifiersTlv tlv = new StatefulIPv4LspIdentifiersTlv(0, (short) 1, (short) 2, 3, 4);
+        pcepTunnelData.setStatefulIpv4IndentifierTlv(tlv);
+        tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
+
+        tunnelProvider.pcepTunnelApiMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
+
+        tunnelProvider.releaseTunnel(tunnel);
+        assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
+    }
+
+    /**
+     * Tests releasing tunnel without SR and without signalling.
+     */
+    @Test
+    public void testCasePcepReleaseTunnelWithoutSigSr() {
+        Tunnel tunnel;
+        Path path;
+        List<Link> links = new ArrayList<>();
+
+        ProviderId pid = new ProviderId("pcep", PROVIDER_ID);
+
+        IpAddress srcIp = IpAddress.valueOf(0xB6024E20);
+        IpElementId srcElementId = IpElementId.ipElement(srcIp);
+
+        IpAddress dstIp = IpAddress.valueOf(0xB6024E21);
+        IpElementId dstElementId = IpElementId.ipElement(dstIp);
+
+        IpTunnelEndPoint ipTunnelEndPointSrc;
+        ipTunnelEndPointSrc = IpTunnelEndPoint.ipTunnelPoint(srcIp);
+
+        IpTunnelEndPoint ipTunnelEndPointDst;
+        ipTunnelEndPointDst = IpTunnelEndPoint.ipTunnelPoint(dstIp);
+
+        ConnectPoint src = new ConnectPoint(srcElementId, PortNumber.portNumber(10023));
+
+        ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10023));
+
+        Link link = DefaultLink.builder().providerId(pid).src(src).dst(dst)
+                .type(Link.Type.DIRECT).build();
+        links.add(link);
+
+        path = new DefaultPath(pid, links, 20, EMPTY);
+
+        Annotations annotations = DefaultAnnotations.builder()
+                .set(LSP_SIG_TYPE, WITHOUT_SIGNALLING_AND_WITHOUT_SR.name())
+                .build();
+
+        tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
+                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
+                                   path, annotations);
+
+        // for releasing tunnel tunnel should exist in db
+        PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, path, RequestType.DELETE);
+        pcepTunnelData.setPlspId(1);
+        StatefulIPv4LspIdentifiersTlv tlv = new StatefulIPv4LspIdentifiersTlv(0, (short) 1, (short) 2, 3, 4);
+        pcepTunnelData.setStatefulIpv4IndentifierTlv(tlv);
+        tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
+
+        tunnelProvider.pcepTunnelApiMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
+
+        tunnelProvider.releaseTunnel(tunnel);
+        assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
     }
 
     @After

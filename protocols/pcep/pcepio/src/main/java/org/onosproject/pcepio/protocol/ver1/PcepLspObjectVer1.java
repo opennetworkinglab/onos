@@ -25,7 +25,7 @@ import org.onosproject.pcepio.protocol.PcepLspObject;
 import org.onosproject.pcepio.types.PcepErrorDetailInfo;
 import org.onosproject.pcepio.types.PcepObjectHeader;
 import org.onosproject.pcepio.types.PcepValueType;
-import org.onosproject.pcepio.types.StatefulIPv4LspIdentidiersTlv;
+import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
 import org.onosproject.pcepio.types.StatefulLspDbVerTlv;
 import org.onosproject.pcepio.types.StatefulLspErrorCodeTlv;
 import org.onosproject.pcepio.types.StatefulRsvpErrorSpecTlv;
@@ -325,8 +325,8 @@ public class PcepLspObjectVer1 implements PcepLspObject {
 
             switch (hType) {
 
-            case StatefulIPv4LspIdentidiersTlv.TYPE:
-                tlv = StatefulIPv4LspIdentidiersTlv.read(cb);
+            case StatefulIPv4LspIdentifiersTlv.TYPE:
+                tlv = StatefulIPv4LspIdentifiersTlv.read(cb);
                 break;
             case StatefulLspErrorCodeTlv.TYPE:
                 iValue = cb.readInt();

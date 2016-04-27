@@ -45,7 +45,7 @@ public class PathSetupTypeTlv implements PcepValueType {
      */
     protected static final Logger log = LoggerFactory.getLogger(PathSetupTypeTlv.class);
 
-    public static final short TYPE = 0; //TODO : need to reassign the value as per RFC
+    public static final short TYPE = 28;
     public static final short LENGTH = 4;
 
     private final byte pst;

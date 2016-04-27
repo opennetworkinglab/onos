@@ -28,7 +28,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides StatefulIPv4LspIdentidiersTlv.
  */
-public class StatefulIPv4LspIdentidiersTlv implements PcepValueType {
+public class StatefulIPv4LspIdentifiersTlv implements PcepValueType {
 
     /*             IPV4-LSP-IDENTIFIERS TLV format
      *
@@ -50,7 +50,7 @@ public class StatefulIPv4LspIdentidiersTlv implements PcepValueType {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(StatefulIPv4LspIdentidiersTlv.class);
+    protected static final Logger log = LoggerFactory.getLogger(StatefulIPv4LspIdentifiersTlv.class);
 
     public static final short TYPE = 18;
     public static final short LENGTH = 16;
@@ -70,7 +70,7 @@ public class StatefulIPv4LspIdentidiersTlv implements PcepValueType {
      * @param extendedTunnelId extended tunnel id
      * @param ipv4EgressAddress egress ipv4 address
      */
-    public StatefulIPv4LspIdentidiersTlv(int ipv4IngressAddress, short lspId, short tunnelId, int extendedTunnelId,
+    public StatefulIPv4LspIdentifiersTlv(int ipv4IngressAddress, short lspId, short tunnelId, int extendedTunnelId,
             int ipv4EgressAddress) {
 
         this.ipv4IngressAddress = ipv4IngressAddress;
@@ -90,9 +90,9 @@ public class StatefulIPv4LspIdentidiersTlv implements PcepValueType {
      * @param ipv4EgressAddress egress ipv4 address
      * @return object of StatefulIPv4LspIdentidiersTlv
      */
-    public static StatefulIPv4LspIdentidiersTlv of(int ipv4IngressAddress, short lspId, short tunnelId,
+    public static StatefulIPv4LspIdentifiersTlv of(int ipv4IngressAddress, short lspId, short tunnelId,
             int extendedTunnelId, int ipv4EgressAddress) {
-        return new StatefulIPv4LspIdentidiersTlv(ipv4IngressAddress, lspId, tunnelId, extendedTunnelId,
+        return new StatefulIPv4LspIdentifiersTlv(ipv4IngressAddress, lspId, tunnelId, extendedTunnelId,
                 ipv4EgressAddress);
     }
 
@@ -103,6 +103,15 @@ public class StatefulIPv4LspIdentidiersTlv implements PcepValueType {
      */
     public short getTunnelId() {
         return this.tunnelId;
+    }
+
+    /**
+     * Returns LSP id.
+     *
+     * @return lspId
+     */
+    public short getLspId() {
+        return this.lspId;
     }
 
     /**
@@ -157,8 +166,8 @@ public class StatefulIPv4LspIdentidiersTlv implements PcepValueType {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof StatefulIPv4LspIdentidiersTlv) {
-            StatefulIPv4LspIdentidiersTlv other = (StatefulIPv4LspIdentidiersTlv) obj;
+        if (obj instanceof StatefulIPv4LspIdentifiersTlv) {
+            StatefulIPv4LspIdentifiersTlv other = (StatefulIPv4LspIdentifiersTlv) obj;
             return Objects.equals(this.ipv4IngressAddress, other.ipv4IngressAddress)
                     && Objects.equals(this.lspId, other.lspId) && Objects.equals(this.tunnelId, other.tunnelId)
                     && Objects.equals(this.extendedTunnelId, other.extendedTunnelId)
@@ -193,7 +202,7 @@ public class StatefulIPv4LspIdentidiersTlv implements PcepValueType {
         short tunnelId = c.readShort();
         int extendedTunnelId = c.readInt();
         int ipv4EgressAddress = c.readInt();
-        return new StatefulIPv4LspIdentidiersTlv(ipv4IngressAddress, lspId, tunnelId, extendedTunnelId,
+        return new StatefulIPv4LspIdentifiersTlv(ipv4IngressAddress, lspId, tunnelId, extendedTunnelId,
                 ipv4EgressAddress);
     }
 

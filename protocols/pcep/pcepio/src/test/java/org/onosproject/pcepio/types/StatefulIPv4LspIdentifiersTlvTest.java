@@ -18,7 +18,10 @@ package org.onosproject.pcepio.types;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
-public class StatefulIPv4LspIdentidiersTlvTest {
+/**
+ * Tests class StatefulIPv4LspIdentifiersTlv.
+ */
+public class StatefulIPv4LspIdentifiersTlvTest {
 
     private final int ipv4IngressAddress = 1;
     private final short lspId = 1;
@@ -26,7 +29,7 @@ public class StatefulIPv4LspIdentidiersTlvTest {
     private final int extendedTunnelId = 1;
     private final int ipv4EgressAddress = 1;
 
-    private final StatefulIPv4LspIdentidiersTlv tlv1 = StatefulIPv4LspIdentidiersTlv.of(ipv4IngressAddress, lspId,
+    private final StatefulIPv4LspIdentifiersTlv tlv1 = StatefulIPv4LspIdentifiersTlv.of(ipv4IngressAddress, lspId,
             tunnelId, extendedTunnelId, ipv4EgressAddress);
 
     private final int ipv4IngressAddress1 = 1;
@@ -35,7 +38,7 @@ public class StatefulIPv4LspIdentidiersTlvTest {
     private final int extendedTunnelId1 = 1;
     private final int ipv4EgressAddress1 = 1;
 
-    private final StatefulIPv4LspIdentidiersTlv tlv2 = StatefulIPv4LspIdentidiersTlv.of(ipv4IngressAddress1, lspId1,
+    private final StatefulIPv4LspIdentifiersTlv tlv2 = StatefulIPv4LspIdentifiersTlv.of(ipv4IngressAddress1, lspId1,
             tunnelId1, extendedTunnelId1, ipv4EgressAddress1);
 
     private final int ipv4IngressAddress2 = 2;
@@ -44,9 +47,12 @@ public class StatefulIPv4LspIdentidiersTlvTest {
     private final int extendedTunnelId2 = 2;
     private final int ipv4EgressAddress2 = 2;
 
-    private final StatefulIPv4LspIdentidiersTlv tlv3 = StatefulIPv4LspIdentidiersTlv.of(ipv4IngressAddress2, lspId2,
+    private final StatefulIPv4LspIdentifiersTlv tlv3 = StatefulIPv4LspIdentifiersTlv.of(ipv4IngressAddress2, lspId2,
             tunnelId2, extendedTunnelId2, ipv4EgressAddress2);
 
+    /**
+     * Tests equality of objects of class StatefulIPv4LspIdentifiersTlv.
+     */
     @Test
     public void basics() {
         new EqualsTester().addEqualityGroup(tlv1, tlv2).addEqualityGroup(tlv3).testEquals();

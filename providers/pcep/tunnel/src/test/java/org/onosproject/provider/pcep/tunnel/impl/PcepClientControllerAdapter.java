@@ -73,6 +73,9 @@ public class PcepClientControllerAdapter implements PcepClientController {
 
     @Override
     public PcepClient getClient(PccId pccId) {
+        if (null != connectedClients.get(pccId)) {
+            return connectedClients.get(pccId);
+        }
         PcepClientAdapter pc = new PcepClientAdapter();
         if (pccId.ipAddress().equals(IpAddress.valueOf(0xC010103))
             || pccId.ipAddress().equals(IpAddress.valueOf(0xB6024E22))) {
@@ -81,6 +84,7 @@ public class PcepClientControllerAdapter implements PcepClientController {
             pc.setCapability(new ClientCapability(true, true, true));
         }
         pc.init(PccId.pccId(pccId.ipAddress()), PcepVersion.PCEP_1);
+        connectedClients.put(pccId, pc);
         return pc;
     }
 

@@ -94,17 +94,17 @@ public class TunnelServiceAdapter implements TunnelService {
 
     @Override
     public Collection<TunnelSubscription> queryTunnelSubscription(ApplicationId consumerId) {
-        return null;
+        return Collections.emptySet();
     }
 
     @Override
     public Collection<Tunnel> queryTunnel(Tunnel.Type type) {
-        return null;
+        return Collections.emptySet();
     }
 
     @Override
     public Collection<Tunnel> queryTunnel(TunnelEndPoint src, TunnelEndPoint dst) {
-        return null;
+        return Collections.emptySet();
     }
 
     @Override

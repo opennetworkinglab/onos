@@ -52,6 +52,8 @@ import org.onosproject.pcepio.protocol.PcepOpenMsg;
 import org.onosproject.pcepio.protocol.PcepOpenObject;
 import org.onosproject.pcepio.protocol.PcepType;
 import org.onosproject.pcepio.protocol.PcepVersion;
+import org.onosproject.pcepio.types.IPv4RouterIdOfLocalNodeSubTlv;
+import org.onosproject.pcepio.types.NodeAttributesTlv;
 import org.onosproject.pcepio.types.PceccCapabilityTlv;
 import org.onosproject.pcepio.types.StatefulPceCapabilityTlv;
 import org.onosproject.pcepio.types.PcepErrorDetailInfo;
@@ -136,7 +138,7 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
             @Override
             void processPcepMessage(PcepChannelHandler h, PcepMessage m) throws IOException, PcepParseException {
 
-                log.debug("Message received in OPEN WAIT State");
+                log.info("Message received in OPEN WAIT State");
 
                 //check for open message
                 if (m.getType() != PcepType.OPEN) {
@@ -166,6 +168,33 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                                 h.deadTime = DEADTIMER_MAXIMUM_VALUE;
                             }
                         }
+
+                        LinkedList<PcepValueType> optionalTlvs = pOpenmsg.getPcepOpenObject().getOptionalTlv();
+                        for (PcepValueType optionalTlv : optionalTlvs) {
+                            if (optionalTlv instanceof NodeAttributesTlv) {
+                                List<PcepValueType> subTlvs = ((NodeAttributesTlv) optionalTlv)
+                                        .getllNodeAttributesSubTLVs();
+                                for (PcepValueType subTlv : subTlvs) {
+                                    if (subTlv instanceof IPv4RouterIdOfLocalNodeSubTlv) {
+                                        h.thispccId = PccId.pccId(IpAddress
+                                                .valueOf(((IPv4RouterIdOfLocalNodeSubTlv) subTlv).getInt()));
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+
+                        if (h.thispccId == null) {
+                            final SocketAddress address = h.channel.getRemoteAddress();
+                            if (!(address instanceof InetSocketAddress)) {
+                                throw new IOException("Invalid client connection. Pcc is indentifed based on IP");
+                            }
+
+                            final InetSocketAddress inetAddress = (InetSocketAddress) address;
+                            h.thispccId = PccId.pccId(IpAddress.valueOf(inetAddress.getAddress()));
+                        }
+
                         h.sendHandshakeOpenMessage();
                         h.pcepPacketStats.addOutPacket();
                         h.setState(KEEPWAIT);
@@ -178,23 +207,16 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
         KEEPWAIT(false) {
             @Override
             void processPcepMessage(PcepChannelHandler h, PcepMessage m) throws IOException, PcepParseException {
-                log.debug("message received in KEEPWAIT state");
+                log.info("message received in KEEPWAIT state");
                 //check for keep alive message
                 if (m.getType() != PcepType.KEEP_ALIVE) {
                     // When the message type is not keep alive message increment the wrong packet statistics
                     h.processUnknownMsg();
-                    log.debug("message is not KEEPALIVE message");
+                    log.error("message is not KEEPALIVE message");
                 } else {
                     // Set the client connected status
                     h.pcepPacketStats.addInPacket();
-                    final SocketAddress address = h.channel.getRemoteAddress();
-                    if (!(address instanceof InetSocketAddress)) {
-                        throw new IOException("Invalid client connection. Pcc is indentifed based on IP");
-                    }
                     log.debug("sending keep alive message in KEEPWAIT state");
-
-                    final InetSocketAddress inetAddress = (InetSocketAddress) address;
-                    h.thispccId = PccId.pccId(IpAddress.valueOf(inetAddress.getAddress()));
                     h.pc = h.controller.getPcepClientInstance(h.thispccId, h.sessionId, h.pcepVersion,
                             h.pcepPacketStats);
                     //Get pc instance and set capabilities
