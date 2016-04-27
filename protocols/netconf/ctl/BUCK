@@ -4,7 +4,13 @@ COMPILE_DEPS = [
     '//protocols/netconf/api:onos-protocols-netconf-api'
 ]
 
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//utils/osgi:onlab-osgi-tests',
+]
+
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
 )
 
