@@ -46,6 +46,7 @@
         <module>lldp</module>
         <module>netcfglinks</module>
         <module>bmv2</module>
+        <module>isis</module>
     </modules>
 
     <dependencies>
