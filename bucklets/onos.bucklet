@@ -109,27 +109,30 @@ def osgi_jar(
   )
 
   ### Checkstyle
-  chk_cmd = '#!/bin/sh\n'
-  base = get_base_path()
-  chk_cmd += ' '.join(( 'java -jar $(location //lib:checkstyle)',
-                       '-c $(location //tools/build/conf:checkstyle-xml)',
-                       ' '.join(['%s/%s' % (base, s) for s in srcs]) ))
-  chk_cmd += ' | grep -E "^[^: ]*:\d+:\d+: error:"'
-  chk_cmd += ' | sed "s#^.*%s/#%s:#g"\n' % (base, name)
-  chk_cmd += 'test ${PIPESTATUS[0]} -eq 0\n' # status of java command
-  genrule(
-    name = name + '-checkstyle-sh',
-    bash = "echo '%s' > $OUT && chmod +x $OUT" % chk_cmd,
-    srcs = srcs,
-    out = 'checkstyle.sh',
-  )
+  if srcs:
+      chk_cmd = '#!/bin/sh\n'
+      base = get_base_path()
+      chk_cmd += ' '.join(( 'java -jar $(location //lib:checkstyle)',
+                           '-c $(location //tools/build/conf:checkstyle-xml)',
+                           ' '.join(['%s/%s' % (base, s) for s in srcs]) ))
+      chk_cmd += ' | grep -E "^[^: ]*:\d+:\d+: error:"'
+      chk_cmd += ' | sed "s#^.*%s/#%s:#g"\n' % (base, name)
+      chk_cmd += 'test ${PIPESTATUS[0]} -eq 0\n' # status of java command
+      genrule(
+        name = name + '-checkstyle-sh',
+        bash = "echo '%s' > $OUT && chmod +x $OUT" % chk_cmd,
+        srcs = srcs,
+        out = 'checkstyle.sh',
+      )
 
-  sh_test(
-    name = name + '-checkstyle',
-    test = ':' + name + '-checkstyle-sh',
-    deps = [ ':'+ bare_jar_name ],
-    labels = [ 'checkstyle' ],
-  )
+      sh_test(
+        name = name + '-checkstyle',
+        test = ':' + name + '-checkstyle-sh',
+        deps = [ ':'+ bare_jar_name ],
+        labels = [ 'checkstyle' ],
+      )
+  else:
+      print 'Not generating checkstyle rule for %s because there are no sources.' % name
 
   # TODO add project config for intellij
   # project_config(
