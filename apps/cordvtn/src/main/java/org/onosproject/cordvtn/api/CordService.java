@@ -176,7 +176,7 @@ public final class CordService {
      * @param netName network name
      * @return network type, or PRIVATE if it doesn't match any type
      */
-    public static ServiceType getServiceType(String netName) {
+    private ServiceType getServiceType(String netName) {
         checkNotNull(netName);
 
         String name = netName.toUpperCase();

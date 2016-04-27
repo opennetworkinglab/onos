@@ -30,7 +30,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cordvtn.api.CordService;
-import org.onosproject.cordvtn.api.CordService.ServiceType;
 import org.onosproject.cordvtn.api.CordServiceId;
 import org.onosproject.cordvtn.api.CordVtnConfig;
 import org.onosproject.cordvtn.api.CordVtnNode;
@@ -88,7 +87,6 @@ import java.util.stream.StreamSupport;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.cordvtn.api.CordService.getServiceType;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -234,7 +232,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         }
 
         log.info("Service dependency from {} to {} created.", tService.id().id(), pService.id().id());
-        ruleInstaller.populateServiceDependencyRules(tService, pService, isBidirectional);
+        ruleInstaller.populateServiceDependencyRules(tService, pService, isBidirectional, true);
     }
 
     @Override
@@ -248,7 +246,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         }
 
         log.info("Service dependency from {} to {} removed.", tService.id().id(), pService.id().id());
-        ruleInstaller.removeServiceDependencyRules(tService, pService);
+        ruleInstaller.populateServiceDependencyRules(tService, pService, true, false);
     }
 
     @Override
@@ -434,10 +432,9 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         CordServiceId serviceId = CordServiceId.of(osNet.getId());
         // here it assumes all cord service networks has only one subnet
         Subnet osSubnet = osNet.getNeutronSubnets().stream()
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
         if (osSubnet == null) {
-            log.warn("Couldn't find OpenStack subnet for service {}", serviceId.id());
+            log.warn("Couldn't find OpenStack subnet for network {}", serviceId.id());
             return null;
         }
 
@@ -445,12 +442,11 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                 .stream()
                 .collect(Collectors.toMap(host -> host, this::getTunnelIp));
 
-        ServiceType serviceType = getServiceType(osNet.getName());
         // allows working without XOS for now
         Set<CordServiceId> tServices = Sets.newHashSet();
         Set<CordServiceId> pServices = Sets.newHashSet();
 
-        if (xosClient.access() != null && serviceType != ServiceType.MANAGEMENT) {
+        if (xosClient.access() != null) {
             tServices = xosClient.vtnServiceApi().getTenantServices(serviceId.id())
                     .stream()
                     .map(CordServiceId::of)
@@ -561,27 +557,17 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             virtualSubscriberGatewayAdded(host, serviceVlan);
         }
 
-        String osNetId = host.annotations().value(SERVICE_ID);
-        if (osNetId == null) {
-            // ignore this host, it is not the service VM, or it's a vSG
+        String serviceId = host.annotations().value(SERVICE_ID);
+        if (serviceId == null) {
+            // ignore this host, it is not a service VM
             return;
         }
 
-        OSClient osClient = OSFactory.clientFromAccess(osAccess);
-        Network osNet = osClient.networking().network().get(osNetId);
-        if (osNet == null) {
-            log.warn("Failed to get OpenStack network {} for VM {}.",
-                     osNetId, host.id());
-            return;
-        }
+        log.info("VM is detected, MAC: {} IP: {}", host.mac(), host.ipAddresses());
 
-        log.info("VM is detected, MAC: {} IP: {}",
-                 host.mac(),
-                 host.ipAddresses().stream().findFirst().get());
-
-        CordService service = getCordService(osNet);
+        CordService service = getCordService(CordServiceId.of(serviceId));
         if (service == null) {
-            log.warn("Failed to get CordService for {}", osNet.getName());
+            log.warn("Failed to get CordService for {}", serviceId);
             return;
         }
 
@@ -599,7 +585,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                 service.providerServices().stream().forEach(
                         pServiceId -> createServiceDependency(service.id(), pServiceId, true));
 
-                ruleInstaller.updateServiceGroup(service);
+                ruleInstaller.updateProviderServiceGroup(service);
                 // sends gratuitous ARP here for the case of adding existing VMs
                 // when ONOS or cordvtn app is restarted
                 arpProxy.sendGratuitousArpForGateway(service.serviceIp(), Sets.newHashSet(host));
@@ -607,7 +593,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         }
 
         registerDhcpLease(host, service);
-        ruleInstaller.populateBasicConnectionRules(host, getTunnelIp(host), osNet);
+        ruleInstaller.populateBasicConnectionRules(host, service, true);
     }
 
     /**
@@ -618,52 +604,45 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     private void serviceVmRemoved(Host host) {
         checkNotNull(osAccess, "OpenStack access is not set");
 
-        String serviceVlan = host.annotations().value(S_TAG);
-        if (serviceVlan != null) {
+        if (host.annotations().value(S_TAG) != null) {
             virtualSubscriberGatewayRemoved(host);
         }
 
-        String osNetId = host.annotations().value(SERVICE_ID);
-        if (osNetId == null) {
-            // ignore it, it's not the service VM or it's a vSG
+        String serviceId = host.annotations().value(SERVICE_ID);
+        if (serviceId == null) {
+            // ignore it, it's not a service VM
             return;
         }
 
-        OSClient osClient = OSFactory.clientFromAccess(osAccess);
-        Network osNet = osClient.networking().network().get(osNetId);
-        if (osNet == null) {
-            log.warn("Failed to get OpenStack network {} for VM {}",
-                     osNetId, host.id());
-            return;
-        }
+        log.info("VM is vanished, MAC: {} IP: {}", host.mac(), host.ipAddresses());
 
-        log.info("VM is vanished, MAC: {} IP: {}",
-                 host.mac(),
-                 host.ipAddresses().stream().findFirst().get());
-
-        ruleInstaller.removeBasicConnectionRules(host);
-        dhcpService.removeStaticMapping(host.mac());
-
-        CordService service = getCordService(osNet);
+        CordService service = getCordService(CordServiceId.of(serviceId));
         if (service == null) {
+            log.warn("Failed to get CORD service for {}", serviceId);
             return;
         }
+        // TODO need to consider the case that the network is removed also
 
         switch (service.serviceType()) {
             case MANAGEMENT:
-                ruleInstaller.removeManagementNetworkRules(host, service);
                 break;
             case PRIVATE:
-                if (getHostsWithOpenstackNetwork(osNet).isEmpty()) {
+                if (service.hosts().isEmpty()) {
                     arpProxy.removeGateway(service.serviceIp());
                 }
             case PUBLIC:
             default:
                 if (!service.tenantServices().isEmpty()) {
-                    ruleInstaller.updateServiceGroup(service);
+                    ruleInstaller.updateProviderServiceGroup(service);
+                }
+                if (!service.providerServices().isEmpty()) {
+                    ruleInstaller.updateTenantServiceVm(host, service);
                 }
                 break;
         }
+
+        dhcpService.removeStaticMapping(host.mac());
+        ruleInstaller.populateBasicConnectionRules(host, service, false);
     }
 
 

@@ -53,15 +53,12 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
-import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
-import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.DefaultGroupKey;
@@ -71,8 +68,6 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
-import org.openstack4j.model.network.Network;
-import org.openstack4j.model.network.Subnet;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -83,11 +78,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.flow.criteria.Criterion.Type.IN_PORT;
 import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_DST;
-import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_SRC;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.ETH_DST;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_PUSH;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -118,6 +110,7 @@ public class CordVtnRuleInstaller {
 
     private static final String PORT_NAME = "portName";
     private static final String DATA_PLANE_INTF = "dataPlaneIntf";
+    private static final String DATA_PLANE_IP = "dataPlaneIp";
     private static final String S_TAG = "stag";
 
     private final ApplicationId appId;
@@ -181,93 +174,45 @@ public class CordVtnRuleInstaller {
      * Populates basic rules that connect a VM to the other VMs in the system.
      *
      * @param host host
-     * @param tunnelIp tunnel ip
-     * @param osNet openstack network
+     * @param service cord service
+     * @param install true to install or false to remove
      */
-    public void populateBasicConnectionRules(Host host, IpAddress tunnelIp, Network osNet) {
+    public void populateBasicConnectionRules(Host host, CordService service, boolean install) {
         checkNotNull(host);
-        checkNotNull(osNet);
+        checkNotNull(service);
 
         DeviceId deviceId = host.location().deviceId();
         PortNumber inPort = host.location().port();
         MacAddress dstMac = host.mac();
         IpAddress hostIp = host.ipAddresses().stream().findFirst().get();
-        long tunnelId = Long.parseLong(osNet.getProviderSegID());
 
-        Subnet osSubnet = osNet.getNeutronSubnets().stream()
-                .findFirst()
-                .orElse(null);
+        long tunnelId = service.segmentationId();
+        Ip4Prefix serviceIpRange = service.serviceIpRange().getIp4Prefix();
 
-        if (osSubnet == null) {
-            log.error("Failed to get subnet for {}", host.id());
-            return;
+        populateLocalInPortRule(deviceId, inPort, hostIp, install);
+        populateDstIpRule(deviceId, inPort, dstMac, hostIp, tunnelId, getTunnelIp(host), install);
+        populateTunnelInRule(deviceId, inPort, dstMac, tunnelId, install);
+
+        if (install) {
+            populateDirectAccessRule(serviceIpRange, serviceIpRange, true);
+            populateServiceIsolationRule(serviceIpRange, true);
+        } else if (service.hosts().isEmpty()) {
+            // removes network related rules only if there's no hosts left in this network
+            populateDirectAccessRule(serviceIpRange, serviceIpRange, false);
+            populateServiceIsolationRule(serviceIpRange, false);
         }
-        Ip4Prefix cidr = Ip4Prefix.valueOf(osSubnet.getCidr());
-
-        populateLocalInPortRule(deviceId, inPort, hostIp);
-        populateDirectAccessRule(cidr, cidr);
-        populateServiceIsolationRule(cidr);
-        populateDstIpRule(deviceId, inPort, dstMac, hostIp, tunnelId, tunnelIp);
-        populateTunnelInRule(deviceId, inPort, dstMac, tunnelId);
     }
 
     /**
-     * Removes all rules related to a given service VM host.
-     *
-     * @param host host to be removed
-     */
-    public void removeBasicConnectionRules(Host host) {
-        checkNotNull(host);
-
-        DeviceId deviceId = host.location().deviceId();
-        MacAddress mac = host.mac();
-        PortNumber port = host.location().port();
-        IpAddress ip = host.ipAddresses().stream().findFirst().orElse(null);
-
-        for (FlowRule flowRule : flowRuleService.getFlowRulesById(appId)) {
-            if (flowRule.deviceId().equals(deviceId)) {
-                PortNumber inPort = getInPort(flowRule);
-                if (inPort != null && inPort.equals(port)) {
-                    processFlowRule(false, flowRule);
-                    continue;
-                }
-
-                PortNumber output = getOutputFromTreatment(flowRule);
-                if (output != null && output.equals(host.location().port())) {
-                    processFlowRule(false, flowRule);
-                }
-            }
-
-            MacAddress dstMac = getDstMacFromTreatment(flowRule);
-            if (dstMac != null && dstMac.equals(mac)) {
-                processFlowRule(false, flowRule);
-                continue;
-            }
-
-            dstMac = getDstMacFromSelector(flowRule);
-            if (dstMac != null && dstMac.equals(mac)) {
-                processFlowRule(false, flowRule);
-                continue;
-            }
-
-            IpPrefix dstIp = getDstIpFromSelector(flowRule);
-            if (dstIp != null && dstIp.equals(ip.toIpPrefix())) {
-                processFlowRule(false, flowRule);
-            }
-        }
-
-        // TODO uninstall same network access rule in access table if no vm exists in the network
-    }
-
-    /**
-     * Populates service dependency rules.
+     * Creates provider service group and populates service dependency rules.
      *
      * @param tService tenant cord service
      * @param pService provider cord service
      * @param isBidirectional true to enable bidirectional connection between two services
+     * @param install true to install or false to remove
      */
     public void populateServiceDependencyRules(CordService tService, CordService pService,
-                                               boolean isBidirectional) {
+                                               boolean isBidirectional, boolean install) {
         checkNotNull(tService);
         checkNotNull(pService);
 
@@ -290,66 +235,12 @@ public class CordVtnRuleInstaller {
             inPorts.put(deviceId, tServiceVms);
         });
 
-        populateIndirectAccessRule(srcRange, serviceIp, outGroups);
-        populateDirectAccessRule(srcRange, dstRange);
+        populateIndirectAccessRule(srcRange, serviceIp, outGroups, install);
+        populateDirectAccessRule(srcRange, dstRange, install);
         if (isBidirectional) {
-            populateDirectAccessRule(dstRange, srcRange);
+            populateDirectAccessRule(dstRange, srcRange, install);
         }
-        populateInServiceRule(inPorts, outGroups);
-    }
-
-    /**
-     * Removes service dependency rules.
-     *
-     * @param tService tenant cord service
-     * @param pService provider cord service
-     */
-    public void removeServiceDependencyRules(CordService tService, CordService pService) {
-        checkNotNull(tService);
-        checkNotNull(pService);
-
-        Ip4Prefix srcRange = tService.serviceIpRange().getIp4Prefix();
-        Ip4Prefix dstRange = pService.serviceIpRange().getIp4Prefix();
-        IpPrefix serviceIp = pService.serviceIp().toIpPrefix();
-
-        Map<DeviceId, GroupId> outGroups = Maps.newHashMap();
-        GroupKey groupKey = new DefaultGroupKey(pService.id().id().getBytes());
-
-        getVirtualSwitches().stream().forEach(deviceId -> {
-            Group group = groupService.getGroup(deviceId, groupKey);
-            if (group != null) {
-                outGroups.put(deviceId, group.id());
-            }
-        });
-
-        for (FlowRule flowRule : flowRuleService.getFlowRulesById(appId)) {
-            IpPrefix dstIp = getDstIpFromSelector(flowRule);
-            IpPrefix srcIp = getSrcIpFromSelector(flowRule);
-
-            if (dstIp != null && dstIp.equals(serviceIp)) {
-                processFlowRule(false, flowRule);
-                continue;
-            }
-
-            if (dstIp != null && srcIp != null) {
-                if (dstIp.equals(dstRange) && srcIp.equals(srcRange)) {
-                    processFlowRule(false, flowRule);
-                    continue;
-                }
-
-                if (dstIp.equals(srcRange) && srcIp.equals(dstRange)) {
-                    processFlowRule(false, flowRule);
-                    continue;
-                }
-            }
-
-            GroupId groupId = getGroupIdFromTreatment(flowRule);
-            if (groupId != null && groupId.equals(outGroups.get(flowRule.deviceId()))) {
-                processFlowRule(false, flowRule);
-            }
-        }
-
-        // TODO remove the group if it is not in use
+        populateInServiceRule(inPorts, outGroups, install);
     }
 
     /**
@@ -357,7 +248,7 @@ public class CordVtnRuleInstaller {
      *
      * @param service cord service
      */
-    public void updateServiceGroup(CordService service) {
+    public void updateProviderServiceGroup(CordService service) {
         checkNotNull(service);
 
         GroupKey groupKey = getGroupKey(service.id());
@@ -397,6 +288,30 @@ public class CordVtnRuleInstaller {
                         groupKey, appId);
             }
         }
+    }
+
+    /**
+     * Updates tenant service indirect access rules when VM is created or removed.
+     *
+     * @param host removed vm
+     * @param service tenant service
+     */
+    public void updateTenantServiceVm(Host host, CordService service) {
+        checkNotNull(host);
+        checkNotNull(service);
+
+        DeviceId deviceId = host.location().deviceId();
+        PortNumber inPort = host.location().port();
+
+        service.providerServices().stream().forEach(pServiceId -> {
+            Map<DeviceId, Set<PortNumber>> inPorts = Maps.newHashMap();
+            Map<DeviceId, GroupId> outGroups = Maps.newHashMap();
+
+            inPorts.put(deviceId, Sets.newHashSet(inPort));
+            outGroups.put(deviceId, getGroupId(pServiceId, deviceId));
+
+            populateInServiceRule(inPorts, outGroups, false);
+        });
     }
 
     /**
@@ -496,17 +411,6 @@ public class CordVtnRuleInstaller {
                 .build();
 
         processFlowRule(true, flowRule);
-    }
-
-    /**
-     * Removes management network access rules.
-     *
-     * @param host host to be removed
-     * @param mService service for management network
-     */
-    public void removeManagementNetworkRules(Host host, CordService mService) {
-        checkNotNull(mService);
-        // TODO remove management network specific rules
     }
 
     /**
@@ -897,8 +801,10 @@ public class CordVtnRuleInstaller {
      * @param deviceId device id to install the rules
      * @param inPort in port
      * @param srcIp source ip
+     * @param install true to install or false to remove
      */
-    private void populateLocalInPortRule(DeviceId deviceId, PortNumber inPort, IpAddress srcIp) {
+    private void populateLocalInPortRule(DeviceId deviceId, PortNumber inPort, IpAddress srcIp,
+                                         boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchInPort(inPort)
                 .matchEthType(Ethernet.TYPE_IPV4)
@@ -920,7 +826,7 @@ public class CordVtnRuleInstaller {
                 .makePermanent()
                 .build();
 
-        processFlowRule(true, flowRule);
+        processFlowRule(install, flowRule);
 
         selector = DefaultTrafficSelector.builder()
                 .matchInPort(inPort)
@@ -940,7 +846,7 @@ public class CordVtnRuleInstaller {
                 .makePermanent()
                 .build();
 
-        processFlowRule(true, flowRule);
+        processFlowRule(install, flowRule);
     }
 
     /**
@@ -949,8 +855,9 @@ public class CordVtnRuleInstaller {
      *
      * @param srcRange source ip range
      * @param dstRange destination ip range
+     * @param install true to install or false to remove
      */
-    private void populateDirectAccessRule(Ip4Prefix srcRange, Ip4Prefix dstRange) {
+    private void populateDirectAccessRule(Ip4Prefix srcRange, Ip4Prefix dstRange, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPSrc(srcRange)
@@ -973,7 +880,7 @@ public class CordVtnRuleInstaller {
                     .makePermanent()
                     .build();
 
-            processFlowRule(true, flowRuleDirect);
+            processFlowRule(install, flowRuleDirect);
         });
     }
 
@@ -982,8 +889,9 @@ public class CordVtnRuleInstaller {
      * destination to a different service network in ACCESS_TYPE table.
      *
      * @param dstRange destination ip range
+     * @param install true to install or false to remove
      */
-    private void populateServiceIsolationRule(Ip4Prefix dstRange) {
+    private void populateServiceIsolationRule(Ip4Prefix dstRange, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(dstRange)
@@ -1004,7 +912,7 @@ public class CordVtnRuleInstaller {
                     .makePermanent()
                     .build();
 
-            processFlowRule(true, flowRuleDirect);
+            processFlowRule(install, flowRuleDirect);
         });
     }
 
@@ -1015,9 +923,10 @@ public class CordVtnRuleInstaller {
      * @param srcRange source range
      * @param serviceIp service ip
      * @param outGroups list of output group
+     * @param install true to install or false to remove
      */
     private void populateIndirectAccessRule(Ip4Prefix srcRange, Ip4Address serviceIp,
-                                            Map<DeviceId, GroupId> outGroups) {
+                                            Map<DeviceId, GroupId> outGroups, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPSrc(srcRange)
@@ -1039,7 +948,7 @@ public class CordVtnRuleInstaller {
                     .makePermanent()
                     .build();
 
-            processFlowRule(true, flowRule);
+            processFlowRule(install, flowRule);
         }
     }
 
@@ -1048,8 +957,10 @@ public class CordVtnRuleInstaller {
      *
      * @param inPorts list of inports related to the service for each device
      * @param outGroups set of output groups
+     * @param install true to install or false to remove
      */
-    private void populateInServiceRule(Map<DeviceId, Set<PortNumber>> inPorts, Map<DeviceId, GroupId> outGroups) {
+    private void populateInServiceRule(Map<DeviceId, Set<PortNumber>> inPorts,
+                                       Map<DeviceId, GroupId> outGroups, boolean install) {
         checkNotNull(inPorts);
         checkNotNull(outGroups);
 
@@ -1081,7 +992,7 @@ public class CordVtnRuleInstaller {
                         .makePermanent()
                         .build();
 
-                processFlowRule(true, flowRule);
+                processFlowRule(install, flowRule);
             });
         }
     }
@@ -1095,9 +1006,11 @@ public class CordVtnRuleInstaller {
      * @param dstIp destination ip
      * @param tunnelId tunnel id
      * @param tunnelIp tunnel remote ip
+     * @param install true to install or false to remove
      */
     private void populateDstIpRule(DeviceId deviceId, PortNumber inPort, MacAddress dstMac,
-                                   IpAddress dstIp, long tunnelId, IpAddress tunnelIp) {
+                                   IpAddress dstIp, long tunnelId, IpAddress tunnelIp,
+                                   boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(dstIp.toIpPrefix())
@@ -1118,7 +1031,7 @@ public class CordVtnRuleInstaller {
                 .makePermanent()
                 .build();
 
-        processFlowRule(true, flowRule);
+        processFlowRule(install, flowRule);
 
         for (DeviceId vSwitchId : getVirtualSwitches()) {
             if (vSwitchId.equals(deviceId)) {
@@ -1147,7 +1060,7 @@ public class CordVtnRuleInstaller {
                     .makePermanent()
                     .build();
 
-            processFlowRule(true, flowRule);
+            processFlowRule(install, flowRule);
         }
     }
 
@@ -1158,8 +1071,10 @@ public class CordVtnRuleInstaller {
      * @param inPort in port
      * @param mac mac address
      * @param tunnelId tunnel id
+     * @param install true to install or false to remove
      */
-    private void populateTunnelInRule(DeviceId deviceId, PortNumber inPort, MacAddress mac, long tunnelId) {
+    private void populateTunnelInRule(DeviceId deviceId, PortNumber inPort, MacAddress mac,
+                                      long tunnelId, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchTunnelId(tunnelId)
                 .matchEthDst(mac)
@@ -1179,7 +1094,7 @@ public class CordVtnRuleInstaller {
                 .makePermanent()
                 .build();
 
-        processFlowRule(true, flowRule);
+        processFlowRule(install, flowRule);
     }
 
     /**
@@ -1252,58 +1167,16 @@ public class CordVtnRuleInstaller {
     }
 
     /**
-     * Returns the inport from a given flow rule if the rule contains the match of it.
+     * Returns IP address for tunneling for a given host.
      *
-     * @param flowRule flow rule
-     * @return port number, or null if the rule doesn't have inport match
+     * @param host host
+     * @return ip address, or null
      */
-    private PortNumber getInPort(FlowRule flowRule) {
-        Criterion criterion = flowRule.selector().getCriterion(IN_PORT);
-        if (criterion != null && criterion instanceof PortCriterion) {
-            PortCriterion port = (PortCriterion) criterion;
-            return port.port();
-        } else {
-            return null;
-        }
+    private IpAddress getTunnelIp(Host host) {
+        String ip = host.annotations().value(DATA_PLANE_IP);
+        return ip == null ? null : IpAddress.valueOf(ip);
     }
 
-    /**
-     * Returns the destination mac address from a given flow rule if the rule
-     * contains the instruction of it.
-     *
-     * @param flowRule flow rule
-     * @return mac address, or null if the rule doesn't have destination mac instruction
-     */
-    private MacAddress getDstMacFromTreatment(FlowRule flowRule) {
-        Instruction instruction = flowRule.treatment().allInstructions().stream()
-                .filter(inst -> inst instanceof ModEtherInstruction &&
-                        ((ModEtherInstruction) inst).subtype().equals(ETH_DST))
-                .findFirst()
-                .orElse(null);
-
-        if (instruction == null) {
-            return null;
-        }
-
-        return ((ModEtherInstruction) instruction).mac();
-    }
-
-    /**
-     * Returns the destination mac address from a given flow rule if the rule
-     * contains the match of it.
-     *
-     * @param flowRule flow rule
-     * @return mac address, or null if the rule doesn't have destination mac match
-     */
-    private MacAddress getDstMacFromSelector(FlowRule flowRule) {
-        Criterion criterion = flowRule.selector().getCriterion(Criterion.Type.ETH_DST);
-        if (criterion != null && criterion instanceof EthCriterion) {
-            EthCriterion eth = (EthCriterion) criterion;
-            return eth.mac();
-        } else {
-            return null;
-        }
-    }
 
     /**
      * Returns the destination IP from a given flow rule if the rule contains
@@ -1320,43 +1193,6 @@ public class CordVtnRuleInstaller {
         } else {
             return null;
         }
-    }
-
-    /**
-     * Returns the source IP from a given flow rule if the rule contains
-     * the match of it.
-     *
-     * @param flowRule flow rule
-     * @return ip prefix, or null if the rule doesn't have ip match
-     */
-    private IpPrefix getSrcIpFromSelector(FlowRule flowRule) {
-        Criterion criterion = flowRule.selector().getCriterion(IPV4_SRC);
-        if (criterion != null && criterion instanceof IPCriterion) {
-            IPCriterion ip = (IPCriterion) criterion;
-            return ip.ip();
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Returns the group ID from a given flow rule if the rule contains the
-     * treatment of it.
-     *
-     * @param flowRule flow rule
-     * @return group id, or null if the rule doesn't have group instruction
-     */
-    private GroupId getGroupIdFromTreatment(FlowRule flowRule) {
-        Instruction instruction = flowRule.treatment().allInstructions().stream()
-                .filter(inst -> inst instanceof Instructions.GroupInstruction)
-                .findFirst()
-                .orElse(null);
-
-        if (instruction == null) {
-            return null;
-        }
-
-        return ((Instructions.GroupInstruction) instruction).groupId();
     }
 
     /**
@@ -1413,7 +1249,8 @@ public class CordVtnRuleInstaller {
             return groupId;
         }
 
-        GroupBuckets buckets = getServiceGroupBuckets(deviceId, service.segmentationId(), service.hosts());
+        GroupBuckets buckets = getServiceGroupBuckets(
+                deviceId, service.segmentationId(), service.hosts());
         GroupDescription groupDescription = new DefaultGroupDescription(
                 deviceId,
                 GroupDescription.Type.SELECT,
@@ -1435,7 +1272,8 @@ public class CordVtnRuleInstaller {
      * @param hosts list of host
      * @return group buckets
      */
-    private GroupBuckets getServiceGroupBuckets(DeviceId deviceId, long tunnelId, Map<Host, IpAddress> hosts) {
+    private GroupBuckets getServiceGroupBuckets(DeviceId deviceId, long tunnelId,
+                                                Map<Host, IpAddress> hosts) {
         List<GroupBucket> buckets = Lists.newArrayList();
 
         for (Map.Entry<Host, IpAddress> entry : hosts.entrySet()) {
