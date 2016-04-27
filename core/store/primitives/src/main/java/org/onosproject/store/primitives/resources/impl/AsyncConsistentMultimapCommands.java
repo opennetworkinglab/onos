@@ -28,9 +28,9 @@ import io.atomix.catalyst.util.Assert;
 import io.atomix.copycat.Command;
 import io.atomix.copycat.Query;
 import org.onlab.util.Match;
+import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -123,7 +123,8 @@ public final class AsyncConsistentMultimapCommands {
         }
 
         @Override
-        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+        public void writeObject(BufferOutput<?> buffer,
+                                Serializer serializer) {
             super.writeObject(buffer, serializer);
             serializer.writeObject(key, buffer);
         }
@@ -166,7 +167,8 @@ public final class AsyncConsistentMultimapCommands {
         }
 
         @Override
-        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+        public void writeObject(BufferOutput<?> buffer,
+                                Serializer serializer) {
             super.writeObject(buffer, serializer);
         }
 
@@ -265,49 +267,94 @@ public final class AsyncConsistentMultimapCommands {
     }
 
     /**
-     * Update and get command. Note that corresponding values must have the
-     * same index in the respective arrays.
+     * Remove command, backs remove and removeAll's that return booleans.
      */
     @SuppressWarnings("serial")
-    public static class UpdateAndGet extends
-            MultimapCommand<MapEntryUpdateResult<String, Collection<byte[]>>> {
+    public static class RemoveAll extends
+            MultimapCommand<Versioned<Collection<? extends byte[]>>> {
         private String key;
-        private List<byte[]> values;
-        private List<Match<byte[]>> valueMatches;
-        private List<Match<Long>> versionMatches;
+        private Match<Long> versionMatch;
 
-        public UpdateAndGet() {
+        public RemoveAll() {
         }
 
-        public UpdateAndGet(String key, List<byte[]> values,
-                            List<Match<byte[]>> valueMatches,
-                            List<Match<Long>> versionMatches) {
-            this.key = key;
-            this.values = values;
-            this.valueMatches = valueMatches;
-            this.versionMatches = versionMatches;
+        public RemoveAll(String key, Match<Long> versionMatch) {
+            this.key = Assert.notNull(key, "key");
+            this.versionMatch = versionMatch;
         }
 
         public String key() {
             return this.key;
         }
 
-        public List<byte[]> values() {
-            return values;
-        }
-
-        public List<Match<byte[]>> valueMatches() {
-            return valueMatches;
-        }
-
-        public List<Match<Long>> versionMatches() {
-            return versionMatches;
+        public Match<Long> versionMatch() {
+            return versionMatch;
         }
 
         @Override
         public CompactionMode compaction() {
-            return values == null ? CompactionMode.FULL :
-                    CompactionMode.QUORUM;
+            return CompactionMode.FULL;
+        }
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer,
+                                Serializer serializer) {
+            super.writeObject(buffer, serializer);
+            serializer.writeObject(key, buffer);
+            serializer.writeObject(versionMatch, buffer);
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            super.readObject(buffer, serializer);
+            key = serializer.readObject(buffer);
+            versionMatch = serializer.readObject(buffer);
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("key", key)
+                    .add("versionMatch", versionMatch)
+                    .toString();
+        }
+    }
+
+    /**
+     * Remove command, backs remove and removeAll's that return booleans.
+     */
+    @SuppressWarnings("serial")
+    public static class MultiRemove extends
+            MultimapCommand<Boolean> {
+        private String key;
+        private Collection<byte[]> values;
+        private Match<Long> versionMatch;
+
+        public MultiRemove() {
+        }
+
+        public MultiRemove(String key, Collection<byte[]> valueMatches,
+                           Match<Long> versionMatch) {
+            this.key = Assert.notNull(key, "key");
+            this.values = valueMatches;
+            this.versionMatch = versionMatch;
+        }
+
+        public String key() {
+            return this.key;
+        }
+
+        public Collection<byte[]> values() {
+            return values;
+        }
+
+        public Match<Long> versionMatch() {
+            return versionMatch;
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.FULL;
         }
 
         @Override
@@ -316,8 +363,7 @@ public final class AsyncConsistentMultimapCommands {
             super.writeObject(buffer, serializer);
             serializer.writeObject(key, buffer);
             serializer.writeObject(values, buffer);
-            serializer.writeObject(valueMatches, buffer);
-            serializer.writeObject(versionMatches, buffer);
+            serializer.writeObject(versionMatch, buffer);
         }
 
         @Override
@@ -325,13 +371,143 @@ public final class AsyncConsistentMultimapCommands {
             super.readObject(buffer, serializer);
             key = serializer.readObject(buffer);
             values = serializer.readObject(buffer);
-            valueMatches = serializer.readObject(buffer);
-            versionMatches = serializer.readObject(buffer);
+            versionMatch = serializer.readObject(buffer);
         }
 
         @Override
         public String toString() {
-            return super.toString();
+            return MoreObjects.toStringHelper(getClass())
+                    .add("key", key)
+                    .add("values", values)
+                    .add("versionMatch", versionMatch)
+                    .toString();
+        }
+    }
+
+    /**
+     * Command to back the put and putAll methods.
+     */
+    @SuppressWarnings("serial")
+    public static class  Put extends MultimapCommand<Boolean> {
+        private String key;
+        private Collection<? extends byte[]> values;
+        private Match<Long> versionMatch;
+
+        public Put() {
+        }
+
+        public Put(String key, Collection<? extends byte[]> values,
+                   Match<Long> versionMatch) {
+            this.key = Assert.notNull(key, "key");
+            this.values = values;
+            this.versionMatch = versionMatch;
+        }
+
+        public String key() {
+            return key;
+        }
+
+        public Collection<? extends byte[]> values() {
+            return values;
+        }
+
+        public Match<Long> versionMatch() {
+            return versionMatch;
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.QUORUM;
+        }
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer,
+                                Serializer serializer) {
+            super.writeObject(buffer, serializer);
+            serializer.writeObject(key, buffer);
+            serializer.writeObject(values, buffer);
+            serializer.writeObject(versionMatch, buffer);
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            super.readObject(buffer, serializer);
+            key = serializer.readObject(buffer);
+            values = serializer.readObject(buffer);
+            versionMatch = serializer.readObject(buffer);
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("key", key)
+                    .add("values", values)
+                    .add("versionMatch", versionMatch)
+                    .toString();
+        }
+    }
+
+    /**
+     * Replace command, returns the collection that was replaced.
+     */
+    @SuppressWarnings("serial")
+    public static class Replace extends
+            MultimapCommand<Versioned<Collection<? extends byte[]>>> {
+        private String key;
+        private Collection<byte[]> values;
+        private Match<Long> versionMatch;
+
+        public Replace() {
+        }
+
+        public Replace(String key, Collection<byte[]> values,
+                       Match<Long> versionMatch) {
+            this.key = Assert.notNull(key, "key");
+            this.values = values;
+            this.versionMatch = versionMatch;
+        }
+
+        public String key() {
+            return this.key;
+        }
+
+        public Match<Long> versionMatch() {
+            return versionMatch;
+        }
+
+        public Collection<byte[]> values() {
+            return values;
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.FULL;
+        }
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer,
+                                Serializer serializer) {
+            super.writeObject(buffer, serializer);
+            serializer.writeObject(key, buffer);
+            serializer.writeObject(values, buffer);
+            serializer.writeObject(versionMatch, buffer);
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            super.readObject(buffer, serializer);
+            key = serializer.readObject(buffer);
+            values = serializer.readObject(buffer);
+            versionMatch = serializer.readObject(buffer);
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("key", key)
+                    .add("values", values)
+                    .add("versionMatch", versionMatch)
+                    .toString();
         }
     }
 
@@ -360,7 +536,7 @@ public final class AsyncConsistentMultimapCommands {
      * Value collection query.
      */
     @SuppressWarnings("serial")
-    public static class Values extends MultimapQuery<Collection<byte[]>> {
+    public static class Values extends MultimapQuery<Multiset<byte[]>> {
     }
 
     /**
@@ -374,7 +550,11 @@ public final class AsyncConsistentMultimapCommands {
     /**
      * Get value query.
      */
-    public static class Get extends KeyQuery<Collection<byte[]>> {
+    public static class Get extends
+            KeyQuery<Versioned<Collection<? extends byte[]>>> {
+        public Get(String key) {
+            super(key);
+        }
     }
 
     /**
@@ -387,7 +567,7 @@ public final class AsyncConsistentMultimapCommands {
             registry.register(ContainsKey.class, -1000);
             registry.register(ContainsValue.class, -1001);
             registry.register(ContainsEntry.class, -1002);
-            registry.register(UpdateAndGet.class, -1003);
+            registry.register(Replace.class, -1003);
             registry.register(Clear.class, -1004);
             registry.register(KeySet.class, -1005);
             registry.register(Keys.class, -1006);
@@ -396,6 +576,9 @@ public final class AsyncConsistentMultimapCommands {
             registry.register(Size.class, -1009);
             registry.register(IsEmpty.class, -1010);
             registry.register(Get.class, -1011);
+            registry.register(Put.class, -1012);
+            registry.register(RemoveAll.class, -1013);
+            registry.register(MultiRemove.class, -1014);
         }
     }
 }
