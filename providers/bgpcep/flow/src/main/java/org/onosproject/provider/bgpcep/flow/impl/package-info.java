@@ -15,6 +15,6 @@
  */
 
 /**
- * Bgp Flow provider.
+ * Representation of BGP-PCEP flow provider.
  */
-package org.onosproject.provider.bgp.flow.impl;
+package org.onosproject.provider.bgpcep.flow.impl;

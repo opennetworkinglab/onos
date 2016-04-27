@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 public final class BgpDpid {
     private static final Logger log = LoggerFactory.getLogger(BgpDpid.class);
 
-    private static final String SCHEME = "bgp";
+    private static final String SCHEME = "l3";
     private static final long UNKNOWN = 0;
     private StringBuilder stringBuilder;
     public static final int NODE_DESCRIPTOR_LOCAL = 1;

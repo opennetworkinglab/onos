@@ -79,8 +79,11 @@ import org.slf4j.LoggerFactory;
 @Component(immediate = true)
 public class BgpTopologyProvider extends AbstractProvider implements DeviceProvider, LinkProvider {
 
+    /**
+     * Creates an instance of BGP topology provider.
+     */
     public BgpTopologyProvider() {
-        super(new ProviderId("bgp", "org.onosproject.provider.bgp"));
+        super(new ProviderId("l3", "org.onosproject.provider.bgp"));
     }
 
     private static final Logger log = LoggerFactory.getLogger(BgpTopologyProvider.class);

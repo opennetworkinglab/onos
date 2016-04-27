@@ -70,9 +70,9 @@ import org.onosproject.net.provider.ProviderId;
  * Test for BGP topology provider.
  */
 public class BgpTopologyProviderTest {
-    private static final DeviceId DID2 = DeviceId.deviceId("bgp:rd=0::routinguniverse=0:asn=10");
+    private static final DeviceId DID2 = DeviceId.deviceId("l3:rd=0::routinguniverse=0:asn=10");
     private static final String UNKNOWN = new String("unknown");
-    public static ProviderId providerId = new ProviderId("bgp", "foo");
+    public static ProviderId providerId = new ProviderId("l3", "foo");
 
     private final BgpTopologyProvider provider = new BgpTopologyProvider();
     private final TestDeviceRegistry nodeRegistry = new TestDeviceRegistry();

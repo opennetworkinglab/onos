@@ -25,7 +25,7 @@ import org.onosproject.pcep.tools.PcepTools;
  */
 public final class PcepDpid {
 
-    private static final String SCHEME = "pcep";
+    private static final String SCHEME = "l3";
     private static final long UNKNOWN = 0;
     private long nodeId;
 

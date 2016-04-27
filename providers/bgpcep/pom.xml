@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015-present Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,39 +21,27 @@
     <version>1.6.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>onos-bgp-providers</artifactId>
-  <packaging>pom</packaging>
-  <description>BGP-LS protocol providers root</description>
-  <modules>
-        <module>topology</module>
-        <module>cfg</module>
-        <module>app</module>
-  </modules>
-    <dependencies>
 
+  <artifactId>onos-bgpcep-providers</artifactId>
+  <packaging>pom</packaging>
+
+  <description>BGPCEP providers root</description>
+
+  <modules>
+        <module>flow</module>
+  </modules>
+
+  <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-pcep-controller-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-bgp-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-bgpio</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-api</artifactId>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
+  </dependencies>
 
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty</artifactId>
-        </dependency>
-
-       <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-        </dependency>
-    </dependencies>
 </project>

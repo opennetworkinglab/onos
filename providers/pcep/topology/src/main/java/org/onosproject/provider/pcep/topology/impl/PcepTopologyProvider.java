@@ -81,8 +81,11 @@ import static org.onosproject.pcep.api.PcepDpid.uri;
 public class PcepTopologyProvider extends AbstractProvider
         implements LinkProvider, DeviceProvider {
 
+    /**
+     * Creates instance of PCEP topology provider.
+     */
     public PcepTopologyProvider() {
-        super(new ProviderId("pcep", "org.onosproject.provider.pcep"));
+        super(new ProviderId("l3", "org.onosproject.provider.pcep"));
     }
 
     private static final Logger log = LoggerFactory

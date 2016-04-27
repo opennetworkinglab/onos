@@ -40,6 +40,7 @@
         <module>pcep</module>
         <module>ovsdb</module>
         <module>bgp</module>
+        <module>bgpcep</module>
         <module>snmp</module>
         <module>rest</module>
         <module>lldpcommon</module>

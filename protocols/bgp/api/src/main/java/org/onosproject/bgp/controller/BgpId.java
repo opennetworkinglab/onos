@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public final class BgpId extends Identifier<IpAddress> {
 
-    private static final String SCHEME = "bgp";
+    private static final String SCHEME = "l3";
     private static final long UNKNOWN = 0;
 
     /**
