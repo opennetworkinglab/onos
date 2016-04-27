@@ -25,35 +25,50 @@ import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 
 /**
- * Removes configured interface from a device.
+ * Removes an interface configurion from a device.
  */
 @Command(scope = "onos", name = "device-remove-interface",
          description = "Removes an interface configuration from a device")
 public class DeviceInterfaceRemoveCommand extends AbstractShellCommand {
 
+    private static final String ONE_ACTION_ALLOWED =
+            "One configuration removal allowed at a time";
     private static final String REMOVE_ACCESS_SUCCESS =
-            "Access mode deleted from device %s interface %s.";
+            "Access mode removed from device %s interface %s.";
     private static final String REMOVE_ACCESS_FAILURE =
-            "Failed to delete access mode from device %s interface %s.";
-
+            "Failed to remove access mode from device %s interface %s.";
     private static final String REMOVE_TRUNK_SUCCESS =
-            "Trunk mode deleted from device %s interface %s.";
+            "Trunk mode removed from device %s interface %s.";
     private static final String REMOVE_TRUNK_FAILURE =
-            "Failed to delete trunk mode from device %s interface %s.";
+            "Failed to remove trunk mode from device %s interface %s.";
+    private static final String REMOVE_RATE_SUCCESS =
+            "Rate limit removed from device %s interface %s.";
+    private static final String REMOVE_RATE_FAILURE =
+            "Failed to remove rate limit from device %s interface %s.";
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
     private String uri = null;
 
     @Argument(index = 1, name = "interface",
-              description = "Interface name",
-              required = true, multiValued = false)
+            description = "Interface name",
+            required = true, multiValued = false)
     private String portName = null;
+
+    @Option(name = "-r", aliases = "--rate-limit",
+            description = "Percentage for egress bandwidth limit",
+            required = false, multiValued = false)
+    private boolean rateLimit = false;
 
     @Option(name = "-t", aliases = "--trunk",
             description = "Remove trunk mode for VLAN(s)",
             required = false, multiValued = false)
     private boolean trunkMode = false;
+
+    @Option(name = "-a", aliases = "--access",
+            description = "Remove access mode for VLAN",
+            required = false, multiValued = false)
+    private boolean accessMode = false;
 
     @Override
     protected void execute() {
@@ -62,21 +77,42 @@ public class DeviceInterfaceRemoveCommand extends AbstractShellCommand {
         DriverHandler h = service.createHandler(deviceId);
         InterfaceConfig interfaceConfig = h.behaviour(InterfaceConfig.class);
 
-        if (trunkMode) {
+        if (trunkMode && !accessMode && !rateLimit) {
             // Trunk mode for VLAN to be removed.
-            if (interfaceConfig.removeTrunkInterface(deviceId, portName)) {
-                print(REMOVE_TRUNK_SUCCESS, deviceId, portName);
-            } else {
-                print(REMOVE_TRUNK_FAILURE, deviceId, portName);
-            }
-            return;
-        }
-
-        // Access mode for VLAN to be removed.
-        if (interfaceConfig.removeAccessInterface(deviceId, portName)) {
-            print(REMOVE_ACCESS_SUCCESS, deviceId, portName);
+            removeTrunkModeFromIntf(interfaceConfig);
+        } else if (accessMode && !trunkMode && !rateLimit) {
+            // Access mode for VLAN to be removed.
+            removeAccessModeFromIntf(interfaceConfig);
+        } else if (rateLimit && !trunkMode && !accessMode) {
+            // Rate limit to be removed.
+            removeRateLimitFromIntf(interfaceConfig);
         } else {
-            print(REMOVE_ACCESS_FAILURE, deviceId, portName);
+            // Option has not been correctly set.
+            print(ONE_ACTION_ALLOWED);
+        }
+    }
+
+    private void removeAccessModeFromIntf(InterfaceConfig interfaceConfig) {
+        if (interfaceConfig.removeAccessMode(portName)) {
+            print(REMOVE_ACCESS_SUCCESS, uri, portName);
+        } else {
+            print(REMOVE_ACCESS_FAILURE, uri, portName);
+        }
+    }
+
+    private void removeTrunkModeFromIntf(InterfaceConfig interfaceConfig) {
+        if (interfaceConfig.removeTrunkMode(portName)) {
+            print(REMOVE_TRUNK_SUCCESS, uri, portName);
+        } else {
+            print(REMOVE_TRUNK_FAILURE, uri, portName);
+        }
+    }
+
+    private void removeRateLimitFromIntf(InterfaceConfig config) {
+        if (config.removeRateLimit(portName)) {
+            print(REMOVE_RATE_SUCCESS, uri, portName);
+        } else {
+            print(REMOVE_RATE_FAILURE, uri, portName);
         }
     }
 

@@ -34,8 +34,19 @@ public interface InterfaceConfig extends HandlerBehaviour {
      * @param intf the name of the interface
      * @param vlanId the VLAN ID
      * @return the result of operation
+     * @deprecated in 1.7.0 Hummingbird release - use of addAccessMode() instead
      */
-    boolean addAccessInterface(DeviceId deviceId, String intf, VlanId vlanId);
+    @Deprecated
+    public boolean addAccessInterface(DeviceId deviceId, String intf, VlanId vlanId);
+
+    /**
+     * Adds an access interface to a VLAN.
+     *
+     * @param intf the name of the interface
+     * @param vlanId the VLAN ID
+     * @return the result of operation
+     */
+    boolean addAccessMode(String intf, VlanId vlanId);
 
     /**
      * Removes an access interface to a VLAN.
@@ -43,8 +54,18 @@ public interface InterfaceConfig extends HandlerBehaviour {
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @return the result of operation
+     * @deprecated in 1.7.0 Hummingbird release - use of removeAccessMode() instead
      */
+    @Deprecated
     boolean removeAccessInterface(DeviceId deviceId, String intf);
+
+    /**
+     * Removes an access interface to a VLAN.
+     *
+     * @param intf the name of the interface
+     * @return the result of operation
+     */
+    boolean removeAccessMode(String intf);
 
     /**
      *  Adds a trunk interface for VLANs.
@@ -53,30 +74,79 @@ public interface InterfaceConfig extends HandlerBehaviour {
      * @param intf the name of the interface
      * @param vlanIds the VLAN IDs
      * @return the result of operation
+     * @deprecated in 1.7.0 Hummingbird release - use of addTrunkMode() instead
      */
+    @Deprecated
     boolean addTrunkInterface(DeviceId deviceId, String intf, List<VlanId> vlanIds);
 
     /**
-     *  Removes trunk mode configuration from an interface.
+     *  Adds a trunk interface for VLANs.
+     *
+     * @param intf the name of the interface
+     * @param vlanIds the VLAN IDs
+     * @return the result of operation
+     */
+    boolean addTrunkMode(String intf, List<VlanId> vlanIds);
+
+    /**
+     * Removes trunk mode configuration from an interface.
      *
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @return the result of operation
+     * @deprecated in 1.7.0 Hummingbird release - use of removeTrunkMode() instead
      */
+    @Deprecated
     boolean removeTrunkInterface(DeviceId deviceId, String intf);
+
+    /**
+     *  Removes trunk mode configuration from an interface.
+     *
+     * @param intf the name of the interface
+     * @return the result of operation
+     */
+    boolean removeTrunkMode(String intf);
+
+    /**
+     * Adds a rate limit on an interface.
+     *
+     * @param intf the name of the interface
+     * @param limit the limit as a percentage
+     * @return the result of operation
+     */
+    boolean addRateLimit(String intf, short limit);
+
+    /**
+     * Removes rate limit from an interface.
+     *
+     * @param intf the name of the interface
+     * @return the result of operation
+     */
+    boolean removeRateLimit(String intf);
 
     /**
      * Provides the interfaces configured on a device.
      *
      * @param deviceId the device ID
      * @return the list of the configured interfaces
+     * @deprecated in 1.7.0 Hummingbird release - use of getInterfaces() without
+     * deviceId as parameter instead
      */
-    List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId);
+    @Deprecated
+    public List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId);
+
+    /**
+     * Provides the interfaces configured on a device.
+     *
+     * @return the list of the configured interfaces
+     */
+    List<DeviceInterfaceDescription> getInterfaces();
 
     /**
      *  TODO Addition of more methods to make the behavior symmetrical.
-     *  Methods getInterfacesForVlan, getVlansForInterface, getTrunkforInterface,
-     *  getInterfacesForTrunk should be added to complete the behavior.
+     *  Methods getInterfacesForVlan(VlanId), hasAccessMode(), hasTrunkMode(),
+     *  getTrunkVlans(Interface), getAccessVlan(Interface) should be added to
+     *  complete the behavior.
      */
 
 }

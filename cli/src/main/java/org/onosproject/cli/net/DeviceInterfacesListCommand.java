@@ -78,7 +78,7 @@ public class DeviceInterfacesListCommand extends DevicesListCommand {
         InterfaceConfig interfaceConfig = h.behaviour(InterfaceConfig.class);
 
         List<DeviceInterfaceDescription> interfaces =
-                interfaceConfig.getInterfaces(device.id());
+                interfaceConfig.getInterfaces();
         if (interfaces == null) {
             print(ERROR_RESULT);
         } else if (interfaces.isEmpty()) {

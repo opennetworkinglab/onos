@@ -54,6 +54,18 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
      */
     @Override
     public boolean addAccessInterface(DeviceId deviceId, String intf, VlanId vlanId) {
+        return addAccessMode(intf, vlanId);
+    }
+
+    /**
+     * Adds an access interface to a VLAN.
+     *
+     * @param intf the name of the interface
+     * @param vlanId the VLAN ID
+     * @return the result of operation
+     */
+    @Override
+    public boolean addAccessMode(String intf, VlanId vlanId) {
         NetconfController controller = checkNotNull(handler()
                                        .get(NetconfController.class));
 
@@ -61,10 +73,10 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
                                  .data().deviceId()).getSession();
         String reply;
         try {
-            reply = session.requestSync(addAccessInterfaceBuilder(intf, vlanId));
+            reply = session.requestSync(addAccessModeBuilder(intf, vlanId));
         } catch (NetconfException e) {
             log.error("Failed to configure VLAN ID {} on device {} interface {}.",
-                      vlanId, deviceId, intf, e);
+                      vlanId, handler().data().deviceId(), intf, e);
             return false;
         }
 
@@ -79,31 +91,13 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
      * @param vlanId the VLAN ID
      * @return the request string.
      */
-    private String addAccessInterfaceBuilder(String intf, VlanId vlanId) {
-        StringBuilder rpc =
-                new StringBuilder("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" ");
-        rpc.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
-        rpc.append("<edit-config>");
-        rpc.append("<target>");
-        rpc.append("<running/>");
-        rpc.append("</target>");
-        rpc.append("<config>");
-        rpc.append("<xml-config-data>");
-        rpc.append("<Device-Configuration><interface><Param>");
-        rpc.append(intf);
-        rpc.append("</Param>");
-        rpc.append("<ConfigIf-Configuration>");
+    private String addAccessModeBuilder(String intf, VlanId vlanId) {
+        StringBuilder rpc = new StringBuilder(getOpeningString(intf));
         rpc.append("<switchport><access><vlan><VLANIDVLANPortAccessMode>");
         rpc.append(vlanId);
         rpc.append("</VLANIDVLANPortAccessMode></vlan></access></switchport>");
         rpc.append("<switchport><mode><access/></mode></switchport>");
-        rpc.append("</ConfigIf-Configuration>");
-        rpc.append("</interface>");
-        rpc.append("</Device-Configuration>");
-        rpc.append("</xml-config-data>");
-        rpc.append("</config>");
-        rpc.append("</edit-config>");
-        rpc.append("</rpc>");
+        rpc.append(getClosingString());
 
         return rpc.toString();
     }
@@ -117,6 +111,17 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
      */
     @Override
     public boolean removeAccessInterface(DeviceId deviceId, String intf) {
+        return removeAccessMode(intf);
+    }
+
+    /**
+     * Removes an access interface to a VLAN.
+     *
+     * @param intf the name of the interface
+     * @return the result of operation
+     */
+    @Override
+    public boolean removeAccessMode(String intf) {
         NetconfController controller = checkNotNull(handler()
                                                             .get(NetconfController.class));
 
@@ -124,10 +129,10 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
                                  .data().deviceId()).getSession();
         String reply;
         try {
-            reply = session.requestSync(removeAccessInterfaceBuilder(intf));
+            reply = session.requestSync(removeAccessModeBuilder(intf));
         } catch (NetconfException e) {
             log.error("Failed to remove access mode from device {} interface {}.",
-                      deviceId, intf, e);
+                      handler().data().deviceId(), intf, e);
             return false;
         }
 
@@ -141,30 +146,12 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
      * @param intf the name of the interface
      * @return the request string.
      */
-    private String removeAccessInterfaceBuilder(String intf) {
-        StringBuilder rpc =
-                new StringBuilder("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" ");
-        rpc.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
-        rpc.append("<edit-config>");
-        rpc.append("<target>");
-        rpc.append("<running/>");
-        rpc.append("</target>");
-        rpc.append("<config>");
-        rpc.append("<xml-config-data>");
-        rpc.append("<Device-Configuration><interface><Param>");
-        rpc.append(intf);
-        rpc.append("</Param>");
-        rpc.append("<ConfigIf-Configuration>");
+    private String removeAccessModeBuilder(String intf) {
+        StringBuilder rpc = new StringBuilder(getOpeningString(intf));
         rpc.append("<switchport operation=\"delete\"><access><vlan><VLANIDVLANPortAccessMode>");
         rpc.append("</VLANIDVLANPortAccessMode></vlan></access></switchport>");
         rpc.append("<switchport operation=\"delete\"><mode><access/></mode></switchport>");
-        rpc.append("</ConfigIf-Configuration>");
-        rpc.append("</interface>");
-        rpc.append("</Device-Configuration>");
-        rpc.append("</xml-config-data>");
-        rpc.append("</config>");
-        rpc.append("</edit-config>");
-        rpc.append("</rpc>");
+        rpc.append(getClosingString());
 
         return rpc.toString();
     }
@@ -179,6 +166,18 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
      */
     @Override
     public boolean addTrunkInterface(DeviceId deviceId, String intf, List<VlanId> vlanIds) {
+        return addTrunkMode(intf, vlanIds);
+    }
+
+    /**
+     *  Adds a trunk interface for VLANs.
+     *
+     * @param intf the name of the interface
+     * @param vlanIds the VLAN IDs
+     * @return the result of operation
+     */
+    @Override
+    public boolean addTrunkMode(String intf, List<VlanId> vlanIds) {
         NetconfController controller = checkNotNull(handler()
                                        .get(NetconfController.class));
 
@@ -186,10 +185,10 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
                                  .data().deviceId()).getSession();
         String reply;
         try {
-            reply = session.requestSync(addTrunkInterfaceBuilder(intf, vlanIds));
+            reply = session.requestSync(addTrunkModeBuilder(intf, vlanIds));
         } catch (NetconfException e) {
             log.error("Failed to configure trunk mode for VLAN ID {} on device {} interface {}.",
-                      vlanIds, deviceId, intf, e);
+                      vlanIds, handler().data().deviceId(), intf, e);
             return false;
         }
 
@@ -204,33 +203,15 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
      * @param vlanIds the VLAN IDs
      * @return the request string.
      */
-    private String addTrunkInterfaceBuilder(String intf, List<VlanId> vlanIds) {
-        StringBuilder rpc =
-                new StringBuilder("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" ");
-        rpc.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
-        rpc.append("<edit-config>");
-        rpc.append("<target>");
-        rpc.append("<running/>");
-        rpc.append("</target>");
-        rpc.append("<config>");
-        rpc.append("<xml-config-data>");
-        rpc.append("<Device-Configuration><interface><Param>");
-        rpc.append(intf);
-        rpc.append("</Param>");
-        rpc.append("<ConfigIf-Configuration>");
+    private String addTrunkModeBuilder(String intf, List<VlanId> vlanIds) {
+        StringBuilder rpc = new StringBuilder(getOpeningString(intf));
         rpc.append("<switchport><trunk><encapsulation><dot1q/></encapsulation>");
         rpc.append("</trunk></switchport><switchport><trunk><allowed><vlan>");
         rpc.append("<VLANIDsAllowedVLANsPortTrunkingMode>");
         rpc.append(getVlansString(vlanIds));
         rpc.append("</VLANIDsAllowedVLANsPortTrunkingMode></vlan></allowed></trunk>");
         rpc.append("</switchport><switchport><mode><trunk/></mode></switchport>");
-        rpc.append("</ConfigIf-Configuration>");
-        rpc.append("</interface>");
-        rpc.append("</Device-Configuration>");
-        rpc.append("</xml-config-data>");
-        rpc.append("</config>");
-        rpc.append("</edit-config>");
-        rpc.append("</rpc>");
+        rpc.append(getClosingString());
 
         return rpc.toString();
     }
@@ -244,6 +225,17 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
      */
     @Override
     public boolean removeTrunkInterface(DeviceId deviceId, String intf) {
+        return removeTrunkMode(intf);
+    }
+
+    /**
+     * Removes trunk mode configuration from an interface.
+     *
+     * @param intf the name of the interface
+     * @return the result of operation
+     */
+    @Override
+    public boolean removeTrunkMode(String intf) {
         NetconfController controller = checkNotNull(handler()
                                        .get(NetconfController.class));
 
@@ -251,10 +243,10 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
                              .data().deviceId()).getSession();
     String reply;
     try {
-        reply = session.requestSync(removeTrunkInterfaceBuilder(intf));
+        reply = session.requestSync(removeTrunkModeBuilder(intf));
     } catch (NetconfException e) {
-        log.error("Failed to remove trunk mode on device {} interface {}.",
-                  deviceId, intf, e);
+        log.error("Failed to remove trunk mode from device {} interface {}.",
+                  handler().data().deviceId(), intf, e);
         return false;
     }
 
@@ -268,7 +260,114 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
      * @param intf the name of the interface
      * @return the request string.
      */
-    private String removeTrunkInterfaceBuilder(String intf) {
+    private String removeTrunkModeBuilder(String intf) {
+        StringBuilder rpc = new StringBuilder(getOpeningString(intf));
+        rpc.append("<switchport><mode operation=\"delete\"><trunk/></mode></switchport>");
+        rpc.append("<switchport><trunk operation=\"delete\"><encapsulation>");
+        rpc.append("<dot1q/></encapsulation></trunk></switchport>");
+        rpc.append("<switchport><trunk operation=\"delete\"><allowed><vlan>");
+        rpc.append("<VLANIDsAllowedVLANsPortTrunkingMode>");
+        rpc.append("</VLANIDsAllowedVLANsPortTrunkingMode></vlan></allowed>");
+        rpc.append("</trunk></switchport>");
+        rpc.append(getClosingString());
+
+        return rpc.toString();
+    }
+
+    /**
+     * Adds a rate limit on an interface.
+     *
+     * @param intf the name of the interface
+     * @param limit the limit as a percentage
+     * @return the result of operation
+     */
+    @Override
+    public boolean addRateLimit(String intf, short limit) {
+        NetconfController controller = checkNotNull(handler()
+                                       .get(NetconfController.class));
+
+        NetconfSession session = controller.getDevicesMap().get(handler()
+                                 .data().deviceId()).getSession();
+        String reply;
+        try {
+            reply = session.requestSync(addRateLimitBuilder(intf, limit));
+        } catch (NetconfException e) {
+            log.error("Failed to configure rate limit {}%% on device {} interface {}.",
+                      limit, handler().data().deviceId(), intf, e);
+            return false;
+        }
+
+        return XmlConfigParser.configSuccess(XmlConfigParser.loadXml(
+                new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8))));
+    }
+
+    /**
+     * Builds a request to configure an interface with rate limit.
+     *
+     * @param intf the name of the interface
+     * @param limit the limit as a percentage
+     * @return the request string.
+     */
+    private String addRateLimitBuilder(String intf, short limit) {
+        StringBuilder rpc = new StringBuilder(getOpeningString(intf));
+        rpc.append("<srr-queue><bandwidth><limit>");
+        rpc.append("<EnterBandwidthLimitInterfaceAsPercentage>");
+        rpc.append(limit);
+        rpc.append("</EnterBandwidthLimitInterfaceAsPercentage>");
+        rpc.append("</limit></bandwidth></srr-queue>");
+        rpc.append(getClosingString());
+
+        return rpc.toString();
+    }
+
+    /**
+     * Removes rate limit from an interface.
+     *
+     * @param intf the name of the interface
+     * @return the result of operation
+     */
+    @Override
+    public boolean removeRateLimit(String intf) {
+        NetconfController controller = checkNotNull(handler()
+                                       .get(NetconfController.class));
+
+        NetconfSession session = controller.getDevicesMap().get(handler()
+                                 .data().deviceId()).getSession();
+        String reply;
+        try {
+            reply = session.requestSync(removeRateLimitBuilder(intf));
+        } catch (NetconfException e) {
+            log.error("Failed to remove rate limit from device {} interface {}.",
+                      handler().data().deviceId(), intf, e);
+            return false;
+        }
+
+        return XmlConfigParser.configSuccess(XmlConfigParser.loadXml(
+                new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8))));
+    }
+
+    /**
+     * Builds a request to remove a rate limit from an interface.
+     *
+     * @param intf the name of the interface
+     * @return the request string.
+     */
+    private String removeRateLimitBuilder(String intf) {
+        StringBuilder rpc = new StringBuilder(getOpeningString(intf));
+        rpc.append("<srr-queue operation=\"delete\"><bandwidth><limit>");
+        rpc.append("</limit></bandwidth></srr-queue>");
+        rpc.append(getClosingString());
+
+        return rpc.toString();
+    }
+
+    /**
+     * Builds the opening of a request for the configuration of an interface.
+     *
+     * @param intf the interface to be configured
+     * @return the opening string
+     */
+    private String getOpeningString(String intf) {
         StringBuilder rpc =
                 new StringBuilder("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" ");
         rpc.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
@@ -282,13 +381,17 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
         rpc.append(intf);
         rpc.append("</Param>");
         rpc.append("<ConfigIf-Configuration>");
-        rpc.append("<switchport><mode operation=\"delete\"><trunk/></mode></switchport>");
-        rpc.append("<switchport><trunk operation=\"delete\"><encapsulation>");
-        rpc.append("<dot1q/></encapsulation></trunk></switchport>");
-        rpc.append("<switchport><trunk operation=\"delete\"><allowed><vlan>");
-        rpc.append("<VLANIDsAllowedVLANsPortTrunkingMode>");
-        rpc.append("</VLANIDsAllowedVLANsPortTrunkingMode></vlan></allowed>");
-        rpc.append("</trunk></switchport></ConfigIf-Configuration>");
+
+        return rpc.toString();
+    }
+
+    /**
+     * Builds the closing of a request for the configuration of an interface.
+     *
+     * @return the closing string
+     */
+    private String getClosingString() {
+        StringBuilder rpc = new StringBuilder("</ConfigIf-Configuration>");
         rpc.append("</interface>");
         rpc.append("</Device-Configuration>");
         rpc.append("</xml-config-data>");
@@ -326,6 +429,16 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
      */
     @Override
     public List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId) {
+        return getInterfaces();
+    }
+
+    /**
+     * Provides the interfaces configured on a device.
+     *
+     * @return the list of the configured interfaces
+     */
+    @Override
+    public List<DeviceInterfaceDescription> getInterfaces() {
         NetconfController controller =
                 checkNotNull(handler().get(NetconfController.class));
 
@@ -336,7 +449,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
             reply = session.requestSync(getConfigBuilder());
         } catch (NetconfException e) {
             log.error("Failed to retrieve configuration from device {}.",
-                      deviceId, e);
+                      handler().data().deviceId(), e);
             return null;
         }
 
