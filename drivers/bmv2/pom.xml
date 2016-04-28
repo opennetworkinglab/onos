@@ -49,6 +49,11 @@
             <artifactId>onos-bmv2-protocol</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-drivers</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

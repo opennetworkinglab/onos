@@ -67,7 +67,7 @@ import org.onosproject.net.flow.instructions.Instructions.ExtensionInstructionWr
 public class Bmv2DefaultFlowRuleTranslator implements Bmv2FlowRuleTranslator {
 
     // TODO: config is harcoded now, instead it should be selected based on device model
-    private final TranslatorConfig config = new Bmv2SimplePipelineTranslatorConfig();
+    private final TranslatorConfig config = new Bmv2SimpleTranslatorConfig();
     private final Bmv2Model model = config.model();
 
     private static Bmv2TernaryMatchParam buildTernaryParam(Bmv2ModelField field, Criterion criterion, int byteWidth)

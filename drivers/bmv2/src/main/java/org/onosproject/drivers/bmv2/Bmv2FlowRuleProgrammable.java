@@ -42,11 +42,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
-public class Bmv2FlowRuleDriver extends AbstractHandlerBehaviour
+/**
+ * Flow rule programmable device behaviour implementation for BMv2.
+ */
+public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
         implements FlowRuleProgrammable {
 
     private static final Logger LOG =
-            LoggerFactory.getLogger(Bmv2FlowRuleDriver.class);
+            LoggerFactory.getLogger(Bmv2FlowRuleProgrammable.class);
     // There's no Bmv2 client method to poll flow entries from the device device. gitNeed a local store.
     private static final ConcurrentMap<Triple<DeviceId, String, Bmv2MatchKey>, Pair<Long, FlowEntry>>
             ENTRIES_MAP = Maps.newConcurrentMap();

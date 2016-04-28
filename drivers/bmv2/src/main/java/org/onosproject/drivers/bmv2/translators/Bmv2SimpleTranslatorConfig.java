@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.bmv2.api.model.Bmv2Model;
 import org.onosproject.bmv2.api.runtime.Bmv2Action;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -36,19 +37,19 @@ import java.util.Map;
 
 /**
  * Implementation of a Bmv2 flow rule translator configuration for the
- * simple_pipeline.p4 model.
+ * simple.p4 model.
  */
 @Beta
-public class Bmv2SimplePipelineTranslatorConfig implements Bmv2FlowRuleTranslator.TranslatorConfig {
+public class Bmv2SimpleTranslatorConfig implements Bmv2FlowRuleTranslator.TranslatorConfig {
 
-    private static final String JSON_CONFIG_PATH = "/simple_pipeline.json";
+    private static final String JSON_CONFIG_PATH = "/simple.json";
     private final Map<String, Criterion.Type> fieldMap = Maps.newHashMap();
     private final Bmv2Model model;
 
     /**
      * Creates a new simple pipeline translator configuration.
      */
-    public Bmv2SimplePipelineTranslatorConfig() {
+    public Bmv2SimpleTranslatorConfig() {
 
         this.model = getModel();
 
@@ -65,6 +66,12 @@ public class Bmv2SimplePipelineTranslatorConfig implements Bmv2FlowRuleTranslato
                 .build();
     }
 
+    private static Bmv2Action buildPushToCpAction() {
+        return Bmv2Action.builder()
+                .withName("send_to_cpu")
+                .build();
+    }
+
     private static Bmv2Action buildFwdAction(Instructions.OutputInstruction inst)
             throws Bmv2FlowRuleTranslatorException {
 
@@ -73,8 +80,12 @@ public class Bmv2SimplePipelineTranslatorConfig implements Bmv2FlowRuleTranslato
         actionBuilder.withName("fwd");
 
         if (inst.port().isLogical()) {
-            throw new Bmv2FlowRuleTranslatorException(
-                    "Output logic port numbers not supported: " + inst);
+            if (inst.port() == PortNumber.CONTROLLER) {
+                return buildPushToCpAction();
+            } else {
+                throw new Bmv2FlowRuleTranslatorException(
+                        "Output logic port number not supported: " + inst);
+            }
         }
 
         actionBuilder.addParameter(
@@ -84,7 +95,7 @@ public class Bmv2SimplePipelineTranslatorConfig implements Bmv2FlowRuleTranslato
     }
 
     private static Bmv2Model getModel() {
-        InputStream inputStream = Bmv2SimplePipelineTranslatorConfig.class
+        InputStream inputStream = Bmv2SimpleTranslatorConfig.class
                 .getResourceAsStream(JSON_CONFIG_PATH);
         InputStreamReader reader = new InputStreamReader(inputStream);
         BufferedReader bufReader = new BufferedReader(reader);

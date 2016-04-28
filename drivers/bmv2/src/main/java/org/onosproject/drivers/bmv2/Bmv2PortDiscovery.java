@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 
-public class Bmv2PortGetterDriver extends AbstractHandlerBehaviour
+public class Bmv2PortDiscovery extends AbstractHandlerBehaviour
         implements PortDiscovery {
 
     private final Logger log =

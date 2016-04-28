@@ -20,7 +20,7 @@
         <feature>onos-drivers-bmv2</feature>
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bmv2-provider-device/${project.version}</bundle>
-        <bundle>mvn:org.apache.thrift/libthrift/0.9.2</bundle>
+        <bundle>mvn:org.apache.thrift/libthrift/0.9.3</bundle>
         <bundle>mvn:${project.groupId}/onos-bmv2-protocol/${project.version}</bundle>
     </feature>
 </features>

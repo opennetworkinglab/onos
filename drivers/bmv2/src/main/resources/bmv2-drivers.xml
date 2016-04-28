@@ -18,8 +18,12 @@
 <drivers>
     <driver name="bmv2-thrift" manufacturer="p4.org" hwVersion="bmv2" swVersion="unknown">
         <behaviour api="org.onosproject.net.behaviour.PortDiscovery"
-                   impl="org.onosproject.drivers.bmv2.Bmv2PortGetterDriver"/>
+                   impl="org.onosproject.drivers.bmv2.Bmv2PortDiscovery"/>
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
-                   impl="org.onosproject.drivers.bmv2.Bmv2FlowRuleDriver"/>
+                   impl="org.onosproject.drivers.bmv2.Bmv2FlowRuleProgrammable"/>
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.bmv2.Bmv2Pipeliner"/>
+        <behaviour api="org.onosproject.net.packet.PacketProgrammable"
+                   impl="org.onosproject.drivers.bmv2.Bmv2PacketProgrammable"/>
     </driver>
 </drivers>
