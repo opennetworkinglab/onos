@@ -1,8 +1,3 @@
-SRC = 'src/main/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-drivers-bti'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/snmp/api:onos-snmp-api',
@@ -13,11 +8,16 @@ COMPILE_DEPS = [
     '//lib:mibs-net-snmp',
 ]
 
-osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
     resources_root = 'src/main/resources',
     resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    title = 'Bti Device Drivers',
+    category = 'Drivers',
+    url = 'http://onosproject.org',
+    description = 'ONOS Bti Device Drivers application.',
+    required_apps = [ 'org.onosproject.snmp' ],
 )

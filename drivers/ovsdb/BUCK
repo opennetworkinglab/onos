@@ -1,8 +1,3 @@
-SRC = 'src/main/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-drivers-ovsdb'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//drivers/utilities:onos-drivers-utilities',
@@ -10,11 +5,21 @@ COMPILE_DEPS = [
     '//protocols/ovsdb/rfc:onos-ovsdb-rfc',
 ]
 
-osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//protocols/ovsdb/api:onos-protocols-ovsdb-tests',
+]
+
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
+    test_deps = TEST_DEPS,
     resources_root = 'src/main/resources',
     resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    title = 'OVSDB Device Drivers',
+    category = 'Drivers',
+    url = 'http://onosproject.org',
+    description = 'ONOS OVSDB Device Drivers application.',
 )

@@ -1,19 +1,18 @@
-SRC = 'src/main/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-drivers-netconf'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//drivers/utilities:onos-drivers-utilities',
     '//protocols/netconf/api:onos-protocols-netconf-api',
 ]
 
-osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
     resources_root = 'src/main/resources',
     resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    title = 'NETCONF Device Drivers',
+    category = 'Drivers',
+    url = 'http://onosproject.org',
+    description = 'ONOS NETCONF Device Drivers application.',
 )
