@@ -1,7 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:openflowj',
-    '//protocols/openflow/api:onos-of-api',
+    '//protocols/openflow/api:onos-protocols-openflow-api',
     '//providers/openflow/flow:onos-providers-openflow-flow',
 ]
 

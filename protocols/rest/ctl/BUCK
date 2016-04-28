@@ -12,10 +12,6 @@ COMPILE_DEPS = [
     '//protocols/rest/api:onos-protocols-rest-api',
 ]
 
-TEST_DEPS = [
-    '//lib:TEST',
-]
-
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
 )

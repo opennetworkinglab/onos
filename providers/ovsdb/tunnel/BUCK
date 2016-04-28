@@ -6,8 +6,8 @@ CURRENT_TARGET = ':' + CURRENT_NAME
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//protocols/ovsdb/api:onos-ovsdb-api',
-    '//protocols/ovsdb/rfc:onos-ovsdb-rfc',
+    '//protocols/ovsdb/api:onos-protocols-ovsdb-api',
+    '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc',
     '//incubator/api:onos-incubator-api',
 ]
 

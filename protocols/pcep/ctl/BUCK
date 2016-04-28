@@ -1,18 +1,10 @@
-SRC = 'src/main/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-pcep-ctl'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//protocols/pcep/pcepio:onos-pcep-pcepio',
-    '//protocols/pcep/api:onos-pcep-controller-api',
+    '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
+    '//protocols/pcep/api:onos-protocols-pcep-api',
 ]
 
-osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
 )
 

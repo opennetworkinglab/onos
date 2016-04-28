@@ -1,6 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//protocols/snmp/api:onos-snmp-api',
+    '//protocols/snmp/api:onos-protocols-snmp-api',
     '//incubator/api:onos-incubator-api',
     '//lib:org.apache.servicemix.bundles.snmp4j',
     '//lib:snmp-core',

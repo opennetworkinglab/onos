@@ -6,8 +6,8 @@ COMPILE_DEPS = [
     '//lib:mibs-net-snmp',
     '//lib:mibs-rfc',
     '//incubator/api:onos-incubator-api',
-    '//protocols/snmp/api:onos-snmp-api',
-    '//protocols/snmp/ctl:onos-snmp-ctl',
+    '//protocols/snmp/api:onos-protocols-snmp-api',
+    '//protocols/snmp/ctl:onos-protocols-snmp-ctl',
 ]
 
 osgi_jar_with_tests (

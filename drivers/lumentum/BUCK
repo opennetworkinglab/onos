@@ -2,7 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:org.apache.servicemix.bundles.snmp4j',
     '//drivers/utilities:onos-drivers-utilities',
-    '//protocols/snmp/api:onos-snmp-api',
+    '//protocols/snmp/api:onos-protocols-snmp-api',
     '//incubator/api:onos-incubator-api',
 ]
 

@@ -15,8 +15,8 @@ COMPILE_DEPS = [
     '//apps/openstackinterface/api:onos-apps-openstackinterface-api',
     '//apps/dhcp/api:onos-apps-dhcp-api',
     '//apps/xosclient:onos-apps-xosclient',
-    '//protocols/ovsdb/api:onos-ovsdb-api',
-    '//protocols/ovsdb/rfc:onos-ovsdb-rfc',
+    '//protocols/ovsdb/api:onos-protocols-ovsdb-api',
+    '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc',
 ]
 
 BUNDLES = [

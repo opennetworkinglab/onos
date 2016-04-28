@@ -9,7 +9,6 @@ TEST_DEPS = [
 ]
 
 osgi_jar_with_tests (
-    name = 'onos-of-api',
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
 )

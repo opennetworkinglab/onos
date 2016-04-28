@@ -1,7 +1,7 @@
 BUNDLES = [
     '//lib:openflowj',
-    '//protocols/openflow/api:onos-of-api',
-    '//protocols/openflow/ctl:onos-of-ctl',
+    '//protocols/openflow/api:onos-protocols-openflow-api',
+    '//protocols/openflow/ctl:onos-protocols-openflow-ctl',
     '//providers/openflow/device:onos-providers-openflow-device',
     '//providers/openflow/packet:onos-providers-openflow-packet',
     '//providers/openflow/flow:onos-providers-openflow-flow',
