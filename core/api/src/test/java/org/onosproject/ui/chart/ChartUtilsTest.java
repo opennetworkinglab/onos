@@ -29,7 +29,7 @@ public class ChartUtilsTest {
     private static final String BAR = "bar";
 
     private static final String ARRAY_AS_STRING =
-            "[{\"foo\":1.0,\"bar\":2.0},{\"foo\":3.0,\"bar\":4.0}]";
+            "[{\"foo\":\"1.0\",\"bar\":\"2.0\"},{\"foo\":\"3.0\",\"bar\":\"4.0\"}]";
     private static final String NODE_AS_STRING =
             "{\"dev1\":\"of:0000000000000001\",\"dev2\":\"of:0000000000000002\"}";
 

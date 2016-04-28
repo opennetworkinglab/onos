@@ -62,6 +62,8 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
 
     private static final int MILLI_CONV_UNIT = 1000;
 
+    private static final String TIME_FORMAT = "HH:mm";
+
     private long timestamp = 0L;
 
     @Override
@@ -101,15 +103,13 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
                 for (String deviceId : deviceIds) {
                     Map<ControlMetricType, Long> data =
                             populateDeviceMetrics(cpms, cs, DeviceId.deviceId(deviceId));
-                    Map<String, Long> local = Maps.newHashMap();
+                    Map<String, Object> local = Maps.newHashMap();
                     for (ControlMetricType cmt : CONTROL_MESSAGE_METRICS) {
                         local.put(StringUtils.lowerCase(cmt.name()), data.get(cmt));
                     }
-                    // TODO: need to find a way to present device id using long type
-                    String shortId = StringUtils.substring(deviceId,
-                            deviceId.length() - 2, deviceId.length());
-                    local.put(LABEL, Long.valueOf(shortId));
-                    populateMetric(cm.addDataPoint(Long.valueOf(shortId)), local);
+
+                    local.put(LABEL, deviceId);
+                    populateMetric(cm.addDataPoint(deviceId), local);
                 }
             }
         }
@@ -171,24 +171,25 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
             }
         }
 
-        private void populateMetrics(ChartModel cm, Map<ControlMetricType,
-                Long[]> data, LocalDateTime time, int numOfDp) {
+        private void populateMetrics(ChartModel cm,
+                                     Map<ControlMetricType, Long[]> data,
+                                     LocalDateTime time, int numOfDp) {
             for (int i = 0; i < numOfDp; i++) {
-                Map<String, Long> local = Maps.newHashMap();
+                Map<String, Object> local = Maps.newHashMap();
                 for (ControlMetricType cmt : CONTROL_MESSAGE_METRICS) {
                     local.put(StringUtils.lowerCase(cmt.name()), data.get(cmt)[i]);
                 }
 
-                local.put(LABEL, time.minusMinutes(numOfDp - i).toDateTime().getMillis());
+                String calculated = time.minusMinutes(numOfDp - i).toString(TIME_FORMAT);
 
-                populateMetric(cm.addDataPoint(time.minusMinutes(numOfDp - i)
-                        .toDateTime().getMillis()), local);
+                local.put(LABEL, calculated);
+                populateMetric(cm.addDataPoint(calculated), local);
             }
         }
 
         private void populateMetric(ChartModel.DataPoint dataPoint,
-                                    Map<String, Long> data) {
-            data.forEach((k, v) -> dataPoint.data(k, v.doubleValue()));
+                                    Map<String, Object> data) {
+            data.forEach((k, v) -> dataPoint.data(k, v));
         }
     }
 }

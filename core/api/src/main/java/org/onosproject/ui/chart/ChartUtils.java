@@ -69,7 +69,7 @@ public final class ChartUtils {
     public static JsonNode toJsonNode(ChartModel.DataPoint dp, ChartModel cm) {
         ObjectNode result = MAPPER.createObjectNode();
         String[] series = cm.getSeries();
-        Double[] values = dp.getAll();
+        String[] values = dp.getAsStrings();
         int n = series.length;
         for (int i = 0; i < n; i++) {
             result.put(series[i], values[i]);

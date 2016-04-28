@@ -31,7 +31,7 @@
         data[i] = new Array(1);
     }
 
-    var date, max, merged;
+    var max;
 
     function ceil(num) {
         if (isNaN(num)) {
@@ -40,6 +40,11 @@
         var pre = num.toString().length - 1
         var pow = Math.pow(10, pre);
         return (Math.ceil(num / pow)) * pow;
+    }
+
+    function maxInArray(array) {
+        var merged = [].concat.apply([], array);
+        return Math.max.apply(null, merged);
     }
 
     angular.module('ovCpman', ["chart.js"])
@@ -88,37 +93,30 @@
                         data[4][idx] = cm.request_packet;
                         data[5][idx] = cm.reply_packet;
 
-                        if(hasDeviceId) {
-                            date = new Date(cm.label);
-                            labels[idx] = date.getHours() + ":" + date.getMinutes();
-                        } else {
-                            labels[idx] = cm.label;
-                        }
+                        labels[idx] = cm.label;
                     });
                 }
 
-                merged = [].concat.apply([], data);
-                max = Math.max.apply(null, merged);
+                max = maxInArray(data)
                 $scope.labels = labels;
                 $scope.data = data;
                 $scope.options = {
                     scaleOverride : true,
                     scaleSteps : 10,
                     scaleStepWidth : ceil(max) / 10,
-                    scaleStartValue : 0
+                    scaleStartValue : 0,
+                    scaleFontSize : 16
                 };
                 $scope.onClick = function (points, evt) {
                     if (points[0]) {
-                        // TODO: this will be replaced with real device id
-                        var tmpId = 'of:000000000000020' + points[0].label;
-                        ns.navTo('cpman', { devId: tmpId });
+                        ns.navTo('cpman', { devId: points[0].label });
                         $log.log(points[0].label);
                     }
                 };
             });
 
             $scope.series = ['INBOUND', 'OUTBOUND', 'FLOW-MOD',
-                             'FLOW-REMOVED', 'STATS-REQUEST', 'STATS-REPLY'];
+                             'FLOW-REMOVED', 'REQUEST', 'REPLY'];
             $scope.labels = labels;
             $scope.data = data;
 
