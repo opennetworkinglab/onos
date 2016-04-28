@@ -13,6 +13,7 @@ COMPILE_DEPS = [
 
 TEST_DEPS = [
     '//lib:TEST',
+    '//core/api:onos-api-tests',
 ]
 
 RESOURCES = [
