@@ -38,6 +38,8 @@
                    impl="org.onosproject.driver.query.FullVlanAvailable" />
         <behaviour api="org.onosproject.net.behaviour.MplsQuery"
                    impl="org.onosproject.driver.query.FullMplsAvailable" />
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.OVSAdvanced"/>
     </driver>
     <driver name="ovs-corsa" extends="ovs"
             manufacturer="Corsa" hwVersion="emulation" swVersion="0.0.0">
