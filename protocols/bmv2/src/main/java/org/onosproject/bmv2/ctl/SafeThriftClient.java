@@ -173,7 +173,12 @@ public final class SafeThriftClient {
         private static void reconnectOrThrowException(TTransport transport, int maxRetries, long timeBetweenRetries)
                 throws TTransportException {
             int errors = 0;
-            transport.close();
+            try {
+                transport.close();
+            } catch (Exception e) {
+                // Thrift seems to have a bug where if the transport is already closed a SocketException is thrown.
+                // However, such an exception is not advertised by .close(), hence the general-purpose catch.
+            }
 
             while (errors < maxRetries) {
                 try {
@@ -182,7 +187,7 @@ public final class SafeThriftClient {
                     LOG.debug("Reconnection successful");
                     break;
                 } catch (TTransportException e) {
-                    LOG.error("Error while reconnecting:", e);
+                    LOG.debug("Error while reconnecting:", e);
                     errors++;
 
                     if (errors < maxRetries) {

@@ -80,9 +80,9 @@ public final class Bmv2ThriftClient implements Bmv2Client {
     // Seconds after a client is expired (and connection closed) in the cache.
     private static final int CLIENT_CACHE_TIMEOUT = 60;
     // Number of connection retries after a network error.
-    private static final int NUM_CONNECTION_RETRIES = 10;
+    private static final int NUM_CONNECTION_RETRIES = 3;
     // Time between retries in milliseconds.
-    private static final int TIME_BETWEEN_RETRIES = 200;
+    private static final int TIME_BETWEEN_RETRIES = 300;
 
     // Static client cache where clients are removed after a predefined timeout.
     private static final LoadingCache<DeviceId, Bmv2ThriftClient>
@@ -122,6 +122,15 @@ public final class Bmv2ThriftClient implements Bmv2Client {
             LOG.debug("Exception while getting a client from cache: {} > ", e, deviceId);
             throw new Bmv2RuntimeException(e.getMessage(), e.getCause());
         }
+    }
+
+    /**
+     * Force a close of the transport session (if one is open) with the given device.
+     *
+     * @param deviceId device id
+     */
+    public static void forceDisconnectOf(DeviceId deviceId) {
+        CLIENT_CACHE.invalidate(deviceId);
     }
 
     /**
@@ -392,7 +401,7 @@ public final class Bmv2ThriftClient implements Bmv2Client {
             LOG.debug("Packet transmission requested! > portNumber={}, packet={}", portNumber, packet);
         } catch (TException e) {
             LOG.debug("Exception while requesting packet transmission: {} > portNumber={}, packet={}",
-                      portNumber, packet);
+                      e, portNumber, packet);
             throw new Bmv2RuntimeException(e.getMessage(), e);
         }
     }
