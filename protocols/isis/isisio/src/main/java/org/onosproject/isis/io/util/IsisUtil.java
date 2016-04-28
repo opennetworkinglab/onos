@@ -654,7 +654,7 @@ public final class IsisUtil {
      * @return given number as bytes
      */
     public static byte[] convertToThreeBytes(int numberToConvert) {
-        byte[] numInBytes = new byte[4];
+        byte[] numInBytes = new byte[3];
         String s1 = Integer.toHexString(numberToConvert);
         if (s1.length() % 2 != 0) {
             s1 = "0" + s1;

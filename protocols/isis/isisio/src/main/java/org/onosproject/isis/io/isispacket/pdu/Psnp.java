@@ -79,8 +79,22 @@ public class Psnp extends IsisHeader {
         populateHeader(isisHeader);
     }
 
+    /**
+     * Adds the TLV to list.
+     *
+     * @param isisTlv ISIS TLV instance
+     */
     public void addTlv(IsisTlv isisTlv) {
         variableLengths.add(isisTlv);
+    }
+
+    /**
+     * Returns the list of all tlvs.
+     *
+     * @return variableLengths list of tlvs
+     */
+    public List<IsisTlv> getAllTlv() {
+        return variableLengths;
     }
 
     /**
@@ -136,7 +150,9 @@ public class Psnp extends IsisHeader {
             TlvType tlvValue = TlvType.get(tlvHeader.tlvType());
             if (tlvValue != null) {
                 IsisTlv tlv = TlvFinder.findTlv(tlvHeader, channelBuffer.readBytes(tlvHeader.tlvLength()));
-                this.variableLengths.add(tlv);
+                if (tlv != null) {
+                    this.variableLengths.add(tlv);
+                }
             } else {
                 channelBuffer.readBytes(tlvHeader.tlvLength());
             }
