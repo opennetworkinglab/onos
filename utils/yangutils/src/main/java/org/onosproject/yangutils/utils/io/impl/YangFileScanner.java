@@ -85,7 +85,7 @@ public final class YangFileScanner {
                 root = stack.pop();
                 file = new File(root);
                 filelist = file.listFiles();
-                if (filelist.length == 0) {
+                if ((filelist == null) || (filelist.length == 0)) {
                     continue;
                 }
                 for (File current : filelist) {
