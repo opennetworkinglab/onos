@@ -56,7 +56,7 @@ public class XosClient implements XosClientService {
     protected final Logger log = getLogger(getClass());
 
     private static final String VTN_BASE_URL = "vtnBaseUrl";
-    private static final String DEFAULT_VTN_BASE_URL = "/xoslib/rs/vtn/services/";
+    private static final String DEFAULT_VTN_BASE_URL = "/api/service/vtn/services/";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
