@@ -15,17 +15,24 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Versioned;
+import org.slf4j.Logger;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+
+import static org.onosproject.store.service.DistributedPrimitive.Status.INACTIVE;
+import static org.onosproject.store.service.DistributedPrimitive.Status.SUSPENDED;
 
 /**
  * {@code AsyncConsistentMap} that caches entries on read.
@@ -39,20 +46,13 @@ import com.google.common.cache.LoadingCache;
  * @param <V> value type
  */
 public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMap<K, V> {
-    private int maxCacheSize = 10000;
+    private static final int DEFAULT_CACHE_SIZE = 10000;
+    private final Logger log = getLogger(getClass());
 
-    private final LoadingCache<K, CompletableFuture<Versioned<V>>> cache =
-            CacheBuilder.newBuilder()
-                    .maximumSize(maxCacheSize)
-                    .build(new CacheLoader<K, CompletableFuture<Versioned<V>>>() {
-                        @Override
-                        public CompletableFuture<Versioned<V>> load(K key)
-                                throws Exception {
-                            return CachingAsyncConsistentMap.super.get(key);
-                        }
-                    });
+    private final LoadingCache<K, CompletableFuture<Versioned<V>>> cache;
 
-    private final MapEventListener<K, V> cacheInvalidator = event -> cache.invalidate(event.key());
+    private final MapEventListener<K, V> cacheInvalidator;
+    private final Consumer<Status> statusListener;
 
     /**
      * Default constructor.
@@ -60,24 +60,36 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
      * @param backingMap a distributed, strongly consistent map for backing
      */
     public CachingAsyncConsistentMap(AsyncConsistentMap<K, V> backingMap) {
-        super(backingMap);
-        super.addListener(cacheInvalidator);
+        this(backingMap, DEFAULT_CACHE_SIZE);
     }
 
     /**
-     * Constructor to configure cache size of LoadingCache.
+     * Constructor to configure cache size.
      *
      * @param backingMap a distributed, strongly consistent map for backing
      * @param cacheSize the maximum size of the cache
      */
     public CachingAsyncConsistentMap(AsyncConsistentMap<K, V> backingMap, int cacheSize) {
         super(backingMap);
+        cache = CacheBuilder.newBuilder()
+                            .maximumSize(cacheSize)
+                            .build(CacheLoader.from(CachingAsyncConsistentMap.super::get));
+        cacheInvalidator = event -> cache.invalidate(event.key());
+        statusListener = status -> {
+            log.debug("{} status changed to {}", this.name(), status);
+            // If the status of the underlying map is SUSPENDED or INACTIVE
+            // we can no longer guarantee that the cache will be in sync.
+            if (status == SUSPENDED || status == INACTIVE) {
+                cache.invalidateAll();
+            }
+        };
         super.addListener(cacheInvalidator);
-        maxCacheSize = cacheSize;
+        super.addStatusChangeListener(statusListener);
     }
 
     @Override
     public CompletableFuture<Void> destroy() {
+        super.removeStatusChangeListener(statusListener);
         return super.destroy().thenCompose(v -> removeListener(cacheInvalidator));
     }
 

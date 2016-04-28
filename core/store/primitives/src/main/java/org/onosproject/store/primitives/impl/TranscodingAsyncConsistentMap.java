@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -33,7 +34,6 @@ import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
-
 import com.google.common.collect.Maps;
 
 /**
@@ -279,6 +279,21 @@ public class TranscodingAsyncConsistentMap<K1, V1, K2, V2> implements AsyncConsi
         } catch (Exception e) {
             return Tools.exceptionalFuture(e);
         }
+    }
+
+    @Override
+    public void addStatusChangeListener(Consumer<Status> listener) {
+        backingMap.addStatusChangeListener(listener);
+    }
+
+    @Override
+    public void removeStatusChangeListener(Consumer<Status> listener) {
+        backingMap.removeStatusChangeListener(listener);
+    }
+
+    @Override
+    public Collection<Consumer<Status>> statusChangeListeners() {
+        return backingMap.statusChangeListeners();
     }
 
     private class InternalBackingMapEventListener implements MapEventListener<K2, V2> {

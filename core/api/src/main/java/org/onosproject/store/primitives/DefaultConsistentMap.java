@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -184,6 +185,21 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
     @Override
     public void removeListener(MapEventListener<K, V> listener) {
         complete(asyncMap.addListener(listener));
+    }
+
+    @Override
+    public void addStatusChangeListener(Consumer<Status> listener) {
+        asyncMap.addStatusChangeListener(listener);
+    }
+
+    @Override
+    public void removeStatusChangeListener(Consumer<Status> listener) {
+        asyncMap.removeStatusChangeListener(listener);
+    }
+
+    @Override
+    public Collection<Consumer<Status>> statusChangeListeners() {
+        return asyncMap.statusChangeListeners();
     }
 
     @Override

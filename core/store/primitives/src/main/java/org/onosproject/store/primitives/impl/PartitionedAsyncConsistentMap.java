@@ -27,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -38,7 +39,6 @@ import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -252,6 +252,21 @@ public class PartitionedAsyncConsistentMap<K, V> implements AsyncConsistentMap<K
                                             .map(e -> e.getKey().prepareAndCommit(e.getValue()))
                                             .collect(Collectors.toList()))
                     .thenApply(list -> list.stream().reduce(Boolean::logicalAnd).orElse(true));
+    }
+
+    @Override
+    public void addStatusChangeListener(Consumer<Status> listener) {
+        partitions.values().forEach(map -> map.addStatusChangeListener(listener));
+    }
+
+    @Override
+    public void removeStatusChangeListener(Consumer<Status> listener) {
+        partitions.values().forEach(map -> map.removeStatusChangeListener(listener));
+    }
+
+    @Override
+    public Collection<Consumer<Status>> statusChangeListeners() {
+        throw new UnsupportedOperationException();
     }
 
     /**

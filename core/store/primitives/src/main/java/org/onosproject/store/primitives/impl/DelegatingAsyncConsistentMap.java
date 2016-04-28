@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.onosproject.core.ApplicationId;
@@ -32,7 +33,6 @@ import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
-
 import com.google.common.base.MoreObjects;
 
 /**
@@ -180,6 +180,21 @@ public class DelegatingAsyncConsistentMap<K, V> implements AsyncConsistentMap<K,
     @Override
     public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K, V> transaction) {
         return delegateMap.prepareAndCommit(transaction);
+    }
+
+    @Override
+    public void addStatusChangeListener(Consumer<Status> listener) {
+        delegateMap.addStatusChangeListener(listener);
+    }
+
+    @Override
+    public void removeStatusChangeListener(Consumer<Status> listener) {
+        delegateMap.removeStatusChangeListener(listener);
+    }
+
+    @Override
+    public Collection<Consumer<Status>> statusChangeListeners() {
+        return delegateMap.statusChangeListeners();
     }
 
     @Override

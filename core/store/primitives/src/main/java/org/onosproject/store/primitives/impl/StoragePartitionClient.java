@@ -23,6 +23,7 @@ import io.atomix.catalyst.transport.Transport;
 import io.atomix.catalyst.util.concurrent.CatalystThreadFactory;
 import io.atomix.copycat.client.ConnectionStrategies;
 import io.atomix.copycat.client.CopycatClient;
+import io.atomix.copycat.client.CopycatClient.State;
 import io.atomix.copycat.client.RecoveryStrategies;
 import io.atomix.copycat.client.RetryStrategies;
 import io.atomix.copycat.client.ServerSelectionStrategies;
@@ -36,6 +37,8 @@ import io.atomix.variables.DistributedLong;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.onlab.util.HexString;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
@@ -48,6 +51,7 @@ import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
+import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.onosproject.store.service.DistributedQueue;
 import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
@@ -71,6 +75,18 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     private final Supplier<AsyncConsistentMap<String, byte[]>> onosAtomicValuesMap =
             Suppliers.memoize(() -> newAsyncConsistentMap(ATOMIC_VALUES_CONSISTENT_MAP_NAME,
                                                           Serializer.using(KryoNamespaces.BASIC)));
+    Function<State, Status> mapper = state -> {
+                                        switch (state) {
+                                        case CONNECTED:
+                                            return Status.ACTIVE;
+                                        case SUSPENDED:
+                                            return Status.SUSPENDED;
+                                        case CLOSED:
+                                            return Status.INACTIVE;
+                                        default:
+                                            throw new IllegalStateException("Unknown state " + state);
+                                        }
+                                    };
 
     public StoragePartitionClient(StoragePartition partition,
             io.atomix.catalyst.serializer.Serializer serializer,
@@ -90,7 +106,8 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                                              transport,
                                              serializer.clone(),
                                              StoragePartition.RESOURCE_TYPES);
-            copycatClient.onStateChange(state -> log.info("Client state {}", state));
+          copycatClient.onStateChange(state -> log.debug("Partition {} client state"
+                    + " changed to {}", partition.getId(), state));
             client = new AtomixClient(new ResourceClient(copycatClient));
         }
         return client.open().whenComplete((r, e) -> {
@@ -109,9 +126,14 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public <K, V> AsyncConsistentMap<K, V> newAsyncConsistentMap(String name, Serializer serializer) {
+        AtomixConsistentMap atomixConsistentMap = client.getResource(name, AtomixConsistentMap.class).join();
+        Consumer<State> statusListener = state -> {
+            atomixConsistentMap.statusChangeListeners()
+                               .forEach(listener -> listener.accept(mapper.apply(state)));
+        };
+        copycatClient.onStateChange(statusListener);
         AsyncConsistentMap<String, byte[]> rawMap =
-                new DelegatingAsyncConsistentMap<String, byte[]>(client.getResource(name, AtomixConsistentMap.class)
-                                                                       .join()) {
+                new DelegatingAsyncConsistentMap<String, byte[]>(atomixConsistentMap) {
                     @Override
                     public String name() {
                         return name;
@@ -139,9 +161,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     public <V> AsyncAtomicValue<V> newAsyncAtomicValue(String name, Serializer serializer) {
-       return new DefaultAsyncAtomicValue<>(name,
-                                        serializer,
-                                        onosAtomicValuesMap.get());
+       return new DefaultAsyncAtomicValue<>(name, serializer, onosAtomicValuesMap.get());
     }
 
     @Override

@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.onlab.util.Match;
@@ -53,7 +54,7 @@ import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
-
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -63,6 +64,7 @@ import com.google.common.collect.Sets;
 public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     implements AsyncConsistentMap<String, byte[]> {
 
+    private final Set<Consumer<Status>> statusChangeListeners = Sets.newCopyOnWriteArraySet();
     private final Set<MapEventListener<String, byte[]>> mapEventListeners = Sets.newCopyOnWriteArraySet();
 
     public static final String CHANGE_SUBJECT = "changeEvents";
@@ -290,5 +292,20 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<String, byte[]> transaction) {
         return submit(new TransactionPrepareAndCommit(transaction)).thenApply(v -> v == PrepareResult.OK);
+    }
+
+    @Override
+    public void addStatusChangeListener(Consumer<Status> listener) {
+        statusChangeListeners.add(listener);
+    }
+
+    @Override
+    public void removeStatusChangeListener(Consumer<Status> listener) {
+        statusChangeListeners.remove(listener);
+    }
+
+    @Override
+    public Collection<Consumer<Status>> statusChangeListeners() {
+        return ImmutableSet.copyOf(statusChangeListeners);
     }
 }

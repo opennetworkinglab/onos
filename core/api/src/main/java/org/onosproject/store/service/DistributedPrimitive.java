@@ -15,7 +15,10 @@
  */
 package org.onosproject.store.service;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import org.onosproject.core.ApplicationId;
 
@@ -74,6 +77,29 @@ public interface DistributedPrimitive {
         TRANSACTION_CONTEXT
     }
 
+    /**
+     * Status of distributed primitive.
+     */
+    public enum Status {
+
+        /**
+         * Signifies a state wherein the primitive is operating correctly and is capable of meeting the advertised
+         * consistency and reliability guarantees.
+         */
+        ACTIVE,
+
+        /**
+         * Signifies a state wherein the primitive is temporarily incapable of providing the advertised
+         * consistency properties.
+         */
+        SUSPENDED,
+
+        /**
+         * Signifies a state wherein the primitive has been shutdown and therefore cannot perform its functions.
+         */
+        INACTIVE
+    }
+
     static final long DEFAULT_OPERTATION_TIMEOUT_MILLIS = 60000L;
 
     /**
@@ -106,5 +132,25 @@ public interface DistributedPrimitive {
      */
     default CompletableFuture<Void> destroy() {
         return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Registers a listener to be called when the primitive's status changes.
+     * @param listener The listener to be called when the status changes.
+     */
+    default void addStatusChangeListener(Consumer<Status> listener) {}
+
+    /**
+     * Unregisters a previously registered listener to be called when the primitive's status changes.
+     * @param listener The listener to unregister
+     */
+    default void removeStatusChangeListener(Consumer<Status> listener) {}
+
+    /**
+     * Returns the collection of status change listeners previously registered.
+     * @return collection of status change listeners
+     */
+    default Collection<Consumer<Status>> statusChangeListeners() {
+        return Collections.emptyList();
     }
 }
