@@ -97,4 +97,11 @@ public interface PortStatistics {
      */
     long durationNano();
 
+    /**
+     * Returns true if all the port stats are zero, excluding TxErrors and RxErrors.
+     *
+     * @return boolean true if all port stats are zero
+     */
+    boolean isZero();
+
 }

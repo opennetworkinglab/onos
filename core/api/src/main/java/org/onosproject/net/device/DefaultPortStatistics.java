@@ -142,6 +142,16 @@ public final class DefaultPortStatistics implements PortStatistics {
     }
 
     @Override
+    public boolean isZero() {
+        return  bytesReceived() == 0 &&
+                bytesSent() == 0 &&
+                packetsReceived() == 0 &&
+                packetsRxDropped() == 0 &&
+                packetsSent() == 0 &&
+                packetsTxDropped() == 0;
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("device: " + deviceId + ", ");
 
@@ -343,4 +353,5 @@ public final class DefaultPortStatistics implements PortStatistics {
         }
 
     }
+
 }

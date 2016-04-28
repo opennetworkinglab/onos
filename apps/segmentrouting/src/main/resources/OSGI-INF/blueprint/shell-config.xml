@@ -34,6 +34,9 @@
         <command>
             <action class="org.onosproject.segmentrouting.cli.TunnelRemoveCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.RerouteNetworkCommand"/>
+        </command>
     </command-bundle>
 </blueprint>
 

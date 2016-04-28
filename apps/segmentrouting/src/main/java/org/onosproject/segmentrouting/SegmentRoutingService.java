@@ -103,4 +103,10 @@ public interface SegmentRoutingService {
      * SUCCESS if it is removed successfully
      */
     PolicyHandler.Result removePolicy(Policy policy);
+
+    /**
+     * Use current state of the network to repopulate forwarding rules.
+     *
+     */
+    void rerouteNetwork();
 }

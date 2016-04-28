@@ -24,7 +24,7 @@ import org.onosproject.segmentrouting.TunnelPolicy;
 /**
  * Command to show the list of policies.
  */
-@Command(scope = "onos", name = "srpolicy-list",
+@Command(scope = "onos", name = "sr-policy-list",
         description = "Lists all policies")
 public class PolicyListCommand extends AbstractShellCommand {
 

@@ -32,6 +32,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -53,6 +56,8 @@ public class DefaultRoutingHandler {
     private DeviceConfiguration config;
     private final Lock statusLock = new ReentrantLock();
     private volatile Status populationStatus;
+    private static final int MAX_RETRY_ATTEMPTS = 5;
+    private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
     /**
      * Represents the default routing population status.
@@ -515,9 +520,17 @@ public class DefaultRoutingHandler {
      * @param deviceId Switch ID to set the rules
      */
     public void populatePortAddressingRules(DeviceId deviceId) {
-        rulePopulator.populateRouterMacVlanFilters(deviceId);
         rulePopulator.populateXConnectVlanFilters(deviceId);
         rulePopulator.populateRouterIpPunts(deviceId);
+
+        // Although device is added, sometimes device store does not have the
+        // ports for this device yet. It results in missing filtering rules in the
+        // switch. We will attempt it a few times. If it still does not work,
+        // user can manually repopulate using CLI command sr-reroute-network
+        boolean success = rulePopulator.populateRouterMacVlanFilters(deviceId);
+        if (!success) {
+            executorService.schedule(new RetryFilters(deviceId), 200, TimeUnit.MILLISECONDS);
+        }
     }
 
     /**
@@ -568,4 +581,25 @@ public class DefaultRoutingHandler {
             updatedEcmpSpgMap.remove(deviceId);
         }
     }
+
+    private class RetryFilters implements Runnable {
+        int attempts = MAX_RETRY_ATTEMPTS;
+        DeviceId devId;
+
+        public RetryFilters(DeviceId deviceId) {
+            devId = deviceId;
+        }
+
+        @Override
+        public void run() {
+            boolean success = rulePopulator.populateRouterMacVlanFilters(devId);
+            if (!success && --attempts > 0) {
+                executorService.schedule(this, 200, TimeUnit.MILLISECONDS);
+            } else if (attempts == 0) {
+                log.error("Unable to populate MacVlan filters in dev:{}", devId);
+            }
+        }
+
+    }
+
 }

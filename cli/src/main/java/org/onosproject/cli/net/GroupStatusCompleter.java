@@ -29,7 +29,7 @@ public class GroupStatusCompleter extends AbstractChoicesCompleter {
     protected List<String> choices() {
         List<String> strings = Lists.newArrayList();
         for (Group.GroupState groupState : Group.GroupState.values()) {
-            strings.add(groupState.toString());
+            strings.add(groupState.toString().toLowerCase());
         }
         strings.add(GroupsListCommand.ANY);
         return strings;

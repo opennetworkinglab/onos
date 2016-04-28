@@ -114,6 +114,11 @@ public class RoutingRulePopulator {
             log.warn(e.getMessage() + " Aborting populateIpRuleForHost.");
             return;
         }
+        if (fwdBuilder == null) {
+            log.warn("Aborting host routing table entries due "
+                    + "to error for dev:{} host:{}", deviceId, hostIp);
+            return;
+        }
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("IP rule for host {} populated", hostIp),
                 (objective, error) ->
@@ -191,7 +196,10 @@ public class RoutingRulePopulator {
                                     .matchVlanId(outvlan).build();
         int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outPort,
                                                              treatment, meta);
-
+        if (portNextObjId == -1) {
+            // warning log will come from getPortNextObjective method
+            return null;
+        }
         return DefaultForwardingObjective.builder()
                 .withSelector(selector)
                 .nextStep(portNextObjId)
@@ -464,7 +472,7 @@ public class RoutingRulePopulator {
      *
      * @param deviceId  the switch dpid for the router
      */
-    public void populateRouterMacVlanFilters(DeviceId deviceId) {
+    public boolean populateRouterMacVlanFilters(DeviceId deviceId) {
         log.debug("Installing per-port filtering objective for untagged "
                 + "packets in device {}", deviceId);
 
@@ -473,10 +481,17 @@ public class RoutingRulePopulator {
             deviceMac = config.getDeviceMac(deviceId);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateRouterMacVlanFilters.");
-            return;
+            return false;
         }
 
-        for (Port port : srManager.deviceService.getPorts(deviceId)) {
+        List<Port> devPorts = srManager.deviceService.getPorts(deviceId);
+        if (devPorts != null && devPorts.size() == 0) {
+            log.warn("Device {} ports not available. Unable to add MacVlan filters",
+                     deviceId);
+            return false;
+        }
+
+        for (Port port : devPorts) {
             ConnectPoint connectPoint = new ConnectPoint(deviceId, port.number());
             // TODO: Handles dynamic port events when we are ready for dynamic config
             if (!srManager.deviceConfiguration.suppressSubnet().contains(connectPoint) &&
@@ -498,6 +513,7 @@ public class RoutingRulePopulator {
                     fob.withMeta(tt);
                 }
                 fob.permit().fromApp(srManager.appId);
+                log.debug("Sending filtering objective for dev/port:{}/{}", deviceId, port);
                 ObjectiveContext context = new DefaultObjectiveContext(
                         (objective) -> log.debug("Filter for {} populated", connectPoint),
                         (objective, error) ->
@@ -505,6 +521,7 @@ public class RoutingRulePopulator {
                 srManager.flowObjectiveService.filter(deviceId, fob.add(context));
             }
         }
+        return true;
     }
 
     /**

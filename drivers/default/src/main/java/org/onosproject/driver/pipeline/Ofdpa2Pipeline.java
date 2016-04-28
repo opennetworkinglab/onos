@@ -292,9 +292,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         } else {
             log.warn("No key defined in filtering objective from app: {}. Not"
                     + "processing filtering objective", applicationId);
-            fail(filt, ObjectiveError.UNKNOWN);
+            fail(filt, ObjectiveError.BADPARAMS);
             return;
         }
+        log.debug("Received filtering objective for dev/port: {}/{}", deviceId,
+                 portCriterion.port());
         // convert filtering conditions for switch-intfs into flowrules
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         for (Criterion criterion : filt.conditions()) {
@@ -333,7 +335,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         if (ethCriterion == null || ethCriterion.mac().equals(MacAddress.NONE)) {
-            log.debug("filtering objective missing dstMac, cannot program TMAC table");
+            log.warn("filtering objective missing dstMac, cannot program TMAC table");
+            fail(filt, ObjectiveError.BADPARAMS);
+            return;
         } else {
             for (FlowRule tmacRule : processEthDstFilter(portCriterion, ethCriterion,
                                                          vidCriterion, assignedVlan,
@@ -345,8 +349,10 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         if (ethCriterion == null || vidCriterion == null) {
-            log.debug("filtering objective missing dstMac or VLAN, "
+            log.warn("filtering objective missing dstMac or VLAN, "
                     + "cannot program VLAN Table");
+            fail(filt, ObjectiveError.BADPARAMS);
+            return;
         } else {
             /*
              * NOTE: Separate vlan filtering rules and assignment rules
@@ -1079,17 +1085,26 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     }
 
     protected static VlanId readVlanFromSelector(TrafficSelector selector) {
+        if (selector == null) {
+            return null;
+        }
         Criterion criterion = selector.getCriterion(Criterion.Type.VLAN_VID);
         return (criterion == null)
                 ? null : ((VlanIdCriterion) criterion).vlanId();
     }
 
     protected static IpPrefix readIpDstFromSelector(TrafficSelector selector) {
+        if (selector == null) {
+            return null;
+        }
         Criterion criterion = selector.getCriterion(Criterion.Type.IPV4_DST);
         return (criterion == null) ? null : ((IPCriterion) criterion).ip();
     }
 
     private static VlanId readVlanFromTreatment(TrafficTreatment treatment) {
+        if (treatment == null) {
+            return null;
+        }
         for (Instruction i : treatment.allInstructions()) {
             if (i instanceof ModVlanIdInstruction) {
                 return ((ModVlanIdInstruction) i).vlanId();

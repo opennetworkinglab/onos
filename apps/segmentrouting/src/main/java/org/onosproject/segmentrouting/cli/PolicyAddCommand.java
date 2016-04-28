@@ -26,7 +26,7 @@ import org.onosproject.segmentrouting.TunnelPolicy;
 /**
  * Command to add a new policy.
  */
-@Command(scope = "onos", name = "srpolicy-add",
+@Command(scope = "onos", name = "sr-policy-add",
         description = "Create a new policy")
 public class PolicyAddCommand extends AbstractShellCommand {
 

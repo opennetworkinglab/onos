@@ -31,7 +31,7 @@ import java.util.StringTokenizer;
 /**
  * Command to add a new tunnel.
  */
-@Command(scope = "onos", name = "srtunnel-add",
+@Command(scope = "onos", name = "sr-tunnel-add",
         description = "Create a new tunnel")
 public class TunnelAddCommand extends AbstractShellCommand {
 

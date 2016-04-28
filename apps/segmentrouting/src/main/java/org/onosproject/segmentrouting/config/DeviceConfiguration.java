@@ -101,8 +101,8 @@ public class DeviceConfiguration implements DeviceProperties {
             info.mac = config.routerMac();
             info.isEdge = config.isEdgeRouter();
             info.adjacencySids = config.adjacencySids();
-
             deviceConfigMap.put(info.deviceId, info);
+            log.info("Read device config for device: {}", info.deviceId);
             allSegmentIds.add(info.nodeSid);
         });
 

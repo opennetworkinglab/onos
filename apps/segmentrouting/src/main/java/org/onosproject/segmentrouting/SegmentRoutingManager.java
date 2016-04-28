@@ -434,6 +434,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return policyHandler.getPolicies();
     }
 
+    @Override
+    public void rerouteNetwork() {
+        cfgListener.configureNetwork();
+        for (Device device : deviceService.getDevices()) {
+            defaultRoutingHandler.populatePortAddressingRules(device.id());
+        }
+        defaultRoutingHandler.startPopulationProcess();
+    }
+
     /**
      * Returns the tunnel object with the tunnel ID.
      *
@@ -567,7 +576,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param portNum port number on device for which NextObjective is queried
      * @param treatment the actions to apply on the packets (should include outport)
      * @param meta metadata passed into the creation of a Next Objective if necessary
-     * @return next objective ID or -1 if it was not found
+     * @return next objective ID or -1 if an error occurred during retrieval or creation
      */
     public int getPortNextObjectiveId(DeviceId deviceId, PortNumber portNum,
                                       TrafficTreatment treatment,
@@ -801,9 +810,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             // port addressing rules to the driver as well irrespective of whether
             // this instance is the master or not.
             defaultRoutingHandler.populatePortAddressingRules(device.id());
-            hostHandler.readInitialHosts();
         }
         if (mastershipService.isLocalMaster(device.id())) {
+            hostHandler.readInitialHosts(device.id());
             DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
             groupHandler.createGroupsFromSubnetConfig();
             routingRulePopulator.populateSubnetBroadcastRule(device.id());
@@ -897,6 +906,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 // for any switch (even if this instance is a SLAVE or not even connected
                 // to the switch). To handle this, a default-group-handler instance is necessary
                 // per switch.
+                log.debug("Current groupHandlerMap devs: {}", groupHandlerMap.keySet());
                 if (groupHandlerMap.get(device.id()) == null) {
                     DefaultGroupHandler groupHandler;
                     try {
@@ -911,6 +921,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         log.warn(e.getMessage() + " Aborting configureNetwork.");
                         return;
                     }
+                    log.debug("updating groupHandlerMap with new config for "
+                            + "device: {}", device.id());
                     groupHandlerMap.put(device.id(), groupHandler);
 
                     // Also, in some cases, drivers may need extra
@@ -918,9 +930,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     // port addressing rules to the driver as well, irrespective of whether
                     // this instance is the master or not.
                     defaultRoutingHandler.populatePortAddressingRules(device.id());
-                    hostHandler.readInitialHosts();
                 }
                 if (mastershipService.isLocalMaster(device.id())) {
+                    hostHandler.readInitialHosts(device.id());
                     DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
                     groupHandler.createGroupsFromSubnetConfig();
                     routingRulePopulator.populateSubnetBroadcastRule(device.id());

@@ -197,6 +197,10 @@ public class DefaultGroupHandler {
 
         log.info("* LinkUP: Device {} linkUp at local port {} to neighbor {}", deviceId,
                  newLink.src().port(), newLink.dst().deviceId());
+        // ensure local state is updated even if linkup is aborted later on
+        addNeighborAtPort(newLink.dst().deviceId(),
+                          newLink.src().port());
+
         MacAddress dstMac;
         try {
             dstMac = deviceConfig.getDeviceMac(newLink.dst().deviceId());
@@ -205,8 +209,6 @@ public class DefaultGroupHandler {
             return;
         }
 
-        addNeighborAtPort(newLink.dst().deviceId(),
-                          newLink.src().port());
         /*if (devicePortMap.get(newLink.dst().deviceId()) == null) {
             // New Neighbor
             newNeighbor(newLink);

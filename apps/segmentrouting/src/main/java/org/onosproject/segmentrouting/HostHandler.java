@@ -62,18 +62,28 @@ public class HostHandler {
         flowObjectiveService = srManager.flowObjectiveService;
     }
 
-    protected void readInitialHosts() {
+    protected void readInitialHosts(DeviceId devId) {
         hostService.getHosts().forEach(host -> {
+            DeviceId deviceId = host.location().deviceId();
+            if (!deviceId.equals(devId)) {
+                // not an attached host to this device
+                return;
+            }
             MacAddress mac = host.mac();
             VlanId vlanId = host.vlan();
-            DeviceId deviceId = host.location().deviceId();
             PortNumber port = host.location().port();
             Set<IpAddress> ips = host.ipAddresses();
-            log.debug("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
+            log.debug("Attached Host {}/{} is added at {}:{}", mac, vlanId,
+                      deviceId, port);
 
             // Populate bridging table entry
             ForwardingObjective.Builder fob =
                     getForwardingObjectiveBuilder(deviceId, mac, vlanId, port);
+            if (fob == null) {
+                log.warn("Aborting host bridging & routing table entries due "
+                         + "to error for dev:{} host:{}", deviceId, host);
+                return;
+            }
             ObjectiveContext context = new DefaultObjectiveContext(
                     (objective) -> log.debug("Host rule for {} populated", host),
                     (objective, error) ->
@@ -127,6 +137,10 @@ public class HostHandler {
         int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outport,
                 tbuilder.build(),
                 meta);
+        if (portNextObjId == -1) {
+            // warning log will come from getPortNextObjective method
+            return null;
+        }
 
         return DefaultForwardingObjective.builder()
                 .withFlag(ForwardingObjective.Flag.SPECIFIC)

@@ -28,7 +28,7 @@ import org.onosproject.segmentrouting.TunnelHandler;
 /**
  * Command to remove a tunnel.
  */
-@Command(scope = "onos", name = "srtunnel-remove",
+@Command(scope = "onos", name = "sr-tunnel-remove",
         description = "Remove a tunnel")
 public class TunnelRemoveCommand extends AbstractShellCommand {
 

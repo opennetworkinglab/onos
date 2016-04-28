@@ -23,7 +23,7 @@ import org.onosproject.segmentrouting.Tunnel;
 /**
  * Command to show the list of tunnels.
  */
-@Command(scope = "onos", name = "srtunnel-list",
+@Command(scope = "onos", name = "sr-tunnel-list",
         description = "Lists all tunnels")
 public class TunnelListCommand extends AbstractShellCommand {
 

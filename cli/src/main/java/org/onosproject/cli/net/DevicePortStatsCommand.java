@@ -36,6 +36,10 @@ import org.onosproject.net.device.PortStatistics;
         description = "Lists statistics of all ports in the system")
 public class DevicePortStatsCommand extends DevicesListCommand {
 
+    @Option(name = "-nz", aliases = "--nonzero", description = "Show only non-zero portstats",
+            required = false, multiValued = false)
+    private boolean nonzero = false;
+
     @Option(name = "-d", aliases = "--delta", description = "Show Delta Port Statistics,"
             + "only for the last polling interval",
             required = false, multiValued = false)
@@ -100,6 +104,9 @@ public class DevicePortStatsCommand extends DevicesListCommand {
             if (portNumber != null && stat.port() != portNumber) {
                 continue;
             }
+            if (nonzero && stat.isZero()) {
+                continue;
+            }
             print(FORMAT, stat.port(), stat.packetsReceived(), stat.packetsSent(), stat.bytesReceived(),
                     stat.bytesSent(), stat.packetsRxDropped(), stat.packetsTxDropped(), stat.durationSec());
         }
@@ -116,6 +123,9 @@ public class DevicePortStatsCommand extends DevicesListCommand {
         print("deviceId=%s", deviceId);
         for (PortStatistics stat : sortByPort(portStats)) {
             if (portNumber != null && stat.port() != portNumber) {
+                continue;
+            }
+            if (nonzero && stat.isZero()) {
                 continue;
             }
             float duration = ((float) stat.durationSec()) +
@@ -152,6 +162,9 @@ public class DevicePortStatsCommand extends DevicesListCommand {
 
         for (PortStatistics stat : sortByPort(portStats)) {
             if (portNumber != null && stat.port() != portNumber) {
+                continue;
+            }
+            if (nonzero && stat.isZero()) {
                 continue;
             }
             float duration = ((float) stat.durationSec()) +

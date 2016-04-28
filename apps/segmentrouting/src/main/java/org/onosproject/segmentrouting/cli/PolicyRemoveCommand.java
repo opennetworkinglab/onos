@@ -26,7 +26,7 @@ import org.onosproject.segmentrouting.TunnelPolicy;
 /**
  * Command to remove a policy.
  */
-@Command(scope = "onos", name = "srpolicy-remove",
+@Command(scope = "onos", name = "sr-policy-remove",
         description = "Remove a policy")
 public class PolicyRemoveCommand extends AbstractShellCommand {
 
