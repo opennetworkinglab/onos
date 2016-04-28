@@ -74,6 +74,7 @@
         <module>gangliametrics</module>
         <module>graphitemetrics</module>
         <module>xosclient</module>
+        <module>cordconfig</module>
   </modules>
 
     <properties>

@@ -37,6 +37,8 @@ import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.cordconfig.access.AccessDeviceConfig;
+import org.onosproject.cordconfig.access.AccessDeviceData;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -62,8 +64,7 @@ import org.onosproject.net.mcast.McastListener;
 import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.McastRouteInfo;
 import org.onosproject.net.mcast.MulticastRouteService;
-import org.onosproject.olt.AccessDeviceConfig;
-import org.onosproject.olt.AccessDeviceData;
+
 import org.onosproject.rest.AbstractWebResource;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;

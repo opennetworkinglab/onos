@@ -34,6 +34,8 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.util.SafeRecurringTask;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cordconfig.access.AccessDeviceConfig;
+import org.onosproject.cordconfig.access.AccessDeviceData;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -64,8 +66,7 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.olt.AccessDeviceConfig;
-import org.onosproject.olt.AccessDeviceData;
+
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 

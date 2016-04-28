@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.onosproject.olt;
+package org.onosproject.cordconfig.access;
 
+import org.onosproject.net.DeviceId;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.packet.VlanId;
-import org.onosproject.net.DeviceId;
+
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.Config;
 
