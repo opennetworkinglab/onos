@@ -67,6 +67,7 @@ public class TunnelManager
         implements TunnelService, TunnelAdminService, TunnelProviderRegistry {
 
     private static final String TUNNNEL_ID_NULL = "Tunnel ID cannot be null";
+    private static final String TUNNNEL_NULL = "Tunnel cannot be null";
 
     private final Logger log = getLogger(getClass());
 
@@ -235,13 +236,35 @@ public class TunnelManager
 
     @Override
     public TunnelId setupTunnel(ApplicationId producerId, ElementId srcElementId, Tunnel tunnel, Path path) {
-        // TODO: Insert into store and trigger provider API.
-        return null;
+        // TODO: producerId to check if really required to consider while setup the tunnel.
+        checkNotNull(tunnel, TUNNNEL_NULL);
+        TunnelId tunnelId = store.createOrUpdateTunnel(tunnel, State.INIT);
+        if (tunnelId != null) {
+            Set<ProviderId> ids = getProviders();
+            for (ProviderId providerId : ids) {
+                TunnelProvider provider = getProvider(providerId);
+                provider.setupTunnel(srcElementId, tunnel, path);
+            }
+        }
+        return tunnelId;
     }
 
     @Override
     public boolean downTunnel(ApplicationId producerId, TunnelId tunnelId) {
-        // TODO: Change the tunnel status and trigger provider API.
+        // TODO: producerId to check if really required to consider while deleting the tunnel.
+        checkNotNull(tunnelId, TUNNNEL_ID_NULL);
+        Tunnel tunnel = store.queryTunnel(tunnelId);
+        if (tunnel != null) {
+            TunnelId updtTunnelId = store.createOrUpdateTunnel(tunnel, State.INACTIVE);
+            if (updtTunnelId != null) {
+                Set<ProviderId> ids = getProviders();
+                for (ProviderId providerId : ids) {
+                    TunnelProvider provider = getProvider(providerId);
+                    provider.releaseTunnel(tunnel);
+                }
+            }
+            return true;
+        }
         return false;
     }
 
@@ -324,6 +347,7 @@ public class TunnelManager
                                                     tunnel.id(),
                                                     tunnel.tunnelName(),
                                                     tunnel.path(),
+                                                    tunnel.resource(),
                                                     tunnel.annotations());
             return store.createOrUpdateTunnel(storedTunnel);
         }
@@ -338,6 +362,7 @@ public class TunnelManager
                                                     tunnel.id(),
                                                     tunnel.tunnelName(),
                                                     tunnel.path(),
+                                                    tunnel.resource(),
                                                     tunnel.annotations());
             return store.createOrUpdateTunnel(storedTunnel);
         }
@@ -351,6 +376,7 @@ public class TunnelManager
                                                     tunnel.id(),
                                                     tunnel.tunnelName(),
                                                     tunnel.path(),
+                                                    tunnel.resource(),
                                                     tunnel.annotations());
             store.createOrUpdateTunnel(storedTunnel);
         }
@@ -365,6 +391,7 @@ public class TunnelManager
                                                     tunnel.id(),
                                                     tunnel.tunnelName(),
                                                     tunnel.path(),
+                                                    tunnel.resource(),
                                                     tunnel.annotations());
             store.createOrUpdateTunnel(storedTunnel, state);
         }

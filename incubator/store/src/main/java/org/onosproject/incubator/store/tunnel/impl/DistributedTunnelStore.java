@@ -174,6 +174,7 @@ public class DistributedTunnelStore
                                             old.tunnelId(),
                                             old.tunnelName(),
                                             old.path(),
+                                            old.resource(),
                                             DefaultAnnotations.merge(oldAnno, newAnno));
             tunnelIdAsKeyStore.put(tunnel.tunnelId(), newT);
             TunnelEvent event = new TunnelEvent(TunnelEvent.Type.TUNNEL_UPDATED,
@@ -189,6 +190,7 @@ public class DistributedTunnelStore
                                             tunnelId,
                                             tunnel.tunnelName(),
                                             tunnel.path(),
+                                            tunnel.resource(),
                                             tunnel.annotations());
             tunnelIdAsKeyStore.put(tunnelId, newT);
 

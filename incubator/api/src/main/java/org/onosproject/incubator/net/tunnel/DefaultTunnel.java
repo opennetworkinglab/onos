@@ -45,6 +45,7 @@ public final class DefaultTunnel extends AbstractModel implements Tunnel {
                                      // ONOS as primary key
     private final TunnelName tunnelName; // name of a tunnel
     private final Path path;
+    private final NetworkResource networkRes; // network resource to carry label stack
 
     /**
      * Creates an active infrastructure tunnel using the supplied information.
@@ -94,6 +95,61 @@ public final class DefaultTunnel extends AbstractModel implements Tunnel {
         this.tunnelId = tunnelId;
         this.tunnelName = tunnelName;
         this.path = path;
+        this.networkRes = null;
+    }
+
+    /**
+     * Creates an active infrastructure tunnel using the supplied information.
+     *
+     * @param producerName provider identity
+     * @param src tunnel source
+     * @param dst tunnel destination
+     * @param type tunnel type
+     * @param groupId groupId
+     * @param tunnelId tunnelId
+     * @param tunnelName tunnel name
+     * @param path the path of tunnel
+     * @param networkRes network resource of tunnel
+     * @param annotations optional key/value annotations
+     */
+    public DefaultTunnel(ProviderId producerName, TunnelEndPoint src,
+                         TunnelEndPoint dst, Type type, DefaultGroupId groupId,
+                         TunnelId tunnelId, TunnelName tunnelName, Path path,
+                         NetworkResource networkRes, Annotations... annotations) {
+        this(producerName, src, dst, type, Tunnel.State.ACTIVE, groupId,
+                tunnelId, tunnelName, path, networkRes, annotations);
+    }
+
+    /**
+     * Creates an tunnel using the supplied information.
+     *
+     * @param producerName provider identity
+     * @param src tunnel source
+     * @param dst tunnel destination
+     * @param type tunnel type
+     * @param state tunnel state
+     * @param groupId groupId
+     * @param tunnelId tunnelId
+     * @param tunnelName tunnel name
+     * @param path the path of tunnel
+     * @param networkRes network resource of tunnel
+     * @param annotations optional key/value annotations
+     */
+    public DefaultTunnel(ProviderId producerName, TunnelEndPoint src,
+                         TunnelEndPoint dst, Type type, State state,
+                         DefaultGroupId groupId, TunnelId tunnelId,
+                         TunnelName tunnelName, Path path, NetworkResource networkRes,
+                         Annotations... annotations) {
+        super(producerName, annotations);
+        this.src = src;
+        this.dst = dst;
+        this.type = type;
+        this.state = state;
+        this.groupId = groupId;
+        this.tunnelId = tunnelId;
+        this.tunnelName = tunnelName;
+        this.path = path;
+        this.networkRes = networkRes;
     }
 
     @Override
@@ -118,7 +174,7 @@ public final class DefaultTunnel extends AbstractModel implements Tunnel {
 
     @Override
     public NetworkResource resource() {
-        return null;
+        return networkRes;
     }
 
     @Override
@@ -145,7 +201,7 @@ public final class DefaultTunnel extends AbstractModel implements Tunnel {
     @Override
     public int hashCode() {
         return Objects.hash(src, dst, type, groupId, tunnelId, tunnelName,
-                            state, path);
+                            state, path, networkRes);
     }
 
     @Override
@@ -162,7 +218,8 @@ public final class DefaultTunnel extends AbstractModel implements Tunnel {
                     && Objects.equals(this.tunnelId, other.tunnelId)
                     && Objects.equals(this.tunnelName, other.tunnelName)
                     && Objects.equals(this.state, other.state)
-                    && Objects.equals(this.path, other.path);
+                    && Objects.equals(this.path, other.path)
+                    && Objects.equals(this.networkRes, other.networkRes);
         }
         return false;
     }
@@ -173,6 +230,7 @@ public final class DefaultTunnel extends AbstractModel implements Tunnel {
                 .add("type", type).add("state", state).add("groupId", groupId)
                 .add("producerTunnelId", tunnelId)
                 .add("tunnelName", tunnelName)
-                .add("path", path).toString();
+                .add("path", path)
+                .add("networkResource", networkRes).toString();
     }
 }
