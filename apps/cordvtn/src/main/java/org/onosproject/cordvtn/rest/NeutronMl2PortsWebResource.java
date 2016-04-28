@@ -108,6 +108,7 @@ public class NeutronMl2PortsWebResource extends AbstractWebResource {
 
     @Path("{id}")
     @DELETE
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deletePorts(@PathParam("id") String id) {
         log.trace(String.format(PORTS_MESSAGE, "delete"));

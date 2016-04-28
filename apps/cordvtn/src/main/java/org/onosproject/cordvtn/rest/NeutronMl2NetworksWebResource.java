@@ -58,6 +58,7 @@ public class NeutronMl2NetworksWebResource extends AbstractWebResource {
 
     @DELETE
     @Path("{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteNetwork(@PathParam("id") String id) {
         log.trace(String.format(NETWORKS_MESSAGE, "delete"));
