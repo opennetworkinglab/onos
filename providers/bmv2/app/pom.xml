@@ -36,11 +36,16 @@
         <onos.app.title>BMv2 Provider</onos.app.title>
         <onos.app.category>Provider</onos.app.category>
     </properties>
-    
+
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-bmv2-provider-device</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-bmv2-provider-packet</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

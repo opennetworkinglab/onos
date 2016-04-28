@@ -17,6 +17,10 @@
 package org.onosproject.bmv2.api.runtime;
 
 import com.google.common.base.Objects;
+import org.onosproject.net.DeviceId;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -24,6 +28,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Representation of a BMv2 device.
  */
 public final class Bmv2Device {
+
+    public static final String SCHEME = "bmv2";
+    public static final String MANUFACTURER = "p4.org";
+    public static final String HW_VERSION = "bmv2";
 
     private final String thriftServerHost;
     private final int thriftServerPort;
@@ -66,8 +74,22 @@ public final class Bmv2Device {
      *
      * @return an integer value
      */
-    public int getInternalDeviceId() {
+    public int internalDeviceId() {
         return internalDeviceId;
+    }
+
+    /**
+     * Returns a new ONOS device ID for this device.
+     *
+     * @return a new device ID
+     */
+    public DeviceId asDeviceId() {
+        try {
+            // TODO: include internalDeviceId number in the deviceId URI
+            return DeviceId.deviceId(new URI(SCHEME, this.thriftServerHost + ":" + this.thriftServerPort, null));
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Unable to build deviceID for device " + this.toString(), e);
+        }
     }
 
     @Override

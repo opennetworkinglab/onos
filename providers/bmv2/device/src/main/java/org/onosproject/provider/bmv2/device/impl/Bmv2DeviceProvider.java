@@ -50,8 +50,6 @@ import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -63,6 +61,9 @@ import static org.onosproject.bmv2.ctl.Bmv2ThriftClient.forceDisconnectOf;
 import static org.onosproject.bmv2.ctl.Bmv2ThriftClient.ping;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.bmv2.api.runtime.Bmv2Device.SCHEME;
+import static org.onosproject.bmv2.api.runtime.Bmv2Device.MANUFACTURER;
+import static org.onosproject.bmv2.api.runtime.Bmv2Device.HW_VERSION;
 
 /**
  * BMv2 device provider.
@@ -72,9 +73,6 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
 
     private static final Logger LOG = getLogger(Bmv2DeviceProvider.class);
 
-    public static final String MANUFACTURER = "p4.org";
-    public static final String HW_VERSION = "bmv2";
-    public static final String SCHEME = "bmv2";
     private static final String APP_NAME = "org.onosproject.bmv2";
     private static final String UNKNOWN = "unknown";
     private static final int POLL_INTERVAL = 5; // seconds
@@ -106,25 +104,6 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
      */
     public Bmv2DeviceProvider() {
         super(new ProviderId("bmv2", "org.onosproject.provider.device"));
-    }
-
-    private static DeviceId deviceIdOf(String ip, int port) {
-        try {
-            return DeviceId.deviceId(new URI(SCHEME, ip + ":" + port, null));
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Unable to build deviceID for device " + ip + ":" + port, e);
-        }
-    }
-
-    /**
-     * Creates a new device ID for the given BMv2 device.
-     *
-     * @param device a BMv2 device object
-     *
-     * @return a new device ID
-     */
-    public static DeviceId deviceIdOf(Bmv2Device device) {
-        return deviceIdOf(device.thriftServerHost(), device.thriftServerPort());
     }
 
     @Override
@@ -258,7 +237,9 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
             if (cfg != null) {
                 try {
                     cfg.getDevicesInfo().stream().forEach(info -> {
-                        triggerProbe(deviceIdOf(info.ip().toString(), info.port()));
+                        // TODO: require also bmv2 internal device id from net-cfg (now is default 0)
+                        Bmv2Device bmv2Device = new Bmv2Device(info.ip().toString(), info.port(), 0);
+                        triggerProbe(bmv2Device.asDeviceId());
                     });
                 } catch (ConfigException e) {
                     LOG.error("Unable to read config: " + e);
@@ -283,7 +264,7 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
         @Override
         public void handleHello(Bmv2Device device) {
             log.debug("Received hello from {}", device);
-            triggerProbe(deviceIdOf(device));
+            triggerProbe(device.asDeviceId());
         }
     }
 
