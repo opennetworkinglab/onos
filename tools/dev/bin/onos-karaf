@@ -4,4 +4,4 @@
 # karaf using the supplied arguments.
 # -----------------------------------------------------------------------------
 
-onos-setup-karaf && karaf "$@"
+onos-setup-karaf "$@" && karaf "$@"
