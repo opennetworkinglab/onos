@@ -155,25 +155,28 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Activate
     public void activate(ComponentContext context) {
-        coreService.registerApplication(APP_ID, this::preDeactivate);
+        coreService.registerApplication(APP_ID, this::cleanup);
         cfgService.registerProperties(getClass());
         ctrl.setConfigParams(context.getProperties());
         ctrl.start(agent, driverService);
     }
 
-    private void preDeactivate() {
-        // Close listening channel and all OF channels before deactivating
+    private void cleanup() {
+        // Close listening channel and all OF channels. Clean information about switches
+        // before deactivating
         ctrl.stop();
         connectedSwitches.values().forEach(OpenFlowSwitch::disconnectSwitch);
+        connectedSwitches.clear();
+        activeMasterSwitches.clear();
+        activeEqualSwitches.clear();
     }
 
     @Deactivate
     public void deactivate() {
-        preDeactivate();
+        if (!connectedSwitches.isEmpty()) {
+            cleanup();
+        }
         cfgService.unregisterProperties(getClass(), false);
-        connectedSwitches.clear();
-        activeMasterSwitches.clear();
-        activeEqualSwitches.clear();
     }
 
     @Modified

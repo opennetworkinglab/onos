@@ -64,7 +64,6 @@ import static org.onosproject.openflow.controller.Dpid.uri;
 
 /**
  * The main controller class.  Handles all setup and network listeners
- * - Distributed ownership control of switch through IControllerRegistryService
  */
 public class Controller {
 
