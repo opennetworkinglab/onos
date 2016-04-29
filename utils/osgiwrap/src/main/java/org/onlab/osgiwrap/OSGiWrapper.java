@@ -74,7 +74,7 @@ public class OSGiWrapper {
     private String webContext;
 
     public static void main(String[] args) {
-        if (args.length < 10) {
+        if (args.length < 11) {
             System.err.println("Not enough args");
             System.exit(1);
         }
