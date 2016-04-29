@@ -1,8 +1,3 @@
-SRC = 'src/main/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-cli'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:org.apache.karaf.shell.console',
@@ -11,12 +6,8 @@ COMPILE_DEPS = [
     '//core/common:onos-core-common',
 ]
 
-osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+osgi_jar (
     deps = COMPILE_DEPS,
     visibility = ['PUBLIC'],
-    resources_root = 'src/main/resources',
-    resources = glob(['src/main/resources/**']),
 )
 

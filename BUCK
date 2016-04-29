@@ -73,6 +73,9 @@ CORE = [
 ]
 
 APPS = [
+    #Drivers
+    '//drivers/default:onos-drivers-default-oar',
+
     # Providers
     '//providers/bgp:onos-providers-bgp-oar',
     '//providers/host:onos-providers-host-oar',

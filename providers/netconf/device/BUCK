@@ -4,6 +4,6 @@ COMPILE_DEPS = [
     '//protocols/netconf/api:onos-protocols-netconf-api',
 ]
 
-osgi_jar(
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
 )

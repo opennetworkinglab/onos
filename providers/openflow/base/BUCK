@@ -10,6 +10,7 @@ BUNDLES = [
 ]
 
 onos_app (
+    app_name = 'org.onosproject.openflow-base',
     title = 'OpenFlow Provider',
     category = 'Provider',
     url = 'http://onosproject.org',

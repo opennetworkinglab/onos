@@ -18,4 +18,9 @@ onos_app (
     category = 'Drivers',
     url = 'http://onosproject.org',
     description = 'ONOS Default device drivers application.',
+    included_bundles = [
+        ':onos-drivers-default',
+        '//lib:openflowj',
+        '//protocols/openflow/api:onos-protocols-openflow-api',
+    ]
 )
