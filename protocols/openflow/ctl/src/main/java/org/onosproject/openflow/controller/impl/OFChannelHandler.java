@@ -744,6 +744,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          */
         protected void logErrorDisconnect(OFChannelHandler h, OFErrorMsg error) {
             logError(h, error);
+            log.error("Disconnecting switch {}", h.getSwitchInfoString());
             h.channel.disconnect();
         }
 
