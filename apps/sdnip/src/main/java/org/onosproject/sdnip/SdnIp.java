@@ -89,9 +89,9 @@ public class SdnIp {
                                                        interfaceService);
         peerConnectivity.start();
 
-        // TODO fix removing intents
-        applicationService.registerDeactivateHook(appId,
-                intentSynchronizerAdmin::removeIntents);
+        applicationService.registerDeactivateHook(appId, () -> {
+            intentSynchronizer.removeIntentsByAppId(appId);
+        });
 
         log.info("SDN-IP started");
     }

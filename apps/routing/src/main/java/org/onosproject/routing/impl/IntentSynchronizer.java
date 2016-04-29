@@ -143,6 +143,28 @@ public class IntentSynchronizer implements IntentSynchronizationService,
     }
 
     @Override
+    public void removeIntentsByAppId(ApplicationId appId) {
+        if (!isElectedLeader) {
+            // Only leader will withdraw intents
+            return;
+        }
+
+        log.debug("Withdrawing intents for app {}...",
+                  appId);
+
+        intents.entrySet()
+                .stream()
+                .filter(intent -> intent.getValue().appId().equals(appId))
+                .forEach(intent -> {
+                    log.debug("Intent Synchronizer withdrawing intent: {}",
+                              intent);
+                    intentService.withdraw(intent.getValue());
+                    intents.remove(intent.getKey(), intent.getValue());
+                    log.info("Tried to clean intents for app: {}", appId);
+                });
+    }
+
+    @Override
     public void submit(Intent intent) {
         synchronized (this) {
             intents.put(intent.key(), intent);

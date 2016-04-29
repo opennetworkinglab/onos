@@ -92,8 +92,9 @@ public class Vpls {
                                               intentService,
                                               intentSynchronizer);
 
-        applicationService.registerDeactivateHook(appId,
-                                                  intentSynchronizerAdmin::removeIntents);
+        applicationService.registerDeactivateHook(appId, () -> {
+            intentSynchronizer.removeIntentsByAppId(appId);
+        });
 
         hostService.addListener(hostListener);
         interfaceService.addListener(interfaceListener);

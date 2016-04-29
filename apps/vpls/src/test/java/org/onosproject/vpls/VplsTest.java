@@ -666,12 +666,14 @@ public class VplsTest {
 
         @Override
         public void modifyPrimary(boolean isPrimary) {
-
         }
 
         @Override
         public void removeIntents() {
+        }
 
+        @Override
+        public void removeIntentsByAppId(ApplicationId applicationId) {
         }
     }
 
