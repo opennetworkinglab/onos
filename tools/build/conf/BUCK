@@ -2,7 +2,7 @@ checkstyle_source = 'src/main/resources/onos/checkstyle.xml'
 suppression_source = 'src/main/resources/onos/suppressions.xml'
 
 xml = ('<module name="SuppressionFilter">'
-       '<property name="file" value="$(location :suppressions.xml)"/>'
+       '<property name="file" value="$(location :suppressions-xml)"/>'
        '</module>' )
 cmd = "sed 's#<module name=\"Checker\">#<module name=\"Checker\">%s#' %s > $OUT" % ( xml, checkstyle_source )
 
@@ -16,6 +16,7 @@ genrule(
 
 #FIXME location suppression.xml does not trigger this rule
 export_file(
-  name = 'suppressions.xml',
+  name = 'suppressions-xml',
   src = suppression_source,
+  visibility = [ 'PUBLIC' ]
 )
