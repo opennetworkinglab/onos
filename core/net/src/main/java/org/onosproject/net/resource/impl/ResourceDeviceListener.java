@@ -17,14 +17,17 @@ package org.onosproject.net.resource.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -55,6 +58,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -259,7 +263,7 @@ final class ResourceDeviceListener implements DeviceListener {
             LambdaQuery query = handler.behaviour(LambdaQuery.class);
             if (query != null) {
                 return query.queryLambdas(port).stream()
-                        .flatMap(x -> OchSignal.toFlexGrid(x).stream())
+                        .flatMap(ResourceDeviceListener::toResourceGrid)
                         .collect(Collectors.toSet());
             } else {
                 return Collections.emptySet();
@@ -267,6 +271,28 @@ final class ResourceDeviceListener implements DeviceListener {
         } catch (ItemNotFoundException e) {
             return Collections.emptySet();
         }
+    }
+
+    /**
+     * Convert {@link OchSignal} into gridtype used to track Resource.
+     *
+     * @param ochSignal {@link OchSignal}
+     * @return {@code ochSignal} mapped to Stream of flex grid slots with 6.25 GHz spacing
+     *         and 12.5 GHz slot width.
+     */
+    private static Stream<OchSignal> toResourceGrid(OchSignal ochSignal) {
+        if (ochSignal.gridType() != GridType.FLEX) {
+            return OchSignal.toFlexGrid(ochSignal).stream();
+        }
+        if (ochSignal.gridType() == GridType.FLEX &&
+            ochSignal.channelSpacing() == ChannelSpacing.CHL_6P25GHZ &&
+            ochSignal.slotGranularity() == 1) {
+                // input was already flex grid slots with 6.25 GHz spacing and 12.5 GHz slot width.
+                return Stream.of(ochSignal);
+        }
+        // FIXME handle FLEX but not 6.25 GHz spacing or 12.5 GHz slot width case.
+        log.error("Converting {} to resource tracking grid not supported yet.", ochSignal);
+        return Stream.<OchSignal>builder().build();
     }
 
     private Set<VlanId> queryVlanIds(DeviceId device, PortNumber port) {
