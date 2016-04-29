@@ -15,11 +15,13 @@
  */
 package org.onosproject.segmentrouting;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -45,9 +47,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * routing rule population.
  */
 public class DefaultRoutingHandler {
-
-    private static Logger log = LoggerFactory
-            .getLogger(DefaultRoutingHandler.class);
+    private static final int MAX_RETRY_ATTEMPTS = 5;
+    private static final String ECMPSPG_MISSING = "ECMP shortest path graph not found";
+    private static Logger log = LoggerFactory.getLogger(DefaultRoutingHandler.class);
 
     private SegmentRoutingManager srManager;
     private RoutingRulePopulator rulePopulator;
@@ -56,7 +58,6 @@ public class DefaultRoutingHandler {
     private DeviceConfiguration config;
     private final Lock statusLock = new ReentrantLock();
     private volatile Status populationStatus;
-    private static final int MAX_RETRY_ATTEMPTS = 5;
     private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
     /**
@@ -113,7 +114,7 @@ public class DefaultRoutingHandler {
                 }
 
                 EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(sw.id(), srManager);
-                if (!populateEcmpRoutingRules(sw.id(), ecmpSpg)) {
+                if (!populateEcmpRoutingRules(sw.id(), ecmpSpg, ImmutableSet.of())) {
                     log.debug("populateAllRoutingRules: populationStatus is ABORTED");
                     populationStatus = Status.ABORTED;
                     log.debug("Abort routing rule population");
@@ -210,7 +211,7 @@ public class DefaultRoutingHandler {
             if (link.size() == 1) {
                 log.trace("repopulateRoutingRulesForRoutes: running ECMP graph for device {}", link.get(0));
                 EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(link.get(0), srManager);
-                if (populateEcmpRoutingRules(link.get(0), ecmpSpg)) {
+                if (populateEcmpRoutingRules(link.get(0), ecmpSpg, ImmutableSet.of())) {
                     log.debug("Populating flow rules from {} to all is successful",
                               link.get(0));
                     currentEcmpSpgMap.put(link.get(0), ecmpSpg);
@@ -255,7 +256,8 @@ public class DefaultRoutingHandler {
                                 nextHops.add(via.get(0));
                             }
                         }
-                        if (!populateEcmpRoutingRulePartial(targetSw, dst, nextHops)) {
+                        if (!populateEcmpRoutingRulePartial(targetSw, dst,
+                                nextHops, ImmutableSet.of())) {
                             return false;
                         }
                         log.debug("Populating flow rules from {} to {} is successful",
@@ -422,8 +424,17 @@ public class DefaultRoutingHandler {
         return subLinks;
     }
 
+    /**
+     * Populate ECMP rules for subnets from all switches to destination.
+     *
+     * @param destSw Device ID of destination switch
+     * @param ecmpSPG ECMP shortest path graph
+     * @param subnets Subnets to be populated. If empty, populate all configured subnets.
+     * @return true if succeed
+     */
     private boolean populateEcmpRoutingRules(DeviceId destSw,
-                                             EcmpShortestPathGraph ecmpSPG) {
+                                             EcmpShortestPathGraph ecmpSPG,
+                                             Set<Ip4Prefix> subnets) {
 
         HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia = ecmpSPG
                 .getAllLearnedSwitchesAndVia();
@@ -440,7 +451,7 @@ public class DefaultRoutingHandler {
                         nextHops.add(via.get(0));
                     }
                 }
-                if (!populateEcmpRoutingRulePartial(targetSw, destSw, nextHops)) {
+                if (!populateEcmpRoutingRulePartial(targetSw, destSw, nextHops, subnets)) {
                     return false;
                 }
             }
@@ -449,9 +460,19 @@ public class DefaultRoutingHandler {
         return true;
     }
 
+    /**
+     * Populate ECMP rules for subnets from target to destination via nexthops.
+     *
+     * @param targetSw Device ID of target switch
+     * @param destSw Device ID of destination switch
+     * @param nextHops List of next hops
+     * @param subnets Subnets to be populated. If empty, populate all configured subnets.
+     * @return true if succeed
+     */
     private boolean populateEcmpRoutingRulePartial(DeviceId targetSw,
                                                    DeviceId destSw,
-                                                   Set<DeviceId> nextHops) {
+                                                   Set<DeviceId> nextHops,
+                                                   Set<Ip4Prefix> subnets) {
         boolean result;
 
         if (nextHops.isEmpty()) {
@@ -473,13 +494,11 @@ public class DefaultRoutingHandler {
         }
 
         if (targetIsEdge && destIsEdge) {
-            Set<Ip4Prefix> subnets = config.getSubnets(destSw);
+            subnets = (subnets != null && !subnets.isEmpty()) ? subnets : config.getSubnets(destSw);
             log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for subnets {}",
                       targetSw, destSw, subnets);
-            result = rulePopulator.populateIpRuleForSubnet(targetSw,
-                                                           subnets,
-                                                           destSw,
-                                                           nextHops);
+            result = rulePopulator.populateIpRuleForSubnet(targetSw, subnets,
+                                                           destSw, nextHops);
             if (!result) {
                 return false;
             }
@@ -575,18 +594,54 @@ public class DefaultRoutingHandler {
         }
     }
 
-    public void purgeEcmpGraph(DeviceId deviceId) {
+    /**
+     * Populate rules of given subnet at given location.
+     *
+     * @param cp connect point of the subnet being added
+     * @param subnets subnet being added
+     * @return true if succeed
+     */
+    protected boolean populateSubnet(ConnectPoint cp, Set<Ip4Prefix> subnets) {
+        statusLock.lock();
+        try {
+            EcmpShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(cp.deviceId());
+            if (ecmpSpg == null) {
+                log.warn("Fail to populating subnet {}: {}", subnets, ECMPSPG_MISSING);
+                return false;
+            }
+            return populateEcmpRoutingRules(cp.deviceId(), ecmpSpg, subnets);
+        } finally {
+            statusLock.unlock();
+        }
+    }
+
+    /**
+     * Revoke rules of given subnet at given location.
+     *
+     * @param subnets subnet being removed
+     * @return true if succeed
+     */
+    protected boolean revokeSubnet(Set<Ip4Prefix> subnets) {
+        statusLock.lock();
+        try {
+            return srManager.routingRulePopulator.revokeIpRuleForSubnet(subnets);
+        } finally {
+            statusLock.unlock();
+        }
+    }
+
+    protected void purgeEcmpGraph(DeviceId deviceId) {
         currentEcmpSpgMap.remove(deviceId);
         if (updatedEcmpSpgMap != null) {
             updatedEcmpSpgMap.remove(deviceId);
         }
     }
 
-    private class RetryFilters implements Runnable {
+    private final class RetryFilters implements Runnable {
         int attempts = MAX_RETRY_ATTEMPTS;
         DeviceId devId;
 
-        public RetryFilters(DeviceId deviceId) {
+        private RetryFilters(DeviceId deviceId) {
             devId = deviceId;
         }
 

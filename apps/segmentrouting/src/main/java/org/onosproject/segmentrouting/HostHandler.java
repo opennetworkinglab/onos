@@ -16,13 +16,15 @@
 
 package org.onosproject.segmentrouting;
 
+import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -46,7 +48,6 @@ import java.util.Set;
 public class HostHandler {
     private static final Logger log = LoggerFactory.getLogger(HostHandler.class);
     private final SegmentRoutingManager srManager;
-    private CoreService coreService;
     private HostService hostService;
     private FlowObjectiveService flowObjectiveService;
 
@@ -57,7 +58,6 @@ public class HostHandler {
      */
     public HostHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
-        coreService = srManager.coreService;
         hostService = srManager.hostService;
         flowObjectiveService = srManager.flowObjectiveService;
     }
@@ -65,45 +65,204 @@ public class HostHandler {
     protected void readInitialHosts(DeviceId devId) {
         hostService.getHosts().forEach(host -> {
             DeviceId deviceId = host.location().deviceId();
+            // The host does not attach to this device
             if (!deviceId.equals(devId)) {
-                // not an attached host to this device
                 return;
             }
-            MacAddress mac = host.mac();
-            VlanId vlanId = host.vlan();
-            PortNumber port = host.location().port();
-            Set<IpAddress> ips = host.ipAddresses();
-            log.debug("Attached Host {}/{} is added at {}:{}", mac, vlanId,
-                      deviceId, port);
+            processHostAddedEventInternal(host.mac(), host.vlan(),
+                    host.location(), host.ipAddresses());
+        });
+    }
 
+    protected void processHostAddedEvent(HostEvent event) {
+        processHostAddedEventInternal(event.subject().mac(), event.subject().vlan(),
+                event.subject().location(), event.subject().ipAddresses());
+    }
+
+    private void processHostAddedEventInternal(MacAddress mac, VlanId vlanId,
+            HostLocation location, Set<IpAddress> ips) {
+        DeviceId deviceId = location.deviceId();
+        PortNumber port = location.port();
+        log.info("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
+
+        if (!srManager.deviceConfiguration.suppressHost().contains(location)) {
             // Populate bridging table entry
+            log.debug("Populate L2 table entry for host {} at {}:{}",
+                    mac, deviceId, port);
             ForwardingObjective.Builder fob =
-                    getForwardingObjectiveBuilder(deviceId, mac, vlanId, port);
+                    hostFwdObjBuilder(deviceId, mac, vlanId, port);
             if (fob == null) {
-                log.warn("Aborting host bridging & routing table entries due "
-                         + "to error for dev:{} host:{}", deviceId, host);
+                log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
                 return;
             }
             ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Host rule for {} populated", host),
+                    (objective) -> log.debug("Host rule for {}/{} populated", mac, vlanId),
                     (objective, error) ->
-                            log.warn("Failed to populate host rule for {}: {}", host, error));
+                            log.warn("Failed to populate host rule for {}/{}: {}", mac, vlanId, error));
             flowObjectiveService.forward(deviceId, fob.add(context));
 
-            // Populate IP table entry
             ips.forEach(ip -> {
+                // Populate IP table entry
                 if (ip.isIp4()) {
+                    addPerHostRoute(location, ip.getIp4Address());
                     srManager.routingRulePopulator.populateIpRuleForHost(
                             deviceId, ip.getIp4Address(), mac, port);
                 }
             });
-        });
+        }
     }
 
-    private ForwardingObjective.Builder getForwardingObjectiveBuilder(
+    protected void processHostRemoveEvent(HostEvent event) {
+        MacAddress mac = event.subject().mac();
+        VlanId vlanId = event.subject().vlan();
+        HostLocation location = event.subject().location();
+        DeviceId deviceId = location.deviceId();
+        PortNumber port = location.port();
+        Set<IpAddress> ips = event.subject().ipAddresses();
+        log.debug("Host {}/{} is removed from {}:{}", mac, vlanId, deviceId, port);
+
+        if (!srManager.deviceConfiguration.suppressHost()
+                .contains(new ConnectPoint(deviceId, port))) {
+            // Revoke bridging table entry
+            ForwardingObjective.Builder fob =
+                    hostFwdObjBuilder(deviceId, mac, vlanId, port);
+            if (fob == null) {
+                log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
+                return;
+            }
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("Host rule for {} revoked", event.subject()),
+                    (objective, error) ->
+                            log.warn("Failed to revoke host rule for {}: {}", event.subject(), error));
+            flowObjectiveService.forward(deviceId, fob.remove(context));
+
+            // Revoke IP table entry
+            ips.forEach(ip -> {
+                if (ip.isIp4()) {
+                    removePerHostRoute(location, ip.getIp4Address());
+                    srManager.routingRulePopulator.revokeIpRuleForHost(
+                            deviceId, ip.getIp4Address(), mac, port);
+                }
+            });
+        }
+    }
+
+    protected void processHostMovedEvent(HostEvent event) {
+        MacAddress mac = event.subject().mac();
+        VlanId vlanId = event.subject().vlan();
+        HostLocation prevLocation = event.prevSubject().location();
+        DeviceId prevDeviceId = prevLocation.deviceId();
+        PortNumber prevPort = prevLocation.port();
+        Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
+        HostLocation newLocation = event.subject().location();
+        DeviceId newDeviceId = newLocation.deviceId();
+        PortNumber newPort = newLocation.port();
+        Set<IpAddress> newIps = event.subject().ipAddresses();
+        log.debug("Host {}/{} is moved from {}:{} to {}:{}",
+                mac, vlanId, prevDeviceId, prevPort, newDeviceId, newPort);
+
+        if (!srManager.deviceConfiguration.suppressHost()
+                .contains(new ConnectPoint(prevDeviceId, prevPort))) {
+            // Revoke previous bridging table entry
+            ForwardingObjective.Builder prevFob =
+                    hostFwdObjBuilder(prevDeviceId, mac, vlanId, prevPort);
+            if (prevFob == null) {
+                log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
+                return;
+            }
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("Host rule for {} revoked", event.subject()),
+                    (objective, error) ->
+                            log.warn("Failed to revoke host rule for {}: {}", event.subject(), error));
+            flowObjectiveService.forward(prevDeviceId, prevFob.remove(context));
+
+            // Revoke previous IP table entry
+            prevIps.forEach(ip -> {
+                if (ip.isIp4()) {
+                    removePerHostRoute(prevLocation, ip.getIp4Address());
+                    srManager.routingRulePopulator.revokeIpRuleForHost(
+                            prevDeviceId, ip.getIp4Address(), mac, prevPort);
+                }
+            });
+        }
+
+        if (!srManager.deviceConfiguration.suppressHost()
+                .contains(new ConnectPoint(newDeviceId, newPort))) {
+            // Populate new bridging table entry
+            ForwardingObjective.Builder newFob =
+                    hostFwdObjBuilder(newDeviceId, mac, vlanId, newPort);
+            if (newFob == null) {
+                log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
+                return;
+            }
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("Host rule for {} populated", event.subject()),
+                    (objective, error) ->
+                            log.warn("Failed to populate host rule for {}: {}", event.subject(), error));
+            flowObjectiveService.forward(newDeviceId, newFob.add(context));
+
+            // Populate new IP table entry
+            newIps.forEach(ip -> {
+                if (ip.isIp4()) {
+                    addPerHostRoute(newLocation, ip.getIp4Address());
+                    srManager.routingRulePopulator.populateIpRuleForHost(
+                            newDeviceId, ip.getIp4Address(), mac, newPort);
+                }
+            });
+        }
+    }
+
+    protected void processHostUpdatedEvent(HostEvent event) {
+        MacAddress mac = event.subject().mac();
+        VlanId vlanId = event.subject().vlan();
+        HostLocation prevLocation = event.prevSubject().location();
+        DeviceId prevDeviceId = prevLocation.deviceId();
+        PortNumber prevPort = prevLocation.port();
+        Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
+        HostLocation newLocation = event.subject().location();
+        DeviceId newDeviceId = newLocation.deviceId();
+        PortNumber newPort = newLocation.port();
+        Set<IpAddress> newIps = event.subject().ipAddresses();
+        log.debug("Host {}/{} is updated", mac, vlanId);
+
+        if (!srManager.deviceConfiguration.suppressHost()
+                .contains(new ConnectPoint(prevDeviceId, prevPort))) {
+            // Revoke previous IP table entry
+            prevIps.forEach(ip -> {
+                if (ip.isIp4()) {
+                    removePerHostRoute(prevLocation, ip.getIp4Address());
+                    srManager.routingRulePopulator.revokeIpRuleForHost(
+                            prevDeviceId, ip.getIp4Address(), mac, prevPort);
+                }
+            });
+        }
+
+        if (!srManager.deviceConfiguration.suppressHost()
+                .contains(new ConnectPoint(newDeviceId, newPort))) {
+            // Populate new IP table entry
+            newIps.forEach(ip -> {
+                if (ip.isIp4()) {
+                    addPerHostRoute(newLocation, ip.getIp4Address());
+                    srManager.routingRulePopulator.populateIpRuleForHost(
+                            newDeviceId, ip.getIp4Address(), mac, newPort);
+                }
+            });
+        }
+    }
+
+    /**
+     * Generates the forwarding objective builder for the host rules.
+     *
+     * @param deviceId Device that host attaches to
+     * @param mac MAC address of the host
+     * @param vlanId VLAN ID of the host
+     * @param outport Port that host attaches to
+     * @return Forwarding objective builder
+     */
+    private ForwardingObjective.Builder hostFwdObjBuilder(
             DeviceId deviceId, MacAddress mac, VlanId vlanId,
             PortNumber outport) {
-        // Get assigned VLAN for the subnet
+        // Get assigned VLAN for the subnets
         VlanId outvlan = null;
         Ip4Prefix subnet = srManager.deviceConfiguration.getPortSubnet(deviceId, outport);
         if (subnet == null) {
@@ -115,10 +274,10 @@ public class HostHandler {
         // match rule
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         sbuilder.matchEthDst(mac);
-            /*
-             * Note: for untagged packets, match on the assigned VLAN.
-             *       for tagged packets, match on its incoming VLAN.
-             */
+        /*
+         * Note: for untagged packets, match on the assigned VLAN.
+         *       for tagged packets, match on its incoming VLAN.
+         */
         if (vlanId.equals(VlanId.NONE)) {
             sbuilder.matchVlanId(outvlan);
         } else {
@@ -151,150 +310,38 @@ public class HostHandler {
                 .makePermanent();
     }
 
-    protected void processHostAddedEvent(HostEvent event) {
-        MacAddress mac = event.subject().mac();
-        VlanId vlanId = event.subject().vlan();
-        DeviceId deviceId = event.subject().location().deviceId();
-        PortNumber port = event.subject().location().port();
-        Set<IpAddress> ips = event.subject().ipAddresses();
-        log.info("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
-
-        if (!srManager.deviceConfiguration.suppressHost()
-                .contains(new ConnectPoint(deviceId, port))) {
-            // Populate bridging table entry
-            log.debug("Populate L2 table entry for host {} at {}:{}",
-                    mac, deviceId, port);
-            ForwardingObjective.Builder fob =
-                    getForwardingObjectiveBuilder(deviceId, mac, vlanId, port);
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Host rule for {} populated", event.subject()),
-                    (objective, error) ->
-                            log.warn("Failed to populate host rule for {}: {}", event.subject(), error));
-            flowObjectiveService.forward(deviceId, fob.add(context));
-
-            // Populate IP table entry
-            ips.forEach(ip -> {
-                if (ip.isIp4()) {
-                    srManager.routingRulePopulator.populateIpRuleForHost(
-                            deviceId, ip.getIp4Address(), mac, port);
-                }
-            });
+    /**
+     * Add per host route to subnet list and populate the flow rule if the host
+     * does not belong to the configured subnet.
+     *
+     * @param location location of the host being added
+     * @param ip IP address of the host being added
+     */
+    private void addPerHostRoute(ConnectPoint location, Ip4Address ip) {
+        Ip4Prefix portSubnet = srManager.deviceConfiguration.getPortSubnet(
+                location.deviceId(), location.port());
+        if (portSubnet != null && !portSubnet.contains(ip)) {
+            Ip4Prefix ip4Prefix = ip.toIpPrefix().getIp4Prefix();
+            srManager.deviceConfiguration.addSubnet(location, ip4Prefix);
+            srManager.defaultRoutingHandler.populateSubnet(location,
+                    ImmutableSet.of(ip4Prefix));
         }
     }
 
-    protected void processHostRemoveEvent(HostEvent event) {
-        MacAddress mac = event.subject().mac();
-        VlanId vlanId = event.subject().vlan();
-        DeviceId deviceId = event.subject().location().deviceId();
-        PortNumber port = event.subject().location().port();
-        Set<IpAddress> ips = event.subject().ipAddresses();
-        log.debug("Host {}/{} is removed from {}:{}", mac, vlanId, deviceId, port);
-
-        if (!srManager.deviceConfiguration.suppressHost()
-                .contains(new ConnectPoint(deviceId, port))) {
-            // Revoke bridging table entry
-            ForwardingObjective.Builder fob =
-                    getForwardingObjectiveBuilder(deviceId, mac, vlanId, port);
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Host rule for {} revoked", event.subject()),
-                    (objective, error) ->
-                            log.warn("Failed to revoke host rule for {}: {}", event.subject(), error));
-            flowObjectiveService.forward(deviceId, fob.remove(context));
-
-            // Revoke IP table entry
-            ips.forEach(ip -> {
-                if (ip.isIp4()) {
-                    srManager.routingRulePopulator.revokeIpRuleForHost(
-                            deviceId, ip.getIp4Address(), mac, port);
-                }
-            });
-        }
-    }
-
-    protected void processHostMovedEvent(HostEvent event) {
-        MacAddress mac = event.subject().mac();
-        VlanId vlanId = event.subject().vlan();
-        DeviceId prevDeviceId = event.prevSubject().location().deviceId();
-        PortNumber prevPort = event.prevSubject().location().port();
-        Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
-        DeviceId newDeviceId = event.subject().location().deviceId();
-        PortNumber newPort = event.subject().location().port();
-        Set<IpAddress> newIps = event.subject().ipAddresses();
-        log.debug("Host {}/{} is moved from {}:{} to {}:{}",
-                mac, vlanId, prevDeviceId, prevPort, newDeviceId, newPort);
-
-        if (!srManager.deviceConfiguration.suppressHost()
-                .contains(new ConnectPoint(prevDeviceId, prevPort))) {
-            // Revoke previous bridging table entry
-            ForwardingObjective.Builder prevFob =
-                    getForwardingObjectiveBuilder(prevDeviceId, mac, vlanId, prevPort);
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Host rule for {} revoked", event.subject()),
-                    (objective, error) ->
-                            log.warn("Failed to revoke host rule for {}: {}", event.subject(), error));
-            flowObjectiveService.forward(prevDeviceId, prevFob.remove(context));
-
-            // Revoke previous IP table entry
-            prevIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    srManager.routingRulePopulator.revokeIpRuleForHost(
-                            prevDeviceId, ip.getIp4Address(), mac, prevPort);
-                }
-            });
-        }
-
-        if (!srManager.deviceConfiguration.suppressHost()
-                .contains(new ConnectPoint(newDeviceId, newPort))) {
-            // Populate new bridging table entry
-            ForwardingObjective.Builder newFob =
-                    getForwardingObjectiveBuilder(newDeviceId, mac, vlanId, newPort);
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Host rule for {} populated", event.subject()),
-                    (objective, error) ->
-                            log.warn("Failed to populate host rule for {}: {}", event.subject(), error));
-            flowObjectiveService.forward(newDeviceId, newFob.add(context));
-
-            // Populate new IP table entry
-            newIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    srManager.routingRulePopulator.populateIpRuleForHost(
-                            newDeviceId, ip.getIp4Address(), mac, newPort);
-                }
-            });
-        }
-    }
-
-    protected void processHostUpdatedEvent(HostEvent event) {
-        MacAddress mac = event.subject().mac();
-        VlanId vlanId = event.subject().vlan();
-        DeviceId prevDeviceId = event.prevSubject().location().deviceId();
-        PortNumber prevPort = event.prevSubject().location().port();
-        Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
-        DeviceId newDeviceId = event.subject().location().deviceId();
-        PortNumber newPort = event.subject().location().port();
-        Set<IpAddress> newIps = event.subject().ipAddresses();
-        log.debug("Host {}/{} is updated", mac, vlanId);
-
-        if (!srManager.deviceConfiguration.suppressHost()
-                .contains(new ConnectPoint(prevDeviceId, prevPort))) {
-            // Revoke previous IP table entry
-            prevIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    srManager.routingRulePopulator.revokeIpRuleForHost(
-                            prevDeviceId, ip.getIp4Address(), mac, prevPort);
-                }
-            });
-        }
-
-        if (!srManager.deviceConfiguration.suppressHost()
-                .contains(new ConnectPoint(newDeviceId, newPort))) {
-            // Populate new IP table entry
-            newIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    srManager.routingRulePopulator.populateIpRuleForHost(
-                            newDeviceId, ip.getIp4Address(), mac, newPort);
-                }
-            });
+    /**
+     * Remove per host route from subnet list and revoke the flow rule if the
+     * host does not belong to the configured subnet.
+     *
+     * @param location location of the host being removed
+     * @param ip IP address of the host being removed
+     */
+    private void removePerHostRoute(ConnectPoint location, Ip4Address ip) {
+        Ip4Prefix portSubnet = srManager.deviceConfiguration.getPortSubnet(
+                location.deviceId(), location.port());
+        if (portSubnet != null && !portSubnet.contains(ip)) {
+            Ip4Prefix ip4Prefix = ip.toIpPrefix().getIp4Prefix();
+            srManager.deviceConfiguration.removeSubnet(location, ip4Prefix);
+            srManager.defaultRoutingHandler.revokeSubnet(ImmutableSet.of(ip4Prefix));
         }
     }
 }

@@ -153,7 +153,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     protected ApplicationId appId;
     protected DeviceConfiguration deviceConfiguration = null;
 
-    private DefaultRoutingHandler defaultRoutingHandler = null;
+    protected DefaultRoutingHandler defaultRoutingHandler = null;
     private TunnelHandler tunnelHandler = null;
     private PolicyHandler policyHandler = null;
     private InternalPacketProcessor processor = null;

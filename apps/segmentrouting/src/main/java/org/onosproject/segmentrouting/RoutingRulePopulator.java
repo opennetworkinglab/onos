@@ -212,22 +212,33 @@ public class RoutingRulePopulator {
      * Populates IP flow rules for the subnets of the destination router.
      *
      * @param deviceId switch ID to set the rules
-     * @param subnets subnet information
+     * @param subnets subnet being added
      * @param destSw destination switch ID
      * @param nextHops next hop switch ID list
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateIpRuleForSubnet(DeviceId deviceId,
-                                           Set<Ip4Prefix> subnets,
-                                           DeviceId destSw,
-                                           Set<DeviceId> nextHops) {
-
+    public boolean populateIpRuleForSubnet(DeviceId deviceId, Set<Ip4Prefix> subnets,
+            DeviceId destSw, Set<DeviceId> nextHops) {
         for (IpPrefix subnet : subnets) {
             if (!populateIpRuleForRouter(deviceId, subnet, destSw, nextHops)) {
                 return false;
             }
         }
+        return true;
+    }
 
+    /**
+     * Revokes IP flow rules for the subnets.
+     *
+     * @param subnets subnet being removed
+     * @return true if all rules are removed successfully, false otherwise
+     */
+    public boolean revokeIpRuleForSubnet(Set<Ip4Prefix> subnets) {
+        for (IpPrefix subnet : subnets) {
+            if (!revokeIpRuleForRouter(subnet)) {
+                return false;
+            }
+        }
         return true;
     }
 
@@ -305,6 +316,40 @@ public class RoutingRulePopulator {
                         log.warn("Failed to populate IP rule for router {}: {}", ipPrefix, error));
         srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add(context));
         rulePopulationCounter.incrementAndGet();
+
+        return true;
+    }
+
+    /**
+     * Revokes IP flow rules for the router IP address.
+     *
+     * @param ipPrefix the IP address of the destination router
+     * @return true if all rules are removed successfully, false otherwise
+     */
+    public boolean revokeIpRuleForRouter(IpPrefix ipPrefix) {
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+        sbuilder.matchIPDst(ipPrefix);
+        sbuilder.matchEthType(Ethernet.TYPE_IPV4);
+        TrafficSelector selector = sbuilder.build();
+        TrafficTreatment dummyTreatment = DefaultTrafficTreatment.builder().build();
+
+        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
+                .builder()
+                .fromApp(srManager.appId)
+                .makePermanent()
+                .withSelector(selector)
+                .withTreatment(dummyTreatment)
+                .withPriority(getPriorityFromPrefix(ipPrefix))
+                .withFlag(ForwardingObjective.Flag.SPECIFIC);
+
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("IP rule for router {} revoked", ipPrefix),
+                (objective, error) ->
+                        log.warn("Failed to revoke IP rule for router {}: {}", ipPrefix, error));
+
+        srManager.deviceService.getAvailableDevices().forEach(device -> {
+            srManager.flowObjectiveService.forward(device.id(), fwdBuilder.remove(context));
+        });
 
         return true;
     }
@@ -471,6 +516,7 @@ public class RoutingRulePopulator {
      * that drivers can obtain other information (like Router MAC and IP).
      *
      * @param deviceId  the switch dpid for the router
+     * @return true if operation succeeds
      */
     public boolean populateRouterMacVlanFilters(DeviceId deviceId) {
         log.debug("Installing per-port filtering objective for untagged "

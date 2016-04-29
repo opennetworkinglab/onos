@@ -46,6 +46,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Segment Routing configuration component that reads the
  * segment routing related configuration from Network Configuration Manager
@@ -167,7 +169,6 @@ public class DeviceConfiguration implements DeviceProperties {
                     }
                 }
             });
-
         });
     }
 
@@ -516,5 +517,39 @@ public class DeviceConfiguration implements DeviceProperties {
         SegmentRoutingAppConfig appConfig =
                 cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
         return (appConfig != null) ? appConfig.suppressHost() : ImmutableSet.of();
+    }
+
+    /**
+     * Add subnet to specific connect point.
+     *
+     * @param cp connect point
+     * @param ip4Prefix subnet being added to the device
+     */
+    public void addSubnet(ConnectPoint cp, Ip4Prefix ip4Prefix) {
+        checkNotNull(cp);
+        checkNotNull(ip4Prefix);
+        SegmentRouterInfo srinfo = deviceConfigMap.get(cp.deviceId());
+        if (srinfo == null) {
+            log.warn("Device {} is not configured. Abort.", cp.deviceId());
+            return;
+        }
+        srinfo.subnets.put(cp.port(), ip4Prefix);
+    }
+
+    /**
+     * Remove subnet from specific connect point.
+     *
+     * @param cp connect point
+     * @param ip4Prefix subnet being removed to the device
+     */
+    public void removeSubnet(ConnectPoint cp, Ip4Prefix ip4Prefix) {
+        checkNotNull(cp);
+        checkNotNull(ip4Prefix);
+        SegmentRouterInfo srinfo = deviceConfigMap.get(cp.deviceId());
+        if (srinfo == null) {
+            log.warn("Device {} is not configured. Abort.", cp.deviceId());
+            return;
+        }
+        srinfo.subnets.remove(cp.port(), ip4Prefix);
     }
 }
