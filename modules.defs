@@ -163,6 +163,7 @@ ONOS_APPS = [
     '//apps/xosclient:onos-apps-xosclient-oar',
     '//apps/scalablegateway:onos-apps-scalablegateway-oar',
     '//apps/patchpanel:onos-apps-patchpanel-oar',
+    '//apps/castor:onos-apps-castor-oar',
 ]
 
 APP_JARS = [

@@ -82,7 +82,6 @@
         <module>tenbi</module>
     </modules>
 
-
     <properties>
         <web.context>default</web.context>
     </properties>

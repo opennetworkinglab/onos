@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "title": "peer",
+  "required": [
+    "name",
+    "dpid",
+    "ipAddress",
+    "port"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "example": "Peer/Server 1"
+    },
+    "dpid": {
+      "type": "string",
+      "example": "0000000000000027"
+    },
+    "ipAddress": {
+      "type": "string",
+      "example": "192.168.1.1"
+    },
+    "port": {
+      "type": "string",
+      "example": "of:0000000000000027/30"
+    }
+  }
+}
