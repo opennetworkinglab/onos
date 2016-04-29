@@ -38,9 +38,7 @@ import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -456,25 +454,20 @@ public class ApplicationArchive
 
     // Returns the byte stream from icon.png file in oar application archive.
     private byte[] getApplicationIcon(String appName) {
-
-        byte[] icon = new byte[0];
         File iconFile = iconFile(appName, APP_PNG);
-
-        if (!iconFile.exists()) {
-            // assume that we can always fallback to default icon
-            iconFile = new File(appsDir, APP_PNG);
-        }
-
         try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ImageIO.write(ImageIO.read(iconFile), PNG, bos);
-            icon = bos.toByteArray();
-            bos.close();
+            final InputStream iconStream;
+            if (iconFile.exists()) {
+                iconStream = new FileInputStream(iconFile);
+            } else {
+                // assume that we can always fallback to default icon
+                iconStream = ApplicationArchive.class.getResourceAsStream("/" + APP_PNG);
+            }
+            return ByteStreams.toByteArray(iconStream);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Unable to read app icon for app {}", appName, e);
         }
-
-        return icon;
+        return new byte[0];
     }
 
     // Returns application role type
