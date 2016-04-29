@@ -92,6 +92,10 @@
     "atomix-resource": "mvn:io.atomix:atomix-resource:1.0.0-rc3",
     "atomix-resource-manager": "mvn:io.atomix:atomix-resource-manager:1.0.0-rc3",
     "atomix-variables": "mvn:io.atomix:atomix-variables:1.0.0-rc3",
+    "onos-atomix": {
+      "uri": "mvn:org.onosproject:atomix:1.0.onos-SNAPSHOT",
+      "repo": "https://oss.sonatype.org/content/repositories/snapshots"
+    },
     "catalyst-buffer": "mvn:io.atomix.catalyst:catalyst-buffer:1.0.4",
     "catalyst-common": "mvn:io.atomix.catalyst:catalyst-common:1.0.4",
     "catalyst-local": "mvn:io.atomix.catalyst:catalyst-local:1.0.4",
@@ -120,6 +124,8 @@
     "error_prone_annotations": "mvn:com.google.errorprone:error_prone_annotations:2.0.2",
     "ganymed-ssh2": "mvn:ch.ethz.ganymed:ganymed-ssh2:262",
     "jersey-container-jetty-http": "mvn:org.glassfish.jersey.containers:jersey-container-jetty-http:2.22.2",
+    "jersey-container-servlet": "mvn:org.glassfish.jersey.containers:jersey-container-servlet:2.22.2",
+    "jersey-container-servlet-core": "mvn:org.glassfish.jersey.containers:jersey-container-servlet-core:2.22.2",
     "guava": "mvn:com.google.guava:guava:19.0",
     "guava-testlib": "mvn:com.google.guava:guava-testlib:19.0",
     "hamcrest-all": "mvn:org.hamcrest:hamcrest-all:1.3",
@@ -189,12 +195,15 @@
     "reflectasm": "mvn:com.esotericsoftware:reflectasm:1.11.0",
     "remotetea-oncrpc": "mvn:org.acplt.remotetea:remotetea-oncrpc:1.1.3",
     "rrd4j": "mvn:org.rrd4j:rrd4j:2.2",
+    "javassist": "mvn:org.javassist:javassist:3.18.1-GA", //transitive
+    "mimepull": "mvn:org.jvnet.mimepull:mimepull:1.9.6", //transitive
     "servlet-api": "mvn:javax.servlet:servlet-api:2.5",
     "slf4j-api": "mvn:org.slf4j:slf4j-api:1.7.13",
     "slf4j-jdk14": "mvn:org.slf4j:slf4j-jdk14:1.7.13",
     "typesafe-config": "mvn:com.typesafe:config:1.2.1",
     "validation-api": "mvn:javax.validation:validation-api:1.1.0.Final",
     "checkstyle": "http://onlab.vicci.org/onos/third-party/checkstyle-6.11.2-all.jar",
+    "apache-karaf": "http://onlab.vicci.org/onos/third-party/apache-karaf-3.0.5.tar.gz",
     "bndlib": "mvn:biz.aQute.bnd:biz.aQute.bndlib:jar:3.1.0",
     "org.apache.felix.scr.bnd": {
       "uri": "mvn:org.onosproject:org.apache.felix.scr.bnd:1.4.1-SNAPSHOT",
