@@ -51,30 +51,46 @@ def mvnUrl(bundle):
                 parts[4] = parts[4][len(NON_OSGI_TAG):]
     return prefix + '/'.join(parts) + suffix
 
-def generateFeatureFile(feature_name,
-                        version,
-                        title,
-                        feature_repo_name,
+def generateFeatureFile(feature_repo_name,
                         features = [],
-                        bundles = [],
                         **kwargs):
+    values = {
+        'feature_repo_name' : '-'.join(feature_repo_name.split(':')[1:3]),
+    }
+
+    output = FEATURES_HEADER % values
+
+    for feature in features:
+        output += feature
+
+    output += FEATURES_FOOTER
+    return output
+
+def generateFeature(feature_name,
+                    version,
+                    title,
+                    features = [],
+                    bundles = [],
+                    **kwargs):
     values = {
         'feature_name' : feature_name,
         'version' : version,
         'title' : title,
-        'feature_repo_name' : '-'.join(feature_repo_name.split(':')[1:3]),
     }
 
-    output = FEATURES_HEADER % values + FEATURE_HEADER % values
+    output = FEATURE_HEADER % values
 
-    for feature in features:
-        output += EXISTING_FEATURE % feature
+    if features:
+        for feature in features:
+            output += EXISTING_FEATURE % feature
 
-    for bundle in bundles:
-        output += BUNDLE % mvnUrl(bundle)
+    if bundles:
+        for bundle in bundles:
+            output += BUNDLE % mvnUrl(bundle)
 
-    output += FEATURE_FOOTER + FEATURES_FOOTER
+    output += FEATURE_FOOTER
     return output
+
 
 def generateAppFile(app_name,
                     origin,
@@ -139,12 +155,14 @@ if __name__ == '__main__':
 
     parser.add_option("-A", "--write-app", dest="write_app", action="store_true")
     parser.add_option("-F", "--write-features", dest="write_features", action="store_true")
+    parser.add_option("-E", "--write-feature", dest="write_feature", action="store_true")
 
     (options, args) = parser.parse_args()
 
     values = {}
     if options.feature_coords and options.version and options.title:
-        values['feature_name'] = options.feature_coords.split(':')[1]
+        parts = options.feature_coords.split(':')
+        values['feature_name'] = parts[1] if len(parts) > 1 else parts[0]
         values['version'] = options.version
         values['title'] = options.title
     else:
@@ -165,15 +183,22 @@ if __name__ == '__main__':
     values['feature_repo_name'] = options.repo_name if options.repo_name \
                                     else options.feature_coords
 
+    bundles = []
+    if options.included_bundles:
+        bundles += options.included_bundles
+    if options.excluded_bundles:
+        bundles += options.excluded_bundles
+    feature = generateFeature(bundles=bundles,
+                              features=options.features,
+                              **values)
+
+    if options.write_feature:
+        print feature
+
     if options.write_features:
-        bundles = []
-        if options.included_bundles:
-            bundles += options.included_bundles
-        if options.excluded_bundles:
-            bundles += options.excluded_bundles
-        print generateFeatureFile(bundles=bundles,
-                                  features=options.features,
+        print generateFeatureFile(features=[ feature ],
                                   **values)
+
     if options.write_app:
         print generateAppFile(artifacts=options.included_bundles,
                               apps=options.apps,

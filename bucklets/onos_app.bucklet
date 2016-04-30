@@ -16,6 +16,107 @@ def _get_app_name():
     base_path = get_base_path()
     return APP_PREFIX + os.path.basename(base_path)
 
+def osgi_feature(
+        name,
+        title,
+        feature_coords = None,
+        version = ONOS_VERSION,
+        required_features = [ 'onos-api' ],
+        required_apps = [],
+        included_bundles = None,
+        excluded_bundles = [],
+        generate_file = False,
+        visibility = [ 'PUBLIC' ],
+        stage_repo = True,
+    ):
+
+    if not feature_coords:
+        feature_coords = name
+    args = [ '-n %s' % feature_coords,
+             '-v %s' % version,
+             '-t "%s"' % title,
+             ]
+    args += [ '-f %s' % f for f in required_features ]
+    args += [ '-b $(maven_coords %s)' % b for b in included_bundles ]
+    args += [ '-e $(maven_coords %s)' % b for b in excluded_bundles ]
+    args += [ '-d %s' % a for a in required_apps ]
+
+    feature_cmd = '-F' if generate_file else '-E'
+
+    cmd = '$(exe //buck-tools:onos-app-writer) %s ' % feature_cmd
+    cmd += ' '.join(args) + ' > $OUT'
+    genrule(
+            name = name + '-feature',
+            bash = cmd,
+            out = 'features.xml',
+            visibility = visibility,
+    )
+
+    if stage_repo:
+        sources = ['$(location %s) $(maven_coords %s)' % (i, i) for i in included_bundles]
+        genrule(
+                name = name + '-repo',
+                out = name + '-repo.zip.part',
+                bash = '$(exe //buck-tools:onos-feature) $OUT ' + ' '.join(sources),
+                visibility = visibility,
+        )
+
+FEATURES_HEADER = '''\
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0"
+          name="onos-%s">
+    <repository>mvn:org.apache.karaf.features/standard/3.0.5/xml/features</repository>
+
+''' % ONOS_VERSION
+
+FEATURES_FOOTER = '</features>'
+
+def compile_features(
+        name,
+        features = [],
+        visibility = [ 'PUBLIC' ],
+    ):
+
+    cmd = "(echo '%s'; " % FEATURES_HEADER
+    cmd += ''.join(['cat $(location %s-feature); ' % s for s in features])
+    cmd += "echo '%s') > $OUT" % FEATURES_FOOTER
+
+    genrule(
+            name = name,
+            bash = cmd,
+            visibility = visibility,
+            out = 'features.xml',
+    )
+
+
+#TODO rename this
+def osgi_feature_group(
+        name,
+        description = 'TEST',
+        version = ONOS_VERSION,
+        exported_deps = [],
+        visibility = ['PUBLIC'],
+        **kwargs
+    ):
+    java_library(
+            name = name,
+            exported_deps = exported_deps, #compile only
+            visibility = visibility,
+    )
+
+    osgi_feature(
+            name = name,
+            feature_coords = name,
+            version = version,
+            title = description,
+            required_features = [],
+            included_bundles = exported_deps,
+            generate_file = False,
+            visibility = visibility,
+    )
+
+
+
 def onos_app(
         app_name = None,
         name = None,
@@ -66,13 +167,26 @@ def onos_app(
     args += [ '-e $(maven_coords %s)' % b for b in excluded_bundles ]
     args += [ '-d %s' % a for a in required_apps ]
 
-    cmd = '$(exe //buck-tools:onos-app-writer) -F ' + ' '.join(args) + ' > $OUT'
-    genrule(
-        name = name + '-features',
-        bash = cmd,
-        out = 'features.xml',
+    # cmd = '$(exe //buck-tools:onos-app-writer) -F ' + ' '.join(args) + ' > $OUT'
+    # genrule(
+    #     name = name + '-feature',
+    #     bash = cmd,
+    #     out = 'features.xml',
+    #     visibility = [],
+    # )
+    osgi_feature(
+        name = name,
+        feature_coords = feature_coords,
+        version = version,
+        title = title,
+        required_features = required_features,
+        included_bundles = included_bundles,
+        excluded_bundles = excluded_bundles,
+        generate_file = True,
         visibility = [],
+        stage_repo = False,
     )
+
     cmd = '$(exe //buck-tools:onos-app-writer) -A ' + ' '.join(args) + ' > $OUT'
     genrule(
         name = name + '-app-xml',
@@ -82,7 +196,7 @@ def onos_app(
     )
 
     sources = [
-        '$(location :%s-features) %s' % (name, feature_coords),
+        '$(location :%s-feature) %s' % (name, feature_coords),
         '$(location :%s-app-xml) NONE' % name,
     ]
     sources += ['$(location %s) $(maven_coords %s)' % (i, i) for i in included_bundles]
