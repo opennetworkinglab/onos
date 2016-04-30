@@ -7,6 +7,7 @@
 
 [alias]
     onos = //:onos
+    package = //tools/package:onos-package
 
 [download]
   maven_repo = https://repo1.maven.org/maven2
