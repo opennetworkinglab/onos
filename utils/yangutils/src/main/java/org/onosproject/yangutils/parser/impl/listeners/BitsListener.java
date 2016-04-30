@@ -96,10 +96,10 @@ public final class BitsListener {
 
             switch (tmpData.getYangConstructType()) {
                 case LEAF_DATA:
-                    bitsNode.setBitsName(((YangLeaf) tmpData).getLeafName());
+                    bitsNode.setBitsName(((YangLeaf) tmpData).getName());
                     break;
                 case LEAF_LIST_DATA:
-                    bitsNode.setBitsName(((YangLeafList) tmpData).getLeafName());
+                    bitsNode.setBitsName(((YangLeafList) tmpData).getName());
                     break;
                 // TODO typedef, union, deviate.
                 default:

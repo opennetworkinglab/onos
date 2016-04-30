@@ -19,10 +19,9 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
+
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.CopyrightHeader;
 import org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType;
 
@@ -39,6 +38,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ENUM_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EQUALS_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.HASH_CODE_IMPL_MASK;
@@ -47,7 +47,6 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaClassDefStart;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getJavaPackageFromPackagePath;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
@@ -83,10 +82,10 @@ public final class JavaFileGeneratorUtils {
     /**
      * Returns a file object for generated file.
      *
-     * @param fileName  file name
-     * @param filePath  file package path
+     * @param fileName file name
+     * @param filePath file package path
      * @param extension file extension
-     * @param handle    cached file handle
+     * @param handle cached file handle
      * @return file object
      */
     public static File getFileObject(String filePath, String fileName, String extension, JavaFileInfo handle) {
@@ -98,58 +97,59 @@ public final class JavaFileGeneratorUtils {
      * Returns data stored in temporary files.
      *
      * @param generatedTempFiles temporary file types
-     * @param curNode            current YANG node
+     * @param generatedTempFiles temporary file types
+     * @param tempJavaFragmentFiles temp java fragment files
      * @return data stored in temporary files
      * @throws IOException when failed to get the data from temporary file handle
      */
-    public static String getDataFromTempFileHandle(int generatedTempFiles, YangNode curNode) throws IOException {
+    public static String getDataFromTempFileHandle(int generatedTempFiles,
+            TempJavaFragmentFiles tempJavaFragmentFiles)
+            throws IOException {
 
-        TempJavaCodeFragmentFiles tempJavaCodeFragmentFiles = ((HasTempJavaCodeFragmentFiles) curNode)
-                .getTempJavaCodeFragmentFiles();
 
         if ((generatedTempFiles & ATTRIBUTES_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getAttributesTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getAttributesTempFileHandle());
         } else if ((generatedTempFiles & GETTER_FOR_INTERFACE_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getGetterInterfaceTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getGetterInterfaceTempFileHandle());
         } else if ((generatedTempFiles & SETTER_FOR_INTERFACE_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getSetterInterfaceTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getSetterInterfaceTempFileHandle());
         } else if ((generatedTempFiles & GETTER_FOR_CLASS_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getGetterImplTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getGetterImplTempFileHandle());
         } else if ((generatedTempFiles & SETTER_FOR_CLASS_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getSetterImplTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getSetterImplTempFileHandle());
         } else if ((generatedTempFiles & CONSTRUCTOR_IMPL_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getConstructorImplTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getConstructorImplTempFileHandle());
         } else if ((generatedTempFiles & HASH_CODE_IMPL_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getHashCodeImplTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getHashCodeImplTempFileHandle());
         } else if ((generatedTempFiles & EQUALS_IMPL_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getEqualsImplTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getEqualsImplTempFileHandle());
         } else if ((generatedTempFiles & TO_STRING_IMPL_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getToStringImplTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getToStringImplTempFileHandle());
         } else if ((generatedTempFiles & CONSTRUCTOR_FOR_TYPE_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles
                             .getConstructorForTypeTempFileHandle());
         } else if ((generatedTempFiles & OF_STRING_IMPL_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getOfStringImplTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getOfStringImplTempFileHandle());
         } else if ((generatedTempFiles & FROM_STRING_IMPL_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getFromStringImplTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getFromStringImplTempFileHandle());
         } else if ((generatedTempFiles & ENUM_IMPL_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getEnumClassTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getEnumClassTempFileHandle());
         } else if ((generatedTempFiles & RPC_IMPL_MASK) != 0) {
-            return tempJavaCodeFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaCodeFragmentFiles.getRpcInterfaceImplTempFileHandle());
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getRpcInterfaceImplTempFileHandle());
         }
         return null;
     }
@@ -157,15 +157,16 @@ public final class JavaFileGeneratorUtils {
     /**
      * Initiates generation of file based on generated file type.
      *
-     * @param file      generated file
+     * @param file generated file
      * @param className generated file class name
-     * @param type      generated file type
-     * @param imports   imports for the file
-     * @param pkg       generated file package
+     * @param type generated file type
+     * @param imports imports for the file
+     * @param pkg generated file package
      * @throws IOException when fails to generate a file
      */
     public static void initiateJavaFileGeneration(File file, String className, int type, List<String> imports,
-                                                  String pkg) throws IOException {
+            String pkg)
+            throws IOException {
 
         try {
             file.createNewFile();
@@ -178,15 +179,16 @@ public final class JavaFileGeneratorUtils {
     /**
      * Appends all the contents into a generated java file.
      *
-     * @param file        generated file
-     * @param fileName    generated file name
-     * @param type        generated file type
-     * @param pkg         generated file package
+     * @param file generated file
+     * @param fileName generated file name
+     * @param type generated file type
+     * @param pkg generated file package
      * @param importsList list of java imports.
      * @throws IOException when fails to append contents
      */
     private static void appendContents(File file, String fileName, int type, List<String> importsList,
-                                       String pkg) throws IOException {
+            String pkg)
+            throws IOException {
 
         String pkgString = parsePackageString(pkg, importsList);
 
@@ -218,7 +220,7 @@ public final class JavaFileGeneratorUtils {
     /**
      * Removes base directory path from package and generates package string for file.
      *
-     * @param javaPkg     generated java package
+     * @param javaPkg generated java package
      * @param importsList list of imports
      * @return package string
      */
@@ -243,12 +245,13 @@ public final class JavaFileGeneratorUtils {
      * Appends other contents to interface, builder and typedef classes.
      * for example : ONOS copyright, imports and package.
      *
-     * @param file        generated file
-     * @param pkg         generated package
+     * @param file generated file
+     * @param pkg generated package
      * @param importsList list of imports
      * @throws IOException when fails to append contents
      */
-    private static void appendHeaderContents(File file, String pkg, List<String> importsList) throws IOException {
+    private static void appendHeaderContents(File file, String pkg, List<String> importsList)
+            throws IOException {
 
         insertDataIntoJavaFile(file, CopyrightHeader.getCopyrightHeader());
         insertDataIntoJavaFile(file, pkg);
@@ -269,9 +272,9 @@ public final class JavaFileGeneratorUtils {
     /**
      * Writes data to the specific generated file.
      *
-     * @param file        generated file
-     * @param fileName    file name
-     * @param genType     generated file type
+     * @param file generated file
+     * @param fileName file name
+     * @param genType generated file type
      * @param javaDocType java doc type
      * @throws IOException when fails to write into a file
      */

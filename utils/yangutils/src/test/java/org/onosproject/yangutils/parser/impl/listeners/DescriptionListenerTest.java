@@ -68,7 +68,7 @@ public class DescriptionListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         // Check whether the description is set correctly.
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDescription(), is("\"Interval before a route is declared invalid\""));
     }
 
@@ -176,7 +176,7 @@ public class DescriptionListenerTest {
         ListIterator<YangLeaf> leafIterator = container.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
         assertThat(leafInfo.getUnits(), is("\"seconds\""));
@@ -213,7 +213,7 @@ public class DescriptionListenerTest {
         ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
         assertThat(leafInfo.getUnits(), is("\"seconds\""));
@@ -245,7 +245,7 @@ public class DescriptionListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         // Check whether description value is set correctly.
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getDescription(), is("\"Interval before a route is declared invalid\""));
     }
 }

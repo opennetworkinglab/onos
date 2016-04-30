@@ -49,10 +49,12 @@ import org.onosproject.yangutils.utils.YangConstructType;
  *                | when         | 7.19.5  | 0..1        | -TODO            |
  *                +--------------+---------+-------------+------------------+
  */
+
 /**
  * Represents leaf-list data represented in YANG.
  */
-public class YangLeafList implements YangCommonInfo, Parsable {
+public class YangLeafList
+        implements YangCommonInfo, Parsable {
 
     /**
      * Name of leaf-list.
@@ -132,7 +134,7 @@ public class YangLeafList implements YangCommonInfo, Parsable {
      *
      * @return the leaf-list name
      */
-    public String getLeafName() {
+    public String getName() {
         return name;
     }
 
@@ -311,7 +313,8 @@ public class YangLeafList implements YangCommonInfo, Parsable {
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
     }
@@ -322,7 +325,8 @@ public class YangLeafList implements YangCommonInfo, Parsable {
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
     }

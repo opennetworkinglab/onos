@@ -16,89 +16,21 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import org.onosproject.yangutils.datamodel.YangUses;
-import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
-
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 
 /**
  * Represents uses information extended to support java code generation.
  */
-public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJavaFileInfo, HasJavaImportData {
-
-    /**
-     * Contains the information of the java file being generated.
-     */
-    private JavaFileInfo javaFileInfo;
-
-    /**
-     * Contains information of the imports to be inserted in the java file
-     * generated.
-     */
-    private JavaImportData javaImportData;
+public class YangJavaUses
+        extends YangUses
+        implements JavaCodeGenerator {
 
     /**
      * Creates YANG java uses object.
      */
     public YangJavaUses() {
         super();
-        setJavaFileInfo(new JavaFileInfo());
-        setJavaImportData(new JavaImportData());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER);
-    }
-
-    /**
-     * Returns the generated java file information.
-     *
-     * @return generated java file information
-     */
-    @Override
-    public JavaFileInfo getJavaFileInfo() {
-
-        if (javaFileInfo == null) {
-            throw new TranslatorException("Missing java info in java datamodel node");
-        }
-        return javaFileInfo;
-    }
-
-    /**
-     * Sets the java file info object.
-     *
-     * @param javaInfo java file info object
-     */
-    @Override
-    public void setJavaFileInfo(JavaFileInfo javaInfo) {
-        javaFileInfo = javaInfo;
-    }
-
-    /**
-     * Returns the data of java imports to be included in generated file.
-     *
-     * @return data of java imports to be included in generated file
-     */
-    @Override
-    public JavaImportData getJavaImportData() {
-        return javaImportData;
-    }
-
-    /**
-     * Sets the data of java imports to be included in generated file.
-     *
-     * @param javaImportData data of java imports to be included in generated
-     *            file
-     */
-    @Override
-    public void setJavaImportData(JavaImportData javaImportData) {
-        this.javaImportData = javaImportData;
     }
 
     /**
@@ -109,14 +41,7 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
      */
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) {
-
-        getJavaFileInfo().setJavaName(getCaptialCase(getCamelCase(getName(), yangPlugin.getConflictResolver())));
-        getJavaFileInfo().setPackage(getCurNodePackage(this));
-        getJavaFileInfo().setPackageFilePath(
-                getPackageDirPathFromJavaJPackage(getJavaFileInfo().getPackage()));
-        getJavaFileInfo().setBaseCodeGenPath(yangPlugin.getCodeGenDir());
-        //TODO:addCurNodeLeavesInfoToTempFiles(this);
-        //TODO:addCurNodeInfoInParentTempFile(this, false);
+                /*Do nothing, the uses will copy the contents to the used location*/
     }
 
     /**
@@ -124,7 +49,6 @@ public class YangJavaUses extends YangUses implements JavaCodeGenerator, HasJava
      */
     @Override
     public void generateCodeExit() {
-        // TODO Auto-generated method stub
-
+                /*Do nothing, the uses will copy the contents to the used location*/
     }
 }

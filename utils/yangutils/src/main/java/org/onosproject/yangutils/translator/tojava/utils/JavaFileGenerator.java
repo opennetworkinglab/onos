@@ -20,10 +20,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
+import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
@@ -68,7 +70,8 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRemoveAugmentationImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodOpen;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isHasAugmentationExtended;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils
+        .isHasAugmentationExtended;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
@@ -148,9 +151,9 @@ public final class JavaFileGenerator {
     /**
      * Returns generated interface file for current node.
      *
-     * @param file          file
-     * @param imports       imports for the file
-     * @param curNode       current YANG node
+     * @param file file
+     * @param imports imports for the file
+     * @param curNode current YANG node
      * @param isAttrPresent if any attribute is present or not
      * @return interface file
      * @throws IOException when fails to write in file
@@ -158,7 +161,7 @@ public final class JavaFileGenerator {
     public static File generateInterfaceFile(File file, List<String> imports, YangNode curNode, boolean isAttrPresent)
             throws IOException {
 
-        JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
+        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className = getCaptialCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
@@ -173,7 +176,9 @@ public final class JavaFileGenerator {
                 /**
                  * Getter methods.
                  */
-                insertDataIntoJavaFile(file, getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK, curNode));
+                insertDataIntoJavaFile(file, getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK,
+                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                .getBeanTempFiles()));
             } catch (IOException e) {
                 throw new IOException("No data found in temporary java code fragment files for " + className
                         + " while interface file generation");
@@ -185,8 +190,8 @@ public final class JavaFileGenerator {
     /**
      * Returns generated builder interface file for current node.
      *
-     * @param file          file
-     * @param curNode       current YANG node
+     * @param file file
+     * @param curNode current YANG node
      * @param isAttrPresent if any attribute is present or not
      * @return builder interface file
      * @throws IOException when fails to write in file
@@ -194,7 +199,7 @@ public final class JavaFileGenerator {
     public static File generateBuilderInterfaceFile(File file, YangNode curNode, boolean isAttrPresent)
             throws IOException {
 
-        JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
+        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className = getCaptialCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
@@ -206,12 +211,16 @@ public final class JavaFileGenerator {
                 /**
                  * Getter methods.
                  */
-                methods.add(FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK, curNode));
+                methods.add(FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK,
+                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                .getBeanTempFiles()));
                 /**
                  * Setter methods.
                  */
                 methods.add(NEW_LINE);
-                methods.add(FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(SETTER_FOR_INTERFACE_MASK, curNode));
+                methods.add(FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(SETTER_FOR_INTERFACE_MASK,
+                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                .getBeanTempFiles()));
             } catch (IOException e) {
                 throw new IOException("No data found in temporary java code fragment files for " + className
                         + " while builder interface file generation");
@@ -221,7 +230,8 @@ public final class JavaFileGenerator {
          * Add build method to builder interface file.
          */
         methods.add(
-                ((HasTempJavaCodeFragmentFiles) curNode).getTempJavaCodeFragmentFiles().addBuildMethodForInterface());
+                ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                        .addBuildMethodForInterface());
 
         /**
          * Add getters and setters in builder interface.
@@ -237,17 +247,18 @@ public final class JavaFileGenerator {
     /**
      * Returns generated builder class file for current node.
      *
-     * @param file          file
-     * @param imports       imports for the file
-     * @param curNode       current YANG node
+     * @param file file
+     * @param imports imports for the file
+     * @param curNode current YANG node
      * @param isAttrPresent if any attribute is present or not
      * @return builder class file
      * @throws IOException when fails to write in file
      */
     public static File generateBuilderClassFile(File file, List<String> imports, YangNode curNode,
-                                                boolean isAttrPresent) throws IOException {
+            boolean isAttrPresent)
+            throws IOException {
 
-        JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
+        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className = getCaptialCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
@@ -262,7 +273,9 @@ public final class JavaFileGenerator {
              */
             try {
                 insertDataIntoJavaFile(file,
-                        NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK, curNode));
+                        NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK,
+                                ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                        .getBeanTempFiles()));
             } catch (IOException e) {
                 throw new IOException("No data found in temporary java code fragment files for " + className
                         + " while builder class file generation");
@@ -272,11 +285,16 @@ public final class JavaFileGenerator {
                 /**
                  * Getter methods.
                  */
-                methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK, curNode));
+                methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK,
+                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                .getBeanTempFiles()));
                 /**
                  * Setter methods.
                  */
-                methods.add(getDataFromTempFileHandle(SETTER_FOR_CLASS_MASK, curNode) + NEW_LINE);
+                methods.add(getDataFromTempFileHandle(SETTER_FOR_CLASS_MASK,
+                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                .getBeanTempFiles()) +
+                        NEW_LINE);
             } catch (IOException e) {
                 throw new IOException("No data found in temporary java code fragment files for " + className
                         + " while builder class file generation");
@@ -287,8 +305,8 @@ public final class JavaFileGenerator {
         /**
          * Add default constructor and build method impl.
          */
-        methods.add(((HasTempJavaCodeFragmentFiles) curNode).getTempJavaCodeFragmentFiles().addBuildMethodImpl());
-        methods.add(((HasTempJavaCodeFragmentFiles) curNode).getTempJavaCodeFragmentFiles()
+        methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().addBuildMethodImpl());
+        methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                 .addDefaultConstructor(PUBLIC, BUILDER));
 
         /**
@@ -303,8 +321,8 @@ public final class JavaFileGenerator {
     /**
      * Returns generated impl class file for current node.
      *
-     * @param file          file
-     * @param curNode       current YANG node
+     * @param file file
+     * @param curNode current YANG node
      * @param isAttrPresent if any attribute is present or not
      * @return impl class file
      * @throws IOException when fails to write in file
@@ -312,7 +330,7 @@ public final class JavaFileGenerator {
     public static File generateImplClassFile(File file, YangNode curNode, boolean isAttrPresent)
             throws IOException {
 
-        JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
+        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className = getCaptialCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
@@ -326,7 +344,9 @@ public final class JavaFileGenerator {
              */
             try {
                 insertDataIntoJavaFile(file,
-                        NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK, curNode));
+                        NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK,
+                                ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                        .getBeanTempFiles()));
             } catch (IOException e) {
                 throw new IOException("No data found in temporary java code fragment files for " + className
                         + " while impl class file generation");
@@ -343,22 +363,30 @@ public final class JavaFileGenerator {
                 /**
                  * Getter methods.
                  */
-                methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK, curNode));
+                methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK,
+                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                .getBeanTempFiles()));
 
                 /**
                  * Hash code method.
                  */
                 methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() + partString(
-                        getDataFromTempFileHandle(HASH_CODE_IMPL_MASK, curNode).replace(NEW_LINE, EMPTY_STRING))));
+                        getDataFromTempFileHandle(HASH_CODE_IMPL_MASK,
+                                ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                        .getBeanTempFiles()).replace(NEW_LINE, EMPTY_STRING))));
                 /**
                  * Equals method.
                  */
                 methods.add(getEqualsMethodClose(
-                        getEqualsMethodOpen(className + IMPL) + getDataFromTempFileHandle(EQUALS_IMPL_MASK, curNode)));
+                        getEqualsMethodOpen(className + IMPL) + getDataFromTempFileHandle(EQUALS_IMPL_MASK,
+                                ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                        .getBeanTempFiles())));
                 /**
                  * To string method.
                  */
-                methods.add(getToStringMethodOpen() + getDataFromTempFileHandle(TO_STRING_IMPL_MASK, curNode)
+                methods.add(getToStringMethodOpen() + getDataFromTempFileHandle(TO_STRING_IMPL_MASK,
+                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                .getBeanTempFiles())
                         + getToStringMethodClose());
 
             } catch (IOException e) {
@@ -372,7 +400,8 @@ public final class JavaFileGenerator {
             /**
              * Constructor.
              */
-            methods.add(getConstructorStart(className) + getDataFromTempFileHandle(CONSTRUCTOR_IMPL_MASK, curNode)
+            methods.add(getConstructorStart(className) + getDataFromTempFileHandle(CONSTRUCTOR_IMPL_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getBeanTempFiles())
                     + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET);
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className
@@ -402,15 +431,16 @@ public final class JavaFileGenerator {
     /**
      * Generates class file for type def.
      *
-     * @param file    generated file
+     * @param file generated file
      * @param curNode current YANG node
      * @param imports imports for file
      * @return type def class file
      * @throws IOException when fails to generate class file
      */
-    public static File generateTypeDefClassFile(File file, YangNode curNode, List<String> imports) throws IOException {
+    public static File generateTypeDefClassFile(File file, YangNode curNode, List<String> imports)
+            throws IOException {
 
-        JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
+        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className = getCaptialCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
@@ -424,7 +454,9 @@ public final class JavaFileGenerator {
          */
         try {
             insertDataIntoJavaFile(file,
-                    NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK, curNode));
+                    NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK,
+                            ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                    .getTypeTempFiles()));
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className
                     + " while type def class file generation");
@@ -433,7 +465,7 @@ public final class JavaFileGenerator {
         /**
          * Default constructor.
          */
-        methods.add(((HasTempJavaCodeFragmentFiles) curNode).getTempJavaCodeFragmentFiles()
+        methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                 .addDefaultConstructor(PRIVATE, EMPTY_STRING));
 
         try {
@@ -441,42 +473,51 @@ public final class JavaFileGenerator {
             /**
              * Type constructor.
              */
-            methods.add(getDataFromTempFileHandle(CONSTRUCTOR_FOR_TYPE_MASK, curNode));
+            methods.add(getDataFromTempFileHandle(CONSTRUCTOR_FOR_TYPE_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles()));
 
             /**
              * Of method.
              */
-            methods.add(getDataFromTempFileHandle(OF_STRING_IMPL_MASK, curNode));
+            methods.add(getDataFromTempFileHandle(OF_STRING_IMPL_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles()));
 
             /**
              * Getter method.
              */
-            methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK, curNode));
+            methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles()));
 
             /**
              * Hash code method.
              */
             methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() + partString(
-                    getDataFromTempFileHandle(HASH_CODE_IMPL_MASK, curNode).replace(NEW_LINE, EMPTY_STRING))));
+                    getDataFromTempFileHandle(HASH_CODE_IMPL_MASK,
+                            ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                    .getTypeTempFiles())
+                            .replace(NEW_LINE, EMPTY_STRING))));
 
             /**
              * Equals method.
              */
             methods.add(getEqualsMethodClose(getEqualsMethodOpen(className + EMPTY_STRING)
-                    + getDataFromTempFileHandle(EQUALS_IMPL_MASK, curNode)));
+                    + getDataFromTempFileHandle(EQUALS_IMPL_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles())));
 
             /**
              * To string method.
              */
-            methods.add(getToStringMethodOpen() + getDataFromTempFileHandle(TO_STRING_IMPL_MASK, curNode)
+            methods.add(getToStringMethodOpen() + getDataFromTempFileHandle(TO_STRING_IMPL_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles())
                     + getToStringMethodClose());
 
+            JavaCodeGeneratorInfo javaGeninfo = (JavaCodeGeneratorInfo) curNode;
             /**
              * From string method.
              */
             methods.add(getFromStringMethodSignature(className)
-                    + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK, curNode)
-                    + getFromStringMethodClose());
+                    + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK, javaGeninfo.getTempJavaCodeFragmentFiles()
+                    .getTypeTempFiles()) + getFromStringMethodClose());
 
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className
@@ -494,15 +535,16 @@ public final class JavaFileGenerator {
     /**
      * Generates class file for union type.
      *
-     * @param file    generated file
+     * @param file generated file
      * @param curNode current YANG node
      * @param imports imports for file
      * @return type def class file
      * @throws IOException when fails to generate class file
      */
-    public static File generateUnionClassFile(File file, YangNode curNode, List<String> imports) throws IOException {
+    public static File generateUnionClassFile(File file, YangNode curNode, List<String> imports)
+            throws IOException {
 
-        JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
+        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className = getCaptialCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
@@ -516,7 +558,9 @@ public final class JavaFileGenerator {
          */
         try {
             insertDataIntoJavaFile(file,
-                    NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK, curNode));
+                    NEW_LINE + FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(ATTRIBUTES_MASK,
+                            ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                    .getTypeTempFiles()));
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className
                     + " while union class file generation");
@@ -525,7 +569,7 @@ public final class JavaFileGenerator {
         /**
          * Default constructor.
          */
-        methods.add(((HasTempJavaCodeFragmentFiles) curNode).getTempJavaCodeFragmentFiles()
+        methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                 .addDefaultConstructor(PRIVATE, EMPTY_STRING));
 
         try {
@@ -533,41 +577,51 @@ public final class JavaFileGenerator {
             /**
              * Type constructor.
              */
-            methods.add(getDataFromTempFileHandle(CONSTRUCTOR_FOR_TYPE_MASK, curNode));
+            methods.add(getDataFromTempFileHandle(CONSTRUCTOR_FOR_TYPE_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles()));
 
             /**
              * Of string method.
              */
-            methods.add(getDataFromTempFileHandle(OF_STRING_IMPL_MASK, curNode));
+            methods.add(getDataFromTempFileHandle(OF_STRING_IMPL_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles()));
 
             /**
              * Getter method.
              */
-            methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK, curNode));
+            methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles()));
 
             /**
              * Hash code method.
              */
             methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() + partString(
-                    getDataFromTempFileHandle(HASH_CODE_IMPL_MASK, curNode).replace(NEW_LINE, EMPTY_STRING))));
+                    getDataFromTempFileHandle(HASH_CODE_IMPL_MASK,
+                            ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                    .getTypeTempFiles())
+                            .replace(NEW_LINE, EMPTY_STRING))));
 
             /**
              * Equals method.
              */
             methods.add(getEqualsMethodClose(getEqualsMethodOpen(className + EMPTY_STRING)
-                    + getDataFromTempFileHandle(EQUALS_IMPL_MASK, curNode)));
+                    + getDataFromTempFileHandle(EQUALS_IMPL_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles())));
 
             /**
              * To string method.
              */
             methods.add(getToStringMethodOpen() + getOmitNullValueString() +
-                    getDataFromTempFileHandle(TO_STRING_IMPL_MASK, curNode) + getToStringMethodClose());
+                    getDataFromTempFileHandle(TO_STRING_IMPL_MASK,
+                            ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                    .getTypeTempFiles()) + getToStringMethodClose());
 
             /**
              * From string method.
              */
             methods.add(getFromStringMethodSignature(className)
-                    + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK, curNode)
+                    + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles())
                     + getFromStringMethodClose());
 
         } catch (IOException e) {
@@ -586,14 +640,15 @@ public final class JavaFileGenerator {
     /**
      * Generates class file for type enum.
      *
-     * @param file    generated file
+     * @param file generated file
      * @param curNode current YANG node
      * @return class file for type enum
      * @throws IOException when fails to generate class file
      */
-    public static File generateEnumClassFile(File file, YangNode curNode) throws IOException {
+    public static File generateEnumClassFile(File file, YangNode curNode)
+            throws IOException {
 
-        JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
+        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className = getCaptialCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
@@ -603,8 +658,10 @@ public final class JavaFileGenerator {
          * Add attribute strings.
          */
         try {
+            JavaCodeGeneratorInfo javaGeninfo = (JavaCodeGeneratorInfo) curNode;
             insertDataIntoJavaFile(file,
-                    trimAtLast(trimAtLast(getDataFromTempFileHandle(ENUM_IMPL_MASK, curNode), COMMA), NEW_LINE)
+                    trimAtLast(trimAtLast(getDataFromTempFileHandle(ENUM_IMPL_MASK, javaGeninfo
+                            .getTempJavaCodeFragmentFiles().getEnumerationTempFiles()), COMMA), NEW_LINE)
                             + SEMI_COLAN + NEW_LINE);
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className
@@ -612,7 +669,8 @@ public final class JavaFileGenerator {
         }
 
         /**
-         * Add an attribute to get the enum's values.
+         * Add an
+         * attribute to get the enum's values.
          */
         insertDataIntoJavaFile(file, getEnumsValueAttribute(className));
 
@@ -638,15 +696,16 @@ public final class JavaFileGenerator {
     /**
      * Generates interface file for rpc.
      *
-     * @param file    generated file
+     * @param file generated file
      * @param curNode current YANG node
      * @param imports imports for file
      * @return type def class file
      * @throws IOException when fails to generate class file
      */
-    public static File generateRpcInterfaceFile(File file, YangNode curNode, List<String> imports) throws IOException {
+    public static File generateRpcInterfaceFile(File file, YangNode curNode, List<String> imports)
+            throws IOException {
 
-        JavaFileInfo javaFileInfo = ((HasJavaFileInfo) curNode).getJavaFileInfo();
+        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className = getCaptialCase(javaFileInfo.getJavaName()) + SERVICE_METHOD_STRING;
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
@@ -657,10 +716,12 @@ public final class JavaFileGenerator {
 
         try {
 
+            JavaCodeGeneratorInfo javaGeninfo = (JavaCodeGeneratorInfo) curNode;
             /**
              * Rpc methods
              */
-            methods.add(getDataFromTempFileHandle(RPC_IMPL_MASK, curNode));
+            methods.add(getDataFromTempFileHandle(RPC_IMPL_MASK, javaGeninfo.getTempJavaCodeFragmentFiles()
+                    .getServiceTempFiles()));
 
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className

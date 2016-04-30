@@ -68,7 +68,7 @@ public class ConfigListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         // Check whether the Config value is set correctly.
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.isConfig(), is(true));
     }
 
@@ -94,7 +94,7 @@ public class ConfigListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         // Check whether the Config value is set correctly.
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.isConfig(), is(false));
     }
 
@@ -168,7 +168,7 @@ public class ConfigListenerTest {
         ListIterator<YangLeaf> leafIterator = container.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
         assertThat(leafInfo.getUnits(), is("\"seconds\""));
@@ -204,7 +204,7 @@ public class ConfigListenerTest {
         ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
         assertThat(leafInfo.getUnits(), is("\"seconds\""));
@@ -236,7 +236,7 @@ public class ConfigListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         // Check whether config value is set correctly.
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.isConfig(), is(true));
     }
 
@@ -262,7 +262,7 @@ public class ConfigListenerTest {
         ListIterator<YangLeaf> leafIterator = container.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.isConfig(), is(true));
     }
 
@@ -367,7 +367,7 @@ public class ConfigListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         // Check whether config value is set correctly.
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.isConfig(), is(true));
 
     }
@@ -395,7 +395,7 @@ public class ConfigListenerTest {
         ListIterator<YangLeaf> leafIterator = container.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.isConfig(), is(true));
     }
 
@@ -475,7 +475,7 @@ public class ConfigListenerTest {
         YangLeafList leafListInfo = leafListIterator.next();
 
         // Check whether config value is set correctly.
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.isConfig(), is(true));
     }
 
@@ -502,7 +502,7 @@ public class ConfigListenerTest {
         ListIterator<YangLeaf> leafIterator = list1.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.isConfig(), is(true));
     }
 

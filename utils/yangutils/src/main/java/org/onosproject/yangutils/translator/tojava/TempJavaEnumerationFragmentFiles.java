@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.yangutils.translator.tojava;
 
-package org.onosproject.yangutils.datamodel;
-
-import java.util.List;
+import java.io.IOException;
 
 /**
- * Represents the holder with type(s).
+ * Represents implementation of java code fragments temporary implementations.
  */
-public interface HasType {
+public class TempJavaEnumerationFragmentFiles
+        extends TempJavaFragmentFiles {
 
     /**
-     * Returns type list.
+     * Creates an instance of temporary java code fragment.
      *
-     * @return type list
+     * @param javaFileInfo generated java file info
+     * @throws IOException when fails to create new file handle
      */
-    List<YangType<?>> getTypeList();
+    public TempJavaEnumerationFragmentFiles(JavaFileInfo javaFileInfo)
+            throws IOException {
+        super(javaFileInfo);
+    }
 }

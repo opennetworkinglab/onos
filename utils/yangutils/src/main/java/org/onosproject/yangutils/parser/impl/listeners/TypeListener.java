@@ -34,6 +34,8 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 import static org.onosproject.yangutils.datamodel.ResolvableStatus.UNRESOLVED;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.addResolutionInfo;
+import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
+import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangType;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
@@ -95,7 +97,7 @@ public final class TypeListener {
         YangDataTypes yangDataTypes = YangDataTypes.getType(ctx.string().getText());
 
         // Create YANG type object and fill the values.
-        YangType<?> type = new YangType();
+        YangType<?> type = getYangType(JAVA_GENERATION);
         type.setNodeIdentifier(nodeIdentifier);
         type.setDataType(yangDataTypes);
 
@@ -253,7 +255,7 @@ public final class TypeListener {
      * @param ctx context object of the grammar rule
      */
     private static void addToResolutionList(YangResolutionInfo<YangType> resolutionInfo,
-                                            GeneratedYangParser.TypeStatementContext ctx) {
+            GeneratedYangParser.TypeStatementContext ctx) {
         try {
             addResolutionInfo(resolutionInfo);
         } catch (DataModelException e) {

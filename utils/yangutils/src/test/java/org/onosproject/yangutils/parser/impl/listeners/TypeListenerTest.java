@@ -58,7 +58,7 @@ public class TypeListenerTest {
         ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("hello"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
     }
@@ -84,7 +84,7 @@ public class TypeListenerTest {
         ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
     }
@@ -110,7 +110,7 @@ public class TypeListenerTest {
         ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
         YangLeafList leafListInfo = leafListIterator.next();
 
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
     }

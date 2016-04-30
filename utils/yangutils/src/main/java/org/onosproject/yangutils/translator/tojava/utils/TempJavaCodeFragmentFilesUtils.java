@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
+import org.onosproject.yangutils.translator.tojava.JavaImportDataContainer;
 
 import static org.onosproject.yangutils.translator.tojava.JavaImportData.getAugmentedInfoImport;
 import static org.onosproject.yangutils.translator.tojava.JavaImportData.getHasAugmentationImport;
@@ -52,9 +52,9 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @return import list
      */
     public static List<String> addImportsToStringAndHasCodeMethods(YangNode curNode, List<String> imports) {
-        if (curNode instanceof HasJavaImportData) {
-            imports.add(((HasJavaImportData) curNode).getJavaImportData().getImportForHashAndEquals());
-            imports.add(((HasJavaImportData) curNode).getJavaImportData().getImportForToString());
+        if (curNode instanceof JavaImportDataContainer) {
+            imports.add(((JavaImportDataContainer) curNode).getJavaImportData().getImportForHashAndEquals());
+            imports.add(((JavaImportDataContainer) curNode).getJavaImportData().getImportForToString());
         }
         return imports;
     }
@@ -68,7 +68,7 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @return import for HasAugmentation class
      */
     public static List<String> addHasAugmentationImport(YangNode curNode, List<String> imports, boolean operation) {
-        if (curNode instanceof HasJavaImportData) {
+        if (curNode instanceof JavaImportDataContainer) {
             String thisImport = getHasAugmentationImport();
             performOperationOnImports(imports, thisImport, operation);
         }
@@ -84,7 +84,7 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @return import for AugmentedInfo class
      */
     public static List<String> addAugmentedInfoImport(YangNode curNode, List<String> imports, boolean operation) {
-        if (curNode instanceof HasJavaImportData) {
+        if (curNode instanceof JavaImportDataContainer) {
             String thisImport = getAugmentedInfoImport();
             performOperationOnImports(imports, thisImport, operation);
         }
@@ -100,7 +100,7 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @return import for HasAugmentation class
      */
     public static List<String> addArrayListImport(YangNode curNode, List<String> imports, boolean operation) {
-        if (curNode instanceof HasJavaImportData) {
+        if (curNode instanceof JavaImportDataContainer) {
             String arrayListImport = getImportForArrayList();
             String listImport = getImportForList();
             performOperationOnImports(imports, arrayListImport, operation);

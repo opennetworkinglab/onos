@@ -20,39 +20,24 @@ import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
-import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
  * Represents notification information extended to support java code generation.
  */
-public class YangJavaNotification extends YangNotification
-        implements JavaCodeGenerator, HasJavaFileInfo,
-        HasJavaImportData, HasTempJavaCodeFragmentFiles {
+public class YangJavaNotification
+        extends YangNotification
+        implements JavaCodeGenerator, JavaCodeGeneratorInfo {
 
     /**
      * Contains information of the java file being generated.
      */
     private JavaFileInfo javaFileInfo;
-
-    /**
-     * Contains information of the imports to be inserted in the java file
-     * generated.
-     */
-    private JavaImportData javaImportData;
 
     /**
      * File handle to maintain temporary java code fragments as per the code
@@ -66,7 +51,6 @@ public class YangJavaNotification extends YangNotification
     public YangJavaNotification() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        setJavaImportData(new JavaImportData());
         getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER);
     }
 
@@ -92,27 +76,6 @@ public class YangJavaNotification extends YangNotification
     @Override
     public void setJavaFileInfo(JavaFileInfo javaInfo) {
         javaFileInfo = javaInfo;
-    }
-
-    /**
-     * Returns the data of java imports to be included in generated file.
-     *
-     * @return data of java imports to be included in generated file
-     */
-    @Override
-    public JavaImportData getJavaImportData() {
-        return javaImportData;
-    }
-
-    /**
-     * Sets the data of java imports to be included in generated file.
-     *
-     * @param javaImportData data of java imports to be included in generated
-     *            file
-     */
-    @Override
-    public void setJavaImportData(JavaImportData javaImportData) {
-        this.javaImportData = javaImportData;
     }
 
     /**
@@ -143,25 +106,10 @@ public class YangJavaNotification extends YangNotification
      * @throws IOException IO operation fail
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
+    public void generateCodeEntry(YangPluginConfig yangPlugin)
+            throws IOException {
 
-        getJavaFileInfo().setJavaName(getCaptialCase(getCamelCase(getName(), yangPlugin.getConflictResolver())));
-        getJavaFileInfo().setPackage(getCurNodePackage(this));
-        getJavaFileInfo().setPackageFilePath(
-                getPackageDirPathFromJavaJPackage(getJavaFileInfo().getPackage()));
-        getJavaFileInfo().setBaseCodeGenPath(yangPlugin.getCodeGenDir());
-
-        String absolutePath = getAbsolutePackagePath(
-                getJavaFileInfo().getBaseCodeGenPath(),
-                getJavaFileInfo().getPackageFilePath());
-
-        setTempJavaCodeFragmentFiles(new TempJavaCodeFragmentFiles(
-                getJavaFileInfo().getGeneratedFileTypes(), absolutePath,
-                getJavaFileInfo().getJavaName()));
-
-        getTempJavaCodeFragmentFiles().addCurNodeLeavesInfoToTempFiles(this);
-
-        getTempJavaCodeFragmentFiles().addCurNodeInfoInParentTempFile(this, false);
+        //TODO: implement the event listener for notifications.
     }
 
     /**

@@ -112,7 +112,7 @@ public final class EnumerationListener {
             switch (tmpData.getYangConstructType()) {
                 case LEAF_DATA:
                     // Set the name of enumeration same as leaf.
-                    enumerationNode.setName(((YangLeaf) tmpData).getLeafName() + ENUMERATION_CLASS_SUFFIX);
+                    enumerationNode.setName(((YangLeaf) tmpData).getName() + ENUMERATION_CLASS_SUFFIX);
                     // Pop the stack entry to obtain the parent YANG node.
                     Parsable leaf = listener.getParsedDataStack().pop();
                     // Add the enumeration node to the parent holder of leaf.
@@ -122,7 +122,7 @@ public final class EnumerationListener {
                     break;
                 case LEAF_LIST_DATA:
                     // Set the name of enumeration same as leaf list.
-                    enumerationNode.setName(((YangLeafList) tmpData).getLeafName() + ENUMERATION_CLASS_SUFFIX);
+                    enumerationNode.setName(((YangLeafList) tmpData).getName() + ENUMERATION_CLASS_SUFFIX);
                     // Pop the stack entry to obtain the parent YANG node.
                     Parsable leafList = listener.getParsedDataStack().pop();
                     // Add the enumeration node to the parent holder of leaf.

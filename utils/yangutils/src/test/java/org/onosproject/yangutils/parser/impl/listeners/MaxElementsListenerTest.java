@@ -64,7 +64,7 @@ public class MaxElementsListenerTest {
         ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
         YangLeafList leafListInfo = leafListIterator.next();
 
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getMaxElelements(), is(3));
     }
 
@@ -148,7 +148,7 @@ public class MaxElementsListenerTest {
         ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
         YangLeafList leafListInfo = leafListIterator.next();
 
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getMaxElelements(), is(2147483647));
     }
 
@@ -173,7 +173,7 @@ public class MaxElementsListenerTest {
         ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
         YangLeafList leafListInfo = leafListIterator.next();
 
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getMaxElelements(), is(2147483647));
     }
 }

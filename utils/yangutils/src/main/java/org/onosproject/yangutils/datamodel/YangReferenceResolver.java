@@ -23,7 +23,7 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
  * Abstraction of YANG dependency resolution information. Abstracted to obtain the
  * resolution information.
  */
-public interface HasResolutionInfo {
+public interface YangReferenceResolver {
 
     /**
      * Returns unresolved resolution list.

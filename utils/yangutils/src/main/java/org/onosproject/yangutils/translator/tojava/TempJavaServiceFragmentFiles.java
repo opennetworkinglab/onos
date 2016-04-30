@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.yangutils.translator.tojava;
 
+import java.io.IOException;
+
 /**
- * Represents the information of the java import data.
+ * Represents implementation of java service code fragments temporary implementations.
  */
-public interface HasJavaImportData {
+public class TempJavaServiceFragmentFiles
+        extends TempJavaFragmentFiles {
 
     /**
-     * Returns the data of java imports to be included in generated file.
+     * Creates an instance of temporary java code fragment.
      *
-     * @return data of java imports to be included in generated file
+     * @param javaFileInfo generated file information
+     * @throws IOException when fails to create new file handle
      */
-    JavaImportData getJavaImportData();
-
-    /**
-     * Sets the data of java imports to be included in generated file.
-     *
-     * @param javaImportData data of java imports to be included in generated
-     *            file
-     */
-    void setJavaImportData(JavaImportData javaImportData);
+    public TempJavaServiceFragmentFiles(JavaFileInfo javaFileInfo)
+            throws IOException {
+        super(javaFileInfo);
+    }
 }

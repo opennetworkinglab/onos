@@ -16,9 +16,8 @@
 
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
-import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.HasJavaImportData;
-import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 
 /**
  * Represents YANG java info containing interface for java code generator, java
@@ -26,5 +25,6 @@ import org.onosproject.yangutils.translator.tojava.HasTempJavaCodeFragmentFiles;
  * interface serves as a generic interface and help to unify the generate code
  * entry function.
  */
-public interface JavaCodeGeneratorInfo extends HasJavaFileInfo, HasTempJavaCodeFragmentFiles, HasJavaImportData {
+public interface JavaCodeGeneratorInfo
+        extends JavaFileInfoContainer, TempJavaCodeFragmentFilesContainer {
 }

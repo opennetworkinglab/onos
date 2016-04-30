@@ -138,7 +138,7 @@ public final class MethodsGenerator {
     /**
      * Returns setter string.
      *
-     * @param attr      attribute info
+     * @param attr attribute info
      * @param className java class name
      * @return setter string
      */
@@ -164,7 +164,7 @@ public final class MethodsGenerator {
     /**
      * Returns default constructor method string.
      *
-     * @param name         class name
+     * @param name class name
      * @param modifierType modifier type
      * @return default constructor string
      */
@@ -228,7 +228,7 @@ public final class MethodsGenerator {
     /**
      * Returns the setter method strings for class file.
      *
-     * @param attr      attribute info
+     * @param attr attribute info
      * @param className name of the class
      * @return setter method for class
      */
@@ -247,8 +247,8 @@ public final class MethodsGenerator {
      * Returns setter for attribute.
      *
      * @param className class name
-     * @param name      attribute name
-     * @param type      return type
+     * @param name attribute name
+     * @param type return type
      * @return setter for attribute
      */
     private static String getSetter(String className, String name, String type) {
@@ -298,9 +298,9 @@ public final class MethodsGenerator {
     /**
      * Returns the getter method strings for interface file.
      *
-     * @param yangName   name of the attribute
+     * @param yangName name of the attribute
      * @param returnType return type of attribute
-     * @param isList     is list attribute
+     * @param isList is list attribute
      * @return getter method for interface
      */
     public static String getGetterForInterface(String yangName, String returnType, boolean isList) {
@@ -316,7 +316,7 @@ public final class MethodsGenerator {
      * Returns getter for attribute in interface.
      *
      * @param returnType return type
-     * @param yangName   attribute name
+     * @param yangName attribute name
      * @return getter for interface
      */
     private static String getGetterInterfaceString(String returnType, String yangName) {
@@ -327,10 +327,10 @@ public final class MethodsGenerator {
     /**
      * Returns the setter method strings for interface file.
      *
-     * @param attrName  name of the attribute
-     * @param attrType  return type of attribute
+     * @param attrName name of the attribute
+     * @param attrType return type of attribute
      * @param className name of the java class being generated
-     * @param isList    is list attribute
+     * @param isList is list attribute
      * @return setter method for interface
      */
     public static String getSetterForInterface(String attrName, String attrType, String className, boolean isList) {
@@ -346,8 +346,8 @@ public final class MethodsGenerator {
      * Returns setter string for interface.
      *
      * @param className class name
-     * @param attrName  attribute name
-     * @param attrType  attribute type
+     * @param attrName attribute name
+     * @param attrType attribute type
      * @return setter string
      */
     private static String getSetterInterfaceString(String className, String attrName, String attrType) {
@@ -410,7 +410,7 @@ public final class MethodsGenerator {
      * Returns the constructor strings for class file.
      *
      * @param yangName name of the class
-     * @param attr     attribute info
+     * @param attr attribute info
      * @return constructor for class
      */
     public static String getConstructor(String yangName, JavaAttributeInfo attr) {
@@ -428,8 +428,8 @@ public final class MethodsGenerator {
     /**
      * Returns the rpc strings for service interface.
      *
-     * @param rpcName    name of the rpc
-     * @param inputName  name of input
+     * @param rpcName name of the rpc
+     * @param inputName name of input
      * @param outputName name of output
      * @return rpc method string
      */
@@ -459,7 +459,7 @@ public final class MethodsGenerator {
     /**
      * Returns the Default constructor strings for class file.
      *
-     * @param name         name of the class
+     * @param name name of the class
      * @param modifierType modifier type for default constructor
      * @return Default constructor for class
      */
@@ -536,13 +536,13 @@ public final class MethodsGenerator {
     /**
      * Return from string method's body string.
      *
-     * @param attr                    attribute info
+     * @param attr attribute info
      * @param fromStringAttributeInfo attribute info for the from string
-     *                                wrapper type
+     * wrapper type
      * @return from string method's body string
      */
     public static String getFromStringMethod(JavaAttributeInfo attr,
-                                             JavaAttributeInfo fromStringAttributeInfo) {
+            JavaAttributeInfo fromStringAttributeInfo) {
 
         return EIGHT_SPACE_INDENTATION + getTrySubString() + NEW_LINE + TWELVE_SPACE_INDENTATION
                 + getParsedSubString(attr, fromStringAttributeInfo) + SEMI_COLAN + NEW_LINE + TWELVE_SPACE_INDENTATION
@@ -585,7 +585,7 @@ public final class MethodsGenerator {
      * @return sub string with parsed statement for union's from string method
      */
     private static String getParsedSubString(JavaAttributeInfo attr,
-                                             JavaAttributeInfo fromStringAttributeInfo) {
+            JavaAttributeInfo fromStringAttributeInfo) {
 
         String targetDataType = getReturnType(attr);
         String parseFromStringMethod = getParseFromStringMethod(targetDataType,
@@ -731,7 +731,7 @@ public final class MethodsGenerator {
     /**
      * Returns of method's string and java doc for special type.
      *
-     * @param attr                   attribute info
+     * @param attr attribute info
      * @param generatedJavaClassName class name
      * @return of method's string and java doc for special type
      */
@@ -747,7 +747,7 @@ public final class MethodsGenerator {
     /**
      * Returns of method's string.
      *
-     * @param type      data type
+     * @param type data type
      * @param className class name
      * @return of method's string
      */
@@ -762,7 +762,7 @@ public final class MethodsGenerator {
     /**
      * Returns string and java doc for constructor of type class.
      *
-     * @param attr                   attribute info
+     * @param attr attribute info
      * @param generatedJavaClassName class name
      * @return string and java doc for constructor of type class
      */
@@ -778,8 +778,8 @@ public final class MethodsGenerator {
     /**
      * Returns type constructor string.
      *
-     * @param type      data type
-     * @param name      attribute name
+     * @param type data type
+     * @param name attribute name
      * @param className class name
      * @return type constructor string
      */

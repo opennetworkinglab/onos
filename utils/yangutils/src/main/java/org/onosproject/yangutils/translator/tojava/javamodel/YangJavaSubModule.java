@@ -16,12 +16,12 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
+
 import org.onosproject.yangutils.datamodel.YangBelongsTo;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
@@ -32,18 +32,14 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 /**
  * Represents sub module information extended to support java code generation.
  */
-public class YangJavaSubModule extends YangSubModule implements JavaCodeGeneratorInfo, JavaCodeGenerator {
+public class YangJavaSubModule
+        extends YangSubModule
+        implements JavaCodeGeneratorInfo, JavaCodeGenerator {
 
     /**
      * Contains the information of the java file being generated.
      */
     private JavaFileInfo javaFileInfo;
-
-    /**
-     * Contains information of the imports to be inserted in the java file
-     * generated.
-     */
-    private JavaImportData javaImportData;
 
     /**
      * File handle to maintain temporary java code fragments as per the code
@@ -57,7 +53,6 @@ public class YangJavaSubModule extends YangSubModule implements JavaCodeGenerato
     public YangJavaSubModule() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        setJavaImportData(new JavaImportData());
         getJavaFileInfo().setGeneratedFileTypes(GENERATE_MANAGER_WITH_RPC);
     }
 
@@ -85,27 +80,6 @@ public class YangJavaSubModule extends YangSubModule implements JavaCodeGenerato
     }
 
     /**
-     * Returns the data of java imports to be included in generated file.
-     *
-     * @return data of java imports to be included in generated file
-     */
-    @Override
-    public JavaImportData getJavaImportData() {
-        return javaImportData;
-    }
-
-    /**
-     * Sets the data of java imports to be included in generated file.
-     *
-     * @param javaImportData data of java imports to be included in generated
-     *                       file
-     */
-    @Override
-    public void setJavaImportData(JavaImportData javaImportData) {
-        this.javaImportData = javaImportData;
-    }
-
-    /**
      * Returns the temporary file handle.
      *
      * @return temporary file handle
@@ -129,7 +103,7 @@ public class YangJavaSubModule extends YangSubModule implements JavaCodeGenerato
      * Returns the name space of the module to which the sub module belongs to.
      *
      * @param belongsToInfo Information of the module to which the sub module
-     *                      belongs
+     * belongs
      * @return the name space string of the module.
      */
     private String getNameSpaceFromModule(YangBelongsTo belongsToInfo) {
@@ -145,7 +119,8 @@ public class YangJavaSubModule extends YangSubModule implements JavaCodeGenerato
      * @throws IOException IO operation fail
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
+    public void generateCodeEntry(YangPluginConfig yangPlugin)
+            throws IOException {
         String subModulePkg = getRootPackage(getVersion(), getNameSpaceFromModule(getBelongsTo()),
                 getRevision().getRevDate());
         YangJavaModelUtils.generateCodeOfRootNode(this, yangPlugin, subModulePkg);

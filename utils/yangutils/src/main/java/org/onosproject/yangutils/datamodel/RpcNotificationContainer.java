@@ -19,5 +19,5 @@ package org.onosproject.yangutils.datamodel;
 /**
  * Represents class having rpc and notification.
  */
-public interface HasRpcNotification {
+public interface RpcNotificationContainer {
 }

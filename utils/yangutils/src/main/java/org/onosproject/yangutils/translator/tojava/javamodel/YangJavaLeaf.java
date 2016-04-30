@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,23 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import org.onosproject.yangutils.datamodel.YangLeaf;
-import org.onosproject.yangutils.translator.tojava.HasJavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.translator.tojava.utils.YangToJavaNamingConflictUtil;
+
+import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.updateLeavesJavaQualifiedInfo;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 
 /**
- * Maintains java information corresponding to the YANG leaf.
+ * Represents java information corresponding to the YANG leaf.
  */
-public class YangJavaLeaf extends YangLeaf
-        implements HasJavaQualifiedTypeInfo {
+public class YangJavaLeaf
+        extends YangLeaf
+        implements JavaLeafInfoContainer {
 
     private JavaQualifiedTypeInfo javaQualifiedAccess;
 
     /**
-     * Create a YANG leaf object with java qualified access details.
+     * Returns a new YANG leaf object with java qualified access details.
      */
     public YangJavaLeaf() {
         super();
@@ -46,4 +50,17 @@ public class YangJavaLeaf extends YangLeaf
 
     }
 
+    public String getJavaName(YangToJavaNamingConflictUtil conflictResolveConfig) {
+        return getCamelCase(getName(), conflictResolveConfig);
+    }
+
+    @Override
+    public boolean isLeafList() {
+        return false;
+    }
+
+    @Override
+    public void updateJavaQualifiedInfo() {
+        updateLeavesJavaQualifiedInfo(this);
+    }
 }

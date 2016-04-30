@@ -17,6 +17,7 @@ package org.onosproject.yangutils.datamodel;
 
 import java.util.LinkedList;
 import java.util.List;
+
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
@@ -76,8 +77,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLi
  * Represents data model node to maintain information defined in YANG sub-module.
  */
 public class YangSubModule extends YangNode
-        implements YangLeavesHolder, YangDesc, YangReference, Parsable, CollisionDetector, HasResolutionInfo,
-        HasRpcNotification {
+        implements YangLeavesHolder, YangDesc, YangReference, Parsable, CollisionDetector, YangReferenceResolver,
+        RpcNotificationContainer {
 
     /**
      * Name of sub module.

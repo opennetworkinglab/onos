@@ -65,7 +65,7 @@ public class NotificationListenerTest {
         ListIterator<YangLeaf> leafIterator = yangNotification.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("if-name"));
+        assertThat(leafInfo.getName(), is("if-name"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("leafref"));
     }
 }

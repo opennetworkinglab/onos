@@ -63,7 +63,7 @@ public class RangeRestrictionListenerTest {
         ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("int32"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.INT32));
         YangRangeRestriction rangeRestriction = (YangRangeRestriction) leafInfo
@@ -92,7 +92,7 @@ public class RangeRestrictionListenerTest {
         ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
         YangLeafList leafListInfo = leafListIterator.next();
 
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("int32"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.INT32));
         YangRangeRestriction rangeRestriction = (YangRangeRestriction) leafListInfo
@@ -122,7 +122,7 @@ public class RangeRestrictionListenerTest {
         ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
         YangLeafList leafListInfo = leafListIterator.next();
 
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("int32"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.INT32));
         YangRangeRestriction rangeRestriction = (YangRangeRestriction) leafListInfo
@@ -152,7 +152,7 @@ public class RangeRestrictionListenerTest {
         ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
         YangLeafList leafListInfo = leafListIterator.next();
 
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("int32"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.INT32));
         YangRangeRestriction rangeRestriction = (YangRangeRestriction) leafListInfo

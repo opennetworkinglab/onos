@@ -65,7 +65,7 @@ public class IntraFileTypeLinkingTest {
         ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("hello"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
 
@@ -104,7 +104,7 @@ public class IntraFileTypeLinkingTest {
         ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("hello"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
 
@@ -144,7 +144,7 @@ public class IntraFileTypeLinkingTest {
         ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("hello"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
 
@@ -184,7 +184,7 @@ public class IntraFileTypeLinkingTest {
         ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("hello"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
 
@@ -222,7 +222,7 @@ public class IntraFileTypeLinkingTest {
         ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("FirstClass"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
 
@@ -274,7 +274,7 @@ public class IntraFileTypeLinkingTest {
         ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("FirstClass"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
 
@@ -325,7 +325,7 @@ public class IntraFileTypeLinkingTest {
         ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("FirstClass"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
 
@@ -377,7 +377,7 @@ public class IntraFileTypeLinkingTest {
         ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("FirstClass"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
 

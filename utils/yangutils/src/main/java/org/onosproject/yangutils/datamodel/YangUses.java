@@ -276,14 +276,14 @@ public class YangUses
         YangLeavesHolder usesParentLeavesHolder = (YangLeavesHolder) usesParentNode;
         if (referredGrouping.getListOfLeaf() != null) {
             for (YangLeaf leaf : referredGrouping.getListOfLeaf()) {
-                ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leaf.getLeafName(),
+                ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leaf.getName(),
                         YangConstructType.LEAF_DATA);
                 usesParentLeavesHolder.addLeaf(leaf);
             }
         }
         if (referredGrouping.getListOfLeafList() != null) {
             for (YangLeafList leafList : referredGrouping.getListOfLeafList()) {
-                ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leafList.getLeafName(),
+                ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leafList.getName(),
                         YangConstructType.LEAF_LIST_DATA);
                 usesParentLeavesHolder.addLeafList(leafList);
             }

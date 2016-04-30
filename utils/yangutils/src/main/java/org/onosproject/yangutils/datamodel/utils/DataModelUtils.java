@@ -19,7 +19,7 @@ package org.onosproject.yangutils.datamodel.utils;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.CollisionDetector;
-import org.onosproject.yangutils.datamodel.HasResolutionInfo;
+import org.onosproject.yangutils.datamodel.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.YangImport;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
@@ -112,9 +112,9 @@ public final class DataModelUtils {
             return;
         }
         for (YangLeaf leaf : listOfLeaf) {
-            if (leaf.getLeafName().equals(identifierName)) {
+            if (leaf.getName().equals(identifierName)) {
                 throw new DataModelException("YANG file error: Duplicate input identifier detected, same as leaf \""
-                        + leaf.getLeafName() + "\"");
+                        + leaf.getName() + "\"");
             }
         }
     }
@@ -133,10 +133,10 @@ public final class DataModelUtils {
         if (listOfLeafList == null) {
             return;
         }
-       for (YangLeafList leafList : listOfLeafList) {
-            if (leafList.getLeafName().equals(identifierName)) {
+        for (YangLeafList leafList : listOfLeafList) {
+            if (leafList.getName().equals(identifierName)) {
                 throw new DataModelException("YANG file error: Duplicate input identifier detected, same as leaf " +
-                        "list \"" + leafList.getLeafName() + "\"");
+                        "list \"" + leafList.getName() + "\"");
             }
         }
     }
@@ -154,13 +154,13 @@ public final class DataModelUtils {
         /* get the module node to add maintain the list of nested reference */
         YangNode curNode = resolutionInfo.getEntityToResolveInfo()
                 .getHolderOfEntityToResolve();
-        while (!(curNode instanceof HasResolutionInfo)) {
+        while (!(curNode instanceof YangReferenceResolver)) {
             curNode = curNode.getParent();
             if (curNode == null) {
                 throw new DataModelException("Internal datamodel error: Datamodel tree is not correct");
             }
         }
-        HasResolutionInfo resolutionNode = (HasResolutionInfo) curNode;
+        YangReferenceResolver resolutionNode = (YangReferenceResolver) curNode;
 
         if (!isPrefixValid(resolutionInfo.getEntityToResolveInfo().getEntityPrefix(),
                 resolutionNode)) {
@@ -176,7 +176,7 @@ public final class DataModelUtils {
      * @param resolutionNode uses/type node which has the prefix with it
      * @return whether prefix is valid or not
      */
-    private static boolean isPrefixValid(String entityPrefix, HasResolutionInfo resolutionNode) {
+    private static boolean isPrefixValid(String entityPrefix, YangReferenceResolver resolutionNode) {
         if (entityPrefix == null) {
             return true;
         }
@@ -215,7 +215,7 @@ public final class DataModelUtils {
      * @throws DataModelException a violation of data model rules
      */
     public static void resolveLinkingForResolutionList(List<YangResolutionInfo> resolutionList,
-            HasResolutionInfo dataModelRootNode)
+            YangReferenceResolver dataModelRootNode)
             throws DataModelException {
 
         for (YangResolutionInfo resolutionInfo : resolutionList) {

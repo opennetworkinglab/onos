@@ -61,7 +61,7 @@ public class PositionListenerTest {
         ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("mybits"));
+        assertThat(leafInfo.getName(), is("mybits"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("bits"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.BITS));
         assertThat(((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitsName(),
@@ -100,7 +100,7 @@ public class PositionListenerTest {
         ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("mybits"));
+        assertThat(leafInfo.getName(), is("mybits"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("bits"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.BITS));
         assertThat(((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitsName(),
@@ -139,7 +139,7 @@ public class PositionListenerTest {
         ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("mybits"));
+        assertThat(leafInfo.getName(), is("mybits"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("bits"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.BITS));
         assertThat(((YangBits) leafInfo.getDataType().getDataTypeExtendedInfo()).getBitsName(),

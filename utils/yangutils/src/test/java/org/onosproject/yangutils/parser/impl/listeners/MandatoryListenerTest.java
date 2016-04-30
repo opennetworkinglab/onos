@@ -64,7 +64,7 @@ public class MandatoryListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         // Check whether the mandatory value is set correctly.
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.isMandatory(), is(true));
     }
 
@@ -90,7 +90,7 @@ public class MandatoryListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         // Check whether the mandatory value is set correctly.
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.isMandatory(), is(false));
     }
 
@@ -116,7 +116,7 @@ public class MandatoryListenerTest {
         YangLeaf leafInfo = leafIterator.next();
 
         // Check whether the mandatory value is set correctly.
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.isMandatory(), is(false));
     }
 

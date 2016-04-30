@@ -16,131 +16,34 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
-import org.onosproject.yangutils.datamodel.YangGrouping;
-import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.JavaImportData;
-import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
-import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfNode;
+import org.onosproject.yangutils.datamodel.YangGrouping;
+import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 /**
  * Represents grouping information extended to support java code generation.
  */
-public class YangJavaGrouping extends YangGrouping implements JavaCodeGeneratorInfo, JavaCodeGenerator {
+public class YangJavaGrouping
+        extends YangGrouping
+        implements JavaCodeGenerator {
 
     /**
-     * Contains the information of the java file being generated.
-     */
-    private JavaFileInfo javaFileInfo;
-
-    /**
-     * Contains information of the imports to be inserted in the java file
-     * generated.
-     */
-    private JavaImportData javaImportData;
-
-    /**
-     * File handle to maintain temporary java code fragments as per the code
-     * snippet types.
-     */
-    private TempJavaCodeFragmentFiles tempFileHandle;
-
-    /**
-     * Creates YANG java grouping object.
+     * Creates YANG Java grouping object.
      */
     public YangJavaGrouping() {
         super();
-        setJavaFileInfo(new JavaFileInfo());
-        setJavaImportData(new JavaImportData());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER);
     }
 
-    /**
-     * Returns the generated java file information.
-     *
-     * @return generated java file information
-     */
     @Override
-    public JavaFileInfo getJavaFileInfo() {
-        if (javaFileInfo == null) {
-            throw new TranslatorException("Missing java info in java datamodel node");
-        }
-        return javaFileInfo;
+    public void generateCodeEntry(YangPluginConfig yangPlugin)
+            throws IOException {
+        /*Do nothing, the uses will copy the contents to the used location*/
     }
 
-    /**
-     * Sets the java file info object.
-     *
-     * @param javaInfo java file info object
-     */
     @Override
-    public void setJavaFileInfo(JavaFileInfo javaInfo) {
-        javaFileInfo = javaInfo;
-    }
-
-    /**
-     * Returns the data of java imports to be included in generated file.
-     *
-     * @return data of java imports to be included in generated file
-     */
-    @Override
-    public JavaImportData getJavaImportData() {
-        return javaImportData;
-    }
-
-    /**
-     * Sets the data of java imports to be included in generated file.
-     *
-     * @param javaImportData data of java imports to be included in generated
-     *            file
-     */
-    @Override
-    public void setJavaImportData(JavaImportData javaImportData) {
-        this.javaImportData = javaImportData;
-    }
-
-    /**
-     * Returns the temporary file handle.
-     *
-     * @return temporary file handle
-     */
-    @Override
-    public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
-        return tempFileHandle;
-    }
-
-    /**
-     * Sets temporary file handle.
-     *
-     * @param fileHandle temporary file handle
-     */
-    @Override
-    public void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle) {
-        tempFileHandle = fileHandle;
-    }
-
-    /**
-     * Prepare the information for java code generation corresponding to YANG
-     * grouping info.
-     *
-     * @param yangPlugin YANG plugin config
-     * @throws IOException IO operation fail
-     */
-    @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
-        generateCodeOfNode(this, yangPlugin, false);
-    }
-
-    /**
-     * Creates a java file using the YANG grouping info.
-     */
-    @Override
-    public void generateCodeExit() {
-        // TODO Auto-generated method stub
-
+    public void generateCodeExit()
+            throws IOException {
+        /*Do nothing, the uses will copy the contents to the used location*/
     }
 }

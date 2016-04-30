@@ -16,7 +16,7 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
-import org.onosproject.yangutils.datamodel.HasResolutionInfo;
+import org.onosproject.yangutils.datamodel.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.YangRevision;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
@@ -121,7 +121,7 @@ public final class SubModuleListener {
                     ctx.identifier().getText(), EXIT));
         }
         try {
-            ((HasResolutionInfo) listener.getParsedDataStack().peek()).resolveSelfFileLinking();
+            ((YangReferenceResolver) listener.getParsedDataStack().peek()).resolveSelfFileLinking();
         } catch (DataModelException e) {
             ParserException parserException = new ParserException(e.getMessage());
             parserException.setLine(e.getLineNumber());

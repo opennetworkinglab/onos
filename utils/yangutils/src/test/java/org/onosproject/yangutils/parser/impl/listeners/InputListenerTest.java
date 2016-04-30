@@ -65,7 +65,7 @@ public class InputListenerTest {
         ListIterator<YangLeaf> leafIterator = yangInput.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("image-name"));
+        assertThat(leafInfo.getName(), is("image-name"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
 
         YangList yangList = (YangList) yangInput.getChild();
@@ -76,7 +76,7 @@ public class InputListenerTest {
         assertThat(yangList.getMinElements(), is(3));
         leafIterator = yangList.getListOfLeaf().listIterator();
         leafInfo = leafIterator.next();
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
 
         YangContainer yangContainer = (YangContainer) yangList.getNextSibling();
@@ -84,7 +84,7 @@ public class InputListenerTest {
 
         leafIterator = yangContainer.getListOfLeaf().listIterator();
         leafInfo = leafIterator.next();
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("uint16"));
     }
 

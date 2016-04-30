@@ -37,9 +37,12 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateMutuallyExclusiveChilds;
 import static org.onosproject.yangutils.utils.YangConstructType.RPC_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.INPUT_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.OUTPUT_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.TYPEDEF_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.GROUPING_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.REFERENCE_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
@@ -154,6 +157,8 @@ public final class RpcListener {
         validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, RPC_DATA, ctx.identifier().getText());
         validateCardinalityMaxOne(ctx.inputStatement(), INPUT_DATA, RPC_DATA, ctx.identifier().getText());
         validateCardinalityMaxOne(ctx.outputStatement(), OUTPUT_DATA, RPC_DATA, ctx.identifier().getText());
+        validateMutuallyExclusiveChilds(ctx.typedefStatement(), TYPEDEF_DATA, ctx.groupingStatement(), GROUPING_DATA,
+                RPC_DATA, ctx.identifier().getText());
     }
 
 }

@@ -541,7 +541,7 @@ public class YangList extends YangNode
          */
         for (String key : keys) {
             for (YangLeaf leaf : leaves) {
-                if (key.equals(leaf.getLeafName())) {
+                if (key.equals(leaf.getName())) {
                     if (leaf.getDataType().getDataType() == YangDataTypes.EMPTY) {
                         throw new DataModelException(" A leaf that is part of the key must not be the built-in " +
                                 "type \"empty\".");
@@ -586,7 +586,7 @@ public class YangList extends YangNode
          */
         for (String key : keys) {
             for (YangLeafList leafList : leafLists) {
-                if (key.equals(leafList.getLeafName())) {
+                if (key.equals(leafList.getName())) {
                     if (leafList.getDataType().getDataType() == YangDataTypes.EMPTY) {
                         throw new DataModelException(" A leaf-list that is part of the key must not be the built-in " +
                                 "type \"empty\".");

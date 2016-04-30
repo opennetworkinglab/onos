@@ -234,8 +234,10 @@ public abstract class YangNode
      * Clone the current node contents and create a new node.
      *
      * @return cloned node
-     * @throws CloneNotSupportedException clone is not supported by the referred node
+     * @throws CloneNotSupportedException clone is not supported by the referred
+     *             node
      */
+    @Override
     public YangNode clone()
             throws CloneNotSupportedException {
         YangNode clonedNode = (YangNode) super.clone();
@@ -247,8 +249,9 @@ public abstract class YangNode
     }
 
     /**
-     * Clone the subtree from the specified source node to the mentioned target node.
-     * The source and target root node cloning is carried out by the caller.
+     * Clone the subtree from the specified source node to the mentioned target
+     * node. The source and target root node cloning is carried out by the
+     * caller.
      *
      * @param srcRootNode source node for sub tree cloning
      * @param dstRootNode destination node where the sub tree needs to be cloned
@@ -259,7 +262,6 @@ public abstract class YangNode
 
         YangNode nextNodeToClone = srcRootNode;
         TraversalType curTraversal;
-
 
         YangNode clonedTreeCurNode = dstRootNode;
         YangNode newNode = null;
@@ -286,6 +288,7 @@ public abstract class YangNode
                     newNode = nextNodeToClone.clone();
                     detectCollisionWhileCloning(clonedTreeCurNode, newNode, curTraversal);
                 }
+
                 if (curTraversal == CHILD) {
 
                     /**
@@ -294,7 +297,8 @@ public abstract class YangNode
                     clonedTreeCurNode.addChild(newNode);
 
                     /**
-                     * update the cloned tree's travesal current node as the new node.
+                     * update the cloned tree's traversal current node as the
+                     * new node.
                      */
                     clonedTreeCurNode = newNode;
                 } else if (curTraversal == SIBILING) {
@@ -339,8 +343,8 @@ public abstract class YangNode
      */
     private static void detectCollisionWhileCloning(YangNode currentNode, YangNode newNode, TraversalType addAs)
             throws DataModelException {
-        if ((!(currentNode instanceof CollisionDetector))
-                || (!(newNode instanceof Parsable))) {
+        if (!(currentNode instanceof CollisionDetector)
+                || !(newNode instanceof Parsable)) {
             throw new DataModelException("Node in data model tree does not support collision detection");
         }
 
@@ -376,9 +380,10 @@ public abstract class YangNode
 
         if (newSibling.getParent() == null) {
             /**
-             * Since the siblings needs to have a common parent, set the parent as the current node's parent
+             * Since the siblings needs to have a common parent, set the parent
+             * as the current node's parent
              */
-            newSibling.setParent(this.getParent());
+            newSibling.setParent(getParent());
 
         } else {
             throw new DataModelException("Node is already part of a tree, and cannot be added as a sibling");

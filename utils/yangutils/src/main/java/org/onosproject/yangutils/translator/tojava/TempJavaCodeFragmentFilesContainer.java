@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,21 @@
 package org.onosproject.yangutils.translator.tojava;
 
 /**
- * Maintain the java qualified access details for an attribute or a class.
+ * Represents Has temporary file handle.
  */
-public interface HasJavaQualifiedTypeInfo {
+public interface TempJavaCodeFragmentFilesContainer {
 
     /**
-     * Obtain the java qualified details.
+     * Returns the temporary file handle.
      *
-     * @return java qualified type details
+     * @return temporary file handle
      */
-    JavaQualifiedTypeInfo getJavaQualifiedInfo();
+    TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles();
 
     /**
-     * Assign the qualified type info.
+     * Sets temporary file handle.
      *
-     * @param typeInfo qualified type information
+     * @param fileHandle temporary file handle
      */
-    void setJavaQualifiedInfo(JavaQualifiedTypeInfo typeInfo);
+    void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle);
 }

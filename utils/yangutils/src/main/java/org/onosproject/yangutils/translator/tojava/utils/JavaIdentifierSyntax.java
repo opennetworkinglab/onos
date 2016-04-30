@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.HasJavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 
 import static org.onosproject.yangutils.utils.UtilConstants.COLAN;
@@ -111,16 +111,16 @@ public final class JavaIdentifierSyntax {
     public static String getCurNodePackage(YangNode curNode) {
 
         String pkg;
-        if (!(curNode instanceof HasJavaFileInfo)
+        if (!(curNode instanceof JavaFileInfoContainer)
                 || curNode.getParent() == null) {
             throw new TranslatorException("missing parent node to get current node's package");
         }
 
         YangNode parentNode = getParentNodeInGenCode(curNode);
-        if (!(parentNode instanceof HasJavaFileInfo)) {
+        if (!(parentNode instanceof JavaFileInfoContainer)) {
             throw new TranslatorException("missing parent java node to get current node's package");
         }
-        JavaFileInfo parentJavaFileHandle = ((HasJavaFileInfo) parentNode).getJavaFileInfo();
+        JavaFileInfo parentJavaFileHandle = ((JavaFileInfoContainer) parentNode).getJavaFileInfo();
         pkg = parentJavaFileHandle.getPackage() + PERIOD + parentJavaFileHandle.getJavaName();
         return pkg.toLowerCase();
     }

@@ -29,15 +29,15 @@ import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_G
 import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangOutputNode;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
+        .constructExtendedListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
+        .constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityNonZero;
-import static org.onosproject.yangutils.utils.YangConstructType.DATA_DEF_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.OUTPUT_DATA;
 
 /*
@@ -80,16 +80,13 @@ public final class OutputListener {
      * (output), performs validation and updates the data model tree.
      *
      * @param listener listener's object
-     * @param ctx      context object of the grammar rule
+     * @param ctx context object of the grammar rule
      */
     public static void processOutputEntry(TreeWalkListener listener,
-                                          GeneratedYangParser.OutputStatementContext ctx) {
+            GeneratedYangParser.OutputStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, OUTPUT_DATA, "", ENTRY);
-
-        validateCardinalityNonZero(ctx.dataDefStatement(), DATA_DEF_DATA,
-                OUTPUT_DATA, "", ctx);
 
         Parsable curData = listener.getParsedDataStack().peek();
         if (curData instanceof YangRpc) {
@@ -115,10 +112,10 @@ public final class OutputListener {
      * validations and updates the data model tree.
      *
      * @param listener listener's object
-     * @param ctx      context object of the grammar rule
+     * @param ctx context object of the grammar rule
      */
     public static void processOutputExit(TreeWalkListener listener,
-                                         GeneratedYangParser.OutputStatementContext ctx) {
+            GeneratedYangParser.OutputStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, OUTPUT_DATA, "", EXIT);

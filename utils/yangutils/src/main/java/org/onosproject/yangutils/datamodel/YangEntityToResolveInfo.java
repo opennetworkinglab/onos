@@ -19,6 +19,8 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 
 /**
  * Represents information about entity being resolved.
+ *
+ * @param <T> type of entity being resolved, uses / grouping
  */
 public class YangEntityToResolveInfo<T> {
 
@@ -58,13 +60,19 @@ public class YangEntityToResolveInfo<T> {
     /**
      * Sets parent node which contains the entity to be resolved.
      *
-     * @param holderOfEntityToResolve parent node which contains the entity to be resolved
+     * @param holderOfEntityToResolve parent node which contains the entity to
+     * be resolved
      */
     public void setHolderOfEntityToResolve(YangNode holderOfEntityToResolve) {
         this.holderOfEntityToResolve = holderOfEntityToResolve;
     }
 
-
+    /**
+     * Retrieves the prefix of the entity.
+     *
+     * @return entities prefix
+     * @throws DataModelException data model error
+     */
     public String getEntityPrefix()
             throws DataModelException {
         if (getEntityToResolve() == null) {
@@ -72,11 +80,11 @@ public class YangEntityToResolveInfo<T> {
         }
 
         String prefix;
-        T entityToResolve = getEntityToResolve();
-        if (entityToResolve instanceof YangType) {
-            prefix = ((YangType<?>) entityToResolve).getPrefix();
-        } else if (entityToResolve instanceof YangUses) {
-            prefix = ((YangUses) entityToResolve).getPrefix();
+        T entityToBeResolved = getEntityToResolve();
+        if (entityToBeResolved instanceof YangType) {
+            prefix = ((YangType<?>) entityToBeResolved).getPrefix();
+        } else if (entityToBeResolved instanceof YangUses) {
+            prefix = ((YangUses) entityToBeResolved).getPrefix();
         } else {
             throw new DataModelException("Data Model Exception: Entity to resolved is other than type/uses");
         }

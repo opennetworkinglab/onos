@@ -61,7 +61,7 @@ public class ValueListenerTest {
         ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("speed"));
+        assertThat(leafInfo.getName(), is("speed"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("enumeration"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.ENUMERATION));
         assertThat(((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getName(),
@@ -100,7 +100,7 @@ public class ValueListenerTest {
         ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("speed"));
+        assertThat(leafInfo.getName(), is("speed"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("enumeration"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.ENUMERATION));
         assertThat(((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getName(),

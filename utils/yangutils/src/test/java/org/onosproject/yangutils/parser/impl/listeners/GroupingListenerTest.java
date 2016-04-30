@@ -64,7 +64,7 @@ public class GroupingListenerTest {
         ListIterator<YangLeaf> leafIterator = yangGrouping.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("address"));
+        assertThat(leafInfo.getName(), is("address"));
     }
 
     /**
@@ -94,7 +94,7 @@ public class GroupingListenerTest {
         ListIterator<YangLeaf> leafIterator = yangGrouping.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("address"));
+        assertThat(leafInfo.getName(), is("address"));
     }
 
     /**
@@ -124,7 +124,7 @@ public class GroupingListenerTest {
         ListIterator<YangLeaf> leafIterator = yangGrouping.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("address"));
+        assertThat(leafInfo.getName(), is("address"));
     }
 
     /**
@@ -157,7 +157,7 @@ public class GroupingListenerTest {
         ListIterator<YangLeaf> leafIterator = yangGrouping.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("address"));
+        assertThat(leafInfo.getName(), is("address"));
     }
 
     /**

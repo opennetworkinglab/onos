@@ -108,7 +108,7 @@ public final class UnionListener {
             switch (tmpData.getYangConstructType()) {
                 case LEAF_DATA:
                     // Set the name of union same as leaf.
-                    unionNode.setName(((YangLeaf) tmpData).getLeafName() + UNION_CLASS_SUFFIX);
+                    unionNode.setName(((YangLeaf) tmpData).getName() + UNION_CLASS_SUFFIX);
                     // Pop the stack entry to obtain the parent YANG node.
                     Parsable leaf = listener.getParsedDataStack().pop();
                     // Add the union node to the parent holder of leaf.
@@ -118,7 +118,7 @@ public final class UnionListener {
                     break;
                 case LEAF_LIST_DATA:
                     // Set the name of union same as leaf list.
-                    unionNode.setName(((YangLeafList) tmpData).getLeafName() + UNION_CLASS_SUFFIX);
+                    unionNode.setName(((YangLeafList) tmpData).getName() + UNION_CLASS_SUFFIX);
                     // Pop the stack entry to obtain the parent YANG node.
                     Parsable leafList = listener.getParsedDataStack().pop();
                     // Add the union node to the parent holder of leaf.

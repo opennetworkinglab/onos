@@ -66,7 +66,7 @@ public class UnionListenerTest {
         ListIterator<YangLeaf> leafIterator = yangList.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
 
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.UNION));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("union"));
@@ -110,7 +110,7 @@ public class UnionListenerTest {
         ListIterator<YangLeafList> leafListIterator = yangList.getListOfLeafList().listIterator();
         YangLeafList leafListInfo = leafListIterator.next();
 
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
 
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.UNION));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("union"));

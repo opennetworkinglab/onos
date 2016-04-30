@@ -70,7 +70,7 @@ public class CaseListenerTest {
         ListIterator<YangLeaf> leafIterator1 = yangCase1.getListOfLeaf().listIterator();
         YangLeaf leafInfo1 = leafIterator1.next();
 
-        assertThat(leafInfo1.getLeafName(), is("pretzel"));
+        assertThat(leafInfo1.getName(), is("pretzel"));
 
         YangCase yangCase2 = (YangCase) yangCase1.getNextSibling();
         assertThat(yangCase2.getName(), is("late-night"));
@@ -79,7 +79,7 @@ public class CaseListenerTest {
         ListIterator<YangLeaf> leafIterator2 = yangCase2.getListOfLeaf().listIterator();
         YangLeaf leafInfo2 = leafIterator2.next();
 
-        assertThat(leafInfo2.getLeafName(), is("chocolate"));
+        assertThat(leafInfo2.getName(), is("chocolate"));
     }
 
     /**
@@ -140,7 +140,7 @@ public class CaseListenerTest {
         ListIterator<YangLeaf> leafIterator1 = yangCase1.getListOfLeaf().listIterator();
         YangLeaf leafInfo1 = leafIterator1.next();
 
-        assertThat(leafInfo1.getLeafName(), is("pretzel"));
+        assertThat(leafInfo1.getName(), is("pretzel"));
 
         YangChoice yangChoice2 = (YangChoice) yangChoice.getNextSibling();
         assertThat(yangChoice2.getName(), is("lunch"));
@@ -152,7 +152,7 @@ public class CaseListenerTest {
         ListIterator<YangLeaf> leafIterator2 = yangCase2.getListOfLeaf().listIterator();
         YangLeaf leafInfo2 = leafIterator2.next();
 
-        assertThat(leafInfo2.getLeafName(), is("chocolate"));
+        assertThat(leafInfo2.getName(), is("chocolate"));
     }
 
     /**
@@ -186,7 +186,7 @@ public class CaseListenerTest {
         ListIterator<YangLeaf> leafIterator1 = yangCase1.getListOfLeaf().listIterator();
         YangLeaf leafInfo1 = leafIterator1.next();
 
-        assertThat(leafInfo1.getLeafName(), is("pretzel"));
+        assertThat(leafInfo1.getName(), is("pretzel"));
 
         YangCase yangCase2 = (YangCase) yangCase1.getNextSibling();
         assertThat(yangCase2.getName(), is("late-night"));
@@ -200,6 +200,6 @@ public class CaseListenerTest {
         // Check whether leaf properties as set correctly.
         ListIterator<YangLeaf> leafIterator2 = yangCase3.getListOfLeaf().listIterator();
         YangLeaf leafInfo2 = leafIterator2.next();
-        assertThat(leafInfo2.getLeafName(), is("beer"));
+        assertThat(leafInfo2.getName(), is("beer"));
     }
 }

@@ -58,7 +58,7 @@ public class PatternRestrictionListenerTest {
         ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
         YangStringRestriction stringRestriction = (YangStringRestriction) leafInfo
@@ -84,7 +84,7 @@ public class PatternRestrictionListenerTest {
         ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
         YangLeafList leafListInfo = leafListIterator.next();
 
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
         YangStringRestriction stringRestriction = (YangStringRestriction) leafListInfo
@@ -131,7 +131,7 @@ public class PatternRestrictionListenerTest {
         ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
         YangLeafList leafListInfo = leafListIterator.next();
 
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
         YangStringRestriction stringRestriction = (YangStringRestriction) leafListInfo
@@ -157,7 +157,7 @@ public class PatternRestrictionListenerTest {
         ListIterator<YangLeafList> leafListIterator = yangNode.getListOfLeafList().listIterator();
         YangLeafList leafListInfo = leafListIterator.next();
 
-        assertThat(leafListInfo.getLeafName(), is("invalid-interval"));
+        assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
         YangStringRestriction stringRestriction = (YangStringRestriction) leafListInfo

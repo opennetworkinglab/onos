@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import java.io.IOException;
+
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
@@ -36,7 +37,8 @@ public final class UnionTranslatorTest {
      * Checks union translation should not result in any exception.
      */
     @Test
-    public void processUnionTranslator() throws IOException, ParserException {
+    public void processUnionTranslator()
+            throws IOException, ParserException {
 
         clean("src/test/org/onosproject/yang");
 

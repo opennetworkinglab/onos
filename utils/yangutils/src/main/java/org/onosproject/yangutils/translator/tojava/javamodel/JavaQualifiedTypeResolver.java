@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.yangutils.translator.tojava;
+package org.onosproject.yangutils.translator.tojava.javamodel;
+
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoContainer;
+
 
 /**
- * Represents Has temporary file handle.
+ * Represent java based identification of the YANG leaves.
  */
-public interface HasTempJavaCodeFragmentFiles {
+public interface JavaQualifiedTypeResolver
+        extends JavaQualifiedTypeInfoContainer {
 
     /**
-     * Returns the temporary file handle.
-     *
-     * @return temporary file handle
+     * updates the qualified access details of the type.
      */
-    TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles();
-
-    /**
-     * Sets temporary file handle.
-     *
-     * @param fileHandle temporary file handle
-     */
-    void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle);
+    void updateJavaQualifiedInfo();
 }

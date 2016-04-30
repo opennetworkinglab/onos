@@ -62,7 +62,7 @@ public class AugmentListenerTest {
         ListIterator<YangLeaf> leafIterator = yangAugment.getListOfLeaf().listIterator();
         YangLeaf leafInfo = leafIterator.next();
 
-        assertThat(leafInfo.getLeafName(), is("ds0ChannelNumber"));
+        assertThat(leafInfo.getName(), is("ds0ChannelNumber"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("ChannelNumber"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
     }

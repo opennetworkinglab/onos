@@ -40,10 +40,13 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIdentifier;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateCardinalityMaxOne;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.validateMutuallyExclusiveChilds;
 import static org.onosproject.yangutils.utils.YangConstructType.DESCRIPTION_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.GROUPING_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.NOTIFICATION_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.REFERENCE_DATA;
 import static org.onosproject.yangutils.utils.YangConstructType.STATUS_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.TYPEDEF_DATA;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -156,5 +159,7 @@ public final class NotificationListener {
                 ctx.identifier().getText());
         validateCardinalityMaxOne(ctx.referenceStatement(), REFERENCE_DATA, NOTIFICATION_DATA,
                 ctx.identifier().getText());
+        validateMutuallyExclusiveChilds(ctx.typedefStatement(), TYPEDEF_DATA, ctx.groupingStatement(), GROUPING_DATA,
+                NOTIFICATION_DATA, ctx.identifier().getText());
     }
 }

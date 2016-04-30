@@ -23,10 +23,13 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
+import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
+import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangLeafList;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
+        .constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
@@ -106,7 +109,7 @@ public final class LeafListListener {
         int charPositionInLine = ctx.getStart().getCharPositionInLine();
         detectCollidingChildUtil(listener, line, charPositionInLine, identifier, LEAF_LIST_DATA);
 
-        YangLeafList leafList = new YangLeafList();
+        YangLeafList leafList = getYangLeafList(JAVA_GENERATION);
         leafList.setLeafName(identifier);
 
         Parsable tmpData = listener.getParsedDataStack().peek();
@@ -117,7 +120,7 @@ public final class LeafListListener {
             leaves.addLeafList(leafList);
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, LEAF_LIST_DATA,
-                            ctx.identifier().getText(), ENTRY));
+                    ctx.identifier().getText(), ENTRY));
         }
         listener.getParsedDataStack().push(leafList);
     }

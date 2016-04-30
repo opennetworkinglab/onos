@@ -16,11 +16,11 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
+
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.JavaImportData;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
@@ -30,18 +30,14 @@ import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUti
 /**
  * Represents type define information extended to support java code generation.
  */
-public class YangJavaTypeDef extends YangTypeDef implements JavaCodeGeneratorInfo, JavaCodeGenerator {
+public class YangJavaTypeDef
+        extends YangTypeDef
+        implements JavaCodeGeneratorInfo, JavaCodeGenerator {
 
     /**
      * Contains the information of the java file being generated.
      */
     private JavaFileInfo javaFileInfo;
-
-    /**
-     * Contains information of the imports to be inserted in the java file
-     * generated.
-     */
-    private JavaImportData javaImportData;
 
     /**
      * File handle to maintain temporary java code fragments as per the code
@@ -55,7 +51,6 @@ public class YangJavaTypeDef extends YangTypeDef implements JavaCodeGeneratorInf
     public YangJavaTypeDef() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        setJavaImportData(new JavaImportData());
         getJavaFileInfo().setGeneratedFileTypes(GENERATE_TYPEDEF_CLASS);
     }
 
@@ -81,27 +76,6 @@ public class YangJavaTypeDef extends YangTypeDef implements JavaCodeGeneratorInf
     @Override
     public void setJavaFileInfo(JavaFileInfo javaInfo) {
         javaFileInfo = javaInfo;
-    }
-
-    /**
-     * Returns the data of java imports to be included in generated file.
-     *
-     * @return data of java imports to be included in generated file
-     */
-    @Override
-    public JavaImportData getJavaImportData() {
-        return javaImportData;
-    }
-
-    /**
-     * Sets the data of java imports to be included in generated file.
-     *
-     * @param javaImportData data of java imports to be included in generated
-     *                       file
-     */
-    @Override
-    public void setJavaImportData(JavaImportData javaImportData) {
-        this.javaImportData = javaImportData;
     }
 
     /**
@@ -132,8 +106,9 @@ public class YangJavaTypeDef extends YangTypeDef implements JavaCodeGeneratorInf
      * @throws IOException IO operations fails
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException {
-        generateCodeOfNode(this, yangPlugin, false);
+    public void generateCodeEntry(YangPluginConfig yangPlugin)
+            throws IOException {
+        generateCodeOfNode(this, yangPlugin);
     }
 
     /**
@@ -142,7 +117,8 @@ public class YangJavaTypeDef extends YangTypeDef implements JavaCodeGeneratorInf
      * @throws IOException IO operations fails
      */
     @Override
-    public void generateCodeExit() throws IOException {
+    public void generateCodeExit()
+            throws IOException {
         getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_TYPEDEF_CLASS, this);
     }
 

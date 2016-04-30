@@ -28,23 +28,25 @@ public interface CollisionDetector {
      * Checks for the colliding child.
      *
      * @param identifierName name of identifier for which collision to be
-     *            checked
+     * checked
      * @param dataType type of the YANG construct for which collision to be
-     *            checked
+     * checked
      * @throws DataModelException if there is any collision in YANG rules in
      *             parsed data, corresponding exception should be thrown
      */
-    void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException;
+    void detectCollidingChild(String identifierName, YangConstructType dataType)
+            throws DataModelException;
 
     /**
      * Check for the self collision.
      *
      * @param identifierName name of identifier for which collision to be
-     *            checked
+     * checked
      * @param dataType type of the YANG construct for which collision to be
-     *            checked
+     * checked
      * @throws DataModelException if there is any collision in YANG rules in
-     *             parsed data, corresponding exception should be thrown
+     *                            parsed data, corresponding exception should be thrown
      */
-    void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException;
+    void detectSelfCollision(String identifierName, YangConstructType dataType)
+            throws DataModelException;
 }

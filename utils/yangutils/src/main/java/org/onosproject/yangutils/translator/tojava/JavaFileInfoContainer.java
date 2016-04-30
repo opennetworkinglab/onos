@@ -19,7 +19,7 @@ package org.onosproject.yangutils.translator.tojava;
  * Represents data model nodes which are required to generate java classes, need to support
  * java file info.
  */
-public interface HasJavaFileInfo {
+public interface JavaFileInfoContainer {
 
     /**
      * Returns the generated java file information.

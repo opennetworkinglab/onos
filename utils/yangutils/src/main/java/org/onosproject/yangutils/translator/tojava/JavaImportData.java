@@ -19,10 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import static java.util.Collections.sort;
-
-import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.exception.TranslatorException;
 
 import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO_CLASS_IMPORT_CLASS;
@@ -41,6 +37,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
+
+import static java.util.Collections.sort;
 
 /**
  * Represents that generated Java file can contain imports.
@@ -112,53 +110,21 @@ public class JavaImportData {
      * denote, it is not added to import collection and needs to be accessed in
      * a qualified manner.
      *
-     * @param curNode current data model node
      * @param newImportInfo class/interface info being imported
      * @return status of new addition of class/interface to the import set
      */
-    public boolean addImportInfo(YangNode curNode, JavaQualifiedTypeInfo newImportInfo) {
+    public boolean addImportInfo(JavaQualifiedTypeInfo newImportInfo) {
 
-        if (!(curNode instanceof HasJavaImportData)) {
-            throw new TranslatorException("missing import info in data model node");
-        }
-        for (JavaQualifiedTypeInfo curImportInfo : ((HasJavaImportData) curNode).getJavaImportData().getImportSet()) {
+        for (JavaQualifiedTypeInfo curImportInfo : getImportSet()) {
             if (curImportInfo.getClassInfo()
                     .contentEquals(newImportInfo.getClassInfo())) {
                 return curImportInfo.getPkgInfo()
                         .contentEquals(newImportInfo.getPkgInfo());
             }
         }
-        ((HasJavaImportData) curNode).getJavaImportData().getImportSet().add(newImportInfo);
+
+        getImportSet().add(newImportInfo);
         return true;
-    }
-
-    /**
-     * Returns import for class.
-     *
-     * @param attr java attribute info
-     * @return imports for class
-     */
-    public List<String> getImports(JavaAttributeInfo attr) {
-
-        String importString;
-        List<String> imports = new ArrayList<>();
-
-        for (JavaQualifiedTypeInfo importInfo : getImportSet()) {
-            if (!importInfo.getPkgInfo().equals(EMPTY_STRING) && importInfo.getClassInfo() != null
-                    && !importInfo.getPkgInfo().equals(JAVA_LANG)) {
-                importString = IMPORT + importInfo.getPkgInfo() + PERIOD + importInfo.getClassInfo() + SEMI_COLAN
-                        + NEW_LINE;
-
-                imports.add(importString);
-            }
-        }
-
-        if (attr.isListAttr()) {
-            imports.add(getImportForList());
-        }
-
-        sort(imports);
-        return imports;
     }
 
     /**
@@ -167,6 +133,7 @@ public class JavaImportData {
      * @return imports for class
      */
     public List<String> getImports() {
+
         String importString;
         List<String> imports = new ArrayList<>();
 
@@ -178,6 +145,10 @@ public class JavaImportData {
 
                 imports.add(importString);
             }
+        }
+
+        if (isListToImport) {
+            imports.add(getImportForList());
         }
 
         sort(imports);
