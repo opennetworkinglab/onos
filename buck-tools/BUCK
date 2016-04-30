@@ -19,6 +19,19 @@ python_binary(
   visibility = ['PUBLIC'],
 )
 
+python_binary(
+  name = 'onos-stage',
+  main = 'onos_stage.py',
+  deps = [],
+  visibility = ['PUBLIC'],
+)
+
+python_binary(
+  name = 'onos-feature',
+  main = 'onos_feature.py',
+  deps = [],
+  visibility = ['PUBLIC'],
+)
 
 python_binary(
   name = 'pack_war',
