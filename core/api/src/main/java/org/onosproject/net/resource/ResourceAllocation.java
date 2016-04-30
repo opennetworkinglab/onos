@@ -29,7 +29,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ResourceAllocation {
 
     private final Resource resource;
-    private final ResourceConsumer consumer;
+    private final ResourceConsumerId consumerId;
+
+    /**
+     * Creates an instance with the specified subject, resource and consumerId.
+     *
+     * @param resource resource of the subject
+     * @param consumerId consumer ID of this resource
+     */
+    public ResourceAllocation(Resource resource, ResourceConsumerId consumerId) {
+        this.resource = checkNotNull(resource);
+        this.consumerId = checkNotNull(consumerId);
+    }
 
     /**
      * Creates an instance with the specified subject, resource and consumer.
@@ -38,14 +49,13 @@ public class ResourceAllocation {
      * @param consumer consumer of this resource
      */
     public ResourceAllocation(Resource resource, ResourceConsumer consumer) {
-        this.resource = checkNotNull(resource);
-        this.consumer = consumer;
+        this(resource, checkNotNull(consumer).consumerId());
     }
 
     // for serialization
     private ResourceAllocation() {
         this.resource = null;
-        this.consumer = null;
+        this.consumerId = null;
     }
 
     /**
@@ -58,17 +68,17 @@ public class ResourceAllocation {
     }
 
     /**
-     * Returns the consumer of this resource.
+     * Returns ID of the consumer of this resource.
      *
-     * @return the consumer of this resource
+     * @return ID of the consumer of this resource
      */
-    public ResourceConsumer consumer() {
-        return consumer;
+    public ResourceConsumerId consumerId() {
+        return consumerId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(resource, consumer);
+        return Objects.hash(resource, consumerId);
     }
 
     @Override
@@ -81,14 +91,14 @@ public class ResourceAllocation {
         }
         final ResourceAllocation that = (ResourceAllocation) obj;
         return Objects.equals(this.resource, that.resource)
-                && Objects.equals(this.consumer, that.consumer);
+                && Objects.equals(this.consumerId, that.consumerId);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("resource", resource)
-                .add("consumer", consumer)
+                .add("consumerId", consumerId)
                 .toString();
     }
 }

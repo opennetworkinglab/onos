@@ -199,6 +199,7 @@ import org.onosproject.net.resource.DiscreteResourceSetSerializer;
 import org.onosproject.net.resource.MplsCodec;
 import org.onosproject.net.resource.NoOpCodec;
 import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.PacketPriority;
@@ -454,6 +455,7 @@ public final class KryoNamespaces {
                     DiscreteResourceId.class,
                     ContinuousResourceId.class,
                     ResourceAllocation.class,
+                    ResourceConsumerId.class,
                     // Constraints
                     BandwidthConstraint.class,
                     LinkTypeConstraint.class,

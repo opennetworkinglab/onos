@@ -40,6 +40,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.TributarySlot;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.net.resource.Resources;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.ResourceAllocation;
@@ -145,15 +146,15 @@ public class AllocationsCommand extends AbstractShellCommand {
             resourceService.getResourceAllocations(resourceId, t).stream()
                     .filter(a -> isSubjectToPrint(a))
                     .forEach(a -> print("%s%s allocated by %s", Strings.repeat(" ", level + 1),
-                            a.resource().valueAs(Object.class).orElse(""), asVerboseString(a.consumer())));
+                            a.resource().valueAs(Object.class).orElse(""), asVerboseString(a.consumerId())));
 
         }
     }
 
     private boolean isSubjectToPrint(ResourceAllocation allocation) {
         if (!intentsToPrint.isEmpty()
-                && allocation.consumer() instanceof IntentId
-                && !intentsToPrint.contains(allocation.consumer().toString())) {
+                && allocation.consumerId().isClassOf(IntentId.class)
+                && !intentsToPrint.contains(allocation.consumerId().toString())) {
             return false;
         }
 
@@ -182,6 +183,10 @@ public class AllocationsCommand extends AbstractShellCommand {
         } else {
             return String.format("%s:%s", name, toString);
         }
+    }
+
+    private static String asVerboseString(ResourceConsumerId consumerId) {
+        return String.format("%s:%s", consumerId.consumerClass(), consumerId.value());
     }
 
 }

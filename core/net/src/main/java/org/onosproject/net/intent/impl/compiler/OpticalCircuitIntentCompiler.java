@@ -61,6 +61,7 @@ import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.intent.IntentSetMultimap;
+import org.onosproject.net.intent.impl.ResourceHelper;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceService;
@@ -446,9 +447,9 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             Optional<IntentId> intentId =
                     resourceService.getResourceAllocations(Resources.discrete(ochCP.deviceId(), ochCP.port()).id())
                             .stream()
-                            .map(ResourceAllocation::consumer)
-                            .filter(x -> x instanceof IntentId)
-                            .map(x -> (IntentId) x)
+                            .map(ResourceAllocation::consumerId)
+                            .map(ResourceHelper::getIntentId)
+                            .flatMap(Tools::stream)
                             .findAny();
 
             if (isAvailable(intentId.orElse(null))) {
@@ -476,9 +477,9 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             Optional<IntentId> intentId =
                     resourceService.getResourceAllocations(Resources.discrete(oduPort.deviceId(), port.number()).id())
                             .stream()
-                            .map(ResourceAllocation::consumer)
-                            .filter(x -> x instanceof IntentId)
-                            .map(x -> (IntentId) x)
+                            .map(ResourceAllocation::consumerId)
+                            .map(ResourceHelper::getIntentId)
+                            .flatMap(Tools::stream)
                             .findAny();
 
             if (isAvailable(intentId.orElse(null))) {

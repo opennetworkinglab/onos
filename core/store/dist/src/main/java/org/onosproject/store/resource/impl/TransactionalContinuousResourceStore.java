@@ -22,7 +22,7 @@ import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.ContinuousResourceId;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceConsumer;
+import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionalMap;
 import org.slf4j.Logger;
@@ -133,7 +133,7 @@ class TransactionalContinuousResourceStore {
         return allocations != null && !allocations.allocations().isEmpty();
     }
 
-    boolean allocate(ResourceConsumer consumer, ContinuousResource request) {
+    boolean allocate(ResourceConsumerId consumerId, ContinuousResource request) {
         // if the resource is not registered, then abort
         Optional<ContinuousResource> lookedUp = lookup(request.id());
         if (!lookedUp.isPresent()) {
@@ -146,7 +146,7 @@ class TransactionalContinuousResourceStore {
             return false;
         }
 
-        return appendValue(original, new ResourceAllocation(request, consumer));
+        return appendValue(original, new ResourceAllocation(request, consumerId));
     }
 
     // Appends the specified ResourceAllocation to the existing values stored in the map
@@ -166,16 +166,16 @@ class TransactionalContinuousResourceStore {
         return consumers.replace(original.id(), oldValue, newValue);
     }
 
-    boolean release(ContinuousResource resource, ResourceConsumer consumer) {
+    boolean release(ContinuousResource resource, ResourceConsumerId consumerId) {
         ContinuousResourceAllocation oldAllocation = consumers.get(resource.id());
 
         List<ResourceAllocation> nonMatched = oldAllocation.allocations().stream()
-                .filter(x -> !(x.consumer().equals(consumer) &&
+                .filter(x -> !(x.consumerId().equals(consumerId) &&
                         ((ContinuousResource) x.resource()).value() == resource.value()))
                 .collect(Collectors.toList());
 
         List<ResourceAllocation> matched = oldAllocation.allocations().stream()
-                .filter(x -> (x.consumer().equals(consumer) &&
+                .filter(x -> (x.consumerId().equals(consumerId) &&
                         ((ContinuousResource) x.resource()).value() == resource.value()))
                 .collect(Collectors.toList());
 

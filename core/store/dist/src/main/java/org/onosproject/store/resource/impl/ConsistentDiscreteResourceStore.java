@@ -22,7 +22,7 @@ import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceConsumer;
+import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.net.resource.Resources;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
@@ -41,11 +41,11 @@ import static org.onosproject.store.resource.impl.ConsistentResourceStore.RETRY_
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
 
 class ConsistentDiscreteResourceStore {
-    private ConsistentMap<DiscreteResourceId, ResourceConsumer> consumers;
+    private ConsistentMap<DiscreteResourceId, ResourceConsumerId> consumers;
     private ConsistentMap<DiscreteResourceId, Set<DiscreteResource>> childMap;
 
     ConsistentDiscreteResourceStore(StorageService service) {
-        this.consumers = service.<DiscreteResourceId, ResourceConsumer>consistentMapBuilder()
+        this.consumers = service.<DiscreteResourceId, ResourceConsumerId>consistentMapBuilder()
                 .withName(MapNames.DISCRETE_CONSUMER_MAP)
                 .withSerializer(SERIALIZER)
                 .build();
@@ -64,12 +64,12 @@ class ConsistentDiscreteResourceStore {
 
     // computational complexity: O(1)
     List<ResourceAllocation> getResourceAllocations(DiscreteResourceId resource) {
-        Versioned<ResourceConsumer> consumer = consumers.get(resource);
-        if (consumer == null) {
+        Versioned<ResourceConsumerId> consumerId = consumers.get(resource);
+        if (consumerId == null) {
             return ImmutableList.of();
         }
 
-        return ImmutableList.of(new ResourceAllocation(Resources.discrete(resource).resource(), consumer.value()));
+        return ImmutableList.of(new ResourceAllocation(Resources.discrete(resource).resource(), consumerId.value()));
     }
 
     Set<DiscreteResource> getChildResources(DiscreteResourceId parent) {
@@ -97,9 +97,9 @@ class ConsistentDiscreteResourceStore {
                 .filter(x -> consumers.containsKey(x.id()));
     }
 
-    Stream<DiscreteResource> getResources(ResourceConsumer consumer) {
+    Stream<DiscreteResource> getResources(ResourceConsumerId consumerId) {
         return consumers.entrySet().stream()
-                .filter(x -> x.getValue().value().equals(consumer))
+                .filter(x -> x.getValue().value().equals(consumerId))
                 .map(Map.Entry::getKey)
                 .map(x -> Resources.discrete(x).resource());
     }

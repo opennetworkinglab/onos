@@ -67,6 +67,7 @@ import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceSet;
 import org.onosproject.net.resource.MplsCodec;
 import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.net.resource.Resources;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
@@ -404,7 +405,7 @@ public class KryoSerializerTest {
     public void testResourceAllocation() {
         testSerializedEquals(new ResourceAllocation(
                 Resources.discrete(DID1, P1, VLAN1).resource(),
-                IntentId.valueOf(30)));
+                ResourceConsumerId.of(30L, IntentId.class)));
     }
 
     @Test

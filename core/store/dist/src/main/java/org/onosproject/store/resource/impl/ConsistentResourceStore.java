@@ -29,6 +29,7 @@ import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumer;
+import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.net.resource.ResourceEvent;
 import org.onosproject.net.resource.ResourceId;
 import org.onosproject.net.resource.ResourceStore;
@@ -208,11 +209,11 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         TransactionalContinuousResourceStore continuousTxStore = continuousStore.transactional(tx);
         for (Resource resource : resources) {
             if (resource instanceof DiscreteResource) {
-                if (!discreteTxStore.allocate(consumer, (DiscreteResource) resource)) {
+                if (!discreteTxStore.allocate(consumer.consumerId(), (DiscreteResource) resource)) {
                     return abortTransaction(tx);
                 }
             } else if (resource instanceof ContinuousResource) {
-                if (!continuousTxStore.allocate(consumer, (ContinuousResource) resource)) {
+                if (!continuousTxStore.allocate(consumer.consumerId(), (ContinuousResource) resource)) {
                     return abortTransaction(tx);
                 }
             }
@@ -232,14 +233,14 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         TransactionalContinuousResourceStore continuousTxStore = continuousStore.transactional(tx);
         for (ResourceAllocation allocation : allocations) {
             Resource resource = allocation.resource();
-            ResourceConsumer consumer = allocation.consumer();
+            ResourceConsumerId consumerId = allocation.consumerId();
 
             if (resource instanceof DiscreteResource) {
-                if (!discreteTxStore.release((DiscreteResource) resource, consumer)) {
+                if (!discreteTxStore.release((DiscreteResource) resource, consumerId)) {
                     return abortTransaction(tx);
                 }
             } else if (resource instanceof ContinuousResource) {
-                if (!continuousTxStore.release((ContinuousResource) resource, consumer)) {
+                if (!continuousTxStore.release((ContinuousResource) resource, consumerId)) {
                     return abortTransaction(tx);
                 }
             }
@@ -269,11 +270,12 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     @Override
     public Collection<Resource> getResources(ResourceConsumer consumer) {
         checkNotNull(consumer);
+        ResourceConsumerId consumerId = consumer.consumerId();
 
         // NOTE: getting all entries may become performance bottleneck
         // TODO: revisit for better backend data structure
-        Stream<DiscreteResource> discrete = discreteStore.getResources(consumer);
-        Stream<ContinuousResource> continuous = continuousStore.getResources(consumer);
+        Stream<DiscreteResource> discrete = discreteStore.getResources(consumer.consumerId());
+        Stream<ContinuousResource> continuous = continuousStore.getResources(consumer.consumerId());
 
         return Stream.concat(discrete, continuous).collect(Collectors.toList());
     }

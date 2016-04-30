@@ -24,7 +24,7 @@ import org.onosproject.net.resource.ContinuousResourceId;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceConsumer;
+import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.StorageService;
@@ -132,10 +132,10 @@ class ConsistentContinuousResourceStore {
                 });
     }
 
-    Stream<ContinuousResource> getResources(ResourceConsumer consumer) {
+    Stream<ContinuousResource> getResources(ResourceConsumerId consumerId) {
         return consumers.values().stream()
                 .flatMap(x -> x.value().allocations().stream())
-                .filter(x -> x.consumer().equals(consumer))
+                .filter(x -> x.consumerId().equals(consumerId))
                 // this cast is safe because this class stores
                 // continuous resource allocations only
                 .map(x -> (ContinuousResource) x.resource());

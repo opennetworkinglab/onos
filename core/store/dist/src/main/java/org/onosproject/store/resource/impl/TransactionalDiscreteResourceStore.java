@@ -19,7 +19,7 @@ import com.google.common.collect.Sets;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resource;
-import org.onosproject.net.resource.ResourceConsumer;
+import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.net.resource.Resources;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionalMap;
@@ -36,7 +36,7 @@ import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIAL
 class TransactionalDiscreteResourceStore {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final TransactionalMap<DiscreteResourceId, Set<DiscreteResource>> childMap;
-    private final TransactionalMap<DiscreteResourceId, ResourceConsumer> consumers;
+    private final TransactionalMap<DiscreteResourceId, ResourceConsumerId> consumers;
 
     TransactionalDiscreteResourceStore(TransactionContext tx) {
         this.childMap = tx.getTransactionalMap(MapNames.DISCRETE_CHILD_MAP, SERIALIZER);
@@ -121,21 +121,21 @@ class TransactionalDiscreteResourceStore {
         return consumers.get(id) != null;
     }
 
-    boolean allocate(ResourceConsumer consumer, DiscreteResource resource) {
+    boolean allocate(ResourceConsumerId consumerId, DiscreteResource resource) {
         // if the resource is not registered, then abort
         Optional<DiscreteResource> lookedUp = lookup(resource.id());
         if (!lookedUp.isPresent()) {
             return false;
         }
 
-        ResourceConsumer oldValue = consumers.put(resource.id(), consumer);
+        ResourceConsumerId oldValue = consumers.put(resource.id(), consumerId);
         return oldValue == null;
     }
 
-    boolean release(DiscreteResource resource, ResourceConsumer consumer) {
+    boolean release(DiscreteResource resource, ResourceConsumerId consumerId) {
         // if this single release fails (because the resource is allocated to another consumer)
         // the whole release fails
-        if (!consumers.remove(resource.id(), consumer)) {
+        if (!consumers.remove(resource.id(), consumerId)) {
             return false;
         }
 

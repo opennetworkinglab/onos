@@ -22,4 +22,10 @@ import com.google.common.annotations.Beta;
  */
 @Beta
 public interface ResourceConsumer {
+    /**
+     * Returns ID of this consumer.
+     *
+     * @return ID of this consumer
+     */
+    ResourceConsumerId consumerId();
 }
