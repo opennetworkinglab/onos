@@ -33,11 +33,11 @@ import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.net.intent.Key;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
 import static junit.framework.TestCase.assertFalse;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -100,29 +100,22 @@ public class IntentPartitionManagerTest {
      * @param numMine number of partitions that should be owned by the local node
      */
     private void setUpLeadershipService(int numMine) {
-
-        Map<String, Leadership> leaderBoard = new HashMap<>();
-
+        List<NodeId> allNodes = Arrays.asList(MY_NODE_ID, OTHER_NODE_ID);
         for (int i = 0; i < numMine; i++) {
-            expect(leadershipService.getLeader(ELECTION_PREFIX + i))
-                    .andReturn(MY_NODE_ID).anyTimes();
-            leaderBoard.put(ELECTION_PREFIX + i,
-                            new Leadership(ELECTION_PREFIX + i,
-                                    new Leader(MY_NODE_ID, 0, 0),
-                                    Arrays.asList(MY_NODE_ID)));
+            expect(leadershipService.getLeadership(ELECTION_PREFIX + i))
+                                    .andReturn(new Leadership(ELECTION_PREFIX + i,
+                                                              new Leader(MY_NODE_ID, 1, 1000),
+                                                              allNodes))
+                                    .anyTimes();
         }
 
         for (int i = numMine; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
-            expect(leadershipService.getLeader(ELECTION_PREFIX + i))
-                    .andReturn(OTHER_NODE_ID).anyTimes();
-
-            leaderBoard.put(ELECTION_PREFIX + i,
-                            new Leadership(ELECTION_PREFIX + i,
-                                    new Leader(OTHER_NODE_ID, 0, 0),
-                                    Arrays.asList(OTHER_NODE_ID)));
+            expect(leadershipService.getLeadership(ELECTION_PREFIX + i))
+                                    .andReturn(new Leadership(ELECTION_PREFIX + i,
+                                                              new Leader(OTHER_NODE_ID, 1, 1000),
+                                                              allNodes))
+                                    .anyTimes();
         }
-
-        expect(leadershipService.getLeaderBoard()).andReturn(leaderBoard).anyTimes();
     }
 
     /**
