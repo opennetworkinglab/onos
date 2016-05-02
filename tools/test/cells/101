@@ -1,0 +1,9 @@
+# Developer cell
+
+export ONOS_NIC="10.128.11.*"
+export OCN="10.128.11.100"
+export OC1="10.128.11.101"
+export OC2="10.128.11.102"
+export OC3="10.128.11.103"
+export ONOS_USE_SSH=true
+export ONOS_APPS=drivers,openflow,proxyarp,mobility,pathpainter
