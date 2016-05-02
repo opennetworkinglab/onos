@@ -20,7 +20,6 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
-import static org.onosproject.yangutils.datamodel.ResolvableStatus.INTRA_FILE_RESOLVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 
 /*
@@ -76,18 +75,6 @@ public class YangType<T>
      * the data type, the extended info can vary.
      */
     private T dataTypeExtendedInfo;
-
-    /**
-     * Effective built-in type, requried in case type of typedef is again a
-     * derived type. This information is to be added during linking.
-     */
-    private YangDataTypes effectiveBuiltInType;
-
-    /**
-     * Effective pattern restriction, requried in case type of typedef is again
-     * a derived type. This information is to be added during linking.
-     */
-    private YangPatternRestriction effectivePatternRestriction;
 
     /**
      * Status of resolution. If completely resolved enum value is "RESOLVED",
@@ -215,42 +202,6 @@ public class YangType<T>
     }
 
     /**
-     * Return effective built-in type.
-     *
-     * @return effective built-in type
-     */
-    public YangDataTypes getEffectiveBuiltInType() {
-        return effectiveBuiltInType;
-    }
-
-    /**
-     * Sets effective built-in type.
-     *
-     * @param effectiveBuiltInType effective built-in type
-     */
-    public void setEffectiveBuiltInType(YangDataTypes effectiveBuiltInType) {
-        this.effectiveBuiltInType = effectiveBuiltInType;
-    }
-
-    /**
-     * Returns effective pattern restriction.
-     *
-     * @return effective pattern restriction
-     */
-    public YangPatternRestriction getEffectivePatternRestriction() {
-        return effectivePatternRestriction;
-    }
-
-    /**
-     * Sets effective pattern restriction.
-     *
-     * @param effectivePatternRestriction effective pattern restriction
-     */
-    public void setEffectivePatternRestriction(YangPatternRestriction effectivePatternRestriction) {
-        this.effectivePatternRestriction = effectivePatternRestriction;
-    }
-
-    /**
      * Returns the type of the parsed data.
      *
      * @return returns TYPE_DATA
@@ -269,7 +220,6 @@ public class YangType<T>
     public void validateDataOnEntry()
             throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
-
     }
 
     /**
@@ -281,7 +231,6 @@ public class YangType<T>
     public void validateDataOnExit()
             throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
-
     }
 
     @Override
@@ -297,17 +246,19 @@ public class YangType<T>
     @Override
     public void resolve() throws DataModelException {
        /*
-       Inherit the Restriction from the referred typedef definition.
+        * Check whether the data type is derived.
         */
         if (getDataType() != DERIVED) {
-            throw new DataModelException("Resolve should only be called for derived data types");
+            throw new DataModelException("Linker Error: Resolve should only be called for derived data types.");
         }
 
-        YangDerivedInfo<?> derrivedInfo = (YangDerivedInfo<?>) getDataTypeExtendedInfo();
-        YangType<?> baseType = derrivedInfo.getReferredTypeDef().getTypeDefBaseType();
-        if (DERIVED == baseType.getDataType() && baseType.getResolvableStatus() == INTRA_FILE_RESOLVED) {
-                setResolvableStatus(INTRA_FILE_RESOLVED);
+        // Check if the derived info is present.
+        YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>) getDataTypeExtendedInfo();
+        if (derivedInfo == null) {
+            throw new DataModelException("Linker Error: Derived information is missing.");
         }
-        //TODO:
+
+        // Initiate the resolution
+        setResolvableStatus(derivedInfo.resolve());
     }
 }

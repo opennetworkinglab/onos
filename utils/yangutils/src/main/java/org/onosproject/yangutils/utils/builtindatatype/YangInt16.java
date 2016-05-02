@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.yangutils.utils.builtindatatype;
 
 import org.onosproject.yangutils.datamodel.YangDataTypes;
@@ -66,7 +67,8 @@ public class YangInt16 implements YangBuiltInDataTypeInfo<YangInt16> {
             try {
                 value = Short.parseShort(valueInString);
             } catch (Exception e) {
-                throw new DataTypeException("YANG file error : " + valueInString + " is not valid.");
+                throw new DataTypeException("YANG file error : Input value \"" + valueInString + "\" is not a valid " +
+                        "int16.");
             }
         }
     }

@@ -4,12 +4,12 @@ module Test {
     prefix Ant;
     uses treat;
     grouping treat {
-	leaf treat{
-            type String;
+        leaf treat{
+            type string;
         }
         container test{
             leaf leaf2{
-                type String;
+                type string;
             }
         }
     }

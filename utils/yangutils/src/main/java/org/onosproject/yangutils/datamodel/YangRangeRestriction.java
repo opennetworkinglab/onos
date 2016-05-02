@@ -18,7 +18,6 @@ package org.onosproject.yangutils.datamodel;
 
 import java.util.LinkedList;
 import java.util.List;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.utils.builtindatatype.YangBuiltInDataTypeInfo;
 
@@ -111,8 +110,8 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
     /**
      * Returns the minimum valid value as per the restriction.
      *
-     * @throws DataModelException data model exception for minimum restriction
      * @return minimum restricted value
+     * @throws DataModelException data model exception for minimum restriction
      */
     public T getMinRestrictedvalue() throws DataModelException {
         if (getAscendingRangeIntervals() == null) {
@@ -127,8 +126,8 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
     /**
      * Returns the maximum valid value as per the restriction.
      *
-     * @throws DataModelException data model exception for maximum restriction
      * @return minimum maximum value
+     * @throws DataModelException data model exception for maximum restriction
      */
     public T getMaxRestrictedvalue() throws DataModelException {
         if (getAscendingRangeIntervals() == null) {
@@ -175,7 +174,7 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
     }
 
     /**
-     * Check if the given value is correct as per the restriction.
+     * Validates if the given value is correct as per the restriction.
      *
      * @param valueInString value
      * @return true, if the value is confirming to restriction, false otherwise
@@ -203,6 +202,32 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
         }
 
         return false;
+    }
+
+    /**
+     * Validates if the given interval is correct as per the restriction.
+     *
+     * @param rangeInterval range interval
+     * @return true, if the interval is confirming to restriction, false otherwise
+     * @throws DataModelException data model error
+     */
+    public boolean isValidInterval(YangRangeInterval rangeInterval) throws DataModelException {
+
+        if (getAscendingRangeIntervals() == null
+                || getAscendingRangeIntervals().isEmpty()) {
+            // Throw exception, At least one default range needs to be set in constructor or in linker.
+            throw new DataModelException("Range interval missing in range restriction.");
+        }
+
+        for (YangRangeInterval<T> interval : getAscendingRangeIntervals()) {
+            int rangeStartCompareRes = interval.getStartValue().compareTo((T) rangeInterval.getStartValue());
+            int rangeEndCompareRes = interval.getEndValue().compareTo((T) rangeInterval.getEndValue());
+
+            if (rangeStartCompareRes <= 0 && rangeEndCompareRes >= 0) {
+                return true;
+            }
+        }
+        throw new DataModelException("Range interval doesn't fall within the referred restriction ranges");
     }
 
     /**

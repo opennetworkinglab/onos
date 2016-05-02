@@ -19,20 +19,18 @@ package org.onosproject.yangutils.parser.impl.listeners;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ListIterator;
-
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.junit.rules.ExpectedException;
-import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangModule;
-import org.onosproject.yangutils.datamodel.YangNodeType;
+import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
-import org.onosproject.yangutils.datamodel.YangStringRestriction;
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.datamodel.YangRangeInterval;
 import org.onosproject.yangutils.datamodel.YangRangeRestriction;
+import org.onosproject.yangutils.datamodel.YangStringRestriction;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
@@ -71,11 +69,11 @@ public class LengthRestrictionListenerTest {
         assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
         YangStringRestriction stringRestriction = (YangStringRestriction) leafInfo
-                                                    .getDataType().getDataTypeExtendedInfo();
+                .getDataType().getDataTypeExtendedInfo();
         YangRangeRestriction lengthRestriction = stringRestriction.getLengthRestriction();
 
         ListIterator<YangRangeInterval> lengthListIterator = lengthRestriction.getAscendingRangeIntervals()
-                                                    .listIterator();
+                .listIterator();
 
         YangRangeInterval rangeInterval = lengthListIterator.next();
 
@@ -220,7 +218,7 @@ public class LengthRestrictionListenerTest {
     @Test
     public void processLengthWithInvalidIntegerPattern() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("YANG file error : a is not valid.");
+        thrown.expectMessage("YANG file error : Input value \"a\" is not a valid uint64.");
         YangNode node = manager.getDataModel("src/test/resources/LengthWithInvalidIntegerPattern.yang");
     }
 

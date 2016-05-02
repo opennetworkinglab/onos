@@ -46,6 +46,7 @@ import java.util.List;
  *   | reference     | 7.19.4  | 0..1        |
  *   +---------------+---------+-------------+
  */
+
 /**
  * Represents pattern restriction information. The regular expression restriction on string
  * data type.
@@ -56,11 +57,6 @@ public class YangPatternRestriction {
      * Pattern restriction defined for the current type.
      */
     private List<String> patternList;
-
-    /**
-     * Effective pattern restriction that needs inherited from base type.
-     */
-    private List<String> basePattern;
 
     /**
      * Creates a YANG pattern restriction object.
@@ -94,23 +90,5 @@ public class YangPatternRestriction {
      */
     public void addPattern(String newPattern) {
         getPatternList().add(newPattern);
-    }
-
-    /**
-     * Returns the pattern restriction defined in base type.
-     *
-     * @return pattern restriction defined in base type.
-     */
-    public List<String> getBasePattern() {
-        return basePattern;
-    }
-
-    /**
-     * Sets the pattern restriction defined in base type.
-     *
-     * @param basePattern pattern restriction defined in base type.
-     */
-    public void setBasePattern(List<String> basePattern) {
-        this.basePattern = basePattern;
     }
 }

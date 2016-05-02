@@ -24,6 +24,7 @@ import org.onosproject.yangutils.utils.builtindatatype.YangUint64;
  * A string can be restricted with the "length" and "pattern" statements.
  *
  */
+
 /**
  * Represents the restriction for string data type.
  */
@@ -113,7 +114,7 @@ public class YangStringRestriction {
      *
      * @param patternRestriction pattern restriction for the type
      */
-    private void setPatternRestriction(YangPatternRestriction patternRestriction) {
+    public void setPatternRestriction(YangPatternRestriction patternRestriction) {
         this.patternRestriction = patternRestriction;
     }
 

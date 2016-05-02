@@ -18,7 +18,6 @@ package org.onosproject.yangutils.linker;
 
 import java.io.IOException;
 import java.util.ListIterator;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -81,7 +80,7 @@ public class IntraFileUsesLinkingTest {
 
         // Check whether the information in the leaf is correct under grouping.
         assertThat(leafInfo.getName(), is("hello"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("String"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
 
         // Check whether uses is module's child.
@@ -97,7 +96,7 @@ public class IntraFileUsesLinkingTest {
 
         // Check whether the information in the leaf is correct under module.
         assertThat(leafInfo.getName(), is("hello"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("String"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
 
     }
@@ -135,7 +134,7 @@ public class IntraFileUsesLinkingTest {
 
         // Check whether the information in the leaf is correct under grouping.
         assertThat(leafInfo.getName(), is("treat"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("String"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
 
         // Check whether container is the child of grouping.
@@ -150,7 +149,7 @@ public class IntraFileUsesLinkingTest {
 
         // Check whether the information in the leaf is correct under container which is under grouping.
         assertThat(leafInfo.getName(), is("leaf2"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("String"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
 
         // Check whether uses is module's child.
@@ -166,7 +165,7 @@ public class IntraFileUsesLinkingTest {
 
         // Check whether the information in the leaf is correct under module.
         assertThat(leafInfo.getName(), is("treat"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("String"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
 
         // Check whether container is the child of module.
@@ -181,7 +180,7 @@ public class IntraFileUsesLinkingTest {
 
         // Check whether the information in the leaf is correct under container which is under module.
         assertThat(leafInfo.getName(), is("leaf2"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("String"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
     }
 
@@ -688,7 +687,7 @@ public class IntraFileUsesLinkingTest {
 
         // Check whether the information in the leaf is correct under grouping.
         assertThat(leafInfo.getName(), is("hello"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("String"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
 
     }
@@ -762,7 +761,7 @@ public class IntraFileUsesLinkingTest {
 
         // Check whether the information in the leaf is correct under grouping.
         assertThat(leafInfo.getName(), is("hello"));
-        assertThat(leafInfo.getDataType().getDataTypeName(), is("String"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
         assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
     }
 

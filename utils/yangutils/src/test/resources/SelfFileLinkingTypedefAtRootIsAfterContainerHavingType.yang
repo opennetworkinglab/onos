@@ -11,6 +11,6 @@ module Test {
         }
     }
     typedef hello {
-        type String;
+        type string;
     }
 }

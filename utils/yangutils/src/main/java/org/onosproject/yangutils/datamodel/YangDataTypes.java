@@ -228,7 +228,7 @@ public enum YangDataTypes {
     public static YangDataTypes getType(String name) {
         name = name.replace("\"", "");
         for (YangDataTypes yangDataType : values()) {
-            if (yangDataType.name().equalsIgnoreCase(name)) {
+            if (yangDataType.name().toLowerCase().equals(name)) {
                 return yangDataType;
             }
         }

@@ -4,8 +4,8 @@ module Test {
     prefix Ant;
     uses hello;
     grouping hello {
-	leaf hello{
-            type String;
+        leaf hello{
+            type string;
         }
     }
 }

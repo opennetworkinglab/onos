@@ -7,14 +7,14 @@ module Test {
     }
     grouping Percentage {
         leaf hello{
-            type String;
+            type string;
         }
     }
     container ospf {
         list valid {
             key "invalid";
-	    leaf invalid{
-                type String;
+            leaf invalid{
+                type string;
             }
             uses Ant:FirstClass;
             grouping FirstClass {

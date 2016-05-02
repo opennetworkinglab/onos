@@ -3,15 +3,15 @@ module Test {
     namespace http://huawei.com;
     prefix Ant;
     grouping Percentage {
-	leaf hello{
-            type String;
+        leaf hello{
+            type string;
         }
     }
     container ospf {
         list valid {
             key "invalid";
-	    leaf invalid{
-                type String;
+            leaf invalid{
+                type string;
             }
             uses Ant:FirstClass;
             grouping FirstClass {

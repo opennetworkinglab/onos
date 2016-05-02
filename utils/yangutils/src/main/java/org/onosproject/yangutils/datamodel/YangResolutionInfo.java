@@ -17,7 +17,6 @@
 package org.onosproject.yangutils.datamodel;
 
 import java.util.Stack;
-
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 
 import static org.onosproject.yangutils.datamodel.ResolvableStatus.INTRA_FILE_RESOLVED;
@@ -30,7 +29,7 @@ import static org.onosproject.yangutils.datamodel.ResolvableStatus.UNRESOLVED;
  *
  * @param <T> type of resolution entity uses / type
  */
-public class YangResolutionInfo<T> {
+public class YangResolutionInfo<T> implements LocationInfo {
 
     /**
      * Information about the entity that needs to be resolved.
@@ -64,9 +63,9 @@ public class YangResolutionInfo<T> {
     /**
      * Creates a resolution information object with all the inputs.
      *
-     * @param dataNode current parsable data node
-     * @param holderNode parent YANG node
-     * @param lineNumber error line number
+     * @param dataNode           current parsable data node
+     * @param holderNode         parent YANG node
+     * @param lineNumber         error line number
      * @param charPositionInLine error character position in line
      */
     public YangResolutionInfo(T dataNode, YangNode holderNode, int lineNumber, int charPositionInLine) {
@@ -193,7 +192,6 @@ public class YangResolutionInfo<T> {
     private void resolveTopOfStack()
             throws DataModelException {
         ((Resolvable) getCurrentEntityToResolveFromStack()).resolve();
-
         if (((Resolvable) getCurrentEntityToResolveFromStack()).getResolvableStatus()
                 != INTRA_FILE_RESOLVED) {
             // Sets the resolution status in inside the type/uses.
@@ -453,42 +451,6 @@ public class YangResolutionInfo<T> {
     }
 
     /**
-     * Returns error position.
-     *
-     * @return error position
-     */
-    public int getCharPosition() {
-        return charPosition;
-    }
-
-    /**
-     * Sets error position.
-     *
-     * @param charPosition position of error
-     */
-    public void setCharPosition(int charPosition) {
-        this.charPosition = charPosition;
-    }
-
-    /**
-     * Returns error character position in line.
-     *
-     * @return error character position in line
-     */
-    public int getLineNumber() {
-        return lineNumber;
-    }
-
-    /**
-     * Sets error character position in line.
-     *
-     * @param lineNumber error character position in line
-     */
-    public void setLineNumber(int lineNumber) {
-        this.lineNumber = lineNumber;
-    }
-
-    /**
      * Returns stack of YANG type with partially resolved YANG construct
      * hierarchy.
      *
@@ -539,9 +501,29 @@ public class YangResolutionInfo<T> {
      * Sets information about the entity that needs to be resolved.
      *
      * @param entityToResolveInfo information about the entity that needs to be
-     * resolved
+     *                            resolved
      */
     public void setEntityToResolveInfo(YangEntityToResolveInfo<T> entityToResolveInfo) {
         this.entityToResolveInfo = entityToResolveInfo;
+    }
+
+    @Override
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    @Override
+    public int getCharPosition() {
+        return charPosition;
+    }
+
+    @Override
+    public void setLineNumber(int lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    @Override
+    public void setCharPosition(int charPositionInLine) {
+        this.charPosition = charPositionInLine;
     }
 }

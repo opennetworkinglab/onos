@@ -18,18 +18,17 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import java.io.IOException;
 import java.util.ListIterator;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
-import org.onosproject.yangutils.datamodel.YangRangeRestriction;
-import org.onosproject.yangutils.datamodel.YangRangeInterval;
 import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
+import org.onosproject.yangutils.datamodel.YangRangeInterval;
+import org.onosproject.yangutils.datamodel.YangRangeRestriction;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.utils.builtindatatype.YangInt32;
@@ -70,7 +69,7 @@ public class RangeRestrictionListenerTest {
                 .getDataType().getDataTypeExtendedInfo();
 
         ListIterator<YangRangeInterval> rangeListIterator = rangeRestriction.getAscendingRangeIntervals()
-                                                    .listIterator();
+                .listIterator();
         YangRangeInterval rangeInterval = rangeListIterator.next();
         assertThat(((YangInt32) rangeInterval.getStartValue()).getValue(), is(1));
         assertThat(((YangInt32) rangeInterval.getEndValue()).getValue(), is(4));
@@ -172,7 +171,7 @@ public class RangeRestrictionListenerTest {
     @Test
     public void processRangeWithInvalidIntegerPattern() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("YANG file error : a is not valid.");
+        thrown.expectMessage("YANG file error : Input value \"a\" is not a valid int32.");
         YangNode node = manager.getDataModel("src/test/resources/RangeWithInvalidIntegerPattern.yang");
     }
 }

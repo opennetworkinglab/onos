@@ -3,7 +3,7 @@ module Test {
     namespace http://huawei.com;
     prefix Ant;
     typedef hello {
-        type String;
+        type string;
     }
     container ospf {
         list valid {

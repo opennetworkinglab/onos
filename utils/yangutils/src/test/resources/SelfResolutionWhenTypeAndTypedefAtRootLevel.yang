@@ -6,6 +6,6 @@ module Test {
         type hello;
     }
     typedef hello {
-        type String;
+        type string;
     }
 }

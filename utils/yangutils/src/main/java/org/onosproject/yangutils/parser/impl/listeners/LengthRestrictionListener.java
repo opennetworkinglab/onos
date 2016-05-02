@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,26 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
-import java.util.regex.Pattern;
-
-import org.onosproject.yangutils.datamodel.YangRangeRestriction;
-import org.onosproject.yangutils.datamodel.YangRangeInterval;
-import org.onosproject.yangutils.datamodel.YangStringRestriction;
-import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
-import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.datamodel.YangRangeRestriction;
+import org.onosproject.yangutils.datamodel.YangStringRestriction;
+import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.utils.YangConstructType;
-import org.onosproject.yangutils.utils.builtindatatype.DataTypeException;
-import org.onosproject.yangutils.utils.builtindatatype.YangBuiltInDataTypeInfo;
 
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.removeQuotesAndHandleConcat;
-import static org.onosproject.yangutils.utils.YangConstructType.LENGTH_DATA;
-import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
+import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.UNHANDLED_PARSED_DATA;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
-import static org.onosproject.yangutils.utils.builtindatatype.BuiltInTypeObjectFactory.getDataObjectFromString;
+import static org.onosproject.yangutils.utils.RestrictionResolver.processLengthRestriction;
+import static org.onosproject.yangutils.utils.YangConstructType.LENGTH_DATA;
+import static org.onosproject.yangutils.utils.YangConstructType.TYPE_DATA;
 
 /*
  * Reference: RFC6020 and YANG ANTLR Grammar
@@ -71,11 +63,6 @@ import static org.onosproject.yangutils.utils.builtindatatype.BuiltInTypeObjectF
  */
 public final class LengthRestrictionListener {
 
-    private static final String PIPE = "|";
-    private static final String LENGTH_INTERVAL = "..";
-    private static final int MAX_RANGE_BOUNDARY = 2;
-    private static final int MIN_RANGE_BOUNDARY = 1;
-
     /**
      * Creates a new length restriction listener.
      */
@@ -88,10 +75,10 @@ public final class LengthRestrictionListener {
      * tree.
      *
      * @param listener listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processLengthRestrictionEntry(TreeWalkListener listener,
-                                                    GeneratedYangParser.LengthStatementContext ctx) {
+                                                     GeneratedYangParser.LengthStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, LENGTH_DATA, ctx.length().getText(), ENTRY);
@@ -110,18 +97,22 @@ public final class LengthRestrictionListener {
      * Sets the length restriction to type.
      *
      * @param type Yang type for which length restriction to be set
-     * @param ctx context object of the grammar rule
+     * @param ctx  context object of the grammar rule
      */
     private static void setLengthRestriction(YangType type,
-                                            GeneratedYangParser.LengthStatementContext ctx) {
+                                             GeneratedYangParser.LengthStatementContext ctx) {
 
-        YangStringRestriction stringRestriction;
-        YangBuiltInDataTypeInfo<?> startValue;
-        YangBuiltInDataTypeInfo<?> endValue;
-        YangRangeRestriction lengthRestriction = new YangRangeRestriction<>();
+        if (type.getDataType() == DERIVED) {
+            ((YangDerivedInfo<YangRangeRestriction>) type.getDataTypeExtendedInfo())
+                    .setLengthRestrictionString(ctx.length().getText());
+            ((YangDerivedInfo<YangRangeRestriction>) type.getDataTypeExtendedInfo())
+                    .setLineNumber(ctx.getStart().getLine());
+            ((YangDerivedInfo<YangRangeRestriction>) type.getDataTypeExtendedInfo())
+                    .setCharPosition(ctx.getStart().getCharPositionInLine());
+            return;
+        }
 
-        if (type.getDataType() != YangDataTypes.STRING && type.getDataType() != YangDataTypes.DERIVED) {
-
+        if (type.getDataType() != YangDataTypes.STRING) {
             ParserException parserException = new ParserException("YANG file error : " +
                     YangConstructType.getYangConstructType(LENGTH_DATA) + " name " + ctx.length().getText() +
                     " can be used to restrict the built-in type string or types derived from string.");
@@ -130,71 +121,14 @@ public final class LengthRestrictionListener {
             throw parserException;
         }
 
-        if (type.getDataType() == YangDataTypes.STRING) {
-            stringRestriction = (YangStringRestriction) type.getDataTypeExtendedInfo();
-        } else {
-            stringRestriction = (YangStringRestriction) ((YangDerivedInfo<?>) type
-                    .getDataTypeExtendedInfo()).getExtendedInfo();
-        }
+        YangRangeRestriction lengthRestriction = processLengthRestriction(null, ctx.getStart().getLine(),
+                ctx.getStart().getCharPositionInLine(), false, ctx.length().getText());
+
+        YangStringRestriction stringRestriction = (YangStringRestriction) type.getDataTypeExtendedInfo();
 
         if (stringRestriction == null) {
             stringRestriction = new YangStringRestriction();
-            if (type.getDataType() == YangDataTypes.STRING) {
-                type.setDataTypeExtendedInfo(stringRestriction);
-            } else {
-                ((YangDerivedInfo<YangStringRestriction>) type.getDataTypeExtendedInfo())
-                        .setExtendedInfo(stringRestriction);
-            }
-        }
-
-        String rangeArgument = removeQuotesAndHandleConcat(ctx.length().getText());
-        String[] rangeArguments = rangeArgument.trim().split(Pattern.quote(PIPE));
-
-        for (String rangePart : rangeArguments) {
-            String startInterval;
-            String endInterval;
-            YangRangeInterval rangeInterval = new YangRangeInterval<>();
-            String[] rangeBoundary = rangePart.trim().split(Pattern.quote(LENGTH_INTERVAL));
-
-            if (rangeBoundary.length > MAX_RANGE_BOUNDARY) {
-                ParserException parserException = new ParserException("YANG file error : " +
-                        YangConstructType.getYangConstructType(LENGTH_DATA) + " " + rangeArgument +
-                        " is not valid.");
-                parserException.setLine(ctx.getStart().getLine());
-                parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
-                throw parserException;
-            }
-
-            if (rangeBoundary.length == MIN_RANGE_BOUNDARY) {
-                startInterval = rangeBoundary[0];
-                endInterval = rangeBoundary[0];
-            } else {
-                startInterval = rangeBoundary[0];
-                endInterval = rangeBoundary[1];
-            }
-
-            try {
-                startValue = getDataObjectFromString(startInterval, YangDataTypes.UINT64);
-                endValue = getDataObjectFromString(endInterval, YangDataTypes.UINT64);
-            } catch (DataTypeException e) {
-                ParserException parserException = new ParserException(e.getMessage());
-                parserException.setLine(ctx.getStart().getLine());
-                parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
-                throw parserException;
-            }
-
-            rangeInterval.setStartValue(startValue);
-            rangeInterval.setEndValue(endValue);
-
-            try {
-                lengthRestriction.addRangeRestrictionInterval(rangeInterval);
-            } catch (DataModelException e) {
-                ParserException parserException = new ParserException(constructExtendedListenerErrorMessage(
-                        UNHANDLED_PARSED_DATA, LENGTH_DATA, rangeArgument, ENTRY, e.getMessage()));
-                parserException.setLine(ctx.getStart().getLine());
-                parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
-                throw parserException;
-            }
+            type.setDataTypeExtendedInfo(stringRestriction);
         }
 
         stringRestriction.setLengthRestriction(lengthRestriction);

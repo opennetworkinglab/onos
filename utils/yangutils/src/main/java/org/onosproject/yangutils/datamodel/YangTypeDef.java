@@ -83,11 +83,6 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, Y
     private String name;
 
     /**
-     * Maintain the data type information.
-     */
-    private YangType<?> dataType;
-
-    /**
      * Units of the data type.
      */
     private String units;

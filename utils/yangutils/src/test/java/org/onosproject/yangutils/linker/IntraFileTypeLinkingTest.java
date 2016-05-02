@@ -18,23 +18,26 @@ package org.onosproject.yangutils.linker;
 
 import java.io.IOException;
 import java.util.ListIterator;
-
 import org.junit.Test;
-import org.onosproject.yangutils.datamodel.ResolvableStatus;
 import org.onosproject.yangutils.datamodel.YangContainer;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.onosproject.yangutils.datamodel.ResolvableStatus.INTRA_FILE_RESOLVED;
+import static org.onosproject.yangutils.datamodel.ResolvableStatus.RESOLVED;
+import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
+import static org.onosproject.yangutils.datamodel.YangDataTypes.INT32;
+import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
+import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
 
 /**
  * Test cases for testing "type" intra file linking.
@@ -56,7 +59,7 @@ public class IntraFileTypeLinkingTest {
         assertThat(node instanceof YangModule, is(true));
 
         // Check whether the node type is set properly to module.
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        assertThat(node.getNodeType(), is(MODULE_NODE));
 
         // Check whether the module name is set correctly.
         YangModule yangNode = (YangModule) node;
@@ -67,13 +70,23 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("hello"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
+        assertThat(leafInfo.getDataType().getDataType(), is(DERIVED));
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
 
-        assertThat(leafInfo.getDataType().getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+        assertThat(leafInfo.getDataType().getResolvableStatus(), is(RESOLVED));
+
+        YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        // Check for the effective built-in type.
+        assertThat(derivedInfo.getEffectiveBuiltInType(), is(STRING));
+
+        // Check for the restriction.
+        assertThat(derivedInfo.getLengthRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getRangeRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getPatternRestriction(), is(nullValue()));
+        assertThat(derivedInfo.getResolvedExtendedInfo(), is(nullValue()));
     }
 
     /**
@@ -91,7 +104,7 @@ public class IntraFileTypeLinkingTest {
         assertThat((node instanceof YangModule), is(true));
 
         // Check whether the node type is set properly to module.
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        assertThat(node.getNodeType(), is(MODULE_NODE));
 
         // Check whether the module name is set correctly.
         YangModule yangNode = (YangModule) node;
@@ -106,13 +119,23 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("hello"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
+        assertThat(leafInfo.getDataType().getDataType(), is(DERIVED));
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
 
-        assertThat(leafInfo.getDataType().getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+        assertThat(leafInfo.getDataType().getResolvableStatus(), is(RESOLVED));
+
+        YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        // Check for the effective built-in type.
+        assertThat(derivedInfo.getEffectiveBuiltInType(), is(STRING));
+
+        // Check for the restriction.
+        assertThat(derivedInfo.getLengthRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getRangeRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getPatternRestriction(), is(nullValue()));
+        assertThat(derivedInfo.getResolvedExtendedInfo(), is(nullValue()));
     }
 
     /**
@@ -131,7 +154,7 @@ public class IntraFileTypeLinkingTest {
         assertThat((node instanceof YangModule), is(true));
 
         // Check whether the node type is set properly to module.
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        assertThat(node.getNodeType(), is(MODULE_NODE));
 
         // Check whether the module name is set correctly.
         YangModule yangNode = (YangModule) node;
@@ -146,13 +169,23 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("hello"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
+        assertThat(leafInfo.getDataType().getDataType(), is(DERIVED));
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild().getNextSibling()));
 
-        assertThat(leafInfo.getDataType().getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+        assertThat(leafInfo.getDataType().getResolvableStatus(), is(RESOLVED));
+
+        YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        // Check for the effective built-in type.
+        assertThat(derivedInfo.getEffectiveBuiltInType(), is(STRING));
+
+        // Check for the restriction.
+        assertThat(derivedInfo.getLengthRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getRangeRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getPatternRestriction(), is(nullValue()));
+        assertThat(derivedInfo.getResolvedExtendedInfo(), is(nullValue()));
     }
 
     /**
@@ -171,7 +204,7 @@ public class IntraFileTypeLinkingTest {
         assertThat((node instanceof YangModule), is(true));
 
         // Check whether the node type is set properly to module.
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        assertThat(node.getNodeType(), is(MODULE_NODE));
 
         // Check whether the module name is set correctly.
         YangModule yangNode = (YangModule) node;
@@ -186,13 +219,23 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("hello"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
+        assertThat(leafInfo.getDataType().getDataType(), is(DERIVED));
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangContainer.getChild().getNextSibling()));
 
-        assertThat(leafInfo.getDataType().getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+        assertThat(leafInfo.getDataType().getResolvableStatus(), is(RESOLVED));
+
+        YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        // Check for the effective built-in type.
+        assertThat(derivedInfo.getEffectiveBuiltInType(), is(STRING));
+
+        // Check for the restriction.
+        assertThat(derivedInfo.getLengthRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getRangeRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getPatternRestriction(), is(nullValue()));
+        assertThat(derivedInfo.getResolvedExtendedInfo(), is(nullValue()));
     }
 
     /**
@@ -209,7 +252,7 @@ public class IntraFileTypeLinkingTest {
         assertThat((node instanceof YangModule), is(true));
 
         // Check whether the node type is set properly to module.
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        assertThat(node.getNodeType(), is(MODULE_NODE));
 
         // Check whether the module name is set correctly.
         YangModule yangNode = (YangModule) node;
@@ -224,26 +267,37 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("FirstClass"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
+        assertThat(leafInfo.getDataType().getDataType(), is(DERIVED));
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangList.getChild()));
         assertThat(leafInfo.getDataType().getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+                is(RESOLVED));
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
 
         assertThat(((YangDerivedInfo<?>) typeDef1.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangContainer.getChild().getNextSibling()));
         assertThat(typeDef1.getTypeDefBaseType().getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+                is(RESOLVED));
 
         YangTypeDef typeDef2 = (YangTypeDef) yangContainer.getChild().getNextSibling();
 
         assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
         assertThat(typeDef2.getTypeDefBaseType().getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+                is(RESOLVED));
+
+        YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        // Check for the effective built-in type.
+        assertThat(derivedInfo.getEffectiveBuiltInType(), is(INT32));
+
+        // Check for the restriction.
+        assertThat(derivedInfo.getLengthRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getRangeRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getPatternRestriction(), is(nullValue()));
+        assertThat(derivedInfo.getResolvedExtendedInfo(), is(nullValue()));
     }
 
     /**
@@ -261,7 +315,7 @@ public class IntraFileTypeLinkingTest {
         assertThat((node instanceof YangModule), is(true));
 
         // Check whether the node type is set properly to module.
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        assertThat(node.getNodeType(), is(MODULE_NODE));
 
         // Check whether the module name is set correctly.
         YangModule yangNode = (YangModule) node;
@@ -276,26 +330,37 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("FirstClass"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
+        assertThat(leafInfo.getDataType().getDataType(), is(DERIVED));
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangList.getChild()));
         assertThat(leafInfo.getDataType().getResolvableStatus(),
-                is(ResolvableStatus.INTRA_FILE_RESOLVED));
+                is(INTRA_FILE_RESOLVED));
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
 
         assertThat(((YangDerivedInfo<?>) typeDef1.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangContainer.getChild().getNextSibling()));
         assertThat(typeDef1.getTypeDefBaseType().getResolvableStatus(),
-                is(ResolvableStatus.INTRA_FILE_RESOLVED));
+                is(INTRA_FILE_RESOLVED));
 
         YangTypeDef typeDef2 = (YangTypeDef) yangContainer.getChild().getNextSibling();
 
         assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
         assertThat(typeDef2.getTypeDefBaseType().getResolvableStatus(),
-                is(ResolvableStatus.INTRA_FILE_RESOLVED));
+                is(INTRA_FILE_RESOLVED));
+
+        YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        // Check for the effective built-in type.
+        assertThat(derivedInfo.getEffectiveBuiltInType(), is(nullValue()));
+
+        // Check for the restriction.
+        assertThat(derivedInfo.getLengthRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getRangeRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getPatternRestriction(), is(nullValue()));
+        assertThat(derivedInfo.getResolvedExtendedInfo(), is(nullValue()));
     }
 
     /**
@@ -312,7 +377,7 @@ public class IntraFileTypeLinkingTest {
         assertThat((node instanceof YangModule), is(true));
 
         // Check whether the node type is set properly to module.
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        assertThat(node.getNodeType(), is(MODULE_NODE));
 
         // Check whether the module name is set correctly.
         YangModule yangNode = (YangModule) node;
@@ -327,26 +392,37 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("FirstClass"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
+        assertThat(leafInfo.getDataType().getDataType(), is(DERIVED));
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangList.getChild()));
         assertThat(leafInfo.getDataType().getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+                is(RESOLVED));
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
 
         assertThat(((YangDerivedInfo<?>) typeDef1.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangContainer.getChild().getNextSibling()));
         assertThat(typeDef1.getTypeDefBaseType().getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+                is(RESOLVED));
 
         YangTypeDef typeDef2 = (YangTypeDef) yangContainer.getChild().getNextSibling();
 
         assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
         assertThat(typeDef2.getTypeDefBaseType().getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+                is(RESOLVED));
+
+        YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        // Check for the effective built-in type.
+        assertThat(derivedInfo.getEffectiveBuiltInType(), is(INT32));
+
+        // Check for the restriction.
+        assertThat(derivedInfo.getLengthRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getRangeRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getPatternRestriction(), is(nullValue()));
+        assertThat(derivedInfo.getResolvedExtendedInfo(), is(nullValue()));
     }
 
     /**
@@ -364,7 +440,7 @@ public class IntraFileTypeLinkingTest {
         assertThat((node instanceof YangModule), is(true));
 
         // Check whether the node type is set properly to module.
-        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        assertThat(node.getNodeType(), is(MODULE_NODE));
 
         // Check whether the module name is set correctly.
         YangModule yangNode = (YangModule) node;
@@ -379,12 +455,12 @@ public class IntraFileTypeLinkingTest {
 
         assertThat(leafInfo.getName(), is("invalid-interval"));
         assertThat(leafInfo.getDataType().getDataTypeName(), is("FirstClass"));
-        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.DERIVED));
+        assertThat(leafInfo.getDataType().getDataType(), is(DERIVED));
 
         assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) yangList.getChild()));
         assertThat(leafInfo.getDataType().getResolvableStatus(),
-                is(ResolvableStatus.INTRA_FILE_RESOLVED));
+                is(INTRA_FILE_RESOLVED));
 
         YangTypeDef typeDef1 = (YangTypeDef) yangList.getChild();
 
@@ -393,7 +469,18 @@ public class IntraFileTypeLinkingTest {
         assertThat(((YangDerivedInfo<?>) typeDef2.getTypeDefBaseType().getDataTypeExtendedInfo()).getReferredTypeDef(),
                 is((YangTypeDef) node.getChild()));
         assertThat(typeDef2.getTypeDefBaseType().getResolvableStatus(),
-                is(ResolvableStatus.RESOLVED));
+                is(RESOLVED));
+
+        YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        // Check for the effective built-in type.
+        assertThat(derivedInfo.getEffectiveBuiltInType(), is(nullValue()));
+
+        // Check for the restriction.
+        assertThat(derivedInfo.getLengthRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getRangeRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getPatternRestriction(), is(nullValue()));
+        assertThat(derivedInfo.getResolvedExtendedInfo(), is(nullValue()));
     }
 
     /**
