@@ -3,6 +3,7 @@ COMPILE_DEPS = [
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
     '//apps/olt:onos-apps-olt-api',
+    '//apps/cordconfig:onos-apps-cordconfig',
 ]
 
 BUNDLES = [

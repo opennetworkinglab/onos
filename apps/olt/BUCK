@@ -6,6 +6,7 @@ COMPILE_DEPS = [
     '//utils/rest:onlab-rest',
     '//cli:onos-cli',
     '//core/store/serializers:onos-core-serializers',
+    '//apps/cordconfig:onos-apps-cordconfig',
 ]
 
 BUNDLES = [

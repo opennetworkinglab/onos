@@ -128,6 +128,7 @@ APPS = [
     '//apps/openstacknode:onos-apps-openstacknode-oar',
     '//apps/cpman/app:onos-apps-cpman-app-oar',
     '//apps/xosclient:onos-apps-xosclient-oar',
+    '//apps/cordconfig:onos-apps-cordconfig',
 ]
 
 APP_JARS = [

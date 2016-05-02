@@ -5,6 +5,7 @@ COMPILE_DEPS = [
     '//lib:jersey-common',
     '//utils/rest:onlab-rest',
     '//apps/olt:onos-apps-olt-api',
+    '//apps/cordconfig:onos-apps-cordconfig',
 ]
 
 BUNDLES = [
