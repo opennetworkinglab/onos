@@ -45,7 +45,8 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
     private String neighborSystemId;
     private Ip4Address interfaceIp;
     private MacAddress neighborMacAddress;
-    private int holdingTime;
+    private volatile int holdingTime;
+    private int neighborDownInterval;
     private IsisRouterType routerType;
     private String l1LanId;
     private String l2LanId;
@@ -54,6 +55,8 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
     private IsisInterfaceState neighborState = IsisInterfaceState.INITIAL;
     private InternalInactivityTimeCheck inActivityTimeCheckTask;
     private ScheduledExecutorService exServiceInActivity;
+    private InternalHoldingTimeCheck holdingTimeCheckTask;
+    private ScheduledExecutorService exServiceHoldingTimeCheck;
     private boolean inActivityTimerScheduled = false;
     private IsisInterface isisInterface;
 
@@ -72,6 +75,7 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
         this.interfaceIp = (helloMessage.interfaceIpAddresses() != null) ?
                 interfaceIpAddresses.get(0) : IsisConstants.DEFAULTIP;
         this.holdingTime = helloMessage.holdingTime();
+        neighborDownInterval = holdingTime;
         this.routerType = IsisRouterType.get(helloMessage.circuitType());
         if (helloMessage instanceof L1L2HelloPdu) {
             if (IsisPduType.L1HELLOPDU == helloMessage.isisPduType()) {
@@ -83,6 +87,7 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
             this.localCircuitId = ((P2PHelloPdu) helloMessage).localCircuitId();
         }
         this.isisInterface = isisInterface;
+        startHoldingTimeCheck();
     }
 
     /**
@@ -244,7 +249,7 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
      * @param l2LanId L2 lan ID
      */
     public void setL2LanId(String l2LanId) {
-        this.l1LanId = l1LanId;
+        this.l2LanId = l2LanId;
     }
 
     /**
@@ -293,6 +298,25 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
     }
 
     /**
+     * Starts the holding time check timer.
+     */
+    public void startHoldingTimeCheck() {
+        log.debug("IsisNeighbor::startHoldingTimeCheck");
+        holdingTimeCheckTask = new InternalHoldingTimeCheck();
+        exServiceHoldingTimeCheck = Executors.newSingleThreadScheduledExecutor();
+        exServiceHoldingTimeCheck.scheduleAtFixedRate(holdingTimeCheckTask, 1,
+                                                      1, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Stops the holding time check timer.
+     */
+    public void stopHoldingTimeCheck() {
+        log.debug("IsisNeighbor::stopHoldingTimeCheck ");
+        exServiceHoldingTimeCheck.shutdown();
+    }
+
+    /**
      * Starts the inactivity timer.
      */
     public void startInactivityTimeCheck() {
@@ -300,8 +324,8 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
             log.debug("IsisNeighbor::startInactivityTimeCheck");
             inActivityTimeCheckTask = new InternalInactivityTimeCheck();
             exServiceInActivity = Executors.newSingleThreadScheduledExecutor();
-            exServiceInActivity.scheduleAtFixedRate(inActivityTimeCheckTask, holdingTime,
-                                                    holdingTime, TimeUnit.SECONDS);
+            exServiceInActivity.scheduleAtFixedRate(inActivityTimeCheckTask, neighborDownInterval,
+                                                    neighborDownInterval, TimeUnit.SECONDS);
             inActivityTimerScheduled = true;
         }
     }
@@ -328,6 +352,8 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
         isisInterface.setL2LanId(IsisConstants.DEFAULTLANID);
 
         neighborState = IsisInterfaceState.DOWN;
+        stopInactivityTimeCheck();
+        stopHoldingTimeCheck();
         isisInterface.removeNeighbor(this);
     }
 
@@ -345,6 +371,22 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
         public void run() {
             log.debug("Neighbor Not Heard till the past router dead interval .");
             neighborDown();
+        }
+    }
+
+    /**
+     * Represents a Task which will decrement holding time for this neighbor.
+     */
+    private class InternalHoldingTimeCheck implements Runnable {
+        /**
+         * Creates an instance.
+         */
+        InternalHoldingTimeCheck() {
+        }
+
+        @Override
+        public void run() {
+            holdingTime--;
         }
     }
 }

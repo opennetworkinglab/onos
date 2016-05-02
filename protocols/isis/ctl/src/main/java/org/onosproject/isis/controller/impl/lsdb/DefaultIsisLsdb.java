@@ -15,6 +15,7 @@
  */
 package org.onosproject.isis.controller.impl.lsdb;
 
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.onosproject.isis.controller.IsisInterface;
 import org.onosproject.isis.controller.IsisLsdb;
 import org.onosproject.isis.controller.IsisLsdbAge;
@@ -24,6 +25,7 @@ import org.onosproject.isis.controller.IsisPduType;
 import org.onosproject.isis.controller.LspWrapper;
 import org.onosproject.isis.io.isispacket.pdu.LsPdu;
 import org.onosproject.isis.io.util.IsisConstants;
+import org.onosproject.isis.io.util.IsisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +43,9 @@ public class DefaultIsisLsdb implements IsisLsdb {
     private Map<String, LspWrapper> isisL1Db = new ConcurrentHashMap<>();
     private Map<String, LspWrapper> isisL2Db = new ConcurrentHashMap<>();
     private IsisLsdbAge lsdbAge = null;
+
+
+
     private int l1LspSeqNo = IsisConstants.STARTLSSEQUENCENUM;
     private int l2LspSeqNo = IsisConstants.STARTLSSEQUENCENUM;
 
@@ -58,6 +63,23 @@ public class DefaultIsisLsdb implements IsisLsdb {
         lsdbAge.startDbAging();
     }
 
+    /**
+     * Sets the level 1 link state sequence number.
+     *
+     * @param l1LspSeqNo link state sequence number
+     */
+    public void setL1LspSeqNo(int l1LspSeqNo) {
+        this.l1LspSeqNo = l1LspSeqNo;
+    }
+
+    /**
+     * Sets the level 2 link state sequence number.
+     *
+     * @param l2LspSeqNo link state sequence number
+     */
+    public void setL2LspSeqNo(int l2LspSeqNo) {
+        this.l2LspSeqNo = l2LspSeqNo;
+    }
     /**
      * Returns the LSDB LSP key.
      *
@@ -108,7 +130,7 @@ public class DefaultIsisLsdb implements IsisLsdb {
      * @return List of LSPs
      */
     public List<LspWrapper> allLspHeaders(boolean excludeMaxAgeLsp) {
-        List<LspWrapper> summaryList = new CopyOnWriteArrayList();
+        List<LspWrapper> summaryList = new CopyOnWriteArrayList<>();
         addLspToHeaderList(summaryList, excludeMaxAgeLsp, isisL1Db);
         addLspToHeaderList(summaryList, excludeMaxAgeLsp, isisL2Db);
 
@@ -187,9 +209,17 @@ public class DefaultIsisLsdb implements IsisLsdb {
      */
     public boolean addLsp(IsisMessage isisMessage, boolean isSelfOriginated, IsisInterface isisInterface) {
         LsPdu lspdu = (LsPdu) isisMessage;
+        if (isSelfOriginated) {
+            //Add length and checksum
+            byte[] lspBytes = lspdu.asBytes();
+            lspdu.setPduLength(lspBytes.length);
+            lspBytes = IsisUtil.addChecksum(lspBytes, IsisConstants.CHECKSUMPOSITION,
+                                            IsisConstants.CHECKSUMPOSITION + 1);
+            byte[] checkSum = {lspBytes[IsisConstants.CHECKSUMPOSITION], lspBytes[IsisConstants.CHECKSUMPOSITION + 1]};
+            lspdu.setCheckSum(ChannelBuffers.copiedBuffer(checkSum).readUnsignedShort());
+        }
         DefaultLspWrapper lspWrapper = new DefaultLspWrapper();
         lspWrapper.setLspAgeReceived(IsisConstants.LSPMAXAGE - lspdu.remainingLifeTime());
-        lspWrapper.setRemainingLifetime(IsisConstants.LSPMAXAGE - lsdbAge.ageCounter());
         lspWrapper.setLspType(IsisPduType.get(lspdu.pduType()));
         lspWrapper.setLsPdu(lspdu);
         lspWrapper.setAgeCounterWhenReceived(lsdbAge.ageCounter());
@@ -198,7 +228,6 @@ public class DefaultIsisLsdb implements IsisLsdb {
         lspWrapper.setIsisInterface(isisInterface);
         lspWrapper.setLsdbAge(lsdbAge);
         addLsp(lspWrapper, lspdu.lspId());
-
         log.debug("Added LSp In LSDB: {}", lspWrapper);
 
         return true;
@@ -217,9 +246,11 @@ public class DefaultIsisLsdb implements IsisLsdb {
 
         switch (lspWrapper.lsPdu().isisPduType()) {
             case L1LSPDU:
+                isisL1Db.remove(key);
                 isisL1Db.put(key, lspWrapper);
                 break;
             case L2LSPDU:
+                isisL2Db.remove(key);
                 isisL2Db.put(key, lspWrapper);
                 break;
             default:
@@ -228,7 +259,7 @@ public class DefaultIsisLsdb implements IsisLsdb {
         }
 
         //add it to bin
-        Integer binNumber = lsdbAge.age2Bin(IsisConstants.LSPMAXAGE - lspWrapper.remainingLifetime());
+        Integer binNumber = lsdbAge.age2Bin(IsisConstants.LSPMAXAGE - lspWrapper.lspAgeReceived());
         IsisLspBin lspBin = lsdbAge.getLspBin(binNumber);
         if (lspBin != null) {
             //remove from existing
@@ -264,7 +295,8 @@ public class DefaultIsisLsdb implements IsisLsdb {
     public String isNewerOrSameLsp(IsisMessage lsp1, IsisMessage lsp2) {
         LsPdu receivedLsp = (LsPdu) lsp1;
         LsPdu lspFromDb = (LsPdu) lsp2;
-        if (receivedLsp.sequenceNumber() > lspFromDb.sequenceNumber()) {
+        if (receivedLsp.sequenceNumber() > lspFromDb.sequenceNumber() ||
+                receivedLsp.checkSum() != lspFromDb.checkSum()) {
             return "latest";
         } else if (receivedLsp.sequenceNumber() < lspFromDb.sequenceNumber()) {
             return "old";
