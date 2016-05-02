@@ -2,6 +2,8 @@
 
 export ONOS_NIC="10.128.11.*"
 export OCN="10.128.11.200"
+export OCT="10.128.11.201"
+
 export OC1="10.128.11.201"
 export OC2="10.128.11.202"
 export OC3="10.128.11.203"
