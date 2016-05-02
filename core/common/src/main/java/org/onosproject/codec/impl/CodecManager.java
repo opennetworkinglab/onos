@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.RoleInfo;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.Application;
@@ -31,12 +32,14 @@ import org.onosproject.incubator.net.virtual.VirtualDevice;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualPort;
+import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.PortStatistics;
@@ -136,6 +139,9 @@ public class CodecManager implements CodecService {
         registerCodec(VirtualDevice.class, new VirtualDeviceCodec());
         registerCodec(VirtualPort.class, new VirtualPortCodec());
         registerCodec(VirtualLink.class, new VirtualLinkCodec());
+        registerCodec(MastershipTerm.class, new MastershipTermCodec());
+        registerCodec(MastershipRole.class, new MastershipRoleCodec());
+        registerCodec(RoleInfo.class, new RoleInfoCodec());
         log.info("Started");
     }
 
