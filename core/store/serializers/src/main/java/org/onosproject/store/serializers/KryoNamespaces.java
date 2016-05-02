@@ -31,6 +31,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
+import org.onlab.util.ClosedOpenRange;
 import org.onlab.util.Frequency;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Match;
@@ -191,12 +192,18 @@ import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.ContinuousResourceId;
 import org.onosproject.net.resource.DiscreteResource;
+import org.onosproject.net.resource.DiscreteResourceCodec;
 import org.onosproject.net.resource.DiscreteResourceId;
+import org.onosproject.net.resource.DiscreteResourceSet;
+import org.onosproject.net.resource.DiscreteResourceSetSerializer;
+import org.onosproject.net.resource.MplsCodec;
+import org.onosproject.net.resource.NoOpCodec;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.resource.VlanCodec;
 import org.onosproject.security.Permission;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.primitives.MapUpdate;
@@ -521,7 +528,12 @@ public final class KryoNamespaces {
                     org.onlab.packet.MplsLabel.class,
                     org.onlab.packet.MPLS.class
             )
-
+            .register(ClosedOpenRange.class)
+            .register(new DiscreteResourceSetSerializer(), DiscreteResourceSet.class)
+            .register(DiscreteResourceCodec.class)
+            .register(VlanCodec.class)
+            .register(MplsCodec.class)
+            .register(NoOpCodec.class)
             .build();
 
 
