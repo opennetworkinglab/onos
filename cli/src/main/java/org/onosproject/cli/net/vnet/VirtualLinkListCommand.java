@@ -34,7 +34,7 @@ import java.util.List;
 public class VirtualLinkListCommand extends AbstractShellCommand {
 
     private static final String FMT_VIRTUAL_LINK =
-            "src=%s, dst=%s, tunnelId=%s";
+            "src=%s, dst=%s, state=%s, tunnelId=%s";
 
     @Argument(index = 0, name = "networkId", description = "Network ID",
             required = true, multiValued = false)
@@ -66,6 +66,7 @@ public class VirtualLinkListCommand extends AbstractShellCommand {
      */
     private void printVirtualLink(VirtualLink virtualLink) {
         print(FMT_VIRTUAL_LINK, virtualLink.src().toString(), virtualLink.dst().toString(),
+              virtualLink.state(),
               virtualLink.tunnelId() == null ? null : virtualLink.tunnelId().toString());
     }
 }

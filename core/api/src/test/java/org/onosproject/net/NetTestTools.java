@@ -81,7 +81,7 @@ public final class NetTestTools {
         return new DefaultLink(PID,
                                connectPoint(src, sp),
                                connectPoint(dst, dp),
-                               Link.Type.DIRECT);
+                               Link.Type.DIRECT, Link.State.ACTIVE);
     }
 
     // Creates a path that leads through the given devices.

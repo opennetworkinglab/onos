@@ -16,7 +16,7 @@
 
 package org.onosproject.incubator.net.virtual.impl;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,21 +33,29 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkProviderService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.intent.FakeIntentManager;
+import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.IntentServiceAdapter;
-import org.onosproject.net.intent.IntentState;
-import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.IntentCompiler;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.MockIdGenerator;
+import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * Junit tests for PtToPtIntentVirtualNetworkProvider.
@@ -58,12 +66,19 @@ public class PtToPtIntentVirtualNetworkProviderTest {
     private VirtualNetworkProviderRegistry providerRegistry;
 
     private final VirtualNetworkRegistryAdapter virtualNetworkRegistry = new VirtualNetworkRegistryAdapter();
-    private IntentService intentService;
+    private TestableIntentService intentService = new FakeIntentManager();
+    private TestListener listener = new TestListener();
+    protected TestIntentCompiler compiler = new TestIntentCompiler();
+    private IntentExtensionService intentExtensionService;
 
     private static final ApplicationId APP_ID =
             TestApplicationId.create(PtToPtIntentVirtualNetworkProvider.PTPT_INTENT_APPID);
 
     private IdGenerator idGenerator = new MockIdGenerator();
+    private static final int MAX_WAIT_TIME = 5;
+    private static final int MAX_PERMITS = 2;
+    private static Semaphore created;
+    private static Semaphore removed;
 
     @Before
     public void setUp() {
@@ -77,18 +92,28 @@ public class PtToPtIntentVirtualNetworkProviderTest {
         Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
-        intentService = new TestIntentService();
+        intentService.addListener(listener);
         provider.intentService = intentService;
+
+        // Register a compiler and an installer both setup for success.
+        intentExtensionService = intentService;
+        intentExtensionService.registerCompiler(PointToPointIntent.class, compiler);
+
         provider.activate();
+        created = new Semaphore(0, true);
+        removed = new Semaphore(0, true);
     }
 
     @After
     public void tearDown() {
+        Intent.unbindIdGenerator(idGenerator);
+        intentService.removeListener(listener);
         provider.deactivate();
         provider.providerRegistry = null;
         provider.coreService = null;
         provider.intentService = null;
-        Intent.unbindIdGenerator(idGenerator);
+        created = null;
+        removed = null;
     }
 
     @Test
@@ -134,11 +159,30 @@ public class PtToPtIntentVirtualNetworkProviderTest {
         ConnectPoint dst = new ConnectPoint(DeviceId.deviceId("device2"), PortNumber.portNumber(2));
 
         TunnelId tunnelId = provider.createTunnel(networkId, src, dst);
+
+        // Wait for the tunnel to go into an INSTALLED state, and that the tunnelUp method was called.
+        try {
+            if (!created.tryAcquire(MAX_PERMITS, MAX_WAIT_TIME, TimeUnit.SECONDS)) {
+                fail("Failed to wait for tunnel to get installed.");
+            }
+        } catch (InterruptedException e) {
+            fail("Semaphore exception during tunnel installation." + e.getMessage());
+        }
+
         String key = String.format(PtToPtIntentVirtualNetworkProvider.KEY_FORMAT,
                                    networkId.toString(), src.toString(), dst.toString());
 
         assertEquals("TunnelId does not match as expected.", key, tunnelId.toString());
         provider.destroyTunnel(networkId, tunnelId);
+
+        // Wait for the tunnel to go into a WITHDRAWN state, and that the tunnelDown method was called.
+        try {
+            if (!removed.tryAcquire(MAX_PERMITS, MAX_WAIT_TIME, TimeUnit.SECONDS)) {
+                fail("Failed to wait for tunnel to get removed.");
+            }
+        } catch (InterruptedException e) {
+            fail("Semaphore exception during tunnel removal." + e.getMessage());
+        }
     }
 
     /**
@@ -176,16 +220,36 @@ public class PtToPtIntentVirtualNetworkProviderTest {
         }
 
         @Override
-        public void tunnelUp(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
-
+        public void tunnelUp(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId) {
+            // Release one permit on the created semaphore since the tunnelUp method was called.
+            created.release();
         }
 
         @Override
-        public void tunnelDown(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
-
+        public void tunnelDown(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId) {
+            // Release one permit on the removed semaphore since the tunnelDown method was called.
+            removed.release();
         }
     }
 
+    private static class TestListener implements IntentListener {
+
+        @Override
+        public void event(IntentEvent event) {
+            switch (event.type()) {
+                case INSTALLED:
+                    // Release one permit on the created semaphore since the Intent event was received.
+                    created.release();
+                    break;
+                case WITHDRAWN:
+                    // Release one permit on the removed semaphore since the Intent event was received.
+                    removed.release();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 
     /**
      * Core service test class.
@@ -205,55 +269,17 @@ public class PtToPtIntentVirtualNetworkProviderTest {
         }
     }
 
-    /**
-     * Represents a fake IntentService class that easily allows to store and
-     * retrieve intents without implementing the IntentService logic.
-     */
-    private class TestIntentService extends IntentServiceAdapter {
-
-        private Set<Intent> intents;
-
-        public TestIntentService() {
-            intents = Sets.newHashSet();
-        }
-
+    private static class TestIntentCompiler implements IntentCompiler<PointToPointIntent> {
         @Override
-        public void submit(Intent intent) {
-            intents.add(intent);
+        public List<Intent> compile(PointToPointIntent intent, List<Intent> installable) {
+            return Lists.newArrayList(new MockInstallableIntent());
         }
+    }
 
-        @Override
-        public void withdraw(Intent intent) {
-        }
+    private static class MockInstallableIntent extends FlowRuleIntent {
 
-        @Override
-        public IntentState getIntentState(Key intentKey) {
-            return IntentState.WITHDRAWN;
-        }
-
-        @Override
-        public void purge(Intent intent) {
-            intents.remove(intent);
-        }
-
-        @Override
-        public long getIntentCount() {
-            return intents.size();
-        }
-
-        @Override
-        public Iterable<Intent> getIntents() {
-            return intents;
-        }
-
-        @Override
-        public Intent getIntent(Key intentKey) {
-            for (Intent intent : intents) {
-                if (intent.key().equals(intentKey)) {
-                    return intent;
-                }
-            }
-            return null;
+        public MockInstallableIntent() {
+            super(APP_ID, Collections.singletonList(new IntentTestsMocks.MockFlowRule(100)), Collections.emptyList());
         }
     }
 }

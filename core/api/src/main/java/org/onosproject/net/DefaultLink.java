@@ -36,17 +36,18 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
     private final boolean isExpected;
 
     /**
-     * Creates an active infrastructure link using the supplied information.
+     * Creates an infrastructure link using the supplied information.
      *
      * @param providerId  provider identity
      * @param src         link source
      * @param dst         link destination
      * @param type        link type
+     * @param state       link state
      * @param annotations optional key/value annotations
      */
     protected DefaultLink(ProviderId providerId, ConnectPoint src, ConnectPoint dst,
-                       Type type, Annotations... annotations) {
-        this(providerId, src, dst, type, ACTIVE, false, annotations);
+                       Type type, State state, Annotations... annotations) {
+        this(providerId, src, dst, type, state, false, annotations);
     }
 
     /**

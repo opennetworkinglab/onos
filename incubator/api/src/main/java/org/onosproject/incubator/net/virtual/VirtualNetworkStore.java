@@ -18,6 +18,7 @@ package org.onosproject.incubator.net.virtual;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.store.Store;
@@ -89,18 +90,20 @@ public interface VirtualNetworkStore
      * @param networkId  network identifier
      * @param src        source end-point of the link
      * @param dst        destination end-point of the link
+     * @param state      link state
      * @param realizedBy underlying tunnel identifier using which this link is realized
      * @return the virtual link
      */
-    VirtualLink addLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId realizedBy);
+    VirtualLink addLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst, Link.State state, TunnelId realizedBy);
 
     /**
      * Updates the tunnelId in the virtual link.
      *
-     * @param virtualLink  virtual link
-     * @param tunnelId tunnel identifier
+     * @param virtualLink virtual link
+     * @param tunnelId    tunnel identifier
+     * @param state       link state
      */
-    void updateLink(VirtualLink virtualLink, TunnelId tunnelId);
+    void updateLink(VirtualLink virtualLink, TunnelId tunnelId, Link.State state);
 
     /**
      * Removes the specified link from the store.
@@ -158,10 +161,21 @@ public interface VirtualNetworkStore
     Set<VirtualLink> getLinks(NetworkId networkId);
 
     /**
+     * Returns the virtual link matching the network identifier, source connect point,
+     * and destination connect point.
+     *
+     * @param networkId network identifier
+     * @param src       source connect point
+     * @param dst       destination connect point
+     * @return virtual link
+     */
+    VirtualLink getLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst);
+
+    /**
      * Returns the list of ports of the specified virtual device.
      *
      * @param networkId network identifier
-     * @param deviceId   device identifier
+     * @param deviceId  device identifier
      * @return set of virtual networks
      */
     Set<VirtualPort> getPorts(NetworkId networkId, DeviceId deviceId);

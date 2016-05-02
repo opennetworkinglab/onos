@@ -44,10 +44,12 @@ public final class DefaultVirtualLink extends DefaultLink implements VirtualLink
      * @param networkId network identifier
      * @param src       source connection point
      * @param dst       destination connection point
+     * @param state     link state
      * @param tunnelId  tunnel identifier
      */
-    private DefaultVirtualLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId) {
-        super(PID, src, dst, Type.VIRTUAL, DefaultAnnotations.builder().build());
+    private DefaultVirtualLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst,
+                               State state, TunnelId tunnelId) {
+        super(PID, src, dst, Type.VIRTUAL, state, DefaultAnnotations.builder().build());
         this.networkId = networkId;
         this.tunnelId = tunnelId;
     }
@@ -107,6 +109,7 @@ public final class DefaultVirtualLink extends DefaultLink implements VirtualLink
         private ConnectPoint src;
         private ConnectPoint dst;
         private TunnelId tunnelId;
+        private State state;
 
         private Builder() {
             // Hide constructor
@@ -157,6 +160,17 @@ public final class DefaultVirtualLink extends DefaultLink implements VirtualLink
         }
 
         /**
+         * Sets the link state to be used by the builder.
+         *
+         * @param state link state
+         * @return self
+         */
+        public Builder state(State state) {
+            this.state = state;
+            return this;
+        }
+
+        /**
          * Builds a default virtual link object from the accumulated parameters.
          *
          * @return default virtual link object
@@ -166,7 +180,7 @@ public final class DefaultVirtualLink extends DefaultLink implements VirtualLink
             checkNotNull(dst, "Destination connect point cannot be null");
             checkNotNull(networkId, "Network Id cannot be null");
 
-            return new DefaultVirtualLink(networkId, src, dst, tunnelId);
+            return new DefaultVirtualLink(networkId, src, dst, state, tunnelId);
         }
     }
 }

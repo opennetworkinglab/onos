@@ -35,8 +35,9 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
@@ -45,9 +46,9 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.Thread.sleep;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -55,13 +56,15 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class PtToPtIntentVirtualNetworkProvider extends AbstractProvider implements VirtualNetworkProvider {
+public class PtToPtIntentVirtualNetworkProvider extends AbstractProvider
+        implements VirtualNetworkProvider {
 
     private final Logger log = getLogger(PtToPtIntentVirtualNetworkProvider.class);
     private static final String NETWORK_ID_NULL = "Network ID cannot be null";
     private static final String CONNECT_POINT_NULL = "Connect Point cannot be null";
     private static final String INTENT_NULL = "Intent cannot be null";
-    protected static final String KEY_FORMAT = "networkId=%s src=%s dst=%s";
+    private static final String NETWORK_ID = "networkId=";
+    protected static final String KEY_FORMAT = NETWORK_ID + "%s, src=%s, dst=%s";
     private static final int MAX_WAIT_COUNT = 30;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -71,6 +74,8 @@ public class PtToPtIntentVirtualNetworkProvider extends AbstractProvider impleme
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
+
+    private final InternalPtPtIntentListener intentListener = new InternalPtPtIntentListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -90,11 +95,13 @@ public class PtToPtIntentVirtualNetworkProvider extends AbstractProvider impleme
         providerService = providerRegistry.register(this);
         appId = coreService.registerApplication(PTPT_INTENT_APPID);
 
+        intentService.addListener(intentListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        intentService.removeListener(intentListener);
         providerRegistry.unregister(this);
         providerService = null;
         log.info("Stopped");
@@ -105,8 +112,7 @@ public class PtToPtIntentVirtualNetworkProvider extends AbstractProvider impleme
         checkNotNull(networkId, NETWORK_ID_NULL);
         checkNotNull(src, CONNECT_POINT_NULL);
         checkNotNull(dst, CONNECT_POINT_NULL);
-        String key = String.format(KEY_FORMAT, networkId.toString(), src.toString(), dst.toString());
-        Key intentKey = Key.of(key, appId);
+        Key intentKey = encodeKey(networkId, src, dst);
 
         List<Constraint> constraints = new ArrayList<>();
         constraints.add(new EncapsulationConstraint(EncapsulationType.VLAN));
@@ -123,7 +129,7 @@ public class PtToPtIntentVirtualNetworkProvider extends AbstractProvider impleme
         intentService.submit(intent);
 
         // construct tunnelId from the key
-        return TunnelId.valueOf(key);
+        return TunnelId.valueOf(intentKey.toString());
     }
 
     @Override
@@ -133,20 +139,64 @@ public class PtToPtIntentVirtualNetworkProvider extends AbstractProvider impleme
         Intent intent = intentService.getIntent(intentKey);
         checkNotNull(intent, INTENT_NULL);
         intentService.withdraw(intent);
-        try {
-            int count = 0;
-            // Loop waiting for the intent to go into a withdrawn or failed state
-            // before attempting to purge it.
-            while (++count <= MAX_WAIT_COUNT) {
-                IntentState state = intentService.getIntentState(intentKey);
-                if ((state == IntentState.FAILED) || (state == IntentState.WITHDRAWN)) {
-                    intentService.purge(intent);
-                    break;
-                }
-                sleep(1000);
+    }
+
+    private NetworkId decodeNetworkIdFromKey(Key intentKey) {
+        // Extract the network identifier from the intent key
+        StringTokenizer tokenizer = new StringTokenizer(intentKey.toString(), ",");
+        String networkIdString = tokenizer.nextToken().substring(NETWORK_ID.length());
+        return NetworkId.networkId(Integer.valueOf(networkIdString));
+    }
+
+    private Key encodeKey(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
+        String key = String.format(KEY_FORMAT, networkId, src, dst);
+        return Key.of(key, appId);
+    }
+
+    private class InternalPtPtIntentListener implements IntentListener {
+        @Override
+        public void event(IntentEvent event) {
+            PointToPointIntent intent = (PointToPointIntent) event.subject();
+            Key intentKey = intent.key();
+
+            // Ignore intent events that are not relevant.
+            if (!isRelevant(event)) {
+                return;
             }
-        } catch (Exception e) {
-            log.error("Exception: " + e);
+
+            NetworkId networkId = decodeNetworkIdFromKey(intentKey);
+            ConnectPoint src = intent.ingressPoint();
+            ConnectPoint dst = intent.egressPoint();
+
+            switch (event.type()) {
+                case INSTALLED:
+                    providerService.tunnelUp(networkId, src, dst, TunnelId.valueOf(intentKey.toString()));
+                    break;
+                case WITHDRAWN:
+                    intentService.purge(intent);
+                    // Fall through and notify the provider service that the tunnel is down
+                    // for both WITHDRAWN and FAILED intent event types.
+                case FAILED:
+                    providerService.tunnelDown(networkId, src, dst, TunnelId.valueOf(intentKey.toString()));
+                    break;
+                case INSTALL_REQ:
+                case CORRUPT:
+                case PURGED:
+                    break; // Not sure what do with these events, ignore for now.
+                default:
+                    break;
+            }
+        }
+
+        @Override
+        public boolean isRelevant(IntentEvent event) {
+            PointToPointIntent intent = (PointToPointIntent) event.subject();
+
+            // Only events that are for this appId are relevent.
+            if (intent.appId().equals(appId)) {
+                return true;
+            }
+            return false;
         }
     }
 }

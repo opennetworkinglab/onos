@@ -44,7 +44,7 @@ public class DefaultPath extends DefaultLink implements Path {
      */
     public DefaultPath(ProviderId providerId, List<Link> links, double cost,
                        Annotations... annotations) {
-        super(providerId, source(links), destination(links), Type.INDIRECT, annotations);
+        super(providerId, source(links), destination(links), Type.INDIRECT, State.ACTIVE, annotations);
         this.links = ImmutableList.copyOf(links);
         this.cost = cost;
     }

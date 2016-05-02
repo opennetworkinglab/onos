@@ -15,6 +15,7 @@
  */
 package org.onosproject.incubator.net.virtual;
 
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.provider.ProviderService;
 
@@ -30,8 +31,9 @@ public interface VirtualNetworkProviderService extends ProviderService<VirtualNe
      * @param networkId network identifier
      * @param src       source connection point
      * @param dst       destination connection point
+     * @param tunnelId  tunnel identifier
      */
-    void tunnelUp(NetworkId networkId, ConnectPoint src, ConnectPoint dst);
+    void tunnelUp(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId);
 
     /**
      * This method is used to notify the VirtualNetwork service that a tunnel is now
@@ -40,7 +42,8 @@ public interface VirtualNetworkProviderService extends ProviderService<VirtualNe
      * @param networkId network identifier
      * @param src       source connection point
      * @param dst       destination connection point
+     * @param tunnelId  tunnel identifier
      */
-    void tunnelDown(NetworkId networkId, ConnectPoint src, ConnectPoint dst);
+    void tunnelDown(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId);
 
 }

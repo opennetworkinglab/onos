@@ -42,7 +42,7 @@ public class DefaultEdgeLink extends DefaultLink implements EdgeLink {
                            HostLocation hostLocation, boolean isIngress,
                            Annotations... annotations) {
         super(providerId, isIngress ? hostPoint : hostLocation,
-              isIngress ? hostLocation : hostPoint, Type.EDGE, annotations);
+              isIngress ? hostLocation : hostPoint, Type.EDGE, State.ACTIVE, annotations);
         checkArgument(hostPoint.elementId() instanceof HostId,
                       "Host point does not refer to a host ID");
         this.hostId = (HostId) hostPoint.elementId();

@@ -44,6 +44,7 @@ import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.store.AbstractStore;
@@ -295,6 +296,7 @@ public class DistributedVirtualNetworkStore
      * @return true if the network identifier exists, false otherwise.
      */
     private boolean networkExists(NetworkId networkId) {
+        checkNotNull(networkId, "The network identifier cannot be null.");
         return (networkIdVirtualNetworkMap.containsKey(networkId));
     }
 
@@ -339,7 +341,8 @@ public class DistributedVirtualNetworkStore
     }
 
     @Override
-    public VirtualLink addLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId realizedBy) {
+    public VirtualLink addLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst,
+                               Link.State state, TunnelId realizedBy) {
         checkState(networkExists(networkId), "The network has not been added.");
         Set<VirtualLink> virtualLinkSet = networkIdVirtualLinkSetMap.get(networkId);
         if (virtualLinkSet == null) {
@@ -352,6 +355,7 @@ public class DistributedVirtualNetworkStore
                 .networkId(networkId)
                 .src(src)
                 .dst(dst)
+                .state(state)
                 .tunnelId(realizedBy)
                 .build();
 
@@ -361,7 +365,7 @@ public class DistributedVirtualNetworkStore
     }
 
     @Override
-    public void updateLink(VirtualLink virtualLink, TunnelId tunnelId) {
+    public void updateLink(VirtualLink virtualLink, TunnelId tunnelId, Link.State state) {
         checkState(networkExists(virtualLink.networkId()), "The network has not been added.");
         Set<VirtualLink> virtualLinkSet = networkIdVirtualLinkSetMap.get(virtualLink.networkId());
         if (virtualLinkSet == null) {
@@ -374,6 +378,7 @@ public class DistributedVirtualNetworkStore
                 .src(virtualLink.src())
                 .dst(virtualLink.dst())
                 .tunnelId(tunnelId)
+                .state(state)
                 .build();
 
         virtualLinkSet.add(newVirtualLink);
@@ -471,16 +476,8 @@ public class DistributedVirtualNetworkStore
         return ImmutableSet.copyOf(virtualLinkSet);
     }
 
-    /**
-     * Returns the virtual link matching the network identifier, source connect point,
-     * and destination connect point.
-     *
-     * @param networkId network identifier
-     * @param src       source connect point
-     * @param dst       destination connect point
-     * @return virtual link
-     */
-    private VirtualLink getLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
+    @Override
+    public VirtualLink getLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
         Set<VirtualLink> virtualLinkSet = networkIdVirtualLinkSetMap.get(networkId);
         if (virtualLinkSet == null) {
             return null;
@@ -502,6 +499,10 @@ public class DistributedVirtualNetworkStore
         Set<VirtualPort> virtualPortSet = networkIdVirtualPortSetMap.get(networkId);
         if (virtualPortSet == null) {
             virtualPortSet = new HashSet<>();
+        }
+
+        if (deviceId == null) {
+            return ImmutableSet.copyOf(virtualPortSet);
         }
 
         Set<VirtualPort> portSet = new HashSet<>();
