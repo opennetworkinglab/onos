@@ -37,6 +37,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.TributarySlot;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.resource.Resources;
@@ -136,6 +137,7 @@ public class AllocationsCommand extends AbstractShellCommand {
                 .add(VlanId.class)
                 .add(MplsLabel.class)
                 .add(Bandwidth.class)
+                .add(TributarySlot.class)
                 .build();
 
         DiscreteResourceId resourceId = Resources.discrete(did, num).id();
