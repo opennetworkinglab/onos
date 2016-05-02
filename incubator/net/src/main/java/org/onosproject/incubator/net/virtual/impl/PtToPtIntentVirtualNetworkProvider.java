@@ -102,9 +102,9 @@ public class PtToPtIntentVirtualNetworkProvider extends AbstractProvider impleme
 
     @Override
     public TunnelId createTunnel(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
-        checkNotNull(NETWORK_ID_NULL, networkId);
-        checkNotNull(CONNECT_POINT_NULL, src);
-        checkNotNull(CONNECT_POINT_NULL, dst);
+        checkNotNull(networkId, NETWORK_ID_NULL);
+        checkNotNull(src, CONNECT_POINT_NULL);
+        checkNotNull(dst, CONNECT_POINT_NULL);
         String key = String.format(KEY_FORMAT, networkId.toString(), src.toString(), dst.toString());
         Key intentKey = Key.of(key, appId);
 
