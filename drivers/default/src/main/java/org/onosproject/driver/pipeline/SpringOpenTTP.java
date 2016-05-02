@@ -1093,7 +1093,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
      * case, we refer to this as a dummy group.
      *
      */
-    private class SpringOpenGroup implements NextGroup {
+    protected class SpringOpenGroup implements NextGroup {
         private final boolean dummy;
         private final GroupKey key;
         private final TrafficTreatment treatment;

@@ -42,7 +42,6 @@ import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.Group;
-import org.onosproject.net.group.GroupKey;
 
 /**
  * Spring-open driver implementation for Dell hardware switches.
@@ -137,9 +136,8 @@ public class SpringOpenTTPDell extends SpringOpenTTP {
             NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
 
             if (next != null) {
-                GroupKey key = appKryo.deserialize(next.data());
-
-                Group group = groupService.getGroup(deviceId, key);
+                SpringOpenGroup soGroup = appKryo.deserialize(next.data());
+                Group group = groupService.getGroup(deviceId, soGroup.key());
 
                 if (group == null) {
                     log.warn("The group left!");
