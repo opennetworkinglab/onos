@@ -105,7 +105,7 @@ if [ "$SECURE" = "true" ]; then
 
     mkdir -p $KARAF_ROOT/system/org/apache/felix/org.apache.felix.configadmin/1.6.0
     cp $FELIX_CFG_ADMIN $KARAF_ROOT/system/org/apache/felix/org.apache.felix.configadmin/1.6.0
-    perl -pi.old -e "s|org.apache.felix.configadmin/1.8.0|org.apache.felix.configadmin/1.6.0|g" \
+    perl -pi.old -e "s|^(.*org.apache.felix.configadmin.*)|mvn\\\\:org.apache.felix/org.apache.felix.configadmin/1.6.0 = 10|" \
         $KARAF_ROOT/etc/startup.properties
 
     # SM-ONOS step 2: stage ONOS Felix framework security (will get downloaded on demand); end
