@@ -39,7 +39,7 @@ public final class RoleInfoCodec extends JsonCodec<RoleInfo> {
     private static final String MASTER = "master";
     private static final String BACKUPS = "backups";
 
-    private static final String MISSING_MEMBER_MESSAGE = " member is required in MastershipTerm";
+    private static final String MISSING_MEMBER_MESSAGE = " member is required in RoleInfo";
 
     @Override
     public ObjectNode encode(RoleInfo roleInfo, CodecContext context) {

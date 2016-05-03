@@ -49,7 +49,8 @@ public class CoreWebApplication extends AbstractWebApplication {
                 DeviceKeyWebResource.class,
                 RegionsWebResource.class,
                 TenantWebResource.class,
-                VirtualNetworkWebResource.class
+                VirtualNetworkWebResource.class,
+                MastershipWebResource.class
         );
     }
 }
