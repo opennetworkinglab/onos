@@ -24,9 +24,12 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
 import org.onlab.packet.ChassisId;
+import org.onlab.util.HexString;
 import org.onlab.util.Timer;
 import org.onosproject.bmv2.api.runtime.Bmv2ControlPlaneServer;
 import org.onosproject.bmv2.api.runtime.Bmv2Device;
+import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
+import org.onosproject.bmv2.ctl.Bmv2ThriftClient;
 import org.onosproject.common.net.AbstractDeviceProvider;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -37,7 +40,6 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -57,13 +59,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.bmv2.api.runtime.Bmv2Device.*;
 import static org.onosproject.bmv2.ctl.Bmv2ThriftClient.forceDisconnectOf;
 import static org.onosproject.bmv2.ctl.Bmv2ThriftClient.ping;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.bmv2.api.runtime.Bmv2Device.SCHEME;
-import static org.onosproject.bmv2.api.runtime.Bmv2Device.MANUFACTURER;
-import static org.onosproject.bmv2.api.runtime.Bmv2Device.HW_VERSION;
 
 /**
  * BMv2 device provider.
@@ -176,25 +176,42 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
         activeDevices.compute(did, (k, v) -> {
             if (!deviceService.isAvailable(did)) {
                 // Device not available in the core, connect it now.
-                SparseAnnotations annotations = DefaultAnnotations.builder()
-                        .set(AnnotationKeys.PROTOCOL, SCHEME)
-                        .build();
+                DefaultAnnotations.Builder annotationsBuilder = DefaultAnnotations.builder()
+                        .set(AnnotationKeys.PROTOCOL, SCHEME);
+                dumpJsonConfigToAnnotations(did, annotationsBuilder);
                 DeviceDescription descr = new DefaultDeviceDescription(
                         did.uri(), Device.Type.SWITCH, MANUFACTURER, HW_VERSION,
-                        UNKNOWN, UNKNOWN, new ChassisId(), annotations);
+                        UNKNOWN, UNKNOWN, new ChassisId(), annotationsBuilder.build());
                 providerService.deviceConnected(did, descr);
             }
-            // Discover ports.
-            Device device = deviceService.getDevice(did);
-            if (device.is(PortDiscovery.class)) {
-                PortDiscovery portConfig = device.as(PortDiscovery.class);
-                List<PortDescription> portDescriptions = portConfig.getPorts();
-                providerService.updatePorts(did, portDescriptions);
-            } else {
-                LOG.warn("No PortDiscovery behavior for device {}", did);
-            }
+            updatePorts(did);
             return true;
         });
+    }
+
+    private void dumpJsonConfigToAnnotations(DeviceId did, DefaultAnnotations.Builder builder) {
+        // TODO: store json config string somewhere else, possibly in a Bmv2Controller (see ONOS-4419)
+        try {
+            String md5 = Bmv2ThriftClient.of(did).getJsonConfigMd5();
+            // Convert to hex string for readability.
+            md5 = HexString.toHexString(md5.getBytes());
+            String jsonString = Bmv2ThriftClient.of(did).dumpJsonConfig();
+            builder.set("bmv2JsonConfigMd5", md5);
+            builder.set("bmv2JsonConfigValue", jsonString);
+        } catch (Bmv2RuntimeException e) {
+            LOG.warn("Unable to dump device JSON config from device {}: {}", did, e);
+        }
+    }
+
+    private void updatePorts(DeviceId did) {
+        Device device = deviceService.getDevice(did);
+        if (device.is(PortDiscovery.class)) {
+            PortDiscovery portConfig = device.as(PortDiscovery.class);
+            List<PortDescription> portDescriptions = portConfig.getPorts();
+            providerService.updatePorts(did, portDescriptions);
+        } else {
+            LOG.warn("No PortDiscovery behavior for device {}", did);
+        }
     }
 
     private void disconnectDevice(DeviceId did) {
@@ -204,7 +221,7 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
         activeDevices.compute(did, (k, v) -> {
             if (deviceService.isAvailable(did)) {
                 providerService.deviceDisconnected(did);
-                // Make sure to close the transport session with device.
+                // Make sure to close the transport session with device. Do we really need this?
                 forceDisconnectOf(did);
             }
             return null;
