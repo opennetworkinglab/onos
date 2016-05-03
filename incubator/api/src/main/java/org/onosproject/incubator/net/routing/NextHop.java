@@ -77,8 +77,8 @@ public class NextHop {
 
         NextHop that = (NextHop) other;
 
-        return Objects.equals(this.ip, that.mac) &&
-                Objects.equals(this.ip, that.mac);
+        return Objects.equals(this.ip, that.ip) &&
+                Objects.equals(this.mac, that.mac);
     }
 
     @Override
