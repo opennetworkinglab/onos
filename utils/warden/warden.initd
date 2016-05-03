@@ -1,0 +1,82 @@
+#! /bin/bash
+# -----------------------------------------------------------------------------
+# init.d script to run ON.Lab test cell warden
+## -----------------------------------------------------------------------------
+### BEGIN INIT INFO
+# Provides:          warden
+# Required-Start:    $network $remote_fs $syslog
+# Required-Stop:     $network $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: ON.Lab Test Cell Warden
+# Description:       Warden is a broker for sharing test cell infrastructure among ON.Lab developers.
+### END INIT INFO
+
+WARDEN_USER="sdn"
+WARDEN_HOME="/home/$WARDEN_USER/warden"
+WARDEN_VERSION="1.6.0-SNAPSHOT"
+DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
+
+cd $WARDEN_HOME
+
+start () {
+    # Start warden if it's not already running
+    if ! status >/dev/null; then
+        echo "Starting Warden"
+        startwarden
+    else
+        echo "Warden is already running"
+    fi
+}
+
+startwarden () {
+    start-stop-daemon --signal INT --start --chuid $WARDEN_USER \
+        --pidfile $WARDEN_HOME/warden.pid --make-pidfile \
+        --background --chdir $WARDEN_HOME \
+        --exec /usr/bin/java -- -jar onlab-warden-$WARDEN_VERSION.jar \
+            &>$WARDEN_HOME/std.log
+}
+
+stop () {
+    if status >/dev/null; then
+        echo "Stopping Warden"
+        start-stop-daemon --signal INT --stop --chuid $WARDEN_USER \
+            --pidfile $WARDEN_HOME/warden.pid
+        rm warden.pid
+    else
+        echo "Warden is not running"
+    fi
+}
+
+restart () {
+    stop
+    start
+}
+
+status () {
+    start-stop-daemon --signal INT --status --chuid $WARDEN_USER \
+        --pidfile $WARDEN_HOME/warden.pid
+}
+
+case $1 in
+    start)
+        start
+    ;;
+    stop | force-stop)
+        stop
+        ;;
+    restart)
+        shift
+        restart "$@"
+        ;;
+    status)
+        status && echo "Warden is running" || echo "Warden is stopped"
+        exit $?
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

@@ -71,7 +71,7 @@ class Warden {
      */
     Warden() {
         random.setSeed(System.currentTimeMillis());
-        timer.schedule(new Reposessor(), MINUTE / 4, MINUTE);
+        timer.schedule(new Reposessor(), MINUTE / 4, MINUTE / 2);
     }
 
     /**
