@@ -16,7 +16,6 @@
 package org.onosproject.store.intent.impl;
 
 import com.google.common.collect.ImmutableList;
-
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -31,19 +30,19 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentPartitionService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.IntentPartitionService;
 import org.onosproject.store.AbstractStore;
-import org.onosproject.store.service.MultiValuedTimestamp;
-import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -91,7 +90,6 @@ public class GossipIntentStore
     public void activate() {
         KryoNamespace.Builder intentSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
-                .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
                 .register(IntentData.class)
                 .register(MultiValuedTimestamp.class);
 
@@ -99,16 +97,17 @@ public class GossipIntentStore
                 .withName("intent-current")
                 .withSerializer(intentSerializer)
                 .withTimestampProvider((key, intentData) ->
-                                            new MultiValuedTimestamp<>(intentData.version(),
-                                                                       sequenceNumber.getAndIncrement()))
+                                               new MultiValuedTimestamp<>(intentData.version(),
+                                                                          sequenceNumber.getAndIncrement()))
                 .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData))
                 .build();
 
         pendingMap = storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
                 .withName("intent-pending")
                 .withSerializer(intentSerializer)
-                .withTimestampProvider((key, intentData) -> new MultiValuedTimestamp<>(intentData.version(),
-                                                                                       System.nanoTime()))
+                .withTimestampProvider((key, intentData) -> intentData == null ?
+                        new MultiValuedTimestamp<>(new WallClockTimestamp(), System.nanoTime()) :
+                        new MultiValuedTimestamp<>(intentData.version(), System.nanoTime()))
                 .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData))
                 .build();
 
@@ -183,8 +182,15 @@ public class GossipIntentStore
                 currentMap.put(newData.key(), new IntentData(newData));
             }
 
-            // if current.put succeeded
-            pendingMap.remove(newData.key(), newData);
+            // Remove the intent data from the pending map if the newData is more
+            // recent or equal to the existing entry.
+            pendingMap.compute(newData.key(), (key, existingValue) -> {
+                if (existingValue == null || !existingValue.version().isNewerThan(newData.version())) {
+                    return null;
+                } else {
+                    return existingValue;
+                }
+            });
         }
     }
 
@@ -252,10 +258,10 @@ public class GossipIntentStore
 
         if (data.version() == null) {
             pendingMap.put(data.key(), new IntentData(data.intent(), data.state(),
-                    new WallClockTimestamp(), clusterService.getLocalNode().id()));
+                                                      new WallClockTimestamp(), clusterService.getLocalNode().id()));
         } else {
             pendingMap.put(data.key(), new IntentData(data.intent(), data.state(),
-                    data.version(), clusterService.getLocalNode().id()));
+                                                      data.version(), clusterService.getLocalNode().id()));
         }
     }
 
@@ -282,7 +288,7 @@ public class GossipIntentStore
         final WallClockTimestamp time = new WallClockTimestamp(now - olderThan);
         return pendingMap.values().stream()
                 .filter(data -> data.version().isOlderThan(time) &&
-                                (!localOnly || isMaster(data.key())))
+                        (!localOnly || isMaster(data.key())))
                 .collect(Collectors.toList());
     }
 
