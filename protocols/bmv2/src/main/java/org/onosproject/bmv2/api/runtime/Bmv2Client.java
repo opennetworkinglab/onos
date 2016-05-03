@@ -97,4 +97,20 @@ public interface Bmv2Client {
      * @throws Bmv2RuntimeException if any error occurs
      */
     void resetState() throws Bmv2RuntimeException;
+
+    /**
+     * Returns the JSON-formatted model configuration currently used to process packets.
+     *
+     * @return a JSON-formatted string value
+     * @throws Bmv2RuntimeException if any error occurs
+     */
+    String dumpJsonConfig() throws Bmv2RuntimeException;
+
+    /**
+     * Returns the md5 hash of the JSON-formatted model configuration currently used to process packets.
+     *
+     * @return a string value
+     * @throws Bmv2RuntimeException if any error occurs
+     */
+    String getJsonConfigMd5() throws Bmv2RuntimeException;
 }

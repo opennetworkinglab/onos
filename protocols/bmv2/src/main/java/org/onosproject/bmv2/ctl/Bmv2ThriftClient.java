@@ -420,6 +420,36 @@ public final class Bmv2ThriftClient implements Bmv2Client {
         }
     }
 
+    @Override
+    public String dumpJsonConfig() throws Bmv2RuntimeException {
+
+        LOG.debug("Dumping device config... > deviceId={}", deviceId);
+
+        try {
+            String config = standardClient.bm_get_config();
+            LOG.debug("Device config dumped! > deviceId={}, configLength={}", deviceId, config.length());
+            return config;
+        } catch (TException e) {
+            LOG.debug("Exception while dumping device config: {} > deviceId={}", e, deviceId);
+            throw new Bmv2RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public String getJsonConfigMd5() throws Bmv2RuntimeException {
+
+        LOG.debug("Getting device config md5... > deviceId={}", deviceId);
+
+        try {
+            String md5 = standardClient.bm_get_config_md5();
+            LOG.debug("Device config md5 received! > deviceId={}, configMd5={}", deviceId, md5);
+            return md5;
+        } catch (TException e) {
+            LOG.debug("Exception while getting device config md5: {} > deviceId={}", e, deviceId);
+            throw new Bmv2RuntimeException(e.getMessage(), e);
+        }
+    }
+
     /**
      * Transport/client cache loader.
      */
