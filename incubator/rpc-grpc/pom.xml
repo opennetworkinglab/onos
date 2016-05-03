@@ -32,8 +32,8 @@
         <onos.app.name>org.onosproject.incubator.rpc.grpc</onos.app.name>
         <onos.app.requires>org.onosproject.incubator.rpc</onos.app.requires>
         <!-- Note: update feature.xml when updating -->
-        <grpc.version>0.13.2</grpc.version>
-        <grpc.netty.version>4.1.0.CR3</grpc.netty.version>
+        <grpc.version>0.14.0</grpc.version>
+        <grpc.netty.version>4.1.0.CR7</grpc.netty.version>
     </properties>
 
     <dependencies>
