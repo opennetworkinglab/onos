@@ -16,10 +16,15 @@
 
 package org.onosproject.drivers.bmv2;
 
+import com.eclipsesource.json.Json;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
+import org.onosproject.bmv2.api.model.Bmv2Model;
 import org.onosproject.bmv2.api.runtime.Bmv2Client;
 import org.onosproject.bmv2.api.runtime.Bmv2MatchKey;
 import org.onosproject.bmv2.api.runtime.Bmv2RuntimeException;
@@ -28,7 +33,10 @@ import org.onosproject.bmv2.ctl.Bmv2ThriftClient;
 import org.onosproject.drivers.bmv2.translators.Bmv2DefaultFlowRuleTranslator;
 import org.onosproject.drivers.bmv2.translators.Bmv2FlowRuleTranslator;
 import org.onosproject.drivers.bmv2.translators.Bmv2FlowRuleTranslatorException;
+import org.onosproject.drivers.bmv2.translators.Bmv2SimpleTranslatorConfig;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
@@ -41,6 +49,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Flow rule programmable device behaviour implementation for BMv2.
@@ -50,10 +60,21 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
 
     private static final Logger LOG =
             LoggerFactory.getLogger(Bmv2FlowRuleProgrammable.class);
-    // There's no Bmv2 client method to poll flow entries from the device device. gitNeed a local store.
+
+    // There's no Bmv2 client method to poll flow entries from the device device. Need a local store.
     private static final ConcurrentMap<Triple<DeviceId, String, Bmv2MatchKey>, Pair<Long, FlowEntry>>
             ENTRIES_MAP = Maps.newConcurrentMap();
-    private static final Bmv2FlowRuleTranslator TRANSLATOR = new Bmv2DefaultFlowRuleTranslator();
+
+    // Cache model objects instead of parsing the JSON each time.
+    private static final LoadingCache<String, Bmv2Model> MODEL_CACHE = CacheBuilder.newBuilder()
+            .expireAfterAccess(60, TimeUnit.SECONDS)
+            .build(new CacheLoader<String, Bmv2Model>() {
+                @Override
+                public Bmv2Model load(String jsonString) throws Exception {
+                    // Expensive call.
+                    return Bmv2Model.parse(Json.parse(jsonString).asObject());
+                }
+            });
 
     @Override
     public Collection<FlowEntry> getFlowEntries() {
@@ -96,6 +117,8 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
             return Collections.emptyList();
         }
 
+        Bmv2FlowRuleTranslator translator = getTranslator(deviceId);
+
         List<FlowRule> processedFlowRules = Lists.newArrayList();
 
         for (FlowRule rule : rules) {
@@ -103,7 +126,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
             Bmv2TableEntry bmv2Entry;
 
             try {
-                bmv2Entry = TRANSLATOR.translate(rule);
+                bmv2Entry = translator.translate(rule);
             } catch (Bmv2FlowRuleTranslatorException e) {
                 LOG.error("Unable to translate flow rule: {}", e.getMessage());
                 continue;
@@ -157,6 +180,46 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
         }
 
         return processedFlowRules;
+    }
+
+    /**
+     * Gets the appropriate flow rule translator based on the device running configuration.
+     *
+     * @param deviceId a device id
+     * @return a flow rule translator
+     */
+    private Bmv2FlowRuleTranslator getTranslator(DeviceId deviceId) {
+
+        DeviceService deviceService = handler().get(DeviceService.class);
+        if (deviceService == null) {
+            LOG.error("Unable to get device service");
+            return null;
+        }
+
+        Device device = deviceService.getDevice(deviceId);
+        if (device == null) {
+            LOG.error("Unable to get device {}", deviceId);
+            return null;
+        }
+
+        String jsonString = device.annotations().value("bmv2JsonConfigValue");
+        if (jsonString == null) {
+            LOG.error("Unable to read bmv2 JSON config from device {}", deviceId);
+            return null;
+        }
+
+        Bmv2Model model;
+        try {
+            model = MODEL_CACHE.get(jsonString);
+        } catch (ExecutionException e) {
+            LOG.error("Unable to parse bmv2 JSON config for device {}:", deviceId, e.getCause());
+            return null;
+        }
+
+        // TODO: get translator config dynamically.
+        // Now it's hardcoded, selection should be based on the device bmv2 model.
+        Bmv2FlowRuleTranslator.TranslatorConfig translatorConfig = new Bmv2SimpleTranslatorConfig(model);
+        return new Bmv2DefaultFlowRuleTranslator(translatorConfig);
     }
 
     private enum Operation {

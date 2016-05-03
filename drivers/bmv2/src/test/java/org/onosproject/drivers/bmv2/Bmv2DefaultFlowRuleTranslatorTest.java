@@ -16,7 +16,10 @@
 
 package org.onosproject.drivers.bmv2;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
 import com.google.common.testing.EqualsTester;
+import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.MacAddress;
 import org.onosproject.bmv2.api.model.Bmv2Model;
@@ -26,6 +29,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.drivers.bmv2.translators.Bmv2DefaultFlowRuleTranslator;
 import org.onosproject.drivers.bmv2.translators.Bmv2FlowRuleTranslator;
+import org.onosproject.drivers.bmv2.translators.Bmv2SimpleTranslatorConfig;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -35,6 +39,10 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Random;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -46,9 +54,30 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public class Bmv2DefaultFlowRuleTranslatorTest {
 
+    private static final String JSON_CONFIG_PATH = "/simple.json";
     private Random random = new Random();
-    private Bmv2FlowRuleTranslator translator = new Bmv2DefaultFlowRuleTranslator();
-    private Bmv2Model model = translator.config().model();
+    private Bmv2Model model;
+    private Bmv2FlowRuleTranslator.TranslatorConfig config;
+    private Bmv2FlowRuleTranslator translator;
+
+    @Before
+    public void setUp() throws Exception {
+        InputStream inputStream = Bmv2SimpleTranslatorConfig.class
+                .getResourceAsStream(JSON_CONFIG_PATH);
+        InputStreamReader reader = new InputStreamReader(inputStream);
+        BufferedReader bufReader = new BufferedReader(reader);
+        JsonObject json = null;
+        try {
+            json = Json.parse(bufReader).asObject();
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to parse JSON file: " + e.getMessage());
+        }
+
+        this.model = Bmv2Model.parse(json);
+        this.config = new Bmv2SimpleTranslatorConfig(model);
+        this.translator = new Bmv2DefaultFlowRuleTranslator(config);
+
+    }
 
 
     @Test

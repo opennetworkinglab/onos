@@ -16,10 +16,8 @@
 
 package org.onosproject.drivers.bmv2.translators;
 
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonObject;
 import com.google.common.annotations.Beta;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableMap;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.bmv2.api.model.Bmv2Model;
 import org.onosproject.bmv2.api.runtime.Bmv2Action;
@@ -29,10 +27,6 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Map;
 
 /**
@@ -40,24 +34,21 @@ import java.util.Map;
  * simple.p4 model.
  */
 @Beta
-public class Bmv2SimpleTranslatorConfig implements Bmv2FlowRuleTranslator.TranslatorConfig {
+public class Bmv2SimpleTranslatorConfig extends Bmv2DefaultTranslatorConfig {
 
-    private static final String JSON_CONFIG_PATH = "/simple.json";
-    private final Map<String, Criterion.Type> fieldMap = Maps.newHashMap();
-    private final Bmv2Model model;
+    // Lazily populate field map.
+    private static final Map<String, Criterion.Type> FIELD_MAP = ImmutableMap.of(
+            "standard_metadata.ingress_port", Criterion.Type.IN_PORT,
+            "ethernet.dstAddr", Criterion.Type.ETH_DST,
+            "ethernet.srcAddr", Criterion.Type.ETH_SRC,
+            "ethernet.etherType", Criterion.Type.ETH_TYPE);
 
     /**
      * Creates a new simple pipeline translator configuration.
      */
-    public Bmv2SimpleTranslatorConfig() {
-
-        this.model = getModel();
-
-        // populate fieldMap
-        fieldMap.put("standard_metadata.ingress_port", Criterion.Type.IN_PORT);
-        fieldMap.put("ethernet.dstAddr", Criterion.Type.ETH_DST);
-        fieldMap.put("ethernet.srcAddr", Criterion.Type.ETH_SRC);
-        fieldMap.put("ethernet.etherType", Criterion.Type.ETH_TYPE);
+    public Bmv2SimpleTranslatorConfig(Bmv2Model model) {
+        // Populate fieldMap.
+        super(model, FIELD_MAP);
     }
 
     private static Bmv2Action buildDropAction() {
@@ -94,41 +85,16 @@ public class Bmv2SimpleTranslatorConfig implements Bmv2FlowRuleTranslator.Transl
         return actionBuilder.build();
     }
 
-    private static Bmv2Model getModel() {
-        InputStream inputStream = Bmv2SimpleTranslatorConfig.class
-                .getResourceAsStream(JSON_CONFIG_PATH);
-        InputStreamReader reader = new InputStreamReader(inputStream);
-        BufferedReader bufReader = new BufferedReader(reader);
-        JsonObject json = null;
-        try {
-            json = Json.parse(bufReader).asObject();
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to parse JSON file: " + e.getMessage());
-        }
-
-        return Bmv2Model.parse(json);
-    }
-
-    @Override
-    public Bmv2Model model() {
-        return this.model;
-    }
-
-    @Override
-    public Map<String, Criterion.Type> fieldToCriterionTypeMap() {
-        return fieldMap;
-    }
-
     @Override
     public Bmv2Action buildAction(TrafficTreatment treatment)
             throws Bmv2FlowRuleTranslatorException {
 
 
         if (treatment.allInstructions().size() == 0) {
-            // no instructions means drop
+            // No instructions means drop.
             return buildDropAction();
         } else if (treatment.allInstructions().size() > 1) {
-            // otherwise, we understand treatments with only 1 instruction
+            // Otherwise, we understand treatments with only 1 instruction.
             throw new Bmv2FlowRuleTranslatorException(
                     "Treatment not supported, more than 1 instructions found: "
                             + treatment.toString());
