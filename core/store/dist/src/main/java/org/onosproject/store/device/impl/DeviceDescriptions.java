@@ -18,6 +18,7 @@ package org.onosproject.store.device.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.DefaultAnnotations.union;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 
 import java.util.Collections;
@@ -140,11 +141,20 @@ class DeviceDescriptions {
                     }
                     break;
                 case ODUCLT:
-                    OduCltPortDescription ocDesc = (OduCltPortDescription) (newDesc.value());
-                    newOne = new Timestamped<>(
-                            new OduCltPortDescription(
-                                    ocDesc, ocDesc.signalType(), merged),
-                            newDesc.timestamp());
+                    if (newDesc.value() instanceof OduCltPortDescription) {
+                        // remove if-block after deprecation is complete
+                        OduCltPortDescription ocDesc = (OduCltPortDescription) (newDesc.value());
+                        newOne = new Timestamped<>(
+                                oduCltPortDescription(ocDesc,
+                                                      ocDesc.signalType(),
+                                                      merged),
+                                newDesc.timestamp());
+                    } else {
+                        // same as default case
+                        newOne = new Timestamped<>(
+                                new DefaultPortDescription(newDesc.value(), merged),
+                                newDesc.timestamp());
+                    }
                     break;
                 case OTU:
                     OtuPortDescription otuDesc = (OtuPortDescription) (newDesc.value());

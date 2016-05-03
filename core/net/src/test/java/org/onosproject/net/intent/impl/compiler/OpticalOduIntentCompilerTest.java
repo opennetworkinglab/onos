@@ -23,6 +23,7 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.net.AbstractProjectableModel;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.CltSignalType;
@@ -30,10 +31,10 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
+import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.OduSignalUtils;
@@ -56,11 +57,15 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.OpticalOduIntent;
+import org.onosproject.net.optical.OduCltPort;
+import org.onosproject.net.optical.impl.DefaultOduCltPort;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.driver.DriverServiceAdapter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -116,9 +121,11 @@ public class OpticalOduIntentCompilerTest {
 
     // OduClt ports with signalType=1GBE
     private static final OduCltPort D1P1 =
-            new OduCltPort(device1, PortNumber.portNumber(1), true, CltSignalType.CLT_1GBE, annotations1);
+            new DefaultOduCltPort(new DefaultPort(device1, PortNumber.portNumber(1), true, annotations1),
+                                  CltSignalType.CLT_1GBE);
     private static final OduCltPort D3P2 =
-            new OduCltPort(device3, PortNumber.portNumber(2), true, CltSignalType.CLT_1GBE, annotations1);
+            new DefaultOduCltPort(new DefaultPort(device3, PortNumber.portNumber(2), true, annotations1),
+                                  CltSignalType.CLT_1GBE);
 
     // Otu ports with signalType=ODU2
     private static final OtuPort D1P2 =
@@ -132,9 +139,11 @@ public class OpticalOduIntentCompilerTest {
 
     // OduClt ports with signalType=10GBE
     private static final OduCltPort D1P3 =
-            new OduCltPort(device1, PortNumber.portNumber(3), true, CltSignalType.CLT_10GBE, annotations1);
+            new DefaultOduCltPort(new DefaultPort(device1, PortNumber.portNumber(3), true, annotations1),
+                                  CltSignalType.CLT_10GBE);
     private static final OduCltPort D3P3 =
-            new OduCltPort(device3, PortNumber.portNumber(3), true, CltSignalType.CLT_10GBE, annotations1);
+            new DefaultOduCltPort(new DefaultPort(device3, PortNumber.portNumber(3), true, annotations1),
+                                  CltSignalType.CLT_10GBE);
 
     // OduCltPort ConnectPoints
     private final ConnectPoint d1p1 = new ConnectPoint(device1.id(), D1P1.number());
@@ -204,11 +213,11 @@ public class OpticalOduIntentCompilerTest {
             if (deviceId.equals(deviceId(DEV1))) {
                 switch (portNumber.toString()) {
                     case "1":
-                        return (Port) D1P1;
+                        return D1P1;
                     case "2":
-                        return (Port) D1P2;
+                        return D1P2;
                     case "3":
-                        return (Port) D1P3;
+                        return D1P3;
                     default:
                         return null;
                 }
@@ -216,9 +225,9 @@ public class OpticalOduIntentCompilerTest {
             if (deviceId.equals(deviceId(DEV2))) {
                 switch (portNumber.toString()) {
                     case "1":
-                        return (Port) D2P1;
+                        return D2P1;
                     case "2":
-                        return (Port) D2P2;
+                        return D2P2;
                     default:
                         return null;
                 }
@@ -226,11 +235,11 @@ public class OpticalOduIntentCompilerTest {
             if (deviceId.equals(deviceId(DEV3))) {
                 switch (portNumber.toString()) {
                     case "1":
-                        return (Port) D3P1;
+                        return D3P1;
                     case "2":
-                        return (Port) D3P2;
+                        return D3P2;
                     case "3":
-                        return (Port) D3P3;
+                        return D3P3;
                     default:
                         return null;
                 }
@@ -239,8 +248,15 @@ public class OpticalOduIntentCompilerTest {
         }
     }
 
+    private static class MockDriverService extends DriverServiceAdapter
+            implements DriverService {
+        // TODO override to return appropriate driver,
+        // with DefaultOpticalDevice support, etc.
+    }
+
     @Before
     public void setUp() {
+        AbstractProjectableModel.setDriverService(null, new MockDriverService());
         sut =  new OpticalOduIntentCompiler();
         coreService = createMock(CoreService.class);
         expect(coreService.registerApplication("org.onosproject.net.intent"))

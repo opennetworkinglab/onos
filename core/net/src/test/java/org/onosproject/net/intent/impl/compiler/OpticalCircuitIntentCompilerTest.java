@@ -35,7 +35,6 @@ import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.OduSignalUtils;
@@ -58,7 +57,9 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.optical.impl.DefaultOchPort;
+import org.onosproject.net.optical.impl.DefaultOduCltPort;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.intent.IntentSetMultimap;
 import org.onosproject.net.behaviour.TributarySlotQuery;
@@ -124,9 +125,11 @@ public class OpticalCircuitIntentCompilerTest {
 
     // OduClt ports with signalType=1GBE
     private static final OduCltPort D1P1 =
-            new OduCltPort(device1, PortNumber.portNumber(1), true, CltSignalType.CLT_1GBE, annotations1);
+            new DefaultOduCltPort(new DefaultPort(device1, PortNumber.portNumber(1), true, annotations1),
+                                  CltSignalType.CLT_1GBE);
     private static final OduCltPort D2P1 =
-            new OduCltPort(device2, PortNumber.portNumber(1), true, CltSignalType.CLT_1GBE, annotations1);
+            new DefaultOduCltPort(new DefaultPort(device2, PortNumber.portNumber(1), true, annotations1),
+                                  CltSignalType.CLT_1GBE);
 
     // Och ports with signalType=ODU2
     private static final OchPort D1P2 =
@@ -140,9 +143,11 @@ public class OpticalCircuitIntentCompilerTest {
 
     // OduClt ports with signalType=10GBE
     private static final OduCltPort D1P3 =
-            new OduCltPort(device1, PortNumber.portNumber(3), true, CltSignalType.CLT_10GBE, annotations1);
+            new DefaultOduCltPort(new DefaultPort(device1, PortNumber.portNumber(3), true, annotations1),
+                                  CltSignalType.CLT_10GBE);
     private static final OduCltPort D2P3 =
-            new OduCltPort(device2, PortNumber.portNumber(3), true, CltSignalType.CLT_10GBE, annotations1);
+            new DefaultOduCltPort(new DefaultPort(device2, PortNumber.portNumber(3), true, annotations1),
+                                  CltSignalType.CLT_10GBE);
 
 
     private OpticalCircuitIntent intent;

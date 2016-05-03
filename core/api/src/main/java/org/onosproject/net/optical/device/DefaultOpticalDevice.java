@@ -28,9 +28,11 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractBehaviour;
 import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.optical.OpticalDevice;
 import org.onosproject.net.optical.device.port.OchPortMapper;
+import org.onosproject.net.optical.device.port.OduCltPortMapper;
 import org.onosproject.net.optical.device.port.OmsPortMapper;
 import org.onosproject.net.optical.device.port.PortMapper;
 import org.onosproject.net.optical.utils.ForwardingDevice;
@@ -63,6 +65,7 @@ public class DefaultOpticalDevice
         = ImmutableMap.<Class<? extends Port>, PortMapper<? extends Port>>builder()
             .put(OchPort.class, new OchPortMapper())
             .put(OmsPort.class, new OmsPortMapper())
+            .put(OduCltPort.class, new OduCltPortMapper())
             // TODO add other optical port type here
             .build();
 

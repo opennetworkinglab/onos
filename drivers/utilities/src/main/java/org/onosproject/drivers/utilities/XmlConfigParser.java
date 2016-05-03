@@ -32,12 +32,12 @@ import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.ControllerInfo;
-import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -119,7 +119,7 @@ public final class XmlConfigParser {
         return ochPortDescription(portNumber, enabled, signalType, isTunable, lambda, annotations);
     }
 
-    private static OduCltPortDescription parseT100OduPort(HierarchicalConfiguration cfg, long count) {
+    private static PortDescription parseT100OduPort(HierarchicalConfiguration cfg, long count) {
         PortNumber portNumber = PortNumber.portNumber(count);
         HierarchicalConfiguration ethernetConfig = cfg.configurationAt("ethernet");
         boolean enabled = ethernetConfig.getString("administrative-state").equals("up");
@@ -129,7 +129,7 @@ public final class XmlConfigParser {
         DefaultAnnotations annotations = DefaultAnnotations.builder().
                 set(AnnotationKeys.PORT_NAME, cfg.getString("name")).
                 build();
-        return new OduCltPortDescription(portNumber, enabled, signalType, annotations);
+        return oduCltPortDescription(portNumber, enabled, signalType, annotations);
     }
 
     protected static String parseSwitchId(HierarchicalConfiguration cfg) {

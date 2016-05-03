@@ -16,6 +16,7 @@
 package org.onosproject.net.device.impl;
 
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -25,7 +26,6 @@ import org.onosproject.net.config.basics.OpticalPortConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.OtuPort;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
@@ -36,6 +36,7 @@ import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.optical.OpticalDevice;
 import org.slf4j.Logger;
@@ -121,8 +122,12 @@ public final class OpticalPortOperator implements ConfigOperator {
                 }
                 return descr;
             case ODUCLT:
-                OduCltPortDescription odu = (OduCltPortDescription) descr;
-                return new OduCltPortDescription(port, odu.isEnabled(), odu.signalType(), sa);
+                if (descr instanceof OduCltPortDescription) {
+                    // TODO This block can go away once deprecation is complete.
+                    OduCltPortDescription odu = (OduCltPortDescription) descr;
+                    return oduCltPortDescription(port, odu.isEnabled(), odu.signalType(), sa);
+                }
+                return descr;
             case PACKET:
             case FIBER:
             case COPPER:
@@ -223,8 +228,19 @@ public final class OpticalPortOperator implements ConfigOperator {
                 return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
 
             case ODUCLT:
-                OduCltPort odu = (OduCltPort) port;
-                return new OduCltPortDescription(ptn, isup, odu.signalType(), an);
+                if (port instanceof org.onosproject.net.OduCltPort) {
+                    // remove if-block once deprecation is complete
+                    org.onosproject.net.OduCltPort odu = (org.onosproject.net.OduCltPort) port;
+                    return oduCltPortDescription(ptn, isup, odu.signalType(), an);
+                }
+                if (port.element().is(OpticalDevice.class)) {
+                    OpticalDevice optDevice = port.element().as(OpticalDevice.class);
+                    if (optDevice.portIs(port, OduCltPort.class)) {
+                        OduCltPort odu = (OduCltPort) port;
+                        return oduCltPortDescription(ptn, isup, odu.signalType(), an);
+                    }
+                }
+                return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
             case OTU:
                 OtuPort otu = (OtuPort) port;
                 return new OtuPortDescription(ptn, isup, otu.signalType(), an);

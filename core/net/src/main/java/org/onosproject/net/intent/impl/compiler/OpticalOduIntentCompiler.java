@@ -27,7 +27,6 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.OduSignalUtils;
@@ -50,6 +49,7 @@ import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalOduIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
+import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.ResourceAllocation;
@@ -77,6 +77,7 @@ import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.net.LinkKey.linkKey;
+import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 /**
  * An intent compiler for {@link org.onosproject.net.intent.OpticalOduIntent}.
@@ -105,6 +106,7 @@ public class OpticalOduIntentCompiler implements IntentCompiler<OpticalOduIntent
 
     @Activate
     public void activate() {
+        deviceService = opticalView(deviceService);
         appId = coreService.registerApplication("org.onosproject.net.intent");
         intentManager.registerCompiler(OpticalOduIntent.class, this);
     }

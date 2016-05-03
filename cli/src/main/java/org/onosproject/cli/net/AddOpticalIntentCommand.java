@@ -21,7 +21,6 @@ import org.apache.karaf.shell.commands.Option;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Port;
@@ -32,6 +31,7 @@ import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalOduIntent;
 import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OduCltPort;
 
 import java.util.List;
 

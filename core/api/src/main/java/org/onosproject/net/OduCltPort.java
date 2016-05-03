@@ -24,8 +24,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Implementation of ODU client port (Optical channel Data Unit).
  * Also referred to as a T-port or wide band port.
  * See ITU G.709 "Interfaces for the Optical Transport Network (OTN)"
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
-
+@Deprecated
 public class OduCltPort extends DefaultPort {
 
     private final CltSignalType signalType;

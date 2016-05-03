@@ -22,6 +22,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.Port.Type.COPPER;
 import static org.onosproject.net.Port.Type.FIBER;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 import static org.onosproject.openflow.controller.Dpid.dpid;
 import static org.onosproject.openflow.controller.Dpid.uri;
@@ -67,7 +68,6 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
-import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
@@ -523,7 +523,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             }
 
             SparseAnnotations annotations = buildOduCltAnnotation(port);
-            return new OduCltPortDescription(portNo, enabled, sigType, annotations);
+            return oduCltPortDescription(portNo, enabled, sigType, annotations);
         }
 
         private SparseAnnotations buildOduCltAnnotation(OFPortDesc port) {

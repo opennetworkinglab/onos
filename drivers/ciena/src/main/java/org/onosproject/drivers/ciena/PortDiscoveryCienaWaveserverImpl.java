@@ -27,7 +27,6 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PortDiscovery;
-import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
@@ -37,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 
 /**
  * Discovers the ports from a Ciena WaveServer Rest device.
@@ -114,7 +114,7 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
                         sub.getString(SPEED).replace(GBPS, EMPTY_STRING)
                                 .replace(" ", EMPTY_STRING))) == speed100GbpsinMbps ?
                         CltSignalType.CLT_100GBE : null;
-                ports.add(new OduCltPortDescription(PortNumber.portNumber(sub.getLong(PORT_ID)),
+                ports.add(oduCltPortDescription(PortNumber.portNumber(sub.getLong(PORT_ID)),
                                                     sub.getString(ADMIN_STATE).equals(ENABLED),
                                                     cltType, annotations.build()));
             }

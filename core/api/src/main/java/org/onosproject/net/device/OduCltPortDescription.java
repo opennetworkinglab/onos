@@ -23,7 +23,10 @@ import org.onosproject.net.SparseAnnotations;
 
 /**
  * Default implementation of immutable ODU client port description.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
+@Deprecated
 public class OduCltPortDescription extends DefaultPortDescription {
 
     private final CltSignalType signalType;

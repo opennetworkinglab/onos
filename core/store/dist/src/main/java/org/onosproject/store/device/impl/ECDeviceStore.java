@@ -549,8 +549,14 @@ public class ECDeviceStore
             return new DefaultPort(device, number, isEnabled, description.type(),
                                    description.portSpeed(), annotations);
         case ODUCLT:
-            OduCltPortDescription oduDesc = (OduCltPortDescription) description;
-            return new OduCltPort(device, number, isEnabled, oduDesc.signalType(), annotations);
+            if (description instanceof OduCltPortDescription) {
+                // remove if-block once deprecation is complete
+                OduCltPortDescription oduDesc = (OduCltPortDescription) description;
+                return new OduCltPort(device, number, isEnabled, oduDesc.signalType(), annotations);
+            }
+            // same as default
+            return new DefaultPort(device, number, isEnabled, description.type(),
+                                   description.portSpeed(), annotations);
         default:
             return new DefaultPort(device, number, isEnabled, description.type(),
                     description.portSpeed(), annotations);

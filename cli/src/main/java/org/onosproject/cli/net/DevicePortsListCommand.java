@@ -25,12 +25,12 @@ import org.apache.karaf.shell.commands.Option;
 import org.onlab.util.Frequency;
 import org.onosproject.utils.Comparators;
 import org.onosproject.net.Device;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OtuPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.optical.OpticalDevice;
 import java.util.ArrayList;
@@ -187,9 +187,22 @@ public class DevicePortsListCommand extends DevicesListCommand {
                     print(FMT, portName, portIsEnabled, portType, port.portSpeed(), annotations);
                     break;
                 case ODUCLT:
-                     print(FMT_ODUCLT_OTU, portName, portIsEnabled, portType,
-                            ((OduCltPort) port).signalType().toString(), annotations);
-                     break;
+                    if (port instanceof org.onosproject.net.OduCltPort) {
+                        // old OduCltPort model
+                        org.onosproject.net.OduCltPort oPort = (org.onosproject.net.OduCltPort) port;
+                        print("WARN: OduCltPort in old model");
+                        print(FMT_ODUCLT_OTU, portName, portIsEnabled, portType,
+                              oPort.signalType().toString(), annotations);
+                        break;
+                    }
+                    if (port instanceof OduCltPort) {
+                        print(FMT_ODUCLT_OTU, portName, portIsEnabled, portType,
+                              ((OduCltPort) port).signalType().toString(), annotations);
+                        break;
+                    }
+                    print("WARN: OduCltPort but not on OpticalDevice or ill-formed");
+                    print(FMT, portName, portIsEnabled, portType, port.portSpeed(), annotations);
+                    break;
                 case OMS:
                     if (port instanceof org.onosproject.net.OmsPort) {
                         org.onosproject.net.OmsPort oms = (org.onosproject.net.OmsPort) port;

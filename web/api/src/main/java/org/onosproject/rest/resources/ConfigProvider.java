@@ -39,7 +39,6 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.OchSignal;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -53,7 +52,6 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostProvider;
@@ -64,6 +62,7 @@ import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
@@ -87,6 +86,7 @@ import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
@@ -265,7 +265,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
             case ODUCLT:
                 annotations = annotations(node.get("annotations"));
                 OduCltPort oduCltPort = (OduCltPort) deviceService.getPort(deviceId, port);
-                return new OduCltPortDescription(port, node.path("enabled").asBoolean(true),
+                return oduCltPortDescription(port, node.path("enabled").asBoolean(true),
                         oduCltPort.signalType(), annotations);
             case OCH:
                 annotations = annotations(node.get("annotations"));
@@ -487,7 +487,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
                         ochp.number(), ochp.isEnabled(), ochp.signalType(), ochp.isTunable(), ochp.lambda());
             case ODUCLT:
                 OduCltPort odup = (OduCltPort) p;
-                return new OduCltPortDescription(
+                return oduCltPortDescription(
                         odup.number(), odup.isEnabled(), odup.signalType());
             default:
                 return new DefaultPortDescription(p.number(), p.isEnabled(), p.type(), p.portSpeed());
