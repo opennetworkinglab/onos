@@ -1116,9 +1116,16 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             }
         }
 
-        @SuppressWarnings("unused")
         public GroupKey key() {
             return key;
+        }
+
+        public boolean dummy() {
+            return dummy;
+        }
+
+        public TrafficTreatment treatment() {
+            return treatment;
         }
 
         @Override

@@ -137,15 +137,26 @@ public class SpringOpenTTPDell extends SpringOpenTTP {
 
             if (next != null) {
                 SpringOpenGroup soGroup = appKryo.deserialize(next.data());
-                Group group = groupService.getGroup(deviceId, soGroup.key());
+                if (soGroup.dummy()) {
+                    log.debug("Adding {} flow-actions for fwd. obj. {} -> next:{} "
+                            + "in dev: {}", soGroup.treatment().allInstructions().size(),
+                            fwd.id(), fwd.nextId(), deviceId);
+                    for (Instruction ins : soGroup.treatment().allInstructions()) {
+                        treatmentBuilder.add(ins);
+                    }
+                } else {
+                    Group group = groupService.getGroup(deviceId, soGroup.key());
 
-                if (group == null) {
-                    log.warn("The group left!");
-                    fail(fwd, ObjectiveError.GROUPMISSING);
-                    return Collections.emptySet();
+                    if (group == null) {
+                        log.warn("The group left!");
+                        fail(fwd, ObjectiveError.GROUPMISSING);
+                        return Collections.emptySet();
+                    }
+                    treatmentBuilder.group(group.id());
+                    log.debug("Adding OUTGROUP action to group:{} for fwd. obj. {} "
+                            + "for next:{} in dev: {}", group.id(), fwd.id(),
+                            fwd.nextId(), deviceId);
                 }
-                treatmentBuilder.group(group.id());
-                log.debug("Adding OUTGROUP action");
             } else {
                 log.warn("processSpecific: No associated next objective object");
                 fail(fwd, ObjectiveError.GROUPMISSING);
