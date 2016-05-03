@@ -38,7 +38,6 @@ import org.onosproject.net.Link;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.OduSignalUtils;
-import org.onosproject.net.OtuPort;
 import org.onosproject.net.OtuSignalType;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
@@ -58,7 +57,9 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.OpticalOduIntent;
 import org.onosproject.net.optical.OduCltPort;
+import org.onosproject.net.optical.OtuPort;
 import org.onosproject.net.optical.impl.DefaultOduCltPort;
+import org.onosproject.net.optical.impl.DefaultOtuPort;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
@@ -129,13 +130,17 @@ public class OpticalOduIntentCompilerTest {
 
     // Otu ports with signalType=ODU2
     private static final OtuPort D1P2 =
-            new OtuPort(device1, PortNumber.portNumber(2), true, OtuSignalType.OTU2, annotations2);
+            new DefaultOtuPort(new DefaultPort(device1, PortNumber.portNumber(2), true, annotations2),
+                               OtuSignalType.OTU2);
     private static final OtuPort D2P1 =
-            new OtuPort(device2, PortNumber.portNumber(1), true, OtuSignalType.OTU2, annotations2);
+            new DefaultOtuPort(new DefaultPort(device2, PortNumber.portNumber(1), true, annotations2),
+                               OtuSignalType.OTU2);
     private static final OtuPort D2P2 =
-            new OtuPort(device2, PortNumber.portNumber(2), true, OtuSignalType.OTU2, annotations2);
+            new DefaultOtuPort(new DefaultPort(device2, PortNumber.portNumber(2), true, annotations2),
+                               OtuSignalType.OTU2);
     private static final OtuPort D3P1 =
-            new OtuPort(device3, PortNumber.portNumber(1), true, OtuSignalType.OTU2, annotations2);
+            new DefaultOtuPort(new DefaultPort(device3, PortNumber.portNumber(1), true, annotations2),
+                               OtuSignalType.OTU2);
 
     // OduClt ports with signalType=10GBE
     private static final OduCltPort D1P3 =

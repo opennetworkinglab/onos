@@ -24,7 +24,10 @@ import org.onosproject.net.SparseAnnotations;
 
 /**
  * Default implementation of immutable OTU port description.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
+@Deprecated
 public class OtuPortDescription extends DefaultPortDescription {
 
     private final OtuSignalType signalType;

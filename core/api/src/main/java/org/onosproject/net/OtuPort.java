@@ -21,8 +21,10 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Implementation of OTU port (Optical channel Transport Unit).
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
-
+@Deprecated
 public class OtuPort extends DefaultPort {
 
     private final OtuSignalType signalType;

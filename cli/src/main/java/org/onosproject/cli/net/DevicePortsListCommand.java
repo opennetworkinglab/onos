@@ -25,7 +25,6 @@ import org.apache.karaf.shell.commands.Option;
 import org.onlab.util.Frequency;
 import org.onosproject.utils.Comparators;
 import org.onosproject.net.Device;
-import org.onosproject.net.OtuPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
@@ -33,6 +32,8 @@ import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.optical.OpticalDevice;
+import org.onosproject.net.optical.OtuPort;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -227,8 +228,20 @@ public class DevicePortsListCommand extends DevicesListCommand {
                     print(FMT, portName, portIsEnabled, portType, port.portSpeed(), annotations);
                     break;
                 case OTU:
-                    print(FMT_ODUCLT_OTU, portName, portIsEnabled, portType,
-                                ((OtuPort) port).signalType().toString(), annotations);
+                    if (port instanceof org.onosproject.net.OtuPort) {
+                        org.onosproject.net.OtuPort otu = (org.onosproject.net.OtuPort) port;
+                        print("WARN: OtuPort in old model");
+                        print(FMT_ODUCLT_OTU, portName, portIsEnabled, portType,
+                              otu.signalType().toString(), annotations);
+                        break;
+                    }
+                    if (port instanceof OtuPort) {
+                        print(FMT_ODUCLT_OTU, portName, portIsEnabled, portType,
+                              ((OtuPort) port).signalType().toString(), annotations);
+                        break;
+                    }
+                    print("WARN: OtuPort but not on OpticalDevice or ill-formed");
+                    print(FMT, portName, portIsEnabled, portType, port.portSpeed(), annotations);
                     break;
                 default:
                      print(FMT, portName, portIsEnabled, portType, port.portSpeed(), annotations);

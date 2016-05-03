@@ -18,6 +18,7 @@ package org.onosproject.net.device.impl;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
+import static org.onosproject.net.optical.device.OtuPortHelper.otuPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -25,7 +26,6 @@ import org.onosproject.net.config.ConfigOperator;
 import org.onosproject.net.config.basics.OpticalPortConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.OtuPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
@@ -39,6 +39,7 @@ import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.optical.OpticalDevice;
+import org.onosproject.net.optical.OtuPort;
 import org.slf4j.Logger;
 
 /**
@@ -135,8 +136,12 @@ public final class OpticalPortOperator implements ConfigOperator {
                 return new DefaultPortDescription(port, descr.isEnabled(), descr.type(),
                         descr.portSpeed(), sa);
             case OTU:
-                OtuPortDescription otu = (OtuPortDescription) descr;
-                return new OtuPortDescription(port, otu.isEnabled(), otu.signalType(), sa);
+                if (descr instanceof OtuPortDescription) {
+                    // TODO This block can go away once deprecation is complete.
+                    OtuPortDescription otu = (OtuPortDescription) descr;
+                    return otuPortDescription(port, otu.isEnabled(), otu.signalType(), sa);
+                }
+                return descr;
             default:
                 log.warn("Unsupported optical port type {} - can't update", descr.type());
                 return descr;
@@ -242,8 +247,19 @@ public final class OpticalPortOperator implements ConfigOperator {
                 }
                 return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
             case OTU:
-                OtuPort otu = (OtuPort) port;
-                return new OtuPortDescription(ptn, isup, otu.signalType(), an);
+                if (port instanceof org.onosproject.net.OtuPort) {
+                    // remove if-block once deprecation is complete
+                    org.onosproject.net.OtuPort otu = (org.onosproject.net.OtuPort) port;
+                    return otuPortDescription(ptn, isup, otu.signalType(), an);
+                }
+                if (port.element().is(OpticalDevice.class)) {
+                    OpticalDevice optDevice = port.element().as(OpticalDevice.class);
+                    if (optDevice.portIs(port, OtuPort.class)) {
+                        OtuPort otu = (OtuPort) port;
+                        return otuPortDescription(ptn, isup, otu.signalType(), an);
+                    }
+                }
+                return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
             default:
                 return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
         }

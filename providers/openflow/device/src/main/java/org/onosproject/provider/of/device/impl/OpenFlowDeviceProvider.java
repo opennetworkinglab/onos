@@ -24,6 +24,7 @@ import static org.onosproject.net.Port.Type.FIBER;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
+import static org.onosproject.net.optical.device.OtuPortHelper.otuPortDescription;
 import static org.onosproject.openflow.controller.Dpid.dpid;
 import static org.onosproject.openflow.controller.Dpid.uri;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -68,7 +69,6 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
-import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.AbstractProvider;
@@ -624,7 +624,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 OtuSignalType otuSignalType =
                         ((sigType == OFPortOpticalTransportSignalType.OTU2) ? OtuSignalType.OTU2 :
                             OtuSignalType.OTU4);
-                portDes = new OtuPortDescription(portNo, enabled, otuSignalType, annotations);
+                portDes = otuPortDescription(portNo, enabled, otuSignalType, annotations);
                 break;
             default:
                 break;

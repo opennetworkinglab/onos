@@ -31,9 +31,11 @@ import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.optical.OpticalDevice;
+import org.onosproject.net.optical.OtuPort;
 import org.onosproject.net.optical.device.port.OchPortMapper;
 import org.onosproject.net.optical.device.port.OduCltPortMapper;
 import org.onosproject.net.optical.device.port.OmsPortMapper;
+import org.onosproject.net.optical.device.port.OtuPortMapper;
 import org.onosproject.net.optical.device.port.PortMapper;
 import org.onosproject.net.optical.utils.ForwardingDevice;
 import org.slf4j.Logger;
@@ -66,6 +68,7 @@ public class DefaultOpticalDevice
             .put(OchPort.class, new OchPortMapper())
             .put(OmsPort.class, new OmsPortMapper())
             .put(OduCltPort.class, new OduCltPortMapper())
+            .put(OtuPort.class, new OtuPortMapper())
             // TODO add other optical port type here
             .build();
 

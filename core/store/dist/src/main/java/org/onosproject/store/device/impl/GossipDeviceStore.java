@@ -1116,8 +1116,14 @@ public class GossipDeviceStore
                 return new DefaultPort(device, number, isEnabled, description.type(),
                                        description.portSpeed(), annotations);
             case OTU:
-                OtuPortDescription otuDesc = (OtuPortDescription) description;
-                return new OtuPort(device, number, isEnabled, otuDesc.signalType(), annotations);
+                if (description instanceof OtuPortDescription) {
+                    // remove if-block once deprecation is complete
+                    OtuPortDescription otuDesc = (OtuPortDescription) description;
+                    return new OtuPort(device, number, isEnabled, otuDesc.signalType(), annotations);
+                }
+                // same as default
+                return new DefaultPort(device, number, isEnabled, description.type(),
+                                       description.portSpeed(), annotations);
             default:
                 return new DefaultPort(device, number, isEnabled, description.type(),
                         description.portSpeed(), annotations);

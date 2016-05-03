@@ -17,7 +17,6 @@ package org.onosproject.driver.query;
 
 import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.OduSignalType;
-import org.onosproject.net.OtuPort;
 import org.onosproject.net.OtuSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -25,6 +24,7 @@ import org.onosproject.net.TributarySlot;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OtuPort;
 import org.onosproject.net.behaviour.TributarySlotQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +70,7 @@ public class DefaultTributarySlotQuery extends AbstractHandlerBehaviour implemen
             case OCH:
                 return queryOchTributarySlots(p);
             case OTU:
-                return queryOtuTributarySlots((OtuPort) p);
+                return queryOtuTributarySlots(p);
             default:
                 return Collections.emptySet();
         }
@@ -102,8 +102,21 @@ public class DefaultTributarySlotQuery extends AbstractHandlerBehaviour implemen
         }
     }
 
-    private Set<TributarySlot> queryOtuTributarySlots(OtuPort otuPort) {
-        OtuSignalType signalType = otuPort.signalType();
+    private Set<TributarySlot> queryOtuTributarySlots(Port otuPort) {
+        OtuSignalType signalType = null;
+        if (otuPort instanceof org.onosproject.net.OtuPort) {
+            // remove once deprecation of old OtuPort model is done
+            signalType = ((org.onosproject.net.OtuPort) otuPort).signalType();
+        }
+        if (otuPort instanceof OtuPort) {
+            signalType = ((OtuPort) otuPort).signalType();
+        }
+
+        if (signalType == null) {
+            log.warn("{} was not an OtuPort", otuPort);
+            return Collections.emptySet();
+        }
+
         switch (signalType) {
             case OTU2:
                 return ENTIRE_ODU2_TRIBUTARY_SLOTS;
