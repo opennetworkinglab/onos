@@ -103,10 +103,41 @@ function setPrimaryInstance {
     echo $OCI
 }
 
+# ON.Lab shared test cell warden address
+export CELL_WARDEN="10.254.1.19"
+
 # Applies the settings in the specified cell file or lists current cell definition
 # if no cell file is given.
 function cell {
-    if [ -n "$1" ]; then
+    cell=$1
+    case "$cell" in
+    "borrow")
+        aux="/tmp/cell-$$"
+        curl -sS -X POST "http://$CELL_WARDEN:4321/?user=$(id -un)&duration=${2:-60}" \
+            -d "$(cat ~/.ssh/id_rsa.pub)" > $aux
+        . $aux
+        rm -f $aux
+        export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
+        setPrimaryInstance 1 >/dev/null
+        cell
+        ;;
+    "return")
+        curl -sS -X DELETE "http://$CELL_WARDEN:4321/?user=$(id -un)"
+        ;;
+
+    "status")
+        curl -sS "http://$CELL_WARDEN:4321/"
+        ;;
+
+    "")
+        env | egrep "ONOS_CELL"
+        env | egrep "OCI"
+        env | egrep "OC[0-9]+" | sort
+        env | egrep "OC[NT]"
+        env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES' | sort
+        ;;
+
+    *)
         [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && \
             echo "No such cell: $1" >&2 && return 1
         unset ONOS_CELL ONOS_NIC ONOS_IP ONOS_APPS ONOS_BOOT_FEATURES
@@ -121,16 +152,10 @@ function cell {
         export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
         setPrimaryInstance 1 >/dev/null
         cell
-    else
-        env | egrep "ONOS_CELL"
-        env | egrep "OCI"
-        env | egrep "OC[0-9]+" | sort
-        env | egrep "OC[NT]"
-        env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES' | sort
-    fi
+    esac
 }
 
-cell $ONOS_CELL > /dev/null
+[ -n "$ONOS_CELL" ] && cell $ONOS_CELL > /dev/null
 
 # Lists available cells
 function cells {
