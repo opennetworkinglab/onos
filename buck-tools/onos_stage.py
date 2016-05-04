@@ -5,6 +5,8 @@ import re
 import os
 from zipfile import ZipFile
 from tarfile import TarFile, TarInfo
+import tarfile
+import time
 from cStringIO import StringIO
 
 VERSION = '1.6.0' #FIXME version, and maybe git commit hash
@@ -12,11 +14,14 @@ BASE = 'onos-%s/' % VERSION
 
 
 written_files = set()
+now = time.time()
 
 def addFile(tar, dest, file, file_size):
     if dest not in written_files:
         info = TarInfo(dest)
         info.size = file_size
+        info.mtime = now
+        info.mode = 0777
         tar.addfile(info, fileobj=file)
         written_files.add(dest)
 
@@ -25,6 +30,8 @@ def addString(tar, dest, string):
         print dest, string
         info = TarInfo(dest)
         info.size = len(string)
+        info.mtime = now
+        info.mode = 0777
         file = StringIO(string)
         tar.addfile(info, fileobj=file)
         file.close()
@@ -32,13 +39,14 @@ def addString(tar, dest, string):
 
 def stageOnos(output, files=[]):
     # Note this is not a compressed zip
-    with TarFile(output, 'a') as output:
-        written_files = set(output.getnames())
+    with tarfile.open(output, 'w:gz') as output:
         for file in files:
             if '.zip' in file:
                 with ZipFile(file, 'r') as zip_part:
                     for f in zip_part.infolist():
-                        dest = BASE + 'apache-karaf-3.0.5/system/' + f.filename
+                        dest = f.filename
+                        if BASE not in dest:
+                            dest = BASE + 'apache-karaf-3.0.5/system/' + f.filename
                         addFile(output, dest, zip_part.open(f), f.file_size)
             elif '.oar' in file:
                 with ZipFile(file, 'r') as oar:

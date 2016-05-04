@@ -100,6 +100,6 @@ sources += staged_repos + staged_apps
 genrule(
   name = 'onos-package',
   out = 'onos.tar.gz',
-  bash = 'cp $(location :onos-karaf) $OUT && $(exe //buck-tools:onos-stage) $OUT ' + ' '.join(sources),
+  bash = '$(exe //buck-tools:onos-stage) $OUT $(location :onos-karaf) ' + ' '.join(sources),
   visibility = [ 'PUBLIC' ],
 )

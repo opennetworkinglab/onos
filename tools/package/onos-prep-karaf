@@ -56,7 +56,7 @@ cp -r bin $PREFIX
 cp -r init $PREFIX
 cp -r etc $PREFIX/$KARAF_DIR/etc/
 
-tar czf $OUT $PREFIX
+zip -q -0 -r $OUT $PREFIX
 
 #FIXME
 # Stage all builtin ONOS apps for factory install
