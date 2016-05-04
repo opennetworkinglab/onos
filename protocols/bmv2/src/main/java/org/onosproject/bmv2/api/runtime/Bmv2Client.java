@@ -19,6 +19,7 @@ package org.onosproject.bmv2.api.runtime;
 import org.onlab.util.ImmutableByteSequence;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * RPC client to control a BMv2 device.
@@ -81,6 +82,24 @@ public interface Bmv2Client {
      * @throws Bmv2RuntimeException if any error occurs
      */
     String dumpTable(String tableName) throws Bmv2RuntimeException;
+
+    /**
+     * Returns a list of ids for the entries installed in the given table.
+     *
+     * @param tableName string value of table name
+     * @return a list of entry ids
+     * @throws Bmv2RuntimeException if any error occurs
+     */
+    List<Long> getInstalledEntryIds(String tableName) throws Bmv2RuntimeException;
+
+    /**
+     * Removes all entries installed in the given table.
+     *
+     * @param tableName string value of table name
+     * @return the number of entries removed
+     * @throws Bmv2RuntimeException if any error occurs
+     */
+    int cleanupTable(String tableName) throws Bmv2RuntimeException;
 
     /**
      * Requests the device to transmit a given byte sequence over the given port.

@@ -90,6 +90,9 @@ public final class Bmv2ThriftClient implements Bmv2Client {
             .expireAfterAccess(CLIENT_CACHE_TIMEOUT, TimeUnit.SECONDS)
             .removalListener(new ClientRemovalListener())
             .build(new ClientLoader());
+
+    private static final Bmv2TableDumpParser TABLE_DUMP_PARSER = new Bmv2TableDumpParser();
+
     private final Standard.Iface standardClient;
     private final SimpleSwitch.Iface simpleSwitchClient;
     private final TTransport transport;
@@ -388,6 +391,44 @@ public final class Bmv2ThriftClient implements Bmv2Client {
                       e, deviceId, tableName);
             throw new Bmv2RuntimeException(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public List<Long> getInstalledEntryIds(String tableName) throws Bmv2RuntimeException {
+
+        LOG.debug("Getting entry ids... > deviceId={}, tableName={}", deviceId, tableName);
+
+        try {
+            List<Long> entryIds = TABLE_DUMP_PARSER.getEntryIds(dumpTable(tableName));
+            LOG.debug("Entry ids retrieved! > deviceId={}, tableName={}, entryIdsCount={}",
+                      deviceId, tableName, entryIds.size());
+            return entryIds;
+        } catch (Bmv2TableDumpParser.Bmv2TableDumpParserException e) {
+            LOG.debug("Exception while retrieving entry ids: {} > deviceId={}, tableName={}",
+                      e, deviceId, tableName);
+            throw new Bmv2RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public int cleanupTable(String tableName) throws Bmv2RuntimeException {
+
+        LOG.debug("Starting table cleanup... > deviceId={}, tableName={}", deviceId, tableName);
+
+        List<Long> entryIds = getInstalledEntryIds(tableName);
+
+        int count = 0;
+        for (Long entryId : entryIds) {
+            try {
+                standardClient.bm_mt_delete_entry(CONTEXT_ID, tableName, entryId);
+                count++;
+            } catch (TException e) {
+                LOG.warn("Exception while deleting entry: {} > deviceId={}, tableName={}, entryId={}",
+                         e.toString(), deviceId, tableName, entryId);
+            }
+        }
+
+        return count;
     }
 
     @Override
