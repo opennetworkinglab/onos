@@ -1,7 +1,6 @@
 BUNDLES = [
-    '//providers/ovsdb/device:onos-ovsdb-provider-device',
-    '//providers/ovsdb/host:onos-ovsdb-provider-host',
-    '//providers/ovsdb/tunnel:onos-ovsdb-provider-tunnel',
+    '//providers/ovsdb/device:onos-providers-ovsdb-device',
+    '//providers/ovsdb/tunnel:onos-providers-ovsdb-tunnel',
 ]
 
 APPS = [
@@ -11,9 +10,8 @@ APPS = [
 
 onos_app (
   title = 'OVSDB Southbound Meta App',
-  description = 'ONOS fault management application',
+  description = 'ONOS OVSDB southbound meta application',
   category = 'Provider',
-  url = 'https://wiki.onosproject.org/display/ONOS/Fault+Management',
   included_bundles = BUNDLES,
   required_apps = APPS,
 )

@@ -1,31 +1,17 @@
-SRC = 'src/main/java/org/onosproject/**/'
-TEST = 'src/test/java/org/onosproject/**/'
-
-CURRENT_NAME = 'onos-ovsdb-provider-host'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/ovsdb/api:onos-protocols-ovsdb-api',
     '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc',
 ]
 
-TEST_DEPS = [
-    '//lib:TEST',
-]
-
-osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    visibility = ['PUBLIC'],
 )
 
-java_test(
-    name = 'tests',
-    srcs = glob([TEST + '/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS +
-           [CURRENT_TARGET],
-    source_under_test = [CURRENT_TARGET],
+onos_app (
+    app_name = 'org.onosproject.ovsdbhostprovider',
+    title = 'OVSDB host Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'OVSDB Host provider.',
 )

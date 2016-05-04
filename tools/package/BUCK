@@ -33,6 +33,8 @@ APPS = [
   '//providers/openflow/app:onos-providers-openflow-app-oar',
   '//providers/rest:onos-providers-rest-oar',
   '//providers/isis:onos-providers-isis-oar',
+  '//providers/ovsdb/host:onos-providers-ovsdb-host-oar',
+  '//providers/ovsdb/base:onos-providers-ovsdb-base-oar',
 
   # Apps
   '//apps/dhcp:onos-apps-dhcp-oar',
