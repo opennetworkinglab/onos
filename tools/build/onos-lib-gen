@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd $(buck root 2>/dev/null)
+
+java -jar $(buck build //tools/build/libgen:libgen --show-output 2>/dev/null | tail -1 | cut -d' ' -f2) lib/deps.json lib/BUCK

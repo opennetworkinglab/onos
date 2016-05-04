@@ -100,10 +100,11 @@ staged_apps = ['$(location %s)' % a for a in APPS]
 sources = [ '$(location :onos-features)', ]
 sources += staged_repos + staged_apps
 
+import time
 genrule(
   name = 'onos-package',
   out = 'onos.tar.gz',
-  bash = '$(exe //buck-tools:onos-stage) $OUT $(location :onos-karaf) ' + ' '.join(sources),
+  bash = 'echo %s >/dev/null; $(exe //buck-tools:onos-stage) $OUT $(location :onos-karaf) ' % time.time() + ' '.join(sources),
   visibility = [ 'PUBLIC' ],
 )
 
