@@ -70,7 +70,7 @@ public class WardenServlet extends HttpServlet {
             String sshKey = new String(ByteStreams.toByteArray(req.getInputStream()), "UTF-8");
             String userName = req.getParameter("user");
             String sd = req.getParameter("duration");
-            int duration = isNullOrEmpty(sd) ? 60 : Integer.parseInt(sd);
+            int duration = isNullOrEmpty(sd) ? 0 : Integer.parseInt(sd);
             String cellDefinition = warden.borrowCell(userName, sshKey, duration);
             out.println(cellDefinition);
         } catch (Exception e) {

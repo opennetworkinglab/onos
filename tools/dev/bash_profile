@@ -113,7 +113,7 @@ function cell {
     case "$cell" in
     "borrow")
         aux="/tmp/cell-$$"
-        curl -sS -X POST "http://$CELL_WARDEN:4321/?user=$(id -un)&duration=${2:-60}" \
+        curl -sS -X POST "http://$CELL_WARDEN:4321/?user=$(id -un)&duration=${2:-0}" \
             -d "$(cat ~/.ssh/id_rsa.pub)" > $aux
         . $aux
         rm -f $aux
