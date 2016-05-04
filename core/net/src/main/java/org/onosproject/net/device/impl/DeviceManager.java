@@ -371,7 +371,8 @@ public class DeviceManager
 
             List<PortDescription> descs = ports.stream().map(
               port -> (!(Device.Type.ROADM.equals(device.type()) ||
-                        (Device.Type.OTN.equals(device.type())))) ?
+                        (Device.Type.OTN.equals(device.type())) ||
+                        (Device.Type.FIBER_SWITCH.equals(device.type())))) ?
                   new DefaultPortDescription(port.number(), false,
                           port.type(), port.portSpeed()) :
                       OpticalPortOperator.descriptionOf(port, false)
