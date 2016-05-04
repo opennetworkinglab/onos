@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "title": "deviceIds",
+  "required": [
+    "deviceIds"
+  ],
+  "properties": {
+    "deviceIds": {
+      "type": "array",
+      "xml": {
+        "name": "deviceId",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "example": "of:0000000000000001"
+      }
+    }
+  }
+}

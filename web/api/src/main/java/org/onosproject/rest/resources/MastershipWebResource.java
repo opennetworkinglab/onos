@@ -37,8 +37,6 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import static org.onlab.util.Tools.nullIsNotFound;
 
@@ -48,8 +46,7 @@ import static org.onlab.util.Tools.nullIsNotFound;
 @Path("mastership")
 public final class MastershipWebResource extends AbstractWebResource {
 
-    private static final String NODE = "node";
-    private static final String DEVICES = "devices";
+    private static final String DEVICE_IDS = "deviceIds";
     private static final String DEVICE_ID = "deviceId";
     private static final String NODE_ID = "nodeId";
 
@@ -59,7 +56,6 @@ public final class MastershipWebResource extends AbstractWebResource {
     private static final String NODE_ID_NOT_FOUND = "Node id is not found";
     private static final String ROLE_INFO_NOT_FOUND = "Role info is not found";
     private static final String MASTERSHIP_ROLE_NOT_FOUND = "Mastership role is not found";
-    private static final String RESULT_NOT_FOUND = "Result is not found";
 
     private final MastershipService mastershipService = get(MastershipService.class);
     private final MastershipAdminService mastershipAdminService =
@@ -86,7 +82,7 @@ public final class MastershipWebResource extends AbstractWebResource {
      *
      * @param deviceId device identifier
      * @return the identifier of the master controller for the device
-     * // TODO: add swagger doc
+     * @onos.rsModel NodeId
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -96,7 +92,7 @@ public final class MastershipWebResource extends AbstractWebResource {
                     DeviceId.deviceId(deviceId)), NODE_ID_NOT_FOUND);
 
         ObjectNode root = mapper().createObjectNode();
-        root.put(NODE, id.id());
+        root.put(NODE_ID, id.id());
         return ok(root).build();
     }
 
@@ -123,14 +119,14 @@ public final class MastershipWebResource extends AbstractWebResource {
      *
      * @param nodeId controller identifier
      * @return a set of device identifiers
-     * // TODO: add swagger doc
+     * @onos.rsModel DeviceIds
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{nodeId}/device")
     public Response getDeviceOf(@PathParam("nodeId") String nodeId) {
         ObjectNode root = mapper().createObjectNode();
-        ArrayNode devicesNode = root.putArray(DEVICES);
+        ArrayNode devicesNode = root.putArray(DEVICE_IDS);
 
         Set<DeviceId> devices = mastershipService.getDevicesOf(NodeId.nodeId(nodeId));
         if (devices != null) {
@@ -152,20 +148,10 @@ public final class MastershipWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/request")
     public Response requestRoleFor(@PathParam("deviceId") String deviceId) {
-
-        // TODO: will not use CompletableFuture when MastershipService
-        // provides a non CompletableFuture object as an output
-        CompletableFuture<MastershipRole> result =
-                nullIsNotFound(mastershipService.requestRoleFor(
-                        DeviceId.deviceId(deviceId)), MASTERSHIP_ROLE_NOT_FOUND);
-
-        try {
-            MastershipRole role = result.get();
-            ObjectNode root = codec(MastershipRole.class).encode(role, this);
-            return ok(root).build();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new IllegalArgumentException(e);
-        }
+        MastershipRole role = nullIsNotFound(mastershipService.requestRoleForSync(
+                                DeviceId.deviceId(deviceId)), MASTERSHIP_ROLE_NOT_FOUND);
+        ObjectNode root = codec(MastershipRole.class).encode(role, this);
+        return ok(root).build();
     }
 
     /**
@@ -181,18 +167,8 @@ public final class MastershipWebResource extends AbstractWebResource {
     @Path("{deviceId}/relinquish")
     public Response relinquishMastership(@PathParam("deviceId") String deviceId) {
         DeviceId id = DeviceId.deviceId(deviceId);
-
-        // TODO: will not use CompletableFuture when MastershipService
-        // provides a non CompletableFuture object as an output
-        CompletableFuture<Void> result =
-                nullIsNotFound(mastershipService.relinquishMastership(id), RESULT_NOT_FOUND);
-
-        try {
-            result.get();
-            return Response.created(id.uri()).build();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new IllegalArgumentException(e);
-        }
+        mastershipService.relinquishMastershipSync(id);
+        return Response.created(id.uri()).build();
     }
 
     /**
@@ -222,15 +198,11 @@ public final class MastershipWebResource extends AbstractWebResource {
                 throw new IllegalArgumentException(NODE_ID_INVALID);
             }
 
-            // TODO: will not use CompletableFuture when MastershipAdminService
-            // provides a non CompletableFuture object as an output
-            CompletableFuture<Void> result =
-                    nullIsNotFound(mastershipAdminService.setRole(NodeId.nodeId(nodeIdJson.asText()),
-                    DeviceId.deviceId(deviceIdJson.asText()), role), RESULT_NOT_FOUND);
-            result.get();
+            mastershipAdminService.setRoleSync(NodeId.nodeId(nodeIdJson.asText()),
+                    DeviceId.deviceId(deviceIdJson.asText()), role);
 
             return Response.ok().build();
-        } catch (InterruptedException | ExecutionException | IOException e) {
+        } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }
     }

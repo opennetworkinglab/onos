@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Description;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,8 +38,10 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Set;
@@ -214,9 +217,9 @@ public final class MastershipResourceTest extends ResourceTest {
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
-        assertThat(result.names().get(0), is("node"));
+        assertThat(result.names().get(0), is("nodeId"));
 
-        final String node = result.get("node").asString();
+        final String node = result.get("nodeId").asString();
         assertThat(node, notNullValue());
         assertThat(node, is("node:1"));
     }
@@ -269,9 +272,9 @@ public final class MastershipResourceTest extends ResourceTest {
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
-        assertThat(result.names().get(0), is("devices"));
+        assertThat(result.names().get(0), is("deviceIds"));
 
-        final JsonArray jsonDevices = result.get("devices").asArray();
+        final JsonArray jsonDevices = result.get("deviceIds").asArray();
         assertThat(jsonDevices, notNullValue());
         assertThat(jsonDevices.size(), is(3));
     }
@@ -281,7 +284,21 @@ public final class MastershipResourceTest extends ResourceTest {
      */
     @Test
     public void testRequestRoleFor() {
-        // TODO: will be added when CompletableFuture is removed
+        expect(mockService.requestRoleForSync(anyObject())).andReturn(role1).anyTimes();
+        replay(mockService);
+
+        final WebTarget wt = target();
+        final String response = wt.path("mastership/" + deviceId1.toString() +
+                "/request").request().get(String.class);
+        final JsonObject result = Json.parse(response).asObject();
+        assertThat(result, notNullValue());
+
+        assertThat(result.names(), hasSize(1));
+        assertThat(result.names().get(0), is("role"));
+
+        final String role = result.get("role").asString();
+        assertThat(role, notNullValue());
+        assertThat(role, is("MASTER"));
     }
 
     /**
@@ -289,7 +306,16 @@ public final class MastershipResourceTest extends ResourceTest {
      */
     @Test
     public void testRelinquishMastership() {
-        // TODO: will be added when CompletableFuture is removed
+        mockService.relinquishMastershipSync(anyObject());
+        expectLastCall();
+        replay(mockService);
+
+        final WebTarget wt = target();
+        final Response response = wt.path("mastership/" + deviceId1.toString() +
+                "/relinquish").request().get();
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
+        String location = response.getLocation().toString();
+        assertThat(location, Matchers.startsWith(deviceId1.toString()));
     }
 
     /**
@@ -297,7 +323,16 @@ public final class MastershipResourceTest extends ResourceTest {
      */
     @Test
     public void testSetRole() {
-        // TODO: will be added when CompletableFuture is removed
+        mockAdminService.setRoleSync(anyObject(), anyObject(), anyObject());
+        expectLastCall();
+        replay(mockAdminService);
+
+        final WebTarget wt = target();
+        final InputStream jsonStream = MetersResourceTest.class
+                .getResourceAsStream("put-set-roles.json");
+        final Response response = wt.path("mastership")
+                                    .request().put(Entity.json(jsonStream));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
     }
 
     /**
