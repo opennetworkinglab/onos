@@ -158,7 +158,7 @@ public class Bmv2DefaultFlowRuleTranslatorTest {
         assertThat("Incorrect ethType match param value",
                    ethTypeParam.value().asReadOnlyBuffer().getShort(), is(equalTo(ethType)));
         assertThat("Incorrect priority value",
-                   entry1.priority(), is(equalTo(rule1.priority())));
+                   entry1.priority(), is(equalTo(Integer.MAX_VALUE - rule1.priority())));
         assertThat("Incorrect timeout value",
                    entry1.timeout(), is(equalTo(expectedTimeout)));
 

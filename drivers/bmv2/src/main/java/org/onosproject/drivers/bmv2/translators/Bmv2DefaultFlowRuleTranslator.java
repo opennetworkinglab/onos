@@ -260,9 +260,12 @@ public class Bmv2DefaultFlowRuleTranslator implements Bmv2FlowRuleTranslator {
 
         Bmv2TableEntry.Builder tableEntryBuilder = Bmv2TableEntry.builder();
 
+        // In BMv2 0 is the highest priority, i.e. the opposite than ONOS.
+        int newPriority = Integer.MAX_VALUE - rule.priority();
+
         tableEntryBuilder
                 .withTableName(table.name())
-                .withPriority(rule.priority())
+                .withPriority(newPriority)
                 .withMatchKey(bmv2MatchKey)
                 .withAction(bmv2Action);
 
