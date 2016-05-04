@@ -48,11 +48,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+
+import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
 
 /**
  * Flow rule programmable device behaviour implementation for BMv2.
@@ -65,7 +68,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
 
     // There's no Bmv2 client method to poll flow entries from the device. Use a local store.
     // FIXME: this information should be distributed across instances of the cluster.
-    private static final ConcurrentMap<Triple<DeviceId, String, Bmv2MatchKey>, Pair<Long, FlowEntry>>
+    private static final ConcurrentMap<Triple<DeviceId, String, Bmv2MatchKey>, Pair<Long, TimestampedFlowRule>>
             ENTRIES_MAP = Maps.newConcurrentMap();
 
     // Cache model objects instead of parsing the JSON each time.
@@ -106,10 +109,28 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
                 ENTRIES_MAP.forEach((key, value) -> {
                     if (key.getLeft() == deviceId && key.getMiddle() == table.name()
                             && value != null) {
+                        long entryId = value.getKey();
                         // Filter entries_map for this device and table.
-                        if (installedEntryIds.contains(value.getKey())) {
+                        if (installedEntryIds.contains(entryId)) {
                             // Entry is installed.
-                            entryList.add(value.getRight());
+                            long bytes = 0L;
+                            long packets = 0L;
+                            if (table.hasCounters()) {
+                                // Read counter values from device.
+                                try {
+                                    Pair<Long, Long> counterValue = deviceClient.readTableEntryCounter(table.name(),
+                                                                                                       entryId);
+                                    bytes = counterValue.getLeft();
+                                    packets = counterValue.getRight();
+                                } catch (Bmv2RuntimeException e) {
+                                    LOG.warn("Unable to get counter values for entry {} of table {} of device {}: {}",
+                                             entryId, table.name(), deviceId, e.toString());
+                                }
+                            }
+                            TimestampedFlowRule tsRule = value.getRight();
+                            FlowEntry entry = new DefaultFlowEntry(tsRule.rule(), ADDED,
+                                                                   tsRule.lifeInSeconds(), packets, bytes);
+                            entryList.add(entry);
                         } else {
                             // No such entry on device, can remove from local store.
                             ENTRIES_MAP.remove(key);
@@ -183,16 +204,14 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
                                 // Tentatively delete entry before re-adding.
                                 // It might not exist on device due to inconsistencies.
                                 deviceClient.deleteTableEntry(bmv2Entry.tableName(), entryId);
+                                value = null;
                             } catch (Bmv2RuntimeException e) {
                                 // Silently drop exception as we can probably fix this by re-adding the entry.
                             }
                         }
                         // Add entry.
                         entryId = deviceClient.addTableEntry(bmv2Entry);
-                        // TODO: evaluate flow entry life, bytes and packets
-                        FlowEntry flowEntry = new DefaultFlowEntry(
-                                rule, FlowEntry.FlowEntryState.ADDED, 0, 0, 0);
-                        value = Pair.of(entryId, flowEntry);
+                        value = Pair.of(entryId, new TimestampedFlowRule(rule));
                     } else {
                         // Remove entry
                         if (value == null) {
@@ -257,5 +276,23 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
 
     private enum Operation {
         APPLY, REMOVE
+    }
+
+    private class TimestampedFlowRule {
+        private final FlowRule rule;
+        private final Date addedDate;
+
+        public TimestampedFlowRule(FlowRule rule) {
+            this.rule = rule;
+            this.addedDate = new Date();
+        }
+
+        public FlowRule rule() {
+            return rule;
+        }
+
+        public long lifeInSeconds() {
+            return (new Date().getTime() - addedDate.getTime()) / 1000;
+        }
     }
 }

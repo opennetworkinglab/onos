@@ -115,7 +115,7 @@ public final class Bmv2ModelTable {
      *
      * @return a boolean value
      */
-    public boolean hasCunters() {
+    public boolean hasCounters() {
         return hasCounters;
     }
 

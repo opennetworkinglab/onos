@@ -52,7 +52,7 @@ public class Bmv2ModelTest {
     @Test
     public void testParse() throws Exception {
         Bmv2Model model = Bmv2Model.parse(json);
-        Bmv2Model model2 = Bmv2Model.parse(json);
+        Bmv2Model model2 = Bmv2Model.parse(json2);
 
         new EqualsTester()
                 .addEqualityGroup(model, model2)

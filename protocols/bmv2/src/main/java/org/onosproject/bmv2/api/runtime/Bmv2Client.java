@@ -16,6 +16,7 @@
 
 package org.onosproject.bmv2.api.runtime;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.ImmutableByteSequence;
 
 import java.util.Collection;
@@ -132,4 +133,14 @@ public interface Bmv2Client {
      * @throws Bmv2RuntimeException if any error occurs
      */
     String getJsonConfigMd5() throws Bmv2RuntimeException;
+
+    /**
+     * Returns the counter values for a given table and entry.
+     *
+     * @param tableName a table name
+     * @param entryId an entry id
+     * @return a pair of long values, where the left value is the number of bytes and the right the number of packets
+     * @throws Bmv2RuntimeException if any error occurs
+     */
+    Pair<Long, Long> readTableEntryCounter(String tableName, long entryId) throws Bmv2RuntimeException;
 }

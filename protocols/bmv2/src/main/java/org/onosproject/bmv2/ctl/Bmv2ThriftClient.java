@@ -44,6 +44,7 @@ import org.onosproject.bmv2.api.runtime.Bmv2TernaryMatchParam;
 import org.onosproject.bmv2.api.runtime.Bmv2ValidMatchParam;
 import org.onosproject.net.DeviceId;
 import org.p4.bmv2.thrift.BmAddEntryOptions;
+import org.p4.bmv2.thrift.BmCounterValue;
 import org.p4.bmv2.thrift.BmMatchParam;
 import org.p4.bmv2.thrift.BmMatchParamExact;
 import org.p4.bmv2.thrift.BmMatchParamLPM;
@@ -472,6 +473,24 @@ public final class Bmv2ThriftClient implements Bmv2Client {
             return config;
         } catch (TException e) {
             LOG.debug("Exception while dumping device config: {} > deviceId={}", e, deviceId);
+            throw new Bmv2RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Pair<Long, Long> readTableEntryCounter(String tableName, long entryId) throws Bmv2RuntimeException {
+
+        LOG.debug("Reading table entry counters... > deviceId={}, tableName={}, entryId={}",
+                  deviceId, tableName, entryId);
+
+        try {
+            BmCounterValue counterValue = standardClient.bm_mt_read_counter(CONTEXT_ID, tableName, entryId);
+            LOG.debug("Table entry counters retrieved! > deviceId={}, tableName={}, entryId={}, bytes={}, packets={}",
+                      deviceId, tableName, entryId, counterValue.bytes, counterValue.packets);
+            return Pair.of(counterValue.bytes, counterValue.packets);
+        } catch (TException e) {
+            LOG.debug("Exception while reading table counters: {} > deviceId={}, tableName={}, entryId={}",
+                      e.toString(), deviceId);
             throw new Bmv2RuntimeException(e.getMessage(), e);
         }
     }
