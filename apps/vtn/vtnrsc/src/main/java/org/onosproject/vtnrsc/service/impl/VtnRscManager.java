@@ -164,7 +164,7 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
 
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
-                .register(TenantId.class, DeviceId.class);
+                .register(TenantId.class, DeviceId.class, SegmentationId.class);
         l3vniMap = storageService
                 .<TenantId, SegmentationId>eventuallyConsistentMapBuilder()
                 .withName(L3VNIMAP).withSerializer(serializer)
