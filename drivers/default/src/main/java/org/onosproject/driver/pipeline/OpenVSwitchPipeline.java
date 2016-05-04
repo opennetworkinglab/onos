@@ -40,7 +40,6 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion.Type;
-import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -291,9 +290,8 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
         Integer transition = null;
         Integer forTable = null;
         // MAC table flow rules
-        if ((selector.getCriterion(Type.TUNNEL_ID) != null && selector
-                .getCriterion(Type.ETH_DST) != null)
-                || tb.allInstructions().contains(Instructions.createNoAction())) {
+        if (selector.getCriterion(Type.TUNNEL_ID) != null && selector
+                .getCriterion(Type.ETH_DST) != null) {
             forTable = MAC_TABLE;
             return reassemblyFlowRule(ruleBuilder, tb, transition, forTable);
         }
