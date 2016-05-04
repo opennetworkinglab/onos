@@ -180,6 +180,12 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.DeviceInterfacesListCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.AddMeter"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>

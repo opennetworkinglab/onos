@@ -17,6 +17,7 @@ package org.onosproject.net.behaviour;
 
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceInterfaceDescription;
 import org.onosproject.net.driver.HandlerBehaviour;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public interface InterfaceConfig extends HandlerBehaviour {
 
     /**
      * Adds an access interface to a VLAN.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @param vlanId the VLAN ID
@@ -37,6 +39,7 @@ public interface InterfaceConfig extends HandlerBehaviour {
 
     /**
      * Removes an access interface to a VLAN.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @return the result of operation
@@ -45,6 +48,7 @@ public interface InterfaceConfig extends HandlerBehaviour {
 
     /**
      *  Adds a trunk interface for VLANs.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @param vlanIds the VLAN IDs
@@ -54,11 +58,20 @@ public interface InterfaceConfig extends HandlerBehaviour {
 
     /**
      *  Removes trunk mode configuration from an interface.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @return the result of operation
      */
     boolean removeTrunkInterface(DeviceId deviceId, String intf);
+
+    /**
+     * Provides the interfaces configured on a device.
+     *
+     * @param deviceId the device ID
+     * @return the list of the configured interfaces
+     */
+    List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId);
 
     /**
      *  TODO Addition of more methods to make the behavior symmetrical.

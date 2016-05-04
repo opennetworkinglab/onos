@@ -22,6 +22,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.InterfaceConfig;
+import org.onosproject.net.device.DeviceInterfaceDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
@@ -45,6 +46,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
 
     /**
      * Adds an access interface to a VLAN.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @param vlanId the VLAN ID
@@ -72,6 +74,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
 
     /**
      * Builds a request to add an access interface to a VLAN.
+     *
      * @param intf the name of the interface
      * @param vlanId the VLAN ID
      * @return the request string.
@@ -107,6 +110,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
 
     /**
      * Removes an access interface to a VLAN.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @return the result of operation
@@ -133,6 +137,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
 
     /**
      * Builds a request to remove an access interface from a VLAN.
+     *
      * @param intf the name of the interface
      * @return the request string.
      */
@@ -166,6 +171,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
 
     /**
      *  Adds a trunk interface for VLANs.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @param vlanIds the VLAN IDs
@@ -193,6 +199,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
 
     /**
      * Builds a request to configure an interface as trunk for VLANs.
+     *
      * @param intf the name of the interface
      * @param vlanIds the VLAN IDs
      * @return the request string.
@@ -229,7 +236,8 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
     }
 
     /**
-     *  Removes trunk mode configuration from an interface.
+     * Removes trunk mode configuration from an interface.
+     *
      * @param deviceId the device ID
      * @param intf the name of the interface
      * @return the result of operation
@@ -256,6 +264,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
 
     /**
      * Builds a request to remove trunk mode configuration from an interface.
+     *
      * @param intf the name of the interface
      * @return the request string.
      */
@@ -292,6 +301,7 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
 
     /**
      * Builds a string with comma separated VLAN-IDs.
+     *
      * @param vlanIds the VLAN IDs
      * @return the string including the VLAN-IDs
      */
@@ -306,6 +316,55 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
             }
         }
         return  vlansStringBuilder.toString();
+    }
+
+    /**
+     * Provides the interfaces configured on a device.
+     *
+     * @param deviceId the device ID
+     * @return the list of the configured interfaces
+     */
+    @Override
+    public List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId) {
+        NetconfController controller =
+                checkNotNull(handler().get(NetconfController.class));
+
+        NetconfSession session = controller.getDevicesMap().get(handler()
+                                 .data().deviceId()).getSession();
+        String reply;
+        try {
+            reply = session.requestSync(getConfigBuilder());
+        } catch (NetconfException e) {
+            log.error("Failed to retrieve configuration from device {}.",
+                      deviceId, e);
+            return null;
+        }
+
+        return XmlParserCisco.getInterfacesFromConfig(XmlConfigParser.loadXml(
+                new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8))));
+    }
+
+    /**
+     * Builds a request for getting configuration from device.
+     *
+     * @return the request string.
+     */
+    private String getConfigBuilder() {
+        StringBuilder rpc =
+                new StringBuilder("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" ");
+        rpc.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
+        rpc.append("<get-config>");
+        rpc.append("<source>");
+        rpc.append("<running/>");
+        rpc.append("</source>");
+        rpc.append("<filter>");
+        rpc.append("<config-format-xml>");
+        rpc.append("</config-format-xml>");
+        rpc.append("</filter>");
+        rpc.append("</get-config>");
+        rpc.append("</rpc>");
+
+        return rpc.toString();
     }
 
 }
