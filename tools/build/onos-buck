@@ -35,4 +35,4 @@ fi
 popd > /dev/null
 
 # Finally, run the Buck command...
-eval $ONOS_ROOT/bin/buck $*
+$ONOS_ROOT/bin/buck "$@"
