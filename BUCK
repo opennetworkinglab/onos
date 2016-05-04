@@ -88,6 +88,7 @@ APPS = [
     '//providers/pcep:onos-providers-pcep-oar',
     '//providers/null:onos-providers-null-oar',
     '//providers/openflow/base:onos-providers-openflow-base-oar',
+    '//providers/openflow/app:onos-providers-openflow-app-oar',
     '//providers/rest:onos-providers-rest-oar',
     '//providers/isis:onos-providers-isis-oar',
 
