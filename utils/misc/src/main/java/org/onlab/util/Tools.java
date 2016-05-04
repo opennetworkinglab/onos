@@ -659,8 +659,8 @@ public abstract class Tools {
      * @param <T> type of enclosed value
      * @return optional as a stream
      */
-    public static <T> Stream<T> stream(Optional<T> optional) {
-        return optional.map(Stream::of).orElse(Stream.empty());
+    public static <T> Stream<T> stream(Optional<? extends T> optional) {
+        return optional.map(x -> Stream.of(x)).orElse(Stream.empty());
     }
 
     // Auxiliary path visitor for recursive directory structure copying.
