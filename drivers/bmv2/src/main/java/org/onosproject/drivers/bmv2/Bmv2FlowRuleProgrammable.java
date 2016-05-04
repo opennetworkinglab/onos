@@ -22,6 +22,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.onosproject.bmv2.api.model.Bmv2Model;
@@ -48,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -61,7 +63,8 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
     private static final Logger LOG =
             LoggerFactory.getLogger(Bmv2FlowRuleProgrammable.class);
 
-    // There's no Bmv2 client method to poll flow entries from the device device. Need a local store.
+    // There's no Bmv2 client method to poll flow entries from the device. Use a local store.
+    // FIXME: this information should be distributed across instances of the cluster.
     private static final ConcurrentMap<Triple<DeviceId, String, Bmv2MatchKey>, Pair<Long, FlowEntry>>
             ENTRIES_MAP = Maps.newConcurrentMap();
 
@@ -81,12 +84,41 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
 
         DeviceId deviceId = handler().data().deviceId();
 
+        Bmv2Client deviceClient;
+        try {
+            deviceClient = Bmv2ThriftClient.of(deviceId);
+        } catch (Bmv2RuntimeException e) {
+            LOG.error("Failed to connect to Bmv2 device", e);
+            return Collections.emptyList();
+        }
+
+        Bmv2Model model = getTranslator(deviceId).config().model();
+
         List<FlowEntry> entryList = Lists.newArrayList();
 
-        // FIXME: improve this, e.g. might store a separate Map<DeviceId, Collection<FlowEntry>>
-        ENTRIES_MAP.forEach((key, value) -> {
-            if (key.getLeft() == deviceId && value != null) {
-                entryList.add(value.getRight());
+        model.tables().forEach(table -> {
+            // For each table declared in the model for this device, do:
+            try {
+                // Bmv2 doesn't support proper polling for table entries, but only a string based table dump.
+                // The trick here is to first dump the entry ids currently installed in the device for a given table,
+                // and then filter ENTRIES_MAP based on the retrieved values.
+                Set<Long> installedEntryIds = Sets.newHashSet(deviceClient.getInstalledEntryIds(table.name()));
+                ENTRIES_MAP.forEach((key, value) -> {
+                    if (key.getLeft() == deviceId && key.getMiddle() == table.name()
+                            && value != null) {
+                        // Filter entries_map for this device and table.
+                        if (installedEntryIds.contains(value.getKey())) {
+                            // Entry is installed.
+                            entryList.add(value.getRight());
+                        } else {
+                            // No such entry on device, can remove from local store.
+                            ENTRIES_MAP.remove(key);
+                        }
+                    }
+                });
+            } catch (Bmv2RuntimeException e) {
+                LOG.error("Unable to get flow entries for table {} of device {}: {}",
+                          table.name(), deviceId, e.toString());
             }
         });
 
@@ -144,16 +176,19 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
                     if (operation == Operation.APPLY) {
                         // Apply entry
                         long entryId;
-                        if (value == null) {
-                            // New entry
-                            entryId = deviceClient.addTableEntry(bmv2Entry);
-                        } else {
-                            // Existing entry
+                        if (value != null) {
+                            // Existing entry.
                             entryId = value.getKey();
-                            // FIXME: check if priority or timeout changed
-                            // In this case we should to re-add the entry (not modify)
-                            deviceClient.modifyTableEntry(tableName, entryId, bmv2Entry.action());
+                            try {
+                                // Tentatively delete entry before re-adding.
+                                // It might not exist on device due to inconsistencies.
+                                deviceClient.deleteTableEntry(bmv2Entry.tableName(), entryId);
+                            } catch (Bmv2RuntimeException e) {
+                                // Silently drop exception as we can probably fix this by re-adding the entry.
+                            }
                         }
+                        // Add entry.
+                        entryId = deviceClient.addTableEntry(bmv2Entry);
                         // TODO: evaluate flow entry life, bytes and packets
                         FlowEntry flowEntry = new DefaultFlowEntry(
                                 rule, FlowEntry.FlowEntryState.ADDED, 0, 0, 0);
@@ -171,9 +206,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour
                     // If here, no exceptions... things went well :)
                     processedFlowRules.add(rule);
                 } catch (Bmv2RuntimeException e) {
-                    LOG.error("Unable to " + operation.name().toLowerCase() + " flow rule", e);
-                } catch (Exception e) {
-                    LOG.error("Uncaught exception while processing flow rule", e);
+                    LOG.warn("Unable to {} flow rule: {}", operation.name().toLowerCase(), e.toString());
                 }
                 return value;
             });

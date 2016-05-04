@@ -182,6 +182,8 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
                 DeviceDescription descr = new DefaultDeviceDescription(
                         did.uri(), Device.Type.SWITCH, MANUFACTURER, HW_VERSION,
                         UNKNOWN, UNKNOWN, new ChassisId(), annotationsBuilder.build());
+                // Reset device state (cleanup entries, etc.)
+                resetDeviceState(did);
                 providerService.deviceConnected(did, descr);
             }
             updatePorts(did);
@@ -199,7 +201,15 @@ public class Bmv2DeviceProvider extends AbstractDeviceProvider {
             builder.set("bmv2JsonConfigMd5", md5);
             builder.set("bmv2JsonConfigValue", jsonString);
         } catch (Bmv2RuntimeException e) {
-            LOG.warn("Unable to dump device JSON config from device {}: {}", did, e);
+            LOG.warn("Unable to dump device JSON config from device {}: {}", did, e.toString());
+        }
+    }
+
+    private void resetDeviceState(DeviceId did) {
+        try {
+            Bmv2ThriftClient.of(did).resetState();
+        } catch (Bmv2RuntimeException e) {
+            LOG.warn("Unable to reset {}: {}", did, e.toString());
         }
     }
 

@@ -39,7 +39,7 @@ import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
 public class Bmv2PacketProgrammable extends AbstractHandlerBehaviour implements PacketProgrammable {
 
     private static final Logger LOG =
-            LoggerFactory.getLogger(Bmv2FlowRuleProgrammable.class);
+            LoggerFactory.getLogger(Bmv2PacketProgrammable.class);
 
     @Override
     public void emit(OutboundPacket packet) {
