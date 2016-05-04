@@ -57,7 +57,7 @@ public class MainIndexResource extends AbstractInjectionResource {
     private static final String INJECT_JS_END = "<!-- {INJECTED-JAVASCRIPT-END} -->";
 
     private static final byte[] SCRIPT_START = "\n<script>\n".getBytes();
-    private static final byte[] SCRIPT_END = "\n</script>\n\n".getBytes();
+    private static final byte[] SCRIPT_END = "</script>\n\n".getBytes();
 
     @Context
     private SecurityContext ctx;
@@ -90,17 +90,23 @@ public class MainIndexResource extends AbstractInjectionResource {
 
         StreamEnumeration streams =
                 new StreamEnumeration(of(stream(index, 0, p0s),
-                                         new ByteArrayInputStream(SCRIPT_START),
-                                         stream(auth, 0, auth.length()),
-                                         userPreferences(userName),
-                                         new ByteArrayInputStream(SCRIPT_END),
-                                         stream(index, p0e, p1s),
-                                         includeJs(service),
-                                         stream(index, p1e, p2s),
-                                         includeCss(service),
-                                         stream(index, p2e, p3s)));
+                        new ByteArrayInputStream(SCRIPT_START),
+                        stream(auth, 0, auth.length()),
+                        userPreferences(userName),
+                        userConsoleLog(userName),
+                        new ByteArrayInputStream(SCRIPT_END),
+                        stream(index, p0e, p1s),
+                        includeJs(service),
+                        stream(index, p1e, p2s),
+                        includeCss(service),
+                        stream(index, p2e, p3s)));
 
         return Response.ok(new SequenceInputStream(streams)).build();
+    }
+
+    private InputStream userConsoleLog(String userName) {
+        String code = "console.log('Logging in as user >" + userName + "<');\n";
+        return new ByteArrayInputStream(code.getBytes());
     }
 
     // Produces an input stream including user preferences.
@@ -108,7 +114,7 @@ public class MainIndexResource extends AbstractInjectionResource {
         UiPreferencesService service = get(UiPreferencesService.class);
         ObjectNode prefs = mapper().createObjectNode();
         service.getPreferences(userName).forEach(prefs::set);
-        String string = "var userPrefs = " + prefs.toString() + ";";
+        String string = "var userPrefs = " + prefs.toString() + ";\n";
         return new ByteArrayInputStream(string.getBytes());
     }
 
