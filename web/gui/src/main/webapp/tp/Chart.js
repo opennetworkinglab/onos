@@ -1,7 +1,7 @@
 /*!
  * Chart.js
  * http://chartjs.org/
- * Version: 1.0.2
+ * Version: 1.1.1
  *
  * Copyright 2015 Nick Downie
  * Released under the MIT license
@@ -40,8 +40,6 @@
         var width = this.width = computeDimension(context.canvas,'Width') || context.canvas.width;
         var height = this.height = computeDimension(context.canvas,'Height') || context.canvas.height;
 
-        width = this.width = context.canvas.width;
-        height = this.height = context.canvas.height;
         this.aspectRatio = this.width / this.height;
         //High pixel density displays - multiply the size of the canvas height/width by the device pixel ratio, then scale.
         helpers.retinaScale(this);
@@ -168,7 +166,7 @@
             tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value %>",
 
             // String - Template string for single tooltips
-            multiTooltipTemplate: "<%= value %>",
+            multiTooltipTemplate: "<%= datasetLabel %>: <%= value %>",
 
             // String - Colour behind the legend colour block
             multiTooltipKeyBackground: '#fff',
@@ -839,13 +837,13 @@
             var container = domNode.parentNode,
                 padding = parseInt(getStyle(container, 'padding-left')) + parseInt(getStyle(container, 'padding-right'));
             // TODO = check cross browser stuff with this.
-            return container.clientWidth - padding;
+            return container ? container.clientWidth - padding : 0;
         },
         getMaximumHeight = helpers.getMaximumHeight = function(domNode){
             var container = domNode.parentNode,
                 padding = parseInt(getStyle(container, 'padding-bottom')) + parseInt(getStyle(container, 'padding-top'));
             // TODO = check cross browser stuff with this.
-            return container.clientHeight - padding;
+            return container ? container.clientHeight - padding : 0;
         },
         getStyle = helpers.getStyle = function (el, property) {
             return el.currentStyle ?
@@ -977,9 +975,10 @@
             return this;
         },
         generateLegend : function(){
-            return template(this.options.legendTemplate,this);
+            return helpers.template(this.options.legendTemplate, this);
         },
         destroy : function(){
+            this.stop();
             this.clear();
             unbindEvents(this, this.events);
             var canvas = this.chart.canvas;
@@ -2058,7 +2057,7 @@
                     for (var i = this.valuesCount - 1; i >= 0; i--) {
                         var centerOffset = null, outerPosition = null;
 
-                        if (this.angleLineWidth > 0){
+                        if (this.angleLineWidth > 0 && (i % this.angleLineInterval === 0)){
                             centerOffset = this.calculateCenterOffset(this.max);
                             outerPosition = this.getPointPosition(i, centerOffset);
                             ctx.beginPath();
@@ -2233,7 +2232,7 @@
 
 
     if (amd) {
-        define(function(){
+        define('Chart', [], function(){
             return Chart;
         });
     } else if (typeof module === 'object' && module.exports) {
@@ -2289,7 +2288,8 @@
         barDatasetSpacing : 1,
 
         //String - A legend template
-        legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span style=\"background-color:<%=datasets[i].fillColor%>\"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>"
+        legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span class=\"<%=name.toLowerCase()%>-legend-icon\" style=\"background-color:<%=datasets[i].fillColor%>\"></span><span class=\"<%=name.toLowerCase()%>-legend-text\"><%if(datasets[i].label){%><%=datasets[i].label%><%}%></span></li><%}%></ul>"
+
     };
 
 
@@ -2333,8 +2333,10 @@
                         bar.restore(['fillColor', 'strokeColor']);
                     });
                     helpers.each(activeBars, function(activeBar){
-                        activeBar.fillColor = activeBar.highlightFill;
-                        activeBar.strokeColor = activeBar.highlightStroke;
+                        if (activeBar) {
+                            activeBar.fillColor = activeBar.highlightFill;
+                            activeBar.strokeColor = activeBar.highlightStroke;
+                        }
                     });
                     this.showTooltip(activeBars);
                 });
@@ -2365,10 +2367,10 @@
                         value : dataPoint,
                         label : data.labels[index],
                         datasetLabel: dataset.label,
-                        strokeColor : dataset.strokeColor,
-                        fillColor : dataset.fillColor,
-                        highlightFill : dataset.highlightFill || dataset.fillColor,
-                        highlightStroke : dataset.highlightStroke || dataset.strokeColor
+                        strokeColor : (typeof dataset.strokeColor == 'object') ? dataset.strokeColor[index] : dataset.strokeColor,
+                        fillColor : (typeof dataset.fillColor == 'object') ? dataset.fillColor[index] : dataset.fillColor,
+                        highlightFill : (dataset.highlightFill) ? (typeof dataset.highlightFill == 'object') ? dataset.highlightFill[index] : dataset.highlightFill : (typeof dataset.fillColor == 'object') ? dataset.fillColor[index] : dataset.fillColor,
+                        highlightStroke : (dataset.highlightStroke) ? (typeof dataset.highlightStroke == 'object') ? dataset.highlightStroke[index] : dataset.highlightStroke : (typeof dataset.strokeColor == 'object') ? dataset.strokeColor[index] : dataset.strokeColor
                     }));
                 },this);
 
@@ -2586,14 +2588,14 @@
         animateScale : false,
 
         //String - A legend template
-        legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<segments.length; i++){%><li><span style=\"background-color:<%=segments[i].fillColor%>\"></span><%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>"
+        legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<segments.length; i++){%><li><span class=\"<%=name.toLowerCase()%>-legend-icon\" style=\"background-color:<%=segments[i].fillColor%>\"></span><span class=\"<%=name.toLowerCase()%>-legend-text\"><%if(segments[i].label){%><%=segments[i].label%><%}%></span></li><%}%></ul>"
 
     };
 
     Chart.Type.extend({
         //Passing in a name registers this chart in the Chart namespace
         name: "Doughnut",
-        //Providing a defaults will also register the deafults in the chart namespace
+        //Providing a defaults will also register the defaults in the chart namespace
         defaults : defaultConfig,
         //Initialize is fired when the chart is initialized - Data is passed in as a parameter
         //Config is automatically merged by the core of Chart.js, and is available at this.options
@@ -2799,7 +2801,7 @@
         datasetFill : true,
 
         //String - A legend template
-        legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span style=\"background-color:<%=datasets[i].strokeColor%>\"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>",
+        legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span class=\"<%=name.toLowerCase()%>-legend-icon\" style=\"background-color:<%=datasets[i].strokeColor%>\"></span><span class=\"<%=name.toLowerCase()%>-legend-text\"><%if(datasets[i].label){%><%=datasets[i].label%><%}%></span></li><%}%></ul>",
 
         //Boolean - Whether to horizontally center the label and point dot inside the grid
         offsetGridLines : false
@@ -3180,14 +3182,14 @@
         animateScale : false,
 
         //String - A legend template
-        legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<segments.length; i++){%><li><span style=\"background-color:<%=segments[i].fillColor%>\"></span><%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>"
+        legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<segments.length; i++){%><li><span class=\"<%=name.toLowerCase()%>-legend-icon\" style=\"background-color:<%=segments[i].fillColor%>\"></span><span class=\"<%=name.toLowerCase()%>-legend-text\"><%if(segments[i].label){%><%=segments[i].label%><%}%></span></li><%}%></ul>"
     };
 
 
     Chart.Type.extend({
         //Passing in a name registers this chart in the Chart namespace
         name: "PolarArea",
-        //Providing a defaults will also register the deafults in the chart namespace
+        //Providing a defaults will also register the defaults in the chart namespace
         defaults : defaultConfig,
         //Initialize is fired when the chart is initialized - Data is passed in as a parameter
         //Config is automatically merged by the core of Chart.js, and is available at this.options
@@ -3412,6 +3414,9 @@
             //Number - Pixel width of the angle line
             angleLineWidth : 1,
 
+            //Number - Interval at which to draw angle lines ("every Nth point")
+            angleLineInterval: 1,
+
             //String - Point label font declaration
             pointLabelFontFamily : "'Arial'",
 
@@ -3446,7 +3451,7 @@
             datasetFill : true,
 
             //String - A legend template
-            legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span style=\"background-color:<%=datasets[i].strokeColor%>\"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>"
+            legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span class=\"<%=name.toLowerCase()%>-legend-icon\" style=\"background-color:<%=datasets[i].strokeColor%>\"></span><span class=\"<%=name.toLowerCase()%>-legend-text\"><%if(datasets[i].label){%><%=datasets[i].label%><%}%></span></li><%}%></ul>"
 
         },
 
@@ -3565,6 +3570,7 @@
                 lineColor: this.options.scaleLineColor,
                 angleLineColor : this.options.angleLineColor,
                 angleLineWidth : (this.options.angleShowLineOut) ? this.options.angleLineWidth : 0,
+        angleLineInterval: (this.options.angleLineInterval) ? this.options.angleLineInterval : 1,
                 // Point labels at the edge of each line
                 pointLabelFontColor : this.options.pointLabelFontColor,
                 pointLabelFontSize : this.options.pointLabelFontSize,
