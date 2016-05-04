@@ -9,6 +9,10 @@ OUT=$1
 KARAF_TAR=$2
 ONOS_VERSION=$3
 BRANDING=$4
+#FIXME karaf version
+KARAF_VERSION="3.0.5"
+
+PREFIX="onos-1.6.0"
 
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
 tar xf $KARAF_TAR
@@ -27,27 +31,32 @@ sed -i '' "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" bin/onos-client
 mv bin/onos-client bin/onos
 chmod a+x bin/onos-service bin/onos
 
-# Stage the ONOS admin scripts and patch in Karaf service wrapper extras
-cp -r bin $KARAF_DIR
-cp -r init $KARAF_DIR
-cp -r etc $KARAF_DIR
-
-export BOOT_FEATURES="webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui"
+export BOOT_FEATURES="standard,ssh,scr,war,webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui"
 #FIXME
 #[ "$ONOS_SECURITY_MODE" = true ] && enable_security_mode
 
 # Patch the Apache Karaf distribution file to add ONOS features repository
-perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onosproject/onos-features/$ONOS_VERSION/xml/features|" \
+perl -pi.old -e "s|^(featuresRepositories=).*|\1mvn:org.apache.karaf.features/standard/$KARAF_VERSION/xml/features,mvn:org.onosproject/onos-features/$ONOS_VERSION/xml/features|" \
     $KARAF_DIR/etc/org.apache.karaf.features.cfg
 
 # Patch the Apache Karaf distribution file to load default ONOS boot features
-perl -pi.old -e "s|^(featuresBoot=.*)|\1,$BOOT_FEATURES|" \
+perl -pi.old -e "s|^(featuresBoot=).*|\1$BOOT_FEATURES|" \
     $KARAF_DIR/etc/org.apache.karaf.features.cfg
+
 
 # Patch the Apache Karaf distribution with ONOS branding bundle
 cp $BRANDING $KARAF_DIR/lib
 
-zip -q -0 -r $OUT $KARAF_DIR
+# **** Moving karaf to subdirectory ****
+mkdir $PREFIX
+mv $KARAF_DIR $PREFIX
+
+# Stage the ONOS admin scripts and patch in Karaf service wrapper extras
+cp -r bin $PREFIX
+cp -r init $PREFIX
+cp -r etc $PREFIX/$KARAF_DIR/etc/
+
+tar czf $OUT $PREFIX
 
 #FIXME
 # Stage all builtin ONOS apps for factory install

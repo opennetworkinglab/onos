@@ -2,56 +2,70 @@
 #FIXME Add license
 
 import re
+import os
 from zipfile import ZipFile
+from tarfile import TarFile, TarInfo
+from cStringIO import StringIO
+
+VERSION = '1.6.0' #FIXME version, and maybe git commit hash
+BASE = 'onos-%s/' % VERSION
+
+
+written_files = set()
+
+def addFile(tar, dest, file, file_size):
+    if dest not in written_files:
+        info = TarInfo(dest)
+        info.size = file_size
+        tar.addfile(info, fileobj=file)
+        written_files.add(dest)
+
+def addString(tar, dest, string):
+    if dest not in written_files:
+        print dest, string
+        info = TarInfo(dest)
+        info.size = len(string)
+        file = StringIO(string)
+        tar.addfile(info, fileobj=file)
+        file.close()
+        written_files.add(dest)
 
 def stageOnos(output, files=[]):
     # Note this is not a compressed zip
-    with ZipFile(output, 'a') as output:
-        written_files = set(output.namelist())
+    with TarFile(output, 'a') as output:
+        written_files = set(output.getnames())
         for file in files:
             if '.zip' in file:
                 with ZipFile(file, 'r') as zip_part:
-                    for f in zip_part.namelist():
-                        dest = 'apache-karaf-3.0.5/system/' + f
-                        if dest not in written_files:
-                            output.writestr(dest, zip_part.open(f).read())
-                            written_files.add(dest)
+                    for f in zip_part.infolist():
+                        dest = BASE + 'apache-karaf-3.0.5/system/' + f.filename
+                        addFile(output, dest, zip_part.open(f), f.file_size)
             elif '.oar' in file:
                 with ZipFile(file, 'r') as oar:
                     app_xml = oar.open('app.xml').read()
                     app_name = re.search('name="([^"]+)"', app_xml).group(1)
-                    dest = 'apps/%(name)s/%(name)s.oar' % { 'name': app_name}
-                    output.write(file, dest)
-                    dest = 'apps/%s/app.xml' % app_name
-                    output.writestr(dest, app_xml)
-                    for f in oar.namelist():
-                        if 'm2' in f:
-                            dest = 'apache-karaf-3.0.5/system/' + f[3:]
+                    dest = BASE + 'apps/%(name)s/%(name)s.oar' % { 'name': app_name}
+                    addFile(output, dest, open(file), os.stat(file).st_size)
+                    dest = BASE + 'apps/%s/app.xml' % app_name
+                    addString(output, dest, app_xml)
+                    for f in oar.infolist():
+                        filename = f.filename
+                        if 'm2' in filename:
+                            dest = BASE + 'apache-karaf-3.0.5/system/' + filename[3:]
                             if dest not in written_files:
-                                output.writestr(dest, oar.open(f).read())
+                                addFile(output, dest, oar.open(f), f.file_size)
                                 written_files.add(dest)
             elif 'features.xml' in file:
-                dest = 'apache-karaf-3.0.5/system/org/onosproject/onos-features/1.6.0-SNAPSHOT/'
+                dest = BASE + 'apache-karaf-3.0.5/system/org/onosproject/onos-features/1.6.0-SNAPSHOT/'
                 dest += 'onos-features-1.6.0-SNAPSHOT-features.xml'
                 with open(file) as f:
-                    output.writestr(dest, f.read())
-            # filename = file.split('/')[-1]
-            # if mvnCoords == 'APP':
-            #     dest = filename
-            # else:
-            #     groupId, artifactId, version = mvnCoords.split(':')
-            #     groupId = groupId.replace('.', '/')
-            #     extension = filename.split('.')[-1]
-            #     if extension == 'jar':
-            #         filename = '%s-%s.jar' % ( artifactId, version )
-            #     elif 'features.xml' in filename:
-            #         filename = '%s-%s-features.xml' % ( artifactId, version )
-            #     dest = 'system/%s/%s/%s/%s' % ( groupId, artifactId, version, filename )
-            # zip.write(file, dest)
-        output.writestr('apps/org.onosproject.drivers/active', '')
-        output.writestr('apps/org.onosproject.openflow-base/active', '')
-        output.writestr('apps/org.onosproject.lldp/active', '')
-        output.writestr('apps/org.onosproject.host/active', '')
+                    addFile(output, dest, f, os.stat(file).st_size)
+        # FIXME figure out "active" apps
+        addString(output, BASE + 'apps/org.onosproject.drivers/active', '')
+        addString(output, BASE + 'apps/org.onosproject.openflow-base/active', '')
+        addString(output, BASE + 'apps/org.onosproject.lldp/active', '')
+        addString(output, BASE + 'apps/org.onosproject.host/active', '')
+        addString(output, BASE + 'VERSION', VERSION)
 
 if __name__ == '__main__':
     import sys
@@ -63,9 +77,4 @@ if __name__ == '__main__':
     output = sys.argv[1]
     args = sys.argv[2:]
 
-    # if len(args) % 2 != 0:
-    #     print 'There must be an even number of args: file mvn_coords'
-    #     sys.exit(2)
-
-    #files = zip(*[iter(args)]*2)
     stageOnos(output, args)
