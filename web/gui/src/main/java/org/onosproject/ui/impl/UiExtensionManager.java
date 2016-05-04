@@ -32,20 +32,20 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.EventuallyConsistentMap;
-import org.onosproject.store.service.EventuallyConsistentMapEvent;
-import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
@@ -79,7 +79,7 @@ public class UiExtensionManager
 
     private static final ClassLoader CL = UiExtensionManager.class.getClassLoader();
 
-    private static final String ONOS_USER_PREFERENCES = "onos-user-preferences";
+    private static final String ONOS_USER_PREFERENCES = "onos-ui-user-preferences";
     private static final String CORE = "core";
     private static final String GUI_ADDED = "guiAdded";
     private static final String GUI_REMOVED = "guiRemoved";
@@ -107,8 +107,9 @@ public class UiExtensionManager
     protected StorageService storageService;
 
     // User preferences
-    private EventuallyConsistentMap<String, ObjectNode> prefs;
-    private final EventuallyConsistentMapListener<String, ObjectNode> prefsListener =
+    private ConsistentMap<String, ObjectNode> prefsConsistentMap;
+    private Map<String, ObjectNode> prefs;
+    private final MapEventListener<String, ObjectNode> prefsListener =
             new InternalPrefsListener();
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -167,28 +168,27 @@ public class UiExtensionManager
 
     @Activate
     public void activate() {
-        KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
-                .register(KryoNamespaces.API)
-                .register(ObjectNode.class, ArrayNode.class,
+        Serializer serializer = Serializer.using(KryoNamespaces.API,
+                        ObjectNode.class, ArrayNode.class,
                         JsonNodeFactory.class, LinkedHashMap.class,
                         TextNode.class, BooleanNode.class,
                         LongNode.class, DoubleNode.class, ShortNode.class,
                         IntNode.class, NullNode.class);
 
-        prefs = storageService.<String, ObjectNode>eventuallyConsistentMapBuilder()
+        prefsConsistentMap = storageService.<String, ObjectNode>consistentMapBuilder()
                 .withName(ONOS_USER_PREFERENCES)
-                .withSerializer(kryoBuilder)
-                .withTimestampProvider((k, v) -> new WallClockTimestamp())
-                .withPersistence()
+                .withSerializer(serializer)
+                .withRelaxedReadConsistency()
                 .build();
-        prefs.addListener(prefsListener);
+        prefsConsistentMap.addListener(prefsListener);
+        prefs = prefsConsistentMap.asJavaMap();
         register(core);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        prefs.removeListener(prefsListener);
+        prefsConsistentMap.removeListener(prefsListener);
         UiWebSocketServlet.closeAll();
         unregister(core);
         log.info("Stopped");
@@ -283,11 +283,11 @@ public class UiExtensionManager
 
     // Auxiliary listener to preference map events.
     private class InternalPrefsListener
-            implements EventuallyConsistentMapListener<String, ObjectNode> {
+            implements MapEventListener<String, ObjectNode> {
         @Override
-        public void event(EventuallyConsistentMapEvent<String, ObjectNode> event) {
+        public void event(MapEvent<String, ObjectNode> event) {
             String userName = userName(event.key());
-            if (event.type() == EventuallyConsistentMapEvent.Type.PUT) {
+            if (event.type() == MapEvent.Type.INSERT || event.type() == MapEvent.Type.UPDATE) {
                 UiWebSocketServlet.sendToUser(userName, UPDATE_PREFS, jsonPrefs());
             }
         }
