@@ -32,6 +32,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
+import org.onosproject.app.ApplicationService;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -88,6 +89,7 @@ import java.util.stream.Collectors;
 public class SingleSwitchFibInstaller {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final String APP_NAME = "org.onosproject.vrouter";
 
     private static final int PRIORITY_OFFSET = 100;
     private static final int PRIORITY_MULTIPLIER = 5;
@@ -118,6 +120,9 @@ public class SingleSwitchFibInstaller {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ApplicationService applicationService;
+
     @Property(name = "routeToNextHop", boolValue = false,
             label = "Install a /32 route to each next hop")
     private boolean routeToNextHop = false;
@@ -133,6 +138,7 @@ public class SingleSwitchFibInstaller {
 
     private ApplicationId coreAppId;
     private ApplicationId routerAppId;
+    private ApplicationId vrouterAppId;
 
     // Reference count for how many times a next hop is used by a route
     private final Multiset<IpAddress> nextHopsCount = ConcurrentHashMultiset.create();
@@ -163,6 +169,7 @@ public class SingleSwitchFibInstaller {
 
         coreAppId = coreService.registerApplication(CoreService.CORE_APP_NAME);
         routerAppId = coreService.registerApplication(RoutingService.ROUTER_APP_ID);
+        vrouterAppId = coreService.registerApplication(APP_NAME);
 
         networkConfigRegistry.registerConfigFactory(mcastConfigFactory);
 
@@ -172,6 +179,10 @@ public class SingleSwitchFibInstaller {
         interfaceService.addListener(internalInterfaceList);
 
         updateConfig();
+
+        applicationService.registerDeactivateHook(vrouterAppId, () -> {
+            this.cleanUp();
+        });
 
         log.info("Started");
     }
@@ -202,6 +213,17 @@ public class SingleSwitchFibInstaller {
         log.info("routeToNextHop set to {}", routeToNextHop);
     }
 
+    //remove filtering objectives and routes before deactivate.
+    private void cleanUp() {
+        //clean up the routes.
+        for (Map.Entry<IpPrefix, IpAddress> routes: prefixToNextHop.entrySet()) {
+            deleteRoute(new ResolvedRoute(routes.getKey(), null, null));
+        }
+        //clean up the filtering objective for interfaces.
+        Set<Interface> intfs = getInterfaces();
+        processIntfFilters(false, intfs);
+    }
+
     private void updateConfig() {
         RouterConfig routerConfig =
                 networkConfigService.getConfig(routerAppId, RoutingService.ROUTER_CONFIG_CLASS);
@@ -226,20 +248,23 @@ public class SingleSwitchFibInstaller {
 
     private void updateDevice() {
         if (deviceId != null && deviceService.isAvailable(deviceId)) {
-
-            Set<Interface> intfs;
-            if (interfaces.isEmpty()) {
-                intfs = interfaceService.getInterfaces();
-            } else {
-                // TODO need to fix by making interface names globally unique
-                intfs = interfaceService.getInterfaces().stream()
-                        .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
-                        .filter(intf -> interfaces.contains(intf.name()))
-                        .collect(Collectors.toSet());
-            }
-
+            Set<Interface> intfs = getInterfaces();
             processIntfFilters(true, intfs);
         }
+    }
+
+    private Set<Interface> getInterfaces() {
+        Set<Interface> intfs;
+        if (interfaces.isEmpty()) {
+            intfs = interfaceService.getInterfaces();
+        } else {
+            // TODO need to fix by making interface names globally unique
+            intfs = interfaceService.getInterfaces().stream()
+                    .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
+                    .filter(intf -> interfaces.contains(intf.name()))
+                    .collect(Collectors.toSet());
+        }
+        return intfs;
     }
 
     private void updateRoute(ResolvedRoute route) {
