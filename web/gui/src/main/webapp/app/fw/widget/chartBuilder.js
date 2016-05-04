@@ -58,6 +58,7 @@
         function respCb(data) {
             ls.stop();
             o.scope.chartData = data[root];
+            o.scope.annots = data.annots;
             onResp && onResp();
 
             // check if data changed
