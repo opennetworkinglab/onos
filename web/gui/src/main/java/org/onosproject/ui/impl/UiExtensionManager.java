@@ -39,6 +39,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -60,6 +61,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.google.common.collect.ImmutableList.of;
 import static java.util.stream.Collectors.toSet;
@@ -113,6 +116,9 @@ public class UiExtensionManager
             new InternalPrefsListener();
 
     private final ObjectMapper mapper = new ObjectMapper();
+
+    private final ExecutorService eventHandlingExecutor =
+            Executors.newSingleThreadExecutor(Tools.groupedThreads("onos/ui-ext-manager", "event-handler", log));
 
     // Creates core UI extension
     private UiExtension createCoreExtension() {
@@ -189,6 +195,7 @@ public class UiExtensionManager
     @Deactivate
     public void deactivate() {
         prefsConsistentMap.removeListener(prefsListener);
+        eventHandlingExecutor.shutdown();
         UiWebSocketServlet.closeAll();
         unregister(core);
         log.info("Stopped");
@@ -286,10 +293,12 @@ public class UiExtensionManager
             implements MapEventListener<String, ObjectNode> {
         @Override
         public void event(MapEvent<String, ObjectNode> event) {
-            String userName = userName(event.key());
-            if (event.type() == MapEvent.Type.INSERT || event.type() == MapEvent.Type.UPDATE) {
-                UiWebSocketServlet.sendToUser(userName, UPDATE_PREFS, jsonPrefs());
-            }
+            eventHandlingExecutor.execute(() -> {
+                String userName = userName(event.key());
+                if (event.type() == MapEvent.Type.INSERT || event.type() == MapEvent.Type.UPDATE) {
+                    UiWebSocketServlet.sendToUser(userName, UPDATE_PREFS, jsonPrefs());
+                }
+            });
         }
 
         private ObjectNode jsonPrefs() {
