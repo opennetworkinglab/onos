@@ -1,0 +1,30 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net";
+
+
+import "Device.proto";
+import "Port.proto";
+
+package DeviceEvent;
+
+// Corresponds to org.onosproject.net.device.DeviceEvent.
+message DeviceNotification {
+    Device.DeviceCore device = 1;
+    DeviceEventType deviceEventType = 2;
+    Port.PortCore port = 3;
+}
+
+enum DeviceEventType {
+    DEVICE_ADDED = 0;
+    DEVICE_UPDATED = 1;
+    DEVICE_REMOVED = 2;
+    DEVICE_SUSPENDED = 3;
+    DEVICE_AVAILABILITY_CHANGED = 4;
+    PORT_ADDED = 5;
+    PORT_UPDATED = 6;
+    PORT_REMOVED = 7;
+    PORT_STATS_UPDATED = 8;
+}
+
+
+

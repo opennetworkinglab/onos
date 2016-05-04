@@ -14,5 +14,6 @@
 
 /**
  * Application specific Exception classes.
+ *
  */
 package org.onosproject.kafkaintegration.errors;

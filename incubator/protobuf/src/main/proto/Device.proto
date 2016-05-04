@@ -3,6 +3,23 @@ option java_package = "org.onosproject.grpc.net";
 
 package Device;
 
+message DeviceDescription {
+  string device_Uri = 1;
+  DeviceType type = 2;
+  string manufacturer = 3;
+  string hw_version = 4;
+  string sw_version = 5;
+  string serial_number = 6;
+  string chassis_id = 7;
+  map<string, string> annotations = 8;
+}
+
+enum MastershipRole {
+  NONE = 0;
+  MASTER = 1;
+  STANDBY = 2;
+}
+
 enum DeviceType {
   OTHER = 0;
   SWITCH = 1;
@@ -20,8 +37,9 @@ enum DeviceType {
   MICROWAVE = 13;
 }
 
-message DeviceDescription {
-  string device_Uri = 1;
+// Corresponds to org.onosproject.net.Device.
+message DeviceCore {
+  string deviceId = 1;
   DeviceType type = 2;
   string manufacturer = 3;
   string hw_version = 4;
@@ -29,10 +47,4 @@ message DeviceDescription {
   string serial_number = 6;
   string chassis_id = 7;
   map<string, string> annotations = 8;
-}
-
-enum MastershipRole {
-  NONE = 0;
-  MASTER = 1;
-  STANDBY = 2;
-}
+} 

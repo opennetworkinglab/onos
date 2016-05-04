@@ -1,0 +1,19 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net";
+
+package LinkEvent;
+
+import "Link.proto";
+
+// Corresponds to org.onosproject.net.link.LinkEvent.
+message LinkNotification {
+    LinkEventType linkEventType = 2;
+    Link.LinkCore link = 3;
+}
+
+// Link Event Types
+enum LinkEventType {
+    LINK_ADDED = 0;
+    LINK_UPDATED = 1;
+    LINK_REMOVED = 2;
+}

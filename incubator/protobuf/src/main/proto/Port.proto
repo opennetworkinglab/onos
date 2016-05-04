@@ -31,6 +31,15 @@ message PortDescription {
   map<string, string> annotations = 8;
 }
 
+// Corresponds to org.onosproject.net.Port.
+message PortCore {
+  string port_number = 1;
+  bool is_enabled = 2;
+  PortType type = 3;
+  int64 port_speed = 4;
+  map<string, string> annotations = 5;
+}
+
 message PortStatistics {
   int32 port = 1;
   int64 packets_received = 2;

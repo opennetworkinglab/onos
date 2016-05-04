@@ -18,11 +18,13 @@ import org.onosproject.kafkaintegration.api.dto.EventSubscriber;
 import org.onosproject.kafkaintegration.api.dto.EventSubscriberGroupId;
 import org.onosproject.kafkaintegration.errors.InvalidApplicationException;
 import org.onosproject.kafkaintegration.errors.InvalidGroupIdException;
-import org.onosproject.kafkaintegration.errors.UnsupportedEventException;
+
+import com.google.common.annotations.Beta;
 
 /**
  * APIs for subscribing to Onos Event Messages.
  */
+@Beta
 public interface EventExporterService {
 
     /**
@@ -44,13 +46,11 @@ public interface EventExporterService {
      * Allows registered listener to subscribe for a specific event type.
      *
      * @param subscriber Subscription data containing the event type
-     * @throws UnsupportedEventException
      * @throws InvalidGroupIdException
      * @throws InvalidApplicationException
      */
     void subscribe(EventSubscriber subscriber)
-            throws UnsupportedEventException, InvalidGroupIdException,
-            InvalidApplicationException;
+            throws InvalidGroupIdException, InvalidApplicationException;
 
     /**
      * Allows the registered listener to unsubscribe for a specific event.

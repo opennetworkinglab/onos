@@ -14,15 +14,11 @@
  */
 package org.onosproject.kafkaintegration.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.codec.JsonCodec;
-import org.onosproject.kafkaintegration.api.EventExporterService;
-import org.onosproject.kafkaintegration.api.dto.EventSubscriber;
-import org.onosproject.kafkaintegration.api.dto.EventSubscriberGroupId;
-import org.onosproject.rest.AbstractWebResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -31,11 +27,17 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import org.onosproject.codec.JsonCodec;
+import org.onosproject.kafkaintegration.api.EventExporterService;
+import org.onosproject.kafkaintegration.api.dto.EventSubscriber;
+import org.onosproject.kafkaintegration.api.dto.EventSubscriberGroupId;
+import org.onosproject.rest.AbstractWebResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Rest Interfaces for subscribing/unsubscribing to event notifications.
@@ -44,14 +46,19 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 public class EventExporterWebResource extends AbstractWebResource {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    public static final String JSON_NOT_NULL = "Registration Data cannot be empty";
-    public static final String REGISTRATION_SUCCESSFUL = "Registered Listener successfully";
-    public static final String DEREGISTRATION_SUCCESSFUL = "De-Registered Listener successfully";
-    public static final String EVENT_SUBSCRIPTION_SUCCESSFUL = "Event Registration successfull";
-    public static final String EVENT_SUBSCRIPTION_REMOVED = "Event De-Registration successfull";
+    public static final String JSON_NOT_NULL =
+            "Registration Data cannot be empty";
+    public static final String REGISTRATION_SUCCESSFUL =
+            "Registered Listener successfully";
+    public static final String DEREGISTRATION_SUCCESSFUL =
+            "De-Registered Listener successfully";
+    public static final String EVENT_SUBSCRIPTION_SUCCESSFUL =
+            "Event Registration successfull";
+    public static final String EVENT_SUBSCRIPTION_REMOVED =
+            "Event De-Registration successfull";
 
     /**
-     * Registers a listener for Onos Events.
+     * Registers a listener for ONOS Events.
      *
      * @param appName The application trying to register
      * @return 200 OK with UUID string which should be used as Kafka Consumer
@@ -76,7 +83,7 @@ public class EventExporterWebResource extends AbstractWebResource {
     }
 
     /**
-     * Unregisters a listener for Onos Events.
+     * Unregisters a listener for ONOS Events.
      *
      * @param appName The application trying to unregister
      * @return 200 OK
@@ -93,9 +100,9 @@ public class EventExporterWebResource extends AbstractWebResource {
     }
 
     /**
-     * Creates subscription to a specific Onos event.
+     * Creates subscription to a specific ONOS event.
      *
-     * @param input Subscription Data in Json format
+     * @param input Subscription Data in JSON format
      * @return 200 OK if successful or 400 BAD REQUEST
      * @onos.rsModel KafkaSubscription
      */
@@ -118,9 +125,9 @@ public class EventExporterWebResource extends AbstractWebResource {
     }
 
     /**
-     * Parses Json Subscription Data from the external application.
+     * Parses JSON Subscription Data from the external application.
      *
-     * @param node node within the parsed json tree.
+     * @param input Subscription Data in JSON format
      * @return parsed DTO object
      * @throws IOException
      */
@@ -137,9 +144,9 @@ public class EventExporterWebResource extends AbstractWebResource {
     }
 
     /**
-     * Deletes subscription from a specific Onos event.
+     * Deletes subscription from a specific ONOS event.
      *
-     * @param input data in json format
+     * @param input data in JSON format
      * @return 200 OK if successful or 400 BAD REQUEST
      * @onos.rsModel KafkaSubscription
      */
@@ -152,7 +159,7 @@ public class EventExporterWebResource extends AbstractWebResource {
 
         try {
             EventSubscriber sub = parseSubscriptionData(input);
-            service.subscribe(sub);
+            service.unsubscribe(sub);
         } catch (Exception e) {
             log.error(e.getMessage());
             return Response.status(BAD_REQUEST).entity(e.getMessage()).build();

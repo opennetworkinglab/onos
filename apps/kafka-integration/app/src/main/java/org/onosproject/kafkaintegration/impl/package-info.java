@@ -15,4 +15,4 @@
 /**
  * API implementation classes.
  */
-package org.onosproject.kafkaintegration;
+package org.onosproject.kafkaintegration.impl;
