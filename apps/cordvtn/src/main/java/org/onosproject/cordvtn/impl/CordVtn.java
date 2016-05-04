@@ -779,7 +779,10 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param xosAccess xos access
      */
     private void setXosAccess(XosAccess xosAccess) {
-        checkNotNull(xosAccess, "XOS access is not configured");
+        if (xosAccess == null) {
+            log.warn("XOS access is not configured");
+            return;
+        }
 
         log.debug("Set XOS access with Endpoint: {} User: {} Passwd: {}",
                   xosAccess.endpoint(),

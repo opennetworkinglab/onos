@@ -193,7 +193,6 @@ public class CordVtnConfig extends Config<ApplicationId> {
     public XosAccess xosAccess() {
         JsonNode jsonNode = object.get(XOS);
         if (jsonNode == null) {
-            log.error("Failed to get XOS configurations");
             return null;
         }
 
