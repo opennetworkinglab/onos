@@ -17,6 +17,7 @@
 package org.onosproject.store.primitives;
 
 import com.google.common.base.Throwables;
+
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.MapEventListener;
@@ -30,6 +31,7 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
@@ -258,8 +260,8 @@ public class DefaultConsistentTreeMap<K, V> extends Synchronous<AsyncConsistentT
     }
 
     @Override
-    public void addListener(MapEventListener<K, V> listener) {
-        complete(treeMap.addListener(listener));
+    public void addListener(MapEventListener<K, V> listener, Executor executor) {
+        complete(treeMap.addListener(listener, executor));
     }
 
     @Override

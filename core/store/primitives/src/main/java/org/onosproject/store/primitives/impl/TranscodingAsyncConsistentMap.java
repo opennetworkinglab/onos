@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -34,6 +35,7 @@ import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
+
 import com.google.common.collect.Maps;
 
 /**
@@ -235,11 +237,11 @@ public class TranscodingAsyncConsistentMap<K1, V1, K2, V2> implements AsyncConsi
     }
 
     @Override
-    public CompletableFuture<Void> addListener(MapEventListener<K1, V1> listener) {
+    public CompletableFuture<Void> addListener(MapEventListener<K1, V1> listener, Executor executor) {
         synchronized (listeners) {
             InternalBackingMapEventListener backingMapListener =
                     listeners.computeIfAbsent(listener, k -> new InternalBackingMapEventListener(listener));
-            return backingMap.addListener(backingMapListener);
+            return backingMap.addListener(backingMapListener, executor);
         }
     }
 

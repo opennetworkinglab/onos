@@ -18,6 +18,7 @@ package org.onosproject.store.service;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -149,7 +150,7 @@ public class ConsistentMapAdapter<K, V> implements ConsistentMap<K, V> {
     }
 
     @Override
-    public void addListener(MapEventListener<K, V> listener) {
+    public void addListener(MapEventListener<K, V> listener, Executor executor) {
 
     }
 

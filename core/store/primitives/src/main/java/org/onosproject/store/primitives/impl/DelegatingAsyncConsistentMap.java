@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -33,6 +34,7 @@ import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.MapTransaction;
 import org.onosproject.store.service.Versioned;
+
 import com.google.common.base.MoreObjects;
 
 /**
@@ -153,8 +155,8 @@ public class DelegatingAsyncConsistentMap<K, V> implements AsyncConsistentMap<K,
     }
 
     @Override
-    public CompletableFuture<Void> addListener(MapEventListener<K, V> listener) {
-        return delegateMap.addListener(listener);
+    public CompletableFuture<Void> addListener(MapEventListener<K, V> listener, Executor executor) {
+        return delegateMap.addListener(listener, executor);
     }
 
     @Override

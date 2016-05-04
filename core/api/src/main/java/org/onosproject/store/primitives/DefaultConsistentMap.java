@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
@@ -178,8 +179,8 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
     }
 
     @Override
-    public void addListener(MapEventListener<K, V> listener) {
-        complete(asyncMap.addListener(listener));
+    public void addListener(MapEventListener<K, V> listener, Executor executor) {
+        complete(asyncMap.addListener(listener, executor));
     }
 
     @Override

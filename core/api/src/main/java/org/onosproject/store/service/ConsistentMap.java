@@ -20,9 +20,12 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * {@code ConsistentMap} provides the same functionality as {@link AsyncConsistentMap} with
@@ -270,7 +273,17 @@ public interface ConsistentMap<K, V> extends DistributedPrimitive {
      *
      * @param listener listener to notify about map events
      */
-    void addListener(MapEventListener<K, V> listener);
+    default void addListener(MapEventListener<K, V> listener) {
+        addListener(listener, MoreExecutors.directExecutor());
+    }
+
+    /**
+     * Registers the specified listener to be notified whenever the map is updated.
+     *
+     * @param listener listener to notify about map events
+     * @param executor executor to use for handling incoming map events
+     */
+    void addListener(MapEventListener<K, V> listener, Executor executor);
 
     /**
      * Unregisters the specified listener such that it will no longer
