@@ -35,6 +35,8 @@ public final class DiscreteResourceSet {
     private final Set<DiscreteResource> values;
     private final DiscreteResourceCodec codec;
 
+    private static final DiscreteResourceSet EMPTY = new DiscreteResourceSet(ImmutableSet.of(), NoOpCodec.INSTANCE);
+
     /**
      * Creates an instance with resources and the codec for them.
      *
@@ -56,7 +58,7 @@ public final class DiscreteResourceSet {
      * @return an empty resource set
      */
     public static DiscreteResourceSet empty() {
-        return new DiscreteResourceSet(ImmutableSet.of(), NoOpCodec.INSTANCE);
+        return EMPTY;
     }
 
     private DiscreteResourceSet(Set<DiscreteResource> values, DiscreteResourceCodec codec) {
