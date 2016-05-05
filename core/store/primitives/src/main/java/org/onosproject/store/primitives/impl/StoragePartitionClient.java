@@ -53,6 +53,7 @@ import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.onosproject.store.service.DistributedQueue;
+import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
 
@@ -188,6 +189,17 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     @Override
     public boolean isOpen() {
         return client.isOpen();
+    }
+
+    /**
+     * Returns the {@link PartitionClientInfo information} for this client.
+     * @return partition client information
+     */
+    public PartitionClientInfo clientInfo() {
+        return new PartitionClientInfo(partition.getId(),
+                partition.getMembers(),
+                copycatClient.session().id(),
+                mapper.apply(copycatClient.state()));
     }
 
     private CopycatClient newCopycatClient(Collection<Address> members,

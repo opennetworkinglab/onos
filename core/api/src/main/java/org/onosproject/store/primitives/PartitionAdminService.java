@@ -17,6 +17,7 @@ package org.onosproject.store.primitives;
 
 import java.util.List;
 
+import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.PartitionInfo;
 
 /**
@@ -29,4 +30,10 @@ public interface PartitionAdminService {
      * @return list of {@code PartitionInfo}
      */
     List<PartitionInfo> partitionInfo();
+
+    /**
+     * Returns the {@link PartitionClientInfo information} for partition clients.
+     * @return list of {@code PartitionClientInfo}
+     */
+    List<PartitionClientInfo> partitionClientInfo();
 }

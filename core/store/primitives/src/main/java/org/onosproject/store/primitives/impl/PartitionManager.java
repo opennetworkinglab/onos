@@ -49,6 +49,7 @@ import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionEvent;
 import org.onosproject.store.primitives.PartitionEventListener;
 import org.onosproject.store.primitives.PartitionService;
+import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.PartitionInfo;
 import org.slf4j.Logger;
 
@@ -175,5 +176,14 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
         public void event(ClusterMetadataEvent event) {
             processMetadataUpdate(event.subject());
         }
+    }
+
+    @Override
+    public List<PartitionClientInfo> partitionClientInfo() {
+        return partitions.values()
+                         .stream()
+                         .map(StoragePartition::client)
+                         .map(StoragePartitionClient::clientInfo)
+                         .collect(Collectors.toList());
     }
 }
