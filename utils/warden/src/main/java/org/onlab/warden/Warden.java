@@ -55,6 +55,7 @@ class Warden {
     private static final long TIMEOUT = 10; // 10 seconds
     private static final int MAX_MINUTES = 240; // 4 hours max
     private static final int MINUTE = 60_000; // 1 minute
+    private static final int DEFAULT_MINUTES = 60;
 
     private final File log = new File("warden.log");
 
@@ -157,11 +158,11 @@ class Warden {
         long now = System.currentTimeMillis();
         Reservation reservation = currentUserReservation(userName);
         if (reservation == null) {
-            checkArgument(minutes > 0, "Number of minutes must be positive");
+            checkArgument(minutes >= 0, "Number of minutes must be non-negative");
             Set<String> cells = getAvailableCells();
             checkState(!cells.isEmpty(), "No cells are presently available");
             String cellName = ImmutableList.copyOf(cells).get(random.nextInt(cells.size()));
-            reservation = new Reservation(cellName, userName, now, minutes);
+            reservation = new Reservation(cellName, userName, now, minutes == 0 ? DEFAULT_MINUTES : minutes);
         } else if (minutes == 0) {
             // If minutes are 0, simply return the cell definition
             return getCellDefinition(reservation.cellName);
@@ -171,7 +172,7 @@ class Warden {
 
         reserveCell(reservation.cellName, reservation);
         installUserKeys(reservation.cellName, userName, sshKey);
-        log(userName, reservation.cellName, "borrowed for " + minutes + " minutes");
+        log(userName, reservation.cellName, "borrowed for " + reservation.duration + " minutes");
         return getCellDefinition(reservation.cellName);
     }
 
