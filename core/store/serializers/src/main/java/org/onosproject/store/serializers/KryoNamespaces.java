@@ -293,7 +293,7 @@ public final class KryoNamespaces {
     /**
      * Kryo registration Id for user custom registration.
      */
-    public static final int BEGIN_USER_CUSTOM_ID = 300;
+    public static final int BEGIN_USER_CUSTOM_ID = 500;
 
     // TODO: Populate other classes
     /**
@@ -302,9 +302,9 @@ public final class KryoNamespaces {
     public static final KryoNamespace API = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.INITIAL_ID)
             .register(BASIC)
-            .nextId(KryoNamespace.INITIAL_ID + 30)
+            .nextId(KryoNamespace.INITIAL_ID + 50)
             .register(MISC)
-            .nextId(KryoNamespace.INITIAL_ID + 30 + 20)
+            .nextId(KryoNamespace.INITIAL_ID + 50 + 30)
             .register(
                     Instructions.MeterInstruction.class,
                     MeterId.class,
