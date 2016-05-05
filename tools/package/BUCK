@@ -106,3 +106,12 @@ genrule(
   bash = '$(exe //buck-tools:onos-stage) $OUT $(location :onos-karaf) ' + ' '.join(sources),
   visibility = [ 'PUBLIC' ],
 )
+
+genrule(
+  name = 'onos-run',
+  out = 'onos-run',
+  srcs = [ 'onos-run-karaf' ],
+  bash = 'sed "s#ONOS_TAR=#ONOS_TAR=$(location :onos-package)#" $SRCS > $OUT; chmod +x $OUT',
+  executable = True,
+  visibility = [ 'PUBLIC' ],
+)
