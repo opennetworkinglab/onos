@@ -111,8 +111,6 @@ def osgi_jar(
   ### Checkstyle
   if srcs:
     chk_cmd = '#!/bin/bash\n'
-    # FIXME hack to add dependency on suppressions-xml in the checkstyle rule
-    chk_cmd += 'FOO="$(location //tools/build/conf:suppressions-xml)"\n'
     base = get_base_path()
     chk_cmd += ' '.join(( 'java -jar $(location //lib:checkstyle)',
                          '-c $(location //tools/build/conf:checkstyle-xml)',
@@ -131,7 +129,11 @@ def osgi_jar(
     sh_test(
       name = name + '-checkstyle',
       test = ':' + name + '-checkstyle-sh',
-      deps = [ ':'+ bare_jar_name ],
+      deps = [ ':'+ bare_jar_name,
+               '//lib:checkstyle',
+               '//tools/build/conf:checkstyle-xml',
+               '//tools/build/conf:suppressions-xml',
+             ],
       labels = [ 'checkstyle' ],
     )
   else:
