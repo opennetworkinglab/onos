@@ -16,6 +16,7 @@
 package org.onlab.util;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Registration;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
@@ -59,7 +60,7 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
     /**
      * Smallest ID free to use for user defined registrations.
      */
-    public static final int INITIAL_ID = 11;
+    public static final int INITIAL_ID = 16;
 
     private static final Logger log = getLogger(KryoNamespace.class);
 
@@ -379,6 +380,7 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
      */
     @Override
     public Kryo create() {
+        log.trace("Creating Kryo instance for {}", this);
         Kryo kryo = new Kryo();
         kryo.setRegistrationRequired(registrationRequired);
 
@@ -392,15 +394,46 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
                 id = kryo.getNextRegistrationId();
             }
             for (Pair<Class<?>, Serializer<?>> entry : block.types()) {
-                final Serializer<?> serializer = entry.getRight();
-                if (serializer == null) {
-                    kryo.register(entry.getLeft(), id++);
-                } else {
-                    kryo.register(entry.getLeft(), serializer, id++);
-                }
+                register(kryo, entry.getLeft(), entry.getRight(), id++);
             }
         }
         return kryo;
+    }
+
+    /**
+     * Register {@code type} and {@code serializer} to {@code kryo} instance.
+     *
+     * @param kryo       Kryo instance
+     * @param type       type to register
+     * @param serializer Specific serializer to register or null to use default.
+     * @param id         type registration id to use
+     */
+    private static void register(Kryo kryo, Class<?> type, Serializer<?> serializer, int id) {
+        Registration existing = kryo.getRegistration(id);
+        if (existing != null) {
+            if (existing.getType() != type) {
+                log.error("Failed to register {} as {}, {} was already registered.",
+                          type, id, existing.getType());
+
+                throw new IllegalStateException(String.format(
+                          "Failed to register %s as %s, %s was already registered.",
+                          type, id, existing.getType()));
+            }
+            // falling through to register call for now.
+            // Consider skipping, if there's reasonable
+            // way to compare serializer equivalence.
+        }
+        Registration r;
+        if (serializer == null) {
+            r = kryo.register(type, id);
+        } else {
+            r = kryo.register(type, serializer, id);
+        }
+        if (r.getId() != id) {
+            log.warn("{} already registed as {}. Skipping {}.",
+                     r.getType(), r.getId(), id);
+        }
+        log.trace("{} registered as {}", r.getType(), r.getId());
     }
 
     @Override
