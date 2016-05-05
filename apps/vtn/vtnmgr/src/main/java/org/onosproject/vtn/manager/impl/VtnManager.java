@@ -110,6 +110,7 @@ import org.onosproject.vtnrsc.SubnetId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.TenantNetwork;
 import org.onosproject.vtnrsc.TenantNetworkId;
+import org.onosproject.vtnrsc.TenantRouter;
 import org.onosproject.vtnrsc.VirtualPort;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.event.VtnRscEvent;
@@ -199,7 +200,7 @@ public class VtnManager implements VtnService {
     private static final String VIRTUALPORT = "vtn-virtual-port";
     private static final String SWITCHES_OF_CONTROLLER = "switchesOfController";
     private static final String SWITCH_OF_LOCAL_HOST_PORTS = "switchOfLocalHostPorts";
-    private static final String ROUTERINF_FLAG_OF_TENANT = "routerInfFlagOfTenant";
+    private static final String ROUTERINF_FLAG_OF_TENANTROUTER = "routerInfFlagOfTenantRouter";
     private static final String HOSTS_OF_SUBNET = "hostsOfSubnet";
     private static final String EX_PORT_OF_DEVICE = "exPortOfDevice";
     private static final String EX_PORT_MAP = "exPortMap";
@@ -210,7 +211,7 @@ public class VtnManager implements VtnService {
     private EventuallyConsistentMap<IpAddress, Boolean> switchesOfController;
     private EventuallyConsistentMap<DeviceId, NetworkOfLocalHostPorts> switchOfLocalHostPorts;
     private EventuallyConsistentMap<SubnetId, Map<HostId, Host>> hostsOfSubnet;
-    private EventuallyConsistentMap<TenantId, Boolean> routerInfFlagOfTenant;
+    private EventuallyConsistentMap<TenantRouter, Boolean> routerInfFlagOfTenantRouter;
     private EventuallyConsistentMap<DeviceId, Port> exPortOfDevice;
     private static ConsistentMap<String, String> exPortMap;
 
@@ -269,9 +270,9 @@ public class VtnManager implements VtnService {
                 .withTimestampProvider((k, v) -> clockService.getTimestamp())
                 .build();
 
-        routerInfFlagOfTenant = storageService
-                .<TenantId, Boolean>eventuallyConsistentMapBuilder()
-                .withName(ROUTERINF_FLAG_OF_TENANT).withSerializer(serializer)
+        routerInfFlagOfTenantRouter = storageService
+                .<TenantRouter, Boolean>eventuallyConsistentMapBuilder()
+                .withName(ROUTERINF_FLAG_OF_TENANTROUTER).withSerializer(serializer)
                 .withTimestampProvider((k, v) -> clockService.getTimestamp())
                 .build();
 
@@ -766,10 +767,13 @@ public class VtnManager implements VtnService {
         vPortStore.put(gwPort.portId(), gwPort);
         Iterable<RouterInterface> interfaces = routerInterfaceService
                 .getRouterInterfaces();
-        Set<RouterInterface> interfacesSet = Sets.newHashSet(interfaces)
-                .stream().filter(r -> r.tenantId().equals(routerInf.tenantId()))
+        Set<RouterInterface> interfacesSet = Sets.newHashSet(interfaces).stream()
+                .filter(r -> r.tenantId().equals(routerInf.tenantId()))
+                .filter(r -> r.routerId().equals(routerInf.routerId()))
                 .collect(Collectors.toSet());
-        if (routerInfFlagOfTenant.get(routerInf.tenantId()) != null) {
+        TenantRouter tenantRouter = TenantRouter
+                .tenantRouter(routerInf.tenantId(), routerInf.routerId());
+        if (routerInfFlagOfTenantRouter.get(tenantRouter) != null) {
             programRouterInterface(routerInf, operation);
         } else {
             if (interfacesSet.size() >= SUBNET_NUM) {
@@ -787,10 +791,12 @@ public class VtnManager implements VtnService {
         Set<RouterInterface> interfacesSet = Sets.newHashSet(interfaces)
                 .stream().filter(r -> r.tenantId().equals(routerInf.tenantId()))
                 .collect(Collectors.toSet());
-        if (routerInfFlagOfTenant.get(routerInf.tenantId()) != null) {
+        TenantRouter tenantRouter = TenantRouter
+                .tenantRouter(routerInf.tenantId(), routerInf.routerId());
+        if (routerInfFlagOfTenantRouter.get(tenantRouter) != null) {
             programRouterInterface(routerInf, operation);
             if (interfacesSet.size() == 1) {
-                routerInfFlagOfTenant.remove(routerInf.tenantId());
+                routerInfFlagOfTenantRouter.remove(tenantRouter);
                 interfacesSet.stream().forEach(r -> {
                     programRouterInterface(r, operation);
                 });
@@ -822,7 +828,9 @@ public class VtnManager implements VtnService {
             if (hosts != null && hosts.size() > 0) {
                 subnetVmNum++;
                 if (subnetVmNum >= SUBNET_NUM) {
-                    routerInfFlagOfTenant.put(r.tenantId(), true);
+                    TenantRouter tenantRouter = TenantRouter
+                            .tenantRouter(r.tenantId(), r.routerId());
+                    routerInfFlagOfTenantRouter.put(tenantRouter, true);
                     interfacesSet.stream().forEach(f -> {
                         programRouterInterface(f, operation);
                     });
@@ -834,7 +842,9 @@ public class VtnManager implements VtnService {
 
     private void programRouterInterface(RouterInterface routerInf,
                                         Objective.Operation operation) {
-        SegmentationId l3vni = vtnRscService.getL3vni(routerInf.tenantId());
+        TenantRouter tenantRouter = TenantRouter
+                .tenantRouter(routerInf.tenantId(), routerInf.routerId());
+        SegmentationId l3vni = vtnRscService.getL3vni(tenantRouter);
         // Get all the host of the subnet
         Map<HostId, Host> hosts = hostsOfSubnet.get(routerInf.subnetId());
         hosts.values().stream().forEach(h -> {
@@ -929,8 +939,9 @@ public class VtnManager implements VtnService {
             if (host != null && vmPort != null && fipPort != null) {
                 DeviceId deviceId = host.location().deviceId();
                 Port exPort = exPortOfDevice.get(deviceId);
-                SegmentationId l3vni = vtnRscService
-                        .getL3vni(vmPort.tenantId());
+                TenantRouter tenantRouter = TenantRouter
+                        .tenantRouter(floaingIp.tenantId(), floaingIp.routerId());
+                SegmentationId l3vni = vtnRscService.getL3vni(tenantRouter);
                 // Floating ip BIND
                 if (type == VtnRscEvent.Type.FLOATINGIP_BIND) {
                     vPortStore.put(fipPort.portId(), fipPort);
@@ -951,7 +962,7 @@ public class VtnManager implements VtnService {
     private void applyNorthSouthL3Flows(DeviceId deviceId, Host host,
                                         VirtualPort vmPort, VirtualPort fipPort,
                                         FloatingIp floatingIp,
-                                        SegmentationId l3Vni, Port exPort,
+                                        SegmentationId l3vni, Port exPort,
                                         Objective.Operation operation) {
         if (!mastershipService.isLocalMaster(deviceId)) {
             log.debug("not master device:{}", deviceId);
@@ -980,9 +991,9 @@ public class VtnManager implements VtnService {
                                          operation);
         dnatService.programRules(deviceId, floatingIp.floatingIp(),
                                      fGwMac, floatingIp.fixedIp(),
-                                     l3Vni, operation);
+                                     l3vni, operation);
         l3ForwardService
-                .programRouteRules(deviceId, l3Vni, floatingIp.fixedIp(),
+                .programRouteRules(deviceId, l3vni, floatingIp.fixedIp(),
                                    vmNetwork.segmentationId(), dstVmGwMac,
                                    vmPort.macAddress(), operation);
 
@@ -990,8 +1001,8 @@ public class VtnManager implements VtnService {
         classifierService.programL3InPortClassifierRules(deviceId,
                                                          host.location().port(),
                                                          host.mac(), dstVmGwMac,
-                                                         l3Vni, operation);
-        snatService.programRules(deviceId, l3Vni, floatingIp.fixedIp(),
+                                                         l3vni, operation);
+        snatService.programRules(deviceId, l3vni, floatingIp.fixedIp(),
                                      fGwMac, exPortMac,
                                      floatingIp.floatingIp(),
                                      fipNetwork.segmentationId(), operation);
@@ -1056,7 +1067,6 @@ public class VtnManager implements VtnService {
         }
         TenantId tenantId = port.tenantId();
         Port exPort = exPortOfDevice.get(deviceId);
-        SegmentationId l3vni = vtnRscService.getL3vni(tenantId);
         Iterator<FixedIp> fixips = port.fixedIps().iterator();
         SubnetId sid = null;
         IpAddress hostIp = null;
@@ -1069,26 +1079,36 @@ public class VtnManager implements VtnService {
         // L3 internal network access to each other
         Iterable<RouterInterface> interfaces = routerInterfaceService
                 .getRouterInterfaces();
-        Set<RouterInterface> interfacesSet = Sets.newHashSet(interfaces)
+        Set<RouterInterface> hostInterfaces = Sets.newHashSet(interfaces)
                 .stream().filter(r -> r.tenantId().equals(tenantId))
+                .filter(r -> r.subnetId().equals(subnetId))
                 .collect(Collectors.toSet());
-        long count = interfacesSet.stream()
-                .filter(r -> !r.subnetId().equals(subnetId)).count();
-        if (count > 0) {
-            if (operation == Objective.Operation.ADD) {
-                if (routerInfFlagOfTenant.get(tenantId) != null) {
-                    applyEastWestL3Flows(host, l3vni, operation);
-                } else {
-                    if (interfacesSet.size() > 1) {
-                        programInterfacesSet(interfacesSet, operation);
+        hostInterfaces.stream().forEach(routerInf -> {
+            Set<RouterInterface> interfacesSet = Sets.newHashSet(interfaces)
+                    .stream().filter(r -> r.tenantId().equals(tenantId))
+                    .filter(r -> r.routerId().equals(routerInf.routerId()))
+                    .collect(Collectors.toSet());
+            long count = interfacesSet.stream()
+                    .filter(r -> !r.subnetId().equals(subnetId)).count();
+            if (count > 0) {
+                TenantRouter tenantRouter = TenantRouter
+                        .tenantRouter(routerInf.tenantId(), routerInf.routerId());
+                SegmentationId l3vni = vtnRscService.getL3vni(tenantRouter);
+                if (operation == Objective.Operation.ADD) {
+                    if (routerInfFlagOfTenantRouter.get(tenantRouter) != null) {
+                        applyEastWestL3Flows(host, l3vni, operation);
+                    } else {
+                        if (interfacesSet.size() > 1) {
+                            programInterfacesSet(interfacesSet, operation);
+                        }
+                    }
+                } else if (operation == Objective.Operation.REMOVE) {
+                    if (routerInfFlagOfTenantRouter.get(tenantRouter) != null) {
+                        applyEastWestL3Flows(host, l3vni, operation);
                     }
                 }
-            } else if (operation == Objective.Operation.REMOVE) {
-                if (routerInfFlagOfTenant.get(tenantId) != null) {
-                    applyEastWestL3Flows(host, l3vni, operation);
-                }
             }
-        }
+        });
         // L3 external and internal network access to each other
         FloatingIp floatingIp = null;
         Iterable<FloatingIp> floatingIps = floatingIpService.getFloatingIps();
@@ -1103,6 +1123,9 @@ public class VtnManager implements VtnService {
             }
         }
         if (floatingIp != null) {
+            TenantRouter tenantRouter = TenantRouter
+                    .tenantRouter(floatingIp.tenantId(), floatingIp.routerId());
+            SegmentationId l3vni = vtnRscService.getL3vni(tenantRouter);
             VirtualPort fipPort = virtualPortService
                     .getPort(floatingIp.networkId(), floatingIp.floatingIp());
             if (fipPort == null) {

@@ -23,6 +23,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.TenantRouter;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.event.VtnRscEvent;
 import org.onosproject.vtnrsc.event.VtnRscListener;
@@ -40,6 +41,14 @@ public interface VtnRscService extends ListenerService<VtnRscEvent, VtnRscListen
      * @return SegmentationId the SegmentationId of tenant
      */
     SegmentationId getL3vni(TenantId tenantId);
+
+    /**
+     * Returns the SegmentationId of tenantRouter.
+     *
+     * @param tenantRouter TenantRouter
+     * @return SegmentationId the SegmentationId of tenantRouter
+     */
+    SegmentationId getL3vni(TenantRouter tenantRouter);
 
     /**
      * Returns Classifier Ovs list of the specific tenant.
