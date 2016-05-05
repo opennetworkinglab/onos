@@ -110,7 +110,7 @@ def osgi_jar(
 
   ### Checkstyle
   if srcs:
-    chk_cmd = '#!/bin/sh\n'
+    chk_cmd = '#!/bin/bash\n'
     # FIXME hack to add dependency on suppressions-xml in the checkstyle rule
     chk_cmd += 'FOO="$(location //tools/build/conf:suppressions-xml)"\n'
     base = get_base_path()
