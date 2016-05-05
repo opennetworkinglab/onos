@@ -236,16 +236,6 @@ public final class Bmv2ThriftClient implements Bmv2Client {
         return buffers;
     }
 
-    private void closeTransport() {
-        LOG.debug("Closing transport session... > deviceId={}", deviceId);
-        if (this.transport.isOpen()) {
-            this.transport.close();
-            LOG.debug("Transport session closed! > deviceId={}", deviceId);
-        } else {
-            LOG.debug("Transport session was already closed! deviceId={}", deviceId);
-        }
-    }
-
     @Override
     public final long addTableEntry(Bmv2TableEntry entry) throws Bmv2RuntimeException {
 
@@ -527,7 +517,7 @@ public final class Bmv2ThriftClient implements Bmv2Client {
             TTransport transport = new TSocket(
                     info.getLeft(), info.getRight());
             TProtocol protocol = new TBinaryProtocol(transport);
-            // Our BMv2 device implements multiple Thrift services, create a client for each one.
+            // Our BMv2 device implements multiple Thrift services, create a client for each one on the same transport.
             Standard.Client standardClient = new Standard.Client(
                     new TMultiplexedProtocol(protocol, "standard"));
             SimpleSwitch.Client simpleSwitch = new SimpleSwitch.Client(
@@ -551,11 +541,20 @@ public final class Bmv2ThriftClient implements Bmv2Client {
             RemovalListener<DeviceId, Bmv2ThriftClient> {
 
         @Override
-        public void onRemoval(
-                RemovalNotification<DeviceId, Bmv2ThriftClient> notification) {
+        public void onRemoval(RemovalNotification<DeviceId, Bmv2ThriftClient> notification) {
             // close the transport connection
-            LOG.debug("Removing client from cache... > deviceId={}", notification.getKey());
-            notification.getValue().closeTransport();
+            Bmv2ThriftClient client = notification.getValue();
+            // Locking here is ugly, but needed (see SafeThriftClient).
+            synchronized (client.transport) {
+                LOG.debug("Closing transport session... > deviceId={}", client.deviceId);
+                if (client.transport.isOpen()) {
+                    client.transport.close();
+                    LOG.debug("Transport session closed! > deviceId={}", client.deviceId);
+                } else {
+                    LOG.debug("Transport session was already closed! deviceId={}", client.deviceId);
+                }
+            }
+            LOG.debug("Removing client from cache... > deviceId={}", client.deviceId);
         }
     }
 }
