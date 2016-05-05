@@ -73,8 +73,9 @@ CORE = [
 ]
 
 APPS = [
-    #Drivers
+    # Drivers
     '//drivers/default:onos-drivers-default-oar',
+    '//drivers/corsa:onos-drivers-corsa-oar',
 
     # Providers
     '//providers/bgp:onos-providers-bgp-oar',
