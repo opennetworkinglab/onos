@@ -68,11 +68,7 @@ def stageOnos(output, files=[]):
                 dest += 'onos-features-1.6.0-SNAPSHOT-features.xml'
                 with open(file) as f:
                     addFile(output, dest, f, os.stat(file).st_size)
-        # FIXME figure out "active" apps
         addString(output, BASE + 'apps/org.onosproject.drivers/active', '')
-        addString(output, BASE + 'apps/org.onosproject.openflow-base/active', '')
-        addString(output, BASE + 'apps/org.onosproject.lldp/active', '')
-        addString(output, BASE + 'apps/org.onosproject.host/active', '')
         addString(output, BASE + 'VERSION', VERSION)
 
 if __name__ == '__main__':
