@@ -13,7 +13,7 @@ cd /tmp
 set -e
 
 # Blitz previously unrolled onos- directory
-rm -fr onos-*
+rm -fr onos-*/
 
 # Unroll new image from the specified tar file
 [ -f $ONOS_TAR ] && tar zxf $ONOS_TAR
