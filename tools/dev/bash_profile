@@ -159,7 +159,7 @@ function cell {
     esac
 }
 
-[ -n "$ONOS_CELL" ] && cell $ONOS_CELL > /dev/null
+[ -n "$ONOS_CELL" -a "$ONOS_CELL" != "borrow" ] && cell $ONOS_CELL > /dev/null
 
 # Lists available cells
 function cells {
