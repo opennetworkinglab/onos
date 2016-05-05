@@ -58,8 +58,6 @@ public final class NiciraResubmitTableCodec extends JsonCodec<NiciraResubmitTabl
         short tableId = (short) nullIsIllegal(json.get(RESUBMIT_TABLE),
                 RESUBMIT_TABLE + MISSING_MEMBER_MESSAGE).asInt();
 
-        NiciraResubmitTable niciraResubmitTable = new NiciraResubmitTable(portNumber, tableId);
-
-        return niciraResubmitTable;
+        return new NiciraResubmitTable(portNumber, tableId);
     }
 }

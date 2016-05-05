@@ -53,8 +53,6 @@ public final class NiciraSetNshSpiCodec extends JsonCodec<NiciraSetNshSpi> {
 
         NshServicePathId pathId = NshServicePathId.of(servicePathIdInt);
 
-        NiciraSetNshSpi niciraSetNshSpi = new NiciraSetNshSpi(pathId);
-
-        return niciraSetNshSpi;
+        return new NiciraSetNshSpi(pathId);
     }
 }

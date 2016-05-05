@@ -53,8 +53,6 @@ public final class NiciraResubmitCodec extends JsonCodec<NiciraResubmit> {
         long portNumberLong = nullIsIllegal(json.get(RESUBMIT_PORT), RESUBMIT_PORT + MISSING_MEMBER_MESSAGE).asLong();
         PortNumber portNumber = PortNumber.portNumber(portNumberLong);
 
-        NiciraResubmit niciraResubmit = new NiciraResubmit(portNumber);
-
-        return niciraResubmit;
+        return new NiciraResubmit(portNumber);
     }
 }

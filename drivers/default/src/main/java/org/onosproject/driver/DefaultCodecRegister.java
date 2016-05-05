@@ -30,6 +30,8 @@ import org.onosproject.driver.extensions.NiciraSetNshContextHeader;
 import org.onosproject.driver.extensions.NiciraSetNshSi;
 import org.onosproject.driver.extensions.NiciraSetNshSpi;
 import org.onosproject.driver.extensions.NiciraSetTunnelDst;
+import org.onosproject.driver.extensions.OfdpaMatchVlanVid;
+import org.onosproject.driver.extensions.OfdpaSetVlanVid;
 import org.onosproject.driver.extensions.codec.MoveExtensionTreatmentCodec;
 import org.onosproject.driver.extensions.codec.NiciraMatchNshSiCodec;
 import org.onosproject.driver.extensions.codec.NiciraMatchNshSpiCodec;
@@ -39,6 +41,8 @@ import org.onosproject.driver.extensions.codec.NiciraSetNshContextHeaderCodec;
 import org.onosproject.driver.extensions.codec.NiciraSetNshSiCodec;
 import org.onosproject.driver.extensions.codec.NiciraSetNshSpiCodec;
 import org.onosproject.driver.extensions.codec.NiciraSetTunnelDstCodec;
+import org.onosproject.driver.extensions.codec.OfdpaMatchVlanVidCodec;
+import org.onosproject.driver.extensions.codec.OfdpaSetVlanVidCodec;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -65,6 +69,8 @@ public class DefaultCodecRegister {
         codecService.registerCodec(NiciraSetNshSpi.class, new NiciraSetNshSpiCodec());
         codecService.registerCodec(NiciraSetTunnelDst.class, new NiciraSetTunnelDstCodec());
         codecService.registerCodec(NiciraSetNshContextHeader.class, new NiciraSetNshContextHeaderCodec());
+        codecService.registerCodec(OfdpaMatchVlanVid.class, new OfdpaMatchVlanVidCodec());
+        codecService.registerCodec(OfdpaSetVlanVid.class, new OfdpaSetVlanVidCodec());
         log.info("Registered default driver codecs.");
     }
 
@@ -79,6 +85,8 @@ public class DefaultCodecRegister {
         codecService.unregisterCodec(NiciraSetNshSpi.class);
         codecService.unregisterCodec(NiciraSetTunnelDst.class);
         codecService.unregisterCodec(NiciraSetNshContextHeader.class);
+        codecService.unregisterCodec(OfdpaMatchVlanVid.class);
+        codecService.unregisterCodec(OfdpaSetVlanVid.class);
         log.info("Unregistered default driver codecs.");
     }
 }

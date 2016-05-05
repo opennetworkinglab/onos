@@ -62,9 +62,6 @@ public class NiciraSetNshContextHeaderCodec extends JsonCodec<NiciraSetNshContex
 
         ExtensionTreatmentType type = new ExtensionTreatmentType(extensionTypeInt);
 
-        NiciraSetNshContextHeader niciraSetNshContextHeader =
-                new NiciraSetNshContextHeader(contextHeader, type);
-
-        return niciraSetNshContextHeader;
+        return new NiciraSetNshContextHeader(contextHeader, type);
     }
 }

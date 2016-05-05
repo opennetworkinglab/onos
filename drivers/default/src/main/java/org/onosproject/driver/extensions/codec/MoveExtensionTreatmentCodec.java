@@ -76,9 +76,6 @@ public final class MoveExtensionTreatmentCodec extends JsonCodec<MoveExtensionTr
         // parse dst
         int dst = nullIsIllegal(json.get(DST), DST + MISSING_MEMBER_MESSAGE).asInt();
 
-        MoveExtensionTreatment moveExtensionTreatment =
-                new DefaultMoveExtensionTreatment(srcOfs, dstOfs, nBits, src, dst, type);
-
-        return moveExtensionTreatment;
+        return new DefaultMoveExtensionTreatment(srcOfs, dstOfs, nBits, src, dst, type);
     }
 }

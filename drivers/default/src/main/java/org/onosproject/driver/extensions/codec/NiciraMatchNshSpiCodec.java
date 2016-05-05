@@ -52,8 +52,6 @@ public final class NiciraMatchNshSpiCodec extends JsonCodec<NiciraMatchNshSpi> {
                 NSH_PATH_ID + MISSING_MEMBER_MESSAGE).asInt();
         NshServicePathId nshSpi = NshServicePathId.of(nshSpiInt);
 
-        NiciraMatchNshSpi niciraMatchNshSpi = new NiciraMatchNshSpi(nshSpi);
-
-        return niciraMatchNshSpi;
+        return new NiciraMatchNshSpi(nshSpi);
     }
 }

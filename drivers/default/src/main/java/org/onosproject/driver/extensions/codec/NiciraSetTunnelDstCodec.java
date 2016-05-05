@@ -52,8 +52,6 @@ public final class NiciraSetTunnelDstCodec extends JsonCodec<NiciraSetTunnelDst>
 
         Ip4Address tunnelDst = Ip4Address.valueOf(dstIp);
 
-        NiciraSetTunnelDst niciraSetTunnelDst = new NiciraSetTunnelDst(tunnelDst);
-
-        return niciraSetTunnelDst;
+        return new NiciraSetTunnelDst(tunnelDst);
     }
 }

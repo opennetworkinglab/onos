@@ -16,42 +16,40 @@
 package org.onosproject.driver.extensions.codec;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.driver.extensions.NiciraMatchNshSi;
-import org.onosproject.net.NshServiceIndex;
+import org.onosproject.driver.extensions.OfdpaSetVlanVid;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
 
 /**
- * JSON Codec for NiciraMatchNshSi class.
+ * JSON Codec for Ofdpa set vlan vid class.
  */
-public final class NiciraMatchNshSiCodec extends JsonCodec<NiciraMatchNshSi> {
+public class OfdpaSetVlanVidCodec extends JsonCodec<OfdpaSetVlanVid> {
 
-    private static final String NSH_SERVICE_INDEX = "nsi";
+    private static final String VLAN_ID = "vlanId";
 
-    private static final String MISSING_MEMBER_MESSAGE = " member is required in NiciraMatchNshSi";
+    private static final String MISSING_MEMBER_MESSAGE = " member is required in OfdpaSetVlanVid";
 
     @Override
-    public ObjectNode encode(NiciraMatchNshSi niciraMatchNshSi, CodecContext context) {
-        checkNotNull(niciraMatchNshSi, "Nicira Match Nsh Si cannot be null");
+    public ObjectNode encode(OfdpaSetVlanVid vlanId, CodecContext context) {
+        checkNotNull(vlanId, "Vlan ID cannot be null");
         ObjectNode root = context.mapper().createObjectNode()
-                .put(NSH_SERVICE_INDEX, niciraMatchNshSi.nshSi().serviceIndex());
+                .put(VLAN_ID, vlanId.vlanId().id());
         return root;
     }
 
     @Override
-    public NiciraMatchNshSi decode(ObjectNode json, CodecContext context) {
+    public OfdpaSetVlanVid decode(ObjectNode json, CodecContext context) {
         if (json == null || !json.isObject()) {
             return null;
         }
 
-        // parse nsh service index
-        short nshSiShort = (short) nullIsIllegal(json.get(NSH_SERVICE_INDEX),
-                NSH_SERVICE_INDEX + MISSING_MEMBER_MESSAGE).asInt();
-        NshServiceIndex nshSi = NshServiceIndex.of(nshSiShort);
-
-        return new NiciraMatchNshSi(nshSi);
+        // parse ofdpa set vlan vid
+        short vlanVid = (short) nullIsIllegal(json.get(VLAN_ID),
+                VLAN_ID + MISSING_MEMBER_MESSAGE).asInt();
+        return new OfdpaSetVlanVid(VlanId.vlanId(vlanVid));
     }
 }

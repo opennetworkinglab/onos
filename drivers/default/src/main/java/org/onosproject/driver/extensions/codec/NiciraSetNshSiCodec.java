@@ -53,8 +53,6 @@ public final class NiciraSetNshSiCodec extends JsonCodec<NiciraSetNshSi> {
 
         NshServiceIndex index = NshServiceIndex.of(serviceIndexShort);
 
-        NiciraSetNshSi niciraSetNshSi = new NiciraSetNshSi(index);
-
-        return niciraSetNshSi;
+        return new NiciraSetNshSi(index);
     }
 }
