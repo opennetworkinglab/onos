@@ -59,6 +59,7 @@
         var p = {
             mapid: map.id,
             mapscale: map.scale,
+            mapfilepath: map.filePath,
             tint: tintCheck.property('checked') ? 'on' : 'off'
         };
         setMap(p);
