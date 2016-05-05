@@ -54,4 +54,10 @@ public class UiLink extends UiElement {
             children = null;
         }
     }
+
+    @Override
+    public String idAsString() {
+        // TODO
+        return null;
+    }
 }

@@ -17,6 +17,7 @@
 package org.onosproject.ui.model.topo;
 
 import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
 
 /**
  * Represents an end-station host.
@@ -28,5 +29,19 @@ public class UiHost extends UiNode {
     @Override
     protected void destroy() {
         host = null;
+    }
+
+    /**
+     * Returns the identity of the host.
+     *
+     * @return host ID
+     */
+    public HostId id() {
+        return host.id();
+    }
+
+    @Override
+    public String idAsString() {
+        return id().toString();
     }
 }

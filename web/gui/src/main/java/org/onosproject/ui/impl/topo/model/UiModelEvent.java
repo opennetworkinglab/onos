@@ -29,8 +29,12 @@ public class UiModelEvent extends AbstractEvent<UiModelEvent.Type, UiElement> {
     }
 
     enum Type {
-        DEVICE_ADDED,
+        CLUSTER_MEMBER_ADDED_OR_UPDATED,
+        CLUSTER_MEMBER_REMOVED,
+
+        DEVICE_ADDED_OR_UPDATED,
         DEVICE_REMOVED,
+
         // TODO...
     }
 }

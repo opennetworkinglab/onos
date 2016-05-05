@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.onosproject.ui.impl.topo.model;
+package org.onosproject.ui;
 
 /**
- * Base class for model test classes.
+ * Abstract base class for UI tests.
  */
-public abstract class AbstractModelTest {
+public abstract class AbstractUiTest {
 
     /**
      * System agnostic end-of-line character.
@@ -31,7 +31,7 @@ public abstract class AbstractModelTest {
      *
      * @param s string to print
      */
-    protected void print(String s) {
+    protected static void print(String s) {
         System.out.println(s);
     }
 
@@ -40,8 +40,12 @@ public abstract class AbstractModelTest {
      *
      * @param o object to print
      */
-    protected void print(Object o) {
-        print(o.toString());
+    protected static void print(Object o) {
+        if (o == null) {
+            print("<null>");
+        } else {
+            print(o.toString());
+        }
     }
 
     /**
@@ -51,8 +55,16 @@ public abstract class AbstractModelTest {
      * @param params parameters
      * @see String#format(String, Object...)
      */
-    protected void print(String fmt, Object... params) {
+    protected static void print(String fmt, Object... params) {
         print(String.format(fmt, params));
     }
 
+    /**
+     * Prints a title, to delimit individual unit test output.
+     *
+     * @param s a title for the test
+     */
+    protected static void title(String s) {
+        print(EOL + "=== %s ===", s);
+    }
 }

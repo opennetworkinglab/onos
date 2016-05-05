@@ -17,6 +17,7 @@
 package org.onosproject.ui.model.topo;
 
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 
 /**
  * Represents a device.
@@ -28,5 +29,19 @@ public class UiDevice extends UiNode {
     @Override
     protected void destroy() {
         device = null;
+    }
+
+    /**
+     * Returns the identity of the device.
+     *
+     * @return device ID
+     */
+    public DeviceId id() {
+        return device.id();
+    }
+
+    @Override
+    public String idAsString() {
+        return id().toString();
     }
 }

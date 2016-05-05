@@ -17,6 +17,7 @@
 package org.onosproject.ui.model.topo;
 
 import org.onosproject.net.region.Region;
+import org.onosproject.net.region.RegionId;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -46,4 +47,17 @@ public class UiRegion extends UiNode {
         region = null;
     }
 
+    /**
+     * Returns the identity of the region.
+     *
+     * @return region ID
+     */
+    public RegionId id() {
+        return region.id();
+    }
+
+    @Override
+    public String idAsString() {
+        return id().toString();
+    }
 }

@@ -28,12 +28,14 @@ import java.util.Map;
  */
 class UiCluster extends UiElement {
 
+    private static final String DEFAULT_CLUSTER_ID = "CLUSTER-0";
+
     private final List<UiClusterMember> members = new ArrayList<>();
     private final Map<NodeId, UiClusterMember> lookup = new HashMap<>();
 
     @Override
     public String toString() {
-        return String.valueOf(members.size()) + "-member cluster";
+        return String.valueOf(size()) + "-member cluster";
     }
 
     /**
@@ -65,11 +67,26 @@ class UiCluster extends UiElement {
     }
 
     /**
+     * Removes the given member from the cluster.
+     *
+     * @param member member to remove
+     */
+    public void remove(UiClusterMember member) {
+        members.remove(member);
+        lookup.remove(member.id());
+    }
+
+    /**
      * Returns the number of members in the cluster.
      *
      * @return number of members
      */
     public int size() {
         return members.size();
+    }
+
+    @Override
+    public String idAsString() {
+        return DEFAULT_CLUSTER_ID;
     }
 }

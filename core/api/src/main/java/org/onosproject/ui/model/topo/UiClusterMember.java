@@ -16,8 +16,11 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
+
+import static org.onosproject.cluster.ControllerNode.State.INACTIVE;
 
 /**
  * Represents an individual member of the cluster (ONOS instance).
@@ -25,6 +28,9 @@ import org.onosproject.cluster.NodeId;
 public class UiClusterMember extends UiElement {
 
     private final ControllerNode cnode;
+
+    private int deviceCount = 0;
+    private ControllerNode.State state = INACTIVE;
 
     /**
      * Constructs a cluster member, with a reference to the specified
@@ -36,13 +42,33 @@ public class UiClusterMember extends UiElement {
         this.cnode = cnode;
     }
 
+    @Override
+    public String toString() {
+        return "UiClusterMember{" + cnode +
+                ", online=" + isOnline() +
+                ", ready=" + isReady() +
+                ", #devices=" + deviceCount +
+                "}";
+    }
+
+
     /**
-     * Updates the information about this cluster member.
+     * Sets the state of this cluster member.
      *
-     * @param cnode underlying controller node
+     * @param state the state
      */
-    public void update(ControllerNode cnode) {
-        // TODO: update our information cache appropriately
+    public void setState(ControllerNode.State state) {
+        this.state = state;
+    }
+
+
+    /**
+     * Sets the number of devices for which this cluster member is master.
+     *
+     * @param deviceCount number of devices
+     */
+    public void setDeviceCount(int deviceCount) {
+        this.deviceCount = deviceCount;
     }
 
     /**
@@ -52,5 +78,46 @@ public class UiClusterMember extends UiElement {
      */
     public NodeId id() {
         return cnode.id();
+    }
+
+    /**
+     * Returns the IP address of the cluster member.
+     *
+     * @return the IP address
+     */
+    public IpAddress ip() {
+        return cnode.ip();
+    }
+
+    /**
+     * Returns true if this cluster member is online (active).
+     *
+     * @return true if online, false otherwise
+     */
+    public boolean isOnline() {
+        return state.isActive();
+    }
+
+    /**
+     * Returns true if this cluster member is considered ready.
+     *
+     * @return true if ready, false otherwise
+     */
+    public boolean isReady() {
+        return state.isReady();
+    }
+
+    /**
+     * Returns the number of devices for which this cluster member is master.
+     *
+     * @return number of devices for which this member is master
+     */
+    public int deviceCount() {
+        return deviceCount;
+    }
+
+    @Override
+    public String idAsString() {
+        return id().toString();
     }
 }

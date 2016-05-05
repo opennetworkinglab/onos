@@ -17,6 +17,7 @@
 package org.onosproject.ui.impl.topo.model;
 
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.event.EventDispatcher;
 import org.onosproject.net.Device;
@@ -24,11 +25,16 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
 import org.onosproject.net.region.Region;
+import org.onosproject.ui.model.ServiceBundle;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiTopology;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.DEVICE_ADDED;
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.CLUSTER_MEMBER_ADDED_OR_UPDATED;
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.CLUSTER_MEMBER_REMOVED;
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.DEVICE_ADDED_OR_UPDATED;
 import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.DEVICE_REMOVED;
 
 /**
@@ -36,10 +42,14 @@ import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.DEVICE_REMOVE
  */
 class ModelCache {
 
+    private static final Logger log = LoggerFactory.getLogger(ModelCache.class);
+
+    private final ServiceBundle services;
     private final EventDispatcher dispatcher;
     private final UiTopology uiTopology = new UiTopology();
 
-    ModelCache(EventDispatcher eventDispatcher) {
+    ModelCache(ServiceBundle services, EventDispatcher eventDispatcher) {
+        this.services = services;
         this.dispatcher = eventDispatcher;
     }
 
@@ -59,6 +69,7 @@ class ModelCache {
      * Create our internal model of the global topology.
      */
     void load() {
+        // TODO - implement loading of initial state
 //        loadClusterMembers();
 //        loadRegions();
 //        loadDevices();
@@ -74,20 +85,36 @@ class ModelCache {
      * @param cnode controller node to be added/updated
      */
     void addOrUpdateClusterMember(ControllerNode cnode) {
-        UiClusterMember member = uiTopology.findClusterMember(cnode.id());
-        if (member != null) {
-            member.update(cnode);
-        } else {
+        NodeId id = cnode.id();
+        UiClusterMember member = uiTopology.findClusterMember(id);
+        if (member == null) {
             member = new UiClusterMember(cnode);
             uiTopology.add(member);
         }
 
-        // TODO: post event
+        // inject computed data about the cluster node, into the model object
+        ControllerNode.State state = services.cluster().getState(id);
+        member.setState(state);
+        member.setDeviceCount(services.mastership().getDevicesOf(id).size());
+        // NOTE: UI-attached is session-based data, not global
+
+        dispatcher.post(new UiModelEvent(CLUSTER_MEMBER_ADDED_OR_UPDATED, member));
     }
 
+    /**
+     * Removes from the model the specified controller node.
+     *
+     * @param cnode controller node to be removed
+     */
     void removeClusterMember(ControllerNode cnode) {
-        // TODO: find cluster member assoc. with parameter; remove from model
-        // TODO: post event
+        NodeId id = cnode.id();
+        UiClusterMember member = uiTopology.findClusterMember(id);
+        if (member != null) {
+            uiTopology.remove(member);
+            dispatcher.post(new UiModelEvent(CLUSTER_MEMBER_REMOVED, member));
+        } else {
+            log.warn("Tried to remove non-member cluster node {}", id);
+        }
     }
 
     void updateMasterships(DeviceId deviceId, RoleInfo roleInfo) {
@@ -111,7 +138,7 @@ class ModelCache {
         UiDevice uiDevice = new UiDevice();
 
         // TODO: post the (correct) event
-        dispatcher.post(new UiModelEvent(DEVICE_ADDED, uiDevice));
+        dispatcher.post(new UiModelEvent(DEVICE_ADDED_OR_UPDATED, uiDevice));
     }
 
     void removeDevice(Device device) {

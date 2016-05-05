@@ -59,6 +59,7 @@ import org.onosproject.net.region.RegionService;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.impl.topo.UiTopoSession;
+import org.onosproject.ui.model.ServiceBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,7 +123,7 @@ public final class UiSharedTopologyModel
 
     @Activate
     protected void activate() {
-        cache = new ModelCache(eventDispatcher);
+        cache = new ModelCache(new DefaultServiceBundle(), eventDispatcher);
 
         eventDispatcher.addSink(UiModelEvent.class, listenerRegistry);
 
@@ -178,6 +179,52 @@ public final class UiSharedTopologyModel
     public void unregister(UiTopoSession session) {
         log.info("Unregistering topology session {}", session);
         removeListener(session);
+    }
+
+    /**
+     * Default implementation of service bundle to return references to our
+     * dynamically injected services.
+     */
+    private class DefaultServiceBundle implements ServiceBundle {
+        @Override
+        public ClusterService cluster() {
+            return clusterService;
+        }
+
+        @Override
+        public MastershipService mastership() {
+            return mastershipService;
+        }
+
+        @Override
+        public RegionService region() {
+            return regionService;
+        }
+
+        @Override
+        public DeviceService device() {
+            return deviceService;
+        }
+
+        @Override
+        public LinkService link() {
+            return linkService;
+        }
+
+        @Override
+        public HostService host() {
+            return hostService;
+        }
+
+        @Override
+        public IntentService intent() {
+            return intentService;
+        }
+
+        @Override
+        public FlowRuleService flow() {
+            return flowService;
+        }
     }
 
 

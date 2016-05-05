@@ -28,6 +28,8 @@ import java.util.TreeSet;
  */
 public class UiTopology extends UiElement {
 
+    private static final String DEFAULT_TOPOLOGY_ID = "TOPOLOGY-0";
+
     private static final Logger log = LoggerFactory.getLogger(UiTopology.class);
 
     private final UiCluster uiCluster = new UiCluster();
@@ -69,6 +71,15 @@ public class UiTopology extends UiElement {
     }
 
     /**
+     * Removes the given cluster member from the topology model.
+     *
+     * @param member cluster member to remove
+     */
+    public void remove(UiClusterMember member) {
+        uiCluster.remove(member);
+    }
+
+    /**
      * Returns the number of members in the cluster.
      *
      * @return number of cluster members
@@ -84,5 +95,10 @@ public class UiTopology extends UiElement {
      */
     public int regionCount() {
         return uiRegions.size();
+    }
+
+    @Override
+    public String idAsString() {
+        return DEFAULT_TOPOLOGY_ID;
     }
 }
