@@ -26,8 +26,9 @@ perl -pi.old -e "s/maxFileSize=1MB/maxFileSize=10MB/g" \
     $KARAF_DIR/etc/org.ops4j.pax.logging.cfg
 
 # Patch-in proper Karaf version into the startup script
-sed -i '' "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" bin/onos-service
-sed -i '' "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" bin/onos-client
+sed -i.bk "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" bin/onos-service
+sed -i.bk "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" bin/onos-client
+rm -f *.bk
 mv bin/onos-client bin/onos
 chmod a+x bin/onos-service bin/onos
 
