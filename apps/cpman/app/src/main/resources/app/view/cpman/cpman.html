@@ -13,6 +13,12 @@
         <h2>
             Chart for Device {{devId || "(No device selected)"}}
         </h2>
+        <div class="ctrl-btns">
+            <select ng-options="deviceId as deviceId for deviceId in deviceIds"
+                    ng-model="selectedItem" ng-change="onChange(selectedItem)">
+                <option value="">-- select a device --</option>
+            </select>
+        </div>
         <canvas id="line" class="chart chart-line" chart-data="data"
                 chart-labels="labels" chart-legend="true"
                 chart-series="series" chart-options="options" height="100%">

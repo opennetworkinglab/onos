@@ -15,10 +15,12 @@
  */
 package org.onosproject.cpman.gui;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -27,6 +29,7 @@ import org.onosproject.cpman.ControlLoadSnapshot;
 import org.onosproject.cpman.ControlMetricType;
 import org.onosproject.cpman.ControlPlaneMonitorService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.chart.ChartModel;
@@ -56,8 +59,10 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
     private static final String CPMAN_DATA_RESP = "cpmanDataResponse";
     private static final String CPMANS = "cpmans";
 
+    private static final String DEVICE_IDS = "deviceIds";
+
     // TODO: we assume that server side always returns 20 data points
-    // to feed 1 hour time slots, later this should make to be configurable
+    // to feed 20 minutes time slots, later this should make to be configurable
     private static final int NUM_OF_DATA_POINTS = 20;
 
     private static final int MILLI_CONV_UNIT = 1000;
@@ -90,6 +95,8 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
             String uri = string(payload, "devId");
             ControlPlaneMonitorService cpms = get(ControlPlaneMonitorService.class);
             ClusterService cs = get(ClusterService.class);
+            DeviceService ds = get(DeviceService.class);
+
             if (!Strings.isNullOrEmpty(uri)) {
                 DeviceId deviceId = DeviceId.deviceId(uri);
                 if (cpms.availableResources(CONTROL_MESSAGE).contains(deviceId.toString())) {
@@ -97,6 +104,10 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
                     LocalDateTime ldt = new LocalDateTime(timestamp * MILLI_CONV_UNIT);
 
                     populateMetrics(cm, data, ldt, NUM_OF_DATA_POINTS);
+
+                    Set<DeviceId> deviceIds = Sets.newHashSet();
+                    ds.getAvailableDevices().forEach(device -> deviceIds.add(device.id()));
+                    attachDeviceList(cm, deviceIds);
                 }
             } else {
                 Set<String> deviceIds = cpms.availableResources(CONTROL_MESSAGE);
@@ -189,7 +200,13 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
 
         private void populateMetric(ChartModel.DataPoint dataPoint,
                                     Map<String, Object> data) {
-            data.forEach((k, v) -> dataPoint.data(k, v));
+            data.forEach(dataPoint::data);
+        }
+
+        private void attachDeviceList(ChartModel cm, Set<DeviceId> deviceIds) {
+            ArrayNode array = arrayNode();
+            deviceIds.forEach(id -> array.add(id.toString()));
+            cm.addAnnotation(DEVICE_IDS, array);
         }
     }
 }

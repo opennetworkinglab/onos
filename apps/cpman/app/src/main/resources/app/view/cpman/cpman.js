@@ -66,7 +66,6 @@
                 $scope.devId = params['devId'];
                 hasDeviceId = true;
             } else {
-                $scope.type = 'StackedBar';
                 hasDeviceId = false;
             }
 
@@ -112,6 +111,14 @@
                         ns.navTo('cpman', { devId: points[0].label });
                         $log.log(points[0].label);
                     }
+                };
+
+                if (!fs.isEmptyObject($scope.annots)) {
+                    $scope.deviceIds = JSON.parse($scope.annots.deviceIds);
+                }
+
+                $scope.onChange = function (deviceId) {
+                    ns.navTo('cpman', { devId: deviceId });
                 };
             });
 
