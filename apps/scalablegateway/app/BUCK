@@ -1,6 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//apps/scalablegateway/api:onos-app-scalablegateway-api',
+    '//apps/scalablegateway/api:onos-apps-scalablegateway-api',
 ]
 
 TEST_DEPS = [
@@ -8,6 +8,6 @@ TEST_DEPS = [
 ]
 
 osgi_jar_with_tests (
-    deps = COMPILE_DEPS
+    deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
 )
