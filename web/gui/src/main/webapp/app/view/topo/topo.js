@@ -376,7 +376,12 @@
     function currentMap() {
         return ps.getPrefs(
             'topo_mapid',
-            { mapid: 'usa', mapscale: 1, tint: 'off'},
+            {
+                mapid: 'usa',
+                mapscale: 1,
+                mapfilepath: '*continental_us',
+                tint: 'off'
+            },
             $loc.search()
         );
     }
@@ -384,6 +389,7 @@
     function setUpMap() {
         var prefs = currentMap(),
             mapId = prefs.mapid,
+            mapFilePath = prefs.mapfilepath,
             mapScale = prefs.mapscale,
             tint = prefs.tint,
             promise,
@@ -402,35 +408,24 @@
                 d3.selectAll(this.childNodes).remove();
             });
         }
-        if (mapId === 'usa') {
-            shadeFlip = 0;
-            promise = ms.loadMapInto(mapG, '*continental_us', {
-                adjustScale: mapScale,
-                shading: shading()
-            });
-        } else if (mapId === 'bayarea') {
-            shadeFlip = 1;
-            promise = ms.loadMapInto(mapG, '*bayarea', {
-                objectTag: 'bayareaGEO',
-                adjustScale: mapScale,
-                shading: shading()
-            });
-        } else if (mapId === 'taiwan') {
-            shadeFlip = 0;
-            promise = ms.loadMapInto(mapG, '*taiwan', {
-                objectTag: 'taiwan',
-                adjustScale: mapScale,
-                shading: shading()
-            })
-        } else {
-            shadeFlip = 0;
+
+        if (mapFilePath === '*countries') {
+
             cfilter = countryFilters[mapId] || countryFilters.uk;
+
             promise = ms.loadMapRegionInto(mapG, {
                 countryFilter: cfilter,
                 adjustScale: mapScale,
                 shading: shading()
             });
+        } else {
+
+            promise = ms.loadMapInto(mapG, mapFilePath, mapId, {
+                adjustScale: mapScale,
+                shading: shading()
+            });
         }
+
         ps.setPrefs('topo_mapid', prefs);
         return promise;
     }

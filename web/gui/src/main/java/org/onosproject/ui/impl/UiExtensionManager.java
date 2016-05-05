@@ -52,8 +52,10 @@ import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiPreferencesService;
 import org.onosproject.ui.UiTopoOverlayFactory;
+import org.onosproject.ui.UiTopoMapFactory;
 import org.onosproject.ui.UiView;
 import org.onosproject.ui.UiViewHidden;
+import org.onosproject.ui.UiTopoMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,9 +167,29 @@ public class UiExtensionManager
                         new TrafficOverlay()
                 );
 
+        UiTopoMapFactory topoMapFactory =
+                () -> ImmutableList.of(
+                        new UiTopoMap("australia", "Australia", "*australia", 1.0),
+                        new UiTopoMap("americas", "North, Central and South America", "*americas", 0.7),
+                        new UiTopoMap("n_america", "North America", "*n_america", 0.9),
+                        new UiTopoMap("s_america", "South America", "*s_america", 0.9),
+                        new UiTopoMap("usa", "United States", "*continental_us", 1.0),
+                        new UiTopoMap("bayareaGEO", "Bay Area, California", "*bayarea", 1.0),
+                        new UiTopoMap("europe", "Europe", "*europe", 2.5),
+                        new UiTopoMap("italy", "Italy", "*italy", 0.8),
+                        new UiTopoMap("uk", "United Kingdom and Ireland", "*uk", 0.6),
+                        new UiTopoMap("japan", "Japan", "*japan", 0.8),
+                        new UiTopoMap("s_korea", "South Korea", "*s_korea", 0.75),
+                        new UiTopoMap("taiwan", "Taiwan", "*taiwan", 0.7),
+                        new UiTopoMap("africa", "Africa", "*africa", 0.7),
+                        new UiTopoMap("oceania", "Oceania", "*oceania", 0.7),
+                        new UiTopoMap("asia", "Asia", "*asia", 0.7)
+                );
+
         return new UiExtension.Builder(CL, coreViews)
                 .messageHandlerFactory(messageHandlerFactory)
                 .topoOverlayFactory(topoOverlayFactory)
+                .topoMapFactory(topoMapFactory)
                 .resourcePath(CORE)
                 .build();
     }
