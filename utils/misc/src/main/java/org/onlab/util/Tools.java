@@ -660,7 +660,7 @@ public abstract class Tools {
      * @return optional as a stream
      */
     public static <T> Stream<T> stream(Optional<? extends T> optional) {
-        return optional.map(x -> Stream.of(x)).orElse(Stream.empty());
+        return optional.map(x -> Stream.<T>of(x)).orElse(Stream.empty());
     }
 
     // Auxiliary path visitor for recursive directory structure copying.
