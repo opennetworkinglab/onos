@@ -30,5 +30,15 @@ unset ONOS_USE_SSH
 echo "$!" > /tmp/onos.pid
 
 # Hang-on a bit and then start tailing the ONOS log output
-sleep 1
-tail -f ./apache*/data/log/karaf.log
+RETRY_COUNT=5
+echo "Waiting for karaf.log"
+until [ $RETRY_COUNT -le 0 ]; do
+    KARAF_LOG=$(find $ONOS_HOME -type f -name karaf.log)
+    if [ $KARAF_LOG ]; then
+        tail -f $KARAF_LOG
+        return
+    fi
+    RETRY_COUNT=$[$RETRY_COUNT-1]
+    sleep 1
+done
+echo "Fail to open karaf.log"
