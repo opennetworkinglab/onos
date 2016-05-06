@@ -7,6 +7,7 @@ osgi_jar_with_tests (
 )
 
 onos_app (
+    app_name = 'org.onosproject.netcfghostprovider',
     title = 'Network Config Host Provider',
     category = 'Provider',
     url = 'http://onosproject.org',

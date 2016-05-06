@@ -18,6 +18,7 @@ osgi_jar_with_tests (
 )
 
 onos_app (
+    app_name = 'org.onosproject.netcfglinksprovider',
     title = 'Network Config Link Provider',
     category = 'Provider',
     url = 'http://onosproject.org',
