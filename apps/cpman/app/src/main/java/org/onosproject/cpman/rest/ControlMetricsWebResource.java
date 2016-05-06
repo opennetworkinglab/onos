@@ -54,7 +54,7 @@ import static org.onosproject.cpman.ControlResource.Type.NETWORK;
 public class ControlMetricsWebResource extends AbstractWebResource {
 
     private final ControlPlaneMonitorService monitorService =
-                    get(ControlPlaneMonitorService.class);
+            get(ControlPlaneMonitorService.class);
     private final ClusterService clusterService = get(ClusterService.class);
     private final NodeId localNodeId = clusterService.getLocalNode().id();
     private final ObjectNode root = mapper().createObjectNode();
@@ -72,7 +72,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
     public Response controlMessageMetrics() {
 
         ArrayNode deviceNodes = root.putArray("devices");
-        monitorService.availableResources(CONTROL_MESSAGE).forEach(name -> {
+        monitorService.availableResourcesSync(localNodeId, CONTROL_MESSAGE).forEach(name -> {
             ObjectNode deviceNode = mapper().createObjectNode();
             ObjectNode valueNode = mapper().createObjectNode();
 
@@ -147,7 +147,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
     public Response diskMetrics() {
 
         ArrayNode diskNodes = root.putArray("disks");
-        monitorService.availableResources(DISK).forEach(name -> {
+        monitorService.availableResourcesSync(localNodeId, DISK).forEach(name -> {
             ObjectNode diskNode = mapper().createObjectNode();
             ObjectNode valueNode = mapper().createObjectNode();
 
@@ -173,7 +173,7 @@ public class ControlMetricsWebResource extends AbstractWebResource {
     public Response networkMetrics() {
 
         ArrayNode networkNodes = root.putArray("networks");
-        monitorService.availableResources(NETWORK).forEach(name -> {
+        monitorService.availableResourcesSync(localNodeId, NETWORK).forEach(name -> {
             ObjectNode networkNode = mapper().createObjectNode();
             ObjectNode valueNode = mapper().createObjectNode();
 

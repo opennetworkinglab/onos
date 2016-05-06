@@ -166,7 +166,7 @@ public class ControlMetricsResourceTest extends ResourceTest {
      */
     @Test
     public void testResourceEmptyArray() {
-        expect(mockControlPlaneMonitorService.availableResources(anyObject()))
+        expect(mockControlPlaneMonitorService.availableResourcesSync(anyObject(), anyObject()))
                 .andReturn(ImmutableSet.of()).once();
         replay(mockControlPlaneMonitorService);
         final WebTarget wt = target();
@@ -181,7 +181,7 @@ public class ControlMetricsResourceTest extends ResourceTest {
      */
     @Test
     public void testResourcePopulatedArray() {
-        expect(mockControlPlaneMonitorService.availableResources(anyObject()))
+        expect(mockControlPlaneMonitorService.availableResourcesSync(anyObject(), anyObject()))
                 .andReturn(resourceSet).once();
         expect(mockControlPlaneMonitorService.getLoad(anyObject(), anyObject(),
                 anyString())).andReturn(null).times(4);

@@ -75,7 +75,8 @@ public class ControlPlaneMonitorServiceAdaptor implements ControlPlaneMonitorSer
     }
 
     @Override
-    public Set<String> availableResources(ControlResource.Type resourceType) {
+    public CompletableFuture<Set<String>> availableResources(NodeId nodeId,
+                                                             ControlResource.Type resourceType) {
         return null;
     }
 }

@@ -240,7 +240,7 @@ public class ControlPlaneMonitorTest {
         networkSet.forEach(network -> NETWORK_METRICS.forEach(cmt ->
                 testUpdateMetricWithResource(cmt, mv, network)));
 
-        assertThat(monitor.availableResources(Type.DISK), is(diskSet));
-        assertThat(monitor.availableResources(Type.NETWORK), is(networkSet));
+        assertThat(monitor.availableResourcesSync(nodeId, Type.DISK), is(diskSet));
+        assertThat(monitor.availableResourcesSync(nodeId, Type.NETWORK), is(networkSet));
     }
 }

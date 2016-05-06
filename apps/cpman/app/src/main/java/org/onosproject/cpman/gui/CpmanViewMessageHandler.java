@@ -25,6 +25,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.cpman.ControlLoadSnapshot;
 import org.onosproject.cpman.ControlMetricType;
 import org.onosproject.cpman.ControlPlaneMonitorService;
@@ -96,10 +97,11 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
             ControlPlaneMonitorService cpms = get(ControlPlaneMonitorService.class);
             ClusterService cs = get(ClusterService.class);
             DeviceService ds = get(DeviceService.class);
+            NodeId localNodeId = cs.getLocalNode().id();
 
             if (!Strings.isNullOrEmpty(uri)) {
                 DeviceId deviceId = DeviceId.deviceId(uri);
-                if (cpms.availableResources(CONTROL_MESSAGE).contains(deviceId.toString())) {
+                if (cpms.availableResourcesSync(localNodeId, CONTROL_MESSAGE).contains(deviceId.toString())) {
                     Map<ControlMetricType, Long[]> data = generateMatrix(cpms, cs, deviceId);
                     LocalDateTime ldt = new LocalDateTime(timestamp * MILLI_CONV_UNIT);
 
@@ -110,7 +112,7 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
                     attachDeviceList(cm, deviceIds);
                 }
             } else {
-                Set<String> deviceIds = cpms.availableResources(CONTROL_MESSAGE);
+                Set<String> deviceIds = cpms.availableResourcesSync(localNodeId, CONTROL_MESSAGE);
                 for (String deviceId : deviceIds) {
                     Map<ControlMetricType, Long> data =
                             populateDeviceMetrics(cpms, cs, DeviceId.deviceId(deviceId));

@@ -15,6 +15,8 @@
  */
 package org.onosproject.cpman;
 
+import com.google.common.collect.ImmutableSet;
+import org.onlab.util.Tools;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
 
@@ -29,6 +31,8 @@ import static org.onosproject.cpman.ControlResource.Type;
  * Control Plane Statistics Service Interface.
  */
 public interface ControlPlaneMonitorService {
+
+    long TIMEOUT_MILLIS = 2000;
 
     /**
      * Adds a new control metric value with a certain update interval.
@@ -116,8 +120,22 @@ public interface ControlPlaneMonitorService {
     /**
      * Obtains a list of names of available resources.
      *
+     * @param nodeId       node identifier
      * @param resourceType resource type
-     * @return a collection of names of available resources
+     * @return completable future object of a collection of available resource names
      */
-    Set<String> availableResources(Type resourceType);
+    CompletableFuture<Set<String>> availableResources(NodeId nodeId, Type resourceType);
+
+    /**
+     * Synchronous version of availableResource.
+     * Obtains a list of names of available resources.
+     *
+     * @param nodeId       node identifier
+     * @param resourceType resource type
+     * @return a collection of available resource names
+     */
+    default Set<String> availableResourcesSync(NodeId nodeId, Type resourceType) {
+        return Tools.futureGetOrElse(availableResources(nodeId, resourceType),
+                TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, ImmutableSet.of());
+    }
 }
