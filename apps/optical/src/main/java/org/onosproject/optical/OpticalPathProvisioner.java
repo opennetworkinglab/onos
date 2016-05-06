@@ -66,8 +66,11 @@ import static org.onosproject.net.optical.device.OpticalDeviceServiceView.optica
  * OpticalPathProvisioner listens for event notifications from the Intent F/W.
  * It generates one or more opticalConnectivityIntent(s) and submits (or withdraws) to Intent F/W
  * for adding/releasing capacity at the packet layer.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
 
+@Deprecated
 @Component(immediate = true)
 public class OpticalPathProvisioner {
 

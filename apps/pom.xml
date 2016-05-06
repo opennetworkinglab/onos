@@ -37,6 +37,7 @@
         <module>proxyarp</module>
         <module>sdnip</module>
         <module>optical</module>
+        <module>newoptical</module>
         <module>metrics</module>
         <module>routing</module>
         <module>routing-api</module>
