@@ -268,6 +268,14 @@ public final class KryoNamespaces {
             .register(Optional.class)
             .register(Collections.emptyList().getClass())
             .register(Collections.singleton(Object.class).getClass())
+            .register(int[].class)
+            .register(long[].class)
+            .register(short[].class)
+            .register(double[].class)
+            .register(float[].class)
+            .register(char[].class)
+            .register(String[].class)
+            .register(boolean[].class)
             .build();
 
     /**
