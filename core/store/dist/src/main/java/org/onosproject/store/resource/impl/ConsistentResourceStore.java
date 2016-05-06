@@ -124,7 +124,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         TransactionalContinuousResourceStore continuousTxStore = continuousStore.transactional(tx);
         for (Map.Entry<DiscreteResource, List<Resource>> entry : resourceMap.entrySet()) {
             DiscreteResourceId parentId = entry.getKey().id();
-            if (!lookup(discreteTxStore, parentId).isPresent()) {
+            if (!discreteTxStore.lookup(parentId).isPresent()) {
                 return abortTransaction(tx);
             }
 
@@ -405,18 +405,6 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
 
         return discreteTxStore.removeValues(key, discreteValues)
                 && continuousTxStore.removeValues(key, continuousValues);
-    }
-
-    /**
-     * Returns the resource which has the same key as the specified resource ID
-     * in the set as a value of the map.
-     *
-     * @param id ID of resource to be checked
-     * @return the resource which is regarded as the same as the specified resource
-     */
-    private Optional<Resource> lookup(TransactionalDiscreteResourceStore discreteTxStore,
-                                      DiscreteResourceId id) {
-        return discreteTxStore.lookup(id);
     }
 
     // internal use only
