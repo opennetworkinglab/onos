@@ -103,7 +103,6 @@ public class CordVtnNodeManager {
 
     private static final KryoNamespace.Builder NODE_SERIALIZER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
-            .register(KryoNamespaces.MISC)
             .register(CordVtnNode.class)
             .register(NodeState.class)
             .register(SshAccessInfo.class)

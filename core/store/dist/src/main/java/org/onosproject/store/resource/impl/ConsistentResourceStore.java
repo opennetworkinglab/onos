@@ -82,7 +82,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     private static final String CONTINUOUS_CONSUMER_MAP = "onos-continuous-consumers";
     private static final String CHILD_MAP = "onos-resource-children";
     private static final Serializer SERIALIZER = Serializer.using(
-            Arrays.asList(KryoNamespaces.BASIC, KryoNamespaces.API),
+            Arrays.asList(KryoNamespaces.API),
             ContinuousResourceAllocation.class);
 
     // TODO: We should provide centralized values for this

@@ -106,7 +106,6 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     private static final Serializer SERIALIZER = Serializer
             .using(new KryoNamespace.Builder()
                     .register(KryoNamespaces.API)
-                    .register(KryoNamespaces.BASIC)
                     .register(ControlMetricsRequest.class)
                     .register(ControlResourceRequest.class)
                     .register(ControlLoadSnapshot.class)

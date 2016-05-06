@@ -145,7 +145,6 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     private OpenstackNetworkingConfig config;
     private static final KryoNamespace.Builder FLOATING_IP_SERIALIZER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
-            .register(KryoNamespaces.MISC)
             .register(OpenstackFloatingIP.FloatingIpStatus.class)
             .register(OpenstackFloatingIP.class)
             .register(Ip4Address.class)
@@ -153,13 +152,11 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
 
     private static final KryoNamespace.Builder NUMBER_SERIALIZER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
-            .register(KryoNamespaces.MISC)
             .register(Integer.class)
             .register(String.class);
 
     private static final KryoNamespace.Builder ROUTER_INTERFACE_SERIALIZER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
-            .register(KryoNamespaces.MISC)
             .register(String.class);
 
     private InternalPacketProcessor internalPacketProcessor = new InternalPacketProcessor();
