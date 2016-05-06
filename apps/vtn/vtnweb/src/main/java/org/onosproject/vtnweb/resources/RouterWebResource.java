@@ -435,10 +435,10 @@ public class RouterWebResource extends AbstractWebResource {
         } else if (gateway.get("external_fixed_ips").isNull()) {
             throw new IllegalArgumentException("external_fixed_ips should not be empty");
         }
-        Collection<FixedIp> fixedIpList = jsonNodeToFixedIp(gateway
+        Iterable<FixedIp> fixedIpList = jsonNodeToFixedIp(gateway
                 .get("external_fixed_ips"));
         RouterGateway gatewayObj = RouterGateway
-                .routerGateway(networkId, enableSnat, fixedIpList);
+                .routerGateway(networkId, enableSnat, Sets.newHashSet(fixedIpList));
         return gatewayObj;
     }
 
@@ -448,7 +448,7 @@ public class RouterWebResource extends AbstractWebResource {
      * @param fixedIp the allocationPools JsonNode
      * @return a collection of fixedIp
      */
-    private Collection<FixedIp> jsonNodeToFixedIp(JsonNode fixedIp) {
+    private Iterable<FixedIp> jsonNodeToFixedIp(JsonNode fixedIp) {
         checkNotNull(fixedIp, JSON_NOT_NULL);
         ConcurrentMap<Integer, FixedIp> fixedIpMaps = Maps.newConcurrentMap();
         Integer i = 0;

@@ -21,6 +21,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -102,7 +103,8 @@ public class FloatingIpManager implements FloatingIpService {
                 .register(FloatingIp.class, FloatingIpId.class,
                           TenantNetworkId.class, TenantId.class,
                           FloatingIp.Status.class, RouterId.class,
-                          VirtualPortId.class, DefaultFloatingIp.class);
+                          VirtualPortId.class, DefaultFloatingIp.class,
+                          UUID.class);
         floatingIpStore = storageService
                 .<FloatingIpId, FloatingIp>eventuallyConsistentMapBuilder()
                 .withName(FLOATINGIPSTORE).withSerializer(serializer)
