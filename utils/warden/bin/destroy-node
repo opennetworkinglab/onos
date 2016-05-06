@@ -1,0 +1,9 @@
+#!/bin/bash
+# Destroys an LXC node with the specified name.
+
+name=$1
+[ "$name" = "onos-base" ] && echo "Don't do that!" && exit 1
+[ "$name" = "mininet-base" ] && echo "Don't do that!" && exit 1
+
+sudo lxc-stop -n $name
+sudo lxc-destroy -n $name

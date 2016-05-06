@@ -1,0 +1,27 @@
+#!/bin/bash
+# Creates a new node from the base image.
+
+base="$1"
+ip="$2"
+name="$3"
+key="$4"
+
+sudo lxc-clone -o $base -n $name
+
+sudo chmod 777 /var/lib/lxc
+sudo chmod 777 /var/lib/lxc/$name
+sudo chmod 666 /var/lib/lxc/$name/config
+
+sudo cat >>/var/lib/lxc/$name/config <<EOF
+lxc.network.ipv4 = ${ip}/16
+lxc.network.ipv4.gateway = 10.128.0.1
+EOF
+
+sudo chmod 644 /var/lib/lxc/$name/config
+sudo chmod 750 /var/lib/lxc/$name
+sudo chmod 700 /var/lib/lxc
+
+sudo lxc-start -d -n $name
+sudo lxc-attach -n $name -- ping -c1 8.8.8.8
+sudo lxc-attach -n $name -- bash -c "echo $key >> /home/sdn/.ssh/authorized_keys"
+sudo lxc-ls --fancy

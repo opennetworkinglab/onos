@@ -1,0 +1,16 @@
+#!/bin/bash
+# Creates a cell definition from the given name and LXC info
+
+name="$1"
+apps="${2:-drivers,openflow,proxyarp,mobility,pathpainter}"
+
+echo "export ONOS_CELL=borrow"
+echo "export ONOS_NIC=\"10.128.11.*\""
+
+sudo lxc-ls -F "name,ipv4" --fancy | grep $name | \
+    sed "s/^$name/OC/" | tr "[:lower:]" "[:upper:]" | \
+    sed -r 's/[ ]+/\=/;s/^/export /'
+
+echo "export OCT=\"\$OC1\""
+echo "export ONOS_USE_SSH=true"
+echo "export ONOS_APPS=${apps}"

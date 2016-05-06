@@ -1,0 +1,12 @@
+#!/bin/bash
+# Destroys an LXC cell with the specified name.
+
+name=$1
+
+cd $(dirname $0)
+
+./destroy-node $name-mn
+
+for n in {1..3}; do
+    ./destroy-node $name-$n
+done
