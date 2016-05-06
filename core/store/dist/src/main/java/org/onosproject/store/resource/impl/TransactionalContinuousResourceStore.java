@@ -66,7 +66,7 @@ class TransactionalContinuousResourceStore {
                 .findFirst();
     }
 
-    boolean appendValues(DiscreteResourceId key, List<ContinuousResource> values) {
+    boolean register(DiscreteResourceId key, List<ContinuousResource> values) {
         Set<ContinuousResource> requested = new LinkedHashSet<>(values);
         Set<ContinuousResource> oldValues = childMap.putIfAbsent(key, requested);
         if (oldValues == null) {
@@ -94,7 +94,7 @@ class TransactionalContinuousResourceStore {
         return childMap.replace(key, oldValues, newValues);
     }
 
-    boolean removeValues(DiscreteResourceId key, List<ContinuousResource> values) {
+    boolean unregister(DiscreteResourceId key, List<ContinuousResource> values) {
         Set<ContinuousResource> oldValues = childMap.putIfAbsent(key, new LinkedHashSet<>());
         if (oldValues == null) {
             log.trace("No-Op removing values. key {} did not exist", key);

@@ -128,7 +128,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 return abortTransaction(tx);
             }
 
-            if (!appendValues(discreteTxStore, continuousTxStore, parentId, entry.getValue())) {
+            if (!register(discreteTxStore, continuousTxStore, parentId, entry.getValue())) {
                 return abortTransaction(tx);
             }
         }
@@ -191,7 +191,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 return abortTransaction(tx);
             }
 
-            if (!removeValues(discreteTxStore, continuousTxStore, entry.getKey(), entry.getValue())) {
+            if (!unregister(discreteTxStore, continuousTxStore, entry.getKey(), entry.getValue())) {
                 log.warn("Failed to unregister {}: Failed to remove {} values.",
                         entry.getKey(), entry.getValue().size());
                 log.debug("Failed to unregister {}: Failed to remove values: {}",
@@ -343,9 +343,9 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
      * @return true if the operation succeeds, false otherwise.
      */
     // computational complexity: O(n) where n is the number of the specified value
-    private boolean appendValues(TransactionalDiscreteResourceStore discreteTxStore,
-                                 TransactionalContinuousResourceStore continuousTxStore,
-                                 DiscreteResourceId key, List<Resource> values) {
+    private boolean register(TransactionalDiscreteResourceStore discreteTxStore,
+                             TransactionalContinuousResourceStore continuousTxStore,
+                             DiscreteResourceId key, List<Resource> values) {
         // it's assumed that the passed "values" is non-empty
 
         // This is 2-pass scan. Nicer to have 1-pass scan
@@ -360,14 +360,14 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
 
         // short-circuit decision avoiding unnecessary distributed map operations
         if (continuousValues.isEmpty()) {
-            return discreteTxStore.appendValues(key, discreteValues);
+            return discreteTxStore.register(key, discreteValues);
         }
         if (discreteValues.isEmpty()) {
-            return continuousTxStore.appendValues(key, continuousValues);
+            return continuousTxStore.register(key, continuousValues);
         }
 
-        return discreteTxStore.appendValues(key, discreteValues)
-                && continuousTxStore.appendValues(key, continuousValues);
+        return discreteTxStore.register(key, discreteValues)
+                && continuousTxStore.register(key, continuousValues);
     }
 
     /**
@@ -380,9 +380,9 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
      * @param values            values to be removed
      * @return true if the operation succeeds, false otherwise
      */
-    private boolean removeValues(TransactionalDiscreteResourceStore discreteTxStore,
-                                 TransactionalContinuousResourceStore continuousTxStore,
-                                 DiscreteResourceId key, List<Resource> values) {
+    private boolean unregister(TransactionalDiscreteResourceStore discreteTxStore,
+                               TransactionalContinuousResourceStore continuousTxStore,
+                               DiscreteResourceId key, List<Resource> values) {
         // it's assumed that the passed "values" is non-empty
 
         // This is 2-pass scan. Nicer to have 1-pass scan
@@ -397,14 +397,14 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
 
         // short-circuit decision avoiding unnecessary distributed map operations
         if (continuousValues.isEmpty()) {
-            return discreteTxStore.removeValues(key, discreteValues);
+            return discreteTxStore.unregister(key, discreteValues);
         }
         if (discreteValues.isEmpty()) {
-            return continuousTxStore.removeValues(key, continuousValues);
+            return continuousTxStore.unregister(key, continuousValues);
         }
 
-        return discreteTxStore.removeValues(key, discreteValues)
-                && continuousTxStore.removeValues(key, continuousValues);
+        return discreteTxStore.unregister(key, discreteValues)
+                && continuousTxStore.unregister(key, continuousValues);
     }
 
     // internal use only

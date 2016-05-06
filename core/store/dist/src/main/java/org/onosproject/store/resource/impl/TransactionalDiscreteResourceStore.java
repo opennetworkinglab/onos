@@ -62,7 +62,7 @@ class TransactionalDiscreteResourceStore {
         }
     }
 
-    boolean appendValues(DiscreteResourceId key, List<DiscreteResource> values) {
+    boolean register(DiscreteResourceId key, List<DiscreteResource> values) {
         Set<DiscreteResource> requested = new LinkedHashSet<>(values);
         Set<DiscreteResource> oldValues = childMap.putIfAbsent(key, requested);
         if (oldValues == null) {
@@ -81,7 +81,7 @@ class TransactionalDiscreteResourceStore {
         return childMap.replace(key, oldValues, newValues);
     }
 
-    boolean removeValues(DiscreteResourceId key, List<DiscreteResource> values) {
+    boolean unregister(DiscreteResourceId key, List<DiscreteResource> values) {
         Set<DiscreteResource> oldValues = childMap.putIfAbsent(key, new LinkedHashSet<>());
         if (oldValues == null) {
             log.trace("No-Op removing values. key {} did not exist", key);
