@@ -123,11 +123,12 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         TransactionalDiscreteResourceStore discreteTxStore = discreteStore.transactional(tx);
         TransactionalContinuousResourceStore continuousTxStore = continuousStore.transactional(tx);
         for (Map.Entry<DiscreteResource, List<Resource>> entry : resourceMap.entrySet()) {
-            if (!lookup(discreteTxStore, continuousTxStore, entry.getKey().id()).isPresent()) {
+            DiscreteResourceId parentId = entry.getKey().id();
+            if (!lookup(discreteTxStore, parentId).isPresent()) {
                 return abortTransaction(tx);
             }
 
-            if (!appendValues(discreteTxStore, continuousTxStore, entry.getKey().id(), entry.getValue())) {
+            if (!appendValues(discreteTxStore, continuousTxStore, parentId, entry.getValue())) {
                 return abortTransaction(tx);
             }
         }
@@ -413,19 +414,9 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
      * @param id ID of resource to be checked
      * @return the resource which is regarded as the same as the specified resource
      */
-    // Naive implementation, which traverses all elements in the set when continuous resource
-    // computational complexity: O(1) when discrete resource. O(n) when continuous resource
-    // where n is the number of elements in the associated set
     private Optional<Resource> lookup(TransactionalDiscreteResourceStore discreteTxStore,
-                                      TransactionalContinuousResourceStore continuousTxStore,
-                                      ResourceId id) {
-        if (id instanceof DiscreteResourceId) {
-            return discreteTxStore.lookup((DiscreteResourceId) id);
-        } else if (id instanceof ContinuousResourceId) {
-            return continuousTxStore.lookup((ContinuousResourceId) id);
-        } else {
-            return Optional.empty();
-        }
+                                      DiscreteResourceId id) {
+        return discreteTxStore.lookup(id);
     }
 
     // internal use only
