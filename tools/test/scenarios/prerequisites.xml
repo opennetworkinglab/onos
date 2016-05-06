@@ -24,5 +24,7 @@
             <step name="Check-Passwordless-Login-${#}"
                   exec="ssh -n -o ConnectTimeout=3 -o PasswordAuthentication=no ${ONOS_USER}@${OC#} date"/>
         </parallel>
+        <step name="Check-Passwordless-Login-Proxy" if="${OCT}"
+              exec="ssh -n -o ConnectTimeout=3 -o PasswordAuthentication=no ${ONOS_USER}@${OCT} date"/>
     </group>
 </scenario>
