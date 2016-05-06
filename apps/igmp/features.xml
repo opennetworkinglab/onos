@@ -20,5 +20,6 @@
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/onos-app-olt-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-igmp/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-cord-config/${project.version}</bundle>
     </feature>
 </features>

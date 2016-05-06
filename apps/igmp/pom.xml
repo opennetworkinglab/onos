@@ -66,6 +66,12 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-cord-config</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
             <scope>test</scope>
         </dependency>
