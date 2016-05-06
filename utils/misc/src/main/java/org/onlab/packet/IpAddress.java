@@ -483,6 +483,31 @@ public class IpAddress implements Comparable<IpAddress> {
     }
 
     /**
+     * Creates a byte array for IP network mask suffix.
+     *
+     * @param version the IP address version
+     * @param suffixLength the length of the mask suffix. Must be in the
+     * interval [0, 32] for IPv4, or [0, 128] for IPv6
+     * @return a byte array that contains a mask suffix of the
+     * specified length
+     * @throws IllegalArgumentException if the arguments are invalid
+     */
+    static byte[] makeMaskSuffixArray(Version version, int suffixLength) {
+        int addrByteLength = byteLength(version);
+        int addrBitLength = addrByteLength * Byte.SIZE;
+
+        byte[] onesComplementPrefix = makeMaskPrefixArray(version, addrBitLength - suffixLength);
+        byte[] mask = new byte[addrByteLength];
+
+        // Negate all bytes
+        for (int i = 0; i < addrByteLength; i++) {
+            mask[i] = onesComplementPrefix[i];
+            mask[i] ^= (byte) 0xff;
+        }
+        return mask;
+    }
+
+    /**
      * Creates a byte array that represents an IP address masked with
      * a network mask of given mask length.
      *

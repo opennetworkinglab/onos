@@ -155,6 +155,11 @@ public final class Ip4Address extends IpAddress {
         return new Ip4Address(mask);
     }
 
+    public static Ip4Address makeMaskSuffix(int suffixLength) {
+        byte[] mask = IpAddress.makeMaskSuffixArray(VERSION, suffixLength);
+        return new Ip4Address(mask);
+    }
+
     /**
      * Creates an IPv4 address by masking it with a network mask of given
      * mask length.
