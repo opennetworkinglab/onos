@@ -276,10 +276,10 @@ public abstract class FlowModBuilder {
                 ip4Prefix = ipCriterion.ip().getIp4Prefix();
                 if (ipCriterion.getIpv4SuffixLength() != null) {
                     Ip4Address maskAddr =
-                            Ip4Address.makeMaskSuffix(ipCriterion.getIpv4SuffixLength());
+                        Ip4Address.makeMaskSuffix(ipCriterion.getIpv4SuffixLength());
                     Masked<IPv4Address> maskedIp =
-                            Masked.of(IPv4Address.of(ip4Prefix.address().toInt()),
-                                    IPv4Address.of(maskAddr.toInt()));
+                        Masked.of(IPv4Address.of(ip4Prefix.address().toInt()),
+                                  IPv4Address.of(maskAddr.toInt()));
                     mBuilder.setMasked(MatchField.IPV4_SRC, maskedIp);
                 } else {
                     if (ip4Prefix.prefixLength() != Ip4Prefix.MAX_MASK_LENGTH) {
