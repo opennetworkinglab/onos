@@ -63,6 +63,11 @@ class TransactionalDiscreteResourceStore {
     }
 
     boolean register(DiscreteResourceId key, List<DiscreteResource> values) {
+        // short-circuit: receiving empty resource is regarded as success
+        if (values.isEmpty()) {
+            return true;
+        }
+
         Set<DiscreteResource> requested = new LinkedHashSet<>(values);
         Set<DiscreteResource> oldValues = childMap.putIfAbsent(key, requested);
         if (oldValues == null) {
@@ -82,6 +87,11 @@ class TransactionalDiscreteResourceStore {
     }
 
     boolean unregister(DiscreteResourceId key, List<DiscreteResource> values) {
+        // short-circuit: receiving empty resource is regarded as success
+        if (values.isEmpty()) {
+            return true;
+        }
+
         Set<DiscreteResource> oldValues = childMap.putIfAbsent(key, new LinkedHashSet<>());
         if (oldValues == null) {
             log.trace("No-Op removing values. key {} did not exist", key);

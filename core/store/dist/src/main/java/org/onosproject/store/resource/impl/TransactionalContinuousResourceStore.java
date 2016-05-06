@@ -67,6 +67,11 @@ class TransactionalContinuousResourceStore {
     }
 
     boolean register(DiscreteResourceId key, List<ContinuousResource> values) {
+        // short-circuit: receiving empty resource is regarded as success
+        if (values.isEmpty()) {
+            return true;
+        }
+
         Set<ContinuousResource> requested = new LinkedHashSet<>(values);
         Set<ContinuousResource> oldValues = childMap.putIfAbsent(key, requested);
         if (oldValues == null) {
@@ -95,6 +100,11 @@ class TransactionalContinuousResourceStore {
     }
 
     boolean unregister(DiscreteResourceId key, List<ContinuousResource> values) {
+        // short-circuit: receiving empty resource is regarded as success
+        if (values.isEmpty()) {
+            return true;
+        }
+
         Set<ContinuousResource> oldValues = childMap.putIfAbsent(key, new LinkedHashSet<>());
         if (oldValues == null) {
             log.trace("No-Op removing values. key {} did not exist", key);

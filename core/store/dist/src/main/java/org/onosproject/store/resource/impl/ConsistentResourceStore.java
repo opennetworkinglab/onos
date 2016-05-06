@@ -358,14 +358,6 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 .map(x -> (ContinuousResource) x)
                 .collect(Collectors.toList());
 
-        // short-circuit decision avoiding unnecessary distributed map operations
-        if (continuousValues.isEmpty()) {
-            return discreteTxStore.register(key, discreteValues);
-        }
-        if (discreteValues.isEmpty()) {
-            return continuousTxStore.register(key, continuousValues);
-        }
-
         return discreteTxStore.register(key, discreteValues)
                 && continuousTxStore.register(key, continuousValues);
     }
@@ -394,14 +386,6 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 .filter(x -> x instanceof ContinuousResource)
                 .map(x -> (ContinuousResource) x)
                 .collect(Collectors.toList());
-
-        // short-circuit decision avoiding unnecessary distributed map operations
-        if (continuousValues.isEmpty()) {
-            return discreteTxStore.unregister(key, discreteValues);
-        }
-        if (discreteValues.isEmpty()) {
-            return continuousTxStore.unregister(key, continuousValues);
-        }
 
         return discreteTxStore.unregister(key, discreteValues)
                 && continuousTxStore.unregister(key, continuousValues);
