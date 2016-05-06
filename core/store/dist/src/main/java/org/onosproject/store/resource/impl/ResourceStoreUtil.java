@@ -33,7 +33,7 @@ final class ResourceStoreUtil {
     // computational complexity: O(n) where n is the number of allocations
     static boolean hasEnoughResource(ContinuousResource original,
                                      ContinuousResource request,
-                                     ConsistentResourceStore.ContinuousResourceAllocation allocation) {
+                                     ContinuousResourceAllocation allocation) {
         if (allocation == null) {
             return request.value() <= original.value();
         }

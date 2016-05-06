@@ -24,7 +24,6 @@ import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumer;
-import org.onosproject.store.resource.impl.ConsistentResourceStore.ContinuousResourceAllocation;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionalMap;
 import org.slf4j.Logger;

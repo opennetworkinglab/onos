@@ -16,7 +16,6 @@
 package org.onosproject.store.resource.impl;
 
 import com.google.common.annotations.Beta;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -389,25 +388,5 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
 
         return discreteTxStore.unregister(key, discreteValues)
                 && continuousTxStore.unregister(key, continuousValues);
-    }
-
-    // internal use only
-    static final class ContinuousResourceAllocation {
-        private final ContinuousResource original;
-        private final ImmutableList<ResourceAllocation> allocations;
-
-        ContinuousResourceAllocation(ContinuousResource original,
-                                     ImmutableList<ResourceAllocation> allocations) {
-            this.original = original;
-            this.allocations = allocations;
-        }
-
-        ContinuousResource original() {
-            return original;
-        }
-
-        ImmutableList<ResourceAllocation> allocations() {
-            return allocations;
-        }
     }
 }
