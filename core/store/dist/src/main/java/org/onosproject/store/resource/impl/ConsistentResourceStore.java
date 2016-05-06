@@ -311,11 +311,6 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         checkNotNull(parent);
         checkNotNull(cls);
 
-        Set<Resource> children = getChildResources(parent);
-        if (children.isEmpty()) {
-            return children;
-        }
-
         Stream<DiscreteResource> discrete = discreteStore.getAllocatedResources(parent, cls);
         Stream<ContinuousResource> continuous = continuousStore.getAllocatedResources(parent, cls);
 
