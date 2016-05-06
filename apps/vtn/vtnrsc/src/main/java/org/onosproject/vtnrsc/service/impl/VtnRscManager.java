@@ -51,6 +51,7 @@ import org.onosproject.vtnrsc.PortPair;
 import org.onosproject.vtnrsc.PortPairGroup;
 import org.onosproject.vtnrsc.PortPairId;
 import org.onosproject.vtnrsc.Router;
+import org.onosproject.vtnrsc.RouterId;
 import org.onosproject.vtnrsc.RouterInterface;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.onosproject.vtnrsc.Subnet;
@@ -167,7 +168,8 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
 
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
-                .register(TenantId.class, DeviceId.class, SegmentationId.class);
+                .register(TenantId.class, DeviceId.class, SegmentationId.class,
+                          TenantRouter.class, RouterId.class);
         l3vniTenantMap = storageService
                 .<TenantId, SegmentationId>eventuallyConsistentMapBuilder()
                 .withName(L3VNITENANTMAP).withSerializer(serializer)

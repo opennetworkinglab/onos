@@ -106,6 +106,7 @@ import org.onosproject.vtnrsc.FloatingIp;
 import org.onosproject.vtnrsc.RouterInterface;
 import org.onosproject.vtnrsc.SecurityGroup;
 import org.onosproject.vtnrsc.SegmentationId;
+import org.onosproject.vtnrsc.Subnet;
 import org.onosproject.vtnrsc.SubnetId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.TenantNetwork;
@@ -205,6 +206,7 @@ public class VtnManager implements VtnService {
     private static final String EX_PORT_OF_DEVICE = "exPortOfDevice";
     private static final String EX_PORT_MAP = "exPortMap";
     private static final String DEFAULT_IP = "0.0.0.0";
+    private static final String USERDATA_IP = "169.254.169.254";
     private static final int SUBNET_NUM = 2;
 
     private EventuallyConsistentMap<VirtualPortId, VirtualPort> vPortStore;
@@ -557,7 +559,27 @@ public class VtnManager implements VtnService {
         for (PortNumber p : localTunnelPorts) {
             programGroupTable(deviceId, appId, p, devices, type);
         }
-
+        Subnet subnet = subnetService.getSubnet(subnetId);
+        String deviceOwner = virtualPort.deviceOwner();
+        if (deviceOwner != null) {
+            if (deviceOwner.equalsIgnoreCase("network:dhcp")) {
+                Sets.newHashSet(devices).stream()
+                        .filter(d -> d.type() == Device.Type.SWITCH)
+                        .forEach(d -> {
+                            if (subnet != null) {
+                                IpAddress dstIp = IpAddress
+                                        .valueOf(USERDATA_IP);
+                                classifierService
+                                        .programUserdataClassifierRules(d.id(),
+                                                                        subnet.cidr(),
+                                                                        dstIp,
+                                                                        mac,
+                                                                        segmentationId,
+                                                                        type);
+                            }
+                        });
+            }
+        }
         if (type == Objective.Operation.ADD) {
             vPortStore.put(virtualPortId, virtualPort);
             if (networkOflocalHostPorts == null) {

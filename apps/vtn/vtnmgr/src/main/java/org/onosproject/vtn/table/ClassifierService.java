@@ -16,6 +16,7 @@
 package org.onosproject.vtn.table;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
@@ -102,4 +103,20 @@ public interface ClassifierService {
                                    SegmentationId actionVni,
                                    Objective.Operation type);
 
+    /**
+     * Assemble the Userdata Classifier table rules.
+     * Match: subnet ip prefix and destination ip.
+     * Action: add flow rule to specific ip for userdata.
+     *
+     * @param deviceId Device Id
+     * @param ipPrefix source ip prefix
+     * @param dstIp userdata ip
+     * @param dstmac dst mac
+     * @param actionVni the vni of the source network (l2vni)
+     * @param type the operation type of the flow rules
+     */
+    void programUserdataClassifierRules(DeviceId deviceId, IpPrefix ipPrefix,
+                                        IpAddress dstIp, MacAddress dstmac,
+                                        SegmentationId actionVni,
+                                        Objective.Operation type);
 }

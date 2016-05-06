@@ -56,7 +56,7 @@ public class ClassifierServiceImpl implements ClassifierService {
     private static final int ARP_CLASSIFIER_PRIORITY = 60000;
     private static final int L3_CLASSIFIER_PRIORITY = 0xffff;
     private static final int L2_CLASSIFIER_PRIORITY = 50000;
-
+    private static final int USERDATA_CLASSIFIER_PRIORITY = 65535;
     private final FlowObjectiveService flowObjectiveService;
     private final ApplicationId appId;
 
@@ -193,4 +193,29 @@ public class ClassifierServiceImpl implements ClassifierService {
         }
     }
 
+    @Override
+    public void programUserdataClassifierRules(DeviceId deviceId,
+                                               IpPrefix ipPrefix,
+                                               IpAddress dstIp,
+                                               MacAddress dstmac,
+                                               SegmentationId actionVni,
+                                               Objective.Operation type) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4).matchIPSrc(ipPrefix)
+                .matchIPDst(IpPrefix.valueOf(dstIp, 32)).build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.parseLong(actionVni.segmentationId()))
+                .setEthDst(dstmac).build();
+        ForwardingObjective.Builder objective = DefaultForwardingObjective
+                .builder().withTreatment(treatment).withSelector(selector)
+                .fromApp(appId).withFlag(Flag.SPECIFIC)
+                .withPriority(USERDATA_CLASSIFIER_PRIORITY);
+        if (type.equals(Objective.Operation.ADD)) {
+            log.debug("UserdataClassifierRules-->ADD");
+            flowObjectiveService.forward(deviceId, objective.add());
+        } else {
+            log.debug("UserdataClassifierRules-->REMOVE");
+            flowObjectiveService.forward(deviceId, objective.remove());
+        }
+    }
 }
