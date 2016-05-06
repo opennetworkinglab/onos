@@ -7,6 +7,7 @@ COMPILE_DEPS = [
     '//utils/rest:onlab-rest',
     '//incubator/api:onos-incubator-api',
     '//apps/routing-api:onos-apps-routing-api',
+    '//apps/routing:onos-apps-routing',
 ]
 
 TEST_DEPS = [

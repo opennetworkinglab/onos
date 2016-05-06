@@ -20,5 +20,6 @@
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-routing-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-app-routing/${project.version}</bundle>
     </feature>
 </features>
