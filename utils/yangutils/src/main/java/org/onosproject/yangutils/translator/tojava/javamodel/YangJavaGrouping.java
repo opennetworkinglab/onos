@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.YangGrouping;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 /**
@@ -26,7 +28,7 @@ import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
  */
 public class YangJavaGrouping
         extends YangGrouping
-        implements JavaCodeGenerator {
+        implements JavaCodeGeneratorInfo, JavaCodeGenerator {
 
     /**
      * Creates YANG Java grouping object.
@@ -44,6 +46,28 @@ public class YangJavaGrouping
     @Override
     public void generateCodeExit()
             throws IOException {
+        /*Do nothing, the uses will copy the contents to the used location*/
+    }
+
+    @Override
+    public JavaFileInfo getJavaFileInfo() {
+        /*Do nothing, the uses will copy the contents to the used location*/
+        return null;
+    }
+
+    @Override
+    public void setJavaFileInfo(JavaFileInfo javaInfo) {
+        /*Do nothing, the uses will copy the contents to the used location*/
+    }
+
+    @Override
+    public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
+        /*Do nothing, the uses will copy the contents to the used location*/
+        return null;
+    }
+
+    @Override
+    public void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle) {
         /*Do nothing, the uses will copy the contents to the used location*/
     }
 }
