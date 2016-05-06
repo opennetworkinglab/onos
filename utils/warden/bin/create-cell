@@ -3,11 +3,12 @@
 
 name="$1"
 ipx="$2"
-key="$3"
+shift 2
+key="$@"
 
 cd $(dirname $0)
 
-./clone-node base-mininet ${ipx/x/0} $name-mn "$key"
+./clone-node base-mininet ${ipx/x/0} $name-n "$key"
 
 for n in {1..3}; do
     ./clone-node base-onos ${ipx/x/$n} $name-$n "$key"

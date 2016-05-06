@@ -29,14 +29,11 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -106,7 +103,6 @@ class Warden {
         return list != null ? ImmutableSet.copyOf(list) : ImmutableSet.of();
     }
 
-
     /**
      * Returns reservation for the specified user.
      *
@@ -170,25 +166,10 @@ class Warden {
             reservation = new Reservation(reservation.cellName, userName, now, minutes);
         }
 
-        reserveCell(reservation.cellName, reservation);
-        installUserKeys(reservation.cellName, userName, sshKey);
+        reserveCell(reservation);
+        createCell(reservation, sshKey);
         log(userName, reservation.cellName, "borrowed for " + reservation.duration + " minutes");
         return getCellDefinition(reservation.cellName);
-    }
-
-    /**
-     * Reserves the specified cell for the user the source file and writes the
-     * specified content to the target file.
-     *
-     * @param cellName    cell name
-     * @param reservation cell reservation record
-     */
-    private void reserveCell(String cellName, Reservation reservation) {
-        try (FileOutputStream stream = new FileOutputStream(new File(reserved, cellName))) {
-            stream.write(reservation.encode().getBytes(UTF_8));
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to reserve cell " + cellName, e);
-        }
     }
 
     /**
@@ -200,10 +181,61 @@ class Warden {
         checkNotNull(userName, USER_NOT_NULL);
         Reservation reservation = currentUserReservation(userName);
         checkState(reservation != null, "User %s has no cell reservations", userName);
+
+        unreserveCell(reservation);
+        destroyCell(reservation);
+        log(userName, reservation.cellName, "returned");
+    }
+
+    /**
+     * Reserves the specified cell for the user the source file and writes the
+     * specified content to the target file.
+     *
+     * @param reservation cell reservation record
+     */
+    private void reserveCell(Reservation reservation) {
+        File cellFile = new File(reserved, reservation.cellName);
+        try (FileOutputStream stream = new FileOutputStream(cellFile)) {
+            stream.write(reservation.encode().getBytes(UTF_8));
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to reserve cell " + reservation.cellName, e);
+        }
+    }
+
+    private String getCellDefinition(String cellName) {
+        return exec("bin/cell-def " + cellName);
+    }
+
+    /**
+     * Cancels the specified reservation.
+     *
+     * @param reservation reservation record
+     */
+    private void unreserveCell(Reservation reservation) {
         checkState(new File(reserved, reservation.cellName).delete(),
                    "Unable to return cell %s", reservation.cellName);
-        uninstallUserKeys(reservation.cellName);
-        log(userName, reservation.cellName, "returned");
+    }
+
+    /**
+     * Creates the cell for the specified user SSH key.
+     *
+     * @param reservation cell reservation
+     * @param sshKey      ssh key
+     */
+    private void createCell(Reservation reservation, String sshKey) {
+        String cellInfo = getCellInfo(reservation.cellName);
+        String cmd = String.format("bin/create-cell %s %s %s",
+                                   reservation.cellName, cellInfo, sshKey);
+        exec(cmd);
+    }
+
+    /**
+     * Destroys the specified cell.
+     *
+     * @param reservation reservation record
+     */
+    private void destroyCell(Reservation reservation) {
+        exec("bin/destroy-cell " + reservation.cellName);
     }
 
     /**
@@ -212,7 +244,7 @@ class Warden {
      * @param cellName cell name
      * @return cell definition
      */
-    String getCellDefinition(String cellName) {
+    String getCellInfo(String cellName) {
         File cellFile = new File(supported, cellName);
         try (InputStream stream = new FileInputStream(cellFile)) {
             return new String(ByteStreams.toByteArray(stream), UTF_8);
@@ -221,63 +253,15 @@ class Warden {
         }
     }
 
-    // Returns list of cell hosts, i.e. OC#, OCN
-    private List<String> cellHosts(String cellName) {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        Pattern pattern = Pattern.compile("export OC[0-9N]=(.*)");
-        for (String line : getCellDefinition(cellName).split("\n")) {
-            Matcher matcher = pattern.matcher(line);
-            if (matcher.matches()) {
-                builder.add(matcher.group(1).replaceAll("[\"']", ""));
-            }
-        }
-        return builder.build();
-    }
-
-    // Installs the specified user's key on all hosts of the given cell.
-    private void installUserKeys(String cellName, String userName, String sshKey) {
-        File authKeysFile = authKeys(sshKey);
-        for (String host : cellHosts(cellName)) {
-            installAuthorizedKey(host, authKeysFile.getPath());
-        }
-        checkState(authKeysFile.delete(), "Unable to install user keys");
-    }
-
-    // Uninstalls the user keys on the specified cell
-    private void uninstallUserKeys(String cellName) {
-        for (String host : cellHosts(cellName)) {
-            installAuthorizedKey(host, AUTHORIZED_KEYS);
-        }
-    }
-
-    // Installs the authorized keys on the specified host.
-    private void installAuthorizedKey(String host, String authorizedKeysFile) {
-        String cmd = "scp " + authorizedKeysFile + " sdn@" + host + ":.ssh/authorized_keys";
+    // Executes the specified command.
+    private String exec(String command) {
         try {
-            Process process = Runtime.getRuntime().exec(cmd);
+            Process process = Runtime.getRuntime().exec(command);
+            String output = new String(ByteStreams.toByteArray(process.getInputStream()), UTF_8);
             process.waitFor(TIMEOUT, TimeUnit.SECONDS);
+            return process.exitValue() == 0 ? output : null;
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to set authorized keys for host " + host);
-        }
-    }
-
-    // Returns the file containing authorized keys that incudes the specified key.
-    private File authKeys(String sshKey) {
-        File keysFile = new File(AUTHORIZED_KEYS);
-        try {
-            File tmp = File.createTempFile("warden-", ".auth");
-            tmp.deleteOnExit();
-            try (InputStream stream = new FileInputStream(keysFile);
-                 PrintWriter output = new PrintWriter(tmp)) {
-                String baseKeys = new String(ByteStreams.toByteArray(stream), UTF_8);
-                output.println(baseKeys);
-                output.println(sshKey);
-                return tmp;
-            } catch (IOException e) {
-                throw new IllegalStateException("Unable to generate authorized keys", e);
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to generate authorized keys", e);
+            throw new IllegalStateException("Unable to execute " + command);
         }
     }
 

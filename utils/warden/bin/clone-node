@@ -4,7 +4,8 @@
 base="$1"
 ip="$2"
 name="$3"
-key="$4"
+shift 3
+key="$@"
 
 sudo lxc-clone -o $base -n $name
 

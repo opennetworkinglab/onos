@@ -113,17 +113,16 @@ function cell {
     case "$cell" in
     "borrow")
         aux="/tmp/cell-$$"
-        curl -sS -X POST "http://$CELL_WARDEN:4321/?user=$(id -un)&duration=${2:-0}" \
+        curl -sS -X POST "http://$CELL_WARDEN:4321/?duration=${2:-0}&user=${3:-$(id -un)}" \
             -d "$(cat ~/.ssh/id_rsa.pub)" > $aux
         . $aux
         rm -f $aux
         export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
         setPrimaryInstance 1 >/dev/null
-        cell
         onos-verify-cell
         ;;
     "return")
-        curl -sS -X DELETE "http://$CELL_WARDEN:4321/?user=$(id -un)"
+        curl -sS -X DELETE "http://$CELL_WARDEN:4321/?user=${2:-$(id -un)}"
         unset ONOS_CELL ONOS_NIC ONOS_IP ONOS_APPS ONOS_BOOT_FEATURES
         unset OCI OCN OCT ONOS_INSTANCES ONOS_FEATURES
         unset $(env | sed -n 's:\(^OC[0-9]\{1,\}\)=.*:\1 :g p')

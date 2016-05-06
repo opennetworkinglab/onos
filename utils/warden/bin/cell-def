@@ -8,7 +8,7 @@ echo "export ONOS_CELL=borrow"
 echo "export ONOS_NIC=\"10.128.11.*\""
 
 sudo lxc-ls -F "name,ipv4" --fancy | grep $name | \
-    sed "s/^$name/OC/" | tr "[:lower:]" "[:upper:]" | \
+    sed "s/^$name-/OC/" | tr "[:lower:]" "[:upper:]" | \
     sed -r 's/[ ]+/\=/;s/^/export /'
 
 echo "export OCT=\"\$OC1\""
