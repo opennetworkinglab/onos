@@ -25,4 +25,5 @@ sudo chmod 700 /var/lib/lxc
 sudo lxc-start -d -n $name
 sudo lxc-attach -n $name -- ping -c1 8.8.8.8
 sudo lxc-attach -n $name -- bash -c "echo $key >> /home/sdn/.ssh/authorized_keys"
+sudo lxc-attach -n $name -- bash -c "sed -i \"s/127.0.1.1.*/127.0.1.1   $name/\" /etc/hosts"
 sudo lxc-ls --fancy
