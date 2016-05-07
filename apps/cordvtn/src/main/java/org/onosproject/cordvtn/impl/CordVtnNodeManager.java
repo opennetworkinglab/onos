@@ -86,6 +86,7 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.cordvtn.impl.RemoteIpCommandUtil.*;
 import static org.onosproject.net.Device.Type.SWITCH;
 import static org.onosproject.net.behaviour.TunnelDescription.Type.VXLAN;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -222,7 +223,7 @@ public class CordVtnNodeManager {
     }
 
     @Activate
-    protected void active() {
+    protected void activate() {
         appId = coreService.getAppId(CordVtnService.CORDVTN_APP_ID);
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
@@ -242,18 +243,20 @@ public class CordVtnNodeManager {
         nodeStore.addListener(nodeStoreListener);
         deviceService.addListener(deviceListener);
         configService.addListener(configListener);
+
+        log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         configService.removeListener(configListener);
         deviceService.removeListener(deviceListener);
-
         nodeStore.removeListener(nodeStoreListener);
-        nodeStore.clear();
 
         leadershipService.withdraw(appId.name());
         eventExecutor.shutdown();
+
+        log.info("Stopped");
     }
 
     /**
@@ -344,29 +347,31 @@ public class CordVtnNodeManager {
             return null;
         }
 
-        Session session = RemoteIpCommandUtil.connect(node.sshInfo());
+        Session session = connect(node.sshInfo());
         if (session == null) {
             log.debug("Failed to SSH to {}", node.hostname());
             return null;
         }
 
-        Set<IpAddress> intBrIps = RemoteIpCommandUtil.getCurrentIps(session, DEFAULT_BRIDGE);
+        Set<IpAddress> intBrIps = getCurrentIps(session, DEFAULT_BRIDGE);
         String result = String.format(
-                "br-int created and connected : %s (%s)%n" +
-                        "VXLAN interface created : %s%n" +
-                        "Data plane interface added : %s (%s)%n" +
-                        "IP flushed from %s : %s%n" +
+                "Current state : %s%n" +
+                        "br-int created and connected to ONOS : %s (%s)%n" +
+                        "VXLAN interface added to br-int : %s%n" +
+                        "Data plane interface is added to br-int and enabled : %s (%s)%n" +
+                        "IP flushed from data plane interface : %s (%s)%n" +
                         "Data plane IP added to br-int : %s (%s)%n" +
                         "Local management IP added to br-int : %s (%s)",
+                node.state(),
                 isBrIntCreated(node) ? OK : NO, node.intBrId(),
                 isTunnelIntfCreated(node) ? OK : NO,
                 isDataPlaneIntfAdded(node) ? OK : NO, node.dpIntf(),
-                node.dpIntf(),
-                RemoteIpCommandUtil.getCurrentIps(session, node.dpIntf()).isEmpty() ? OK : NO,
+                isInterfaceUp(session, node.dpIntf()) &&
+                        getCurrentIps(session, node.dpIntf()).isEmpty() ? OK : NO, node.dpIntf(),
                 intBrIps.contains(node.dpIp().ip()) ? OK : NO, node.dpIp().cidr(),
                 intBrIps.contains(node.localMgmtIp().ip()) ? OK : NO, node.localMgmtIp().cidr());
 
-        RemoteIpCommandUtil.disconnect(session);
+        disconnect(session);
 
         return result;
     }
@@ -630,6 +635,18 @@ public class CordVtnNodeManager {
             return;
         }
 
+        Session session = connect(node.sshInfo());
+        if (session == null) {
+            log.debug("Failed to SSH to {}", node.hostname());
+            return;
+        }
+
+        if (!isInterfaceUp(session, node.dpIntf())) {
+            log.warn("Interface {} is not available", node.dpIntf());
+            return;
+        }
+        disconnect(session);
+
         try {
             Device device = deviceService.getDevice(node.ovsdbId());
             if (device.is(BridgeConfig.class)) {
@@ -650,24 +667,24 @@ public class CordVtnNodeManager {
      * @param node cordvtn node
      */
     private void setIpAddress(CordVtnNode node) {
-        Session session = RemoteIpCommandUtil.connect(node.sshInfo());
+        Session session = connect(node.sshInfo());
         if (session == null) {
             log.debug("Failed to SSH to {}", node.hostname());
             return;
         }
 
-        RemoteIpCommandUtil.getCurrentIps(session, DEFAULT_BRIDGE).stream()
+        getCurrentIps(session, DEFAULT_BRIDGE).stream()
                 .filter(ip -> !ip.equals(node.localMgmtIp().ip()))
                 .filter(ip -> !ip.equals(node.dpIp().ip()))
-                .forEach(ip -> RemoteIpCommandUtil.deleteIp(session, ip, DEFAULT_BRIDGE));
+                .forEach(ip -> deleteIp(session, ip, DEFAULT_BRIDGE));
 
-        boolean result = RemoteIpCommandUtil.flushIp(session, node.dpIntf()) &&
-                RemoteIpCommandUtil.setInterfaceUp(session, node.dpIntf()) &&
-                RemoteIpCommandUtil.addIp(session, node.dpIp(), DEFAULT_BRIDGE) &&
-                RemoteIpCommandUtil.addIp(session, node.localMgmtIp(), DEFAULT_BRIDGE) &&
-                RemoteIpCommandUtil.setInterfaceUp(session, DEFAULT_BRIDGE);
+        boolean result = flushIp(session, node.dpIntf()) &&
+                setInterfaceUp(session, node.dpIntf()) &&
+                addIp(session, node.dpIp(), DEFAULT_BRIDGE) &&
+                addIp(session, node.localMgmtIp(), DEFAULT_BRIDGE) &&
+                setInterfaceUp(session, DEFAULT_BRIDGE);
 
-        RemoteIpCommandUtil.disconnect(session);
+        disconnect(session);
 
         if (result) {
             setNodeState(node, NodeState.COMPLETE);
@@ -720,20 +737,20 @@ public class CordVtnNodeManager {
      * @return true if the IP is set, false otherwise
      */
     private boolean isIpAddressSet(CordVtnNode node) {
-        Session session = RemoteIpCommandUtil.connect(node.sshInfo());
+        Session session = connect(node.sshInfo());
         if (session == null) {
             log.debug("Failed to SSH to {}", node.hostname());
             return false;
         }
 
-        Set<IpAddress> intBrIps = RemoteIpCommandUtil.getCurrentIps(session, DEFAULT_BRIDGE);
-        boolean result = RemoteIpCommandUtil.getCurrentIps(session, node.dpIntf()).isEmpty() &&
-                RemoteIpCommandUtil.isInterfaceUp(session, node.dpIntf()) &&
+        Set<IpAddress> intBrIps = getCurrentIps(session, DEFAULT_BRIDGE);
+        boolean result = getCurrentIps(session, node.dpIntf()).isEmpty() &&
+                isInterfaceUp(session, node.dpIntf()) &&
                 intBrIps.contains(node.dpIp().ip()) &&
                 intBrIps.contains(node.localMgmtIp().ip()) &&
-                RemoteIpCommandUtil.isInterfaceUp(session, DEFAULT_BRIDGE);
+                isInterfaceUp(session, DEFAULT_BRIDGE);
 
-        RemoteIpCommandUtil.disconnect(session);
+        disconnect(session);
         return result;
     }
 
@@ -951,13 +968,13 @@ public class CordVtnNodeManager {
                     oldNode = event.oldValue().value();
                     newNode = event.newValue().value();
 
+                    log.info("Reloaded {}", newNode.hostname());
                     if (!newNode.equals(oldNode)) {
-                        log.info("{} has been updated", newNode.hostname());
                         log.debug("New node: {}", newNode);
                     }
-                    // perform init procedure based on current state on any updates,
-                    // insert, or even if the node is the same for robustness since
-                    // it's no harm to run the init procedure multiple times
+                    // performs init procedure even if the node is not changed
+                    // for robustness since it's no harm to run init procedure
+                    // multiple times
                     eventExecutor.execute(() -> initNode(newNode));
                     break;
                 case INSERT:
@@ -967,7 +984,7 @@ public class CordVtnNodeManager {
                     break;
                 case REMOVE:
                     oldNode = event.oldValue().value();
-                    log.info("{} is removed", oldNode.hostname());
+                    log.info("Removed {}", oldNode.hostname());
                     break;
                 default:
                     break;

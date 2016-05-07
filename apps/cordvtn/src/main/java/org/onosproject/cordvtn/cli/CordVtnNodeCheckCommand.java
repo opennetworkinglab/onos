@@ -21,6 +21,9 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cordvtn.api.CordVtnNode;
 import org.onosproject.cordvtn.impl.CordVtnNodeManager;
+import org.onosproject.net.Device;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DriverService;
 
 /**
  * Checks detailed node init state.
@@ -36,6 +39,8 @@ public class CordVtnNodeCheckCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         CordVtnNodeManager nodeManager = AbstractShellCommand.get(CordVtnNodeManager.class);
+        DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);
+
         CordVtnNode node = nodeManager.getNodes()
                 .stream()
                 .filter(n -> n.hostname().equals(hostname))
@@ -48,5 +53,22 @@ public class CordVtnNodeCheckCommand extends AbstractShellCommand {
         }
 
         print(nodeManager.checkNodeInitState(node));
+
+        print("%n[DEBUG]");
+        Device device = deviceService.getDevice(node.intBrId());
+        String driver = get(DriverService.class).getDriver(device.id()).name();
+        print("%s available=%s driver=%s %s",
+              device.id(),
+              deviceService.isAvailable(device.id()),
+              driver,
+              device.annotations());
+
+        deviceService.getPorts(node.intBrId()).forEach(port -> {
+            Object portIsEnabled = port.isEnabled() ? "enabled" : "disabled";
+            print("port=%s state=%s %s",
+                  port.number(),
+                  portIsEnabled,
+                  port.annotations());
+        });
     }
 }

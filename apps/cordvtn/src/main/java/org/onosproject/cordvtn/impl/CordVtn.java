@@ -178,7 +178,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
     @Activate
     protected void activate() {
-        appId = coreService.registerApplication("org.onosproject.cordvtn");
+        appId = coreService.registerApplication(CordVtnService.CORDVTN_APP_ID);
         ruleInstaller = new CordVtnRuleInstaller(appId, flowRuleService,
                                                  deviceService,
                                                  groupService,
