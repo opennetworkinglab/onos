@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -224,12 +225,12 @@ public class MeteredAsyncConsistentMap<K, V>  extends DelegatingAsyncConsistentM
     }
 
     @Override
-    public CompletableFuture<Void> addListener(MapEventListener<K, V> listener) {
+    public CompletableFuture<Void> addListener(MapEventListener<K, V> listener, Executor executor) {
         final MeteringAgent.Context timer = monitor.startTimer(ADD_LISTENER);
         synchronized (listeners) {
             InternalMeteredMapEventListener meteredListener =
                     listeners.computeIfAbsent(listener, k -> new InternalMeteredMapEventListener(listener));
-            return super.addListener(meteredListener)
+            return super.addListener(meteredListener, executor)
                         .whenComplete((r, e) -> timer.stop(e));
         }
     }
@@ -239,7 +240,7 @@ public class MeteredAsyncConsistentMap<K, V>  extends DelegatingAsyncConsistentM
         final MeteringAgent.Context timer = monitor.startTimer(REMOVE_LISTENER);
         InternalMeteredMapEventListener meteredListener = listeners.remove(listener);
         if (meteredListener != null) {
-            return super.removeListener(listener)
+            return super.removeListener(meteredListener)
                         .whenComplete((r, e) -> timer.stop(e));
         } else {
             timer.stop(null);

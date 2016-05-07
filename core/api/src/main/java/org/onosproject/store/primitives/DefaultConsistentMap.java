@@ -185,7 +185,7 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
 
     @Override
     public void removeListener(MapEventListener<K, V> listener) {
-        complete(asyncMap.addListener(listener));
+        complete(asyncMap.removeListener(listener));
     }
 
     @Override
