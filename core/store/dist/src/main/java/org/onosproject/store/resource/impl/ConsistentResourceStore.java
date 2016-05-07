@@ -173,23 +173,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         Map<DiscreteResourceId, List<Resource>> resourceMap = resources.stream()
                 .collect(Collectors.groupingBy(x -> x.parent().get().id(), LinkedHashMap::new, Collectors.toList()));
 
-        // even if one of the resources is allocated to a consumer,
-        // all unregistrations are regarded as failure
         for (Map.Entry<DiscreteResourceId, List<Resource>> entry : resourceMap.entrySet()) {
-            boolean allocated = entry.getValue().stream().anyMatch(x -> {
-                if (x instanceof DiscreteResource) {
-                    return discreteTxStore.isAllocated(((DiscreteResource) x).id());
-                } else if (x instanceof ContinuousResource) {
-                    return continuousTxStore.isAllocated(((ContinuousResource) x).id());
-                } else {
-                    return false;
-                }
-            });
-            if (allocated) {
-                log.warn("Failed to unregister {}: allocation exists", entry.getKey());
-                return abortTransaction(tx);
-            }
-
             if (!unregister(discreteTxStore, continuousTxStore, entry.getKey(), entry.getValue())) {
                 log.warn("Failed to unregister {}: Failed to remove {} values.",
                         entry.getKey(), entry.getValue().size());

@@ -102,6 +102,14 @@ class TransactionalContinuousResourceStore {
             return true;
         }
 
+        // even if one of the resources is allocated to a consumer,
+        // all unregistrations are regarded as failure
+        boolean allocated = values.stream().anyMatch(x -> isAllocated(x.id()));
+        if (allocated) {
+            log.warn("Failed to unregister {}: allocation exists", key);
+            return false;
+        }
+
         Set<ContinuousResource> oldValues = childMap.putIfAbsent(key, new LinkedHashSet<>());
         if (oldValues == null) {
             log.trace("No-Op removing values. key {} did not exist", key);
