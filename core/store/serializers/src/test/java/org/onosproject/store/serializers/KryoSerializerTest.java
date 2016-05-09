@@ -380,7 +380,7 @@ public class KryoSerializerTest {
     public void testMplsLabelResourceSet() {
         DiscreteResource port = Resources.discrete(DID1, P1).resource();
 
-        Set<DiscreteResource> labels = IntStream.range(0, 1024 * 1024)
+        Set<DiscreteResource> labels = IntStream.range(0, 1024)
                 .mapToObj(MplsLabel::mplsLabel)
                 .map(x -> Resources.discrete(port.id(), x).resource())
                 .collect(Collectors.toSet());
