@@ -123,7 +123,7 @@
               exec="test ${dev4outFlowPort} -ge 1 -a ${dev4outFlowPort} -le 5"/>
 
         <!-- Check that connectivity was established -->
-        <step name="Net-REST.Ping-XY" requires="Net-REST.Create-Intent-XY,Net-REST.Create-Intent-YX"
+        <step name="Net-REST.Ping-XY" requires="^"
               exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
         <step name="Net-REST.Ping-YX" requires="^"
               exec="onos-mininet sendAndExpect h4 ping -c1 h1 --expect \ 0% packet loss"/>

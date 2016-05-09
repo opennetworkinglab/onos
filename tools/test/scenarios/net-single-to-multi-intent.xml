@@ -35,38 +35,32 @@
               exec="onos-create-intent ${OC1} back3 point of:000000000000000E/1 of:0000000000000011/1"/>
 
         <!-- Make sure intents installed properly -->
-        <step name="S2M-Intent.Validate-Intent-forward-Installed" requires="S2M-Intent.Create-Intent-forward"
+        <step name="S2M-Intent.Validate-Intent-forward-Installed" requires="^"
               exec="onos-check-intent ${OC1} forward INSTALLED"/>
-        <step name="S2M-Intent.Validate-Intent-back1-Installed" requires="S2M-Intent.Create-Intent-back1"
+        <step name="S2M-Intent.Validate-Intent-back1-Installed" requires="^"
               exec="onos-check-intent ${OC1} back1 INSTALLED"/>
-        <step name="S2M-Intent.Validate-Intent-back2-Installed" requires="S2M-Intent.Create-Intent-back2"
+        <step name="S2M-Intent.Validate-Intent-back2-Installed" requires="^"
               exec="onos-check-intent ${OC1} back2 INSTALLED"/>
-        <step name="S2M-Intent.Validate-Intent-back3-Installed" requires="S2M-Intent.Create-Intent-back3"
+        <step name="S2M-Intent.Validate-Intent-back3-Installed" requires="^"
               exec="onos-check-intent ${OC1} back3 INSTALLED"/>
 
         <!-- Check the connectivity of the 11 <-> 14 intent -->
         <step name="S2M-Intent.Ping-1-forward"
-              exec="onos-mininet sendAndExpect h17 ping -c1 h20 --expect \ 0% packet loss" requires="S2M-Intent.Create-Intent-forward,
-                                                                                                     S2M-Intent.Create-Intent-back1" />
+              exec="onos-mininet sendAndExpect h17 ping -c1 h20 --expect \ 0% packet loss" requires="^" />
         <step name="S2M-Intent.Ping-1-back"
-              exec="onos-mininet sendAndExpect h20 ping -c1 h17 --expect \ 0% packet loss" requires="S2M-Intent.Create-Intent-forward,
-                                                                                                     S2M-Intent.Create-Intent-back1" />
+              exec="onos-mininet sendAndExpect h20 ping -c1 h17 --expect \ 0% packet loss" requires="^" />
 
         <!-- Check the connectivity of the 11 <-> 2 intent -->
         <step name="S2M-Intent.Ping-2-forward"
-              exec="onos-mininet sendAndExpect h17 ping -c1 h2 --expect \ 0% packet loss" requires="S2M-Intent.Create-Intent-forward,
-                                                                                                     S2M-Intent.Create-Intent-back1" />
+              exec="onos-mininet sendAndExpect h17 ping -c1 h2 --expect \ 0% packet loss" requires="^" />
         <step name="S2M-Intent.Ping-2-back"
-              exec="onos-mininet sendAndExpect h2 ping -c1 h17 --expect \ 0% packet loss" requires="S2M-Intent.Create-Intent-forward,
-                                                                                                     S2M-Intent.Create-Intent-back1" />
+              exec="onos-mininet sendAndExpect h2 ping -c1 h17 --expect \ 0% packet loss" requires="^" />
 
         <!-- Check the connectivity of the 11 <-> E intent -->
         <step name="S2M-Intent.Ping-3-forward"
-              exec="onos-mininet sendAndExpect h17 ping -c1 h14 --expect \ 0% packet loss" requires="S2M-Intent.Create-Intent-forward,
-                                                                                                     S2M-Intent.Create-Intent-back2" />
+              exec="onos-mininet sendAndExpect h17 ping -c1 h14 --expect \ 0% packet loss" requires="^" />
         <step name="S2M-Intent.Ping-3-back"
-              exec="onos-mininet sendAndExpect h14 ping -c1 h17 --expect \ 0% packet loss" requires="S2M-Intent.Create-Intent-forward,
-                                                                                                     S2M-Intent.Create-Intent-back3" />
+              exec="onos-mininet sendAndExpect h14 ping -c1 h17 --expect \ 0% packet loss" requires="^" />
 
         <!-- Clean up intents -->
         <step name="S2M-Intent.Remove-Intent-forward" requires="~S2M-Intent.Ping-3-back"
