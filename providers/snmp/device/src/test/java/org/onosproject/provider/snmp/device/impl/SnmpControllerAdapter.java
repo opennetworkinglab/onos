@@ -19,14 +19,12 @@ package org.onosproject.provider.snmp.device.impl;
 import com.btisystems.pronx.ems.core.snmp.ISnmpSession;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 import org.onosproject.net.DeviceId;
-import org.onosproject.snmp.*;
+import org.onosproject.snmp.SnmpController;
 import org.onosproject.snmp.SnmpDevice;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Test Adapter for SnmpController API.
@@ -51,7 +49,7 @@ public class SnmpControllerAdapter implements SnmpController {
 
     @Override
     public void addDevice(DeviceId deviceId, SnmpDevice snmpDevice) {
-        devices.put(deviceId,snmpDevice);
+        devices.put(deviceId, snmpDevice);
     }
 
     @Override

@@ -10,7 +10,12 @@ COMPILE_DEPS = [
     '//protocols/snmp/ctl:onos-protocols-snmp-ctl',
 ]
 
+TEST_DEPS = [
+    '//lib:TEST',
+    '//core/api:onos-api-tests',
+]
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
 )
 
