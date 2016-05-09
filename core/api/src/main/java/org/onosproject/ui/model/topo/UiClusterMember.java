@@ -19,6 +19,11 @@ package org.onosproject.ui.model.topo;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.net.DeviceId;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.onosproject.cluster.ControllerNode.State.INACTIVE;
 
@@ -27,18 +32,21 @@ import static org.onosproject.cluster.ControllerNode.State.INACTIVE;
  */
 public class UiClusterMember extends UiElement {
 
+    private final UiTopology topology;
     private final ControllerNode cnode;
 
-    private int deviceCount = 0;
     private ControllerNode.State state = INACTIVE;
+    private final Set<DeviceId> mastership = new HashSet<>();
 
     /**
-     * Constructs a cluster member, with a reference to the specified
-     * controller node instance.
+     * Constructs a UI cluster member, with a reference to the parent
+     * topology instance and the specified controller node instance.
      *
-     * @param cnode underlying controller node.
+     * @param topology parent topology containing this cluster member
+     * @param cnode    underlying controller node.
      */
-    public UiClusterMember(ControllerNode cnode) {
+    public UiClusterMember(UiTopology topology, ControllerNode cnode) {
+        this.topology = topology;
         this.cnode = cnode;
     }
 
@@ -47,10 +55,23 @@ public class UiClusterMember extends UiElement {
         return "UiClusterMember{" + cnode +
                 ", online=" + isOnline() +
                 ", ready=" + isReady() +
-                ", #devices=" + deviceCount +
+                ", #devices=" + deviceCount() +
                 "}";
     }
 
+    @Override
+    public String idAsString() {
+        return id().toString();
+    }
+
+    /**
+     * Returns the controller node instance backing this UI cluster member.
+     *
+     * @return the backing controller node instance
+     */
+    public ControllerNode backingNode() {
+        return cnode;
+    }
 
     /**
      * Sets the state of this cluster member.
@@ -61,14 +82,15 @@ public class UiClusterMember extends UiElement {
         this.state = state;
     }
 
-
     /**
-     * Sets the number of devices for which this cluster member is master.
+     * Sets the collection of identities of devices for which this
+     * controller node is master.
      *
-     * @param deviceCount number of devices
+     * @param mastership device IDs
      */
-    public void setDeviceCount(int deviceCount) {
-        this.deviceCount = deviceCount;
+    public void setMastership(Set<DeviceId> mastership) {
+        this.mastership.clear();
+        this.mastership.addAll(mastership);
     }
 
     /**
@@ -113,11 +135,26 @@ public class UiClusterMember extends UiElement {
      * @return number of devices for which this member is master
      */
     public int deviceCount() {
-        return deviceCount;
+        return mastership.size();
     }
 
-    @Override
-    public String idAsString() {
-        return id().toString();
+    /**
+     * Returns the list of devices for which this cluster member is master.
+     *
+     * @return list of devices for which this member is master
+     */
+    public Set<DeviceId> masterOf() {
+        return Collections.unmodifiableSet(mastership);
+    }
+
+    /**
+     * Returns true if the specified device is one for which this cluster
+     * member is master.
+     *
+     * @param deviceId device ID
+     * @return true if this cluster member is master for the given device
+     */
+    public boolean masterOf(DeviceId deviceId) {
+        return mastership.contains(deviceId);
     }
 }

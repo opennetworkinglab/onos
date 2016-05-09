@@ -22,25 +22,47 @@ import org.onosproject.cluster.RoleInfo;
 import org.onosproject.event.EventDispatcher;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.EdgeLink;
 import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.region.Region;
+import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.model.ServiceBundle;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
+import org.onosproject.ui.model.topo.UiElement;
+import org.onosproject.ui.model.topo.UiHost;
+import org.onosproject.ui.model.topo.UiLink;
+import org.onosproject.ui.model.topo.UiLinkId;
+import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Set;
+
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.CLUSTER_MEMBER_ADDED_OR_UPDATED;
 import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.CLUSTER_MEMBER_REMOVED;
 import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.DEVICE_ADDED_OR_UPDATED;
 import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.DEVICE_REMOVED;
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.HOST_ADDED_OR_UPDATED;
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.HOST_MOVED;
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.HOST_REMOVED;
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.LINK_ADDED_OR_UPDATED;
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.LINK_REMOVED;
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.REGION_ADDED_OR_UPDATED;
+import static org.onosproject.ui.impl.topo.model.UiModelEvent.Type.REGION_REMOVED;
+import static org.onosproject.ui.model.topo.UiLinkId.uiLinkId;
 
 /**
  * UI Topology Model cache.
  */
 class ModelCache {
+
+    private static final String E_NO_ELEMENT = "Tried to remove non-member {}: {}";
 
     private static final Logger log = LoggerFactory.getLogger(ModelCache.class);
 
@@ -58,122 +80,310 @@ class ModelCache {
         return "ModelCache{" + uiTopology + "}";
     }
 
-    /**
-     * Clear our model.
-     */
+    private void postEvent(UiModelEvent.Type type, UiElement subject) {
+        dispatcher.post(new UiModelEvent(type, subject));
+    }
+
     void clear() {
         uiTopology.clear();
     }
 
     /**
-     * Create our internal model of the global topology.
+     * Create our internal model of the global topology. An assumption we are
+     * making is that the topology is empty to start.
      */
     void load() {
-        // TODO - implement loading of initial state
-//        loadClusterMembers();
-//        loadRegions();
-//        loadDevices();
-//        loadHosts();
-//        loadLinks();
+        loadClusterMembers();
+        loadRegions();
+        loadDevices();
+        loadLinks();
+        loadHosts();
     }
 
 
-    /**
-     * Updates the model (adds a new instance if necessary) with the given
-     * controller node information.
-     *
-     * @param cnode controller node to be added/updated
-     */
+    // === CLUSTER MEMBERS
+
+    private UiClusterMember addNewClusterMember(ControllerNode n) {
+        UiClusterMember member = new UiClusterMember(uiTopology, n);
+        uiTopology.add(member);
+        return member;
+    }
+
+    private void updateClusterMember(UiClusterMember member) {
+        ControllerNode.State state = services.cluster().getState(member.id());
+        member.setState(state);
+        member.setMastership(services.mastership().getDevicesOf(member.id()));
+        // NOTE: 'UI-attached' is session-based data, not global, so will
+        //       be set elsewhere
+    }
+
+    private void loadClusterMembers() {
+        for (ControllerNode n : services.cluster().getNodes()) {
+            UiClusterMember member = addNewClusterMember(n);
+            updateClusterMember(member);
+        }
+    }
+
+    // invoked from UiSharedTopologyModel cluster event listener
     void addOrUpdateClusterMember(ControllerNode cnode) {
         NodeId id = cnode.id();
         UiClusterMember member = uiTopology.findClusterMember(id);
         if (member == null) {
-            member = new UiClusterMember(cnode);
-            uiTopology.add(member);
+            member = addNewClusterMember(cnode);
         }
+        updateClusterMember(member);
 
-        // inject computed data about the cluster node, into the model object
-        ControllerNode.State state = services.cluster().getState(id);
-        member.setState(state);
-        member.setDeviceCount(services.mastership().getDevicesOf(id).size());
-        // NOTE: UI-attached is session-based data, not global
-
-        dispatcher.post(new UiModelEvent(CLUSTER_MEMBER_ADDED_OR_UPDATED, member));
+        postEvent(CLUSTER_MEMBER_ADDED_OR_UPDATED, member);
     }
 
-    /**
-     * Removes from the model the specified controller node.
-     *
-     * @param cnode controller node to be removed
-     */
+    // package private for unit test access
+    UiClusterMember accessClusterMember(NodeId id) {
+        return uiTopology.findClusterMember(id);
+    }
+
+    // invoked from UiSharedTopologyModel cluster event listener
     void removeClusterMember(ControllerNode cnode) {
         NodeId id = cnode.id();
         UiClusterMember member = uiTopology.findClusterMember(id);
         if (member != null) {
             uiTopology.remove(member);
-            dispatcher.post(new UiModelEvent(CLUSTER_MEMBER_REMOVED, member));
+            postEvent(CLUSTER_MEMBER_REMOVED, member);
         } else {
-            log.warn("Tried to remove non-member cluster node {}", id);
+            log.warn(E_NO_ELEMENT, "cluster node", id);
         }
     }
 
+
+    // === MASTERSHIP CHANGES
+
+    // invoked from UiSharedTopologyModel mastership listener
     void updateMasterships(DeviceId deviceId, RoleInfo roleInfo) {
+        // To think about:: do we need to store mastership info?
+        //  or can we rely on looking it up live?
         // TODO: store the updated mastership information
         // TODO: post event
     }
 
+
+    // === REGIONS
+
+    private UiRegion addNewRegion(Region r) {
+        UiRegion region = new UiRegion(uiTopology, r);
+        uiTopology.add(region);
+        return region;
+    }
+
+    private void updateRegion(UiRegion region) {
+        Set<DeviceId> devs = services.region().getRegionDevices(region.id());
+        region.reconcileDevices(devs);
+    }
+
+    private void loadRegions() {
+        for (Region r : services.region().getRegions()) {
+            UiRegion region = addNewRegion(r);
+            updateRegion(region);
+        }
+    }
+
+    // invoked from UiSharedTopologyModel region listener
     void addOrUpdateRegion(Region region) {
-        // TODO: find or create region assoc. with parameter
-        // TODO: post event
+        RegionId id = region.id();
+        UiRegion uiRegion = uiTopology.findRegion(id);
+        if (uiRegion == null) {
+            uiRegion = addNewRegion(region);
+        }
+        updateRegion(uiRegion);
+
+        postEvent(REGION_ADDED_OR_UPDATED, uiRegion);
     }
 
+    // invoked from UiSharedTopologyModel region listener
     void removeRegion(Region region) {
-        // TODO: find region assoc. with parameter; remove from model
-        // TODO: post event
+        RegionId id = region.id();
+        UiRegion uiRegion = uiTopology.findRegion(id);
+        if (uiRegion != null) {
+            uiTopology.remove(uiRegion);
+            postEvent(REGION_REMOVED, uiRegion);
+        } else {
+            log.warn(E_NO_ELEMENT, "region", id);
+        }
     }
 
+
+    // === DEVICES
+
+    private UiDevice addNewDevice(Device d) {
+        UiDevice device = new UiDevice(uiTopology, d);
+        uiTopology.add(device);
+        return device;
+    }
+
+    private void updateDevice(UiDevice device) {
+        device.setRegionId(services.region().getRegionForDevice(device.id()).id());
+    }
+
+    private void loadDevices() {
+        for (Device d : services.device().getDevices()) {
+            UiDevice device = addNewDevice(d);
+            updateDevice(device);
+        }
+    }
+
+    // invoked from UiSharedTopologyModel device listener
     void addOrUpdateDevice(Device device) {
-        // TODO: find or create device assoc. with parameter
-        // FIXME
-        UiDevice uiDevice = new UiDevice();
+        DeviceId id = device.id();
+        UiDevice uiDevice = uiTopology.findDevice(id);
+        if (uiDevice == null) {
+            uiDevice = addNewDevice(device);
+        }
+        updateDevice(uiDevice);
 
-        // TODO: post the (correct) event
-        dispatcher.post(new UiModelEvent(DEVICE_ADDED_OR_UPDATED, uiDevice));
+        postEvent(DEVICE_ADDED_OR_UPDATED, uiDevice);
     }
 
+    // invoked from UiSharedTopologyModel device listener
     void removeDevice(Device device) {
-        // TODO: get UiDevice associated with the given parameter; remove from model
-        // FIXME
-        UiDevice uiDevice = new UiDevice();
-
-        // TODO: post the (correct) event
-        dispatcher.post(new UiModelEvent(DEVICE_REMOVED, uiDevice));
-
+        DeviceId id = device.id();
+        UiDevice uiDevice = uiTopology.findDevice(id);
+        if (uiDevice != null) {
+            uiTopology.remove(uiDevice);
+            postEvent(DEVICE_REMOVED, uiDevice);
+        } else {
+            log.warn(E_NO_ELEMENT, "device", id);
+        }
     }
 
+
+    // === LINKS
+
+    private UiLink addNewLink(UiLinkId id) {
+        UiLink uiLink = new UiLink(uiTopology, id);
+        uiTopology.add(uiLink);
+        return uiLink;
+    }
+
+    private void updateLink(UiLink uiLink, Link link) {
+        uiLink.attachBackingLink(link);
+    }
+
+    private void loadLinks() {
+        for (Link link : services.link().getLinks()) {
+            UiLinkId id = uiLinkId(link);
+
+            UiLink uiLink = uiTopology.findLink(id);
+            if (uiLink == null) {
+                uiLink = addNewLink(id);
+            }
+            updateLink(uiLink, link);
+        }
+    }
+
+    // invoked from UiSharedTopologyModel link listener
     void addOrUpdateLink(Link link) {
-        // TODO: find ui-link assoc. with parameter; create or update.
-        // TODO: post event
+        UiLinkId id = uiLinkId(link);
+        UiLink uiLink = uiTopology.findLink(id);
+        if (uiLink == null) {
+            uiLink = addNewLink(id);
+        }
+        updateLink(uiLink, link);
+
+        postEvent(LINK_ADDED_OR_UPDATED, uiLink);
     }
 
+    // invoked from UiSharedTopologyModel link listener
     void removeLink(Link link) {
-        // TODO: find ui-link assoc. with parameter; update or remove.
-        // TODO: post event
+        UiLinkId id = uiLinkId(link);
+        UiLink uiLink = uiTopology.findLink(id);
+        if (uiLink != null) {
+            boolean remaining = uiLink.detachBackingLink(link);
+            if (remaining) {
+                postEvent(LINK_ADDED_OR_UPDATED, uiLink);
+            } else {
+                uiTopology.remove(uiLink);
+                postEvent(LINK_REMOVED, uiLink);
+            }
+        } else {
+            log.warn(E_NO_ELEMENT, "link", id);
+        }
     }
 
+
+    // === HOSTS
+
+    private UiHost addNewHost(Host h) {
+        UiHost host = new UiHost(uiTopology, h);
+        uiTopology.add(host);
+
+        UiLink edgeLink = addNewEdgeLink(host);
+        host.setEdgeLinkId(edgeLink.id());
+
+        return host;
+    }
+
+    private void removeOldEdgeLink(UiHost uiHost) {
+        UiLink old = uiTopology.findLink(uiHost.edgeLinkId());
+        if (old != null) {
+            uiTopology.remove(old);
+        }
+    }
+
+    private UiLink addNewEdgeLink(UiHost uiHost) {
+        EdgeLink elink = createEdgeLink(uiHost.backingHost(), true);
+        UiLinkId elinkId = UiLinkId.uiLinkId(elink);
+        UiLink uiLink = addNewLink(elinkId);
+        uiLink.attachEdgeLink(elink);
+        return uiLink;
+    }
+
+    private void updateHost(UiHost uiHost, Host h) {
+        removeOldEdgeLink(uiHost);
+        HostLocation hloc = h.location();
+        uiHost.setLocation(hloc.deviceId(), hloc.port());
+        addNewEdgeLink(uiHost);
+    }
+
+    private void loadHosts() {
+        for (Host h : services.host().getHosts()) {
+            UiHost host = addNewHost(h);
+            updateHost(host, h);
+        }
+    }
+
+    // invoked from UiSharedTopologyModel host listener
     void addOrUpdateHost(Host host) {
-        // TODO: find or create host assoc. with parameter
-        // TODO: post event
+        HostId id = host.id();
+        UiHost uiHost = uiTopology.findHost(id);
+        if (uiHost == null) {
+            uiHost = addNewHost(host);
+        }
+        updateHost(uiHost, host);
+
+        postEvent(HOST_ADDED_OR_UPDATED, uiHost);
     }
 
+    // invoked from UiSharedTopologyModel host listener
     void moveHost(Host host, Host prevHost) {
-        // TODO: process host-move
-        // TODO: post event
+        UiHost uiHost = uiTopology.findHost(prevHost.id());
+        updateHost(uiHost, host);
+
+        postEvent(HOST_MOVED, uiHost);
     }
 
+    // invoked from UiSharedTopologyModel host listener
     void removeHost(Host host) {
-        // TODO: find host assoc. with parameter; remove from model
+        HostId id = host.id();
+        UiHost uiHost = uiTopology.findHost(id);
+        if (uiHost != null) {
+            uiTopology.remove(uiHost);
+            removeOldEdgeLink(uiHost);
+            postEvent(HOST_REMOVED, uiHost);
+        } else {
+            log.warn(E_NO_ELEMENT, "host", id);
+        }
     }
+
+
+    // === CACHE STATISTICS
 
     /**
      * Returns the number of members in the cluster.
@@ -185,7 +395,7 @@ class ModelCache {
     }
 
     /**
-     * Returns the number of regions configured in the topology.
+     * Returns the number of regions in the topology.
      *
      * @return number of regions
      */

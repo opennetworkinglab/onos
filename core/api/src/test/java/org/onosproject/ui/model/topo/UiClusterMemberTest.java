@@ -16,6 +16,7 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ControllerNode;
@@ -36,12 +37,18 @@ public class UiClusterMemberTest extends AbstractUiModelTest {
     private static final ControllerNode CNODE_1 =
             new DefaultControllerNode(NODE_ID, NODE_IP);
 
+    private UiTopology topo;
     private UiClusterMember member;
+
+    @Before
+    public void setUp() {
+        topo = new UiTopology();
+    }
 
     @Test
     public void basic() {
         title("basic");
-        member = new UiClusterMember(CNODE_1);
+        member = new UiClusterMember(topo, CNODE_1);
         print(member);
 
         assertEquals("wrong id", NODE_ID, member.id());

@@ -16,20 +16,52 @@
 
 package org.onosproject.ui.model.topo;
 
+import com.google.common.base.MoreObjects;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.region.RegionId;
 
 /**
  * Represents a device.
  */
 public class UiDevice extends UiNode {
 
-    private Device device;
+    private final UiTopology topology;
+    private final Device device;
+
+    private RegionId regionId;
+
+    /**
+     * Creates a new UI device.
+     *
+     * @param topology parent topology
+     * @param device   backing device
+     */
+    public UiDevice(UiTopology topology, Device device) {
+        this.topology = topology;
+        this.device = device;
+    }
+
+    /**
+     * Sets the ID of the region to which this device belongs.
+     *
+     * @param regionId region identifier
+     */
+    public void setRegionId(RegionId regionId) {
+        this.regionId = regionId;
+    }
 
     @Override
-    protected void destroy() {
-        device = null;
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id())
+                .add("region", regionId)
+                .toString();
     }
+
+    //    @Override
+//    protected void destroy() {
+//    }
 
     /**
      * Returns the identity of the device.
@@ -43,5 +75,23 @@ public class UiDevice extends UiNode {
     @Override
     public String idAsString() {
         return id().toString();
+    }
+
+    /**
+     * Returns the device instance backing this UI device.
+     *
+     * @return the backing device instance
+     */
+    public Device backingDevice() {
+        return device;
+    }
+
+    /**
+     * Returns the UI region to which this device belongs.
+     *
+     * @return the UI region
+     */
+    public UiRegion uiRegion() {
+        return topology.findRegion(regionId);
     }
 }

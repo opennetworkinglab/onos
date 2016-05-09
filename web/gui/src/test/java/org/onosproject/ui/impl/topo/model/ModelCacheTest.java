@@ -18,16 +18,17 @@ package org.onosproject.ui.impl.topo.model;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.packet.IpAddress;
-import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.event.Event;
 import org.onosproject.event.EventDispatcher;
+import org.onosproject.net.DeviceId;
 import org.onosproject.ui.impl.topo.model.UiModelEvent.Type;
+import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiElement;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.cluster.NodeId.nodeId;
 
 /**
@@ -58,22 +59,6 @@ public class ModelCacheTest extends AbstractTopoModelTest {
         }
     }
 
-    private static IpAddress ip(String s) {
-        return IpAddress.valueOf(s);
-    }
-
-    private static ControllerNode cnode(String id, String ip) {
-        return new DefaultControllerNode(nodeId(id), ip(ip));
-    }
-
-    private static final String C1 = "C1";
-    private static final String C2 = "C2";
-    private static final String C3 = "C3";
-
-    private static final ControllerNode NODE_1 = cnode(C1, "10.0.0.1");
-    private static final ControllerNode NODE_2 = cnode(C2, "10.0.0.2");
-    private static final ControllerNode NODE_3 = cnode(C3, "10.0.0.3");
-
 
     private final TestEvDisp dispatcher = new TestEvDisp();
 
@@ -99,13 +84,13 @@ public class ModelCacheTest extends AbstractTopoModelTest {
         assertEquals("unex # members", 0, cache.clusterMemberCount());
         dispatcher.assertEventCount(0);
 
-        cache.addOrUpdateClusterMember(NODE_1);
+        cache.addOrUpdateClusterMember(CNODE_1);
         print(cache);
         assertEquals("unex # members", 1, cache.clusterMemberCount());
         dispatcher.assertEventCount(1);
         dispatcher.assertLast(Type.CLUSTER_MEMBER_ADDED_OR_UPDATED, C1);
 
-        cache.removeClusterMember(NODE_1);
+        cache.removeClusterMember(CNODE_1);
         print(cache);
         assertEquals("unex # members", 0, cache.clusterMemberCount());
         dispatcher.assertEventCount(2);
@@ -115,14 +100,69 @@ public class ModelCacheTest extends AbstractTopoModelTest {
     @Test
     public void createThreeNodeCluster() {
         title("createThreeNodeCluster");
-        cache.addOrUpdateClusterMember(NODE_1);
+        cache.addOrUpdateClusterMember(CNODE_1);
         dispatcher.assertLast(Type.CLUSTER_MEMBER_ADDED_OR_UPDATED, C1);
-        cache.addOrUpdateClusterMember(NODE_2);
+        cache.addOrUpdateClusterMember(CNODE_2);
         dispatcher.assertLast(Type.CLUSTER_MEMBER_ADDED_OR_UPDATED, C2);
-        cache.addOrUpdateClusterMember(NODE_3);
+        cache.addOrUpdateClusterMember(CNODE_3);
         dispatcher.assertLast(Type.CLUSTER_MEMBER_ADDED_OR_UPDATED, C3);
         dispatcher.assertEventCount(3);
         print(cache);
     }
 
+    @Test
+    public void addNodeThenExamineIt() {
+        title("addNodeThenExamineIt");
+        cache.addOrUpdateClusterMember(CNODE_1);
+        dispatcher.assertLast(Type.CLUSTER_MEMBER_ADDED_OR_UPDATED, C1);
+
+        UiClusterMember member = cache.accessClusterMember(nodeId(C1));
+        print(member);
+        // see AbstractUiImplTest Mock Environment for expected values...
+        assertEquals("wrong id str", C1, member.idAsString());
+        assertEquals("wrong id", nodeId(C1), member.id());
+        assertEquals("wrong dev count", 3, member.deviceCount());
+        assertEquals("not online", true, member.isOnline());
+        assertEquals("not ready", true, member.isReady());
+
+        assertMasterOf(member, DEVID_1, DEVID_2, DEVID_3);
+        assertNotMasterOf(member, DEVID_4, DEVID_6, DEVID_9);
+    }
+
+    private void assertMasterOf(UiClusterMember member, DeviceId... ids) {
+        for (DeviceId id : ids) {
+            assertTrue("not master of " + id, member.masterOf(id));
+        }
+    }
+
+    private void assertNotMasterOf(UiClusterMember member, DeviceId... ids) {
+        for (DeviceId id : ids) {
+            assertFalse("? master of " + id, member.masterOf(id));
+        }
+    }
+
+
+    @Test
+    public void addNodeAndDevices() {
+        title("addNodeAndDevices");
+        cache.addOrUpdateClusterMember(CNODE_1);
+        cache.addOrUpdateDevice(DEV_1);
+        cache.addOrUpdateDevice(DEV_2);
+        cache.addOrUpdateDevice(DEV_3);
+        print(cache);
+    }
+
+    @Test
+    public void addRegions() {
+        title("addRegions");
+        cache.addOrUpdateRegion(REGION_1);
+        print(cache);
+    }
+
+    @Test
+    public void load() {
+        title("load");
+        cache.load();
+        print(cache);
+    }
 }

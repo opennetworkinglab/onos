@@ -32,9 +32,17 @@ public class UiModelEvent extends AbstractEvent<UiModelEvent.Type, UiElement> {
         CLUSTER_MEMBER_ADDED_OR_UPDATED,
         CLUSTER_MEMBER_REMOVED,
 
+        REGION_ADDED_OR_UPDATED,
+        REGION_REMOVED,
+
         DEVICE_ADDED_OR_UPDATED,
         DEVICE_REMOVED,
 
-        // TODO...
+        LINK_ADDED_OR_UPDATED,
+        LINK_REMOVED,
+
+        HOST_ADDED_OR_UPDATED,
+        HOST_MOVED,
+        HOST_REMOVED
     }
 }

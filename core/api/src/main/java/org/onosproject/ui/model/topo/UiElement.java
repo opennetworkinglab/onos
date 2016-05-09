@@ -35,4 +35,15 @@ public abstract class UiElement {
      * @return the element unique identifier
      */
     public abstract String idAsString();
+
+    /**
+     * Returns a friendly name to be used for display purposes.
+     * This default implementation returns the result of calling
+     * {@link #idAsString()}.
+     *
+     * @return the friendly name
+     */
+    public String name() {
+        return idAsString();
+    }
 }

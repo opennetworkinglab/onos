@@ -16,35 +16,46 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostId;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
 
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Represents a region.
  */
 public class UiRegion extends UiNode {
 
-    private final Set<UiDevice> uiDevices = new TreeSet<>();
-    private final Set<UiHost> uiHosts = new TreeSet<>();
-    private final Set<UiLink> uiLinks = new TreeSet<>();
+    // loose bindings to things in this region
+    private final Set<DeviceId> deviceIds = new HashSet<>();
+    private final Set<HostId> hostIds = new HashSet<>();
+    private final Set<UiLinkId> uiLinkIds = new HashSet<>();
 
-    private Region region;
+    private final UiTopology topology;
 
+    private final Region region;
+
+    /**
+     * Constructs a UI region, with a reference to the specified backing region.
+     *
+     * @param topology parent topology
+     * @param region   backing region
+     */
+    public UiRegion(UiTopology topology, Region region) {
+        this.topology = topology;
+        this.region = region;
+    }
 
     @Override
     protected void destroy() {
-        uiDevices.forEach(UiDevice::destroy);
-        uiHosts.forEach(UiHost::destroy);
-        uiLinks.forEach(UiLink::destroy);
-
-        uiDevices.clear();
-        uiHosts.clear();
-        uiLinks.clear();
-
-        region = null;
+        deviceIds.clear();
+        hostIds.clear();
+        uiLinkIds.clear();
     }
 
     /**
@@ -59,5 +70,76 @@ public class UiRegion extends UiNode {
     @Override
     public String idAsString() {
         return id().toString();
+    }
+
+    @Override
+    public String name() {
+        return region.name();
+    }
+
+    /**
+     * Returns the region instance backing this UI region.
+     *
+     * @return the backing region instance
+     */
+    public Region backingRegion() {
+        return region;
+    }
+
+    /**
+     * Make sure we have only these devices in the region.
+     *
+     * @param devices devices in the region
+     */
+    public void reconcileDevices(Set<DeviceId> devices) {
+        deviceIds.clear();
+        deviceIds.addAll(devices);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("id", id())
+                .add("name", name())
+                .add("devices", deviceIds)
+                .add("#hosts", hostIds.size())
+                .add("#links", uiLinkIds.size())
+                .toString();
+    }
+
+    /**
+     * Returns the region's type.
+     *
+     * @return region type
+     */
+    public Region.Type type() {
+        return region.type();
+    }
+
+    /**
+     * Returns the devices in this region.
+     *
+     * @return the devices in this region
+     */
+    public Set<UiDevice> devices() {
+        return topology.deviceSet(deviceIds);
+    }
+
+    /**
+     * Returns the hosts in this region.
+     *
+     * @return the hosts in this region
+     */
+    public Set<UiHost> hosts() {
+        return topology.hostSet(hostIds);
+    }
+
+    /**
+     * Returns the links in this region.
+     *
+     * @return the links in this region
+     */
+    public Set<UiLink> links() {
+        return topology.linkSet(uiLinkIds);
     }
 }
