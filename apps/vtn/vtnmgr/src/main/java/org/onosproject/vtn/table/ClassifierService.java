@@ -104,6 +104,21 @@ public interface ClassifierService {
                                    Objective.Operation type);
 
     /**
+     * Assemble the Arp Classifier table rules.
+     * Match: arp type and destination ip.
+     * Action: set vnid and go to ARP Table(10).
+     *
+     * @param deviceId Device Id
+     * @param inPort the ingress port of the host
+     * @param dstIp source gateway ip
+     * @param actionVni the vni of the source network (l2vni)
+     * @param type the operation type of the flow rules
+     */
+    void programArpClassifierRules(DeviceId deviceId, PortNumber inPort,
+                                   IpAddress dstIp, SegmentationId actionVni,
+                                   Objective.Operation type);
+
+    /**
      * Assemble the Userdata Classifier table rules.
      * Match: subnet ip prefix and destination ip.
      * Action: add flow rule to specific ip for userdata.

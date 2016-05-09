@@ -910,12 +910,12 @@ public class VtnManager implements VtnService {
                 .programL3InPortClassifierRules(h.location().deviceId(),
                                                 h.location().port(), h.mac(),
                                                 srcVmGwMac, l3vni, operation);
+        classifierService.programArpClassifierRules(h.location().deviceId(),
+                                                    h.location().port(), srcGwIp,
+                                                    network.segmentationId(),
+                                                    operation);
         // Arp rules
         if (operation == Objective.Operation.ADD) {
-            classifierService.programArpClassifierRules(h.location().deviceId(),
-                                                        srcGwIp,
-                                                        network.segmentationId(),
-                                                        operation);
             DriverHandler handler = driverService.createHandler(h.location().deviceId());
             arpService.programArpRules(handler, h.location().deviceId(), srcGwIp,
                                        network.segmentationId(), srcVmGwMac,
@@ -1028,10 +1028,10 @@ public class VtnManager implements VtnService {
                                      fGwMac, exPortMac,
                                      floatingIp.floatingIp(),
                                      fipNetwork.segmentationId(), operation);
+        classifierService.programArpClassifierRules(deviceId, host.location().port(),
+                                                    dstVmGwIp, vmNetwork.segmentationId(),
+                                                    operation);
         if (operation == Objective.Operation.ADD) {
-            classifierService.programArpClassifierRules(deviceId, dstVmGwIp,
-                                                        vmNetwork.segmentationId(),
-                                                        operation);
             arpService.programArpRules(handler, deviceId, dstVmGwIp,
                                        vmNetwork.segmentationId(), dstVmGwMac,
                                        operation);

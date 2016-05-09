@@ -194,6 +194,30 @@ public class ClassifierServiceImpl implements ClassifierService {
     }
 
     @Override
+    public void programArpClassifierRules(DeviceId deviceId, PortNumber inPort,
+                                          IpAddress dstIp,
+                                          SegmentationId actionVni,
+                                          Objective.Operation type) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(inPort).matchEthType(ETH_TYPE.ethType().toShort())
+                .matchArpTpa(Ip4Address.valueOf(dstIp.toString())).build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.parseLong(actionVni.segmentationId()))
+                .build();
+        ForwardingObjective.Builder objective = DefaultForwardingObjective
+                .builder().withTreatment(treatment).withSelector(selector)
+                .fromApp(appId).withFlag(Flag.SPECIFIC)
+                .withPriority(ARP_CLASSIFIER_PRIORITY);
+        if (type.equals(Objective.Operation.ADD)) {
+            log.debug("ArpClassifierRules-->ADD");
+            flowObjectiveService.forward(deviceId, objective.add());
+        } else {
+            log.debug("ArpClassifierRules-->REMOVE");
+            flowObjectiveService.forward(deviceId, objective.remove());
+        }
+    }
+
+    @Override
     public void programUserdataClassifierRules(DeviceId deviceId,
                                                IpPrefix ipPrefix,
                                                IpAddress dstIp,
