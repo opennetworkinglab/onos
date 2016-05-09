@@ -26,7 +26,7 @@ public final class IPCriterion implements Criterion {
     private final IpPrefix ip;
     private final Type type;
 
-    private Integer ipv4SuffixLength;
+    private final Integer ipv4SuffixLength;
 
     /**
      * Constructor.
@@ -38,6 +38,7 @@ public final class IPCriterion implements Criterion {
     IPCriterion(IpPrefix ip, Type type) {
         this.ip = ip;
         this.type = type;
+        this.ipv4SuffixLength = null;
     }
 
     public IPCriterion(IpPrefix ip, Type type, int ipv4SuffixLength) {
