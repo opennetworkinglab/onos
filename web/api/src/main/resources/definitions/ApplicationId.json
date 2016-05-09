@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "title": "applicationId",
+  "required": [
+    "name",
+    "id"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "example": "org.onosproject.distributedprimitives"
+    },
+    "id": {
+      "type": "integer",
+      "format": "int64",
+      "example": 1
+    }
+  }
+}

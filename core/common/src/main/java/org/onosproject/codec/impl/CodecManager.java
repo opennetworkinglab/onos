@@ -27,6 +27,7 @@ import org.onosproject.cluster.RoleInfo;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.Application;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
 import org.onosproject.incubator.net.virtual.VirtualLink;
@@ -95,6 +96,7 @@ public class CodecManager implements CodecService {
     public void activate() {
         codecs.clear();
         registerCodec(Application.class, new ApplicationCodec());
+        registerCodec(ApplicationId.class, new ApplicationIdCodec());
         registerCodec(ControllerNode.class, new ControllerNodeCodec());
         registerCodec(Annotations.class, new AnnotationsCodec());
         registerCodec(Device.class, new DeviceCodec());
