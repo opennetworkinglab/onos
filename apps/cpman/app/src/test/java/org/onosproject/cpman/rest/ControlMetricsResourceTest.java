@@ -183,7 +183,7 @@ public class ControlMetricsResourceTest extends ResourceTest {
     public void testResourcePopulatedArray() {
         expect(mockControlPlaneMonitorService.availableResourcesSync(anyObject(), anyObject()))
                 .andReturn(resourceSet).once();
-        expect(mockControlPlaneMonitorService.getLoad(anyObject(), anyObject(),
+        expect(mockControlPlaneMonitorService.getLoadSync(anyObject(), anyObject(),
                 anyString())).andReturn(null).times(4);
         replay(mockControlPlaneMonitorService);
 

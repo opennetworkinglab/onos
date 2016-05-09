@@ -17,7 +17,6 @@ package org.onosproject.cpman.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cpman.ControlLoadSnapshot;
@@ -27,8 +26,6 @@ import org.onosproject.net.DeviceId;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 import static org.onosproject.cpman.ControlResource.CONTROL_MESSAGE_METRICS;
 import static org.onosproject.cpman.ControlResource.CPU_METRICS;
@@ -46,8 +43,6 @@ public class ControlMetricsStatsListCommand extends AbstractShellCommand {
     private static final String FMT = "metricType=%s, latestValue=%d, " +
             "averageValue=%d, latestTime=%s";
     private static final String INVALID_TYPE = "Invalid control resource type.";
-
-    private static final long TIMEOUT_MILLIS = 3000;
 
     @Argument(index = 0, name = "node", description = "ONOS node identifier",
             required = true, multiValued = false)
@@ -91,51 +86,80 @@ public class ControlMetricsStatsListCommand extends AbstractShellCommand {
         }
     }
 
+    /**
+     * Prints system metric statistic information.
+     *
+     * @param service monitor service
+     * @param nodeId  node identifier
+     * @param typeSet control metric type
+     */
     private void printMetricsStats(ControlPlaneMonitorService service, NodeId nodeId,
                                    Set<ControlMetricType> typeSet) {
         printMetricsStats(service, nodeId, typeSet, null, null);
     }
 
+    /**
+     * Prints disk and network metric statistic information.
+     *
+     * @param service monitor service
+     * @param nodeId  node identifier
+     * @param typeSet control metric type
+     * @param resName resource name
+     */
     private void printMetricsStats(ControlPlaneMonitorService service, NodeId nodeId,
                                    Set<ControlMetricType> typeSet, String resName) {
         printMetricsStats(service, nodeId, typeSet, resName, null);
     }
 
+    /**
+     * Prints control message metric statistic information.
+     *
+     * @param service monitor service
+     * @param nodeId  node identifier
+     * @param typeSet control metric type
+     * @param did     device identifier
+     */
     private void printMetricsStats(ControlPlaneMonitorService service, NodeId nodeId,
                                    Set<ControlMetricType> typeSet, DeviceId did) {
         printMetricsStats(service, nodeId, typeSet, null, did);
     }
 
+    /**
+     * Prints control plane metric statistic information.
+     *
+     * @param service monitor service
+     * @param nodeId  node identifier
+     * @param typeSet control metric type
+     * @param resName resource name
+     * @param did     device identifier
+     */
     private void printMetricsStats(ControlPlaneMonitorService service, NodeId nodeId,
                                    Set<ControlMetricType> typeSet, String resName, DeviceId did) {
         if (resName == null && did == null) {
             typeSet.forEach(s -> {
-                CompletableFuture<ControlLoadSnapshot> cf =
-                        service.getLoad(nodeId, s, Optional.empty());
-                ControlLoadSnapshot cmr =
-                        Tools.futureGetOrElse(cf, TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, null);
-                printRemote(s, cmr);
+                ControlLoadSnapshot cls = service.getLoadSync(nodeId, s, Optional.empty());
+                printControlLoadSnapshot(s, cls);
             });
-        } else if (resName == null && did != null) {
+        } else if (resName == null) {
             typeSet.forEach(s -> {
-                CompletableFuture<ControlLoadSnapshot> cf =
-                        service.getLoad(nodeId, s, Optional.of(did));
-                ControlLoadSnapshot cmr =
-                        Tools.futureGetOrElse(cf, TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, null);
-                printRemote(s, cmr);
+                ControlLoadSnapshot cls = service.getLoadSync(nodeId, s, Optional.of(did));
+                printControlLoadSnapshot(s, cls);
             });
-        } else if (resName != null && did == null) {
+        } else if (did == null) {
             typeSet.forEach(s -> {
-                CompletableFuture<ControlLoadSnapshot> cf =
-                        service.getLoad(nodeId, s, resName);
-                ControlLoadSnapshot cmr =
-                        Tools.futureGetOrElse(cf, TIMEOUT_MILLIS, TimeUnit.MILLISECONDS, null);
-                printRemote(s, cmr);
+                ControlLoadSnapshot cls = service.getLoadSync(nodeId, s, resName);
+                printControlLoadSnapshot(s, cls);
             });
         }
     }
 
-    private void printRemote(ControlMetricType cmType, ControlLoadSnapshot cls) {
+    /**
+     * Prints control load snapshot.
+     *
+     * @param cmType control metric type
+     * @param cls    control load snapshot
+     */
+    private void printControlLoadSnapshot(ControlMetricType cmType, ControlLoadSnapshot cls) {
         if (cls != null) {
             print(FMT, cmType.toString(), cls.latest(), cls.average(), cls.time());
         } else {

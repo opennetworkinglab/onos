@@ -149,21 +149,15 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
                                                               ClusterService cs, DeviceId deviceId) {
             Map<ControlMetricType, Long[]> data = Maps.newHashMap();
             for (ControlMetricType cmt : CONTROL_MESSAGE_METRICS) {
-                ControlLoadSnapshot cls;
-                try {
-                    cls = cpms.getLoad(cs.getLocalNode().id(),
-                            cmt, NUM_OF_DATA_POINTS, TimeUnit.MINUTES,
-                            Optional.of(deviceId)).get();
+                ControlLoadSnapshot cls = cpms.getLoadSync(cs.getLocalNode().id(),
+                        cmt, NUM_OF_DATA_POINTS, TimeUnit.MINUTES, Optional.of(deviceId));
 
-                    // TODO: in some cases, the number of returned dataset is
-                    // less than what we expected (expected -1)
-                    // As a workaround, we simply fill the slot with 0 values,
-                    // such a bug should be fixed with updated RRD4J lib...
-                    data.put(cmt, ArrayUtils.toObject(fillData(cls.recent(), NUM_OF_DATA_POINTS)));
-                    timestamp = cls.time();
-                } catch (InterruptedException | ExecutionException e) {
-                    log.warn(e.getMessage());
-                }
+                // TODO: in some cases, the number of returned data set is
+                // less than what we expected (expected -1)
+                // As a workaround, we simply fill the slot with 0 values,
+                // such a bug should be fixed with updated RRD4J lib...
+                data.put(cmt, ArrayUtils.toObject(fillData(cls.recent(), NUM_OF_DATA_POINTS)));
+                timestamp = cls.time();
             }
             return data;
         }
