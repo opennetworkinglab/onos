@@ -30,6 +30,7 @@ public interface XosClientService {
     /**
      * Sets the XOS API access information to the client service.
      *
+     * @param xosAccess xos access information
      * @return true if it is set and authenticated, otherwise false
      */
     boolean setAccess(XosAccess xosAccess);
