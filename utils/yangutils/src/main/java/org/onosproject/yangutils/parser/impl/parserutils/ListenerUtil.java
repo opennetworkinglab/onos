@@ -35,6 +35,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
 public final class ListenerUtil {
 
     private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_.-]*");
+    private static final String DATE_PATTERN = "[0-9]{4}-([0-9]{2}|[0-9])-([0-9]{2}|[0-9])";
     private static final String NON_NEGATIVE_INTEGER_PATTERN = "[0-9]+";
     private static final String PLUS = "+";
     private static final String ONE = "1";
@@ -109,8 +110,7 @@ public final class ListenerUtil {
      * @return validation result, true for success, false for failure
      */
     public static boolean isDateValid(String dateToValidate) {
-
-        if (dateToValidate == null || !dateToValidate.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) {
+        if (dateToValidate == null || !dateToValidate.matches(DATE_PATTERN)) {
             return false;
         }
 
