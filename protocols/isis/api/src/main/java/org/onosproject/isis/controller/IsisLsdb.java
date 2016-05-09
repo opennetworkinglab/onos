@@ -108,4 +108,18 @@ public interface IsisLsdb {
      * @return neighbor database information
      */
     Map<String, LspWrapper> getL2Db();
+
+    /**
+     * Sets the level 1 link state sequence number.
+     *
+     * @param l1LspSeqNo link state sequence number
+     */
+     void setL1LspSeqNo(int l1LspSeqNo);
+
+    /**
+     * Sets the level 2 link state sequence number.
+     *
+     * @param l2LspSeqNo link state sequence number
+     */
+    void setL2LspSeqNo(int l2LspSeqNo);
 }

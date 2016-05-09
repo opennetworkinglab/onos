@@ -23,10 +23,14 @@ import org.jboss.netty.channel.MessageEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.Ip4Address;
+import org.onosproject.isis.controller.IsisInterface;
 import org.onosproject.isis.controller.IsisMessage;
+import org.onosproject.isis.controller.IsisNetworkType;
 import org.onosproject.isis.controller.IsisProcess;
 import org.onosproject.isis.io.isispacket.pdu.L1L2HelloPdu;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -43,12 +47,14 @@ public class IsisChannelHandlerTest {
     private IsisChannelHandler isisChannelHandler;
     private Controller controller;
     private IsisProcess isisProcess;
-    private List<IsisProcess> isisProcessList;
+    private List<IsisProcess> isisProcessList = new ArrayList();
     private ChannelHandlerContext channelHandlerContext;
     private ChannelStateEvent channelStateEvent;
     private ExceptionEvent exceptionEvent;
     private MessageEvent messageEvent;
     private IsisMessage isisMessage;
+    private List<IsisInterface> isisInterfaceList = new ArrayList<>();
+    private Ip4Address ip4Address = Ip4Address.valueOf("10.10.10.10");
 
     @Before
     public void setUp() throws Exception {
@@ -71,7 +77,7 @@ public class IsisChannelHandlerTest {
     /**
      * Tests initializeInterfaceMap() method.
      */
-    @Test(expected = Exception.class)
+    @Test
     public void testInitializeInterfaceMap() throws Exception {
         isisChannelHandler.initializeInterfaceMap();
         assertThat(isisChannelHandler, is(notNullValue()));
@@ -82,6 +88,32 @@ public class IsisChannelHandlerTest {
      */
     @Test(expected = Exception.class)
     public void testUpdateInterfaceMap() throws Exception {
+        IsisInterface isisInterface = new DefaultIsisInterface();
+        IsisInterface isisInterface1 = new DefaultIsisInterface();
+        isisInterface.setInterfaceIpAddress(ip4Address);
+        isisInterface.setInterfaceIndex(1);
+        isisInterfaceList.add(isisInterface);
+        IsisProcess isisProcess = new DefaultIsisProcess();
+        isisProcess.setIsisInterfaceList(isisInterfaceList);
+        isisProcessList.add(isisProcess);
+        isisChannelHandler.updateInterfaceMap(isisProcessList);
+        assertThat(isisChannelHandler, is(notNullValue()));
+        isisProcessList = new ArrayList<>();
+        isisInterface1.setInterfaceIpAddress(ip4Address);
+        isisInterface1.setInterfaceIndex(1);
+        isisInterface1.setInterfaceIpAddress(ip4Address);
+        isisInterface1.setInterfaceIndex(1);
+        isisInterface1.setSystemId("9999.9999.9999");
+        isisInterface1.setIntermediateSystemName("router");
+        isisInterface1.setReservedPacketCircuitType(3);
+        isisInterface1.setCircuitId("10");
+        isisInterface1.setNetworkType(IsisNetworkType.BROADCAST);
+        isisInterface1.setAreaAddress("490001");
+        isisInterface1.setHoldingTime(50);
+        isisInterface1.setHelloInterval(10);
+        isisInterfaceList.add(isisInterface1);
+        isisProcess.setIsisInterfaceList(isisInterfaceList);
+        isisProcessList.add(isisProcess);
         isisChannelHandler.updateInterfaceMap(isisProcessList);
         assertThat(isisChannelHandler, is(notNullValue()));
     }
@@ -89,7 +121,7 @@ public class IsisChannelHandlerTest {
     /**
      * Tests initializeInterfaceIpList() method.
      */
-    @Test(expected = Exception.class)
+    @Test
     public void testInitializeInterfaceIpList() throws Exception {
         isisChannelHandler.initializeInterfaceIpList();
         assertThat(isisChannelHandler, is(notNullValue()));

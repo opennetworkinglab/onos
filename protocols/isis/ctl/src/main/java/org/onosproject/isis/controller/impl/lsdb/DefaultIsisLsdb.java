@@ -45,7 +45,6 @@ public class DefaultIsisLsdb implements IsisLsdb {
     private IsisLsdbAge lsdbAge = null;
 
 
-
     private int l1LspSeqNo = IsisConstants.STARTLSSEQUENCENUM;
     private int l2LspSeqNo = IsisConstants.STARTLSSEQUENCENUM;
 
@@ -80,6 +79,7 @@ public class DefaultIsisLsdb implements IsisLsdb {
     public void setL2LspSeqNo(int l2LspSeqNo) {
         this.l2LspSeqNo = l2LspSeqNo;
     }
+
     /**
      * Returns the LSDB LSP key.
      *
@@ -95,6 +95,7 @@ public class DefaultIsisLsdb implements IsisLsdb {
 
         return lspKey.toString();
     }
+
 
     /**
      * Returns the neighbor L1 database information.
@@ -218,7 +219,12 @@ public class DefaultIsisLsdb implements IsisLsdb {
             byte[] checkSum = {lspBytes[IsisConstants.CHECKSUMPOSITION], lspBytes[IsisConstants.CHECKSUMPOSITION + 1]};
             lspdu.setCheckSum(ChannelBuffers.copiedBuffer(checkSum).readUnsignedShort());
         }
-        DefaultLspWrapper lspWrapper = new DefaultLspWrapper();
+
+        DefaultLspWrapper lspWrapper = (DefaultLspWrapper) findLsp(lspdu.isisPduType(), lspdu.lspId());
+        if (lspWrapper == null) {
+            lspWrapper = new DefaultLspWrapper();
+        }
+
         lspWrapper.setLspAgeReceived(IsisConstants.LSPMAXAGE - lspdu.remainingLifeTime());
         lspWrapper.setLspType(IsisPduType.get(lspdu.pduType()));
         lspWrapper.setLsPdu(lspdu);
@@ -228,8 +234,8 @@ public class DefaultIsisLsdb implements IsisLsdb {
         lspWrapper.setIsisInterface(isisInterface);
         lspWrapper.setLsdbAge(lsdbAge);
         addLsp(lspWrapper, lspdu.lspId());
-        log.debug("Added LSp In LSDB: {}", lspWrapper);
 
+        log.debug("Added LSp In LSDB: {}", lspWrapper);
         return true;
     }
 
@@ -270,7 +276,6 @@ public class DefaultIsisLsdb implements IsisLsdb {
                       lspWrapper.lsPdu().isisPduType(),
                       binNumber, lspWrapper.remainingLifetime());
         }
-
         return false;
     }
 

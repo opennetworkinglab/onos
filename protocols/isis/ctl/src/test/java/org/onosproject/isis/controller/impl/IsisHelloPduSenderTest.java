@@ -58,7 +58,7 @@ public class IsisHelloPduSenderTest {
     /**
      * Tests run() method.
      */
-    @Test
+    @Test(expected = Exception.class)
     public void testRun() throws Exception {
         isisInterface.setNetworkType(IsisNetworkType.P2P);
         isisInterface.setCircuitId(circuitId);

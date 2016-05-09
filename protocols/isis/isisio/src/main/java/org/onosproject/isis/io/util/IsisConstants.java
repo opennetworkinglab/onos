@@ -33,6 +33,7 @@ public final class IsisConstants {
     public static final int IRPDISCRIMINATOR = 131;
     public static final int ISISVERSION = 1;
     public static final int RESERVED = 0;
+    public static final int PRIORITY = 0;
     public static final int MAXAREAADDRESS = 0;
     public static final int SYSTEMIDLENGTH = 0;
     public static final int PROTOCOLSUPPORTED = 204;
@@ -55,24 +56,15 @@ public final class IsisConstants {
     public static final String DEFAULTLANID = "0000.0000.0000.00";
     public static final String PROCESSESID = "processId";
     public static final String INTERFACE = "interface";
-    public static final String INTERFACEIP = "interfaceIp";
-    public static final String NETWORKMASK = "networkMask";
     public static final String INTERFACEINDEX = "interfaceIndex";
     public static final String INTERMEDIATESYSTEMNAME = "intermediateSystemName";
     public static final String SYSTEMID = "systemId";
-    public static final String LANID = "lanId";
-    public static final String IDLENGTH = "idLength";
-    public static final String MAXAREAADDRESSES = "maxAreaAddresses";
     public static final String RESERVEDPACKETCIRCUITTYPE = "reservedPacketCircuitType";
     public static final String CIRCUITID = "circuitId";
     public static final String NETWORKTYPE = "networkType";
     public static final String AREAADDRESS = "areaAddress";
-    public static final String AREALENGTH = "areaLength";
-    public static final String LSPID = "lspId";
     public static final String HOLDINGTIME = "holdingTime";
     public static final String HELLOINTERVAL = "helloInterval";
-    public static final String PRIORITY = "priority";
-    public static final String MACADDRESS = "macAddress";
 
     /**
      * Non parameterized constructor.

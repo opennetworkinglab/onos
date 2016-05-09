@@ -22,8 +22,13 @@ import org.onosproject.isis.controller.IsisLsdb;
 import org.onosproject.isis.controller.IsisLsdbAge;
 import org.onosproject.isis.controller.IsisPduType;
 import org.onosproject.isis.controller.LspWrapper;
+import org.onosproject.isis.controller.impl.DefaultIsisInterface;
+import org.onosproject.isis.io.isispacket.IsisHeader;
+import org.onosproject.isis.io.isispacket.pdu.AttachedToOtherAreas;
+import org.onosproject.isis.io.isispacket.pdu.LsPdu;
 import org.onosproject.isis.io.util.IsisConstants;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,19 +42,27 @@ public class DefaultIsisLsdbTest {
     private final int l1LspSeqNo = IsisConstants.STARTLSSEQUENCENUM;
     private final int l2LspSeqNo = IsisConstants.STARTLSSEQUENCENUM;
     private final String srcId = "1111.1111.1111";
-
     private DefaultIsisLsdb defaultIsisLsdb;
     private IsisLsdbAge lsdbAge = null;
-
-
     private int resultInt;
     private Map<String, LspWrapper> resultMap = new ConcurrentHashMap<>();
     private IsisLsdb resultLsdb;
     private LspWrapper resultLspWrapper;
-
+    private List<LspWrapper> lspWrapperList;
+    private LsPdu lsPdu;
+    private IsisHeader isisHeader;
+    private DefaultIsisInterface defaultIsisInterface;
+    private String lspId = "1234.1234.1234.00-00";
+    private String result;
 
     @Before
     public void setUp() throws Exception {
+        defaultIsisInterface = new DefaultIsisInterface();
+        isisHeader = new IsisHeader();
+        lsPdu = new LsPdu(isisHeader);
+        lsPdu.setLspId(lspId);
+        lsPdu.setAttachedToOtherAreas(AttachedToOtherAreas.DEFAULTMETRIC);
+        lsPdu.setIsisPduType(IsisPduType.L1LSPDU.value());
         defaultIsisLsdb = new DefaultIsisLsdb();
     }
 
@@ -128,6 +141,61 @@ public class DefaultIsisLsdbTest {
     public void testFindLsp() throws Exception {
         resultLspWrapper = defaultIsisLsdb.findLsp(IsisPduType.L1HELLOPDU, srcId);
         assertThat(resultLspWrapper, is(nullValue()));
+    }
+
+    /**
+     * Tests allLspHeaders() method.
+     */
+    @Test
+    public void testAllLspHeaders() throws Exception {
+        defaultIsisLsdb.addLsp(lsPdu, false, defaultIsisInterface);
+        lspWrapperList = defaultIsisLsdb.allLspHeaders(true);
+        assertThat(lspWrapperList, is(notNullValue()));
+
+        defaultIsisLsdb.addLsp(lsPdu, true, defaultIsisInterface);
+        lspWrapperList = defaultIsisLsdb.allLspHeaders(true);
+        assertThat(lspWrapperList, is(notNullValue()));
+    }
+
+    /**
+     * Tests isNewerOrSameLsp() method.
+     */
+    @Test
+    public void testIsNewerOrSameLsp() throws Exception {
+        result = defaultIsisLsdb.isNewerOrSameLsp(lsPdu, lsPdu);
+        assertThat(result, is("same"));
+    }
+
+    /**
+     * Tests lsSequenceNumber() method.
+     */
+    @Test
+    public void testLsSequenceNumber() throws Exception {
+        resultInt = defaultIsisLsdb.lsSequenceNumber(IsisPduType.L1LSPDU);
+        assertThat(resultInt, is(1));
+
+        resultInt = defaultIsisLsdb.lsSequenceNumber(IsisPduType.L2LSPDU);
+        assertThat(resultInt, is(1));
+
+        resultInt = defaultIsisLsdb.lsSequenceNumber(IsisPduType.L1CSNP);
+        assertThat(resultInt, is(1));
+    }
+
+    /**
+     * Tests deleteLsp() method.
+     */
+    @Test
+    public void testdeleteLsp() throws Exception {
+        defaultIsisLsdb.deleteLsp(lsPdu);
+        assertThat(defaultIsisLsdb, is(notNullValue()));
+
+        lsPdu.setIsisPduType(IsisPduType.L2LSPDU.value());
+        defaultIsisLsdb.deleteLsp(lsPdu);
+        assertThat(defaultIsisLsdb, is(notNullValue()));
+
+        lsPdu.setIsisPduType(IsisPduType.L1CSNP.value());
+        defaultIsisLsdb.deleteLsp(lsPdu);
+        assertThat(defaultIsisLsdb, is(notNullValue()));
     }
 }
 

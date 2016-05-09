@@ -195,13 +195,6 @@ public interface IsisInterface {
     void setAreaLength(int areaLength);
 
     /**
-     * Sets link state packet ID.
-     *
-     * @param lspId link state packet ID
-     */
-    void setLspId(String lspId);
-
-    /**
      * Returns holding time.
      *
      * @return holding time
@@ -249,6 +242,11 @@ public interface IsisInterface {
      * @param channel netty channel instance
      */
     void startHelloSender(Channel channel);
+
+    /**
+     * Stops the hello timer which sends hello packet every configured seconds.
+     */
+    void stopHelloSender();
 
     /**
      * Processes an ISIS message which is received on this interface.
@@ -315,4 +313,9 @@ public interface IsisInterface {
      * @param isisNeighbor ISIS neighbor instance
      */
     void removeNeighbor(IsisNeighbor isisNeighbor);
+
+    /**
+     * Removes all the neighbors.
+     */
+    void removeNeighbors();
 }

@@ -108,4 +108,16 @@ public interface IsisNeighbor {
      * Stops the inactivity timer.
      */
     void stopInactivityTimeCheck();
+
+    /**
+     * Stops the holding time check timer.
+     */
+    void stopHoldingTimeCheck();
+
+    /**
+     * Returns router type.
+     *
+     * @return router type
+     */
+    IsisRouterType routerType();
 }

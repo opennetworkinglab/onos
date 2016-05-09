@@ -18,7 +18,11 @@ package org.onosproject.isis.controller.impl.lsdb;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.isis.controller.impl.DefaultIsisInterface;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -31,10 +35,22 @@ import static org.junit.Assert.assertThat;
 public class IsisLspQueueConsumerTest {
 
     private IsisLspQueueConsumer isisLspQueueConsumer;
-    private BlockingQueue blockingQueue;
+    private BlockingQueue blockingQueue = new ArrayBlockingQueue(1024);
+    private DefaultLspWrapper lspWrapper;
+    private DefaultLspWrapper lspWrapper1;
+    private SocketAddress socketAddress = InetSocketAddress.createUnresolved("127.0.0.1", 7000);
 
     @Before
     public void setUp() throws Exception {
+        lspWrapper = new DefaultLspWrapper();
+        lspWrapper.setLspProcessing("refreshLsp");
+        lspWrapper.setSelfOriginated(true);
+        lspWrapper.setIsisInterface(new DefaultIsisInterface());
+        lspWrapper1 = new DefaultLspWrapper();
+        lspWrapper1.setLspProcessing("maxAgeLsp");
+        lspWrapper1.setIsisInterface(new DefaultIsisInterface());
+        blockingQueue.add(lspWrapper);
+        blockingQueue.add(lspWrapper1);
         isisLspQueueConsumer = new IsisLspQueueConsumer(blockingQueue);
     }
 

@@ -22,6 +22,7 @@ import org.onosproject.isis.controller.IsisInterface;
 import org.onosproject.isis.controller.IsisInterfaceState;
 import org.onosproject.isis.controller.IsisNeighbor;
 import org.onosproject.isis.controller.IsisPduType;
+import org.onosproject.isis.controller.IsisRouterType;
 import org.onosproject.isis.io.isispacket.IsisHeader;
 import org.onosproject.isis.io.isispacket.pdu.L1L2HelloPdu;
 import org.onosproject.isis.io.isispacket.pdu.P2PHelloPdu;
@@ -394,7 +395,6 @@ public final class IsisUtil {
         isisHeader.setIdLength((byte) IsisConstants.SYSTEMIDLENGTH);
         isisHeader.setIsisPduType(IsisPduType.P2PHELLOPDU.value());
         isisHeader.setVersion2((byte) IsisConstants.ISISVERSION);
-        //isisHeader.setReserved((byte) IsisConstants.RESERVED);
         isisHeader.setReserved((byte) IsisConstants.PDULENGTHPOSITION);
         isisHeader.setMaximumAreaAddresses((byte) IsisConstants.MAXAREAADDRESS);
         P2PHelloPdu p2pHelloPdu = new P2PHelloPdu(isisHeader);
@@ -510,14 +510,32 @@ public final class IsisUtil {
         l1L2HelloPdu.addTlv(areaAddressTlv);
         Set<MacAddress> neighbors = isisInterface.neighbors();
         if (neighbors.size() > 0) {
+            List<MacAddress> neighborMacs = new ArrayList<>();
+            for (MacAddress neighbor : neighbors) {
+                IsisNeighbor isisNeighbor = isisInterface.lookup(neighbor);
+                if (isisPduType == IsisPduType.L1HELLOPDU) {
+                    if (isisNeighbor.routerType() == IsisRouterType.L1 ||
+                            isisNeighbor.routerType() == IsisRouterType.L1L2) {
+                        neighborMacs.add(neighbor);
+                    }
+                } else if (isisPduType == IsisPduType.L2HELLOPDU) {
+                    if (isisNeighbor.routerType() == IsisRouterType.L2 ||
+                            isisNeighbor.routerType() == IsisRouterType.L1L2) {
+                        neighborMacs.add(neighbor);
+                    }
+                }
+            }
+
             tlvHeader.setTlvType(TlvType.ISNEIGHBORS.value());
             tlvHeader.setTlvLength(0);
+
             IsisNeighborTlv isisNeighborTlv = new IsisNeighborTlv(tlvHeader);
-            for (MacAddress neighbor : neighbors) {
+            for (MacAddress neighbor : neighborMacs) {
                 isisNeighborTlv.addNeighbor(neighbor);
             }
             l1L2HelloPdu.addTlv(isisNeighborTlv);
         }
+
         tlvHeader.setTlvType(TlvType.PROTOCOLSUPPORTED.value());
         tlvHeader.setTlvLength(0);
         ProtocolSupportedTlv protocolSupportedTlv = new ProtocolSupportedTlv(tlvHeader);

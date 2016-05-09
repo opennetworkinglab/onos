@@ -15,6 +15,10 @@
  */
 package org.onosproject.isis.controller.impl;
 
+import org.easymock.EasyMock;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.channel.Channel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,15 +27,30 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.isis.controller.IsisInterface;
 import org.onosproject.isis.controller.IsisInterfaceState;
 import org.onosproject.isis.controller.IsisLsdb;
+import org.onosproject.isis.controller.IsisMessage;
 import org.onosproject.isis.controller.IsisNeighbor;
 import org.onosproject.isis.controller.IsisNetworkType;
+import org.onosproject.isis.controller.IsisPduType;
+import org.onosproject.isis.controller.IsisRouterType;
+import org.onosproject.isis.controller.impl.lsdb.DefaultIsisLsdb;
 import org.onosproject.isis.io.isispacket.IsisHeader;
-import org.onosproject.isis.io.isispacket.pdu.HelloPdu;
+import org.onosproject.isis.io.isispacket.pdu.Csnp;
 import org.onosproject.isis.io.isispacket.pdu.L1L2HelloPdu;
+import org.onosproject.isis.io.isispacket.pdu.LsPdu;
+import org.onosproject.isis.io.isispacket.pdu.P2PHelloPdu;
+import org.onosproject.isis.io.isispacket.pdu.Psnp;
+import org.onosproject.isis.io.isispacket.tlv.AdjacencyStateTlv;
+import org.onosproject.isis.io.isispacket.tlv.AreaAddressTlv;
+import org.onosproject.isis.io.isispacket.tlv.LspEntriesTlv;
+import org.onosproject.isis.io.isispacket.tlv.LspEntry;
+import org.onosproject.isis.io.isispacket.tlv.TlvHeader;
+import org.onosproject.isis.io.isispacket.tlv.TlvType;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -39,16 +58,26 @@ import static org.junit.Assert.assertThat;
  */
 public class DefaultIsisInterfaceTest {
     private final MacAddress macAddress = MacAddress.valueOf("AA:BB:CC:DD:EE:FF");
-    private final Ip4Address ip4Address = Ip4Address.valueOf("10.10.10.10");
+    private final MacAddress macAddress1 = MacAddress.valueOf("AA:CC:CC:DD:EE:FF");
+    private final Ip4Address ip4Address = Ip4Address.valueOf("10.10.0.0");
     private final byte[] mask = {
             (byte) 255, (byte) 255, (byte) 255, (byte) 224
+    };
+    private final byte[] mask1 = {
+            (byte) 0, (byte) 0, (byte) 0, (byte) 0
     };
     private final String intSysName = "ROUTER";
     private final String sysId = "1111.1111.1111";
     private final String areaAddr = "49.002";
+    private final byte[] csnpBytes = {
+            0, 67, 18, 52, 18, 52, 0,
+            18, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1,
+            -1, -1, 9, 32, 4, -81, 18, 52, 18, 52, 0, 18, 0, 0, 0,
+            0, 0, 41, -92, -30, 4, -81, 41, 41, 41, 41, 41, 41, 0,
+            0, 0, 0, 0, 1, 91, 126
+    };
     private IsisInterfaceState resultIfState;
     private DefaultIsisInterface defaultIsisInterface;
-    private HelloPdu helloPdu;
     private IsisHeader isisHeader;
     private IsisInterface isisInterface;
     private Set<MacAddress> resultSet;
@@ -60,18 +89,35 @@ public class DefaultIsisInterfaceTest {
     private byte[] resultByteArr;
     private String resultStr;
     private IsisNetworkType resultNwType;
-
+    private List<Ip4Address> ip4Addresses = new ArrayList<>();
+    private DefaultIsisNeighbor defaultIsisNeighbor;
+    private IsisNeighbor result;
+    private IsisLsdb result1;
+    private Set<MacAddress> result2;
+    private Channel result3;
+    private IsisMessage isisMessage;
+    private IsisLsdb isisLsdb;
+    private Channel channel;
+    private L1L2HelloPdu helloPdu;
+    private LsPdu lsPdu;
+    private Csnp csnp;
+    private Psnp psnp;
+    private P2PHelloPdu p2PHelloPdu;
+    private boolean result4;
+    private String result5;
 
     @Before
     public void setUp() throws Exception {
+        channel = EasyMock.createNiceMock(Channel.class);
         defaultIsisInterface = new DefaultIsisInterface();
+        defaultIsisInterface.setInterfaceMacAddress(macAddress);
         isisHeader = new IsisHeader();
         isisHeader.setIrpDiscriminator((byte) 1);
         helloPdu = new L1L2HelloPdu(isisHeader);
         isisInterface = new DefaultIsisInterface();
-        resultNeighborList = new DefaultIsisNeighbor(helloPdu, isisInterface);
-
-
+        defaultIsisNeighbor = new DefaultIsisNeighbor(helloPdu, isisInterface);
+        defaultIsisNeighbor.setNeighborMacAddress(macAddress);
+        isisLsdb = new DefaultIsisLsdb();
     }
 
     @After
@@ -365,26 +411,6 @@ public class DefaultIsisInterfaceTest {
     }
 
     /**
-     * Tests getLspId() getter method.
-     */
-    @Test
-    public void testGetLspId() throws Exception {
-        defaultIsisInterface.setLspId(sysId);
-        resultStr = defaultIsisInterface.getLspId();
-        assertThat(resultStr, is(sysId));
-    }
-
-    /**
-     * Tests getLspId() setter method.
-     */
-    @Test
-    public void testSetLspId() throws Exception {
-        defaultIsisInterface.setLspId(sysId);
-        resultStr = defaultIsisInterface.getLspId();
-        assertThat(resultStr, is(sysId));
-    }
-
-    /**
      * Tests holdingTime() getter method.
      */
     @Test
@@ -482,5 +508,370 @@ public class DefaultIsisInterfaceTest {
         defaultIsisInterface.setCircuitId(sysId);
         resultStr = defaultIsisInterface.circuitId();
         assertThat(resultStr, is(sysId));
+    }
+
+    /**
+     * Tests setAllConfiguredInterfaceIps() setter method.
+     */
+    @Test
+    public void testSetAllConfiguredInterfaceIps() throws Exception {
+        ip4Addresses.add(ip4Address);
+        defaultIsisInterface.setAllConfiguredInterfaceIps(ip4Addresses);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests setAllConfiguredInterfaceIps() method.
+     */
+    @Test
+    public void testRemoveNeighbor() throws Exception {
+        defaultIsisInterface.removeNeighbor(defaultIsisNeighbor);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests lookup() method.
+     */
+    @Test
+    public void testLookup() throws Exception {
+        result = defaultIsisInterface.lookup(defaultIsisNeighbor.neighborMacAddress());
+        assertThat(result, is(nullValue()));
+    }
+
+    /**
+     * Tests isisLsdb() method.
+     */
+    @Test
+    public void testIsisLsdb() throws Exception {
+        result1 = defaultIsisInterface.isisLsdb();
+        assertThat(result1, is(nullValue()));
+    }
+
+    /**
+     * Tests neighbors() method.
+     */
+    @Test
+    public void testNeighbors() throws Exception {
+        result2 = defaultIsisInterface.neighbors();
+        assertThat(result2, is(notNullValue()));
+    }
+
+    /**
+     * Tests channel() method.
+     */
+    @Test
+    public void testChannel() throws Exception {
+        result3 = defaultIsisInterface.channel();
+        assertThat(result3, is(nullValue()));
+    }
+
+    /**
+     * Tests processIsisMessage() method.
+     */
+    @Test
+    public void testProcessIsisMessage() throws Exception {
+        helloPdu = new L1L2HelloPdu(isisHeader);
+        helloPdu.setSourceMac(macAddress1);
+        helloPdu.setIsisPduType(IsisPduType.L2HELLOPDU.value());
+        defaultIsisInterface.setNetworkType(IsisNetworkType.BROADCAST);
+        isisMessage = helloPdu;
+        defaultIsisInterface.processIsisMessage(isisMessage, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests processIsisMessage() method.
+     */
+    @Test(expected = Exception.class)
+    public void testProcessIsisMessage1() throws Exception {
+        lsPdu = new LsPdu(isisHeader);
+        lsPdu.setSourceMac(macAddress1);
+        lsPdu.setIsisPduType(IsisPduType.L2LSPDU.value());
+        isisMessage = lsPdu;
+        defaultIsisInterface.processIsisMessage(isisMessage, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests processIsisMessage() method.
+     */
+    @Test
+    public void testProcessIsisMessage2() throws Exception {
+        csnp = new Csnp(isisHeader);
+        csnp.setSourceMac(macAddress1);
+        csnp.setIsisPduType(IsisPduType.L2CSNP.value());
+        isisMessage = csnp;
+        defaultIsisInterface.processIsisMessage(isisMessage, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests processIsisMessage() method.
+     */
+    @Test
+    public void testProcessIsisMessage3() throws Exception {
+        psnp = new Psnp(isisHeader);
+        psnp.setSourceMac(macAddress1);
+        psnp.setIsisPduType(IsisPduType.L2PSNP.value());
+        isisMessage = psnp;
+        defaultIsisInterface.processIsisMessage(isisMessage, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests processIsisMessage() method.
+     */
+    @Test
+    public void testProcessIsisMessage4() throws Exception {
+        p2PHelloPdu = new P2PHelloPdu(isisHeader);
+        p2PHelloPdu.setSourceMac(macAddress1);
+        p2PHelloPdu.setIsisPduType(IsisPduType.P2PHELLOPDU.value());
+        defaultIsisInterface.setNetworkType(IsisNetworkType.P2P);
+        isisMessage = p2PHelloPdu;
+        defaultIsisInterface.processIsisMessage(isisMessage, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests validateHelloMessage() method.
+     */
+    @Test
+    public void testValidateHelloMessage() throws Exception {
+        helloPdu = new L1L2HelloPdu(isisHeader);
+        result4 = defaultIsisInterface.validateHelloMessage(helloPdu);
+        assertThat(result4, is(false));
+    }
+
+    /**
+     * Tests processL1L2HelloPduMessage() method.
+     */
+    @Test(expected = Exception.class)
+    public void testProcessL1L2HelloPduMessage() throws Exception {
+        helloPdu = new L1L2HelloPdu(isisHeader);
+        helloPdu.setSourceMac(macAddress1);
+        helloPdu.setCircuitType((byte) IsisRouterType.L2.value());
+        defaultIsisInterface.processL1L2HelloPduMessage(helloPdu, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests processP2pHelloPduMessage() method.
+     */
+    @Test(expected = Exception.class)
+    public void testProcessP2pHelloPduMessagee() throws Exception {
+        defaultIsisInterface.setSystemId(sysId);
+        p2PHelloPdu = new P2PHelloPdu(isisHeader);
+        p2PHelloPdu.setIsisPduType(IsisPduType.P2PHELLOPDU.value());
+        p2PHelloPdu.setSourceMac(macAddress1);
+        p2PHelloPdu.setCircuitType((byte) IsisRouterType.L2.value());
+        defaultIsisInterface.setNetworkType(IsisNetworkType.P2P);
+        defaultIsisInterface.processIsisMessage(p2PHelloPdu, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests processP2pHelloPduMessage() method.
+     */
+    @Test(expected = Exception.class)
+    public void testProcessP2pHelloPduMessagee1() throws Exception {
+        defaultIsisInterface.setSystemId(sysId);
+        p2PHelloPdu = new P2PHelloPdu(isisHeader);
+        p2PHelloPdu.setIsisPduType(IsisPduType.P2PHELLOPDU.value());
+        p2PHelloPdu.setSourceMac(macAddress1);
+        p2PHelloPdu.setCircuitType((byte) IsisRouterType.L2.value());
+        defaultIsisInterface.setNetworkType(IsisNetworkType.P2P);
+        defaultIsisInterface.setReservedPacketCircuitType(IsisRouterType.L2.value());
+        defaultIsisInterface.setAllConfiguredInterfaceIps(ip4Addresses);
+        defaultIsisInterface.setInterfaceIpAddress(ip4Address);
+        defaultIsisInterface.setNetworkMask(mask1);
+        defaultIsisInterface.processIsisMessage(p2PHelloPdu, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests processP2pHelloPduMessage() method.
+     */
+    @Test(expected = Exception.class)
+    public void testProcessP2pHelloPduMessagee2() throws Exception {
+        defaultIsisInterface.setSystemId(sysId);
+        p2PHelloPdu = new P2PHelloPdu(isisHeader);
+        TlvHeader tlvHeader = new TlvHeader();
+        tlvHeader.setTlvType(TlvType.AREAADDRESS.value());
+        AreaAddressTlv areaAddressTlv = new AreaAddressTlv(tlvHeader);
+        areaAddressTlv.addAddress(areaAddr);
+        p2PHelloPdu.addTlv(areaAddressTlv);
+        p2PHelloPdu.setIsisPduType(IsisPduType.P2PHELLOPDU.value());
+        p2PHelloPdu.setSourceMac(macAddress1);
+        p2PHelloPdu.setCircuitType((byte) IsisRouterType.L1.value());
+        defaultIsisInterface.setNetworkType(IsisNetworkType.P2P);
+        defaultIsisInterface.setReservedPacketCircuitType(IsisRouterType.L1.value());
+        defaultIsisInterface.setAreaAddress(areaAddr);
+        defaultIsisInterface.setAllConfiguredInterfaceIps(ip4Addresses);
+        defaultIsisInterface.setInterfaceIpAddress(ip4Address);
+        defaultIsisInterface.setNetworkMask(mask1);
+        defaultIsisInterface.processIsisMessage(p2PHelloPdu, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests processP2pHelloPduMessage() method.
+     */
+    @Test(expected = Exception.class)
+    public void testProcessP2pHelloPduMessagee3() throws Exception {
+        defaultIsisInterface.setSystemId(sysId);
+        p2PHelloPdu = new P2PHelloPdu(isisHeader);
+        TlvHeader tlvHeader = new TlvHeader();
+        tlvHeader.setTlvType(TlvType.ADJACENCYSTATE.value());
+        AdjacencyStateTlv adjacencyStateTlv = new AdjacencyStateTlv(tlvHeader);
+        adjacencyStateTlv.setNeighborSystemId(sysId);
+        adjacencyStateTlv.setAdjacencyType((byte) IsisInterfaceState.DOWN.value());
+        p2PHelloPdu.addTlv(adjacencyStateTlv);
+        tlvHeader = new TlvHeader();
+        tlvHeader.setTlvType(TlvType.AREAADDRESS.value());
+        AreaAddressTlv areaAddressTlv = new AreaAddressTlv(tlvHeader);
+        areaAddressTlv.addAddress(areaAddr);
+        p2PHelloPdu.addTlv(areaAddressTlv);
+        p2PHelloPdu.setIsisPduType(IsisPduType.P2PHELLOPDU.value());
+        p2PHelloPdu.setSourceMac(macAddress1);
+        p2PHelloPdu.setCircuitType((byte) IsisRouterType.L1.value());
+        defaultIsisInterface.setNetworkType(IsisNetworkType.P2P);
+        defaultIsisInterface.setReservedPacketCircuitType(IsisRouterType.L1.value());
+        defaultIsisInterface.setAreaAddress(areaAddr);
+        defaultIsisInterface.setAllConfiguredInterfaceIps(ip4Addresses);
+        defaultIsisInterface.setInterfaceIpAddress(ip4Address);
+        defaultIsisInterface.setNetworkMask(mask1);
+        defaultIsisInterface.processIsisMessage(p2PHelloPdu, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests processP2pHelloPduMessage() method.
+     */
+    @Test(expected = Exception.class)
+    public void testProcessP2pHelloPduMessagee4() throws Exception {
+        defaultIsisInterface.setSystemId(sysId);
+        p2PHelloPdu = new P2PHelloPdu(isisHeader);
+        TlvHeader tlvHeader = new TlvHeader();
+        tlvHeader.setTlvType(TlvType.ADJACENCYSTATE.value());
+        AdjacencyStateTlv adjacencyStateTlv = new AdjacencyStateTlv(tlvHeader);
+        adjacencyStateTlv.setNeighborSystemId(sysId);
+        adjacencyStateTlv.setAdjacencyType((byte) IsisInterfaceState.INITIAL.value());
+        p2PHelloPdu.addTlv(adjacencyStateTlv);
+        tlvHeader = new TlvHeader();
+        tlvHeader.setTlvType(TlvType.AREAADDRESS.value());
+        AreaAddressTlv areaAddressTlv = new AreaAddressTlv(tlvHeader);
+        areaAddressTlv.addAddress(areaAddr);
+        p2PHelloPdu.addTlv(areaAddressTlv);
+        p2PHelloPdu.setIsisPduType(IsisPduType.P2PHELLOPDU.value());
+        p2PHelloPdu.setSourceMac(macAddress1);
+        p2PHelloPdu.setCircuitType((byte) IsisRouterType.L1.value());
+        defaultIsisInterface.setNetworkType(IsisNetworkType.P2P);
+        defaultIsisInterface.setReservedPacketCircuitType(IsisRouterType.L1L2.value());
+        defaultIsisInterface.setAreaAddress(areaAddr);
+        defaultIsisInterface.setAllConfiguredInterfaceIps(ip4Addresses);
+        defaultIsisInterface.setInterfaceIpAddress(ip4Address);
+        defaultIsisInterface.setNetworkMask(mask1);
+        defaultIsisInterface.processIsisMessage(p2PHelloPdu, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    @Test(expected = Exception.class)
+    public void testProcessP2pHelloPduMessagee5() throws Exception {
+        defaultIsisInterface.setSystemId(sysId);
+        p2PHelloPdu = new P2PHelloPdu(isisHeader);
+        TlvHeader tlvHeader = new TlvHeader();
+        tlvHeader.setTlvType(TlvType.ADJACENCYSTATE.value());
+        AdjacencyStateTlv adjacencyStateTlv = new AdjacencyStateTlv(tlvHeader);
+        adjacencyStateTlv.setNeighborSystemId(sysId);
+        adjacencyStateTlv.setAdjacencyType((byte) IsisInterfaceState.UP.value());
+        p2PHelloPdu.addTlv(adjacencyStateTlv);
+        tlvHeader = new TlvHeader();
+        tlvHeader.setTlvType(TlvType.AREAADDRESS.value());
+        AreaAddressTlv areaAddressTlv = new AreaAddressTlv(tlvHeader);
+        areaAddressTlv.addAddress(areaAddr);
+        p2PHelloPdu.addTlv(areaAddressTlv);
+        p2PHelloPdu.setIsisPduType(IsisPduType.P2PHELLOPDU.value());
+        p2PHelloPdu.setSourceMac(macAddress1);
+        p2PHelloPdu.setCircuitType((byte) IsisRouterType.L2.value());
+        defaultIsisInterface.setNetworkType(IsisNetworkType.P2P);
+        defaultIsisInterface.setReservedPacketCircuitType(IsisRouterType.L1L2.value());
+        defaultIsisInterface.setAreaAddress(areaAddr);
+        defaultIsisInterface.setAllConfiguredInterfaceIps(ip4Addresses);
+        defaultIsisInterface.setInterfaceIpAddress(ip4Address);
+        defaultIsisInterface.setNetworkMask(mask1);
+        defaultIsisInterface.processIsisMessage(p2PHelloPdu, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests startHelloSender() method.
+     */
+    @Test(expected = Exception.class)
+    public void testStartHelloSender() throws Exception {
+        defaultIsisInterface.startHelloSender(channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests lspKeyP2P() method.
+     */
+    @Test
+    public void testLspKeyP2P() throws Exception {
+        result5 = defaultIsisInterface.lspKeyP2P(sysId);
+        assertThat(result5, is(notNullValue()));
+    }
+
+    /**
+     * Tests processLsPduMessage() method.
+     */
+    @Test
+    public void testProcessLsPduMessage() throws Exception {
+        lsPdu = new LsPdu(isisHeader);
+        lsPdu.setSourceMac(macAddress1);
+        lsPdu.setIsisPduType(IsisPduType.L2LSPDU.value());
+        lsPdu.setLspId(sysId);
+        isisMessage = lsPdu;
+        defaultIsisInterface.setNetworkType(IsisNetworkType.P2P);
+        defaultIsisInterface.setSystemId(sysId);
+        defaultIsisInterface.processIsisMessage(isisMessage, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests processPsnPduMessage() method.
+     */
+    @Test
+    public void testProcessPsnPduMessage() throws Exception {
+        psnp = new Psnp(isisHeader);
+        psnp.setSourceMac(macAddress1);
+        psnp.setIsisPduType(IsisPduType.L2PSNP.value());
+        TlvHeader tlvHeader = new TlvHeader();
+        tlvHeader.setTlvType(TlvType.LSPENTRY.value());
+        tlvHeader.setTlvLength(0);
+        LspEntriesTlv lspEntriesTlv = new LspEntriesTlv(tlvHeader);
+        LspEntry lspEntry = new LspEntry();
+        lspEntry.setLspChecksum(0);
+        lspEntry.setLspSequenceNumber(0);
+        lspEntry.setRemainingTime(0);
+        lspEntriesTlv.addLspEntry(lspEntry);
+        psnp.addTlv(lspEntriesTlv);
+        isisMessage = psnp;
+        defaultIsisInterface.processIsisMessage(isisMessage, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
+    }
+
+    /**
+     * Tests processCsnPduMessage() method.
+     */
+    @Test(expected = Exception.class)
+    public void testProcessCsnPduMessage() throws Exception {
+        ChannelBuffer channelBuffer = ChannelBuffers.copiedBuffer(csnpBytes);
+        csnp = new Csnp(isisHeader);
+        csnp.readFrom(channelBuffer);
+        csnp.setSourceMac(macAddress1);
+        csnp.setIsisPduType(IsisPduType.L2CSNP.value());
+        isisMessage = csnp;
+        defaultIsisInterface.processIsisMessage(isisMessage, isisLsdb, channel);
+        assertThat(defaultIsisInterface, is(notNullValue()));
     }
 }

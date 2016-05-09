@@ -88,6 +88,7 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
         }
         this.isisInterface = isisInterface;
         startHoldingTimeCheck();
+        log.debug("Neighbor added - {}", neighborMacAddress);
     }
 
     /**
@@ -387,6 +388,10 @@ public class DefaultIsisNeighbor implements IsisNeighbor {
         @Override
         public void run() {
             holdingTime--;
+            if (holdingTime <= 0) {
+                log.debug("Calling neighbor down. Holding time is 0.");
+                neighborDown();
+            }
         }
     }
 }

@@ -36,6 +36,7 @@ public class DefaultIsisProcessTest {
     private final String processId = "1";
     private IsisProcess isisProcess;
     private String result;
+    private IsisProcess defaultIsisProcess;
     private IsisInterface isisInterface;
     private List<IsisInterface> isisInterfaceList;
     private List<IsisInterface> result1;
@@ -44,6 +45,7 @@ public class DefaultIsisProcessTest {
     public void setUp() throws Exception {
         isisProcess = new DefaultIsisProcess();
         isisInterface = EasyMock.createNiceMock(DefaultIsisInterface.class);
+        defaultIsisProcess = new DefaultIsisProcess();
     }
 
     @After

@@ -100,7 +100,9 @@ public class IsisLspQueueConsumer implements Runnable {
                                                 IsisConstants.CHECKSUMPOSITION + 1);
                 //write to the channel
                 channel.write(IsisUtil.framePacket(lspBytes, isisInterface.interfaceIndex()));
-
+                // Updating the database with resetting remaining life time to default.
+                IsisLsdb isisDb = isisInterface.isisLsdb();
+                isisDb.addLsp(lsPdu, true, isisInterface);
                 log.debug("LSPQueueConsumer: processRefreshLsp - Flooded SelfOriginated LSP {}",
                           wrapper.lsPdu());
             }

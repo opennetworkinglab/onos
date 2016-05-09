@@ -94,13 +94,35 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
             for (IsisInterface isisUpdatedInterface : isisUpdatedProcess.isisInterfaceList()) {
                 IsisInterface isisInterface = isisInterfaceMap.get(isisUpdatedInterface.interfaceIndex());
                 if (isisInterface == null) {
-                    isisInterfaceMap.put(isisInterface.interfaceIndex(), isisInterface);
-                    interfaceIps.add(isisInterface.interfaceIpAddress());
+                    isisInterfaceMap.put(isisUpdatedInterface.interfaceIndex(), isisUpdatedInterface);
+                    interfaceIps.add(isisUpdatedInterface.interfaceIpAddress());
                 } else {
-                    isisInterface.setReservedPacketCircuitType(isisUpdatedInterface.reservedPacketCircuitType());
-                    isisInterface.setNetworkType(isisUpdatedInterface.networkType());
-                    isisInterface.setHoldingTime(isisUpdatedInterface.holdingTime());
-                    isisInterface.setHelloInterval(isisUpdatedInterface.helloInterval());
+                    if (isisInterface.intermediateSystemName() != isisUpdatedInterface.intermediateSystemName()) {
+                        isisInterface.setIntermediateSystemName(isisUpdatedInterface.intermediateSystemName());
+                    }
+                    if (isisInterface.reservedPacketCircuitType() != isisUpdatedInterface.reservedPacketCircuitType()) {
+                        isisInterface.setReservedPacketCircuitType(isisUpdatedInterface.reservedPacketCircuitType());
+                        isisInterface.removeNeighbors();
+                    }
+                    if (isisInterface.circuitId() != isisUpdatedInterface.circuitId()) {
+                        isisInterface.setCircuitId(isisUpdatedInterface.circuitId());
+                    }
+                    if (isisInterface.networkType() != isisUpdatedInterface.networkType()) {
+                        isisInterface.setNetworkType(isisUpdatedInterface.networkType());
+                        isisInterface.removeNeighbors();
+                    }
+                    if (isisInterface.areaAddress() != isisUpdatedInterface.areaAddress()) {
+                        isisInterface.setAreaAddress(isisUpdatedInterface.areaAddress());
+                    }
+                    if (isisInterface.holdingTime() != isisUpdatedInterface.holdingTime()) {
+                        isisInterface.setHoldingTime(isisUpdatedInterface.holdingTime());
+                    }
+                    if (isisInterface.helloInterval() != isisUpdatedInterface.helloInterval()) {
+                        isisInterface.setHelloInterval(isisUpdatedInterface.helloInterval());
+                        isisInterface.stopHelloSender();
+                        isisInterface.startHelloSender(channel);
+                    }
+
                     isisInterfaceMap.put(isisInterface.interfaceIndex(), isisInterface);
                 }
             }
@@ -144,6 +166,9 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
     @Override
     public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent evt) {
         log.debug("IsisChannelHandler::channelDisconnected...!!!");
+        if (controller != null) {
+            controller.connectPeer();
+        }
     }
 
     @Override
@@ -169,8 +194,9 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
         } else if (e.getCause() instanceof RejectedExecutionException) {
             log.warn("Could not process message: queue full");
         } else {
-            log.error("Error while processing message from ISIS {}",
-                      e.getChannel().getRemoteAddress());
+            log.error("Error while processing message from ISIS {}, {}",
+                      e.getChannel().getRemoteAddress(), e.getCause().getMessage());
+            e.getCause().printStackTrace();
         }
     }
 

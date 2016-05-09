@@ -69,15 +69,14 @@ public class DefaultIsisInterface implements IsisInterface {
     private MacAddress interfaceMacAddress;
     private String intermediateSystemName;
     private String systemId;
-    private String l1LanId;
-    private String l2LanId;
+    private String l1LanId = IsisConstants.DEFAULTLANID;
+    private String l2LanId = IsisConstants.DEFAULTLANID;
     private int idLength;
     private int maxAreaAddresses;
     private int reservedPacketCircuitType;
     private IsisNetworkType networkType;
     private String areaAddress;
     private int areaLength;
-    private String lspId;
     private int holdingTime;
     private int priority;
     private String circuitId;
@@ -114,7 +113,22 @@ public class DefaultIsisInterface implements IsisInterface {
      * @param isisNeighbor ISIS neighbor instance
      */
     public void removeNeighbor(IsisNeighbor isisNeighbor) {
+        log.debug("Neighbor removed - {}", isisNeighbor.neighborMacAddress());
+        isisNeighbor.stopHoldingTimeCheck();
+        isisNeighbor.stopInactivityTimeCheck();
         neighborList.remove(isisNeighbor.neighborMacAddress());
+    }
+
+    /**
+     * Removes all the neighbors.
+     */
+    public void removeNeighbors() {
+        Set<MacAddress> neighbors = neighbors();
+        for (MacAddress mac : neighbors) {
+            removeNeighbor(lookup(mac));
+            log.debug("Neighbor removed - {}", mac);
+        }
+        neighborList.clear();
     }
 
     /**
@@ -400,24 +414,6 @@ public class DefaultIsisInterface implements IsisInterface {
     }
 
     /**
-     * Returns LSP ID.
-     *
-     * @return LSP ID
-     */
-    public String getLspId() {
-        return lspId;
-    }
-
-    /**
-     * Sets LSP ID.
-     *
-     * @param lspId link state packet ID
-     */
-    public void setLspId(String lspId) {
-        this.lspId = lspId;
-    }
-
-    /**
      * Returns holding time.
      *
      * @return holding time
@@ -518,9 +514,21 @@ public class DefaultIsisInterface implements IsisInterface {
      */
     public void processIsisMessage(IsisMessage isisMessage, IsisLsdb isisLsdb, Channel channel) {
         log.debug("IsisInterfaceImpl::processIsisMessage...!!!");
-        if (channel == null) {
-            this.channel = channel;
+        this.channel = channel;
+
+        if (isisMessage.sourceMac().equals(interfaceMacAddress)) {
+            log.debug("Received our own message {}...!!!", isisMessage.isisPduType());
+            return;
         }
+
+        if (isisMessage.isisPduType() == IsisPduType.P2PHELLOPDU && networkType.equals(IsisNetworkType.BROADCAST)) {
+            return;
+        } else if ((isisMessage.isisPduType() == IsisPduType.L1HELLOPDU ||
+                isisMessage.isisPduType() == IsisPduType.L2HELLOPDU)
+                && networkType.equals(IsisNetworkType.P2P)) {
+            return;
+        }
+
         if (this.isisLsdb == null) {
             this.isisLsdb = isisLsdb;
         }
@@ -543,7 +551,7 @@ public class DefaultIsisInterface implements IsisInterface {
                 break;
             case L1PSNP:
             case L2PSNP:
-                log.debug("Received a PSNP packet...!!!");
+                processPsnPduMessage(isisMessage, channel);
                 break;
             default:
                 log.debug("Unknown packet to process...!!!");
@@ -560,6 +568,13 @@ public class DefaultIsisInterface implements IsisInterface {
     public boolean validateHelloMessage(HelloPdu helloPdu) {
         boolean isValid = false;
 
+        if ((helloPdu.circuitType() == IsisRouterType.L1.value() &&
+                reservedPacketCircuitType == IsisRouterType.L2.value()) ||
+                (helloPdu.circuitType() == IsisRouterType.L2.value() &&
+                        reservedPacketCircuitType == IsisRouterType.L1.value())) {
+            return false;
+        }
+
         //Local InterfaceAddress TLV and compare with the IP Interface address and check if they are in same subnet
         List<Ip4Address> interfaceIpAddresses = helloPdu.interfaceIpAddresses();
         Ip4Address neighborIp = (helloPdu.interfaceIpAddresses() != null) ?
@@ -569,11 +584,16 @@ public class DefaultIsisInterface implements IsisInterface {
         }
 
         //Verify if it's in same area, Areas which the router belongs to
-        List<String> areas = helloPdu.areaAddress();
-        for (String area : areas) {
-            if (areaAddress.equals(area)) {
-                isValid = true;
+        if (helloPdu.circuitType() == IsisRouterType.L1.value()) {
+            List<String> areas = helloPdu.areaAddress();
+            for (String area : areas) {
+                if (areaAddress.equals(area)) {
+                    isValid = true;
+                }
             }
+        } else if (helloPdu.circuitType() == IsisRouterType.L2.value() ||
+                helloPdu.circuitType() == IsisRouterType.L1L2.value()) {
+            isValid = true;
         }
 
         return isValid;
@@ -585,6 +605,7 @@ public class DefaultIsisInterface implements IsisInterface {
      * @param neighborMac neighbor MAc address
      * @return true if neighbor exist else false
      */
+
     private boolean isNeighborInList(MacAddress neighborMac) {
         return neighborList.containsKey(neighborMac);
     }
@@ -623,9 +644,8 @@ public class DefaultIsisInterface implements IsisInterface {
         log.debug("IsisInterfaceImpl::processHelloMessage::Interface Type {} ISISInterfaceState {} ",
                   networkType, interfaceState);
 
-        //If L1 Hello, validate the area, network and max address
-        if (IsisPduType.get(helloPacket.pduType()) == IsisPduType.L1HELLOPDU &&
-                !validateHelloMessage(helloPacket)) {
+        //If validate the area, network and max address
+        if (!validateHelloMessage(helloPacket)) {
             return;
         }
 
@@ -637,6 +657,7 @@ public class DefaultIsisInterface implements IsisInterface {
             addNeighbouringRouter(neighbor);
         }
 
+        neighbor.setHoldingTime(helloPacket.holdingTime());
         neighbor.stopInactivityTimeCheck();
         neighbor.startInactivityTimeCheck();
 
@@ -644,24 +665,29 @@ public class DefaultIsisInterface implements IsisInterface {
         String lanId = helloPacket.lanId();
 
         if (IsisPduType.L1HELLOPDU == helloPacket.isisPduType()) {
-            buildUpdateAndSendSelfGeneratedLspIfDisChange(l1LanId, lanId, channel);
+            buildUpdateAndSendSelfGeneratedLspIfDisChange(l1LanId, lanId, channel,
+                                                          IsisRouterType.get(helloPacket.circuitType()));
             l1LanId = lanId;
             neighbor.setL1LanId(lanId);
             //if a change in lanid
         } else if (IsisPduType.L2HELLOPDU == helloPacket.isisPduType()) {
-            buildUpdateAndSendSelfGeneratedLspIfDisChange(l1LanId, lanId, channel);
+            buildUpdateAndSendSelfGeneratedLspIfDisChange(l2LanId, lanId, channel,
+                                                          IsisRouterType.get(helloPacket.circuitType()));
             l2LanId = lanId;
             neighbor.setL2LanId(lanId);
         }
 
         //Check in neighbors list our MAC address present
         List<MacAddress> neighbors = helloPacket.neighborList();
-        for (MacAddress macAddress : neighbors) {
-            if (interfaceMacAddress.equals(macAddress)) {
-                neighbor.setNeighborState(IsisInterfaceState.UP);
-                //Build Self LSP add in LSDB and sent it.
-                buildStoreAndSendSelfGeneratedLspIfNotExistInDb(channel);
-                break;
+        if (neighbors != null) {
+            for (MacAddress macAddress : neighbors) {
+                if (interfaceMacAddress.equals(macAddress)) {
+                    neighbor.setNeighborState(IsisInterfaceState.UP);
+                    //Build Self LSP add in LSDB and sent it.
+                    buildStoreAndSendSelfGeneratedLspIfNotExistInDb(channel,
+                                                                    IsisRouterType.get(helloPacket.circuitType()));
+                    break;
+                }
             }
         }
     }
@@ -671,7 +697,8 @@ public class DefaultIsisInterface implements IsisInterface {
      *
      * @param channel netty channel instance
      */
-    private void buildStoreAndSendSelfGeneratedLspIfNotExistInDb(Channel channel) {
+    private void buildStoreAndSendSelfGeneratedLspIfNotExistInDb(Channel channel, IsisRouterType neighborRouterType) {
+        this.channel = channel;
         //Check our LSP is present in DB. else create a self LSP and store it and sent it
         String lspKey = isisLsdb.lspKey(systemId);
         LspWrapper wrapper = null;
@@ -690,18 +717,25 @@ public class DefaultIsisInterface implements IsisInterface {
                 sendLsp(lsp, channel);
             }
         } else if (reservedPacketCircuitType == IsisRouterType.L1L2.value()) {
-            wrapper = isisLsdb.findLsp(IsisPduType.L1LSPDU, lspKey);
-            if (wrapper == null) {
-                LsPdu lsp = new LspGenerator().getLsp(this, lspKey, IsisPduType.L1LSPDU, allConfiguredInterfaceIps);
-                isisLsdb.addLsp(lsp, true, this);
-                sendLsp(lsp, channel);
+            if ((neighborRouterType == IsisRouterType.L1 || neighborRouterType == IsisRouterType.L1L2)) {
+
+                wrapper = isisLsdb.findLsp(IsisPduType.L1LSPDU, lspKey);
+                if (wrapper == null) {
+                    LsPdu lsp = new LspGenerator().getLsp(this, lspKey, IsisPduType.L1LSPDU,
+                                                          allConfiguredInterfaceIps);
+                    isisLsdb.addLsp(lsp, true, this);
+                    sendLsp(lsp, channel);
+                }
             }
 
-            wrapper = isisLsdb.findLsp(IsisPduType.L2LSPDU, lspKey);
-            if (wrapper == null) {
-                LsPdu lsp = new LspGenerator().getLsp(this, lspKey, IsisPduType.L2LSPDU, allConfiguredInterfaceIps);
-                isisLsdb.addLsp(lsp, true, this);
-                sendLsp(lsp, channel);
+            if ((neighborRouterType == IsisRouterType.L2 || neighborRouterType == IsisRouterType.L1L2)) {
+                wrapper = isisLsdb.findLsp(IsisPduType.L2LSPDU, lspKey);
+                if (wrapper == null) {
+                    LsPdu lsp = new LspGenerator().getLsp(this, lspKey, IsisPduType.L2LSPDU,
+                                                          allConfiguredInterfaceIps);
+                    isisLsdb.addLsp(lsp, true, this);
+                    sendLsp(lsp, channel);
+                }
             }
         }
     }
@@ -714,29 +748,35 @@ public class DefaultIsisInterface implements IsisInterface {
      * @param channel       netty channel instance
      */
     private void buildUpdateAndSendSelfGeneratedLspIfDisChange(String previousLanId,
-                                                               String latestLanId, Channel channel) {
+                                                               String latestLanId, Channel channel,
+                                                               IsisRouterType neighborRouterType) {
+        this.channel = channel;
         //If DIS change then build and sent LSP
-        if (previousLanId != null && !previousLanId.equals(IsisConstants.DEFAULTLANID) &&
-                !previousLanId.equals(latestLanId)) {
+        if (!previousLanId.equals(latestLanId)) {
             //Create a self LSP and Update it in DB and sent it
             String lspKey = isisLsdb.lspKey(systemId);
             if (reservedPacketCircuitType == IsisRouterType.L1.value()) {
                 LsPdu lsp = new LspGenerator().getLsp(this, lspKey, IsisPduType.L1LSPDU, allConfiguredInterfaceIps);
                 isisLsdb.addLsp(lsp, true, this);
                 sendLsp(lsp, channel);
-            } else if (reservedPacketCircuitType == IsisRouterType.L2.value()) {
+            } else if (reservedPacketCircuitType == IsisRouterType.L2.value() &&
+                    (neighborRouterType == IsisRouterType.L2 || neighborRouterType == IsisRouterType.L1L2)) {
                 LsPdu lsp = new LspGenerator().getLsp(this, lspKey, IsisPduType.L2LSPDU, allConfiguredInterfaceIps);
                 isisLsdb.addLsp(lsp, true, this);
                 sendLsp(lsp, channel);
             } else if (reservedPacketCircuitType == IsisRouterType.L1L2.value()) {
                 //L1 LSPDU
-                LsPdu lsp = new LspGenerator().getLsp(this, lspKey, IsisPduType.L1LSPDU, allConfiguredInterfaceIps);
-                isisLsdb.addLsp(lsp, true, this);
-                sendLsp(lsp, channel);
+                if (neighborRouterType == IsisRouterType.L1 || neighborRouterType == IsisRouterType.L1L2) {
+                    LsPdu lsp = new LspGenerator().getLsp(this, lspKey, IsisPduType.L1LSPDU, allConfiguredInterfaceIps);
+                    isisLsdb.addLsp(lsp, true, this);
+                    sendLsp(lsp, channel);
+                }
                 //L1 LSPDU
-                lsp = new LspGenerator().getLsp(this, lspKey, IsisPduType.L2LSPDU, allConfiguredInterfaceIps);
-                isisLsdb.addLsp(lsp, true, this);
-                sendLsp(lsp, channel);
+                if (neighborRouterType == IsisRouterType.L2 || neighborRouterType == IsisRouterType.L1L2) {
+                    LsPdu lsp = new LspGenerator().getLsp(this, lspKey, IsisPduType.L2LSPDU, allConfiguredInterfaceIps);
+                    isisLsdb.addLsp(lsp, true, this);
+                    sendLsp(lsp, channel);
+                }
             }
         }
 
@@ -756,7 +796,9 @@ public class DefaultIsisInterface implements IsisInterface {
         lspBytes = IsisUtil.addChecksum(lspBytes, IsisConstants.CHECKSUMPOSITION,
                                         IsisConstants.CHECKSUMPOSITION + 1);
         //write to the channel
-        channel.write(IsisUtil.framePacket(lspBytes, interfaceIndex));
+        if (channel != null && channel.isConnected() && channel.isOpen()) {
+            channel.write(IsisUtil.framePacket(lspBytes, interfaceIndex));
+        }
     }
 
     /**
@@ -794,7 +836,7 @@ public class DefaultIsisInterface implements IsisInterface {
                 addNeighbouringRouter(neighbor);
             }
             neighbor.setNeighborState(IsisInterfaceState.DOWN);
-            buildStoreAndSendSelfGeneratedLspIfNotExistInDb(channel);
+            buildStoreAndSendSelfGeneratedLspIfNotExistInDb(channel, IsisRouterType.get(helloPacket.circuitType()));
         } else if (stateTlv.adjacencyType() == IsisInterfaceState.DOWN.value()) {
             neighbor = neighbouringRouter(isisMessage.sourceMac());
             if (neighbor == null) {
@@ -805,6 +847,10 @@ public class DefaultIsisInterface implements IsisInterface {
         } else if (stateTlv.adjacencyType() == IsisInterfaceState.INITIAL.value()) {
             //Neighbor already present in the list
             neighbor = neighbouringRouter(isisMessage.sourceMac());
+            if (neighbor == null) {
+                neighbor = new DefaultIsisNeighbor(helloPacket, this);
+                addNeighbouringRouter(neighbor);
+            }
             neighbor.setNeighborState(IsisInterfaceState.INITIAL);
             neighbor.setLocalExtendedCircuitId(stateTlv.localCircuitId());
             //interfaceState = IsisInterfaceState.UP;
@@ -813,9 +859,10 @@ public class DefaultIsisInterface implements IsisInterface {
             neighbor = neighbouringRouter(isisMessage.sourceMac());
             neighbor.setNeighborState(IsisInterfaceState.UP);
             neighbor.setLocalExtendedCircuitId(stateTlv.localCircuitId());
-            buildStoreAndSendSelfGeneratedLspIfNotExistInDb(channel);
+            buildStoreAndSendSelfGeneratedLspIfNotExistInDb(channel, IsisRouterType.get(helloPacket.circuitType()));
         }
 
+        neighbor.setHoldingTime(helloPacket.holdingTime());
         neighbor.stopInactivityTimeCheck();
         neighbor.startInactivityTimeCheck();
     }
@@ -828,11 +875,36 @@ public class DefaultIsisInterface implements IsisInterface {
      */
     public void processLsPduMessage(IsisMessage isisMessage, Channel channel) {
         log.debug("Enters processLsPduMessage ...!!!");
+        IsisNeighbor neighbor = neighbouringRouter(isisMessage.sourceMac());
+        if (networkType == IsisNetworkType.BROADCAST && neighbor == null) {
+            return;
+        }
+
         LsPdu lsPdu = (LsPdu) isisMessage;
         LspWrapper wrapper = isisLsdb.findLsp(lsPdu.isisPduType(), lsPdu.lspId());
         if (wrapper == null || isisLsdb.isNewerOrSameLsp(lsPdu, wrapper.lsPdu()).equalsIgnoreCase("latest")) {
-            //not exist in the database or latest, then add it in database
-            isisLsdb.addLsp(lsPdu, false, this);
+            if (wrapper != null) {               // verify if the LSA - is your own LSA - get system ID and compare LSP
+                String lspKey = isisLsdb.lspKey(systemId);
+                if (lsPdu.lspId().equals(lspKey)) {
+                    lsPdu.setSequenceNumber(lsPdu.sequenceNumber() + 1);
+                    if (lsPdu.pduType() == IsisPduType.L1LSPDU.value()) {
+                        // setting the ls sequence number
+                        isisLsdb.setL1LspSeqNo(lsPdu.sequenceNumber());
+                    } else if (lsPdu.pduType() == IsisPduType.L2LSPDU.value()) {
+                        // setting the ls sequence number
+                        isisLsdb.setL2LspSeqNo(lsPdu.sequenceNumber());
+                    }
+                    isisLsdb.addLsp(lsPdu, true, this);
+                    sendLsp(lsPdu, channel);
+                } else {
+                    isisLsdb.addLsp(lsPdu, false, this);
+                }
+
+
+            } else {
+                //not exist in the database or latest, then add it in database
+                isisLsdb.addLsp(lsPdu, false, this);
+            }
         }
 
         //If network type is P2P, acknowledge with a PSNP
@@ -865,7 +937,48 @@ public class DefaultIsisInterface implements IsisInterface {
                                                               IsisConstants.RESERVEDPOSITION);
             flagValue = false;
             //write to the channel
-            channel.write(IsisUtil.framePacket(psnpBytes, interfaceIndex));
+            if (channel != null && channel.isConnected() && channel.isOpen()) {
+                channel.write(IsisUtil.framePacket(psnpBytes, interfaceIndex));
+            }
+        }
+    }
+
+    /**
+     * Processes PSN PDU message.
+     * Checks for self originated LSP entries in PSNP message and sends the missing LSP.
+     *
+     * @param isisMessage PSN PDU message instance
+     * @param channel     channel instance
+     */
+    public void processPsnPduMessage(IsisMessage isisMessage, Channel channel) {
+        log.debug("Enters processPsnPduMessage ...!!!");
+        //If adjacency not formed don't process.
+        IsisNeighbor neighbor = neighbouringRouter(isisMessage.sourceMac());
+        if (networkType == IsisNetworkType.BROADCAST && neighbor == null) {
+            return;
+        }
+
+        Psnp psnPacket = (Psnp) isisMessage;
+        List<IsisTlv> isisTlvs = psnPacket.getAllTlv();
+        Iterator iterator = isisTlvs.iterator();
+        while (iterator.hasNext()) {
+            IsisTlv isisTlv = (IsisTlv) iterator.next();
+            if (isisTlv instanceof LspEntriesTlv) {
+                LspEntriesTlv lspEntriesTlv = (LspEntriesTlv) isisTlv;
+                List<LspEntry> lspEntryList = lspEntriesTlv.lspEntry();
+                Iterator lspEntryListIterator = lspEntryList.iterator();
+                while (lspEntryListIterator.hasNext()) {
+                    LspEntry lspEntry = (LspEntry) lspEntryListIterator.next();
+                    String lspKey = lspEntry.lspId();
+                    LspWrapper lspWrapper = isisLsdb.findLsp(psnPacket.isisPduType(), lspKey);
+                    if (lspWrapper != null) {
+                        if (lspWrapper.isSelfOriginated()) {
+                            //Sent the LSP
+                            sendLsp((LsPdu) lspWrapper.lsPdu(), channel);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -877,123 +990,60 @@ public class DefaultIsisInterface implements IsisInterface {
      */
     public void processCsnPduMessage(IsisMessage isisMessage, Channel channel) {
         log.debug("Enters processCsnPduMessage ...!!!");
-        if (reservedPacketCircuitType == IsisRouterType.L1.value()) {
-            processOnL1CsnPdu(isisMessage, channel);
-        } else if (reservedPacketCircuitType == IsisRouterType.L2.value()) {
-            processOnL2CsnPdu(isisMessage, channel);
+        IsisNeighbor neighbor = neighbouringRouter(isisMessage.sourceMac());
+        if (networkType == IsisNetworkType.BROADCAST && neighbor == null) {
+            return;
         }
-    }
 
-    /**
-     * Process the isisMessage which belongs to L1 CSN PDU.
-     * checks the database for this LsPdu if it exists further check for sequence number
-     * sequence number is greater will send PsnPdu.
-     *
-     * @param isisMessage CSN PDU message instance
-     * @param channel     netty channel instance
-     */
-    private void processOnL1CsnPdu(IsisMessage isisMessage, Channel channel) {
         Csnp csnPacket = (Csnp) isisMessage;
+        IsisPduType psnPduType = (IsisPduType.L2CSNP.equals(csnPacket.isisPduType())) ?
+                IsisPduType.L2PSNP : IsisPduType.L1PSNP;
+        IsisPduType lsPduType = (IsisPduType.L2CSNP.equals(csnPacket.isisPduType())) ?
+                IsisPduType.L2LSPDU : IsisPduType.L1LSPDU;
+
         List<LspEntry> lspEntryRequestList = new ArrayList<>();
         boolean selfOriginatedFound = false;
-        if (IsisPduType.L1CSNP.equals(csnPacket.isisPduType())) {
-            List<IsisTlv> isisTlvs = csnPacket.getAllTlv();
-            Iterator iterator = isisTlvs.iterator();
-            while (iterator.hasNext()) {
-                IsisTlv isisTlv = (IsisTlv) iterator.next();
-                if (isisTlv instanceof LspEntriesTlv) {
-                    LspEntriesTlv lspEntriesTlv = (LspEntriesTlv) isisTlv;
-                    List<LspEntry> lspEntryList = lspEntriesTlv.lspEntry();
-                    Iterator lspEntryListIterator = lspEntryList.iterator();
-                    while (lspEntryListIterator.hasNext()) {
-                        LspEntry lspEntry = (LspEntry) lspEntryListIterator.next();
-                        String lspKey = lspEntry.lspId();
-                        LspWrapper lspWrapper = isisLsdb.findLsp(IsisPduType.L1LSPDU, lspKey);
-                        if (lspWrapper != null) {
-                            LsPdu lsPdu = (LsPdu) lspWrapper.lsPdu();
-                            if (lspWrapper.isSelfOriginated()) {
-                                selfOriginatedFound = true;
-                                if (lspEntry.lspSequenceNumber() > lsPdu.sequenceNumber()) {
-                                    sendLsPduMessage(lspEntry.lspSequenceNumber(), csnPacket.isisPduType(), channel);
-                                }
-                            } else {
-                                if (lsPdu.sequenceNumber() < lspEntry.lspSequenceNumber()) {
-                                    lspEntryRequestList.add(lspEntry);
-                                    flagValue = true;
-                                }
+        List<IsisTlv> isisTlvs = csnPacket.getAllTlv();
+        Iterator iterator = isisTlvs.iterator();
+        while (iterator.hasNext()) {
+            IsisTlv isisTlv = (IsisTlv) iterator.next();
+            if (isisTlv instanceof LspEntriesTlv) {
+                LspEntriesTlv lspEntriesTlv = (LspEntriesTlv) isisTlv;
+                List<LspEntry> lspEntryList = lspEntriesTlv.lspEntry();
+                Iterator lspEntryListIterator = lspEntryList.iterator();
+                while (lspEntryListIterator.hasNext()) {
+                    LspEntry lspEntry = (LspEntry) lspEntryListIterator.next();
+                    String lspKey = lspEntry.lspId();
+                    LspWrapper lspWrapper = isisLsdb.findLsp(lsPduType, lspKey);
+                    if (lspWrapper != null) {
+                        LsPdu lsPdu = (LsPdu) lspWrapper.lsPdu();
+                        if (lspWrapper.isSelfOriginated()) {
+                            selfOriginatedFound = true;
+                            if (lspEntry.lspSequenceNumber() < lsPdu.sequenceNumber()) {
+                                sendLsp(lsPdu, channel);
                             }
                         } else {
-                            lspEntryRequestList.add(lspEntry);
-                            flagValue = true;
+                            if (lsPdu.sequenceNumber() < lspEntry.lspSequenceNumber()) {
+                                lspEntryRequestList.add(lspEntry);
+                                flagValue = true;
+                            }
                         }
+                    } else {
+                        lspEntryRequestList.add(lspEntry);
+                        flagValue = true;
                     }
                 }
             }
-            if (flagValue) {
-                sendPsnPduMessage(lspEntryRequestList, csnPacket.isisPduType(), channel);
-            }
-
-            if (!selfOriginatedFound) {
-                String lspKey = isisLsdb.lspKey(systemId);
-                LspWrapper wrapper = isisLsdb.findLsp(IsisPduType.L1LSPDU, lspKey);
-                sendLsp((LsPdu) wrapper.lsPdu(), channel);
-            }
         }
-    }
+        if (flagValue) {
+            sendPsnPduMessage(lspEntryRequestList, psnPduType, channel);
+            lspEntryRequestList.clear();
+        }
 
-    /**
-     * Process the isisMessage which belongs to L2 CSNP.
-     * checks the database for this LsPdu if it exists further check for sequence number
-     * sequence number is greater will send PsnPdu.
-     *
-     * @param isisMessage received CSNP message
-     * @param channel     netty channel instance
-     */
-    private void processOnL2CsnPdu(IsisMessage isisMessage, Channel channel) {
-        Csnp csnPacket = (Csnp) isisMessage;
-        List<LspEntry> lspEntryRequestList = new ArrayList<>();
-        boolean selfOriginatedFound = false;
-        if (IsisPduType.L2CSNP.equals(csnPacket.isisPduType())) {
-            List<IsisTlv> isisTlvs = csnPacket.getAllTlv();
-            Iterator iterator = isisTlvs.iterator();
-            while (iterator.hasNext()) {
-                IsisTlv isisTlv = (IsisTlv) iterator.next();
-                if (isisTlv instanceof LspEntriesTlv) {
-                    LspEntriesTlv lspEntriesTlv = (LspEntriesTlv) isisTlv;
-                    List<LspEntry> lspEntryList = lspEntriesTlv.lspEntry();
-                    Iterator lspEntryListIterator = lspEntryList.iterator();
-                    while (lspEntryListIterator.hasNext()) {
-                        LspEntry lspEntry = (LspEntry) lspEntryListIterator.next();
-                        String lspKey = lspEntry.lspId();
-                        LspWrapper lspWrapper = isisLsdb.findLsp(IsisPduType.L2LSPDU, lspKey);
-                        if (lspWrapper != null) {
-                            LsPdu lsPdu = (LsPdu) lspWrapper.lsPdu();
-                            if (lspWrapper.isSelfOriginated()) {
-                                selfOriginatedFound = true;
-                                if (lspEntry.lspSequenceNumber() > lsPdu.sequenceNumber()) {
-                                    sendLsPduMessage(lspEntry.lspSequenceNumber(), csnPacket.isisPduType(), channel);
-                                }
-                            } else {
-                                if (lsPdu.sequenceNumber() < lspEntry.lspSequenceNumber()) {
-                                    lspEntryRequestList.add(lspEntry);
-                                    flagValue = true;
-                                }
-                            }
-                        } else {
-                            lspEntryRequestList.add(lspEntry);
-                            flagValue = true;
-                        }
-                    }
-                }
-            }
-            if (flagValue) {
-                sendPsnPduMessage(lspEntryRequestList, csnPacket.isisPduType(), channel);
-                lspEntryRequestList.clear();
-            }
-
-            if (!selfOriginatedFound) {
-                String lspKey = isisLsdb.lspKey(systemId);
-                LspWrapper wrapper = isisLsdb.findLsp(IsisPduType.L2LSPDU, lspKey);
+        if (!selfOriginatedFound) {
+            String lspKey = isisLsdb.lspKey(systemId);
+            LspWrapper wrapper = isisLsdb.findLsp(lsPduType, lspKey);
+            if (wrapper != null) {
                 sendLsp((LsPdu) wrapper.lsPdu(), channel);
             }
         }
@@ -1007,13 +1057,7 @@ public class DefaultIsisInterface implements IsisInterface {
      * @param channel             netty channel instance
      */
     private void sendPsnPduMessage(List<LspEntry> lspEntryRequestList, IsisPduType isisPduType, Channel channel) {
-        IsisPduType psnpType = null;
-        if (isisPduType == IsisPduType.L1CSNP) {
-            psnpType = IsisPduType.L1PSNP;
-        } else if (reservedPacketCircuitType == IsisRouterType.L2.value()) {
-            psnpType = IsisPduType.L2PSNP;
-        }
-        IsisHeader isisHeader = new LspGenerator().getHeader(psnpType);
+        IsisHeader isisHeader = new LspGenerator().getHeader(isisPduType);
         Psnp psnp = new Psnp(isisHeader);
         psnp.setSourceId(lspKeyP2P(this.systemId));
         TlvHeader tlvHeader = new TlvHeader();
@@ -1021,6 +1065,9 @@ public class DefaultIsisInterface implements IsisInterface {
         tlvHeader.setTlvLength(0);
         LspEntriesTlv lspEntriesTlv = new LspEntriesTlv(tlvHeader);
         for (LspEntry lspEntry : lspEntryRequestList) {
+            lspEntry.setLspChecksum(0);
+            lspEntry.setLspSequenceNumber(0);
+            lspEntry.setRemainingTime(0);
             lspEntriesTlv.addLspEntry(lspEntry);
         }
         psnp.addTlv(lspEntriesTlv);
@@ -1031,7 +1078,9 @@ public class DefaultIsisInterface implements IsisInterface {
                                                           IsisConstants.RESERVEDPOSITION);
         flagValue = false;
         //write to the channel
-        channel.write(IsisUtil.framePacket(psnpBytes, interfaceIndex));
+        if (channel != null && channel.isConnected() && channel.isOpen()) {
+            channel.write(IsisUtil.framePacket(psnpBytes, interfaceIndex));
+        }
     }
 
     /**
@@ -1048,28 +1097,6 @@ public class DefaultIsisInterface implements IsisInterface {
     }
 
     /**
-     * Sends the link state PDU with latest self generated lsp entry.
-     *
-     * @param sequenceNumber sequence number of the self generated lsp
-     * @param isisPduType    intermediate system type
-     * @param channel        netty channel instance
-     */
-    private void sendLsPduMessage(int sequenceNumber, IsisPduType isisPduType, Channel channel) {
-        String lspKey = isisLsdb.lspKey(systemId);
-        LsPdu lsp = new LspGenerator().getLsp(this, lspKey, isisPduType, allConfiguredInterfaceIps);
-        lsp.setSequenceNumber(sequenceNumber);
-        byte[] lspBytes = lsp.asBytes();
-        lspBytes = IsisUtil.addLengthAndMarkItInReserved(lspBytes, IsisConstants.LENGTHPOSITION,
-                                                         IsisConstants.LENGTHPOSITION + 1,
-                                                         IsisConstants.RESERVEDPOSITION);
-        lspBytes = IsisUtil.addChecksum(lspBytes, IsisConstants.CHECKSUMPOSITION,
-                                        IsisConstants.CHECKSUMPOSITION + 1);
-        //write to the channel
-        channel.write(IsisUtil.framePacket(lspBytes, interfaceIndex));
-    }
-
-
-    /**
      * Starts the hello timer which sends hello packet every configured seconds.
      *
      * @param channel netty channel instance
@@ -1082,5 +1109,13 @@ public class DefaultIsisInterface implements IsisInterface {
         final ScheduledFuture<?> helloHandle =
                 exServiceHello.scheduleAtFixedRate(isisHelloPduSender, 0,
                                                    helloInterval, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Stops the hello timer which sends hello packet every configured seconds.
+     */
+    public void stopHelloSender() {
+        log.debug("IsisInterfaceImpl::stopHelloSender");
+        exServiceHello.shutdown();
     }
 }

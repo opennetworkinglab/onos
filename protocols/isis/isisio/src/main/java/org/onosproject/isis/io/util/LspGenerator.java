@@ -140,8 +140,15 @@ public class LspGenerator {
         metricOfIntRea.setExpenseIsInternal(true);
         Ip4Address ip4Address = isisInterface.interfaceIpAddress();
         byte[] ipAddress = ip4Address.toOctets();
-        ipAddress[ipAddress.length - 1] = 0;
-        metricOfIntRea.setIpAddress(Ip4Address.valueOf(ipAddress));
+       // ipAddress[ipAddress.length - 1] = 0;
+        byte[] networkmass = isisInterface.networkMask();
+        // metric calculation part
+        byte[] result = new byte[ipAddress.length];
+        result[0] = (byte) (ipAddress[0] & networkmass[0]);
+        result[1] = (byte) (ipAddress[1] & networkmass[1]);
+        result[2] = (byte) (ipAddress[2] & networkmass[2]);
+        result[3] = (byte) (ipAddress[3] & networkmass[3]);
+        metricOfIntRea.setIpAddress(Ip4Address.valueOf(result));
         metricOfIntRea.setSubnetAddres(Ip4Address.valueOf(isisInterface.networkMask()));
         ipInterReacTlv.addInternalReachabilityMetric(metricOfIntRea);
         lsp.addTlv(ipInterReacTlv);

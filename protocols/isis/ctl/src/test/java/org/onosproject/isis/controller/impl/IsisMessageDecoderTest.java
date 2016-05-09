@@ -24,11 +24,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class IsisMessageDecoderTest {
 
     private final byte[] hello = {
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             -125, 20, 1, 0, 17, 1, 0, 0,
             2, 51, 51, 51, 51, 51, 51, 0, 100, 5, -39, -126, 1, 4, 3,
             73, 0, 0, -127, 1, -52, -124, 4, -64, -88, 56, 102
     };
+    private final byte[] array2 = {0, 0, 0, 0, 0, 0, 0};
     private final String id = "127.0.0.1";
+    private byte[] array1;
     private IsisMessageDecoder isisMessageDecoder;
     private ChannelHandlerContext ctx;
     private Channel channel;
@@ -49,7 +52,8 @@ public class IsisMessageDecoderTest {
     public void testDecode() throws Exception {
         channel = EasyMock.createMock(Channel.class);
         socketAddress = InetSocketAddress.createUnresolved(id, 7000);
-        byte[] array = IsisUtil.getPaddingTlvs(hello.length);
+        byte[] array = IsisUtil.getPaddingTlvs(hello.length - 17);
+        array1 = Bytes.concat(hello, array);
         channelBuffer = ChannelBuffers.copiedBuffer(Bytes.concat(hello, array));
         assertThat(isisMessageDecoder.decode(ctx, channel, channelBuffer), is(nullValue()));
     }

@@ -45,7 +45,7 @@ public class IsisHelloPduSender implements Runnable {
 
     @Override
     public void run() {
-        if (channel != null) {
+        if (channel != null && channel.isConnected() && channel.isOpen()) {
             try {
                 byte[] helloPdu = null;
                 byte[] interfaceIndex = {(byte) isisInterface.interfaceIndex()};

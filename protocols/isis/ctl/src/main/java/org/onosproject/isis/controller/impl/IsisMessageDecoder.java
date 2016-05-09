@@ -44,7 +44,6 @@ public class IsisMessageDecoder extends FrameDecoder {
             log.info("Channel is not connected.");
             return null;
         }
-
         IsisMessageReader messageReader = new IsisMessageReader();
         List<IsisMessage> isisMessageList = new LinkedList<>();
         int dataLength = buffer.readableBytes();
@@ -74,8 +73,7 @@ public class IsisMessageDecoder extends FrameDecoder {
                 isisMessageList.add(message);
             }
         }
-
-        return isisMessageList;
+        return (isisMessageList.size() > 0) ? isisMessageList : null;
     }
 
     /**

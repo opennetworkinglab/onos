@@ -21,11 +21,14 @@ import org.onosproject.isis.controller.IsisPduType;
 import org.onosproject.isis.controller.LspWrapper;
 import org.onosproject.isis.io.isispacket.pdu.LsPdu;
 import org.onosproject.isis.io.util.IsisConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Representation of LSP wrapper where the LSPs are stored with metadata.
  */
 public class DefaultLspWrapper implements LspWrapper {
+    private static final Logger log = LoggerFactory.getLogger(DefaultLspWrapper.class);
     private int binNumber = -1;
     private boolean selfOriginated = false;
     private IsisPduType lspType;
@@ -229,7 +232,15 @@ public class DefaultLspWrapper implements LspWrapper {
         int currentAge = 0;
         //ls age received
         if (lsdbAge.ageCounter() >= ageCounterWhenReceived) {
+            if (!selfOriginated) {
+                if (ageCounterRollOverWhenAdded == lsdbAge.ageCounterRollOver()) {
             currentAge = lspAgeReceived + (lsdbAge.ageCounter() - ageCounterWhenReceived);
+                } else {
+                    return IsisConstants.LSPMAXAGE;
+                }
+            } else {
+                currentAge = lspAgeReceived + (lsdbAge.ageCounter() - ageCounterWhenReceived);
+            }
         } else {
             currentAge = lspAgeReceived + ((IsisConstants.LSPMAXAGE + lsdbAge.ageCounter())
                     - ageCounterWhenReceived);
@@ -245,6 +256,8 @@ public class DefaultLspWrapper implements LspWrapper {
         return currentAge;
     }
 
+
+
     /**
      * Returns remaining time.
      *
@@ -252,7 +265,7 @@ public class DefaultLspWrapper implements LspWrapper {
      */
     public int remainingLifetime() {
         //Calculate the remaining lifetime
-        remainingLifetime = IsisConstants.LSPMAXAGE - lsdbAge.ageCounter();
+        remainingLifetime = IsisConstants.LSPMAXAGE - currentAge();
         return remainingLifetime;
     }
 
