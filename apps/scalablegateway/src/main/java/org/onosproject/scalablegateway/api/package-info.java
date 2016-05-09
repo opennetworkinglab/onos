@@ -17,4 +17,4 @@
 /**
  * Application for ScaleableGateway management.
  */
-package org.onosproject.scalablegateway;
+package org.onosproject.scalablegateway.api;

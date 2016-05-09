@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.onosproject.scalablegateway;
+package org.onosproject.scalablegateway.impl;
 
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.scalablegateway.api.GatewayNode;
+import org.onosproject.scalablegateway.api.ScalableGatewayService;
 
 import java.util.List;
 

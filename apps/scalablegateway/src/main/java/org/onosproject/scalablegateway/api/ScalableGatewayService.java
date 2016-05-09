@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.scalablegateway;
+package org.onosproject.scalablegateway.api;
 
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
@@ -45,6 +45,7 @@ public interface ScalableGatewayService {
     /**
      * Returns group id for gateway load balance.
      *
+     * @param srcDeviceId source device id
      * @return The group id
      */
     GroupId getGroupIdForGatewayLoadBalance(DeviceId srcDeviceId);

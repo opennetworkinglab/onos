@@ -1,11 +1,14 @@
-BUNDLES = [
-    '//apps/scalablegateway/api:onos-apps-scalablegateway-api',
-    '//apps/scalablegateway/app:onos-apps-scalablegateway-app',
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
 ]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
 
 onos_app (
   title = 'Scalable GW App',
   category = 'Utility',
   url = 'http://onosproject.org',
-  included_bundles = BUNDLES,
+  description = 'Scalable gateway service',
 )

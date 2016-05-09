@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.scalablegateway;
+package org.onosproject.scalablegateway.api;
 
 import com.google.common.collect.ImmutableList;
 import org.onlab.packet.Ip4Address;

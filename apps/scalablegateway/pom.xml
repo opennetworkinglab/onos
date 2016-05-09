@@ -27,13 +27,26 @@
     </parent>
 
     <artifactId>onos-scalablegateway</artifactId>
-    <packaging>pom</packaging>
+    <packaging>bundle</packaging>
 
-    <description>ONOS ScalableGateway applications</description>
+    <description>ONOS Scalable Gateway applications</description>
 
-    <modules>
-        <module>api</module>
-        <module>app</module>
-    </modules>
+    <properties>
+        <onos.app.name>org.onosproject.scalablegateway</onos.app.name>
+        <onos.app.title>Scalable Gateway App</onos.app.title>
+        <onos.app.category>Utility</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.readm>Scalable Gateway Application.</onos.app.readm>
+    </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+        </dependency>
+    </dependencies>
 </project>
