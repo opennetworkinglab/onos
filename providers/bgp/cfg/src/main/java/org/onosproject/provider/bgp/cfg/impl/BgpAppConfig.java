@@ -169,12 +169,12 @@ public class BgpAppConfig extends Config<ApplicationId> {
     public boolean validateFlowSpec() {
         if (flowSpecCapability() != null) {
             String flowSpec = flowSpecCapability();
-            if ((flowSpec.equals("IPV4")) || (flowSpec.equals("VPNV4")) || (flowSpec.equals("IPV4_VPNV4"))) {
-                return true;
+            if ((!flowSpec.equals("IPV4")) && (!flowSpec.equals("VPNV4")) && (!flowSpec.equals("IPV4_VPNV4"))) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     /**

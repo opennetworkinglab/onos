@@ -47,7 +47,7 @@ public interface BgpOpenMsg extends BgpMessage {
      *
      * @return AS Number of Open Message
      */
-    short getAsNumber();
+    long getAsNumber();
 
     /**
      * Returns BGP Identifier of Open Message.
