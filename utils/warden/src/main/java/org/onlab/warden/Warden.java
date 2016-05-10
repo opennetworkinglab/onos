@@ -47,8 +47,6 @@ class Warden {
     private static final String KEY_NOT_NULL = "User key cannot be null";
     private static final String UTF_8 = "UTF-8";
 
-    private static final String AUTHORIZED_KEYS = "authorized_keys";
-
     private static final long TIMEOUT = 10; // 10 seconds
     private static final int MAX_MINUTES = 240; // 4 hours max
     private static final int MINUTE = 60_000; // 1 minute
@@ -62,13 +60,12 @@ class Warden {
 
     private final Random random = new Random();
 
-    private final Timer timer = new Timer("cell-pruner", true);
-
     /**
      * Creates a new cell warden.
      */
     Warden() {
         random.setSeed(System.currentTimeMillis());
+        Timer timer = new Timer("cell-pruner", true);
         timer.schedule(new Reposessor(), MINUTE / 4, MINUTE / 2);
     }
 
@@ -87,7 +84,7 @@ class Warden {
      *
      * @return list of cell names
      */
-    Set<String> getAvailableCells() {
+    private Set<String> getAvailableCells() {
         Set<String> available = new HashSet<>(getCells());
         available.removeAll(getReservedCells());
         return ImmutableSet.copyOf(available);
@@ -98,7 +95,7 @@ class Warden {
      *
      * @return list of cell names
      */
-    Set<String> getReservedCells() {
+    private Set<String> getReservedCells() {
         String[] list = reserved.list();
         return list != null ? ImmutableSet.copyOf(list) : ImmutableSet.of();
     }
@@ -109,7 +106,7 @@ class Warden {
      * @param userName user name
      * @return cell reservation record or null if user does not have one
      */
-    Reservation currentUserReservation(String userName) {
+    private Reservation currentUserReservation(String userName) {
         checkNotNull(userName, USER_NOT_NULL);
         for (String cellName : getReservedCells()) {
             Reservation reservation = currentCellReservation(cellName);
@@ -223,9 +220,10 @@ class Warden {
      * @param sshKey      ssh key
      */
     private void createCell(Reservation reservation, String sshKey) {
-        String cellInfo = getCellInfo(reservation.cellName);
-        String cmd = String.format("bin/create-cell %s %s %s",
-                                   reservation.cellName, cellInfo, sshKey);
+        CellInfo cellInfo = getCellInfo(reservation.cellName);
+        String cmd = String.format("ssh %s warden/bin/create-cell %s %s %s",
+                                   cellInfo.hostName, cellInfo.cellName,
+                                   cellInfo.ipPrefix, sshKey);
         exec(cmd);
     }
 
@@ -235,19 +233,22 @@ class Warden {
      * @param reservation reservation record
      */
     private void destroyCell(Reservation reservation) {
-        exec("bin/destroy-cell " + reservation.cellName);
+        CellInfo cellInfo = getCellInfo(reservation.cellName);
+        exec(String.format("ssh %s warden/bin/destroy-cell %s",
+                           cellInfo.hostName, cellInfo.cellName));
     }
 
     /**
-     * Reads the definition of the specified cell.
+     * Reads the information about the specified cell.
      *
      * @param cellName cell name
-     * @return cell definition
+     * @return cell information
      */
-    String getCellInfo(String cellName) {
+    private CellInfo getCellInfo(String cellName) {
         File cellFile = new File(supported, cellName);
         try (InputStream stream = new FileInputStream(cellFile)) {
-            return new String(ByteStreams.toByteArray(stream), UTF_8);
+            String[] fields = new String(ByteStreams.toByteArray(stream), UTF_8).split(" ");
+            return new CellInfo(cellName, fields[0], fields[1]);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to definition for cell " + cellName, e);
         }
@@ -266,7 +267,7 @@ class Warden {
     }
 
     // Creates an audit log entry.
-    void log(String userName, String cellName, String action) {
+    private void log(String userName, String cellName, String action) {
         try (FileOutputStream fos = new FileOutputStream(log, true);
              PrintWriter pw = new PrintWriter(fos)) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -278,8 +279,21 @@ class Warden {
         }
     }
 
+    // Carrier of cell information
+    private final class CellInfo {
+        final String cellName;
+        final String hostName;
+        final String ipPrefix;
+
+        private CellInfo(String cellName, String hostName, String ipPrefix) {
+            this.cellName = cellName;
+            this.hostName = hostName;
+            this.ipPrefix = ipPrefix;
+        }
+    }
+
     // Task for re-possessing overdue cells
-    private class Reposessor extends TimerTask {
+    private final class Reposessor extends TimerTask {
         @Override
         public void run() {
             long now = System.currentTimeMillis();
