@@ -46,7 +46,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT_BASE_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addToSource;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.clean;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.copyYangFilesToTarget;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getDirectory;
 
@@ -127,8 +127,8 @@ public class YangUtilManager extends AbstractMojo {
             /**
              * For deleting the generated code in previous build.
              */
-            clean(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG);
-            clean(getDirectory(baseDir, outputDirectory));
+            deleteDirectory(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG);
+            deleteDirectory(getDirectory(baseDir, outputDirectory));
 
             String searchDir = getDirectory(baseDir, yangFilesDir);
             String codeGenDir = getDirectory(baseDir, genFilesDir) + SLASH;
@@ -166,7 +166,7 @@ public class YangUtilManager extends AbstractMojo {
         } catch (Exception e) {
             try {
                 translatorErrorHandler(getRootNode());
-                clean(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG);
+                deleteDirectory(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG);
             } catch (IOException | DataModelException ex) {
                 throw new MojoExecutionException("Error handler failed to delete files for data model node.");
             }

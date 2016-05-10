@@ -19,13 +19,14 @@ package org.onosproject.yangutils.datamodel.utils;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.CollisionDetector;
-import org.onosproject.yangutils.datamodel.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.YangImport;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.YangResolutionInfo;
+import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
@@ -221,5 +222,22 @@ public final class DataModelUtils {
         for (YangResolutionInfo resolutionInfo : resolutionList) {
             resolutionInfo.resolveLinkingForResolutionInfo(dataModelRootNode.getPrefix());
         }
+    }
+
+    /**
+     * Checks if there is any rpc defined in the module or sub-module.
+     *
+     * @param rootNode root node of the data model
+     * @return status of rpc's existence
+     */
+    public static boolean isRpcChildNodePresent(YangNode rootNode) {
+        YangNode childNode = rootNode.getChild();
+        while (childNode != null) {
+            if (childNode instanceof YangRpc) {
+                return true;
+            }
+            childNode = childNode.getNextSibling();
+        }
+        return false;
     }
 }

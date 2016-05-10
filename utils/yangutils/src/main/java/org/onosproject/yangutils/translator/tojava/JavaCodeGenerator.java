@@ -31,13 +31,14 @@ public interface JavaCodeGenerator {
      * @param yangPlugin YANG plugin config
      * @throws IOException when fails to translate the data model tree
      */
-    void generateCodeEntry(YangPluginConfig yangPlugin) throws IOException;
+    void generateCodeEntry(YangPluginConfig yangPlugin)
+            throws IOException;
 
     /**
      * Traverse the schema of application and generate corresponding code.
      *
      * @throws IOException when fails to generate java code
      */
-    void generateCodeExit() throws IOException;
-
+    void generateCodeExit()
+            throws IOException;
 }

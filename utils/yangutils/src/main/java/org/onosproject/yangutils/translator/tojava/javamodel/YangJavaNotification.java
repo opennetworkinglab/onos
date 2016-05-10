@@ -25,7 +25,10 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
+import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfNode;
 
 /**
  * Represents notification information extended to support java code generation.
@@ -51,7 +54,8 @@ public class YangJavaNotification
     public YangJavaNotification() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER);
+        getJavaFileInfo().setGeneratedFileTypes(GENERATE_INTERFACE_WITH_BUILDER
+                | GENERATE_EVENT_CLASS | GENERATE_EVENT_LISTENER_INTERFACE);
     }
 
     /**
@@ -109,15 +113,36 @@ public class YangJavaNotification
     public void generateCodeEntry(YangPluginConfig yangPlugin)
             throws IOException {
 
-        //TODO: implement the event listener for notifications.
+        /**
+         * As part of the notification support the following files needs to be generated.
+         * 1) Subject of the notification(event), this is simple interface with builder class.
+         * 2) Event class extending "AbstractEvent" and defining event type enum.
+         * 3) Event listener interface extending "EventListener".
+         *
+         * The manager class needs to extend the ListenerRegistry.
+         */
+
+
+        // Generate subject of the notification(event), this is simple interface with builder class.
+        generateCodeOfNode(this, yangPlugin);
     }
 
     /**
      * Creates a java file using the YANG notification info.
      */
     @Override
-    public void generateCodeExit() {
-        // TODO Auto-generated method stub
+    public void generateCodeExit()
+            throws IOException {
+        /**
+         * As part of the notification support the following files needs to be generated.
+         * 1) Subject of the notification(event), this is simple interface with builder class.
+         * 2) Event class extending "AbstractEvent" and defining event type enum.
+         * 3) Event listener interface extending "EventListener".
+         *
+         * The manager class needs to extend the "ListenerRegistry".
+         */
+        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER
+                | GENERATE_EVENT_CLASS | GENERATE_EVENT_LISTENER_INTERFACE, this);
 
     }
 }

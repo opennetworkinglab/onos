@@ -16,39 +16,17 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import org.onosproject.yangutils.datamodel.YangUses;
-import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
-import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 /**
  * Represents uses information extended to support java code generation.
  */
 public class YangJavaUses
-        extends YangUses
-        implements JavaCodeGenerator {
+        extends YangUses {
 
     /**
      * Creates YANG java uses object.
      */
     public YangJavaUses() {
         super();
-    }
-
-    /**
-     * Prepare the information for java code generation corresponding to YANG
-     * uses info.
-     *
-     * @param yangPlugin YANG plugin config
-     */
-    @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin) {
-                /*Do nothing, the uses will copy the contents to the used location*/
-    }
-
-    /**
-     * Create a java file using the YANG uses info.
-     */
-    @Override
-    public void generateCodeExit() {
-                /*Do nothing, the uses will copy the contents to the used location*/
     }
 }

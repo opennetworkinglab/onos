@@ -53,7 +53,7 @@ public class JavaFileInfo {
      * definition.
      *
      * @return the types of files being generated corresponding to the YANG
-     *         definition
+     * definition
      */
     public int getGeneratedFileTypes() {
         return genFileTypes;
@@ -64,10 +64,21 @@ public class JavaFileInfo {
      * definition.
      *
      * @param fileTypes the types of files being generated corresponding to the
-     *            YANG definition
+     * YANG definition
      */
     public void setGeneratedFileTypes(int fileTypes) {
         genFileTypes = fileTypes;
+    }
+
+    /**
+     * Adds the types of files being generated corresponding to the YANG
+     * definition.
+     *
+     * @param fileTypes the types of files being generated corresponding to the
+     * YANG definition
+     */
+    public void addGeneratedFileTypes(int fileTypes) {
+        genFileTypes |= fileTypes;
     }
 
     /**

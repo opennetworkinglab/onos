@@ -17,7 +17,9 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
+import org.onosproject.yangutils.utils.io.impl.JavaDocGen;
 
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getParseFromStringMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
@@ -88,11 +90,13 @@ import static org.onosproject.yangutils.utils.UtilConstants.TRY;
 import static org.onosproject.yangutils.utils.UtilConstants.TWELVE_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.VALUE;
 import static org.onosproject.yangutils.utils.UtilConstants.VOID;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_UTILS_TODO;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILD_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.DEFAULT_CONSTRUCTOR;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.FROM_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.MANAGER_SETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.OF_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.SETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.TYPE_CONSTRUCTOR;
@@ -124,15 +128,16 @@ public final class MethodsGenerator {
      * Returns getter string.
      *
      * @param attr attribute info
+     * @param generatedJavaFiles generated java files
      * @return getter string
      */
-    public static String getGetterString(JavaAttributeInfo attr) {
+    public static String getGetterString(JavaAttributeInfo attr, int generatedJavaFiles) {
 
         String returnType = getReturnType(attr);
         String attributeName = getSmallCase(attr.getAttributeName());
 
         return getJavaDoc(GETTER_METHOD, attributeName, attr.isListAttr())
-                + getGetterForInterface(attributeName, returnType, attr.isListAttr());
+                + getGetterForInterface(attributeName, returnType, attr.isListAttr(), generatedJavaFiles);
     }
 
     /**
@@ -140,15 +145,22 @@ public final class MethodsGenerator {
      *
      * @param attr attribute info
      * @param className java class name
+     * @param generatedJavaFiles generated java files
      * @return setter string
      */
-    public static String getSetterString(JavaAttributeInfo attr, String className) {
+    public static String getSetterString(JavaAttributeInfo attr, String className, int generatedJavaFiles) {
 
         String attrType = getReturnType(attr);
         String attributeName = getSmallCase(attr.getAttributeName());
+        JavaDocGen.JavaDocType type;
+        if (generatedJavaFiles == GENERATE_SERVICE_AND_MANAGER) {
+            type = MANAGER_SETTER_METHOD;
+        } else {
+            type = SETTER_METHOD;
+        }
 
-        return getJavaDoc(SETTER_METHOD, attributeName, attr.isListAttr())
-                + getSetterForInterface(attributeName, attrType, className, attr.isListAttr());
+        return getJavaDoc(type, attributeName, attr.isListAttr())
+                + getSetterForInterface(attributeName, attrType, className, attr.isListAttr(), generatedJavaFiles);
     }
 
     /**
@@ -198,18 +210,19 @@ public final class MethodsGenerator {
      * Returns the getter method strings for class file.
      *
      * @param attr attribute info
+     * @param generatedJavaFiles for the type of java file being generated
      * @return getter method for class
      */
-    public static String getGetterForClass(JavaAttributeInfo attr) {
+    public static String getGetterForClass(JavaAttributeInfo attr, int generatedJavaFiles) {
 
         String attrQuaifiedType = getReturnType(attr);
         String attributeName = getSmallCase(attr.getAttributeName());
 
         if (!attr.isListAttr()) {
-            return getGetter(attrQuaifiedType, attributeName);
+            return getGetter(attrQuaifiedType, attributeName, generatedJavaFiles);
         }
         String listAttr = getListString() + attrQuaifiedType + DIAMOND_CLOSE_BRACKET;
-        return getGetter(listAttr, attributeName);
+        return getGetter(listAttr, attributeName, generatedJavaFiles);
     }
 
     /**
@@ -217,12 +230,22 @@ public final class MethodsGenerator {
      *
      * @param type return type
      * @param name attribute name
+     * @param generatedJavaFiles generated java files
      * @return getter for attribute
      */
-    public static String getGetter(String type, String name) {
-        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + type + SPACE + GET_METHOD_PREFIX + getCaptialCase(name)
-                + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION
-                + RETURN + SPACE + name + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+    public static String getGetter(String type, String name, int generatedJavaFiles) {
+        if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
+            return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + type + SPACE + GET_METHOD_PREFIX + getCaptialCase(name)
+                    + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE +
+                    EIGHT_SPACE_INDENTATION + YANG_UTILS_TODO + NEW_LINE + EIGHT_SPACE_INDENTATION +
+                    RETURN + SPACE + NULL + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+        } else {
+            return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + type + SPACE + name
+                    + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE +
+                    EIGHT_SPACE_INDENTATION + RETURN + SPACE + name + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION
+                    + CLOSE_CURLY_BRACKET;
+        }
+
     }
 
     /**
@@ -230,17 +253,18 @@ public final class MethodsGenerator {
      *
      * @param attr attribute info
      * @param className name of the class
+     * @param generatedJavaFiles generated java files
      * @return setter method for class
      */
-    public static String getSetterForClass(JavaAttributeInfo attr, String className) {
+    public static String getSetterForClass(JavaAttributeInfo attr, String className, int generatedJavaFiles) {
 
         String attrQuaifiedType = getReturnType(attr);
         String attributeName = getSmallCase(attr.getAttributeName());
         if (!attr.isListAttr()) {
-            return getSetter(className, attributeName, attrQuaifiedType);
+            return getSetter(className, attributeName, attrQuaifiedType, generatedJavaFiles);
         }
         String listAttr = getListString() + attrQuaifiedType + DIAMOND_CLOSE_BRACKET;
-        return getSetter(className, attributeName, listAttr);
+        return getSetter(className, attributeName, listAttr, generatedJavaFiles);
     }
 
     /**
@@ -251,12 +275,19 @@ public final class MethodsGenerator {
      * @param type return type
      * @return setter for attribute
      */
-    private static String getSetter(String className, String name, String type) {
-        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + className + BUILDER + SPACE + SET_METHOD_PREFIX
-                + getCaptialCase(name) + OPEN_PARENTHESIS + type + SPACE + name + CLOSE_PARENTHESIS + SPACE
-                + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + THIS + PERIOD + name + SPACE + EQUAL + SPACE
-                + name + SEMI_COLAN + NEW_LINE + EIGHT_SPACE_INDENTATION + RETURN + SPACE + THIS + SEMI_COLAN
-                + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+    private static String getSetter(String className, String name, String type, int generatedJavaFiles) {
+        if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
+            return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + SET_METHOD_PREFIX
+                    + getCaptialCase(name) + OPEN_PARENTHESIS + type + SPACE + name + CLOSE_PARENTHESIS + SPACE +
+                    OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + YANG_UTILS_TODO +
+                    NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+        } else {
+            return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + className + BUILDER + SPACE +
+                    name + OPEN_PARENTHESIS + type + SPACE + name + CLOSE_PARENTHESIS + SPACE
+                    + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + THIS + PERIOD + name + SPACE + EQUAL +
+                    SPACE + name + SEMI_COLAN + NEW_LINE + EIGHT_SPACE_INDENTATION + RETURN + SPACE + THIS +
+                    SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+        }
     }
 
     /**
@@ -301,15 +332,17 @@ public final class MethodsGenerator {
      * @param yangName name of the attribute
      * @param returnType return type of attribute
      * @param isList is list attribute
+     * @param generatedJavaFiles generated java files
      * @return getter method for interface
      */
-    public static String getGetterForInterface(String yangName, String returnType, boolean isList) {
+    public static String getGetterForInterface(String yangName, String returnType, boolean isList,
+            int generatedJavaFiles) {
 
         if (!isList) {
-            return getGetterInterfaceString(returnType, yangName);
+            return getGetterInterfaceString(returnType, yangName, generatedJavaFiles);
         }
         String listAttr = getListString() + returnType + DIAMOND_CLOSE_BRACKET;
-        return getGetterInterfaceString(listAttr, yangName);
+        return getGetterInterfaceString(listAttr, yangName, generatedJavaFiles);
     }
 
     /**
@@ -319,9 +352,15 @@ public final class MethodsGenerator {
      * @param yangName attribute name
      * @return getter for interface
      */
-    private static String getGetterInterfaceString(String returnType, String yangName) {
-        return FOUR_SPACE_INDENTATION + returnType + SPACE + GET_METHOD_PREFIX + getCaptialCase(yangName)
-                + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN;
+    private static String getGetterInterfaceString(String returnType, String yangName,
+            int generatedJavaFiles) {
+        if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
+            return FOUR_SPACE_INDENTATION + returnType + SPACE + GET_METHOD_PREFIX + getCaptialCase(yangName)
+                    + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN;
+        } else {
+            return FOUR_SPACE_INDENTATION + returnType + SPACE + yangName
+                    + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN;
+        }
     }
 
     /**
@@ -331,15 +370,17 @@ public final class MethodsGenerator {
      * @param attrType return type of attribute
      * @param className name of the java class being generated
      * @param isList is list attribute
+     * @param generatedJavaFiles generated java files
      * @return setter method for interface
      */
-    public static String getSetterForInterface(String attrName, String attrType, String className, boolean isList) {
+    public static String getSetterForInterface(String attrName, String attrType, String className,
+            boolean isList, int generatedJavaFiles) {
 
         if (!isList) {
-            return getSetterInterfaceString(className, attrName, attrType);
+            return getSetterInterfaceString(className, attrName, attrType, generatedJavaFiles);
         }
         String listAttr = getListString() + attrType + DIAMOND_CLOSE_BRACKET;
-        return getSetterInterfaceString(className, attrName, listAttr);
+        return getSetterInterfaceString(className, attrName, listAttr, generatedJavaFiles);
     }
 
     /**
@@ -350,9 +391,16 @@ public final class MethodsGenerator {
      * @param attrType attribute type
      * @return setter string
      */
-    private static String getSetterInterfaceString(String className, String attrName, String attrType) {
-        return FOUR_SPACE_INDENTATION + className + BUILDER + SPACE + SET_METHOD_PREFIX + getCaptialCase(attrName)
-                + OPEN_PARENTHESIS + attrType + SPACE + attrName + CLOSE_PARENTHESIS + SEMI_COLAN;
+    private static String getSetterInterfaceString(String className, String attrName, String attrType,
+            int generatedJavaFiles) {
+        if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
+
+            return FOUR_SPACE_INDENTATION + VOID + SPACE + SET_METHOD_PREFIX + getCaptialCase(attrName)
+                    + OPEN_PARENTHESIS + attrType + SPACE + attrName + CLOSE_PARENTHESIS + SEMI_COLAN;
+        } else {
+            return FOUR_SPACE_INDENTATION + className + BUILDER + SPACE + attrName
+                    + OPEN_PARENTHESIS + attrType + SPACE + attrName + CLOSE_PARENTHESIS + SEMI_COLAN;
+        }
     }
 
     /**
@@ -411,17 +459,26 @@ public final class MethodsGenerator {
      *
      * @param yangName name of the class
      * @param attr attribute info
+     * @param generatedJavaFiles generated java files
      * @return constructor for class
      */
-    public static String getConstructor(String yangName, JavaAttributeInfo attr) {
+    public static String getConstructor(String yangName, JavaAttributeInfo attr, int generatedJavaFiles) {
 
         String attributeName = getSmallCase(attr.getAttributeName());
+        String constructor;
 
-        String constructor = EIGHT_SPACE_INDENTATION + THIS + PERIOD + getCamelCase(attributeName, null) + SPACE + EQUAL
-                + SPACE + BUILDER.toLowerCase() + OBJECT + PERIOD + GET_METHOD_PREFIX
-                + getCaptialCase(getCamelCase(attributeName, null)) + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN
-                + NEW_LINE;
-
+        if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
+            constructor = EIGHT_SPACE_INDENTATION + THIS + PERIOD + getCamelCase(attributeName, null) + SPACE + EQUAL
+                    + SPACE + BUILDER.toLowerCase() + OBJECT + PERIOD + GET_METHOD_PREFIX
+                    + getCaptialCase(getCamelCase(attributeName, null)) + OPEN_PARENTHESIS + CLOSE_PARENTHESIS +
+                    SEMI_COLAN
+                    + NEW_LINE;
+        } else {
+            constructor = EIGHT_SPACE_INDENTATION + THIS + PERIOD + getCamelCase(attributeName, null) + SPACE + EQUAL
+                    + SPACE + BUILDER.toLowerCase() + OBJECT + PERIOD + getCamelCase(attributeName, null) +
+                    OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN
+                    + NEW_LINE;
+        }
         return constructor;
     }
 
@@ -433,7 +490,7 @@ public final class MethodsGenerator {
      * @param outputName name of output
      * @return rpc method string
      */
-    public static String getRpcStringMethod(String rpcName, String inputName, String outputName) {
+    public static String getRpcServiceMethod(String rpcName, String inputName, String outputName) {
 
         rpcName = getSmallCase(getCamelCase(rpcName, null));
         inputName = getCaptialCase(inputName);
@@ -441,6 +498,32 @@ public final class MethodsGenerator {
 
         return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + outputName + SPACE + rpcName + OPEN_PARENTHESIS
                 + inputName + SPACE + RPC_INPUT_VAR_NAME + CLOSE_PARENTHESIS + SEMI_COLAN;
+    }
+
+    /**
+     * Returns the rpc strings for manager impl.
+     *
+     * @param rpcName name of the rpc
+     * @param inputName name of input
+     * @param outputName name of output
+     * @return rpc method string
+     */
+    public static String getRpcManagerMethod(String rpcName, String inputName, String outputName) {
+
+        rpcName = getSmallCase(getCamelCase(rpcName, null));
+        inputName = getCaptialCase(inputName);
+        outputName = getCaptialCase(outputName);
+
+        String method = getOverRideString() +
+                FOUR_SPACE_INDENTATION + PUBLIC + SPACE + outputName + SPACE + rpcName + OPEN_PARENTHESIS
+                + inputName + SPACE + RPC_INPUT_VAR_NAME + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET
+                + NEW_LINE + EIGHT_SPACE_INDENTATION + YANG_UTILS_TODO + NEW_LINE;
+        if (!outputName.contentEquals(VOID)) {
+            method += EIGHT_SPACE_INDENTATION + RETURN + SPACE + NULL + SEMI_COLAN + NEW_LINE;
+        }
+        method += FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+
+        return method;
     }
 
     /**

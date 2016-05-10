@@ -26,6 +26,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_INTERFACE_JA
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_OBJECT;
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM_ATTRIBUTE_JAVADOC;
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM_CLASS_JAVADOC;
+import static org.onosproject.yangutils.utils.UtilConstants.EVENT_JAVA_DOC;
+import static org.onosproject.yangutils.utils.UtilConstants.EVENT_LISTENER_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_METHOD_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_PARAM_NAME;
@@ -39,6 +41,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_CONSTRUCTOR
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_END_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_FIRST_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_GETTERS;
+import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_MANAGER_SETTERS;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_OF;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_PARAM;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_DOC_RETURN;
@@ -110,6 +113,16 @@ public final class JavaDocGen {
         RPC_INTERFACE,
 
         /**
+         * For event.
+         */
+        EVENT,
+
+        /**
+         * For event listener.
+         */
+        EVENT_LISTENER,
+
+        /**
          * For setters.
          */
         SETTER_METHOD,
@@ -157,14 +170,19 @@ public final class JavaDocGen {
         /**
          * For enum's attributes.
          */
-        ENUM_ATTRIBUTE
+        ENUM_ATTRIBUTE,
+
+        /**
+         * For manager setters.
+         */
+        MANAGER_SETTER_METHOD
     }
 
     /**
      * Returns java docs.
      *
-     * @param type   java doc type
-     * @param name   name of the YangNode
+     * @param type java doc type
+     * @param name name of the YangNode
      * @param isList is list attribute
      * @return javadocs.
      */
@@ -196,6 +214,9 @@ public final class JavaDocGen {
             case SETTER_METHOD: {
                 return generateForSetters(name, isList);
             }
+            case MANAGER_SETTER_METHOD: {
+                return generateForManagerSetters(name, isList);
+            }
             case OF_METHOD: {
                 return generateForOf(name);
             }
@@ -220,6 +241,12 @@ public final class JavaDocGen {
             case RPC_INTERFACE: {
                 return generateForRpcInterface(name);
             }
+            case EVENT: {
+                return generateForEvent(name);
+            }
+            case EVENT_LISTENER: {
+                return generateForEventListener(name);
+            }
             default: {
                 return generateForConstructors(name);
             }
@@ -240,8 +267,8 @@ public final class JavaDocGen {
     /**
      * Generates javaDocs for rpc method.
      *
-     * @param rpcName    name of the rpc
-     * @param inputName  name of input
+     * @param rpcName name of the rpc
+     * @param inputName name of input
      * @param outputName name of output
      * @return javaDocs of rpc method
      */
@@ -260,7 +287,7 @@ public final class JavaDocGen {
      * Returns output string of rpc.
      *
      * @param outputName name of output
-     * @param rpcName    name of rpc
+     * @param rpcName name of rpc
      * @return javaDocs for output string of rpc
      */
     private static String getOutputString(String outputName, String rpcName) {
@@ -271,7 +298,7 @@ public final class JavaDocGen {
      * Returns input string of rpc.
      *
      * @param inputName name of input
-     * @param rpcName   name of rpc
+     * @param rpcName name of rpc
      * @return javaDocs for input string of rpc
      */
     private static String getInputString(String inputName, String rpcName) {
@@ -294,10 +321,32 @@ public final class JavaDocGen {
     }
 
     /**
+     * Generates javaDoc for the event.
+     *
+     * @param eventClassName event class name
+     * @return javaDocs
+     */
+    private static String generateForEvent(String eventClassName) {
+        return NEW_LINE + JAVA_DOC_FIRST_LINE + EVENT_JAVA_DOC + eventClassName + PERIOD + NEW_LINE
+                + JAVA_DOC_END_LINE;
+    }
+
+    /**
+     * Generates javaDoc for the event listener.
+     *
+     * @param eventListenerInterfaceName event class name
+     * @return javaDocs
+     */
+    private static String generateForEventListener(String eventListenerInterfaceName) {
+        return NEW_LINE + JAVA_DOC_FIRST_LINE + EVENT_LISTENER_JAVA_DOC + eventListenerInterfaceName
+                + PERIOD + NEW_LINE + JAVA_DOC_END_LINE;
+    }
+
+    /**
      * Generates javaDocs for getter method.
      *
      * @param attribute attribute
-     * @param isList    is list attribute
+     * @param isList is list attribute
      * @return javaDocs
      */
     private static String generateForGetters(String attribute, boolean isList) {
@@ -320,7 +369,7 @@ public final class JavaDocGen {
      * Generates javaDocs for setter method.
      *
      * @param attribute attribute
-     * @param isList    is list attribute
+     * @param isList is list attribute
      * @return javaDocs
      */
     private static String generateForSetters(String attribute, boolean isList) {
@@ -335,6 +384,29 @@ public final class JavaDocGen {
             setter = setter + VALUE + SPACE + OF + SPACE;
         }
         setter = setter + attribute + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + BUILDER_OBJECT + attribute
+                + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
+        return setter;
+    }
+
+    /**
+     * Generates javaDocs for setter method.
+     *
+     * @param attribute attribute
+     * @param isList is list attribute
+     * @return javaDocs
+     */
+    private static String generateForManagerSetters(String attribute, boolean isList) {
+
+        String setter = NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION
+                + JAVA_DOC_MANAGER_SETTERS + attribute + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
+                + FOUR_SPACE_INDENTATION + JAVA_DOC_PARAM + attribute + SPACE;
+        if (isList) {
+            String listAttribute = LIST.toLowerCase() + SPACE + OF + SPACE;
+            setter = setter + listAttribute;
+        } else {
+            setter = setter + VALUE + SPACE + OF + SPACE;
+        }
+        setter = setter + attribute
                 + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
         return setter;
     }

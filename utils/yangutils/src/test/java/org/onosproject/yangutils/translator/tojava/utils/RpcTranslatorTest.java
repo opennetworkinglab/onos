@@ -24,7 +24,7 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
 import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.generateJavaCode;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.clean;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
 /**
  * Unit tests for rpc translator.
@@ -48,7 +48,7 @@ public final class RpcTranslatorTest {
 
         generateJavaCode(node, yangPluginConfig);
 
-        clean(userDir + "/target/RpcTestGenFile/");
+        deleteDirectory(userDir + "/target/RpcTestGenFile/");
     }
     // TODO enhance the test cases, after having a framework of translator test.
 }

@@ -24,15 +24,19 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangOutput;
 import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.translator.tojava.JavaImportData;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
+import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_RPC_INTERFACE;
-import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.getCurNodeAsAttributeInParent;
+import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
+import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getParentNodeInGenCode;
 import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.updatePackageInfo;
 
@@ -59,12 +63,6 @@ public class YangJavaRpc
     public YangJavaRpc() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_RPC_INTERFACE);
-        try {
-            setTempJavaCodeFragmentFiles(new TempJavaCodeFragmentFiles(getJavaFileInfo()));
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to create temporary RPC file handle");
-        }
     }
 
     /**
@@ -115,9 +113,9 @@ public class YangJavaRpc
         YangNode yangNode = this.getChild();
         while (yangNode != null) {
             if (yangNode instanceof YangInput) {
-                javaAttributeInfoOfInput = getCurNodeAsAttributeInParent(yangNode, this, false);
+                javaAttributeInfoOfInput = getChildNodeAsAttributeInParentService(yangNode, this);
             } else if (yangNode instanceof YangOutput) {
-                javaAttributeInfoOfOutput = getCurNodeAsAttributeInParent(yangNode, this, false);
+                javaAttributeInfoOfOutput = getChildNodeAsAttributeInParentService(yangNode, this);
             } else {
                 // TODO throw exception
             }
@@ -136,6 +134,46 @@ public class YangJavaRpc
                 .addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfoOfInput, javaAttributeInfoOfOutput,
                         ((YangNode) this).getName());
         // No file will be generated during RPC exit.
+    }
+
+    /**
+     * Creates an attribute info object corresponding to a data model node and
+     * return it.
+     *
+     * @param childNode child data model node(input / output) for which the java code generation
+     * is being handled
+     * @param currentNode parent node (module / sub-module) in which the child node is an attribute
+     * @return AttributeInfo attribute details required to add in temporary
+     * files
+     */
+    public static JavaAttributeInfo getChildNodeAsAttributeInParentService(
+            YangNode childNode, YangNode currentNode) {
+
+        YangNode parentNode = getParentNodeInGenCode(currentNode);
+
+        String childNodeName = ((JavaFileInfoContainer) childNode).getJavaFileInfo().getJavaName();
+        /*
+         * Get the import info corresponding to the attribute for import in
+         * generated java files or qualified access
+         */
+        JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(currentNode,
+                childNodeName);
+        if (!(parentNode instanceof TempJavaCodeFragmentFilesContainer)) {
+            throw new TranslatorException("Parent node does not have file info");
+        }
+
+        TempJavaFragmentFiles tempJavaFragmentFiles;
+        tempJavaFragmentFiles = ((TempJavaCodeFragmentFilesContainer) parentNode)
+                .getTempJavaCodeFragmentFiles()
+                .getServiceTempFiles();
+
+        if (tempJavaFragmentFiles == null) {
+            throw new TranslatorException("Parent node does not have service file info");
+        }
+
+        JavaImportData parentImportData = tempJavaFragmentFiles.getJavaImportData();
+        boolean isQualified = parentImportData.addImportInfo(qualifiedTypeInfo);
+        return getAttributeInfoForTheData(qualifiedTypeInfo, childNodeName, null, isQualified, false);
     }
 
     /**

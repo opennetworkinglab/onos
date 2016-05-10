@@ -18,18 +18,22 @@ package org.onosproject.yangutils.translator.tojava;
 
 import java.io.IOException;
 
-import org.onosproject.yangutils.datamodel.YangTypeContainer;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangTypeHolder;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_RPC_INTERFACE;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPE_CLASS;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.getExtendsList;
 
 /**
  * Represents implementation of java code fragments temporary implementations.
+ * Contains fragment file object of different types of java file.
+ * Uses required object(s) to generate the target java file(s).
  */
 public class TempJavaCodeFragmentFiles {
 
@@ -52,6 +56,17 @@ public class TempJavaCodeFragmentFiles {
      * Has the temporary files required for enumeration generated classes.
      */
     private TempJavaEnumerationFragmentFiles enumerationTempFiles;
+
+    /**
+     * Has the temporary files required for generated event classes.
+     */
+    private TempJavaEventFragmentFiles eventTempFiles;
+
+    /**
+     * Has the temporary files required for generated event listenerclasses.
+     */
+    private TempJavaEventListenerFragmentFiles eventListenerTempFiles;
+
 
     /**
      * Creates an instance of temporary java code fragment.
@@ -80,8 +95,16 @@ public class TempJavaCodeFragmentFiles {
             setEnumerationTempFiles(new TempJavaEnumerationFragmentFiles(javaFileInfo));
         }
 
-        if ((javaFileInfo.getGeneratedFileTypes() & GENERATE_RPC_INTERFACE) != 0) {
+        if ((javaFileInfo.getGeneratedFileTypes() & GENERATE_SERVICE_AND_MANAGER) != 0) {
             setServiceTempFiles(new TempJavaServiceFragmentFiles(javaFileInfo));
+        }
+
+        if ((javaFileInfo.getGeneratedFileTypes() & GENERATE_EVENT_CLASS) != 0) {
+            setEventTempFiles(new TempJavaEventFragmentFiles(javaFileInfo));
+        }
+
+        if ((javaFileInfo.getGeneratedFileTypes() & GENERATE_EVENT_LISTENER_INTERFACE) != 0) {
+            setEventListenerTempFiles(new TempJavaEventListenerFragmentFiles(javaFileInfo));
         }
     }
 
@@ -161,6 +184,43 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
+     * Retrieves the temp file handle for event file generation.
+     *
+     * @return temp file handle for event file generation
+     */
+    public TempJavaEventFragmentFiles getEventTempFiles() {
+        return eventTempFiles;
+    }
+
+    /**
+     * Sets temp file handle for event file generation.
+     *
+     * @param eventTempFiles temp file handle for event file generation
+     */
+    public void setEventTempFiles(TempJavaEventFragmentFiles eventTempFiles) {
+        this.eventTempFiles = eventTempFiles;
+    }
+
+    /**
+     * Retrieves the temp file handle for event listener file generation.
+     *
+     * @return temp file handle for event listener file generation
+     */
+    public TempJavaEventListenerFragmentFiles getEventListenerTempFiles() {
+        return eventListenerTempFiles;
+    }
+
+    /**
+     * Sets temp file handle for event listener file generation.
+     *
+     * @param eventListenerTempFiles temp file handle for event listener file generation
+     */
+    public void setEventListenerTempFiles(
+            TempJavaEventListenerFragmentFiles eventListenerTempFiles) {
+        this.eventListenerTempFiles = eventListenerTempFiles;
+    }
+
+    /**
      * Constructs java code exit.
      *
      * @param fileType generated file type
@@ -170,17 +230,42 @@ public class TempJavaCodeFragmentFiles {
     public void generateJavaFile(int fileType, YangNode curNode)
             throws IOException {
 
-        if (getBeanTempFiles() != null) {
+        if ((fileType & GENERATE_INTERFACE_WITH_BUILDER) != 0) {
             getBeanTempFiles().generateJavaFile(fileType, curNode);
         }
 
         /**
          * Creates user defined data type class file.
          */
-        if (getTypeTempFiles() != null) {
+        if ((fileType & GENERATE_TYPE_CLASS) != 0) {
             getTypeTempFiles().generateJavaFile(fileType, curNode);
         }
 
+
+        if (fileType == GENERATE_SERVICE_AND_MANAGER) {
+
+            getServiceTempFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, curNode);
+
+
+        }
+
+        if ((fileType & GENERATE_EVENT_CLASS) != 0) {
+            /**
+             * Creates event class file.
+             */
+            if (getEventTempFiles() != null) {
+                getEventTempFiles().generateJavaFile(fileType, curNode);
+            }
+        }
+
+        if ((fileType & GENERATE_EVENT_LISTENER_INTERFACE) != 0) {
+            /**
+             * Creates event listener class file.
+             */
+            getEventListenerTempFiles().generateJavaFile(fileType, curNode);
+        }
+
+        freeTemporaryResources(false);
     }
 
     /**
@@ -208,35 +293,16 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
-     * Adds all the leaves in the current data model node as part of the
-     * generated temporary file.
-     *
-     * @param curNode java file info of the generated file
-     * @throws IOException IO operation fail
-     */
-    public void addCurNodeLeavesInfoToTempFiles(YangNode curNode)
-            throws IOException {
-
-        if (getBeanTempFiles() != null) {
-            getBeanTempFiles().addCurNodeLeavesInfoToTempFiles(curNode);
-        }
-
-    }
-
-    /**
      * Add all the type in the current data model node as part of the
      * generated temporary file.
      *
-     * @param yangTypeContainer YANG java data model node which has type info, eg union / typedef
+     * @param yangTypeHolder YANG java data model node which has type info, eg union / typedef
      * @throws IOException IO operation fail
      */
-    public void addTypeInfoToTempFiles(YangTypeContainer yangTypeContainer)
+    public void addTypeInfoToTempFiles(YangTypeHolder yangTypeHolder)
             throws IOException {
-
-        if (getTypeTempFiles() != null) {
-            getTypeTempFiles()
-                    .addTypeInfoToTempFiles(yangTypeContainer);
-        }
+        getTypeTempFiles()
+                .addTypeInfoToTempFiles(yangTypeHolder);
     }
 
     /**
@@ -307,19 +373,27 @@ public class TempJavaCodeFragmentFiles {
      * all open file handles include temporary files and java files.
      * @throws IOException when failed to delete the temporary files
      */
-    public void close(boolean isErrorOccurred)
+    public void freeTemporaryResources(boolean isErrorOccurred)
             throws IOException {
 
         if (getBeanTempFiles() != null) {
-            getBeanTempFiles().close(isErrorOccurred);
+            getBeanTempFiles().freeTemporaryResources(isErrorOccurred);
         }
 
         if (getTypeTempFiles() != null) {
-            getTypeTempFiles().close(isErrorOccurred);
+            getTypeTempFiles().freeTemporaryResources(isErrorOccurred);
         }
 
         if (getEnumerationTempFiles() != null) {
-            getEnumerationTempFiles().close(isErrorOccurred);
+            getEnumerationTempFiles().freeTemporaryResources(isErrorOccurred);
+        }
+
+        if (getEventTempFiles() != null) {
+            getEventTempFiles().freeTemporaryResources(isErrorOccurred);
+        }
+
+        if (getEventListenerTempFiles() != null) {
+            getEventListenerTempFiles().freeTemporaryResources(isErrorOccurred);
         }
     }
 

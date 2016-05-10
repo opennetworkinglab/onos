@@ -19,7 +19,9 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_RPC_INTERFACE;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
@@ -35,10 +37,12 @@ import static org.onosproject.yangutils.utils.UtilConstants.FINAL;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPLEMENTS;
 import static org.onosproject.yangutils.utils.UtilConstants.INTERFACE;
+import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
+import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
@@ -58,7 +62,7 @@ public final class ClassDefinitionGenerator {
      * / interface definition start.
      *
      * @param genFileTypes generated file type
-     * @param yangName     class name
+     * @param yangName class name
      * @return class definition
      */
     public static String generateClassDefinition(int genFileTypes, String yangName) {
@@ -70,7 +74,7 @@ public final class ClassDefinitionGenerator {
         if ((genFileTypes & INTERFACE_MASK) != 0) {
             return getInterfaceDefinition(yangName);
         } else if ((genFileTypes & BUILDER_CLASS_MASK) != 0) {
-            return getBuilderClassDefinition(yangName);
+            return getBuilderClassDefinition(yangName, genFileTypes);
         } else if ((genFileTypes & IMPL_CLASS_MASK) != 0) {
             return getImplClassDefinition(yangName);
         } else if ((genFileTypes & BUILDER_INTERFACE_MASK) != 0) {
@@ -81,8 +85,12 @@ public final class ClassDefinitionGenerator {
             return getTypeClassDefinition(yangName);
         } else if ((genFileTypes & GENERATE_ENUM_CLASS) != 0) {
             return getEnumClassDefinition(yangName);
-        } else if ((genFileTypes & GENERATE_RPC_INTERFACE) != 0) {
+        } else if ((genFileTypes & GENERATE_SERVICE_AND_MANAGER) != 0) {
             return getRpcInterfaceDefinition(yangName);
+        } else if ((genFileTypes & GENERATE_EVENT_CLASS) != 0) {
+            return getEventDefinition(yangName);
+        } else if ((genFileTypes & GENERATE_EVENT_LISTENER_INTERFACE) != 0) {
+            return getEventListenerDefinition(yangName);
         }
         return null;
     }
@@ -120,7 +128,7 @@ public final class ClassDefinitionGenerator {
      * Returns builder interface file class definition.
      *
      * @param yangName java class name, corresponding to which the builder class
-     *                 is being generated
+     * is being generated
      * @return definition
      */
     private static String getBuilderInterfaceDefinition(String yangName) {
@@ -131,11 +139,17 @@ public final class ClassDefinitionGenerator {
      * Returns builder file class definition.
      *
      * @param yangName file name
+     * @param genFileTypes
      * @return definition
      */
-    private static String getBuilderClassDefinition(String yangName) {
-        return PUBLIC + SPACE + CLASS + SPACE + yangName + BUILDER + SPACE + IMPLEMENTS + SPACE + yangName + PERIOD
-                + yangName + BUILDER + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+    private static String getBuilderClassDefinition(String yangName, int genFileTypes) {
+        if ((genFileTypes & GENERATE_SERVICE_AND_MANAGER) != 0) {
+            return PUBLIC + SPACE + CLASS + SPACE + yangName + MANAGER + SPACE + IMPLEMENTS + SPACE + yangName +
+                    SERVICE + PERIOD + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        } else {
+            return PUBLIC + SPACE + CLASS + SPACE + yangName + BUILDER + SPACE + IMPLEMENTS + SPACE + yangName + PERIOD
+                    + yangName + BUILDER + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        }
     }
 
     /**
@@ -167,5 +181,41 @@ public final class ClassDefinitionGenerator {
      */
     private static String getRpcInterfaceDefinition(String yangName) {
         return INTERFACE + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
+     * Returns event class definition.
+     *
+     * @param javaName file name
+     * @return definition
+     */
+    private static String getEventDefinition(String javaName) {
+        String classDef = PUBLIC + SPACE + CLASS + SPACE + javaName + SPACE + "extends AbstractEvent<"
+                + javaName + ".Type, " + javaName;
+        if (classDef.length() < 5) {
+            throw new RuntimeException("Event class name is error");
+        }
+        classDef = classDef.substring(0, (classDef.length() - 5));
+        classDef = classDef + ">" + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+
+        return classDef;
+    }
+
+    /**
+     * Returns event listener interface definition.
+     *
+     * @param javaName file name
+     * @return definition
+     */
+    private static String getEventListenerDefinition(String javaName) {
+        String intfDef = PUBLIC + SPACE + INTERFACE + SPACE + javaName + SPACE + "extends EventListener<"
+                + javaName;
+        if (intfDef.length() < 8) {
+            throw new RuntimeException("Event listener interface name is error");
+        }
+        intfDef = intfDef.substring(0, (intfDef.length() - 8));
+        intfDef = intfDef + "Event>" + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+
+        return intfDef;
     }
 }

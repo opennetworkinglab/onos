@@ -25,8 +25,7 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_MANAGER_WITH_RPC;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 
 /**
@@ -53,7 +52,7 @@ public class YangJavaModule
     public YangJavaModule() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_MANAGER_WITH_RPC);
+        getJavaFileInfo().setGeneratedFileTypes(GENERATE_SERVICE_AND_MANAGER);
     }
 
     /**
@@ -118,6 +117,6 @@ public class YangJavaModule
     @Override
     public void generateCodeExit()
             throws IOException {
-        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
     }
 }

@@ -20,20 +20,25 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.TempJavaBeanFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.TempJavaTypeFragmentFiles;
 import org.onosproject.yangutils.utils.io.impl.CopyrightHeader;
 import org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_RPC_INTERFACE;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
-import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ATTRIBUTES_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_FOR_TYPE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ENUM_IMPL_MASK;
@@ -44,6 +49,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.HASH_CODE_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.OF_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.SETTER_FOR_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.TO_STRING_IMPL_MASK;
@@ -62,6 +68,8 @@ import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_CLASS;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT_LISTENER;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.IMPL_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_INTERFACE;
@@ -106,11 +114,25 @@ public final class JavaFileGeneratorUtils {
             TempJavaFragmentFiles tempJavaFragmentFiles)
             throws IOException {
 
+        TempJavaTypeFragmentFiles typeFragmentFiles = null;
 
-        if ((generatedTempFiles & ATTRIBUTES_MASK) != 0) {
-            return tempJavaFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getAttributesTempFileHandle());
-        } else if ((generatedTempFiles & GETTER_FOR_INTERFACE_MASK) != 0) {
+        if (tempJavaFragmentFiles instanceof TempJavaTypeFragmentFiles) {
+            typeFragmentFiles = (TempJavaTypeFragmentFiles) tempJavaFragmentFiles;
+        }
+
+        TempJavaBeanFragmentFiles beanFragmentFiles = null;
+
+        if (tempJavaFragmentFiles instanceof TempJavaBeanFragmentFiles) {
+            beanFragmentFiles = (TempJavaBeanFragmentFiles) tempJavaFragmentFiles;
+        }
+
+        TempJavaServiceFragmentFiles serviceFragmentFiles = null;
+        if (tempJavaFragmentFiles instanceof TempJavaServiceFragmentFiles) {
+            serviceFragmentFiles = (TempJavaServiceFragmentFiles) tempJavaFragmentFiles;
+        }
+
+
+        if ((generatedTempFiles & GETTER_FOR_INTERFACE_MASK) != 0) {
             return tempJavaFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getGetterInterfaceTempFileHandle());
         } else if ((generatedTempFiles & SETTER_FOR_INTERFACE_MASK) != 0) {
@@ -123,8 +145,11 @@ public final class JavaFileGeneratorUtils {
             return tempJavaFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getSetterImplTempFileHandle());
         } else if ((generatedTempFiles & CONSTRUCTOR_IMPL_MASK) != 0) {
-            return tempJavaFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getConstructorImplTempFileHandle());
+            if (beanFragmentFiles == null) {
+                throw new TranslatorException("Required constructor info is missing.");
+            }
+            return beanFragmentFiles
+                    .getTemporaryDataFromFileHandle(beanFragmentFiles.getConstructorImplTempFileHandle());
         } else if ((generatedTempFiles & HASH_CODE_IMPL_MASK) != 0) {
             return tempJavaFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getHashCodeImplTempFileHandle());
@@ -134,22 +159,39 @@ public final class JavaFileGeneratorUtils {
         } else if ((generatedTempFiles & TO_STRING_IMPL_MASK) != 0) {
             return tempJavaFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getToStringImplTempFileHandle());
-        } else if ((generatedTempFiles & CONSTRUCTOR_FOR_TYPE_MASK) != 0) {
-            return tempJavaFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles
-                            .getConstructorForTypeTempFileHandle());
         } else if ((generatedTempFiles & OF_STRING_IMPL_MASK) != 0) {
-            return tempJavaFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getOfStringImplTempFileHandle());
+            if (typeFragmentFiles == null) {
+                throw new TranslatorException("Required of string implementation info is missing.");
+            }
+            return typeFragmentFiles
+                    .getTemporaryDataFromFileHandle(typeFragmentFiles.getOfStringImplTempFileHandle());
+        } else if ((generatedTempFiles & CONSTRUCTOR_FOR_TYPE_MASK) != 0) {
+            if (typeFragmentFiles == null) {
+                throw new TranslatorException("Required constructor implementation info is missing.");
+            }
+            return typeFragmentFiles
+                    .getTemporaryDataFromFileHandle(typeFragmentFiles.getConstructorForTypeTempFileHandle());
         } else if ((generatedTempFiles & FROM_STRING_IMPL_MASK) != 0) {
-            return tempJavaFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getFromStringImplTempFileHandle());
+            if (typeFragmentFiles == null) {
+                throw new TranslatorException("Required from string info is missing.");
+            }
+            return typeFragmentFiles
+                    .getTemporaryDataFromFileHandle(typeFragmentFiles.getFromStringImplTempFileHandle());
         } else if ((generatedTempFiles & ENUM_IMPL_MASK) != 0) {
             return tempJavaFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getEnumClassTempFileHandle());
+        } else if ((generatedTempFiles & RPC_INTERFACE_MASK) != 0) {
+            if (serviceFragmentFiles == null) {
+                throw new TranslatorException("Required rpc interface info is missing.");
+            }
+            return serviceFragmentFiles
+                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getRpcInterfaceTempFileHandle());
         } else if ((generatedTempFiles & RPC_IMPL_MASK) != 0) {
-            return tempJavaFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getRpcInterfaceImplTempFileHandle());
+            if (serviceFragmentFiles == null) {
+                throw new TranslatorException("Required rpc implementation info is missing.");
+            }
+            return serviceFragmentFiles
+                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getRpcImplTempFileHandle());
         }
         return null;
     }
@@ -211,9 +253,15 @@ public final class JavaFileGeneratorUtils {
         } else if ((type & GENERATE_ENUM_CLASS) != 0) {
             appendHeaderContents(file, pkgString, importsList);
             write(file, fileName, type, ENUM_CLASS);
-        } else if ((type & GENERATE_RPC_INTERFACE) != 0) {
+        } else if ((type & GENERATE_SERVICE_AND_MANAGER) != 0) {
             appendHeaderContents(file, pkgString, importsList);
             write(file, fileName, type, RPC_INTERFACE);
+        } else if ((type & GENERATE_EVENT_CLASS) != 0) {
+            appendHeaderContents(file, pkgString, importsList);
+            write(file, fileName, type, EVENT);
+        } else if ((type & GENERATE_EVENT_LISTENER_INTERFACE) != 0) {
+            appendHeaderContents(file, pkgString, importsList);
+            write(file, fileName, type, EVENT_LISTENER);
         }
     }
 

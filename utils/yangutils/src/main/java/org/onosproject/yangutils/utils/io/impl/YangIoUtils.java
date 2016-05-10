@@ -25,12 +25,12 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
-import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
@@ -113,11 +113,11 @@ public final class YangIoUtils {
      * @param dir generated directory in previous build
      * @throws IOException when failed to delete directory
      */
-    public static void clean(String dir) throws IOException {
+    public static void deleteDirectory(String dir) throws IOException {
         File generatedDirectory = new File(dir);
         if (generatedDirectory.exists()) {
             try {
-                deleteDirectory(generatedDirectory);
+                FileUtils.deleteDirectory(generatedDirectory);
             } catch (IOException e) {
                 throw new IOException("Failed to delete the generated files in " + generatedDirectory + " directory");
             }

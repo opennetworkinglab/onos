@@ -23,17 +23,24 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getJavaPackageFromPackagePath;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getParentNodeInGenCode;
 import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.MULTIPLE_NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE_INFO_JAVADOC_OF_CHILD;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirectories;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
 
 /**
  * Represents utility to handle file system operations.
@@ -61,15 +68,29 @@ public final class FileSystemUtil {
     /**
      * Creates a package structure with package info java file if not present.
      *
-     * @param pkg java package string
-     * @param pkgInfo description of package
+     * @param yangNode YANG node for which code is being generated
      * @throws IOException any IO exception
      */
-    public static void createPackage(String pkg, String pkgInfo) throws IOException {
-        if (!doesPackageExist(pkg)) {
+    public static void createPackage(YangNode yangNode)
+            throws IOException {
+
+        YangNode parent = getParentNodeInGenCode(yangNode);
+        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) yangNode).getJavaFileInfo();
+        String absolutePath = getAbsolutePackagePath(javaFileInfo.getBaseCodeGenPath(),
+                javaFileInfo.getPackageFilePath());
+
+        String pkgInfo;
+        if (parent != null) {
+            pkgInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName()
+                    + PACKAGE_INFO_JAVADOC_OF_CHILD;
+        } else {
+            pkgInfo = javaFileInfo.getJavaName();
+        }
+
+        if (!doesPackageExist(absolutePath)) {
             try {
-                File pack = createDirectories(pkg);
-                addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg));
+                File pack = createDirectories(absolutePath);
+                addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(absolutePath));
             } catch (IOException e) {
                 throw new IOException("failed to create package-info file");
             }
@@ -81,12 +102,13 @@ public final class FileSystemUtil {
      * file.
      *
      * @param toAppend destination file in which the contents of source file is
-     *            appended
+     * appended
      * @param srcFile source file from which data is read and added to to append
-     *            file
+     * file
      * @throws IOException any IO errors
      */
-    public static void appendFileContents(File toAppend, File srcFile) throws IOException {
+    public static void appendFileContents(File toAppend, File srcFile)
+            throws IOException {
         updateFileHandle(srcFile, NEW_LINE + readAppendFile(toAppend.toString(), FOUR_SPACE_INDENTATION), false);
     }
 
@@ -98,7 +120,8 @@ public final class FileSystemUtil {
      * @return string of file
      * @throws IOException when fails to convert to string
      */
-    public static String readAppendFile(String toAppend, String spaces) throws IOException {
+    public static String readAppendFile(String toAppend, String spaces)
+            throws IOException {
         FileReader fileReader = new FileReader(toAppend);
         BufferedReader bufferReader = new BufferedReader(fileReader);
         try {
@@ -131,9 +154,10 @@ public final class FileSystemUtil {
      * @param contentTobeAdded content to be appended to the file
      * @param isClose when close of file is called.
      * @throws IOException if the named file exists but is a directory rather than a regular file,
-     * does not exist but cannot be created, or cannot be opened for any other reason
+     *                     does not exist but cannot be created, or cannot be opened for any other reason
      */
-    public static void updateFileHandle(File inputFile, String contentTobeAdded, boolean isClose) throws IOException {
+    public static void updateFileHandle(File inputFile, String contentTobeAdded, boolean isClose)
+            throws IOException {
         FileWriter fileWriter = new FileWriter(inputFile, true);
         PrintWriter outputPrintWriter = new PrintWriter(fileWriter, true);
         if (!isClose) {

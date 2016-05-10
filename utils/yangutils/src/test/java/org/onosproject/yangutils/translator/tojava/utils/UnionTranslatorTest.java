@@ -24,7 +24,7 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
 import static org.onosproject.yangutils.translator.tojava.JavaCodeGeneratorUtil.generateJavaCode;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.clean;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 
 /**
  * Unit tests for union translator.
@@ -40,16 +40,15 @@ public final class UnionTranslatorTest {
     public void processUnionTranslator()
             throws IOException, ParserException {
 
-        clean("src/test/org/onosproject/yang");
-
+        String userDir = System.getProperty("user.dir");
         YangNode node = manager.getDataModel("src/test/resources/UnionTranslator.yang");
 
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
-        yangPluginConfig.setCodeGenDir("target/UnionTestGenFile");
+        yangPluginConfig.setCodeGenDir("target/UnionTestGenFile/");
 
         generateJavaCode(node, yangPluginConfig);
 
-        clean("target/UnionTestGenFile");
+        deleteDirectory(userDir + "/target/UnionTestGenFile/");
     }
 
     // TODO enhance the test cases, after having a framework of translator test.

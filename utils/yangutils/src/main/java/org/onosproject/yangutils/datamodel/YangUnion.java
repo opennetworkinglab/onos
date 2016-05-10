@@ -47,7 +47,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Represents data model node to maintain information defined in YANG union.
  */
-public class YangUnion extends YangNode implements Parsable, YangTypeContainer {
+public class YangUnion extends YangNode implements Parsable, YangTypeHolder {
 
     // List of YANG type.
     private List<YangType<?>> typeList;

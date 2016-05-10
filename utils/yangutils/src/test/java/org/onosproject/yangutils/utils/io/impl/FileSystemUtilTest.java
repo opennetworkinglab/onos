@@ -22,6 +22,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Test;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -48,18 +50,19 @@ public final class FileSystemUtilTest {
     /**
      * A private constructor is tested.
      *
-     * @throws SecurityException if any security violation is observed
-     * @throws NoSuchMethodException if when the method is not found
-     * @throws IllegalArgumentException if there is illegal argument found
-     * @throws InstantiationException if instantiation is provoked for the private constructor
-     * @throws IllegalAccessException if instance is provoked or a method is provoked
+     * @throws SecurityException         if any security violation is observed
+     * @throws NoSuchMethodException     if when the method is not found
+     * @throws IllegalArgumentException  if there is illegal argument found
+     * @throws InstantiationException    if instantiation is provoked for the private constructor
+     * @throws IllegalAccessException    if instance is provoked or a method is provoked
      * @throws InvocationTargetException when an exception occurs by the method or constructor
      */
     @Test
-    public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
+    public void callPrivateConstructors()
+            throws SecurityException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        Class<?>[] classesToConstruct = {FileSystemUtil.class };
+        Class<?>[] classesToConstruct = {FileSystemUtil.class};
         for (Class<?> clazz : classesToConstruct) {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -73,7 +76,8 @@ public final class FileSystemUtilTest {
      * @throws IOException when fails to create a test file
      */
     @Test
-    public void updateFileHandleTest() throws IOException {
+    public void updateFileHandleTest()
+            throws IOException {
 
         File dir = new File(BASE_PKG + SLASH + "File1");
         dir.mkdirs();
@@ -94,7 +98,8 @@ public final class FileSystemUtilTest {
      * @throws IOException when failed to create a test file
      */
     @Test
-    public void packageExistTest() throws IOException {
+    public void packageExistTest()
+            throws IOException {
 
         String dirPath = "exist1.exist2.exist3";
         String strPath = BASE_DIR_PKG + dirPath;
@@ -103,7 +108,12 @@ public final class FileSystemUtilTest {
         File createFile = new File(createDir + SLASH + "package-info.java");
         createFile.createNewFile();
         assertThat(true, is(doesPackageExist(strPath)));
-        createPackage(strPath, PKG_INFO_CONTENT);
+        JavaFileInfo javaFileInfo = new JavaFileInfo();
+        javaFileInfo.setBaseCodeGenPath(BASE_DIR_PKG);
+        javaFileInfo.setPackageFilePath(dirPath);
+        YangJavaModule moduleNode = new YangJavaModule();
+        moduleNode.setJavaFileInfo(javaFileInfo);
+        createPackage(moduleNode);
         createDir.delete();
     }
 

@@ -15,59 +15,18 @@
  */
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
-import java.io.IOException;
-
 import org.onosproject.yangutils.datamodel.YangGrouping;
-import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
-import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
-import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 /**
  * Represents grouping information extended to support java code generation.
  */
 public class YangJavaGrouping
-        extends YangGrouping
-        implements JavaCodeGeneratorInfo, JavaCodeGenerator {
+        extends YangGrouping {
 
     /**
      * Creates YANG Java grouping object.
      */
     public YangJavaGrouping() {
         super();
-    }
-
-    @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin)
-            throws IOException {
-        /*Do nothing, the uses will copy the contents to the used location*/
-    }
-
-    @Override
-    public void generateCodeExit()
-            throws IOException {
-        /*Do nothing, the uses will copy the contents to the used location*/
-    }
-
-    @Override
-    public JavaFileInfo getJavaFileInfo() {
-        /*Do nothing, the uses will copy the contents to the used location*/
-        return null;
-    }
-
-    @Override
-    public void setJavaFileInfo(JavaFileInfo javaInfo) {
-        /*Do nothing, the uses will copy the contents to the used location*/
-    }
-
-    @Override
-    public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
-        /*Do nothing, the uses will copy the contents to the used location*/
-        return null;
-    }
-
-    @Override
-    public void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle) {
-        /*Do nothing, the uses will copy the contents to the used location*/
     }
 }

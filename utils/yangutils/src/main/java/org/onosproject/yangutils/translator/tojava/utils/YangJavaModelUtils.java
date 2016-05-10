@@ -18,7 +18,7 @@ package org.onosproject.yangutils.translator.tojava.utils;
 
 import java.io.IOException;
 
-import org.onosproject.yangutils.datamodel.YangTypeContainer;
+import org.onosproject.yangutils.datamodel.RpcNotificationContainer;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangCase;
 import org.onosproject.yangutils.datamodel.YangChoice;
@@ -29,12 +29,15 @@ import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.datamodel.YangOutput;
+import org.onosproject.yangutils.datamodel.YangTypeHolder;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumeration;
 
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.isRpcChildNodePresent;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.addCurNodeInfoInParentTempFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
@@ -59,18 +62,20 @@ public final class YangJavaModelUtils {
      * Updates YANG java file package information.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPlugin YANG plugin config
+     * @param yangPluginConfig YANG plugin config
      * @throws IOException IO operations fails
      */
-    public static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin)
+    public static void updatePackageInfo(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
+            YangPluginConfig yangPluginConfig)
             throws IOException {
         javaCodeGeneratorInfo.getJavaFileInfo()
                 .setJavaName(getCaptialCase(
-                        getCamelCase(((YangNode) javaCodeGeneratorInfo).getName(), yangPlugin.getConflictResolver())));
+                        getCamelCase(((YangNode) javaCodeGeneratorInfo).getName(),
+                                yangPluginConfig.getConflictResolver())));
         javaCodeGeneratorInfo.getJavaFileInfo().setPackage(getCurNodePackage((YangNode) javaCodeGeneratorInfo));
         javaCodeGeneratorInfo.getJavaFileInfo().setPackageFilePath(
                 getPackageDirPathFromJavaJPackage(javaCodeGeneratorInfo.getJavaFileInfo().getPackage()));
-        javaCodeGeneratorInfo.getJavaFileInfo().setBaseCodeGenPath(yangPlugin.getCodeGenDir());
+        javaCodeGeneratorInfo.getJavaFileInfo().setBaseCodeGenPath(yangPluginConfig.getCodeGenDir());
     }
 
     /**
@@ -110,15 +115,40 @@ public final class YangJavaModelUtils {
      * @param javaCodeGeneratorInfo YANG java file info node
      * @throws IOException IO operations fails
      */
-    private static void updateTempFragmentFiles(JavaCodeGeneratorInfo javaCodeGeneratorInfo)
+    private static void updateTempFragmentFiles(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
+            YangPluginConfig yangPluginConfig)
             throws IOException {
-        if (javaCodeGeneratorInfo instanceof YangLeavesHolder) {
+        if (javaCodeGeneratorInfo instanceof RpcNotificationContainer) {
+            /**
+             * Module / sub module node code generation.
+             */
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
-                    .addCurNodeLeavesInfoToTempFiles((YangNode) javaCodeGeneratorInfo);
-        } else if (javaCodeGeneratorInfo instanceof YangTypeContainer) {
+                    .getServiceTempFiles().addCurNodeLeavesInfoToTempFiles(
+                    (YangNode) javaCodeGeneratorInfo, yangPluginConfig);
+        } else if (javaCodeGeneratorInfo instanceof YangLeavesHolder) {
+            /**
+             * Container
+             * Case
+             * Grouping
+             * Input
+             * List
+             * Notification
+             * Output
+             */
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
-                    .addTypeInfoToTempFiles((YangTypeContainer) javaCodeGeneratorInfo);
+                    .getBeanTempFiles().addCurNodeLeavesInfoToTempFiles(
+                    (YangNode) javaCodeGeneratorInfo, yangPluginConfig);
+        } else if (javaCodeGeneratorInfo instanceof YangTypeHolder) {
+            /**
+             * Typedef
+             * Union
+             */
+            javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
+                    .addTypeInfoToTempFiles((YangTypeHolder) javaCodeGeneratorInfo);
         } else if (javaCodeGeneratorInfo instanceof YangJavaEnumeration) {
+            /**
+             * Enumeration
+             */
             javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
                     .addEnumAttributeToTempFiles((YangNode) javaCodeGeneratorInfo);
         } else if (javaCodeGeneratorInfo instanceof YangChoice) {
@@ -134,18 +164,19 @@ public final class YangJavaModelUtils {
      * @param javaCodeGeneratorInfo YANG java file info node
      * @throws IOException IO operations fails
      */
-    private static void generateTempFiles(JavaCodeGeneratorInfo javaCodeGeneratorInfo, String codeGenDir)
+    private static void generateTempFiles(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
+            YangPluginConfig yangPluginConfig)
             throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
             throw new TranslatorException("translation is not supported for the node");
         }
         createTempFragmentFile(javaCodeGeneratorInfo);
-        updateTempFragmentFiles(javaCodeGeneratorInfo);
+        updateTempFragmentFiles(javaCodeGeneratorInfo, yangPluginConfig);
 
     }
 
     /**
-     * Process generate code entry of YANG node.
+     * Generates code for the current ata model node and adds itself as an attribute in the parent.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
      * @param yangPlugin YANG plugin config
@@ -171,7 +202,7 @@ public final class YangJavaModelUtils {
     }
 
     /**
-     * Process generate code entry of YANG type.
+     * Generates code for the current data model node and adds support for it to be augmented.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
      * @param yangPlugin YANG plugin config
@@ -218,36 +249,43 @@ public final class YangJavaModelUtils {
     }
 
     /**
-     * Process generate code entry of YANG type.
+     * Generates code for the current data model node.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPlugin YANG plugin config
+     * @param yangPluginConfig YANG plugin config
      * @throws IOException IO operations fails
      */
-    public static void generateCodeOfNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin)
+    public static void generateCodeOfNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
+            YangPluginConfig yangPluginConfig)
             throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
             // TODO:throw exception
         }
-        updatePackageInfo(javaCodeGeneratorInfo, yangPlugin);
-        generateTempFiles(javaCodeGeneratorInfo, yangPlugin.getCodeGenDir());
+        updatePackageInfo(javaCodeGeneratorInfo, yangPluginConfig);
+        generateTempFiles(javaCodeGeneratorInfo, yangPluginConfig);
     }
 
     /**
-     * Process generate code entry of root node.
+     * Generates code for the root module/sub-module node.
      *
      * @param javaCodeGeneratorInfo YANG java file info node
-     * @param yangPlugin YANG plugin config
+     * @param yangPluginConfig YANG plugin config
      * @param rootPkg package of the root node
      * @throws IOException IO operations fails
      */
-    public static void generateCodeOfRootNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo, YangPluginConfig yangPlugin,
-            String rootPkg)
+    public static void generateCodeOfRootNode(JavaCodeGeneratorInfo javaCodeGeneratorInfo,
+            YangPluginConfig yangPluginConfig, String rootPkg)
             throws IOException {
         if (!(javaCodeGeneratorInfo instanceof YangNode)) {
             // TODO:throw exception
         }
-        updatePackageInfo(javaCodeGeneratorInfo, yangPlugin, rootPkg);
-        generateTempFiles(javaCodeGeneratorInfo, yangPlugin.getCodeGenDir());
+        updatePackageInfo(javaCodeGeneratorInfo, yangPluginConfig, rootPkg);
+
+        if (isRpcChildNodePresent((YangNode) javaCodeGeneratorInfo)) {
+            javaCodeGeneratorInfo.getJavaFileInfo().addGeneratedFileTypes(GENERATE_SERVICE_AND_MANAGER);
+        }
+
+        generateTempFiles(javaCodeGeneratorInfo, yangPluginConfig);
     }
+
 }

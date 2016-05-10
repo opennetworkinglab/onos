@@ -19,6 +19,7 @@ import java.io.IOException;
 
 /**
  * Represents implementation of java code fragments temporary implementations.
+ * Maintains the temp files required specific for enumeration java snippet generation.
  */
 public class TempJavaEnumerationFragmentFiles
         extends TempJavaFragmentFiles {

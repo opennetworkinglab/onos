@@ -54,7 +54,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Represents data model node to maintain information defined in YANG typedef.
  */
-public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, YangTypeContainer {
+public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, YangTypeHolder {
 
     /**
      * Default value in string, needs to be converted to the target object,

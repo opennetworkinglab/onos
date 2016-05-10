@@ -16,13 +16,29 @@
 
 package org.onosproject.yangutils.translator.tojava;
 
+import java.io.File;
 import java.io.IOException;
+
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getConstructor;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
 
 /**
  * Represents implementation of java bean code fragments temporary implementations.
+ * Maintains the temp files required specific for bean java snippet generation.
  */
 public class TempJavaBeanFragmentFiles
         extends TempJavaFragmentFiles {
+
+    /**
+     * File name for constructor.
+     */
+    private static final String CONSTRUCTOR_FILE_NAME = "Constructor";
+
+    /**
+     * Temporary file handle for constructor of class.
+     */
+    private File constructorImplTempFileHandle;
 
     /**
      * Creates an instance of temporary java code fragment.
@@ -32,6 +48,81 @@ public class TempJavaBeanFragmentFiles
      */
     public TempJavaBeanFragmentFiles(JavaFileInfo javaFileInfo)
             throws IOException {
+
         super(javaFileInfo);
+
+
+        /*
+         * Initialize getterImpl, attributes, constructor, hash code, equals and
+         * to strings when generation file type matches to impl class mask.
+         */
+        addGeneratedTempFile(CONSTRUCTOR_IMPL_MASK);
+
+        setConstructorImplTempFileHandle(getTemporaryFileHandle(CONSTRUCTOR_FILE_NAME));
     }
+
+    /**
+     * Returns constructor's temporary file handle.
+     *
+     * @return temporary file handle
+     */
+    public File getConstructorImplTempFileHandle() {
+        return constructorImplTempFileHandle;
+    }
+
+    /**
+     * Sets to constructor's temporary file handle.
+     *
+     * @param constructor file handle for to constructor
+     */
+    private void setConstructorImplTempFileHandle(File constructor) {
+        constructorImplTempFileHandle = constructor;
+    }
+
+    /**
+     * Adds constructor for class.
+     *
+     * @param attr attribute info
+     * @throws IOException when fails to append to temporary file
+     */
+    private void addConstructor(JavaAttributeInfo attr)
+            throws IOException {
+        appendToFile(getConstructorImplTempFileHandle(), getConstructor(getGeneratedJavaClassName(), attr,
+                getGeneratedJavaFiles()));
+    }
+
+    /**
+     * Adds the new attribute info to the target generated temporary files.
+     *
+     * @param newAttrInfo the attribute info that needs to be added to temporary
+     * files
+     * @throws IOException IO operation fail
+     */
+    void addJavaSnippetInfoToApplicableTempFiles(JavaAttributeInfo newAttrInfo)
+            throws IOException {
+        super.addJavaSnippetInfoToApplicableTempFiles(newAttrInfo);
+        addConstructor(newAttrInfo);
+    }
+
+    /**
+     * Removes all temporary file handles.
+     *
+     * @param isErrorOccurred when translator fails to generate java files we
+     * need to close all open file handles include temporary files
+     * and java files.
+     * @throws IOException when failed to delete the temporary files
+     */
+    @Override
+    public void freeTemporaryResources(boolean isErrorOccurred)
+            throws IOException {
+
+        /*
+         * Close constructor temporary file handle and delete the file.
+         */
+        closeFile(getConstructorImplTempFileHandle(), true);
+
+        super.freeTemporaryResources(isErrorOccurred);
+    }
+
+
 }

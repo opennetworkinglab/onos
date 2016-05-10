@@ -78,8 +78,23 @@ public final class JavaCodeGeneratorUtil {
 
         while (codeGenNode != null) {
             if (curTraversal != PARENT) {
-                setCurNode(codeGenNode);
-                generateCodeEntry(codeGenNode, yangPlugin);
+                if (codeGenNode instanceof JavaCodeGenerator) {
+                    setCurNode(codeGenNode);
+                    generateCodeEntry(codeGenNode, yangPlugin);
+                } else {
+                    /*
+                     * For grouping and uses, there is no code generation, skip the generation for the child.
+                     */
+                    if (codeGenNode.getNextSibling() != null) {
+                        curTraversal = SIBILING;
+                        codeGenNode = codeGenNode.getNextSibling();
+                    } else {
+                        curTraversal = PARENT;
+                        codeGenNode = codeGenNode.getParent();
+                    }
+                    continue;
+                }
+
             }
             if (curTraversal != PARENT && codeGenNode.getChild() != null) {
                 curTraversal = CHILD;
@@ -238,7 +253,7 @@ public final class JavaCodeGeneratorUtil {
             throws IOException {
 
         if (((TempJavaCodeFragmentFilesContainer) node).getTempJavaCodeFragmentFiles() != null) {
-            ((TempJavaCodeFragmentFilesContainer) node).getTempJavaCodeFragmentFiles().close(true);
+            ((TempJavaCodeFragmentFilesContainer) node).getTempJavaCodeFragmentFiles().freeTemporaryResources(true);
         }
     }
 }

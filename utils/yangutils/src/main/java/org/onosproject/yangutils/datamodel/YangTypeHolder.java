@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * Represents the holder with type(s).
  */
-public interface YangTypeContainer {
+public interface YangTypeHolder {
 
     /**
      * Returns type list.

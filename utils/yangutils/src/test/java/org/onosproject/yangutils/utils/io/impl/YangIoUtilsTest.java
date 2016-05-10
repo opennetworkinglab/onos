@@ -34,7 +34,7 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addToSource;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.clean;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.createDirectories;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
@@ -135,7 +135,7 @@ public final class YangIoUtilsTest {
         createNewDir.mkdirs();
         File createFile = new File(createNewDir + File.separator + "check1.java");
         createFile.createNewFile();
-        clean(baseDirPath.getAbsolutePath());
+        deleteDirectory(baseDirPath.getAbsolutePath());
     }
 
     /**
@@ -147,7 +147,7 @@ public final class YangIoUtilsTest {
     public void cleanWithInvalidDirTest() throws IOException {
 
         File baseDirPath = new File(BASE_DIR + "invalid");
-        clean(baseDirPath.getAbsolutePath());
+        deleteDirectory(baseDirPath.getAbsolutePath());
     }
 
     /**

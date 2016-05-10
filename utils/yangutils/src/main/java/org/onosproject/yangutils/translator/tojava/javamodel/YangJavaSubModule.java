@@ -26,7 +26,7 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_MANAGER_WITH_RPC;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 
 /**
@@ -53,7 +53,7 @@ public class YangJavaSubModule
     public YangJavaSubModule() {
         super();
         setJavaFileInfo(new JavaFileInfo());
-        getJavaFileInfo().setGeneratedFileTypes(GENERATE_MANAGER_WITH_RPC);
+        getJavaFileInfo().setGeneratedFileTypes(GENERATE_SERVICE_AND_MANAGER);
     }
 
     /**
@@ -130,7 +130,8 @@ public class YangJavaSubModule
      * Creates a java file using the YANG submodule info.
      */
     @Override
-    public void generateCodeExit() {
-        // TODO Auto-generated method stub
+    public void generateCodeExit()
+            throws IOException {
+        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
     }
 }

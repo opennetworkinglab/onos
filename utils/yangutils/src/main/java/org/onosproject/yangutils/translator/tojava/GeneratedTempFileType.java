@@ -87,9 +87,14 @@ public final class GeneratedTempFileType {
     public static final int ENUM_IMPL_MASK = 4096;
 
     /**
-     * Rpc implementation of class.
+     * Rpc interface of module / sub module.
      */
-    public static final int RPC_IMPL_MASK = 8192;
+    public static final int RPC_INTERFACE_MASK = 8192;
+
+    /**
+     * Rpc implementation of module / sub module.
+     */
+    public static final int RPC_IMPL_MASK = 16384;
 
     /**
      * Creates an instance of generated temp file type.

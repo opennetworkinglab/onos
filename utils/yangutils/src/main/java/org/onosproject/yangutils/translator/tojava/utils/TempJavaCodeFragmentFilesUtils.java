@@ -45,21 +45,6 @@ public final class TempJavaCodeFragmentFilesUtils {
     }
 
     /**
-     * Adds imports for ToString and HashCodeMethod.
-     *
-     * @param curNode current YANG node
-     * @param imports import list
-     * @return import list
-     */
-    public static List<String> addImportsToStringAndHasCodeMethods(YangNode curNode, List<String> imports) {
-        if (curNode instanceof JavaImportDataContainer) {
-            imports.add(((JavaImportDataContainer) curNode).getJavaImportData().getImportForHashAndEquals());
-            imports.add(((JavaImportDataContainer) curNode).getJavaImportData().getImportForToString());
-        }
-        return imports;
-    }
-
-    /**
      * Adds import for HasAugmentation class.
      *
      * @param curNode current YANG node
@@ -177,7 +162,8 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @param toBeDeleted flag to indicate if file needs to be deleted
      * @throws IOException when failed to close the file handle
      */
-    public static void closeFile(File file, boolean toBeDeleted) throws IOException {
+    public static void closeFile(File file, boolean toBeDeleted)
+            throws IOException {
 
         if (file != null) {
             updateFileHandle(file, null, true);
