@@ -4,6 +4,12 @@
 # definition if no cell file is given.
 # -----------------------------------------------------------------------------
 
+# Sets the primary instance to the specified instance number.
+function setPrimaryInstance {
+    export OCI=$(env | egrep "OC[0-9]+" | sort | egrep OC${1:-1} | cut -d= -f2)
+    echo $OCI
+}
+
 cell=$1
 case "$cell" in
 "borrow")
@@ -49,5 +55,5 @@ case "$cell" in
     . $ONOS_ROOT/tools/test/cells/$1
     export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
     setPrimaryInstance 1 >/dev/null
-    cell
+    onos-cell
 esac
