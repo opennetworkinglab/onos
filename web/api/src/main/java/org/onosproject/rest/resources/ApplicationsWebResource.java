@@ -35,11 +35,16 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Set;
 
+import static org.onlab.util.Tools.nullIsNotFound;
+
 /**
  * Manage inventory of applications.
  */
 @Path("applications")
 public class ApplicationsWebResource extends AbstractWebResource {
+
+    private static final String APP_ID_NOT_FOUND = "Application ID is not found";
+    private static final String APP_NOT_FOUND = "Application is not found";
 
     /**
      * Get all installed applications.
@@ -210,11 +215,12 @@ public class ApplicationsWebResource extends AbstractWebResource {
     }
 
     private Response response(ApplicationAdminService service, ApplicationId appId) {
-        Application app = service.getApplication(appId);
+        Application app = nullIsNotFound(service.getApplication(appId), APP_NOT_FOUND);
         return ok(codec(Application.class).encode(app, this)).build();
     }
 
     private Response response(ApplicationId appId) {
-        return ok(codec(ApplicationId.class).encode(appId, this)).build();
+        ApplicationId checkedAppId = nullIsNotFound(appId, APP_ID_NOT_FOUND);
+        return ok(codec(ApplicationId.class).encode(checkedAppId, this)).build();
     }
 }
