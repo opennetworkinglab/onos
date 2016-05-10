@@ -192,7 +192,7 @@ public final class OpenstackSecurityGroupRule {
         if (this instanceof OpenstackSecurityGroupRule) {
             OpenstackSecurityGroupRule that = (OpenstackSecurityGroupRule) o;
             return this.direction.equals(that.direction) &&
-                    this.ethertype.equals(that.direction) &&
+                    this.ethertype.equals(that.ethertype) &&
                     this.id.equals(that.id) &&
                     this.portRangeMax == that.portRangeMax &&
                     this.portRangeMin == that.portRangeMin &&
