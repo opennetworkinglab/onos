@@ -162,7 +162,7 @@
     "jsch": "mvn:com.jcraft:jsch:0.1.53",
     "jsr305": "mvn:com.google.code.findbugs:jsr305:3.0.1",
     "junit": "mvn:junit:junit:4.12",
-    "kryo": "mvn:com.esotericsoftware:kryo:3.0.0",
+    "kryo": "mvn:com.esotericsoftware:kryo:3.0.3",
     "mapdb": "mvn:org.mapdb:mapdb:1.0.8",
     "metrics-core": "mvn:io.dropwizard.metrics:metrics-core:3.1.0",
     "metrics-ganglia": "mvn:io.dropwizard.metrics:metrics-ganglia:3.1.2",
