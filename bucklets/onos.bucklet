@@ -112,8 +112,8 @@ def osgi_jar(
   if srcs:
     chk_cmd = '#!/bin/bash\n'
     base = get_base_path()
-    chk_cmd += ' '.join(( 'java -jar $(location //lib:checkstyle)',
-                         '-c $(location //tools/build/conf:checkstyle-xml)',
+    chk_cmd += ' '.join(( 'java -jar $1',
+                         '-c $2',
                          ' '.join(['%s/%s' % (base, s) for s in srcs]) ))
     chk_cmd += ' | grep -E "^[^: ]*:\d+:\d+: error:"'
     chk_cmd += ' | sed "s#^.*%s/#%s:#g"\n' % (base, name)
@@ -129,9 +129,12 @@ def osgi_jar(
     sh_test(
       name = name + '-checkstyle',
       test = ':' + name + '-checkstyle-sh',
-      deps = [ ':'+ bare_jar_name,
-               '//lib:checkstyle',
-               '//tools/build/conf:checkstyle-xml',
+      args = [
+               '$(location //lib:checkstyle)',
+               '$(location //tools/build/conf:checkstyle-xml)'
+             ],
+      deps = [
+               ':'+ bare_jar_name,
                '//tools/build/conf:suppressions-xml',
              ],
       labels = [ 'checkstyle' ],
