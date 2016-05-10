@@ -35,6 +35,7 @@
         <module>device</module>
         <module>app</module>
         <module>cfg</module>
+        <module>cli</module>
     </modules>
 
     <dependencies>
