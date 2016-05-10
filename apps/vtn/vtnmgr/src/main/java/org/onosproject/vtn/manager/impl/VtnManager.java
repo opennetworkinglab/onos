@@ -103,6 +103,7 @@ import org.onosproject.vtnrsc.BindingHostId;
 import org.onosproject.vtnrsc.DefaultVirtualPort;
 import org.onosproject.vtnrsc.FixedIp;
 import org.onosproject.vtnrsc.FloatingIp;
+import org.onosproject.vtnrsc.RouterId;
 import org.onosproject.vtnrsc.RouterInterface;
 import org.onosproject.vtnrsc.SecurityGroup;
 import org.onosproject.vtnrsc.SegmentationId;
@@ -246,7 +247,9 @@ public class VtnManager implements VtnService {
                                 .register(BindingHostId.class)
                                 .register(SecurityGroup.class)
                                 .register(IpAddress.class)
-                                .register(DefaultVirtualPort.class);
+                                .register(DefaultVirtualPort.class)
+                                .register(RouterId.class)
+                                .register(TenantRouter.class);
 
         vPortStore = storageService
                 .<VirtualPortId, VirtualPort>eventuallyConsistentMapBuilder()
@@ -354,14 +357,48 @@ public class VtnManager implements VtnService {
 
     @Override
     public void onOvsDetected(Device device) {
+        if (device == null) {
+            log.error("The device is null");
+            return;
+        }
+        if (!mastershipService.isLocalMaster(device.id())) {
+            return;
+        }
         // Create tunnel out flow rules
         applyTunnelOut(device, Objective.Operation.ADD);
+        // apply L3 arp flows
+        Iterable<RouterInterface> interfaces = routerInterfaceService
+                .getRouterInterfaces();
+        interfaces.forEach(routerInf -> {
+            VirtualPort gwPort = virtualPortService.getPort(routerInf.portId());
+            if (gwPort == null) {
+                gwPort = VtnData.getPort(vPortStore, routerInf.portId());
+            }
+            applyL3ArpFlows(device.id(), gwPort, Objective.Operation.ADD);
+        });
     }
 
     @Override
     public void onOvsVanished(Device device) {
+        if (device == null) {
+            log.error("The device is null");
+            return;
+        }
+        if (!mastershipService.isLocalMaster(device.id())) {
+            return;
+        }
         // Remove Tunnel out flow rules
         applyTunnelOut(device, Objective.Operation.REMOVE);
+        // apply L3 arp flows
+        Iterable<RouterInterface> interfaces = routerInterfaceService
+                .getRouterInterfaces();
+        interfaces.forEach(routerInf -> {
+            VirtualPort gwPort = virtualPortService.getPort(routerInf.portId());
+            if (gwPort == null) {
+                gwPort = VtnData.getPort(vPortStore, routerInf.portId());
+            }
+            applyL3ArpFlows(device.id(), gwPort, Objective.Operation.REMOVE);
+        });
     }
 
     @Override
@@ -411,13 +448,6 @@ public class VtnManager implements VtnService {
     }
 
     private void applyTunnelOut(Device device, Objective.Operation type) {
-        if (device == null) {
-            log.error("The device is null");
-            return;
-        }
-        if (!mastershipService.isLocalMaster(device.id())) {
-            return;
-        }
         String controllerIp = VtnData.getControllerIpOfSwitch(device);
         if (controllerIp == null) {
             log.error("Can't find controller of device: {}",
@@ -802,6 +832,8 @@ public class VtnManager implements VtnService {
                 programInterfacesSet(interfacesSet, operation);
             }
         }
+        // apply L3 arp flows
+        applyL3ArpFlows(null, gwPort, operation);
     }
 
     @Override
@@ -829,6 +861,8 @@ public class VtnManager implements VtnService {
             gwPort = VtnData.getPort(vPortStore, routerInf.portId());
         }
         vPortStore.remove(gwPort.portId());
+        // apply L3 arp flows
+        applyL3ArpFlows(null, gwPort, operation);
     }
 
     @Override
@@ -874,6 +908,36 @@ public class VtnManager implements VtnService {
         });
     }
 
+    private void applyL3ArpFlows(DeviceId deviceId, VirtualPort gwPort,
+                                 Objective.Operation operation) {
+        IpAddress ip = null;
+        Iterator<FixedIp> gwIps = gwPort.fixedIps().iterator();
+        if (gwIps.hasNext()) {
+            ip = gwIps.next().ip();
+        }
+        IpAddress gwIp = ip;
+        MacAddress gwMac = gwPort.macAddress();
+        TenantNetwork network = tenantNetworkService
+                .getNetwork(gwPort.networkId());
+        if (deviceId != null) {
+            // Arp rules
+            DriverHandler handler = driverService.createHandler(deviceId);
+            arpService.programArpRules(handler, deviceId, gwIp,
+                                       network.segmentationId(), gwMac,
+                                       operation);
+        } else {
+            Iterable<Device> devices = deviceService.getAvailableDevices();
+            Sets.newHashSet(devices).stream()
+            .filter(d -> Device.Type.SWITCH == d.type()).forEach(d -> {
+                // Arp rules
+                DriverHandler handler = driverService.createHandler(d.id());
+                arpService.programArpRules(handler, d.id(), gwIp,
+                                           network.segmentationId(), gwMac,
+                                           operation);
+            });
+        }
+    }
+
     private void applyEastWestL3Flows(Host h, SegmentationId l3vni,
                                       Objective.Operation operation) {
         if (!mastershipService.isLocalMaster(h.location().deviceId())) {
@@ -905,31 +969,53 @@ public class VtnManager implements VtnService {
         }
         TenantNetwork network = tenantNetworkService
                 .getNetwork(hPort.networkId());
+        IpAddress dstVmIP = srcIp;
+        MacAddress dstVmGwMac = srcVmGwMac;
+        TenantId tenantId = hPort.tenantId();
         // Classifier rules
+        if (operation == Objective.Operation.ADD) {
+            sendEastWestL3Flows(h, srcVmGwMac, l3vni, srcGwIp, network,
+                                dstVmIP, dstVmGwMac, operation);
+        } else if (operation == Objective.Operation.REMOVE) {
+            FloatingIp floatingIp = null;
+            Iterable<FloatingIp> floatingIps = floatingIpService.getFloatingIps();
+            Set<FloatingIp> floatingIpSet = Sets.newHashSet(floatingIps).stream()
+                    .filter(f -> f.tenantId().equals(tenantId))
+                    .collect(Collectors.toSet());
+            for (FloatingIp f : floatingIpSet) {
+                IpAddress fixedIp = f.fixedIp();
+                if (fixedIp != null && fixedIp.equals(srcIp)) {
+                    floatingIp = f;
+                    break;
+                }
+            }
+            if (floatingIp == null) {
+                sendEastWestL3Flows(h, srcVmGwMac, l3vni, srcGwIp, network,
+                                    dstVmIP, dstVmGwMac, operation);
+            }
+        }
+    }
+
+    private void sendEastWestL3Flows(Host h, MacAddress srcVmGwMac,
+                                     SegmentationId l3vni, IpAddress srcGwIp,
+                                     TenantNetwork network, IpAddress dstVmIP,
+                                     MacAddress dstVmGwMac,
+                                     Objective.Operation operation) {
         classifierService
                 .programL3InPortClassifierRules(h.location().deviceId(),
                                                 h.location().port(), h.mac(),
                                                 srcVmGwMac, l3vni, operation);
-        classifierService.programArpClassifierRules(h.location().deviceId(),
-                                                    h.location().port(), srcGwIp,
-                                                    network.segmentationId(),
-                                                    operation);
-        // Arp rules
-        if (operation == Objective.Operation.ADD) {
-            DriverHandler handler = driverService.createHandler(h.location().deviceId());
-            arpService.programArpRules(handler, h.location().deviceId(), srcGwIp,
-                                       network.segmentationId(), srcVmGwMac,
-                                       operation);
-        }
+        classifierService
+                .programArpClassifierRules(h.location().deviceId(),
+                                           h.location().port(), srcGwIp,
+                                           network.segmentationId(), operation);
         Iterable<Device> devices = deviceService.getAvailableDevices();
-        IpAddress srcArpIp = srcIp;
-        MacAddress srcArpGwMac = srcVmGwMac;
         Sets.newHashSet(devices).stream()
                 .filter(d -> Device.Type.SWITCH == d.type()).forEach(d -> {
                     // L3FWD rules
-                    l3ForwardService.programRouteRules(d.id(), l3vni, srcArpIp,
+                    l3ForwardService.programRouteRules(d.id(), l3vni, dstVmIP,
                                                        network.segmentationId(),
-                                                       srcArpGwMac, h.mac(),
+                                                       dstVmGwMac, h.mac(),
                                                        operation);
                 });
     }
@@ -967,13 +1053,14 @@ public class VtnManager implements VtnService {
                 // Floating ip BIND
                 if (type == VtnRscEvent.Type.FLOATINGIP_BIND) {
                     vPortStore.put(fipPort.portId(), fipPort);
-                    applyNorthSouthL3Flows(deviceId, host, vmPort, fipPort,
-                                           floaingIp, l3vni, exPort,
-                                           Objective.Operation.ADD);
+                    applyNorthSouthL3Flows(deviceId, false, tenantRouter, host,
+                                           vmPort, fipPort, floaingIp, l3vni,
+                                           exPort, Objective.Operation.ADD);
                 } else if (type == VtnRscEvent.Type.FLOATINGIP_UNBIND) {
                     // Floating ip UNBIND
-                    applyNorthSouthL3Flows(deviceId, host, vmPort, fipPort,
-                                           floaingIp, l3vni, exPort,
+                    applyNorthSouthL3Flows(deviceId, false, tenantRouter, host,
+                                           vmPort, fipPort, floaingIp, l3vni,
+                                           exPort,
                                            Objective.Operation.REMOVE);
                     vPortStore.remove(fipPort.portId());
                 }
@@ -981,7 +1068,27 @@ public class VtnManager implements VtnService {
         }
     }
 
-    private void applyNorthSouthL3Flows(DeviceId deviceId, Host host,
+    private void sendNorthSouthL3Flows(DeviceId deviceId, FloatingIp floatingIp,
+                                       IpAddress dstVmGwIp,
+                                       MacAddress dstVmGwMac,
+                                       SegmentationId l3vni,
+                                       TenantNetwork vmNetwork,
+                                       VirtualPort vmPort, Host host,
+                                       Objective.Operation operation) {
+        l3ForwardService
+                .programRouteRules(deviceId, l3vni, floatingIp.fixedIp(),
+                                   vmNetwork.segmentationId(), dstVmGwMac,
+                                   vmPort.macAddress(), operation);
+        classifierService.programL3InPortClassifierRules(deviceId,
+                                                         host.location().port(),
+                                                         host.mac(), dstVmGwMac,
+                                                         l3vni, operation);
+        classifierService.programArpClassifierRules(deviceId, host.location()
+                .port(), dstVmGwIp, vmNetwork.segmentationId(), operation);
+    }
+
+    private void applyNorthSouthL3Flows(DeviceId deviceId, boolean hostFlag,
+                                        TenantRouter tenantRouter, Host host,
                                         VirtualPort vmPort, VirtualPort fipPort,
                                         FloatingIp floatingIp,
                                         SegmentationId l3vni, Port exPort,
@@ -1014,31 +1121,41 @@ public class VtnManager implements VtnService {
         dnatService.programRules(deviceId, floatingIp.floatingIp(),
                                      fGwMac, floatingIp.fixedIp(),
                                      l3vni, operation);
-        l3ForwardService
-                .programRouteRules(deviceId, l3vni, floatingIp.fixedIp(),
-                                   vmNetwork.segmentationId(), dstVmGwMac,
-                                   vmPort.macAddress(), operation);
 
         // L3 uplink traffic flow
-        classifierService.programL3InPortClassifierRules(deviceId,
-                                                         host.location().port(),
-                                                         host.mac(), dstVmGwMac,
-                                                         l3vni, operation);
+        if (operation == Objective.Operation.ADD) {
+            sendNorthSouthL3Flows(deviceId, floatingIp, dstVmGwIp, dstVmGwMac,
+                                  l3vni, vmNetwork, vmPort, host, operation);
+            l2ForwardService.programLocalOut(deviceId,
+                                             fipNetwork.segmentationId(),
+                                             exPort.number(), fGwMac, operation);
+        } else if (operation == Objective.Operation.REMOVE) {
+            if (hostFlag || (!hostFlag
+                    && routerInfFlagOfTenantRouter.get(tenantRouter) == null)) {
+                sendNorthSouthL3Flows(deviceId, floatingIp, dstVmGwIp, dstVmGwMac,
+                                      l3vni, vmNetwork, vmPort, host, operation);
+            }
+            Iterable<FloatingIp> floatingIps = floatingIpService.getFloatingIps();
+            boolean exPortFlag = true;
+            if (floatingIps != null) {
+                Set<FloatingIp> floatingIpSet = Sets.newHashSet(floatingIps);
+                for (FloatingIp fip : floatingIpSet) {
+                    if (fip.fixedIp() != null) {
+                        exPortFlag = false;
+                        break;
+                    }
+                }
+            }
+            if (exPortFlag) {
+                l2ForwardService.programLocalOut(deviceId,
+                                                 fipNetwork.segmentationId(),
+                                                 exPort.number(), fGwMac, operation);
+            }
+        }
         snatService.programRules(deviceId, l3vni, floatingIp.fixedIp(),
                                      fGwMac, exPortMac,
                                      floatingIp.floatingIp(),
                                      fipNetwork.segmentationId(), operation);
-        classifierService.programArpClassifierRules(deviceId, host.location().port(),
-                                                    dstVmGwIp, vmNetwork.segmentationId(),
-                                                    operation);
-        if (operation == Objective.Operation.ADD) {
-            arpService.programArpRules(handler, deviceId, dstVmGwIp,
-                                       vmNetwork.segmentationId(), dstVmGwMac,
-                                       operation);
-            l2ForwardService.programLocalOut(deviceId,
-                                             fipNetwork.segmentationId(),
-                                             exPort.number(), fGwMac, operation);
-        }
     }
 
     private Port getExPort(DeviceId deviceId) {
@@ -1139,7 +1256,7 @@ public class VtnManager implements VtnService {
                 .collect(Collectors.toSet());
         for (FloatingIp f : floatingIpSet) {
             IpAddress fixedIp = f.fixedIp();
-            if (fixedIp.equals(hostIp)) {
+            if (fixedIp != null && fixedIp.equals(hostIp)) {
                 floatingIp = f;
                 break;
             }
@@ -1154,8 +1271,9 @@ public class VtnManager implements VtnService {
                 fipPort = VtnData.getPort(vPortStore, floatingIp.networkId(),
                                           floatingIp.floatingIp());
             }
-            applyNorthSouthL3Flows(deviceId, host, port, fipPort, floatingIp,
-                                   l3vni, exPort, operation);
+            applyNorthSouthL3Flows(deviceId, true, tenantRouter, host, port,
+                                   fipPort, floatingIp, l3vni, exPort,
+                                   operation);
         }
     }
 
