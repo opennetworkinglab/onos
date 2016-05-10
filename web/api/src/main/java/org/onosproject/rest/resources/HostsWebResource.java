@@ -64,15 +64,15 @@ import static org.onosproject.net.HostId.hostId;
 public class HostsWebResource extends AbstractWebResource {
 
     @Context
-    UriInfo uriInfo;
-    public static final String HOST_NOT_FOUND = "Host is not found";
+    private UriInfo uriInfo;
+    private static final String HOST_NOT_FOUND = "Host is not found";
     private static final String[] REMOVAL_KEYS = {"mac", "vlan", "location", "ipAddresses"};
 
     /**
      * Get all end-station hosts.
      * Returns array of all known end-station hosts.
      *
-     * @return 200 OK
+     * @return 200 OK with array of all known end-station hosts.
      * @onos.rsModel Hosts
      */
     @GET
@@ -88,7 +88,7 @@ public class HostsWebResource extends AbstractWebResource {
      * Returns detailed properties of the specified end-station host.
      *
      * @param id host identifier
-     * @return 200 OK
+     * @return 200 OK with detailed properties of the specified end-station host
      * @onos.rsModel Host
      */
     @GET
@@ -107,7 +107,7 @@ public class HostsWebResource extends AbstractWebResource {
      *
      * @param mac  host MAC address
      * @param vlan host VLAN identifier
-     * @return 200 OK
+     * @return 200 OK with detailed properties of the specified end-station host
      * @onos.rsModel Host
      */
     @GET
@@ -160,11 +160,17 @@ public class HostsWebResource extends AbstractWebResource {
                 .build();
     }
 
+    /**
+     * Internal host provider that provides host events.
+     */
     private final class InternalHostProvider implements HostProvider {
         private final ProviderId providerId =
                 new ProviderId("host", "org.onosproject.rest", true);
         private HostProviderService hostProviderService;
 
+        /**
+         * Prevents from instantiation.
+         */
         private InternalHostProvider() {
         }
 

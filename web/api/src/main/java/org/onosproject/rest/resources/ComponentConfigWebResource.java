@@ -26,6 +26,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -41,12 +42,13 @@ import static org.onlab.util.Tools.nullIsNotFound;
 public class ComponentConfigWebResource extends AbstractWebResource {
 
     /**
-     * Get all component configurations.
+     * Gets all component configurations.
      * Returns collection of all registered component configurations.
      *
-     * @return 200 OK
+     * @return 200 OK with a collection of component configurations
      */
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getComponentConfigs() {
         ComponentConfigService service = get(ComponentConfigService.class);
         Set<String> components = service.getComponentNames();
@@ -56,13 +58,14 @@ public class ComponentConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get configuration of the specified component.
+     * Gets configuration of the specified component.
      *
      * @param component component name
-     * @return 200 OK
+     * @return 200 OK with a collection of component configurations
      */
     @GET
     @Path("{component}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getComponentConfigs(@PathParam("component") String component) {
         ComponentConfigService service = get(ComponentConfigService.class);
         ObjectNode root = mapper().createObjectNode();
@@ -80,7 +83,7 @@ public class ComponentConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Selectively set configuration properties.
+     * Selectively sets configuration properties.
      * Sets only the properties present in the JSON request.
      *
      * @param component component name
@@ -97,11 +100,11 @@ public class ComponentConfigWebResource extends AbstractWebResource {
         ObjectNode props = (ObjectNode) mapper().readTree(request);
         props.fieldNames().forEachRemaining(k -> service.setProperty(component, k,
                                                                      props.path(k).asText()));
-        return Response.noContent().build();
+        return Response.ok().build();
     }
 
     /**
-     * Selectively clear configuration properties.
+     * Selectively clears configuration properties.
      * Clears only the properties present in the JSON request.
      *
      * @param component component name

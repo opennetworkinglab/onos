@@ -24,7 +24,9 @@ import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import static org.onosproject.net.DeviceId.deviceId;
@@ -37,15 +39,16 @@ import static org.onosproject.net.PortNumber.portNumber;
 public class LinksWebResource extends AbstractWebResource {
 
     /**
-     * Get infrastructure links.
+     * Gets infrastructure links.
      * Returns array of all links, or links for the specified device or port.
      * @onos.rsModel LinksGet
      * @param deviceId  (optional) device identifier
      * @param port      (optional) port number
      * @param direction (optional) direction qualifier
-     * @return 200 OK
+     * @return 200 OK with array of all links, or links for the specified device or port
      */
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getLinks(@QueryParam("device") String deviceId,
                              @QueryParam("port") String port,
                              @QueryParam("direction") String direction) {

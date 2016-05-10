@@ -67,14 +67,14 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     private final VirtualNetworkService vnetService = get(VirtualNetworkService.class);
 
     @Context
-    UriInfo uriInfo;
+    private UriInfo uriInfo;
 
     // VirtualNetwork
 
     /**
      * Returns all virtual networks.
      *
-     * @return 200 OK
+     * @return 200 OK with set of virtual networks
      * @onos.rsModel VirtualNetworks
      */
     @GET
@@ -92,7 +92,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      * Returns the virtual networks with the specified tenant identifier.
      *
      * @param tenantId tenant identifier
-     * @return 200 OK, 404 not found
+     * @return 200 OK with a virtual network, 404 not found
      * @onos.rsModel VirtualNetworks
      */
     @GET
@@ -151,7 +151,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      * Returns all virtual network devices in a virtual network.
      *
      * @param networkId network identifier
-     * @return 200 OK
+     * @return 200 OK with set of virtual devices, 404 not found
      * @onos.rsModel VirtualDevices
      */
     @GET
@@ -222,7 +222,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      *
      * @param networkId network identifier
      * @param deviceId  virtual device identifier
-     * @return 200 OK
+     * @return 200 OK with set of virtual ports, 404 not found
      * @onos.rsModel VirtualPorts
      */
     @GET
@@ -312,7 +312,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      * Returns all virtual network links in a virtual network.
      *
      * @param networkId network identifier
-     * @return 200 OK
+     * @return 200 OK with set of virtual network links
      * @onos.rsModel VirtualLinks
      */
     @GET

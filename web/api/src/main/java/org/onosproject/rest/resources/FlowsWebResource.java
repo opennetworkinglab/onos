@@ -57,22 +57,23 @@ import static org.onlab.util.Tools.nullIsNotFound;
 public class FlowsWebResource extends AbstractWebResource {
 
     @Context
-    UriInfo uriInfo;
+    private UriInfo uriInfo;
 
-    public static final String DEVICE_NOT_FOUND = "Device is not found";
-    public static final String FLOW_NOT_FOUND = "Flow is not found";
-    public static final String FLOWS = "flows";
-    public static final String DEVICE_ID = "deviceId";
-    public static final String FLOW_ID = "flowId";
+    private static final String DEVICE_NOT_FOUND = "Device is not found";
+    private static final String FLOW_NOT_FOUND = "Flow is not found";
+    private static final String FLOWS = "flows";
+    private static final String DEVICE_ID = "deviceId";
+    private static final String FLOW_ID = "flowId";
 
-    final FlowRuleService service = get(FlowRuleService.class);
-    final ObjectNode root = mapper().createObjectNode();
-    final ArrayNode flowsNode = root.putArray(FLOWS);
+    private final FlowRuleService service = get(FlowRuleService.class);
+    private final ObjectNode root = mapper().createObjectNode();
+    private final ArrayNode flowsNode = root.putArray(FLOWS);
 
     /**
-     * Get all flow entries. Returns array of all flow rules in the system.
+     * Gets all flow entries. Returns array of all flow rules in the system.
+     *
+     * @return 200 OK with a collection of flows
      * @onos.rsModel Flows
-     * @return array of all the intents in the system
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -91,17 +92,17 @@ public class FlowsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Create new flow rules. Creates and installs a new flow rules.<br>
+     * Creates new flow rules. Creates and installs a new flow rules.<br>
      * Instructions description:
      * https://wiki.onosproject.org/display/ONOS/Flow+Rule+Instructions
      * <br>
      * Criteria description:
      * https://wiki.onosproject.org/display/ONOS/Flow+Rule+Criteria
      *
-     * @onos.rsModel FlowsBatchPost
-     * @param stream   flow rules JSON
+     * @param stream flow rules JSON
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
+     * @onos.rsModel FlowsBatchPost
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -125,11 +126,12 @@ public class FlowsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get flow entries of a device. Returns array of all flow rules for the
+     * Gets flow entries of a device. Returns array of all flow rules for the
      * specified device.
-     * @onos.rsModel Flows
+     *
      * @param deviceId device identifier
-     * @return flow data as an array
+     * @return 200 OK with a collection of flows of given device
+     * @onos.rsModel Flows
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -148,12 +150,13 @@ public class FlowsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get flow rule. Returns the flow entry specified by the device id and
+     * Gets flow rule. Returns the flow entry specified by the device id and
      * flow rule id.
-     * @onos.rsModel Flows
+     *
      * @param deviceId device identifier
      * @param flowId   flow rule identifier
-     * @return flow data as an array
+     * @return 200 OK with a flows of given device and flow
+     * @onos.rsModel Flows
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -175,7 +178,7 @@ public class FlowsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Create new flow rule. Creates and installs a new flow rule for the
+     * Creates new flow rule. Creates and installs a new flow rule for the
      * specified device. <br>
      * Instructions description:
      * https://wiki.onosproject.org/display/ONOS/Flow+Rule+Instructions
@@ -183,11 +186,11 @@ public class FlowsWebResource extends AbstractWebResource {
      * Criteria description:
      * https://wiki.onosproject.org/display/ONOS/Flow+Rule+Criteria
      *
-     * @onos.rsModel FlowsPost
      * @param deviceId device identifier
      * @param stream   flow rule JSON
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
+     * @onos.rsModel FlowsPost
      */
     @POST
     @Path("{deviceId}")
@@ -227,10 +230,9 @@ public class FlowsWebResource extends AbstractWebResource {
      * @return 204 NO CONTENT
      */
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/{flowId}")
     public Response deleteFlowByDeviceIdAndFlowId(@PathParam("deviceId") String deviceId,
-                                              @PathParam("flowId") long flowId) {
+                                                  @PathParam("flowId") long flowId) {
         final Iterable<FlowEntry> flowEntries =
                 service.getFlowEntries(DeviceId.deviceId(deviceId));
 
@@ -248,10 +250,9 @@ public class FlowsWebResource extends AbstractWebResource {
      * Removes a batch of flow rules.
      *
      * @param stream stream for posted JSON
-     * @return NO CONTENT
+     * @return 204 NO CONTENT
      */
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFlows(InputStream stream) {
         ListMultimap<DeviceId, Long> deviceMap = ArrayListMultimap.create();
         List<FlowEntry> rulesToRemove = new ArrayList<>();
@@ -265,9 +266,9 @@ public class FlowsWebResource extends AbstractWebResource {
                 DeviceId deviceId =
                         DeviceId.deviceId(
                                 nullIsNotFound(node.get(DEVICE_ID),
-                                               DEVICE_NOT_FOUND).asText());
+                                        DEVICE_NOT_FOUND).asText());
                 long flowId = nullIsNotFound(node.get(FLOW_ID),
-                                             FLOW_NOT_FOUND).asLong();
+                        FLOW_NOT_FOUND).asLong();
                 deviceMap.put(deviceId, flowId);
 
             });
@@ -288,5 +289,4 @@ public class FlowsWebResource extends AbstractWebResource {
         service.removeFlowRules(rulesToRemove.toArray(new FlowEntry[0]));
         return Response.noContent().build();
     }
-
 }

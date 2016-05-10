@@ -44,14 +44,14 @@ import java.util.Map;
 @Path("metrics")
 public class MetricsWebResource extends AbstractWebResource {
 
-    final MetricsService service = get(MetricsService.class);
-    final ObjectNode root = mapper().createObjectNode();
+    private final MetricsService service = get(MetricsService.class);
+    private final ObjectNode root = mapper().createObjectNode();
 
     /**
-     * Get stats information of all metrics. Returns array of all information for
+     * Gets stats information of all metrics. Returns array of all information for
      * all metrics.
      *
-     * @return metric information as array
+     * @return 200 OK with metric information as array
      * @onos.rsModel Metrics
      */
     @GET
@@ -69,11 +69,11 @@ public class MetricsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get stats information of a metric. Returns array of all information for the
+     * Gets stats information of a metric. Returns array of all information for the
      * specified metric.
      *
      * @param metricName metric name
-     * @return metric information as array
+     * @return 200 OK with metric information as array
      * @onos.rsModel Metric
      */
     @GET

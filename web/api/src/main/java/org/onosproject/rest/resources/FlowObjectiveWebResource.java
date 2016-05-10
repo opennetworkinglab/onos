@@ -45,14 +45,14 @@ import java.io.InputStream;
 public class FlowObjectiveWebResource extends AbstractWebResource {
 
     @Context
-    UriInfo uriInfo;
+    private UriInfo uriInfo;
 
-    public static final String DEVICE_INVALID =
+    private static final String DEVICE_INVALID =
             "Invalid deviceId in objective creation request";
-    public static final String POLICY_INVALID = "Invalid policy";
+    private static final String POLICY_INVALID = "Invalid policy";
 
-    final FlowObjectiveService flowObjectiveService = get(FlowObjectiveService.class);
-    final ObjectNode root = mapper().createObjectNode();
+    private final FlowObjectiveService flowObjectiveService = get(FlowObjectiveService.class);
+    private final ObjectNode root = mapper().createObjectNode();
 
     /**
      * Creates and installs a new filtering objective for the specified device.
@@ -168,7 +168,7 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
     /**
      * Returns the globally unique nextId.
      *
-     * @return nextId
+     * @return 200 OK with next identifier
      * @onos.rsModel NextId
      */
     @GET
@@ -183,13 +183,13 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
      * Installs the filtering rules onto the specified device.
      *
      * @param stream filtering rule JSON
+     * @return 200 OK
      * @onos.rsModel ObjectivePolicy
      */
     @POST
     @Path("policy")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public void initPolicy(InputStream stream) {
+    public Response initPolicy(InputStream stream) {
 
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
@@ -200,13 +200,14 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
             }
 
             flowObjectiveService.initPolicy(policyJson.asText());
+            return Response.ok().build();
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }
     }
 
     /**
-     * Validate the deviceId that is contained in json string against the
+     * Validates the deviceId that is contained in json string against the
      * input deviceId.
      *
      * @param deviceId device identifier

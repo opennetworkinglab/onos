@@ -28,6 +28,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,16 +44,17 @@ import static org.onlab.util.Tools.nullIsNotFound;
 @Path("cluster")
 public class ClusterWebResource extends AbstractWebResource {
 
-    public static final String NODE_NOT_FOUND = "Node is not found";
+    private static final String NODE_NOT_FOUND = "Node is not found";
 
     /**
      * Get all cluster nodes.
      * Returns array of all cluster nodes.
      *
-     * @return 200 OK
+     * @return 200 OK with a collection of cluster nodes
      * @onos.rsModel Cluster
      */
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getClusterNodes() {
         Iterable<ControllerNode> nodes = get(ClusterService.class).getNodes();
         return ok(encodeArray(ControllerNode.class, "nodes", nodes)).build();
@@ -62,11 +65,12 @@ public class ClusterWebResource extends AbstractWebResource {
      * Returns details of the specified cluster node.
      *
      * @param id cluster node identifier
-     * @return 200 OK
+     * @return 200 OK with a cluster node
      * @onos.rsModel ClusterNode
      */
     @GET
     @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getClusterNode(@PathParam("id") String id) {
         ControllerNode node = nullIsNotFound(get(ClusterService.class).getNode(new NodeId(id)),
                                              NODE_NOT_FOUND);
@@ -84,6 +88,7 @@ public class ClusterWebResource extends AbstractWebResource {
      */
     @POST
     @Path("configuration")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response formCluster(InputStream config) throws IOException {
         JsonCodec<ControllerNode> codec = codec(ControllerNode.class);
         ObjectNode root = (ObjectNode) mapper().readTree(config);
@@ -93,5 +98,4 @@ public class ClusterWebResource extends AbstractWebResource {
 
         return Response.ok().build();
     }
-
 }

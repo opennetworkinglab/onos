@@ -64,9 +64,9 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get entire network configuration base.
+     * Gets entire network configuration base.
      *
-     * @return network configuration JSON
+     * @return 200 OK with network configuration JSON
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -83,10 +83,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get all network configuration for a subject class.
+     * Gets all network configuration for a subject class.
      *
      * @param subjectClassKey subject class key
-     * @return network configuration JSON
+     * @return 200 OK with network configuration JSON
      */
     @GET
     @Path("{subjectClassKey}")
@@ -103,11 +103,11 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get all network configuration for a subjectKey.
+     * Gets all network configuration for a subjectKey.
      *
      * @param subjectClassKey subjectKey class key
      * @param subjectKey      subjectKey key
-     * @return network configuration JSON
+     * @return 200 OK with network configuration JSON
      */
     @GET
     @Path("{subjectClassKey}/{subjectKey}")
@@ -127,12 +127,12 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get specific network configuration for a subjectKey.
+     * Gets specific network configuration for a subjectKey.
      *
      * @param subjectClassKey subjectKey class key
      * @param subjectKey      subjectKey key
      * @param configKey       configuration class key
-     * @return network configuration JSON
+     * @return 200 OK with network configuration JSON
      */
     @GET
     @Path("{subjectClassKey}/{subjectKey}/{configKey}")
@@ -180,10 +180,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
 
 
     /**
-     * Upload bulk network configuration.
+     * Uploads bulk network configuration.
      *
      * @param request network configuration JSON rooted at the top node
-     * @return empty response
+     * @return 200 OK
      * @throws IOException if unable to parse the request
      */
     @POST
@@ -203,7 +203,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      *
      * @param subjectClassKey subject class key
      * @param request         network configuration JSON rooted at the top node
-     * @return empty response
+     * @return 200 OK
      * @throws IOException if unable to parse the request
      */
     @POST
@@ -224,7 +224,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      * @param subjectClassKey subjectKey class key
      * @param subjectKey      subjectKey key
      * @param request         network configuration JSON rooted at the top node
-     * @return empty response
+     * @return 200 OK
      * @throws IOException if unable to parse the request
      */
     @POST
@@ -249,7 +249,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      * @param subjectKey      subjectKey key
      * @param configKey       configuration class key
      * @param request         network configuration JSON rooted at the top node
-     * @return empty response
+     * @return 200 OK
      * @throws IOException if unable to parse the request
      */
     @POST

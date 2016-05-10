@@ -59,7 +59,7 @@ public class RegionsWebResource extends AbstractWebResource {
     /**
      * Returns set of all regions.
      *
-     * @return 200 OK
+     * @return 200 OK with set of all regions
      * @onos.rsModel Regions
      */
     @GET
@@ -73,7 +73,7 @@ public class RegionsWebResource extends AbstractWebResource {
      * Returns the region with the specified identifier.
      *
      * @param regionId region identifier
-     * @return 200 OK, 404 not found
+     * @return 200 OK with a region, 404 not found
      * @onos.rsModel Region
      */
     @GET
@@ -90,7 +90,7 @@ public class RegionsWebResource extends AbstractWebResource {
      * Returns the set of devices that belong to the specified region.
      *
      * @param regionId region identifier
-     * @return 200 OK
+     * @return 200 OK with set of devices that belong to the specified region
      * @onos.rsModel RegionDeviceIds
      */
     @GET
@@ -143,7 +143,6 @@ public class RegionsWebResource extends AbstractWebResource {
     @PUT
     @Path("{regionId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response updateRegion(@PathParam("regionId") String regionId,
                                  InputStream stream) {
         try {
@@ -169,7 +168,7 @@ public class RegionsWebResource extends AbstractWebResource {
      * Removes the specified region using the given region identifier.
      *
      * @param regionId region identifier
-     * @return 200 OK, 404 not found
+     * @return 204 NO CONTENT
      */
     @DELETE
     @Path("{regionId}")

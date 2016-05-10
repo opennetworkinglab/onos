@@ -56,14 +56,15 @@ import static org.onosproject.net.PortNumber.portNumber;
 @Path("statistics")
 public class StatisticsWebResource  extends AbstractWebResource {
     @Context
-    UriInfo uriInfo;
+    private UriInfo uriInfo;
 
     /**
-     * Get load statistics for all links or for a specific link.
+     * Gets load statistics for all links or for a specific link.
+     *
      * @onos.rsModel StatisticsFlowsLink
      * @param deviceId (optional) device ID for a specific link
      * @param port (optional) port number for a specified link
-     * @return JSON encoded array lof Load objects
+     * @return 200 OK with JSON encoded array of Load objects
      */
     @GET
     @Path("flows/link")
@@ -101,9 +102,10 @@ public class StatisticsWebResource  extends AbstractWebResource {
     }
 
     /**
-     * Get table statistics for all tables of all devices.
+     * Gets table statistics for all tables of all devices.
+     *
      * @onos.rsModel StatisticsFlowsTables
-     * @return JSON encoded array of table statistics
+     * @return 200 OK with JSON encoded array of table statistics
      */
     @GET
     @Path("flows/tables")
@@ -130,10 +132,11 @@ public class StatisticsWebResource  extends AbstractWebResource {
     }
 
     /**
-     * Get table statistics for all tables of a specified device.
+     * Gets table statistics for all tables of a specified device.
+     *
      * @onos.rsModel StatisticsFlowsTables
      * @param deviceId device ID
-     * @return JSON encoded array of table statistics
+     * @return 200 OK with JSON encoded array of table statistics
      */
     @GET
     @Path("flows/tables/{deviceId}")
@@ -156,9 +159,9 @@ public class StatisticsWebResource  extends AbstractWebResource {
     }
 
     /**
-     * Get port statistics of all devices.
+     * Gets port statistics of all devices.
      * @onos.rsModel StatisticsPorts
-     * @return JSON encoded array of port statistics
+     * @return 200 OK with JSON encoded array of port statistics
      */
     @GET
     @Path("ports")
@@ -185,10 +188,10 @@ public class StatisticsWebResource  extends AbstractWebResource {
     }
 
     /**
-     * Get port statistics of a specified devices.
+     * Gets port statistics of a specified devices.
      * @onos.rsModel StatisticsPorts
      * @param deviceId device ID
-     * @return JSON encoded array of port statistics
+     * @return 200 OK with JSON encoded array of port statistics
      */
     @GET
     @Path("ports/{deviceId}")

@@ -44,7 +44,7 @@ public class MulticastRouteWebResource extends AbstractWebResource {
      * Get all multicast routes.
      * Returns array of all known multicast routes.
      *
-     * @return 200 OK
+     * @return 200 OK with array of all known multicast routes
      * @onos.rsModel McastRoutesGet
      */
     @GET

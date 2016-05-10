@@ -49,14 +49,14 @@ public class TenantWebResource extends AbstractWebResource {
     private static final String INVALID_TENANTID = "Invalid tenant identifier ";
 
     @Context
-    UriInfo uriInfo;
+    private UriInfo uriInfo;
 
     private final VirtualNetworkAdminService vnetAdminService = get(VirtualNetworkAdminService.class);
 
     /**
-     * Returns all tenants.
+     * Returns all tenant identifiers.
      *
-     * @return 200 OK
+     * @return 200 OK with set of tenant identifiers
      * @onos.rsModel TenantIds
      */
     @GET
@@ -109,7 +109,7 @@ public class TenantWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get the tenant identifier from the JSON stream.
+     * Gets the tenant identifier from the JSON stream.
      *
      * @param stream TenantId JSON stream
      * @return TenantId
@@ -129,17 +129,16 @@ public class TenantWebResource extends AbstractWebResource {
      * Get the matching tenant identifier from existing tenant identifiers in system.
      *
      * @param vnetAdminSvc virtual network administration service
-     * @param tidIn tenant identifier
+     * @param tidIn        tenant identifier
      * @return TenantId
      */
-     static TenantId getExistingTenantId(VirtualNetworkAdminService vnetAdminSvc,
-                                               TenantId tidIn) {
-        final TenantId resultTid = vnetAdminSvc
+    protected static TenantId getExistingTenantId(VirtualNetworkAdminService vnetAdminSvc,
+                                                TenantId tidIn) {
+        return vnetAdminSvc
                 .getTenantIds()
                 .stream()
                 .filter(tenantId -> tenantId.equals(tidIn))
                 .findFirst()
                 .orElseThrow(() -> new ItemNotFoundException(TENANTID_NOT_FOUND));
-        return resultTid;
     }
 }

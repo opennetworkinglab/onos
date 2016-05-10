@@ -65,7 +65,7 @@ public final class MastershipWebResource extends AbstractWebResource {
      * Returns the role of the local node for the specified device.
      *
      * @param deviceId device identifier
-     * @return role of the current node
+     * @return 200 OK with role of the current node
      * @onos.rsModel MastershipRole
      */
     @GET
@@ -81,7 +81,7 @@ public final class MastershipWebResource extends AbstractWebResource {
      * Returns the current master for a given device.
      *
      * @param deviceId device identifier
-     * @return the identifier of the master controller for the device
+     * @return 200 OK with the identifier of the master controller for the device
      * @onos.rsModel NodeId
      */
     @GET
@@ -101,7 +101,7 @@ public final class MastershipWebResource extends AbstractWebResource {
      * preference. The first entry in the list is the current master.
      *
      * @param deviceId device identifier
-     * @return a list of controller identifiers
+     * @return 200 OK with a list of controller identifiers
      * @onos.rsModel RoleInfo
      */
     @GET
@@ -118,7 +118,7 @@ public final class MastershipWebResource extends AbstractWebResource {
      * Returns the devices for which a controller is master.
      *
      * @param nodeId controller identifier
-     * @return a set of device identifiers
+     * @return 200 OK with a set of device identifiers
      * @onos.rsModel DeviceIds
      */
     @GET
@@ -141,7 +141,7 @@ public final class MastershipWebResource extends AbstractWebResource {
      * device forcing master selection if necessary.
      *
      * @param deviceId device identifier
-     * @return the role of this controller instance
+     * @return 200 OK with the role of this controller instance
      * @onos.rsModel MastershipRole
      */
     @GET
@@ -160,7 +160,7 @@ public final class MastershipWebResource extends AbstractWebResource {
      * for this device, no master selection will occur.
      *
      * @param deviceId device identifier
-     * @return status of the request
+     * @return status of the request - CREATED if the JSON is correct
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -181,7 +181,6 @@ public final class MastershipWebResource extends AbstractWebResource {
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response setRole(InputStream stream) {
 
         try {
