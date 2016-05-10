@@ -158,8 +158,10 @@ public class RouterWebResource extends AbstractWebResource {
         }
     }
 
-    @Path("{routerUUID}")
     @DELETE
+    @Path("{routerUUID}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteSingleRouter(@PathParam("routerUUID") String id)
             throws IOException {
         try {

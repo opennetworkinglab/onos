@@ -130,8 +130,10 @@ public class VirtualPortWebResource extends AbstractWebResource {
         }
     }
 
-    @Path("{portUUID}")
     @DELETE
+    @Path("{portUUID}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deletePorts(@PathParam("portUUID") String id) {
         Set<VirtualPortId> vPortIds = new HashSet<>();
         try {

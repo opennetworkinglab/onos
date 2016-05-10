@@ -147,8 +147,10 @@ public class SubnetWebResource extends AbstractWebResource {
         }
     }
 
-    @Path("{subnetUUID}")
     @DELETE
+    @Path("{subnetUUID}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteSingleSubnet(@PathParam("subnetUUID") String id)
             throws IOException {
         try {

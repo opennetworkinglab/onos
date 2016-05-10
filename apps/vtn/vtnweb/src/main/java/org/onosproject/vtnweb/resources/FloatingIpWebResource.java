@@ -151,8 +151,10 @@ public class FloatingIpWebResource extends AbstractWebResource {
         }
     }
 
-    @Path("{floatingIpUUID}")
     @DELETE
+    @Path("{floatingIpUUID}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteSingleFloatingIp(@PathParam("floatingIpUUID") String id)
             throws IOException {
         try {

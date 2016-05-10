@@ -240,6 +240,8 @@ public class TenantNetworkWebResource extends AbstractWebResource {
 
     @DELETE
     @Path("{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteNetworks(@PathParam("id") String id) {
         log.debug("Deletes network by identifier {}.", id);
         Set<TenantNetworkId> networkSet = new HashSet<>();
