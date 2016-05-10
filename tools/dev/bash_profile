@@ -109,7 +109,7 @@ export CELL_WARDEN="10.254.1.19"
 # Applies the settings in the specified cell file or lists current cell definition
 # if no cell file is given.
 function cell {
-    cell=$1
+    cell=${1:-""}
     case "$cell" in
     "borrow")
         aux="/tmp/cell-$$"
