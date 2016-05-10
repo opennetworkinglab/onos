@@ -60,10 +60,8 @@ public class NeutronMl2SubnetsWebResource extends AbstractWebResource {
 
     @DELETE
     @Path("{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteSubnet(@PathParam("id") String id) {
         log.trace(String.format(SUBNETS_MESSAGE, "delete"));
-        return Response.status(Response.Status.OK).build();
+        return Response.noContent().build();
     }
 }

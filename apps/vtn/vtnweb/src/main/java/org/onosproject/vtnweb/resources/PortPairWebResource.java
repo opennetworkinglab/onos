@@ -145,15 +145,17 @@ public class PortPairWebResource extends AbstractWebResource {
      * Delete details of a specified port pair id.
      *
      * @param id port pair id
+     * @return 204 NO CONTENT
      */
     @Path("{pair_id}")
     @DELETE
-    public void deletePortPair(@PathParam("pair_id") String id) {
+    public Response deletePortPair(@PathParam("pair_id") String id) {
 
         PortPairId portPairId = PortPairId.of(id);
         Boolean isSuccess = nullIsNotFound(get(PortPairService.class).removePortPair(portPairId), PORT_PAIR_NOT_FOUND);
         if (!isSuccess) {
             log.debug("Port pair identifier {} does not exist", id);
         }
+        return Response.noContent().build();
     }
 }

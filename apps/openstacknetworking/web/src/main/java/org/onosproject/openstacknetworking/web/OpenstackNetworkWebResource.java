@@ -57,9 +57,8 @@ public class OpenstackNetworkWebResource extends AbstractWebResource {
     @DELETE
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteNetwork(InputStream input) {
         log.debug("REST API networks is called {}", input.toString());
-        return Response.status(Response.Status.OK).build();
+        return Response.noContent().build();
     }
 }

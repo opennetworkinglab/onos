@@ -172,15 +172,17 @@ public class GroupsWebResource extends AbstractWebResource {
      *
      * @param deviceId  device identifier
      * @param appCookie application cookie to be used for lookup
+     * @return 204 NO CONTENT
      */
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/{appCookie}")
-    public void deleteGroupByDeviceIdAndAppCookie(@PathParam("deviceId") String deviceId,
-                                                  @PathParam("appCookie") String appCookie) {
+    public Response deleteGroupByDeviceIdAndAppCookie(@PathParam("deviceId") String deviceId,
+                                                      @PathParam("appCookie") String appCookie) {
         DeviceId deviceIdInstance = DeviceId.deviceId(deviceId);
         GroupKey appCookieInstance = new DefaultGroupKey(appCookie.getBytes());
 
         groupService.removeGroup(deviceIdInstance, appCookieInstance, null);
+        return Response.noContent().build();
     }
 }

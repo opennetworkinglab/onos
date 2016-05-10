@@ -289,7 +289,7 @@ public class TenantWebResourceTest extends ResourceTest {
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .delete();
 
-        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
 
         verify(mockVnetAdminService);
     }

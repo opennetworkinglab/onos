@@ -125,7 +125,7 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
      * Delete FloatingIP.
      *
      * @param id FloatingIP identifier
-     * @return 200 OK
+     * @return 204 OK
      */
     @DELETE
     @Path("{id}")
@@ -139,7 +139,7 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
 
         log.debug("REST API DELETE floatingip is called {}", id);
 
-        return Response.status(Response.Status.OK).build();
+        return Response.noContent().build();
     }
 
 }

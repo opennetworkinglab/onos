@@ -143,7 +143,6 @@ public class OpensatckRouterWebResource extends AbstractWebResource {
 
     @DELETE
     @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteRouter(@PathParam("id") String id) {
         checkNotNull(id);
         OpenstackRoutingService routingService
@@ -151,7 +150,7 @@ public class OpensatckRouterWebResource extends AbstractWebResource {
         routingService.deleteRouter(id);
 
         log.debug("REST API DELETE routers is called {}", id);
-        return Response.status(Response.Status.OK).build();
+        return Response.noContent().build();
     }
 
     @PUT

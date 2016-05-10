@@ -79,14 +79,13 @@ public class ServiceDependencyWebResource extends AbstractWebResource {
      *
      * @param tServiceId tenant service id
      * @param pServiceId provider service id
-     * @return 200 OK, or 400 Bad Request
+     * @return 204 NO CONTENT
      */
     @DELETE
     @Path("{tenantServiceId}/{providerServiceId}")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response removeServiceDependency(@PathParam("tenantServiceId") String tServiceId,
                                             @PathParam("providerServiceId") String pServiceId) {
         service.removeServiceDependency(CordServiceId.of(tServiceId), CordServiceId.of(pServiceId));
-        return Response.status(Response.Status.OK).build();
+        return Response.noContent().build();
     }
 }

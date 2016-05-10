@@ -97,7 +97,7 @@ public class TenantWebResource extends AbstractWebResource {
      * Removes the specified tenant with the specified tenant identifier.
      *
      * @param tenantId tenant identifier
-     * @return 200 OK, 404 not found
+     * @return 204 NO CONTENT
      */
     @DELETE
     @Path("{tenantId}")
@@ -105,7 +105,7 @@ public class TenantWebResource extends AbstractWebResource {
         final TenantId tid = TenantId.tenantId(tenantId);
         final TenantId existingTid = getExistingTenantId(vnetAdminService, tid);
         vnetAdminService.unregisterTenantId(existingTid);
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     /**

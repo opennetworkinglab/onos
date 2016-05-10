@@ -486,7 +486,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .delete();
 
-        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
 
         verify(mockVnetAdminService);
     }
@@ -662,7 +662,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .delete();
 
-        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
 
         verify(mockVnetAdminService);
     }
@@ -828,7 +828,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .delete();
 
-        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
 
         verify(mockVnetAdminService);
     }
@@ -1034,7 +1034,7 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
         String reqLocation = "vnets/" + networkId.toString() + "/links";
         Response response = wt.path(reqLocation).request().method("DELETE", Entity.json(jsonStream));
 
-        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
         verify(mockVnetAdminService);
     }
 }

@@ -173,11 +173,10 @@ public class RegionsWebResource extends AbstractWebResource {
      */
     @DELETE
     @Path("{regionId}")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response removeRegion(@PathParam("regionId") String regionId) {
         final RegionId rid = RegionId.regionId(regionId);
         regionAdminService.removeRegion(rid);
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     /**
@@ -213,13 +212,12 @@ public class RegionsWebResource extends AbstractWebResource {
      *
      * @param regionId region identifier
      * @param stream deviceIds JSON stream
-     * @return 200 OK, 404 not found
+     * @return 204 NO CONTENT
      * @onos.rsModel RegionDeviceIds
      */
     @DELETE
     @Path("{regionId}/devices")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response removeDevices(@PathParam("regionId") String regionId,
                                   InputStream stream) {
         final RegionId rid = RegionId.regionId(regionId);
@@ -230,7 +228,7 @@ public class RegionsWebResource extends AbstractWebResource {
             throw new IllegalArgumentException(e);
         }
 
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     /**

@@ -153,10 +153,11 @@ public class PortPairGroupWebResource extends AbstractWebResource {
      * Delete details of a specified port pair group id.
      *
      * @param id port pair group id
+     * @return 204 NO CONTENT
      */
     @Path("{group_id}")
     @DELETE
-    public void deletePortPairGroup(@PathParam("group_id") String id) {
+    public Response deletePortPairGroup(@PathParam("group_id") String id) {
         log.debug("Deletes port pair group by identifier {}.", id);
         PortPairGroupId portPairGroupId = PortPairGroupId.of(id);
         Boolean issuccess = nullIsNotFound(get(PortPairGroupService.class).removePortPairGroup(portPairGroupId),
@@ -164,5 +165,7 @@ public class PortPairGroupWebResource extends AbstractWebResource {
         if (!issuccess) {
             log.debug("Port pair group identifier {} does not exist", id);
         }
+
+        return Response.noContent().build();
     }
 }

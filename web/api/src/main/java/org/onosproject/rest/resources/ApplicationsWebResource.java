@@ -104,16 +104,15 @@ public class ApplicationsWebResource extends AbstractWebResource {
      * Uninstalls the specified application deactivating it first if necessary.
      *
      * @param name application name
-     * @return 200 OK; 404; 401
+     * @return 204 NO CONTENT
      */
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
     @Path("{name}")
     public Response uninstallApp(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         ApplicationId appId = service.getId(name);
         service.uninstall(appId);
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     /**

@@ -146,10 +146,11 @@ public class PortChainWebResource extends AbstractWebResource {
      * Delete details of a specified port chain id.
      *
      * @param id port chain id
+     * @return 204 NO CONTENT
      */
     @Path("{chain_id}")
     @DELETE
-    public void deletePortPain(@PathParam("chain_id") String id) {
+    public Response deletePortPain(@PathParam("chain_id") String id) {
         log.debug("Deletes port chain by identifier {}.", id);
         PortChainId portChainId = PortChainId.of(id);
 
@@ -158,5 +159,6 @@ public class PortChainWebResource extends AbstractWebResource {
         if (!issuccess) {
             log.debug("Port Chain identifier {} does not exist", id);
         }
+        return Response.noContent().build();
     }
 }

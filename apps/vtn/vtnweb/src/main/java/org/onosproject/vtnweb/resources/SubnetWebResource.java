@@ -158,7 +158,7 @@ public class SubnetWebResource extends AbstractWebResource {
             Set<SubnetId> subIds = new HashSet<>();
             subIds.add(subId);
             get(SubnetService.class).removeSubnets(subIds);
-            return Response.status(201).entity("SUCCESS").build();
+            return Response.noContent().entity("SUCCESS").build();
         } catch (Exception e) {
             return Response.status(INTERNAL_SERVER_ERROR).entity(e.toString())
                     .build();

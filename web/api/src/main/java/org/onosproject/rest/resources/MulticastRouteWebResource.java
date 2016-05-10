@@ -87,12 +87,12 @@ public class MulticastRouteWebResource extends AbstractWebResource {
      * Removes a route from the multicast RIB.
      *
      * @param stream multicast route JSON
+     * @return 204 NO CONTENT
      * @onos.rsModel McastRoutePost
      */
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public void deleteRoute(InputStream stream) {
+    public Response deleteRoute(InputStream stream) {
         MulticastRouteService service = get(MulticastRouteService.class);
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
@@ -101,5 +101,6 @@ public class MulticastRouteWebResource extends AbstractWebResource {
         } catch (IOException ex) {
             throw new IllegalArgumentException(ex);
         }
+        return Response.noContent().build();
     }
 }

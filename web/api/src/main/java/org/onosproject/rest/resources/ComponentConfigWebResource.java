@@ -20,11 +20,13 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.rest.AbstractWebResource;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
@@ -87,6 +89,7 @@ public class ComponentConfigWebResource extends AbstractWebResource {
      * @throws IOException to signify bad request
      */
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
     @Path("{component}")
     public Response setConfigs(@PathParam("component") String component,
                                InputStream request) throws IOException {
@@ -103,10 +106,11 @@ public class ComponentConfigWebResource extends AbstractWebResource {
      *
      * @param component component name
      * @param request   JSON configuration
-     * @return 200 OK
+     * @return 204 NO CONTENT
      * @throws IOException to signify bad request
      */
     @DELETE
+    @Consumes(MediaType.APPLICATION_JSON)
     @Path("{component}")
     public Response unsetConfigs(@PathParam("component") String component,
                                  InputStream request) throws IOException {

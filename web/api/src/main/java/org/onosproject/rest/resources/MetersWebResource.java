@@ -165,11 +165,11 @@ public class MetersWebResource extends AbstractWebResource {
      *
      * @param deviceId device identifier
      * @param meterId  meter identifier
+     * @return 204 NO CONTENT
      */
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/{meterId}")
-    public void deleteMeterByDeviceIdAndMeterId(@PathParam("deviceId") String deviceId,
+    public Response deleteMeterByDeviceIdAndMeterId(@PathParam("deviceId") String deviceId,
                                                 @PathParam("meterId") String meterId) {
         DeviceId did = DeviceId.deviceId(deviceId);
         MeterId mid = MeterId.meterId(Long.valueOf(meterId));
@@ -178,6 +178,7 @@ public class MetersWebResource extends AbstractWebResource {
             final MeterRequest meterRequest = meterToMeterRequest(tmpMeter, "REMOVE");
             meterService.withdraw(meterRequest, tmpMeter.id());
         }
+        return Response.noContent().build();
     }
 
     /**

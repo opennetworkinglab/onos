@@ -224,11 +224,12 @@ public class FlowsWebResource extends AbstractWebResource {
      *
      * @param deviceId device identifier
      * @param flowId   flow rule identifier
+     * @return 204 NO CONTENT
      */
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/{flowId}")
-    public void deleteFlowByDeviceIdAndFlowId(@PathParam("deviceId") String deviceId,
+    public Response deleteFlowByDeviceIdAndFlowId(@PathParam("deviceId") String deviceId,
                                               @PathParam("flowId") long flowId) {
         final Iterable<FlowEntry> flowEntries =
                 service.getFlowEntries(DeviceId.deviceId(deviceId));
@@ -240,16 +241,18 @@ public class FlowsWebResource extends AbstractWebResource {
         StreamSupport.stream(flowEntries.spliterator(), false)
                 .filter(entry -> entry.id().value() == flowId)
                 .forEach(service::removeFlowRules);
+        return Response.noContent().build();
     }
 
     /**
      * Removes a batch of flow rules.
      *
      * @param stream stream for posted JSON
+     * @return NO CONTENT
      */
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteFlows(InputStream stream) {
+    public Response deleteFlows(InputStream stream) {
         ListMultimap<DeviceId, Long> deviceMap = ArrayListMultimap.create();
         List<FlowEntry> rulesToRemove = new ArrayList<>();
 
@@ -283,6 +286,7 @@ public class FlowsWebResource extends AbstractWebResource {
         });
 
         service.removeFlowRules(rulesToRemove.toArray(new FlowEntry[0]));
+        return Response.noContent().build();
     }
 
 }

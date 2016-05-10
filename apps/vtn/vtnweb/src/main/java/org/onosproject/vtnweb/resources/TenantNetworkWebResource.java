@@ -15,18 +15,24 @@
  */
 package org.onosproject.vtnweb.resources;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkArgument;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.OK;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Maps;
+import org.onlab.util.ItemNotFoundException;
+import org.onosproject.rest.AbstractWebResource;
+import org.onosproject.vtnrsc.DefaultTenantNetwork;
+import org.onosproject.vtnrsc.PhysicalNetwork;
+import org.onosproject.vtnrsc.SegmentationId;
+import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.TenantNetwork;
+import org.onosproject.vtnrsc.TenantNetwork.State;
+import org.onosproject.vtnrsc.TenantNetwork.Type;
+import org.onosproject.vtnrsc.TenantNetworkId;
+import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
+import org.onosproject.vtnweb.web.TenantNetworkCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -39,26 +45,18 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
-import org.onlab.util.ItemNotFoundException;
-import org.onosproject.rest.AbstractWebResource;
-import org.onosproject.vtnrsc.DefaultTenantNetwork;
-import org.onosproject.vtnrsc.PhysicalNetwork;
-import org.onosproject.vtnrsc.SegmentationId;
-import org.onosproject.vtnrsc.TenantId;
-import org.onosproject.vtnrsc.TenantNetwork;
-import org.onosproject.vtnrsc.TenantNetworkId;
-import org.onosproject.vtnrsc.TenantNetwork.State;
-import org.onosproject.vtnrsc.TenantNetwork.Type;
-import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
-import org.onosproject.vtnweb.web.TenantNetworkCodec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Maps;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.OK;
 
 /**
  * REST resource for interacting with the inventory of networks.
@@ -253,7 +251,7 @@ public class TenantNetworkWebResource extends AbstractWebResource {
             return Response.status(INTERNAL_SERVER_ERROR)
                     .entity(NETWORK_ID_NOT_EXIST).build();
         }
-        return Response.status(OK).entity(issuccess.toString()).build();
+        return ok(issuccess.toString()).build();
     }
 
     /**

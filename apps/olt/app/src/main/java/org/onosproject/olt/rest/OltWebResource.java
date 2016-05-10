@@ -66,10 +66,9 @@ public class OltWebResource extends AbstractWebResource {
      *
      * @param device device id
      * @param port port number
-     * @return 200 OK
+     * @return 204 NO CONTENT
      */
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
     @Path("{device}/{port}")
     public Response removeSubscriber(
             @PathParam("device")String device,
@@ -79,6 +78,6 @@ public class OltWebResource extends AbstractWebResource {
         PortNumber portNumber = PortNumber.portNumber(port);
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portNumber);
         service.removeSubscriber(connectPoint);
-        return ok("").build();
+        return Response.noContent().build();
     }
 }

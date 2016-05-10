@@ -15,25 +15,7 @@
  */
 package org.onosproject.rest.resources;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.intent.HostToHostIntent;
@@ -47,7 +29,23 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.intent.IntentState.FAILED;
@@ -168,10 +166,11 @@ public class IntentsWebResource extends AbstractWebResource {
      *
      * @param appId application identifier
      * @param key   intent key
+     * @return 204 NO CONTENT
      */
     @DELETE
     @Path("{appId}/{key}")
-    public void deleteIntentById(@PathParam("appId") String appId,
+    public Response deleteIntentById(@PathParam("appId") String appId,
                                  @PathParam("key") String key) {
         final ApplicationId app = get(CoreService.class).getAppId(appId);
 
@@ -185,9 +184,8 @@ public class IntentsWebResource extends AbstractWebResource {
         if (intent == null) {
             // No such intent.  REST standards recommend a positive status code
             // in this case.
-            return;
+            return Response.noContent().build();
         }
-
 
         Key k = intent.key();
 
@@ -216,6 +214,7 @@ public class IntentsWebResource extends AbstractWebResource {
             // clean up the listener
             service.removeListener(listener);
         }
+        return Response.noContent().build();
     }
 
 }

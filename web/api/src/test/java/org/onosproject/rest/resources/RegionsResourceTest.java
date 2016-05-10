@@ -21,6 +21,7 @@ import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.glassfish.jersey.client.ClientProperties;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
@@ -383,7 +384,7 @@ public class RegionsResourceTest extends ResourceTest {
         WebTarget wt = target();
         Response response = wt.path("regions/" + region1.id().toString())
                 .request().delete();
-        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
 
         verify(mockRegionAdminService);
     }
@@ -452,16 +453,16 @@ public class RegionsResourceTest extends ResourceTest {
         replay(mockRegionAdminService);
 
 
-        WebTarget wt = target();
+        WebTarget wt = target()
+                .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
         InputStream jsonStream = RegionsResourceTest.class
                 .getResourceAsStream("region-deviceIds.json");
 
         // FIXME: need to consider whether to use jsonStream for entry deletion
         Response response = wt.path("regions/" +
                 region1.id().toString() + "/devices")
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .delete();
-        // assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
-        // verify(mockRegionAdminService);
+                .request().method("DELETE", Entity.json(jsonStream));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
+        verify(mockRegionAdminService);
     }
 }

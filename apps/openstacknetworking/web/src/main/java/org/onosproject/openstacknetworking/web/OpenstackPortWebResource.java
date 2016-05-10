@@ -72,7 +72,6 @@ public class OpenstackPortWebResource extends AbstractWebResource {
     }
 
     @Path("{portUUID}")
-    @Produces(MediaType.APPLICATION_JSON)
     @DELETE
     public Response deletePorts(@PathParam("portUUID") String id) {
         OpenstackSwitchingService switchingService =
@@ -85,7 +84,7 @@ public class OpenstackPortWebResource extends AbstractWebResource {
 
         switchingService.removePort(id);
 
-        return Response.status(Response.Status.OK).build();
+        return Response.noContent().build();
     }
 
     @PUT

@@ -14,20 +14,8 @@
  */
 package org.onosproject.kafkaintegration.rest;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.kafkaintegration.api.EventExporterService;
 import org.onosproject.kafkaintegration.api.dto.EventSubscriber;
@@ -36,8 +24,18 @@ import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 /**
  * Rest Interfaces for subscribing/unsubscribing to event notifications.
@@ -85,8 +83,6 @@ public class EventExporterWebResource extends AbstractWebResource {
      * @onos.rsModel KafkaRegistration
      */
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     @Path("unregister")
     public Response removeKafkaListener(String appName) {
         EventExporterService service = get(EventExporterService.class);
@@ -148,7 +144,7 @@ public class EventExporterWebResource extends AbstractWebResource {
      * @onos.rsModel KafkaSubscription
      */
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Path("unsubscribe")
     public Response unsubscribe(InputStream input) {
 

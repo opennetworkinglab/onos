@@ -113,25 +113,25 @@ public class AclWebResource extends AbstractWebResource {
      * Remove ACL rule.
      *
      * @param id ACL rule id (in hex string format)
-     * @return 200 OK
+     * @return 204 NO CONTENT
      */
     @DELETE
     @Path("{id}")
     public Response removeAclRule(@PathParam("id") String id) {
         RuleId ruleId = new RuleId(Long.parseLong(id.substring(2), 16));
         get(AclService.class).removeAclRule(ruleId);
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     /**
      * Remove all ACL rules.
      *
-     * @return 200 OK
+     * @return 204 NO CONTENT
      */
     @DELETE
     public Response clearAcl() {
         get(AclService.class).clearAcl();
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     /**

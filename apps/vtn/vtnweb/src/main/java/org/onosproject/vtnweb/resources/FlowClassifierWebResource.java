@@ -149,16 +149,16 @@ public class FlowClassifierWebResource extends AbstractWebResource {
     /**
      * Delete details of a flow classifier.
      *
-     * @param id
-     *            flow classifier id
+     * @param id flow classifier id
+     * @return 204 NO CONTENT
      */
     @Path("{flow_id}")
     @DELETE
-    public void deleteFlowClassifier(@PathParam("flow_id") String id) {
+    public Response deleteFlowClassifier(@PathParam("flow_id") String id) {
         log.debug("Deletes flow classifier by identifier {}.", id);
         FlowClassifierId flowClassifierId = FlowClassifierId.of(id);
         Boolean issuccess = nullIsNotFound(get(FlowClassifierService.class).removeFlowClassifier(flowClassifierId),
                                            FLOW_CLASSIFIER_NOT_FOUND);
-
+        return Response.noContent().build();
     }
 }
