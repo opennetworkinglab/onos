@@ -519,7 +519,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private TopologyVertex findRoot(Set<TopologyVertex> vertexSet) {
         TopologyVertex minVertex = null;
         for (TopologyVertex vertex : vertexSet) {
-            if ((minVertex == null) || (minVertex.deviceId()
+            if ((minVertex == null) || (vertex.deviceId()
                     .toString().compareTo(minVertex.deviceId().toString()) < 0)) {
                 minVertex = vertex;
             }
