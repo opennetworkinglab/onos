@@ -45,7 +45,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * An implementation of control plane metrics back-end database.
  */
 public final class DefaultMetricsDatabase implements MetricsDatabase {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(DefaultMetricsDatabase.class);
 
     private String metricName;
     private String resourceName;
@@ -112,7 +112,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
                     checkArgument(rrdDb.containsDs(k), NON_EXIST_METRIC);
                     sample.setValue(k, v);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("Failed to update metric value due to {}", e.getMessage());
                 }
             });
             sample.update();
@@ -317,7 +317,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
                 // always store the metric data in memory...
                 rrdDb = new RrdDb(rrdDef, RrdBackendFactory.getFactory(STORING_METHOD));
             } catch (IOException e) {
-                e.printStackTrace();
+                log.warn("Failed to create a new round-robin database due to {}", e.getMessage());
             }
 
             return new DefaultMetricsDatabase(metricName, resourceName, rrdDb);
