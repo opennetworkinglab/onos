@@ -25,7 +25,7 @@
         <behaviour api="org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer"
                    impl="org.onosproject.drivers.lumentum.LumentumAlarmConsumer"/>
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
-                   impl="org.onosproject.net.optical.device.DefaultOpticalDevice"/>
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
     </driver>
 </drivers>
 

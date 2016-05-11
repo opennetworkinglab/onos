@@ -19,7 +19,7 @@
         <behaviour api="org.onosproject.net.behaviour.PortDiscovery"
                    impl="org.onosproject.drivers.fujitsu.PortGetterFujitsuImpl"/>
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
-                   impl="org.onosproject.net.optical.device.DefaultOpticalDevice"/>
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
     </driver>
 </drivers>
 

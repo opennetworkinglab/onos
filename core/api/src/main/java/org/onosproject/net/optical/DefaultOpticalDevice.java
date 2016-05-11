@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.optical.device;
+package org.onosproject.net.optical;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -27,11 +27,6 @@ import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractBehaviour;
 import org.onosproject.net.driver.DriverData;
-import org.onosproject.net.optical.OchPort;
-import org.onosproject.net.optical.OduCltPort;
-import org.onosproject.net.optical.OmsPort;
-import org.onosproject.net.optical.OpticalDevice;
-import org.onosproject.net.optical.OtuPort;
 import org.onosproject.net.optical.device.port.OchPortMapper;
 import org.onosproject.net.optical.device.port.OduCltPortMapper;
 import org.onosproject.net.optical.device.port.OmsPortMapper;
@@ -44,14 +39,15 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
-// FIXME This needs to be moved back to org.onosproject.net.optical.impl
-// after optical driver package separation process is complete.
 /**
  * Implementation of {@link OpticalDevice}.
  * <p>
  * Currently supports
  * <ul>
  *  <li> {@link OchPort}
+ *  <li> {@link OmsPort}
+ *  <li> {@link OduCltPort}
+ *  <li> {@link OtuPort}
  * </ul>
  */
 @Beta
