@@ -87,7 +87,12 @@ public interface Tunnel extends Annotated, Provided, NetworkResource {
          * Signifies that a tunnel is currently inactive. This state means that
          * this tunnel can not be borrowed by consumer.
          */
-        INACTIVE
+        INACTIVE,
+
+        /**
+         * Signifies that the tunnel's state is unreliable and should be setup again.
+         */
+        UNSTABLE
     }
 
     /**
