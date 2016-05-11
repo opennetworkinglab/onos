@@ -28,6 +28,7 @@ import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
+import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -540,7 +541,9 @@ public class RoutingRulePopulator {
         for (Port port : devPorts) {
             ConnectPoint connectPoint = new ConnectPoint(deviceId, port.number());
             // TODO: Handles dynamic port events when we are ready for dynamic config
-            if (!srManager.deviceConfiguration.suppressSubnet().contains(connectPoint) &&
+            SegmentRoutingAppConfig appConfig = srManager.cfgService
+                    .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
+            if ((appConfig == null || !appConfig.suppressSubnet().contains(connectPoint)) &&
                     port.isEnabled()) {
                 Ip4Prefix portSubnet = config.getPortSubnet(deviceId, port.number());
                 VlanId assignedVlan = (portSubnet == null)

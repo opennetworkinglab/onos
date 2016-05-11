@@ -5,6 +5,7 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//core/store/serializers:onos-core-serializers',
     '//incubator/api:onos-incubator-api',
+    '//providers/netcfghost:onos-providers-netcfghost',
     '//utils/rest:onlab-rest',
 ]
 

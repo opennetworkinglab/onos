@@ -51,6 +51,7 @@ import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.mcast.McastEvent;
 import org.onosproject.net.mcast.McastRouteInfo;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.storekey.McastStoreKey;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -345,11 +346,11 @@ public class McastHandler {
      */
     private void addFilterToDevice(DeviceId deviceId, PortNumber port, VlanId assignedVlan) {
         // Do nothing if the port is configured as suppressed
-        ConnectPoint connectPt = new ConnectPoint(deviceId, port);
-        if (srManager.deviceConfiguration == null ||
-                srManager.deviceConfiguration.suppressSubnet().contains(connectPt) ||
-                srManager.deviceConfiguration.suppressHost().contains(connectPt)) {
-            log.info("Ignore suppressed port {}", connectPt);
+        ConnectPoint connectPoint = new ConnectPoint(deviceId, port);
+        SegmentRoutingAppConfig appConfig = srManager.cfgService
+                .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
+        if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
+            log.info("Ignore suppressed port {}", connectPoint);
             return;
         }
 

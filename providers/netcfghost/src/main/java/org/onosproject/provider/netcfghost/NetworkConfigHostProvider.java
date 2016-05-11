@@ -59,8 +59,9 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry networkConfigRegistry;
 
-    private static final String APP_NAME = "org.onosproject.provider.netcfghost";
     private ApplicationId appId;
+    private static final String APP_NAME = "org.onosproject.netcfghost";
+    public static final ProviderId PROVIDER_ID = new ProviderId("host", APP_NAME);
     protected HostProviderService providerService;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -71,7 +72,7 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
      * Creates an network config host location provider.
      */
     public NetworkConfigHostProvider() {
-        super(new ProviderId("host", APP_NAME));
+        super(PROVIDER_ID);
     }
 
     @Activate

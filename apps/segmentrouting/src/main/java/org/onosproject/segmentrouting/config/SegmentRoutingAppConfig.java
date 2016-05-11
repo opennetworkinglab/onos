@@ -38,10 +38,12 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     private static final String VROUTER_ID = "vRouterId";
     private static final String SUPPRESS_SUBNET = "suppressSubnet";
     private static final String SUPPRESS_HOST = "suppressHost";
+    private static final String HOST_LEARNING = "hostLearning";
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(VROUTER_MACS, VROUTER_ID, SUPPRESS_SUBNET, SUPPRESS_HOST) &&
+        return hasOnlyFields(VROUTER_MACS, VROUTER_ID, SUPPRESS_SUBNET,
+                SUPPRESS_HOST, HOST_LEARNING) &&
                 vRouterMacs() != null && vRouterId() != null &&
                 suppressSubnet() != null && suppressHost() != null;
     }
@@ -225,6 +227,26 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
         return this;
     }
 
+    /**
+     * Gets whether host learning is enabled or not.
+     *
+     * @return true if enabled. false if disabled or not configured
+     */
+    public boolean hostLearning() {
+        return object.has(HOST_LEARNING) && object.path(HOST_LEARNING).asBoolean();
+    }
+
+    /**
+     * Sets whether host learning is enabled or not.
+     *
+     * @param enabled true if enabled
+     * @return this {@link SegmentRoutingAppConfig}
+     */
+    public SegmentRoutingAppConfig setHostLearning(boolean enabled) {
+        object.put(HOST_LEARNING, enabled);
+        return this;
+    }
+
     @Override
     public String toString() {
         return toStringHelper(this)
@@ -232,6 +254,7 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
                 .add("vRouterId", vRouterId())
                 .add("suppressSubnet", suppressSubnet())
                 .add("suppressHost", suppressHost())
+                .add("hostLearning", hostLearning())
                 .toString();
     }
 }

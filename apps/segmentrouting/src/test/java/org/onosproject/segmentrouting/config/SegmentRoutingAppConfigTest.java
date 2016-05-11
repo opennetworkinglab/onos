@@ -210,6 +210,27 @@ public class SegmentRoutingAppConfigTest {
         assertTrue(suppressHost.contains(PORT_3));
     }
 
+    /**
+     * Tests hostLearning getter.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testHostLearning() throws Exception {
+        assertFalse(config.hostLearning());
+    }
+
+    /**
+     * Tests hostLearning setter.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testSetHostLearning() throws Exception {
+        config.setHostLearning(true);
+        assertTrue(config.hostLearning());
+    }
+
     private class MockDelegate implements ConfigApplyDelegate {
         @Override
         public void onApply(Config config) {

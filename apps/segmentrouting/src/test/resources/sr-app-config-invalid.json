@@ -11,5 +11,6 @@
   "suppressHost" : [
       "of:1/1",
       "wrongPort"
-  ]
+  ],
+  "hostLearning" : false
 }

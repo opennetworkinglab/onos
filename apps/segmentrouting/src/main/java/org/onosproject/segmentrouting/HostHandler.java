@@ -24,6 +24,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -37,6 +38,8 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostService;
+import org.onosproject.provider.netcfghost.NetworkConfigHostProvider;
+import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,23 +72,24 @@ public class HostHandler {
             if (!deviceId.equals(devId)) {
                 return;
             }
-            processHostAddedEventInternal(host.mac(), host.vlan(),
-                    host.location(), host.ipAddresses());
+            processHostAddedEventInternal(host);
         });
     }
 
     protected void processHostAddedEvent(HostEvent event) {
-        processHostAddedEventInternal(event.subject().mac(), event.subject().vlan(),
-                event.subject().location(), event.subject().ipAddresses());
+        processHostAddedEventInternal(event.subject());
     }
 
-    private void processHostAddedEventInternal(MacAddress mac, VlanId vlanId,
-            HostLocation location, Set<IpAddress> ips) {
+    private void processHostAddedEventInternal(Host host) {
+        MacAddress mac = host.mac();
+        VlanId vlanId = host.vlan();
+        HostLocation location = host.location();
         DeviceId deviceId = location.deviceId();
         PortNumber port = location.port();
-        log.info("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
+        Set<IpAddress> ips = host.ipAddresses();
+        log.debug("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
 
-        if (!srManager.deviceConfiguration.suppressHost().contains(location)) {
+        if (accepted(host)) {
             // Populate bridging table entry
             log.debug("Populate L2 table entry for host {} at {}:{}",
                     mac, deviceId, port);
@@ -121,8 +125,7 @@ public class HostHandler {
         Set<IpAddress> ips = event.subject().ipAddresses();
         log.debug("Host {}/{} is removed from {}:{}", mac, vlanId, deviceId, port);
 
-        if (!srManager.deviceConfiguration.suppressHost()
-                .contains(new ConnectPoint(deviceId, port))) {
+        if (accepted(event.subject())) {
             // Revoke bridging table entry
             ForwardingObjective.Builder fob =
                     hostFwdObjBuilder(deviceId, mac, vlanId, port);
@@ -161,8 +164,7 @@ public class HostHandler {
         log.debug("Host {}/{} is moved from {}:{} to {}:{}",
                 mac, vlanId, prevDeviceId, prevPort, newDeviceId, newPort);
 
-        if (!srManager.deviceConfiguration.suppressHost()
-                .contains(new ConnectPoint(prevDeviceId, prevPort))) {
+        if (accepted(event.prevSubject())) {
             // Revoke previous bridging table entry
             ForwardingObjective.Builder prevFob =
                     hostFwdObjBuilder(prevDeviceId, mac, vlanId, prevPort);
@@ -186,8 +188,7 @@ public class HostHandler {
             });
         }
 
-        if (!srManager.deviceConfiguration.suppressHost()
-                .contains(new ConnectPoint(newDeviceId, newPort))) {
+        if (accepted(event.subject())) {
             // Populate new bridging table entry
             ForwardingObjective.Builder newFob =
                     hostFwdObjBuilder(newDeviceId, mac, vlanId, newPort);
@@ -225,8 +226,7 @@ public class HostHandler {
         Set<IpAddress> newIps = event.subject().ipAddresses();
         log.debug("Host {}/{} is updated", mac, vlanId);
 
-        if (!srManager.deviceConfiguration.suppressHost()
-                .contains(new ConnectPoint(prevDeviceId, prevPort))) {
+        if (accepted(event.prevSubject())) {
             // Revoke previous IP table entry
             prevIps.forEach(ip -> {
                 if (ip.isIp4()) {
@@ -237,8 +237,7 @@ public class HostHandler {
             });
         }
 
-        if (!srManager.deviceConfiguration.suppressHost()
-                .contains(new ConnectPoint(newDeviceId, newPort))) {
+        if (accepted(event.subject())) {
             // Populate new IP table entry
             newIps.forEach(ip -> {
                 if (ip.isIp4()) {
@@ -343,5 +342,28 @@ public class HostHandler {
             srManager.deviceConfiguration.removeSubnet(location, ip4Prefix);
             srManager.defaultRoutingHandler.revokeSubnet(ImmutableSet.of(ip4Prefix));
         }
+    }
+
+    /**
+     * Check if a host is accepted or not.
+     *
+     * @param host host to be checked
+     * @return true if segment routing accepts the host
+     */
+    private boolean accepted(Host host) {
+        // Always accept configured hosts
+        if (host.providerId().equals(NetworkConfigHostProvider.PROVIDER_ID)) {
+            return true;
+        }
+
+        SegmentRoutingAppConfig appConfig = srManager.cfgService
+                .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
+        boolean accepted = appConfig != null &&
+                appConfig.hostLearning() &&
+                !appConfig.suppressHost().contains(host.location());
+        if (!accepted) {
+            log.info("Ignore suppressed host {}", host.id());
+        }
+        return accepted;
     }
 }

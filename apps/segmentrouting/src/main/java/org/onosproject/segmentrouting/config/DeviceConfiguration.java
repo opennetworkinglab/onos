@@ -113,7 +113,10 @@ public class DeviceConfiguration implements DeviceProperties {
             cfgService.getSubjects(ConnectPoint.class, InterfaceConfig.class);
         portSubjects.forEach(subject -> {
             // Do not process excluded ports
-            if (suppressSubnet().contains(subject)) {
+            SegmentRoutingAppConfig appConfig =
+                    cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
+            if (appConfig != null && appConfig.suppressSubnet().contains(subject)) {
+                log.info("Ignore suppressed port {}", subject);
                 return;
             }
 
@@ -495,28 +498,6 @@ public class DeviceConfiguration implements DeviceProperties {
     public boolean isAdjacencySid(DeviceId deviceId, int sid) {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         return srinfo != null && srinfo.adjacencySids.containsKey(sid);
-    }
-
-    /**
-     * Gets connect points for which segment routing does not install subnet rules.
-     *
-     * @return set of connect points
-     */
-    public Set<ConnectPoint> suppressSubnet() {
-        SegmentRoutingAppConfig appConfig =
-                cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
-        return (appConfig != null) ? appConfig.suppressSubnet() : ImmutableSet.of();
-    }
-
-    /**
-     * Gets connect points for which segment routing does not install host rules.
-     *
-     * @return set of connect points
-     */
-    public Set<ConnectPoint> suppressHost() {
-        SegmentRoutingAppConfig appConfig =
-                cfgService.getConfig(appId, SegmentRoutingAppConfig.class);
-        return (appConfig != null) ? appConfig.suppressHost() : ImmutableSet.of();
     }
 
     /**
