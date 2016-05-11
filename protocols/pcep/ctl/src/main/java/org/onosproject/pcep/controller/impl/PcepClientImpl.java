@@ -27,6 +27,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.pcep.controller.ClientCapability;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepPacketStats;
+import org.onosproject.pcep.controller.PcepSyncStatus;
 import org.onosproject.pcep.controller.driver.PcepAgent;
 import org.onosproject.pcep.controller.driver.PcepClientDriver;
 import org.onosproject.pcepio.protocol.PcepFactories;
@@ -52,9 +53,10 @@ public class PcepClientImpl implements PcepClientDriver {
     protected String channelId;
 
     private boolean connected;
-    protected boolean startDriverHandshakeCalled = false;
-    protected boolean isHandShakeComplete = false;
-    protected boolean isSyncComplete = false;
+    protected boolean startDriverHandshakeCalled;
+    protected boolean isHandShakeComplete;
+    private PcepSyncStatus lspDbSyncStatus;
+    private PcepSyncStatus labelDbSyncStatus;
     private PccId pccId;
     private PcepAgent agent;
 
@@ -175,13 +177,23 @@ public class PcepClientImpl implements PcepClientDriver {
     }
 
     @Override
-    public void setIsSyncComplete(boolean value) {
-        this.isSyncComplete = value;
+    public void setLspDbSyncStatus(PcepSyncStatus syncStatus) {
+        this.lspDbSyncStatus = syncStatus;
     }
 
     @Override
-    public boolean isSyncComplete() {
-        return isSyncComplete;
+    public PcepSyncStatus lspDbSyncStatus() {
+        return lspDbSyncStatus;
+    }
+
+    @Override
+    public void setLabelDbSyncStatus(PcepSyncStatus syncStatus) {
+        this.labelDbSyncStatus = syncStatus;
+    }
+
+    @Override
+    public PcepSyncStatus labelDbSyncStatus() {
+        return labelDbSyncStatus;
     }
 
     @Override

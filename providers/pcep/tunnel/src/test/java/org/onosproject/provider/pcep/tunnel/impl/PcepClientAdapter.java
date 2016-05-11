@@ -24,6 +24,7 @@ import org.jboss.netty.channel.Channel;
 import org.onosproject.pcep.controller.ClientCapability;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
+import org.onosproject.pcep.controller.PcepSyncStatus;
 import org.onosproject.pcepio.protocol.PcepFactories;
 import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
@@ -42,7 +43,8 @@ public class PcepClientAdapter implements PcepClient {
     private ClientCapability capability;
 
     private PcepVersion pcepVersion;
-    private boolean syncCompleted;
+    private PcepSyncStatus lspDbSyncStatus;
+    private PcepSyncStatus labelDbSyncStatus;
 
     /**
      * Initialize instance with specified parameters.
@@ -109,13 +111,23 @@ public class PcepClientAdapter implements PcepClient {
     }
 
     @Override
-    public final boolean isSyncComplete() {
-        return syncCompleted;
+    public void setLspDbSyncStatus(PcepSyncStatus syncStatus) {
+        this.lspDbSyncStatus = syncStatus;
     }
 
     @Override
-    public final void setIsSyncComplete(boolean value) {
-        syncCompleted = value;
+    public PcepSyncStatus lspDbSyncStatus() {
+        return lspDbSyncStatus;
+    }
+
+    @Override
+    public void setLabelDbSyncStatus(PcepSyncStatus syncStatus) {
+        this.labelDbSyncStatus = syncStatus;
+    }
+
+    @Override
+    public PcepSyncStatus labelDbSyncStatus() {
+        return labelDbSyncStatus;
     }
 
     @Override

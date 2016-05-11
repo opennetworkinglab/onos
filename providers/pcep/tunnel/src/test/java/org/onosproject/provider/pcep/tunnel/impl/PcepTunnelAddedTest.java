@@ -25,6 +25,8 @@ import static org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys.LSP_S
 import static org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys.PCC_TUNNEL_ID;
 import static org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys.PLSP_ID;
 import static org.onosproject.provider.pcep.tunnel.impl.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
+import static org.onosproject.pcep.controller.PcepSyncStatus.SYNCED;
+import static org.onosproject.pcep.controller.PcepSyncStatus.IN_SYNC;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -260,7 +262,7 @@ public class PcepTunnelAddedTest {
 
         PccId pccId = PccId.pccId(IpAddress.valueOf(0x4e1f0400));
         controller.getClient(pccId).setCapability(new ClientCapability(true, true, true));
-        controller.getClient(pccId).setIsSyncComplete(true);
+        controller.getClient(pccId).setLspDbSyncStatus(SYNCED);
 
         // Process update message.
         controller.processClientMessage(pccId, message);
@@ -307,11 +309,289 @@ public class PcepTunnelAddedTest {
         PcepMessage message = reader.readFrom(buffer);
 
         PccId pccId = PccId.pccId(IpAddress.valueOf("1.1.1.1"));
-        controller.getClient(pccId).setIsSyncComplete(true);
+        controller.getClient(pccId).setLspDbSyncStatus(SYNCED);
         controller.getClient(pccId).setCapability(new ClientCapability(true, true, true));
         controller.processClientMessage(pccId, message);
 
         assertThat(registry.tunnelIdCounter, is((long) 1));
+    }
+
+    /**
+     * Tests LSPDB sync where PCC reports less LSPs than known by PCE and PCE deletes at the end of DB sync.
+     */
+    @Test
+    public void testCaseLspDbSync1() throws PcepParseException, PcepOutOfBoundMessageException {
+        /* Step 1 create 2 LSPs */
+        byte[] reportMsg1 = new byte[] {0x20, 0x0a, 0x00, (byte) 0x84,
+                                       0x21, 0x10, 0x00, 0x14, //SRP object
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x1c, 0x00, 0x04, // PATH-SETUP-TYPE TLV
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x20, 0x10, 0x00, 0x24, 0x00, 0x00, 0x10, 0x19, // LSP object
+                                       0x00, 0x11, 0x00, 0x04, 0x54, 0x31, 0x00, 0x00, // symbolic path TLV
+                                       0x00, 0x12, 0x00, 0x10, // IPv4-LSP-IDENTIFIER-TLV
+                                       0x01, 0x01, 0x01, 0x01,
+                                       0x00, 0x01, 0x00, 0x01,
+                                       0x01, 0x01, 0x01, 0x01,
+                                       0x05, 0x05, 0x05, 0x05,
+
+                                       0x07, 0x10, 0x00, 0x14, //ERO object
+                                       0x01, 0x08, (byte) 0x01, 0x01, 0x01, 0x01, 0x04, 0x00, // ERO IPv4 sub objects
+                                       0x01, 0x08, (byte) 0x05, 0x05, 0x05, 0x05, 0x04, 0x00,
+
+                                       0x08, 0x10, 0x00, 0x34, //RRO object
+                                       0x01, 0x08, 0x11, 0x01, 0x01, 0x01, 0x04, 0x00, // RRO IPv4 sub objects
+                                       0x01, 0x08, 0x11, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                       0x01, 0x08, 0x06, 0x06, 0x06, 0x06, 0x04, 0x00,
+                                       0x01, 0x08, 0x12, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                       0x01, 0x08, 0x12, 0x01, 0x01, 0x01, 0x04, 0x00,
+                                       0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00
+                                       };
+
+        ChannelBuffer buffer1 = ChannelBuffers.dynamicBuffer();
+        buffer1.writeBytes(reportMsg1);
+
+        PcepMessageReader<PcepMessage> reader1 = PcepFactories.getGenericReader();
+        PcepMessage message1 = reader1.readFrom(buffer1);
+
+        PccId pccId = PccId.pccId(IpAddress.valueOf("1.1.1.1"));
+        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true));
+        controller.processClientMessage(pccId, message1);
+
+        /* create 2nd LSP */
+        byte[] reportMsg2 = new byte[] {0x20, 0x0a, 0x00, (byte) 0x84,
+                                       0x21, 0x10, 0x00, 0x14, //SRP object
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x1c, 0x00, 0x04, // PATH-SETUP-TYPE TLV
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x20, 0x10, 0x00, 0x24, 0x00, 0x00, 0x20, 0x19, // LSP object
+                                       0x00, 0x11, 0x00, 0x04, 0x54, 0x31, 0x00, 0x00, // symbolic path TLV
+                                       0x00, 0x12, 0x00, 0x10, // IPv4-LSP-IDENTIFIER-TLV
+                                       0x01, 0x01, 0x01, 0x01,
+                                       0x00, 0x02, 0x00, 0x02,
+                                       0x01, 0x01, 0x01, 0x01,
+                                       0x05, 0x05, 0x05, 0x05,
+
+                                       0x07, 0x10, 0x00, 0x14, //ERO object
+                                       0x01, 0x08, (byte) 0x01, 0x01, 0x01, 0x01, 0x04, 0x00, // ERO IPv4 sub objects
+                                       0x01, 0x08, (byte) 0x05, 0x05, 0x05, 0x05, 0x04, 0x00,
+
+                                       0x08, 0x10, 0x00, 0x34, //RRO object
+                                       0x01, 0x08, 0x11, 0x01, 0x01, 0x01, 0x04, 0x00, // RRO IPv4 sub objects
+                                       0x01, 0x08, 0x11, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                       0x01, 0x08, 0x06, 0x06, 0x06, 0x06, 0x04, 0x00,
+                                       0x01, 0x08, 0x12, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                       0x01, 0x08, 0x12, 0x01, 0x01, 0x01, 0x04, 0x00,
+                                       0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00
+                                       };
+
+        ChannelBuffer buffer2 = ChannelBuffers.dynamicBuffer();
+        buffer2.writeBytes(reportMsg2);
+
+        PcepMessageReader<PcepMessage> reader2 = PcepFactories.getGenericReader();
+        PcepMessage message2 = reader2.readFrom(buffer2);
+
+        controller.processClientMessage(pccId, message2);
+
+        /* Assert number of LSPs in DB to be 2. */
+        assertThat(registry.tunnelIdCounter, is((long) 2));
+
+        /* Step 2 send sync begin message and LSP 1. */
+        byte[] reportMsg3 = new byte[] {0x20, 0x0a, 0x00, (byte) 0x84,
+                                        0x21, 0x10, 0x00, 0x14, //SRP object
+                                        0x00, 0x00, 0x00, 0x00,
+                                        0x00, 0x00, 0x00, 0x00,
+                                        0x00, 0x1c, 0x00, 0x04, // PATH-SETUP-TYPE TLV
+                                        0x00, 0x00, 0x00, 0x00,
+                                        0x20, 0x10, 0x00, 0x24, 0x00, 0x00, 0x10, 0x1B, // LSP object
+                                        0x00, 0x11, 0x00, 0x04, 0x54, 0x31, 0x00, 0x00, // symbolic path TLV
+                                        0x00, 0x12, 0x00, 0x10, // IPv4-LSP-IDENTIFIER-TLV
+                                        0x01, 0x01, 0x01, 0x01,
+                                        0x00, 0x01, 0x00, 0x01,
+                                        0x01, 0x01, 0x01, 0x01,
+                                        0x05, 0x05, 0x05, 0x05,
+
+                                        0x07, 0x10, 0x00, 0x14, //ERO object
+                                        0x01, 0x08, (byte) 0x01, 0x01, 0x01, 0x01, 0x04, 0x00, // ERO IPv4 sub objects
+                                        0x01, 0x08, (byte) 0x05, 0x05, 0x05, 0x05, 0x04, 0x00,
+
+                                        0x08, 0x10, 0x00, 0x34, //RRO object
+                                        0x01, 0x08, 0x11, 0x01, 0x01, 0x01, 0x04, 0x00, // RRO IPv4 sub objects
+                                        0x01, 0x08, 0x11, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                        0x01, 0x08, 0x06, 0x06, 0x06, 0x06, 0x04, 0x00,
+                                        0x01, 0x08, 0x12, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                        0x01, 0x08, 0x12, 0x01, 0x01, 0x01, 0x04, 0x00,
+                                        0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00
+                                        };
+
+         ChannelBuffer buffer3 = ChannelBuffers.dynamicBuffer();
+         buffer3.writeBytes(reportMsg3);
+         PcepMessageReader<PcepMessage> reader3 = PcepFactories.getGenericReader();
+         PcepMessage message3 = reader3.readFrom(buffer3);
+         controller.processClientMessage(pccId, message3);
+
+         assertThat(controller.getClient(pccId).lspDbSyncStatus(), is(IN_SYNC));
+
+        /* Step 3 send end of sync marker */
+         byte[] reportMsg4 = new byte[] {0x20, 0x0a, 0x00, (byte) 0x24,
+                                         0x20, 0x10, 0x00, 0x1C, // LSP object
+                                         0x00, 0x00, 0x10, 0x19,
+                                         0x00, 0x12, 0x00, 0x10, // IPv4-LSP-IDENTIFIER-TLV
+                                         0x00, 0x00, 0x00, 0x00,
+                                         0x00, 0x00, 0x00, 0x00,
+                                         0x00, 0x00, 0x00, 0x00,
+                                         0x00, 0x00, 0x00, 0x00,
+                                         0x07, 0x10, 0x00, 0x04, //ERO object
+                                         };
+
+          ChannelBuffer buffer4 = ChannelBuffers.dynamicBuffer();
+          buffer4.writeBytes(reportMsg4);
+          PcepMessageReader<PcepMessage> reader4 = PcepFactories.getGenericReader();
+          PcepMessage message4 = reader4.readFrom(buffer4);
+          controller.processClientMessage(pccId, message4);
+
+        assertThat(controller.getClient(pccId).lspDbSyncStatus(), is(SYNCED));
+    }
+
+    /**
+     * Tests PCC PCRpt PCE initiated LSP which PCE doesn't know and hence should send PCInit delete msg.
+     */
+    @Test
+    public void testCaseLspDbSync2() throws PcepParseException, PcepOutOfBoundMessageException {
+        /* Step 1 create 2 LSPs */
+        byte[] reportMsg1 = new byte[] {0x20, 0x0a, 0x00, (byte) 0x84,
+                                       0x21, 0x10, 0x00, 0x14, //SRP object
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x1c, 0x00, 0x04, // PATH-SETUP-TYPE TLV
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x20, 0x10, 0x00, 0x24, 0x00, 0x00, 0x10, 0x19, // LSP object
+                                       0x00, 0x11, 0x00, 0x04, 0x54, 0x31, 0x00, 0x00, // symbolic path TLV
+                                       0x00, 0x12, 0x00, 0x10, // IPv4-LSP-IDENTIFIER-TLV
+                                       0x01, 0x01, 0x01, 0x01,
+                                       0x00, 0x01, 0x00, 0x01,
+                                       0x01, 0x01, 0x01, 0x01,
+                                       0x05, 0x05, 0x05, 0x05,
+
+                                       0x07, 0x10, 0x00, 0x14, //ERO object
+                                       0x01, 0x08, (byte) 0x01, 0x01, 0x01, 0x01, 0x04, 0x00, // ERO IPv4 sub objects
+                                       0x01, 0x08, (byte) 0x05, 0x05, 0x05, 0x05, 0x04, 0x00,
+
+                                       0x08, 0x10, 0x00, 0x34, //RRO object
+                                       0x01, 0x08, 0x11, 0x01, 0x01, 0x01, 0x04, 0x00, // RRO IPv4 sub objects
+                                       0x01, 0x08, 0x11, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                       0x01, 0x08, 0x06, 0x06, 0x06, 0x06, 0x04, 0x00,
+                                       0x01, 0x08, 0x12, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                       0x01, 0x08, 0x12, 0x01, 0x01, 0x01, 0x04, 0x00,
+                                       0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00
+                                       };
+
+        ChannelBuffer buffer1 = ChannelBuffers.dynamicBuffer();
+        buffer1.writeBytes(reportMsg1);
+
+        PcepMessageReader<PcepMessage> reader1 = PcepFactories.getGenericReader();
+        PcepMessage message1 = reader1.readFrom(buffer1);
+
+        PccId pccId = PccId.pccId(IpAddress.valueOf("1.1.1.1"));
+        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true));
+        controller.processClientMessage(pccId, message1);
+
+        /* create 2nd LSP */
+        byte[] reportMsg2 = new byte[] {0x20, 0x0a, 0x00, (byte) 0x84,
+                                       0x21, 0x10, 0x00, 0x14, //SRP object
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x1c, 0x00, 0x04, // PATH-SETUP-TYPE TLV
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x20, 0x10, 0x00, 0x24, 0x00, 0x00, 0x20, 0x19, // LSP object
+                                       0x00, 0x11, 0x00, 0x04, 0x54, 0x31, 0x00, 0x00, // symbolic path TLV
+                                       0x00, 0x12, 0x00, 0x10, // IPv4-LSP-IDENTIFIER-TLV
+                                       0x01, 0x01, 0x01, 0x01,
+                                       0x00, 0x02, 0x00, 0x02,
+                                       0x01, 0x01, 0x01, 0x01,
+                                       0x05, 0x05, 0x05, 0x05,
+
+                                       0x07, 0x10, 0x00, 0x14, //ERO object
+                                       0x01, 0x08, (byte) 0x01, 0x01, 0x01, 0x01, 0x04, 0x00, // ERO IPv4 sub objects
+                                       0x01, 0x08, (byte) 0x05, 0x05, 0x05, 0x05, 0x04, 0x00,
+
+                                       0x08, 0x10, 0x00, 0x34, //RRO object
+                                       0x01, 0x08, 0x11, 0x01, 0x01, 0x01, 0x04, 0x00, // RRO IPv4 sub objects
+                                       0x01, 0x08, 0x11, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                       0x01, 0x08, 0x06, 0x06, 0x06, 0x06, 0x04, 0x00,
+                                       0x01, 0x08, 0x12, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                       0x01, 0x08, 0x12, 0x01, 0x01, 0x01, 0x04, 0x00,
+                                       0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00
+                                       };
+
+        ChannelBuffer buffer2 = ChannelBuffers.dynamicBuffer();
+        buffer2.writeBytes(reportMsg2);
+
+        PcepMessageReader<PcepMessage> reader2 = PcepFactories.getGenericReader();
+        PcepMessage message2 = reader2.readFrom(buffer2);
+
+        controller.processClientMessage(pccId, message2);
+
+        /* Assert number of LSPs in DB to be 2. */
+        assertThat(registry.tunnelIdCounter, is((long) 2));
+
+        /* Step 2 send sync begin message and LSP 1. */
+        byte[] reportMsg3 = new byte[] {0x20, 0x0a, 0x00, (byte) 0x84,
+                                        0x21, 0x10, 0x00, 0x14, //SRP object
+                                        0x00, 0x00, 0x00, 0x00,
+                                        0x00, 0x00, 0x00, 0x00,
+                                        0x00, 0x1c, 0x00, 0x04, // PATH-SETUP-TYPE TLV
+                                        0x00, 0x00, 0x00, 0x00,
+                                        0x20, 0x10, 0x00, 0x24, 0x00, 0x00, 0x10, (byte) 0x9B, // LSP object
+                                        0x00, 0x11, 0x00, 0x04, 0x54, 0x31, 0x00, 0x00, // symbolic path TLV
+                                        0x00, 0x12, 0x00, 0x10, // IPv4-LSP-IDENTIFIER-TLV
+                                        0x01, 0x01, 0x01, 0x01,
+                                        0x00, 0x01, 0x00, 0x03,
+                                        0x01, 0x01, 0x01, 0x01,
+                                        0x05, 0x05, 0x05, 0x05,
+
+                                        0x07, 0x10, 0x00, 0x14, //ERO object
+                                        0x01, 0x08, (byte) 0x01, 0x01, 0x01, 0x01, 0x04, 0x00, // ERO IPv4 sub objects
+                                        0x01, 0x08, (byte) 0x05, 0x05, 0x05, 0x05, 0x04, 0x00,
+
+                                        0x08, 0x10, 0x00, 0x34, //RRO object
+                                        0x01, 0x08, 0x11, 0x01, 0x01, 0x01, 0x04, 0x00, // RRO IPv4 sub objects
+                                        0x01, 0x08, 0x11, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                        0x01, 0x08, 0x06, 0x06, 0x06, 0x06, 0x04, 0x00,
+                                        0x01, 0x08, 0x12, 0x01, 0x01, 0x02, 0x04, 0x00,
+                                        0x01, 0x08, 0x12, 0x01, 0x01, 0x01, 0x04, 0x00,
+                                        0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00
+                                        };
+
+        ChannelBuffer buffer3 = ChannelBuffers.dynamicBuffer();
+        buffer3.writeBytes(reportMsg3);
+        PcepMessageReader<PcepMessage> reader3 = PcepFactories.getGenericReader();
+        PcepMessage message3 = reader3.readFrom(buffer3);
+        controller.processClientMessage(pccId, message3);
+
+        assertThat(controller.getClient(pccId).lspDbSyncStatus(), is(IN_SYNC));
+
+        /* Step 3 send end of sync marker */
+        byte[] reportMsg4 = new byte[] {0x20, 0x0a, 0x00, (byte) 0x24,
+                                       0x20, 0x10, 0x00, 0x1C, // LSP object
+                                       0x00, 0x00, 0x10, 0x19,
+                                       0x00, 0x12, 0x00, 0x10, // IPv4-LSP-IDENTIFIER-TLV
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x00, 0x00, 0x00,
+                                       0x07, 0x10, 0x00, 0x04, //ERO object
+                                       };
+
+        ChannelBuffer buffer4 = ChannelBuffers.dynamicBuffer();
+        buffer4.writeBytes(reportMsg4);
+        PcepMessageReader<PcepMessage> reader4 = PcepFactories.getGenericReader();
+        PcepMessage message4 = reader4.readFrom(buffer4);
+        controller.processClientMessage(pccId, message4);
+
+        assertThat(controller.getClient(pccId).lspDbSyncStatus(), is(SYNCED));
     }
 
     @After

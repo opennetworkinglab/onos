@@ -18,7 +18,6 @@ package org.onosproject.provider.pcep.tunnel.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.collections.map.MultiKeyMap;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelProviderService;
 import org.slf4j.Logger;
@@ -40,8 +39,6 @@ public class PcepTunnelApiMapper {
     private Map<Integer, PcepTunnelData> tunnelDB;
     // Map to store the tunnel ids, given by core and given by pcc.
     private Map<TunnelId, Integer> tunnelIdMap;
-    //Map to store all the learnt tunnels.
-    private MultiKeyMap pccTunnelDB = new MultiKeyMap();
 
     TunnelProviderService tunnelApiMapperservice;
 
@@ -192,15 +189,5 @@ public class PcepTunnelApiMapper {
         int value = tunnelIdMap.get(tunnelId);
         boolean retValue = tunnelDB.containsKey((new Integer(value)));
         return retValue;
-    }
-
-    /**
-     * Add Learnt tunnels to pcc tunnel DB.
-     *
-     * @param pcepTunnelData pcep tunnel data
-     */
-    public void addPccTunnelDB(PcepTunnelData pcepTunnelData) {
-        pccTunnelDB.put(pcepTunnelData.statefulIpv4IndentifierTlv().getTunnelId() & 0xFFFFL,
-                        pcepTunnelData.statefulIpv4IndentifierTlv().getIpv4IngressAddress(), pcepTunnelData);
     }
 }

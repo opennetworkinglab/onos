@@ -51,4 +51,9 @@ public final class PcepAnnotationKeys {
      * Annotation key for the LSP id assigned per tunnel.
      */
     public static final String LOCAL_LSP_ID = "localLspId";
+
+    /**
+     * Annotation key for the identification of initiated LSP.
+     */
+    public static final String PCE_INIT = "pceInit";
 }

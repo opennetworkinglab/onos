@@ -48,7 +48,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      | Object-Class  |   OT  |Res|P|I|   Object Length (bytes)       |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |                PLSP-ID                |  Flag  C|    O|A|R|S|D|
+     |                PLSP-ID                |  Flag |C|    O|A|R|S|D|
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      //                        TLVs                                 //
      |                                                               |
@@ -116,6 +116,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
      * @param bRFlag R flag
      * @param bSFlag S flag
      * @param bDFlag D flag
+     * @param bCFlag C flag
      * @param llOptionalTlv list of optional tlv
      */
     public PcepLspObjectVer1(PcepObjectHeader lspObjHeader, int iPlspId, byte yOFlag, boolean bAFlag, boolean bRFlag,
@@ -294,6 +295,9 @@ public class PcepLspObjectVer1 implements PcepLspObject {
         }
 
         int iTemp = iPlspId << PLSPID_SHIFT_VALUE;
+
+        iTemp = iTemp | (((bCFlag) ? BIT_SET : BIT_RESET) << CFLAG_SHIFT_VALUE);
+
         iTemp = iTemp | (yOFlag << OFLAG_SHIFT_VALUE);
         byte bFlag;
         iTemp = bAFlag ? (iTemp | AFLAG_TEMP_SHIFT_VALUE) : iTemp;

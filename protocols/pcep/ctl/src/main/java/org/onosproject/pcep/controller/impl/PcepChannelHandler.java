@@ -169,6 +169,12 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                             }
                         }
 
+                        /*
+                         * If MPLS LSR id and PCEP session socket IP addresses are not same,
+                         * the MPLS LSR id will be encoded in separate TLV.
+                         * We always maintain session information based on LSR ids.
+                         * The socket IP is stored in channel.
+                         */
                         LinkedList<PcepValueType> optionalTlvs = pOpenmsg.getPcepOpenObject().getOptionalTlv();
                         for (PcepValueType optionalTlv : optionalTlvs) {
                             if (optionalTlv instanceof NodeAttributesTlv) {

@@ -95,18 +95,32 @@ public interface PcepClient {
     String channelId();
 
     /**
-     * To set the status of state synchronization.
+     * Sets the status of LSP state synchronization.
      *
-     * @param value to set the synchronization status
+     * @param syncStatus LSP synchronization status to be set
      */
-    void setIsSyncComplete(boolean value);
+    void setLspDbSyncStatus(PcepSyncStatus syncStatus);
 
     /**
-     * Indicates the state synchronization status of this pcc.
+     * Indicates the LSP state synchronization status of this pcc.
      *
-     * @return true/false if the synchronization is completed/not completed
+     * @return LSP state synchronization status.
      */
-    boolean isSyncComplete();
+    PcepSyncStatus lspDbSyncStatus();
+
+    /**
+     * Sets the status of label DB synchronization.
+     *
+     * @param syncStatus label DB synchronization status to be set
+     */
+    void setLabelDbSyncStatus(PcepSyncStatus syncStatus);
+
+    /**
+     * Indicates the label DB synchronization status of this pcc.
+     *
+     * @return label DB synchronization status.
+     */
+    PcepSyncStatus labelDbSyncStatus();
 
     /**
      * Sets capability negotiated during open message exchange.
