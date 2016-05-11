@@ -113,7 +113,7 @@ public class YangJavaNotification
     public void generateCodeEntry(YangPluginConfig yangPlugin)
             throws IOException {
 
-        /*
+        /**
          * As part of the notification support the following files needs to be generated.
          * 1) Subject of the notification(event), this is simple interface with builder class.
          * 2) Event class extending "AbstractEvent" and defining event type enum.
@@ -121,18 +121,19 @@ public class YangJavaNotification
          *
          * The manager class needs to extend the ListenerRegistry.
          */
+
+
+        // Generate subject of the notification(event), this is simple interface with builder class.
         generateCodeOfNode(this, yangPlugin);
     }
 
     /**
      * Creates a java file using the YANG notification info.
-     *
-     * @throws IOException input output operation fail
      */
     @Override
     public void generateCodeExit()
             throws IOException {
-        /*
+        /**
          * As part of the notification support the following files needs to be generated.
          * 1) Subject of the notification(event), this is simple interface with builder class.
          * 2) Event class extending "AbstractEvent" and defining event type enum.

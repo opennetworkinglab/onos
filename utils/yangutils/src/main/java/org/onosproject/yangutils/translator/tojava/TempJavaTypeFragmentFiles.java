@@ -60,7 +60,6 @@ public class TempJavaTypeFragmentFiles
      * File name for construction for special type like union, typedef.
      */
     private static final String CONSTRUCTOR_FOR_TYPE_FILE_NAME = "ConstructorForType";
-
     /**
      * File name for from string method.
      */
@@ -81,7 +80,6 @@ public class TempJavaTypeFragmentFiles
      * Temporary file handle for of string method of class.
      */
     private File ofStringImplTempFileHandle;
-
     /**
      * Temporary file handle for constructor for type class.
      */
@@ -96,7 +94,6 @@ public class TempJavaTypeFragmentFiles
      * Java file handle for typedef class file.
      */
     private File typedefClassJavaFileHandle;
-
     /**
      * Java file handle for type class like union, typedef file.
      */

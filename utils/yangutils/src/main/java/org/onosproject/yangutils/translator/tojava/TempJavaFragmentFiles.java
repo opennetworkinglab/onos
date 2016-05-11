@@ -114,38 +114,31 @@ public class TempJavaFragmentFiles {
      * Information about the java files being generated.
      */
     private JavaFileInfo javaFileInfo;
-
     /**
      * Imported class info.
      */
     private JavaImportData javaImportData;
-
     /**
      * The variable which guides the types of temporary files generated using
      * the temporary generated file types mask.
      */
     private int generatedTempFiles;
-
     /**
      * Absolute path where the target java file needs to be generated.
      */
     private String absoluteDirPath;
-
     /**
      * Contains all the interface(s)/class name which will be extended by generated files.
      */
     private List<String> extendsList = new ArrayList<>();
-
     /**
      * File type extension for java classes.
      */
     private static final String JAVA_FILE_EXTENSION = ".java";
-
     /**
      * File type extension for temporary classes.
      */
     private static final String TEMP_FILE_EXTENSION = ".tmp";
-
     /**
      * Folder suffix for temporary files folder.
      */
@@ -175,17 +168,14 @@ public class TempJavaFragmentFiles {
      * File name for attributes.
      */
     private static final String ATTRIBUTE_FILE_NAME = "Attributes";
-
     /**
      * File name for to string method.
      */
     private static final String TO_STRING_METHOD_FILE_NAME = "ToString";
-
     /**
      * File name for hash code method.
      */
     private static final String HASH_CODE_METHOD_FILE_NAME = "HashCode";
-
     /**
      * File name for equals method.
      */
@@ -200,17 +190,14 @@ public class TempJavaFragmentFiles {
      * File name for interface java file name suffix.
      */
     private static final String INTERFACE_FILE_NAME_SUFFIX = EMPTY_STRING;
-
     /**
      * File name for builder interface file name suffix.
      */
     private static final String BUILDER_INTERFACE_FILE_NAME_SUFFIX = BUILDER + INTERFACE;
-
     /**
      * File name for builder class file name suffix.
      */
     private static final String BUILDER_CLASS_FILE_NAME_SUFFIX = BUILDER;
-
     /**
      * File name for impl class file name suffix.
      */
@@ -225,17 +212,14 @@ public class TempJavaFragmentFiles {
      * Java file handle for interface file.
      */
     private File interfaceJavaFileHandle;
-
     /**
      * Java file handle for builder interface file.
      */
     private File builderInterfaceJavaFileHandle;
-
     /**
      * Java file handle for builder class file.
      */
     private File builderClassJavaFileHandle;
-
     /**
      * Java file handle for impl class file.
      */
@@ -270,17 +254,14 @@ public class TempJavaFragmentFiles {
      * Temporary file handle for hash code method of class.
      */
     private File hashCodeImplTempFileHandle;
-
     /**
      * Temporary file handle for equals method of class.
      */
     private File equalsImplTempFileHandle;
-
     /**
      * Temporary file handle for to string method of class.
      */
     private File toStringImplTempFileHandle;
-
     /**
      * Temporary file handle for enum class file.
      */
@@ -295,16 +276,17 @@ public class TempJavaFragmentFiles {
      * Is attribute added.
      */
     private boolean isAttributePresent = false;
-
     /**
      * Current enum's value.
      */
     private int enumValue;
-
     /*
      * Java file handle for enum class.
      */
     private File enumClassJavaFileHandle;
+
+    public TempJavaFragmentFiles() {
+    }
 
     /**
      * Returns enum class java file handle.
