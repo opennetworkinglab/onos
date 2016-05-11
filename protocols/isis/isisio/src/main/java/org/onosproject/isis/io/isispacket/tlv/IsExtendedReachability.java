@@ -49,9 +49,10 @@ public class IsExtendedReachability extends TlvHeader implements IsisTlv {
         this.neighbors.add(neighbor);
     }
 
+
     @Override
     public void readFrom(ChannelBuffer channelBuffer) {
-        while (channelBuffer.readableBytes() >= IsisUtil.EIGHT_BYTES + IsisUtil.THREE_BYTES) {
+        while (channelBuffer.readableBytes() >= (IsisUtil.EIGHT_BYTES + IsisUtil.THREE_BYTES)) {
             NeighborForExtendedIs extendedIs = new NeighborForExtendedIs();
             extendedIs.readFrom(channelBuffer);
             this.addNeighbor(extendedIs);

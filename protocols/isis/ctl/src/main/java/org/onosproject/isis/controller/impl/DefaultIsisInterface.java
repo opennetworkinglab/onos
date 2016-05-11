@@ -88,6 +88,7 @@ public class DefaultIsisInterface implements IsisInterface {
     private IsisLsdb isisLsdb = null;
     private List<Ip4Address> allConfiguredInterfaceIps = null;
     private Channel channel;
+    private boolean helloSenderStarted = false;
 
     /**
      * Returns ISIS LSDB instance.
@@ -1103,12 +1104,14 @@ public class DefaultIsisInterface implements IsisInterface {
      */
     public void startHelloSender(Channel channel) {
         log.debug("IsisInterfaceImpl::startHelloSender");
-
-        isisHelloPduSender = new IsisHelloPduSender(channel, this);
-        exServiceHello = Executors.newSingleThreadScheduledExecutor();
-        final ScheduledFuture<?> helloHandle =
-                exServiceHello.scheduleAtFixedRate(isisHelloPduSender, 0,
-                                                   helloInterval, TimeUnit.SECONDS);
+        if (!helloSenderStarted) {
+            isisHelloPduSender = new IsisHelloPduSender(channel, this);
+            exServiceHello = Executors.newSingleThreadScheduledExecutor();
+            final ScheduledFuture<?> helloHandle =
+                    exServiceHello.scheduleAtFixedRate(isisHelloPduSender, 0,
+                                                       helloInterval, TimeUnit.SECONDS);
+            helloSenderStarted = true;
+        }
     }
 
     /**
@@ -1117,5 +1120,6 @@ public class DefaultIsisInterface implements IsisInterface {
     public void stopHelloSender() {
         log.debug("IsisInterfaceImpl::stopHelloSender");
         exServiceHello.shutdown();
+        helloSenderStarted = false;
     }
 }

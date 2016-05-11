@@ -145,7 +145,9 @@ public class L1L2HelloPdu extends HelloPdu {
             TlvType tlvType = TlvType.get(tlvHeader.tlvType());
             if (tlvType != null) {
                 IsisTlv tlv = TlvFinder.findTlv(tlvHeader, channelBuffer.readBytes(tlvHeader.tlvLength()));
-                this.variableLengths.add(tlv);
+                if (tlv != null) {
+                    this.variableLengths.add(tlv);
+                }
             } else {
                 channelBuffer.readBytes(tlvHeader.tlvLength());
             }

@@ -101,8 +101,11 @@ public class NeighborForExtendedIs {
                 int tlvLength = tlvHeader.tlvLength();
                 if (tlvValue != null) {
                     if (channelBuffer.readableBytes() >= tlvLength) {
-                        this.addSubTlv(SubTlvFinder.findSubTlv(tlvHeader,
-                                                               channelBuffer.readBytes(tlvHeader.tlvLength())));
+                        TrafficEngineeringSubTlv subTlv =
+                                SubTlvFinder.findSubTlv(tlvHeader, channelBuffer.readBytes(tlvHeader.tlvLength()));
+                        if (subTlv != null) {
+                            this.addSubTlv(subTlv);
+                        }
                     }
                 } else {
                     if (channelBuffer.readableBytes() >= tlvLength) {

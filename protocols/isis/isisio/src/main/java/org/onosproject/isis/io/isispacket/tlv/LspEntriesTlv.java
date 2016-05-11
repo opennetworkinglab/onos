@@ -18,6 +18,7 @@ package org.onosproject.isis.io.isispacket.tlv;
 import com.google.common.base.MoreObjects;
 import com.google.common.primitives.Bytes;
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.onosproject.isis.io.util.IsisUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,9 +59,9 @@ public class LspEntriesTlv extends TlvHeader implements IsisTlv {
 
     @Override
     public void readFrom(ChannelBuffer channelBuffer) {
-        while (channelBuffer.readableBytes() >= 16) {
+        while (channelBuffer.readableBytes() >= (IsisUtil.EIGHT_BYTES * 2)) {
             LspEntry lspEntry = new LspEntry();
-            lspEntry.readFrom(channelBuffer.readBytes(16));
+            lspEntry.readFrom(channelBuffer.readBytes(IsisUtil.EIGHT_BYTES * 2));
             lspEntryList.add(lspEntry);
         }
     }

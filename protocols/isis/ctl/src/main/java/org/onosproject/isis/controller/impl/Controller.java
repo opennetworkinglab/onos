@@ -112,10 +112,6 @@ public class Controller {
             if (isisProcesses.size() > 0) {
                 processes = isisProcesses;
                 connectPeer();
-                //Initializing the interface map in channel handler
-                if (isisChannelHandler != null) {
-                    isisChannelHandler.initializeInterfaceMap();
-                }
             }
         } else {
             isisChannelHandler.updateInterfaceMap(isisProcesses);
@@ -154,7 +150,6 @@ public class Controller {
         isisChannelHandler = new IsisChannelHandler(this, processes);
         ChannelPipelineFactory pfact = new IsisPipelineFactory(isisChannelHandler);
         peerBootstrap.setPipelineFactory(pfact);
-        ChannelFuture connection = peerBootstrap.connect(new InetSocketAddress(IsisConstants.SHOST, isisPort.toInt()));
     }
 
     /**
@@ -499,6 +494,7 @@ public class Controller {
         public void run() {
             log.debug("Connect to peer {}", IsisConstants.SHOST);
             initConnection();
+            isisChannelHandler.sentConfigPacket(configPacket);
             InetSocketAddress connectToSocket = new InetSocketAddress(IsisConstants.SHOST, isisPort.toInt());
             try {
                 peerBootstrap.connect(connectToSocket).addListener(new ChannelFutureListener() {
@@ -517,13 +513,13 @@ public class Controller {
                             }
                             scheduleConnectionRetry(connectRetryTime);
                         } else {
+                            //Send the config packet
+                            isisChannelHandler.sentConfigPacket(configPacket);
                             connectRetryCounter++;
                             log.info("Connected to remote host {}, Connect Counter {}", IsisConstants.SHOST,
                                      connectRetryCounter);
                             disconnectExecutor();
-                            isisChannelHandler.initializeInterfaceMap();
-                            //Send the config packet
-                            isisChannelHandler.sentConfigPacket(configPacket);
+
                             return;
                         }
                     }

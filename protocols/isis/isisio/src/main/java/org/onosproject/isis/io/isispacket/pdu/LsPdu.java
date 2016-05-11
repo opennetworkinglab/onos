@@ -354,7 +354,9 @@ public class LsPdu extends IsisHeader {
             TlvType tlvValue = TlvType.get(tlvHeader.tlvType());
             if (tlvValue != null) {
                 IsisTlv tlv = TlvFinder.findTlv(tlvHeader, channelBuffer.readBytes(tlvHeader.tlvLength()));
-                this.variableLengths.add(tlv);
+                if (tlv != null) {
+                    this.variableLengths.add(tlv);
+                }
             } else {
                 channelBuffer.readBytes(tlvHeader.tlvLength());
             }

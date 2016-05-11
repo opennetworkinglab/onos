@@ -50,7 +50,7 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
 
     private static final Logger log = LoggerFactory.getLogger(IsisChannelHandler.class);
     private static Map<Integer, Object> isisDb = null;
-    private Channel channel;
+    private Channel channel = null;
     private Controller controller;
     private List<IsisProcess> processes = null;
     private List<ScheduledExecutorService> executorList = new ArrayList<>();
@@ -76,8 +76,11 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
     public void initializeInterfaceMap() {
         for (IsisProcess process : processes) {
             for (IsisInterface isisInterface : process.isisInterfaceList()) {
-                isisInterfaceMap.put(isisInterface.interfaceIndex(), isisInterface);
-                interfaceIps.add(isisInterface.interfaceIpAddress());
+                IsisInterface anInterface = isisInterfaceMap.get(isisInterface.interfaceIndex());
+                if (anInterface == null) {
+                    isisInterfaceMap.put(isisInterface.interfaceIndex(), isisInterface);
+                    interfaceIps.add(isisInterface.interfaceIpAddress());
+                }
             }
         }
         //Initializes the interface with all interface ip details - for ls pdu generation
@@ -150,6 +153,7 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
                               + configPacket.length);
             sentConfigPacket(configPacket);
         }
+        initializeInterfaceMap();
         //start the hello timer
         startHelloSender();
         //Initialize Database
@@ -168,6 +172,7 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
         log.debug("IsisChannelHandler::channelDisconnected...!!!");
         if (controller != null) {
             controller.connectPeer();
+            stopHelloSender();
         }
     }
 
@@ -255,8 +260,11 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
      */
     public void stopHelloSender() {
         log.debug("ISISChannelHandler::stopHelloTimer ");
-        for (ScheduledExecutorService exServiceHello : executorList) {
-            exServiceHello.shutdown();
+        log.debug("IsisController::startHelloSender");
+        Set<Integer> interfaceIndexes = isisInterfaceMap.keySet();
+        for (Integer interfaceIndex : interfaceIndexes) {
+            IsisInterface isisInterface = isisInterfaceMap.get(interfaceIndex);
+            isisInterface.stopHelloSender();
         }
     }
 

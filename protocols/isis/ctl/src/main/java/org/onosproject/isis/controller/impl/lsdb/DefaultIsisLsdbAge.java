@@ -44,6 +44,7 @@ public class DefaultIsisLsdbAge implements IsisLsdbAge {
     private int ageCounterRollOver = 0;
     private IsisLspQueueConsumer queueConsumer = null;
     private BlockingQueue<LspWrapper> lsaQueue = new ArrayBlockingQueue<>(1024);
+    private boolean timerStarted = false;
 
     /**
      * Creates an instance of LSDB age.
@@ -128,9 +129,12 @@ public class DefaultIsisLsdbAge implements IsisLsdbAge {
      * Starts the aging timer and queue consumer.
      */
     public void startDbAging() {
-        startDbAgeTimer();
-        queueConsumer = new IsisLspQueueConsumer(lsaQueue);
-        new Thread(queueConsumer).start();
+        if (!timerStarted) {
+            startDbAgeTimer();
+            queueConsumer = new IsisLspQueueConsumer(lsaQueue);
+            new Thread(queueConsumer).start();
+            timerStarted = true;
+        }
     }
 
     /**

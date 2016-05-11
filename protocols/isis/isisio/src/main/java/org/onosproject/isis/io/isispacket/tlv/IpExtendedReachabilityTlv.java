@@ -205,8 +205,11 @@ public class IpExtendedReachabilityTlv extends TlvHeader implements IsisTlv {
                 tlvHeader.setTlvLength(channelBuffer.readByte());
                 SubTlvType tlvValue = SubTlvType.get(tlvHeader.tlvType());
                 if (tlvValue != null) {
-                    this.addSubTlv(SubTlvFinder.findSubTlv(tlvHeader,
-                                                           channelBuffer.readBytes(tlvHeader.tlvLength())));
+                    TrafficEngineeringSubTlv subTlv =
+                            SubTlvFinder.findSubTlv(tlvHeader, channelBuffer.readBytes(tlvHeader.tlvLength()));
+                    if (subTlv != null) {
+                        this.addSubTlv(subTlv);
+                    }
                 } else {
                     channelBuffer.readBytes(tlvHeader.tlvLength());
                 }
