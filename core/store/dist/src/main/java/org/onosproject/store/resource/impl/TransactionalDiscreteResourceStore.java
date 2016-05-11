@@ -44,7 +44,7 @@ class TransactionalDiscreteResourceStore {
     }
 
     // check the existence in the set: O(1) operation
-    Optional<Resource> lookup(DiscreteResourceId id) {
+    Optional<DiscreteResource> lookup(DiscreteResourceId id) {
         if (!id.parent().isPresent()) {
             return Optional.of(Resource.ROOT);
         }
@@ -115,7 +115,7 @@ class TransactionalDiscreteResourceStore {
 
     boolean allocate(ResourceConsumer consumer, DiscreteResource resource) {
         // if the resource is not registered, then abort
-        Optional<Resource> lookedUp = lookup(resource.id());
+        Optional<DiscreteResource> lookedUp = lookup(resource.id());
         if (!lookedUp.isPresent()) {
             return false;
         }

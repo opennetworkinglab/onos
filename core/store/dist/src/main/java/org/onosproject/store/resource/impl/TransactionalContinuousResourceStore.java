@@ -21,7 +21,6 @@ import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.ContinuousResourceId;
 import org.onosproject.net.resource.DiscreteResourceId;
-import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumer;
 import org.onosproject.store.service.TransactionContext;
@@ -35,6 +34,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
 import static org.onosproject.store.resource.impl.ResourceStoreUtil.hasEnoughResource;
 
@@ -49,10 +49,9 @@ class TransactionalContinuousResourceStore {
     }
 
     // iterate over the values in the set: O(n) operation
-    Optional<Resource> lookup(ContinuousResourceId id) {
-        if (!id.parent().isPresent()) {
-            return Optional.of(Resource.ROOT);
-        }
+    Optional<ContinuousResource> lookup(ContinuousResourceId id) {
+        // continuous resource always has its parent
+        checkArgument(id.parent().isPresent());
 
         Set<ContinuousResource> values = childMap.get(id.parent().get());
         if (values == null) {
@@ -61,7 +60,6 @@ class TransactionalContinuousResourceStore {
 
         return values.stream()
                 .filter(x -> x.id().equals(id))
-                .map(x -> (Resource) x)
                 .findFirst();
     }
 
@@ -128,12 +126,12 @@ class TransactionalContinuousResourceStore {
 
     boolean allocate(ResourceConsumer consumer, ContinuousResource request) {
         // if the resource is not registered, then abort
-        Optional<Resource> lookedUp = lookup(request.id());
+        Optional<ContinuousResource> lookedUp = lookup(request.id());
         if (!lookedUp.isPresent()) {
             return false;
         }
         // Down cast: this must be safe as ContinuousResource is associated with ContinuousResourceId
-        ContinuousResource original = (ContinuousResource) lookedUp.get();
+        ContinuousResource original = lookedUp.get();
         ContinuousResourceAllocation allocations = consumers.get(request.id());
         if (!hasEnoughResource(original, request, allocations)) {
             return false;
