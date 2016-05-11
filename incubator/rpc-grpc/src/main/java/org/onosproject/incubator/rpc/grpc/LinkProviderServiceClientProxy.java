@@ -21,12 +21,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.onosproject.grpc.Link.LinkDetectedMsg;
-import org.onosproject.grpc.Link.LinkType;
-import org.onosproject.grpc.Link.LinkVanishedMsg;
-import org.onosproject.grpc.Link.Void;
-import org.onosproject.grpc.LinkProviderServiceRpcGrpc;
-import org.onosproject.grpc.LinkProviderServiceRpcGrpc.LinkProviderServiceRpcFutureStub;
+import org.onosproject.grpc.net.Link.LinkType;
+import org.onosproject.grpc.net.link.LinkProviderServiceRpcGrpc;
+import org.onosproject.grpc.net.link.LinkProviderServiceRpcGrpc.LinkProviderServiceRpcFutureStub;
+import org.onosproject.grpc.net.link.LinkService.LinkDetectedMsg;
+import org.onosproject.grpc.net.link.LinkService.LinkVanishedMsg;
+import org.onosproject.grpc.net.link.LinkService.Void;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link.Type;
@@ -237,7 +237,7 @@ class LinkProviderServiceClientProxy
     /**
      * Translates ONOS object to gRPC message.
      *
-     * @param type {@link Link.Type}
+     * @param type {@link org.onosproject.net.Link.Type Link.Type}
      * @return gRPC LinkType
      */
     private LinkType translate(Type type) {
@@ -267,8 +267,8 @@ class LinkProviderServiceClientProxy
      * @param cp {@link ConnectPoint}
      * @return gRPC ConnectPoint
      */
-    private org.onosproject.grpc.Link.ConnectPoint translate(ConnectPoint cp) {
-        return org.onosproject.grpc.Link.ConnectPoint.newBuilder()
+    private org.onosproject.grpc.net.Link.ConnectPoint translate(ConnectPoint cp) {
+        return org.onosproject.grpc.net.Link.ConnectPoint.newBuilder()
                 .setDeviceId(cp.deviceId().toString())
                 .setPortNumber(cp.port().toString())
                 .build();

@@ -1,5 +1,5 @@
 syntax = "proto3";
-option java_package = "org.onosproject.grpc";
+option java_package = "org.onosproject.grpc.net";
 
 package Port;
 
@@ -22,7 +22,6 @@ enum PortType {
   VIRTUAL = 6;
 }
 
-// TODO What are we going to do with more specific PortDescription ...
 message PortDescription {
   // PortNumber as String PortNumber#toString
   string port_number = 1;

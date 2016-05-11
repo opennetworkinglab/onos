@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.onlab.packet.ChassisId;
-import org.onosproject.grpc.Device.DeviceType;
-import org.onosproject.grpc.Port.PortType;
+import org.onosproject.grpc.net.Device.DeviceType;
+import org.onosproject.grpc.net.Port.PortType;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -55,7 +55,7 @@ public final class GrpcDeviceUtils {
      * @param role mastership role in gRPC enum
      * @return equivalent in ONOS enum
      */
-    public static MastershipRole translate(org.onosproject.grpc.Device.MastershipRole role) {
+    public static MastershipRole translate(org.onosproject.grpc.net.Device.MastershipRole role) {
         switch (role) {
         case NONE:
             return MastershipRole.NONE;
@@ -77,15 +77,15 @@ public final class GrpcDeviceUtils {
      * @param newRole ONOS' mastership role
      * @return equivalent in gRPC message enum
      */
-    public static org.onosproject.grpc.Device.MastershipRole translate(MastershipRole newRole) {
+    public static org.onosproject.grpc.net.Device.MastershipRole translate(MastershipRole newRole) {
         switch (newRole) {
         case MASTER:
-            return org.onosproject.grpc.Device.MastershipRole.MASTER;
+            return org.onosproject.grpc.net.Device.MastershipRole.MASTER;
         case STANDBY:
-            return org.onosproject.grpc.Device.MastershipRole.STANDBY;
+            return org.onosproject.grpc.net.Device.MastershipRole.STANDBY;
         case NONE:
         default:
-            return org.onosproject.grpc.Device.MastershipRole.NONE;
+            return org.onosproject.grpc.net.Device.MastershipRole.NONE;
         }
     }
 
@@ -96,7 +96,7 @@ public final class GrpcDeviceUtils {
      * @param deviceDescription gRPC message
      * @return {@link DeviceDescription}
      */
-    public static DeviceDescription translate(org.onosproject.grpc.Device.DeviceDescription deviceDescription) {
+    public static DeviceDescription translate(org.onosproject.grpc.net.Device.DeviceDescription deviceDescription) {
         URI uri = URI.create(deviceDescription.getDeviceUri());
         Device.Type type = translate(deviceDescription.getType());
         String manufacturer = deviceDescription.getManufacturer();
@@ -116,9 +116,9 @@ public final class GrpcDeviceUtils {
      * @param deviceDescription {@link DeviceDescription}
      * @return gRPC DeviceDescription message
      */
-    public static org.onosproject.grpc.Device.DeviceDescription translate(DeviceDescription deviceDescription) {
+    public static org.onosproject.grpc.net.Device.DeviceDescription translate(DeviceDescription deviceDescription) {
 
-        return org.onosproject.grpc.Device.DeviceDescription.newBuilder()
+        return org.onosproject.grpc.net.Device.DeviceDescription.newBuilder()
             .setDeviceUri(deviceDescription.deviceUri().toString())
             .setType(translate(deviceDescription.type()))
             .setManufacturer(deviceDescription.manufacturer())
@@ -137,7 +137,7 @@ public final class GrpcDeviceUtils {
      * @param type      gRPC message
      * @return  {@link Device.Type}
      */
-    public static Device.Type translate(org.onosproject.grpc.Device.DeviceType type) {
+    public static Device.Type translate(org.onosproject.grpc.net.Device.DeviceType type) {
         switch (type) {
         case BALANCER:
             return Device.Type.BALANCER;
@@ -224,7 +224,7 @@ public final class GrpcDeviceUtils {
      * @param portDescription gRPC message
      * @return {@link PortDescription}
      */
-    public static PortDescription translate(org.onosproject.grpc.Port.PortDescription portDescription) {
+    public static PortDescription translate(org.onosproject.grpc.net.Port.PortDescription portDescription) {
         PortNumber number = PortNumber.fromString(portDescription.getPortNumber());
         boolean isEnabled = portDescription.getIsEnabled();
         Port.Type type = translate(portDescription.getType());
@@ -240,9 +240,9 @@ public final class GrpcDeviceUtils {
      * @param portDescription {@link PortDescription}
      * @return gRPC PortDescription message
      */
-    public static org.onosproject.grpc.Port.PortDescription translate(PortDescription portDescription) {
+    public static org.onosproject.grpc.net.Port.PortDescription translate(PortDescription portDescription) {
         // TODO How to deal with more specific Port...
-        return org.onosproject.grpc.Port.PortDescription.newBuilder()
+        return org.onosproject.grpc.net.Port.PortDescription.newBuilder()
                 .setPortNumber(portDescription.portNumber().toString())
                 .setIsEnabled(portDescription.isEnabled())
                 .setType(translate(portDescription.type()))
@@ -316,7 +316,7 @@ public final class GrpcDeviceUtils {
      * @param portStatistics gRPC PortStatistics message
      * @return {@link PortStatistics}
      */
-    public static PortStatistics translate(org.onosproject.grpc.Port.PortStatistics portStatistics) {
+    public static PortStatistics translate(org.onosproject.grpc.net.Port.PortStatistics portStatistics) {
         // TODO implement adding missing fields
         return DefaultPortStatistics.builder()
                 .setPort(portStatistics.getPort())
@@ -331,9 +331,9 @@ public final class GrpcDeviceUtils {
      * @param portStatistics {@link PortStatistics}
      * @return gRPC PortStatistics message
      */
-    public static org.onosproject.grpc.Port.PortStatistics translate(PortStatistics portStatistics) {
+    public static org.onosproject.grpc.net.Port.PortStatistics translate(PortStatistics portStatistics) {
         // TODO implement adding missing fields
-        return org.onosproject.grpc.Port.PortStatistics.newBuilder()
+        return org.onosproject.grpc.net.Port.PortStatistics.newBuilder()
                 .setPort(portStatistics.port())
                 .setPacketsReceived(portStatistics.packetsReceived())
                 .setPacketsSent(portStatistics.packetsSent())

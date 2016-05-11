@@ -24,13 +24,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.onosproject.grpc.Device.DeviceProviderMsg;
-import org.onosproject.grpc.Device.DeviceProviderServiceMsg;
-import org.onosproject.grpc.Device.IsReachableRequest;
-import org.onosproject.grpc.Device.RoleChanged;
-import org.onosproject.grpc.Device.TriggerProbe;
-import org.onosproject.grpc.DeviceProviderRegistryRpcGrpc;
-import org.onosproject.grpc.DeviceProviderRegistryRpcGrpc.DeviceProviderRegistryRpcStub;
+import org.onosproject.grpc.net.device.DeviceProviderRegistryRpcGrpc;
+import org.onosproject.grpc.net.device.DeviceProviderRegistryRpcGrpc.DeviceProviderRegistryRpcStub;
+import org.onosproject.grpc.net.device.DeviceService.DeviceProviderMsg;
+import org.onosproject.grpc.net.device.DeviceService.DeviceProviderServiceMsg;
+import org.onosproject.grpc.net.device.DeviceService.IsReachableRequest;
+import org.onosproject.grpc.net.device.DeviceService.RoleChanged;
+import org.onosproject.grpc.net.device.DeviceService.TriggerProbe;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceDescription;
@@ -112,7 +112,7 @@ final class DeviceProviderServiceClientProxy
         checkValidity();
 
         DeviceProviderServiceMsg.Builder builder = DeviceProviderServiceMsg.newBuilder();
-        List<org.onosproject.grpc.Port.PortDescription> portDescs =
+        List<org.onosproject.grpc.net.Port.PortDescription> portDescs =
                 portDescriptions.stream()
                     .map(GrpcDeviceUtils::translate)
                     .collect(toList());
@@ -160,7 +160,7 @@ final class DeviceProviderServiceClientProxy
         checkValidity();
 
         DeviceProviderServiceMsg.Builder builder = DeviceProviderServiceMsg.newBuilder();
-        List<org.onosproject.grpc.Port.PortStatistics> portStats =
+        List<org.onosproject.grpc.net.Port.PortStatistics> portStats =
                 portStatistics.stream()
                     .map(GrpcDeviceUtils::translate)
                     .collect(toList());
