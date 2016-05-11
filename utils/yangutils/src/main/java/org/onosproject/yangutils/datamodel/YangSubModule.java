@@ -76,7 +76,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLi
 /**
  * Represents data model node to maintain information defined in YANG sub-module.
  */
-public class YangSubModule extends YangNode
+public class YangSubModule
+        extends YangNode
         implements YangLeavesHolder, YangDesc, YangReference, Parsable, CollisionDetector, YangReferenceResolver,
         RpcNotificationContainer {
 
@@ -150,6 +151,7 @@ public class YangSubModule extends YangNode
      * Prefix of parent module.
      */
     private String prefix;
+
     /*-
      * Reference RFC 6020.
      *
@@ -331,7 +333,8 @@ public class YangSubModule extends YangNode
     }
 
     @Override
-    public void resolveSelfFileLinking() throws DataModelException {
+    public void resolveSelfFileLinking()
+            throws DataModelException {
         // Get the list to be resolved.
         List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList();
         // Resolve linking for a resolution list.
@@ -468,7 +471,8 @@ public class YangSubModule extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnEntry() throws DataModelException {
+    public void validateDataOnEntry()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
@@ -478,18 +482,21 @@ public class YangSubModule extends YangNode
      * @throws DataModelException a violation of data model rules
      */
     @Override
-    public void validateDataOnExit() throws DataModelException {
+    public void validateDataOnExit()
+            throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
     }
 
     @Override
-    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectCollidingChild(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         // Asks helper to detect colliding child.
         detectCollidingChildUtil(identifierName, dataType, this);
     }
 
     @Override
-    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+    public void detectSelfCollision(String identifierName, YangConstructType dataType)
+            throws DataModelException {
         // Not required as module doesn't have any parent.
     }
 
