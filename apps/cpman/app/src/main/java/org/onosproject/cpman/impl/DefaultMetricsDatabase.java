@@ -94,7 +94,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
             sample.setValue(metricType, value);
             sample.update();
         } catch (IOException e) {
-            log.error("Failed to update metric value due to {}", e.getMessage());
+            log.error("Failed to update metric value due to {}", e);
         }
     }
 
@@ -112,12 +112,12 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
                     checkArgument(rrdDb.containsDs(k), NON_EXIST_METRIC);
                     sample.setValue(k, v);
                 } catch (IOException e) {
-                    log.error("Failed to update metric value due to {}", e.getMessage());
+                    log.error("Failed to update metric value due to {}", e);
                 }
             });
             sample.update();
         } catch (IOException e) {
-            log.error("Failed to update metric values due to {}", e.getMessage());
+            log.error("Failed to update metric values due to {}", e);
         }
     }
 
@@ -127,7 +127,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
             checkArgument(rrdDb.containsDs(metricType), NON_EXIST_METRIC);
             return rrdDb.getDatasource(metricType).getLastValue();
         } catch (IOException e) {
-            log.error("Failed to obtain metric value due to {}", e.getMessage());
+            log.error("Failed to obtain metric value due to {}", e);
             return 0D;
         }
     }
@@ -146,7 +146,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
                 return new double[0];
             }
         } catch (IOException e) {
-            log.error("Failed to obtain metric values due to {}", e.getMessage());
+            log.error("Failed to obtain metric values due to {}", e);
             return new double[0];
         }
     }
@@ -159,7 +159,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
             long startTime = endTime - SECONDS_OF_DAY + 1;
             return minMetric(metricType, startTime, endTime);
         } catch (IOException e) {
-            log.error("Failed to obtain metric value due to {}", e.getMessage());
+            log.error("Failed to obtain metric value due to {}", e);
             return 0D;
         }
     }
@@ -172,7 +172,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
             long startTime = endTime - SECONDS_OF_DAY;
             return maxMetric(metricType, startTime, endTime);
         } catch (IOException e) {
-            log.error("Failed to obtain metric value due to {}", e.getMessage());
+            log.error("Failed to obtain metric value due to {}", e);
             return 0D;
         }
     }
@@ -185,7 +185,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
             long startTime = endTime - SECONDS_OF_DAY;
             return metrics(metricType, startTime, endTime);
         } catch (IOException e) {
-            log.error("Failed to obtain metric values due to {}", e.getMessage());
+            log.error("Failed to obtain metric values due to {}", e);
             return new double[0];
         }
     }
@@ -202,7 +202,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
                 return new double[0];
             }
         } catch (IOException e) {
-            log.error("Failed to obtain metric values due to {}", e.getMessage());
+            log.error("Failed to obtain metric values due to {}", e);
             return new double[0];
         }
     }
@@ -213,7 +213,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
             checkArgument(rrdDb.containsDs(metricType), NON_EXIST_METRIC);
             return rrdDb.getLastUpdateTime();
         } catch (IOException e) {
-            log.error("Failed to obtain last update time due to {}", e.getMessage());
+            log.error("Failed to obtain last update time due to {}", e);
             return 0L;
         }
     }
@@ -296,7 +296,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
         public MetricsDatabase build() {
             checkNotNull(metricName, METRIC_NAME_MSG);
             checkNotNull(resourceName, RESOURCE_NAME_MSG);
-            checkArgument(dsDefs.size() != 0, METRIC_TYPE_MSG);
+            checkArgument(!dsDefs.isEmpty(), METRIC_TYPE_MSG);
 
             // define the resolution of monitored metrics
             rrdDef = new RrdDef(DB_PATH + SPLITTER + metricName +
@@ -317,7 +317,7 @@ public final class DefaultMetricsDatabase implements MetricsDatabase {
                 // always store the metric data in memory...
                 rrdDb = new RrdDb(rrdDef, RrdBackendFactory.getFactory(STORING_METHOD));
             } catch (IOException e) {
-                log.warn("Failed to create a new round-robin database due to {}", e.getMessage());
+                log.warn("Failed to create a new round-robin database due to {}", e);
             }
 
             return new DefaultMetricsDatabase(metricName, resourceName, rrdDb);

@@ -35,14 +35,11 @@ import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.chart.ChartModel;
 import org.onosproject.ui.chart.ChartRequestHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.LongStream;
 
@@ -53,8 +50,6 @@ import static org.onosproject.cpman.ControlResource.Type.CONTROL_MESSAGE;
  * Message handler for control plane monitoring view related messages.
  */
 public class CpmanViewMessageHandler extends UiMessageHandler {
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String CPMAN_DATA_REQ = "cpmanDataRequest";
     private static final String CPMAN_DATA_RESP = "cpmanDataResponse";
@@ -131,16 +126,10 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
                                                                    ClusterService cs, DeviceId deviceId) {
             Map<ControlMetricType, Long> data = Maps.newHashMap();
             for (ControlMetricType cmt : CONTROL_MESSAGE_METRICS) {
-                ControlLoadSnapshot cls;
-                try {
-                    cls = cpms.getLoad(cs.getLocalNode().id(),
-                            cmt, NUM_OF_DATA_POINTS, TimeUnit.MINUTES,
-                            Optional.of(deviceId)).get();
-                    data.put(cmt, Math.round(LongStream.of(cls.recent()).average().getAsDouble()));
-                    timestamp = cls.time();
-                } catch (InterruptedException | ExecutionException e) {
-                    log.warn(e.getMessage());
-                }
+                ControlLoadSnapshot cls = cpms.getLoadSync(cs.getLocalNode().id(),
+                        cmt, NUM_OF_DATA_POINTS, TimeUnit.MINUTES, Optional.of(deviceId));
+                data.put(cmt, Math.round(LongStream.of(cls.recent()).average().getAsDouble()));
+                timestamp = cls.time();
             }
             return data;
         }

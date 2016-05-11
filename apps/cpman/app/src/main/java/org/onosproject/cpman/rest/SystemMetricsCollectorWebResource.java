@@ -27,8 +27,8 @@ import org.onosproject.cpman.ControlResource;
 import org.onosproject.cpman.MetricValue;
 import org.onosproject.cpman.SystemInfo;
 import org.onosproject.cpman.impl.DefaultSystemInfo;
-import org.onosproject.cpman.impl.SystemMetricsAggregator;
 import org.onosproject.cpman.impl.SystemInfoFactory;
+import org.onosproject.cpman.impl.SystemMetricsAggregator;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -87,7 +86,6 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
     @POST
     @Path("cpu_metrics")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response cpuMetrics(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
         ControlMetric cm;
@@ -134,7 +132,7 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
             aggregator.increment(ControlMetricType.CPU_IDLE_TIME, cpuIdleTime);
 
         } catch (IOException e) {
-            throw new IllegalArgumentException(e.getMessage());
+            throw new IllegalArgumentException(e);
         }
         return ok(root).build();
     }
@@ -149,7 +147,6 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
     @POST
     @Path("memory_metrics")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response memoryMetrics(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
         ControlMetric cm;
@@ -190,7 +187,7 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
             aggregator.increment(ControlMetricType.MEMORY_FREE, memFree);
 
         } catch (IOException e) {
-            throw new IllegalArgumentException(e.getMessage());
+            throw new IllegalArgumentException(e);
         }
         return ok(root).build();
     }
@@ -205,7 +202,6 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
     @POST
     @Path("disk_metrics")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response diskMetrics(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
         ControlMetric cm;
@@ -237,7 +233,7 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
                         ControlMetricType.DISK_WRITE_BYTES, writeBytes);
             }
         } catch (IOException e) {
-            throw new IllegalArgumentException(e.getMessage());
+            throw new IllegalArgumentException(e);
         }
         return ok(root).build();
     }
@@ -252,7 +248,6 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
     @POST
     @Path("network_metrics")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response networkMetrics(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
         ControlMetric cm;
@@ -299,7 +294,7 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
                         ControlMetricType.NW_OUTGOING_PACKETS, outPackets);
             }
         } catch (IOException e) {
-            throw new IllegalArgumentException(e.getMessage());
+            throw new IllegalArgumentException(e);
         }
         return ok(root).build();
     }
@@ -316,7 +311,6 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
     @POST
     @Path("system_info")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response systemInfo(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
 
@@ -343,7 +337,7 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
             }
 
         } catch (IOException e) {
-            throw new IllegalArgumentException(e.getMessage());
+            throw new IllegalArgumentException(e);
         }
         return ok(root).build();
     }

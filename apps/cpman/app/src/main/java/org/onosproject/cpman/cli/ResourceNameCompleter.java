@@ -80,7 +80,7 @@ public class ResourceNameCompleter extends AbstractCompleter {
 
             SortedSet<String> strings = delegate.getStrings();
 
-            if (set.size() != 0) {
+            if (!set.isEmpty()) {
                 set.forEach(strings::add);
             }
         }
