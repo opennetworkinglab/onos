@@ -62,6 +62,7 @@ public class PortChainWebResource extends AbstractWebResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getPortChains() {
         Iterable<PortChain> portChains = get(PortChainService.class).getPortChains();
         ObjectNode result = mapper().createObjectNode();
@@ -83,6 +84,7 @@ public class PortChainWebResource extends AbstractWebResource {
     @GET
     @Path("{chain_id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getPortPain(@PathParam("chain_id") String id) {
 
         PortChain portChain = nullIsNotFound(get(PortChainService.class).getPortChain(PortChainId.of(id)),
@@ -150,6 +152,8 @@ public class PortChainWebResource extends AbstractWebResource {
      */
     @Path("{chain_id}")
     @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response deletePortPain(@PathParam("chain_id") String id) {
         log.debug("Deletes port chain by identifier {}.", id);
         PortChainId portChainId = PortChainId.of(id);

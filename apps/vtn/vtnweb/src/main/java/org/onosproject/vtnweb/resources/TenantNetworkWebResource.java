@@ -77,7 +77,8 @@ public class TenantNetworkWebResource extends AbstractWebResource {
             .newConcurrentMap();
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getNetworks(@QueryParam("id") String queryId,
                                 @QueryParam("name") String queryName,
                                 @QueryParam("admin_state_up") String queryadminStateUp,
@@ -144,7 +145,8 @@ public class TenantNetworkWebResource extends AbstractWebResource {
 
     @GET
     @Path("{id}")
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getNetwork(@PathParam("id") String id) {
 
         if (!get(TenantNetworkService.class).exists(TenantNetworkId

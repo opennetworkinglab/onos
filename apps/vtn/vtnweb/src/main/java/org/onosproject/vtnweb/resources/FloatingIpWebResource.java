@@ -75,6 +75,7 @@ public class FloatingIpWebResource extends AbstractWebResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response listFloatingIps() {
         Collection<FloatingIp> floatingIps = get(FloatingIpService.class)
                 .getFloatingIps();
@@ -87,6 +88,7 @@ public class FloatingIpWebResource extends AbstractWebResource {
     @GET
     @Path("{floatingIpUUID}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getFloatingIp(@PathParam("floatingIpUUID") String id,
                                   @QueryParam("fields") List<String> fields) {
 

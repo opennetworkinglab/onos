@@ -64,6 +64,7 @@ public class PortPairGroupWebResource extends AbstractWebResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getPortPairGroups() {
         Iterable<PortPairGroup> portPairGroups = get(PortPairGroupService.class).getPortPairGroups();
         ObjectNode result = mapper().createObjectNode();
@@ -85,6 +86,7 @@ public class PortPairGroupWebResource extends AbstractWebResource {
     @GET
     @Path("{group_id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getPortPairGroup(@PathParam("group_id") String id) {
         PortPairGroup portPairGroup = nullIsNotFound(get(PortPairGroupService.class)
                                                      .getPortPairGroup(PortPairGroupId.of(id)),
@@ -157,6 +159,8 @@ public class PortPairGroupWebResource extends AbstractWebResource {
      */
     @Path("{group_id}")
     @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response deletePortPairGroup(@PathParam("group_id") String id) {
         log.debug("Deletes port pair group by identifier {}.", id);
         PortPairGroupId portPairGroupId = PortPairGroupId.of(id);

@@ -83,6 +83,7 @@ public class RouterWebResource extends AbstractWebResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response listRouters() {
         Collection<Router> routers = get(RouterService.class).getRouters();
         ObjectNode result = new ObjectMapper().createObjectNode();
@@ -93,6 +94,7 @@ public class RouterWebResource extends AbstractWebResource {
     @GET
     @Path("{routerUUID}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getRouter(@PathParam("routerUUID") String id,
                               @QueryParam("fields") List<String> fields) {
 

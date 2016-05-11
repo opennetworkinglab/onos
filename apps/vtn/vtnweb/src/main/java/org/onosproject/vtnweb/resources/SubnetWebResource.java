@@ -75,6 +75,7 @@ public class SubnetWebResource extends AbstractWebResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response listSubnets() {
         Iterable<Subnet> subnets = get(SubnetService.class).getSubnets();
         ObjectNode result = new ObjectMapper().createObjectNode();
@@ -85,6 +86,7 @@ public class SubnetWebResource extends AbstractWebResource {
     @GET
     @Path("{subnetUUID}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getSubnet(@PathParam("subnetUUID") String id) {
 
         if (!get(SubnetService.class).exists(SubnetId.subnetId(id))) {

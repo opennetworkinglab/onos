@@ -62,6 +62,7 @@ public class PortPairWebResource extends AbstractWebResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getPortPairs() {
         Iterable<PortPair> portPairs = get(PortPairService.class).getPortPairs();
         ObjectNode result = mapper().createObjectNode();
@@ -83,6 +84,7 @@ public class PortPairWebResource extends AbstractWebResource {
     @GET
     @Path("{pair_id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getPortPair(@PathParam("pair_id") String id) {
         PortPair portPair = nullIsNotFound(get(PortPairService.class).getPortPair(PortPairId.of(id)),
                                            PORT_PAIR_NOT_FOUND);
@@ -149,6 +151,8 @@ public class PortPairWebResource extends AbstractWebResource {
      */
     @Path("{pair_id}")
     @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response deletePortPair(@PathParam("pair_id") String id) {
 
         PortPairId portPairId = PortPairId.of(id);

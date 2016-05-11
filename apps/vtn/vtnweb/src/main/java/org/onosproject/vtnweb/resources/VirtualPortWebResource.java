@@ -80,7 +80,8 @@ public class VirtualPortWebResource extends AbstractWebResource {
             .getLogger(VirtualPortService.class);
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getPorts() {
         Iterable<VirtualPort> virtualPorts = get(VirtualPortService.class)
                 .getPorts();
@@ -91,7 +92,8 @@ public class VirtualPortWebResource extends AbstractWebResource {
 
     @GET
     @Path("{id}")
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response getportsById(@PathParam("id") String id) {
 
         if (!get(VirtualPortService.class).exists(VirtualPortId.portId(id))) {
