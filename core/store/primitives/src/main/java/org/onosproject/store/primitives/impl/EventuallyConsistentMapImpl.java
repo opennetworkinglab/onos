@@ -339,11 +339,8 @@ public class EventuallyConsistentMapImpl<K, V>
         checkNotNull(value, ERROR_NULL_VALUE);
 
         MapValue<V> newValue = new MapValue<>(value, timestampProvider.apply(key, value));
-        // Before mutating local map, ensure the update can be serialized without errors.
-        // This prevents replica divergence due to serialization failures.
-        UpdateEntry<K, V> update = serializer.copy(new UpdateEntry<K, V>(key, newValue));
         if (putInternal(key, newValue)) {
-            notifyPeers(update, peerUpdateFunction.apply(key, value));
+            notifyPeers(new UpdateEntry<K, V>(key, newValue), peerUpdateFunction.apply(key, value));
             notifyListeners(new EventuallyConsistentMapEvent<>(mapName, PUT, key, value));
         }
     }
