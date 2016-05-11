@@ -199,8 +199,16 @@ class Warden {
         }
     }
 
+    /**
+     * Returns the cell definition of the specified cell.
+     *
+     * @param cellName cell name
+     * @return cell definition
+     */
     private String getCellDefinition(String cellName) {
-        return exec("bin/cell-def " + cellName);
+        CellInfo cellInfo = getCellInfo(cellName);
+        return exec(String.format("ssh %s warden/bin/cell-def %s",
+                                  cellInfo.hostName, cellInfo.cellName));
     }
 
     /**
