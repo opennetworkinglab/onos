@@ -156,7 +156,6 @@ public final class FlowObjectiveCompositionUtil {
         return treatmentBuilder.build();
     }
 
-    //CHECKSTYLE:OFF
     public static TrafficSelector revertTreatmentSelector(TrafficTreatment trafficTreatment,
                                                           TrafficSelector trafficSelector) {
 
