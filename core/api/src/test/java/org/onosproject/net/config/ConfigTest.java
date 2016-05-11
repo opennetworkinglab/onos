@@ -39,6 +39,8 @@ public class ConfigTest {
     private static final String DOUBLE = "double";
     private static final String MAC = "mac";
     private static final String IP = "ip";
+    private static final String TP_PORT = "tpPort";
+    private static final String BAD_TP_PORT = "badTpPort";
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final ConfigApplyDelegate delegate = new TestDelegate();
@@ -50,16 +52,24 @@ public class ConfigTest {
     public void setUp() {
         json = new ObjectMapper().createObjectNode()
                 .put(TEXT, "foo").put(LONG, 5).put(DOUBLE, 0.5)
-                .put(MAC, "ab:cd:ef:ca:fe:ed").put(IP, "12.34.56.78");
+                .put(MAC, "ab:cd:ef:ca:fe:ed").put(IP, "12.34.56.78")
+                .put(TP_PORT, 65535).put(BAD_TP_PORT, 65536);
         cfg = new TestConfig();
         cfg.init(SUBJECT, KEY, json, mapper, delegate);
     }
 
     @Test
     public void hasOnlyFields() {
-        assertTrue("has unexpected fields", cfg.hasOnlyFields(TEXT, LONG, DOUBLE, MAC, IP));
+        assertTrue("has unexpected fields", cfg.hasOnlyFields(TEXT, LONG, DOUBLE, MAC, IP,
+                                                              TP_PORT, BAD_TP_PORT));
         assertFalse("did not detect unexpected fields", cfg.hasOnlyFields(TEXT, LONG, DOUBLE, MAC));
         assertTrue("is not proper text", cfg.isString(TEXT, MANDATORY));
+    }
+
+    @Test
+    public void hasFields() {
+        assertTrue("does not have mandatory field", cfg.hasFields(TEXT, LONG, DOUBLE, MAC));
+        assertFalse("did not detect missing field", cfg.hasFields("none"));
     }
 
     @Test
@@ -127,6 +137,18 @@ public class ConfigTest {
         assertTrue("is not proper ip", cfg.isIpAddress(TEXT, MANDATORY));
     }
 
+    @Test
+    public void isTpPort() {
+        assertTrue("is not proper transport port", cfg.isTpPort(TP_PORT, MANDATORY));
+        assertTrue("is not proper transport port", cfg.isTpPort(TP_PORT, OPTIONAL));
+        assertTrue("is not proper transport port", cfg.isTpPort("none", OPTIONAL));
+        assertFalse("did not detect missing field", cfg.isTpPort("none", MANDATORY));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void badTpPort() {
+        assertTrue("is not proper transport port", cfg.isTpPort(BAD_TP_PORT, MANDATORY));
+    }
 
     // TODO: Add tests for other helper methods
 

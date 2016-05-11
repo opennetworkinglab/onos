@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onosproject.net.ConnectPoint;
 
 import java.util.Collection;
@@ -397,7 +398,7 @@ public abstract class Config<S> {
      * Indicates whether only the specified fields are present in the backing JSON.
      *
      * @param allowedFields allowed field names
-     * @return true if all allowedFields are present; false otherwise
+     * @return true if only allowedFields are present; false otherwise
      */
     protected boolean hasOnlyFields(String... allowedFields) {
         return hasOnlyFields(object, allowedFields);
@@ -409,11 +410,34 @@ public abstract class Config<S> {
      *
      * @param node node whose fields to check
      * @param allowedFields allowed field names
-     * @return true if all allowedFields are present; false otherwise
+     * @return true if only allowedFields are present; false otherwise
      */
     protected boolean hasOnlyFields(ObjectNode node, String... allowedFields) {
         Set<String> fields = ImmutableSet.copyOf(allowedFields);
         return !Iterators.any(node.fieldNames(), f -> !fields.contains(f));
+    }
+
+    /**
+     * Indicates whether all specified fields are present in the backing JSON.
+     *
+     * @param mandatoryFields mandatory field names
+     * @return true if all mandatory fields are present; false otherwise
+     */
+    protected boolean hasFields(String... mandatoryFields) {
+        return hasFields(object, mandatoryFields);
+    }
+
+    /**
+     * Indicates whether all specified fields are present in a particular
+     * JSON object.
+     *
+     * @param node node whose fields to check
+     * @param mandatoryFields mandatory field names
+     * @return true if all mandatory fields are present; false otherwise
+     */
+    protected boolean hasFields(ObjectNode node, String... mandatoryFields) {
+        Set<String> fields = ImmutableSet.copyOf(mandatoryFields);
+        return Iterators.all(fields.iterator(), f -> !node.path(f).isMissingNode());
     }
 
     /**
@@ -502,6 +526,34 @@ public abstract class Config<S> {
         JsonNode node = objectNode.path(field);
         return isValid(node, presence, node.isTextual() &&
                 IpPrefix.valueOf(node.asText()) != null);
+    }
+
+    /**
+     * Indicates whether the specified field holds a valid transport layer port.
+     *
+     * @param field JSON field name
+     * @param presence specifies if field is optional or mandatory
+     * @return true if valid; false otherwise
+     * @throws IllegalArgumentException if field is present, but not valid value
+     */
+    protected boolean isTpPort(String field, FieldPresence presence) {
+        return isTpPort(object, field, presence);
+    }
+
+    /**
+     * Indicates whether the specified field of a particular node holds a valid
+     * transport layer port.
+     *
+     * @param objectNode node from whom to access the field
+     * @param field JSON field name
+     * @param presence specifies if field is optional or mandatory
+     * @return true if valid; false otherwise
+     * @throws IllegalArgumentException if field is present, but not valid value
+     */
+    protected boolean isTpPort(ObjectNode objectNode, String field, FieldPresence presence) {
+        JsonNode node = objectNode.path(field);
+        return isValid(node, presence, node.isNumber() &&
+                TpPort.tpPort(node.asInt()) != null);
     }
 
     /**
