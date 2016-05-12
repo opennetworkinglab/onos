@@ -1,6 +1,6 @@
 BUNDLES = [
-    '//apps/scalablegateway/api:onos-app-scalablegateway-api',
-    '//apps/scalablegateway/app:onos-app-scalablegateway-app',
+    '//apps/scalablegateway/api:onos-apps-scalablegateway-api',
+    '//apps/scalablegateway/app:onos-apps-scalablegateway-app',
 ]
 
 onos_app (
