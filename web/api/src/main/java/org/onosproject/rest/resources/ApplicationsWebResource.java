@@ -166,34 +166,25 @@ public class ApplicationsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Gets application Id entry by short id.
+     * Gets applicationId entry by either id or name.
      *
-     * @param shortId numerical id of application
-     * @return 200 OK; 404; 401
-     * @onos.rsModel ApplicationId
-     */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("ids/short")
-    public Response getAppIdByShortId(@QueryParam("id") int shortId) {
-        CoreService service = get(CoreService.class);
-        ApplicationId appId = service.getAppId((short) shortId);
-        return response(appId);
-    }
-
-    /**
-     * Gets application Id entry by name.
-     *
+     * @param id   id of application
      * @param name name of application
      * @return 200 OK; 404; 401
      * @onos.rsModel ApplicationId
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("ids/name")
-    public Response getAppIdByName(@QueryParam("name") String name) {
+    @Path("ids/entry")
+    public Response getAppIdByName(@QueryParam("id") Short id,
+                                   @QueryParam("name") String name) {
         CoreService service = get(CoreService.class);
-        ApplicationId appId = service.getAppId(name);
+        ApplicationId appId = null;
+        if (id != null) {
+            appId = service.getAppId(id);
+        } else if (name != null) {
+            appId = service.getAppId(name);
+        }
         return response(appId);
     }
 

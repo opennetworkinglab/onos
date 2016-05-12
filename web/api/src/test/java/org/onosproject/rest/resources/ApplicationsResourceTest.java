@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
@@ -42,6 +43,7 @@ import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.Version;
 
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
@@ -487,8 +489,8 @@ public class ApplicationsResourceTest extends ResourceTest {
         replay(coreService);
 
         WebTarget wt = target();
-        String response = wt.path("applications/ids/short")
-                            .queryParam("id", 1).request().get(String.class);
+        String response = wt.path("applications/ids/entry")
+                .queryParam("id", 1).request().get(String.class);
 
         JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
@@ -507,7 +509,7 @@ public class ApplicationsResourceTest extends ResourceTest {
         replay(coreService);
 
         WebTarget wt = target();
-        String response = wt.path("applications/ids/name")
+        String response = wt.path("applications/ids/entry")
                 .queryParam("name", "app2").request().get(String.class);
 
         JsonObject result = Json.parse(response).asObject();
@@ -516,5 +518,20 @@ public class ApplicationsResourceTest extends ResourceTest {
         assertThat(result, matchesAppId(id2));
 
         verify(coreService);
+    }
+
+    /**
+     * Tests a GET of an applicationId without specifying any parameters.
+     */
+    @Test
+    public void getAppWithNoParam() {
+        WebTarget wt = target();
+
+        try {
+            wt.path("applications/ids/entry").request().get();
+        } catch (NotFoundException ex) {
+            Assert.assertThat(ex.getMessage(),
+                    containsString("HTTP 404 Not Found"));
+        }
     }
 }
