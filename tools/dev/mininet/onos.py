@@ -277,7 +277,7 @@ class ONOSCluster( Controller ):
                 args = ( 1, )
         if not isinstance( topo, Topo ):
             topo = RenamedTopo( topo, *args, hnew='onos', **kwargs )
-        ipBase = kwargs.pop( 'ipbase', '192.168.123.0/24' )
+        ipBase = kwargs.pop( 'ipBase', '192.168.123.0/24' )
         super( ONOSCluster, self ).__init__( name, inNamespace=False )
         fixIPTables()
         self.env = initONOSEnv()
