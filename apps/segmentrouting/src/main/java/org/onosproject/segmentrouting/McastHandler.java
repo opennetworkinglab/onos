@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -352,14 +353,19 @@ public class McastHandler {
             return;
         }
 
+        // Reuse unicast VLAN if the port has subnet configured
+        Ip4Prefix portSubnet = srManager.deviceConfiguration.getPortSubnet(deviceId, port);
+        VlanId unicastVlan = srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
+        final VlanId finalVlanId = (unicastVlan != null) ? unicastVlan : assignedVlan;
+
         FilteringObjective.Builder filtObjBuilder =
-                filterObjBuilder(deviceId, port, assignedVlan);
+                filterObjBuilder(deviceId, port, finalVlanId);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully add filter on {}/{}, vlan {}",
-                        deviceId, port.toLong(), assignedVlan),
+                        deviceId, port.toLong(), finalVlanId),
                 (objective, error) ->
                         log.warn("Failed to add filter on {}/{}, vlan {}: {}",
-                                deviceId, port.toLong(), assignedVlan, error));
+                                deviceId, port.toLong(), finalVlanId, error));
         srManager.flowObjectiveService.filter(deviceId, filtObjBuilder.add(context));
     }
 
