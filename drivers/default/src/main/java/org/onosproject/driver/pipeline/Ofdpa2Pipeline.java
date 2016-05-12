@@ -335,9 +335,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         if (ethCriterion == null || ethCriterion.mac().equals(MacAddress.NONE)) {
-            log.warn("filtering objective missing dstMac, cannot program TMAC table");
-            fail(filt, ObjectiveError.BADPARAMS);
-            return;
+            // NOTE: it is possible that a filtering objective only has vidCriterion
+            log.debug("filtering objective missing dstMac, cannot program TMAC table");
         } else {
             for (FlowRule tmacRule : processEthDstFilter(portCriterion, ethCriterion,
                                                          vidCriterion, assignedVlan,
@@ -348,11 +347,10 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
         }
 
-        if (ethCriterion == null || vidCriterion == null) {
-            log.warn("filtering objective missing dstMac or VLAN, "
+        if (vidCriterion == null) {
+            // NOTE: it is possible that a filtering objective only has ethCriterion
+            log.debug("filtering objective missing dstMac or VLAN, "
                     + "cannot program VLAN Table");
-            fail(filt, ObjectiveError.BADPARAMS);
-            return;
         } else {
             /*
              * NOTE: Separate vlan filtering rules and assignment rules
