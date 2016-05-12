@@ -33,9 +33,11 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addArrayListImport;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addAugmentedInfoImport;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils
-        .isHasAugmentationExtended;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isHasAugmentationExtended;
+import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.RPC_INPUT_VAR_NAME;
+import static org.onosproject.yangutils.utils.UtilConstants.VOID;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPackage;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.generateJavaDocForRpc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
@@ -180,12 +182,13 @@ public class TempJavaServiceFragmentFiles
     }
 
     /**
-     * Constructs java code exit.
+     * Generate java code.
      *
      * @param fileType generated file type
      * @param curNode current YANG node
      * @throws IOException when fails to generate java files
      */
+    @Override
     public void generateJavaFile(int fileType, YangNode curNode)
             throws IOException {
         List<String> imports = new ArrayList<>();
@@ -199,9 +202,6 @@ public class TempJavaServiceFragmentFiles
         setServiceInterfaceJavaFileHandle(getJavaFileHandle(getJavaClassName(SERVICE_FILE_NAME_SUFFIX)));
         generateServiceInterfaceFile(getServiceInterfaceJavaFileHandle(), curNode, imports, isAttributePresent());
 
-        if (isAttributePresent()) {
-            addImportsToStringAndHasCodeMethods(curNode, imports);
-        }
         if (isHasAugmentationExtended(getExtendsList())) {
             addAugmentedInfoImport(curNode, imports, true);
             addArrayListImport(curNode, imports, true);
@@ -229,21 +229,20 @@ public class TempJavaServiceFragmentFiles
      * @param rpcName name of the rpc function
      * @throws IOException IO operation fail
      */
-    private void addRpcString(JavaAttributeInfo javaAttributeInfoOfInput, JavaAttributeInfo javaAttributeInfoOfOutput,
-            String rpcName)
-            throws IOException {
-        String rpcInput = "";
-        String rpcOutput = "void";
+    private void addRpcString(JavaAttributeInfo javaAttributeInfoOfInput,
+            JavaAttributeInfo javaAttributeInfoOfOutput,
+            String rpcName) throws IOException {
+        String rpcInput = EMPTY_STRING;
+        String rpcOutput = VOID;
         if (javaAttributeInfoOfInput != null) {
             rpcInput = javaAttributeInfoOfInput.getAttributeName();
         }
         if (javaAttributeInfoOfOutput != null) {
             rpcOutput = javaAttributeInfoOfOutput.getAttributeName();
         }
-        appendToFile(getRpcInterfaceTempFileHandle(), generateJavaDocForRpc(rpcName, rpcInput, rpcOutput) +
-                getRpcServiceMethod(rpcName, rpcInput, rpcOutput) + NEW_LINE);
-        appendToFile(getRpcImplTempFileHandle(),
-                getRpcManagerMethod(rpcName, rpcInput, rpcOutput) + NEW_LINE);
+        appendToFile(getRpcInterfaceTempFileHandle(), generateJavaDocForRpc(rpcName, RPC_INPUT_VAR_NAME, rpcOutput)
+                + getRpcServiceMethod(rpcName, rpcInput, rpcOutput) + NEW_LINE);
+        appendToFile(getRpcImplTempFileHandle(), getRpcManagerMethod(rpcName, rpcInput, rpcOutput) + NEW_LINE);
     }
 
     /**
@@ -269,12 +268,17 @@ public class TempJavaServiceFragmentFiles
      * and java files.
      * @throws IOException when failed to delete the temporary files
      */
+    @Override
     public void freeTemporaryResources(boolean isErrorOccurred)
             throws IOException {
         boolean isError = isErrorOccurred;
 
         closeFile(getServiceInterfaceJavaFileHandle(), isError);
         closeFile(getRpcInterfaceTempFileHandle(), true);
+        closeFile(getRpcImplTempFileHandle(), true);
+        closeFile(getGetterInterfaceTempFileHandle(), true);
+        closeFile(getSetterInterfaceTempFileHandle(), true);
+        closeFile(getSetterImplTempFileHandle(), true);
 
         super.freeTemporaryResources(isErrorOccurred);
 

@@ -74,7 +74,7 @@ public final class ClassDefinitionGenerator {
         if ((genFileTypes & INTERFACE_MASK) != 0) {
             return getInterfaceDefinition(yangName);
         } else if ((genFileTypes & BUILDER_CLASS_MASK) != 0) {
-            return getBuilderClassDefinition(yangName, genFileTypes);
+            return getBuilderClassDefinition(yangName);
         } else if ((genFileTypes & IMPL_CLASS_MASK) != 0) {
             return getImplClassDefinition(yangName);
         } else if ((genFileTypes & BUILDER_INTERFACE_MASK) != 0) {
@@ -142,14 +142,9 @@ public final class ClassDefinitionGenerator {
      * @param genFileTypes
      * @return definition
      */
-    private static String getBuilderClassDefinition(String yangName, int genFileTypes) {
-        if ((genFileTypes & GENERATE_SERVICE_AND_MANAGER) != 0) {
-            return PUBLIC + SPACE + CLASS + SPACE + yangName + MANAGER + SPACE + IMPLEMENTS + SPACE + yangName +
-                    SERVICE + PERIOD + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
-        } else {
-            return PUBLIC + SPACE + CLASS + SPACE + yangName + BUILDER + SPACE + IMPLEMENTS + SPACE + yangName + PERIOD
-                    + yangName + BUILDER + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
-        }
+    private static String getBuilderClassDefinition(String yangName) {
+        return PUBLIC + SPACE + CLASS + SPACE + yangName + BUILDER + SPACE + IMPLEMENTS + SPACE + yangName + PERIOD
+                + yangName + BUILDER + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 
     /**
@@ -180,7 +175,11 @@ public final class ClassDefinitionGenerator {
      * @return definition
      */
     private static String getRpcInterfaceDefinition(String yangName) {
-        return INTERFACE + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        if (yangName.contains(SERVICE)) {
+            return PUBLIC + SPACE + INTERFACE + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        }
+        return PUBLIC + SPACE + CLASS + SPACE + yangName + MANAGER + SPACE + IMPLEMENTS + SPACE + yangName + SERVICE
+                + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 
     /**
@@ -195,7 +194,7 @@ public final class ClassDefinitionGenerator {
         if (classDef.length() < 5) {
             throw new RuntimeException("Event class name is error");
         }
-        classDef = classDef.substring(0, (classDef.length() - 5));
+        classDef = classDef.substring(0, classDef.length() - 5);
         classDef = classDef + ">" + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
 
         return classDef;
@@ -213,7 +212,7 @@ public final class ClassDefinitionGenerator {
         if (intfDef.length() < 8) {
             throw new RuntimeException("Event listener interface name is error");
         }
-        intfDef = intfDef.substring(0, (intfDef.length() - 8));
+        intfDef = intfDef.substring(0, intfDef.length() - 8);
         intfDef = intfDef + "Event>" + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
 
         return intfDef;

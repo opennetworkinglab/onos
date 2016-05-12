@@ -25,6 +25,7 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
+import org.onosproject.yangutils.translator.tojava.TempJavaEnumerationFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
@@ -62,6 +63,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentInfoListImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getConstructorStart;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEnumsConstrcutor;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEnumsOfMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEqualsMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEqualsMethodOpen;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getFromStringMethodClose;
@@ -84,7 +86,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.EVENT_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
-import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
@@ -164,7 +165,8 @@ public final class JavaFileGenerator {
      * @return interface file
      * @throws IOException when fails to write in file
      */
-    public static File generateInterfaceFile(File file, List<String> imports, YangNode curNode, boolean isAttrPresent)
+    public static File generateInterfaceFile(File file, List<String> imports, YangNode curNode,
+            boolean isAttrPresent)
             throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
@@ -311,7 +313,8 @@ public final class JavaFileGenerator {
         /**
          * Add default constructor and build method impl.
          */
-        methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().addBuildMethodImpl());
+        methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                .addBuildMethodImpl());
         methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                 .addDefaultConstructor(PUBLIC, BUILDER));
 
@@ -340,42 +343,45 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName()) + MANAGER;
+        String className = getCaptialCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, GENERATE_SERVICE_AND_MANAGER, imports, path);
 
         List<String> methods = new ArrayList<>();
 
-        if (isAttrPresent) {
-
-            try {
+        try {
+            if (isAttrPresent) {
                 /**
                  * Getter methods.
                  */
-                methods.add(getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK,
-                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                                .getServiceTempFiles()));
+                methods.add(
+                        getDataFromTempFileHandle(GETTER_FOR_CLASS_MASK,
+                                ((TempJavaCodeFragmentFilesContainer) curNode)
+                                        .getTempJavaCodeFragmentFiles().getServiceTempFiles()));
                 /**
                  * Setter methods.
                  */
-                methods.add(getDataFromTempFileHandle(SETTER_FOR_CLASS_MASK,
-                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                                .getServiceTempFiles()) +
-                        NEW_LINE);
+                methods.add(
+                        getDataFromTempFileHandle(SETTER_FOR_CLASS_MASK,
+                                ((TempJavaCodeFragmentFilesContainer) curNode)
+                                        .getTempJavaCodeFragmentFiles().getServiceTempFiles())
+                                + NEW_LINE);
 
+            }
+            if (((JavaCodeGeneratorInfo) curNode).getTempJavaCodeFragmentFiles().getServiceTempFiles() != null) {
                 JavaCodeGeneratorInfo javaGeninfo = (JavaCodeGeneratorInfo) curNode;
                 /**
                  * Rpc methods
                  */
-                methods.add(getDataFromTempFileHandle(RPC_IMPL_MASK, javaGeninfo.getTempJavaCodeFragmentFiles()
-                        .getServiceTempFiles()));
-            } catch (IOException e) {
-                throw new IOException("No data found in temporary java code fragment files for " + className
-                        + " while manager class file generation");
+                methods.add(getDataFromTempFileHandle(RPC_IMPL_MASK,
+                        javaGeninfo.getTempJavaCodeFragmentFiles().getServiceTempFiles()));
             }
-        } else {
             insertDataIntoJavaFile(file, NEW_LINE);
+
+        } catch (IOException e) {
+            throw new IOException("No data found in temporary java code fragment files for " + className
+                    + " while manager class file generation");
         }
 
         /**
@@ -746,16 +752,34 @@ public final class JavaFileGenerator {
         /**
          * Add a constructor for enum.
          */
-        insertDataIntoJavaFile(file,
-                getJavaDoc(TYPE_CONSTRUCTOR, getSmallCase(className), false) + getEnumsConstrcutor(className)
-                        + NEW_LINE);
+        insertDataIntoJavaFile(file, getJavaDoc(TYPE_CONSTRUCTOR, getSmallCase(className), false)
+                + getEnumsConstrcutor(className) + NEW_LINE);
+
+        TempJavaEnumerationFragmentFiles enumFragFiles =
+                ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                        .getEnumerationTempFiles();
+        insertDataIntoJavaFile(file, getEnumsOfMethod(className,
+                enumFragFiles.getJavaAttributeForEnum(),
+                enumFragFiles.getEnumSetJavaMap(),
+                enumFragFiles.getEnumStringList())
+                + NEW_LINE);
 
         /**
          * Add a getter method for enum.
          */
-        insertDataIntoJavaFile(file,
-                getJavaDoc(GETTER_METHOD, getSmallCase(className), false)
-                        + getGetter(INT, getSmallCase(className), GENERATE_SERVICE_AND_MANAGER) + NEW_LINE);
+        insertDataIntoJavaFile(file, getJavaDoc(GETTER_METHOD, getSmallCase(className), false)
+                + getGetter(INT, getSmallCase(className), GENERATE_ENUM_CLASS) + NEW_LINE);
+
+        try {
+            insertDataIntoJavaFile(file, getFromStringMethodSignature(className)
+                    + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK,
+                            ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                    .getEnumerationTempFiles())
+                    + getFromStringMethodClose());
+        } catch (IOException e) {
+            throw new IOException("No data found in temporary java code fragment files for " + className
+                    + " while enum class file generation");
+        }
 
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
 
@@ -785,33 +809,30 @@ public final class JavaFileGenerator {
 
         List<String> methods = new ArrayList<>();
 
-
         try {
             if (isAttributePresent) {
 
                 /**
                  * Getter methods.
                  */
-                methods.add(FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK,
+                methods.add(getDataFromTempFileHandle(GETTER_FOR_INTERFACE_MASK,
                         ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                                 .getServiceTempFiles()));
                 /**
                  * Setter methods.
                  */
-                methods.add(NEW_LINE);
-                methods.add(FOUR_SPACE_INDENTATION + getDataFromTempFileHandle(SETTER_FOR_INTERFACE_MASK,
+                methods.add(getDataFromTempFileHandle(SETTER_FOR_INTERFACE_MASK,
                         ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                                 .getServiceTempFiles()));
             }
-
-
-            JavaCodeGeneratorInfo javaGeninfo = (JavaCodeGeneratorInfo) curNode;
-            /**
-             * Rpc methods
-             */
-            methods.add(getDataFromTempFileHandle(RPC_INTERFACE_MASK, javaGeninfo.getTempJavaCodeFragmentFiles()
-                    .getServiceTempFiles()));
-
+            if (((JavaCodeGeneratorInfo) curNode).getTempJavaCodeFragmentFiles().getServiceTempFiles() != null) {
+                JavaCodeGeneratorInfo javaGeninfo = (JavaCodeGeneratorInfo) curNode;
+                /**
+                 * Rpc methods
+                 */
+                methods.add(getDataFromTempFileHandle(RPC_INTERFACE_MASK,
+                        javaGeninfo.getTempJavaCodeFragmentFiles().getServiceTempFiles()));
+            }
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className
                     + " while rpc class file generation");

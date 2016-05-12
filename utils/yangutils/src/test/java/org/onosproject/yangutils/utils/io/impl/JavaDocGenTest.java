@@ -51,7 +51,7 @@ public final class JavaDocGenTest {
     public ExpectedException thrown = ExpectedException.none();
 
     /**
-     * This test case checks the content recieved for the builder class java doc.
+     * This test case checks the content received for the builder class java doc.
      */
     @Test
     public void builderClassGenerationTest() {
@@ -61,7 +61,7 @@ public final class JavaDocGenTest {
     }
 
     /**
-     * This test case checks the content recieved for the builder interface ge java doc.
+     * This test case checks the content received for the builder interface ge java doc.
      */
     @Test
     public void builderInterfaceGenerationTest() {
@@ -71,7 +71,7 @@ public final class JavaDocGenTest {
     }
 
     /**
-     * This test case checks the content recieved for the build  java doc.
+     * This test case checks the content received for the build  java doc.
      */
     @Test
     public void buildGenerationTest() {
@@ -102,7 +102,7 @@ public final class JavaDocGenTest {
     }
 
     /**
-     * This test case checks the content recieved for the constructor java doc.
+     * This test case checks the content received for the constructor java doc.
      */
     @Test
     public void constructorGenerationTest() {
@@ -113,7 +113,7 @@ public final class JavaDocGenTest {
     }
 
     /**
-     * This test case checks the content recieved for the default constructor java doc.
+     * This test case checks the content received for the default constructor java doc.
      */
     @Test
     public void defaultConstructorGenerationTest() {
@@ -123,7 +123,7 @@ public final class JavaDocGenTest {
     }
 
     /**
-     * This test case checks the content recieved for the getter java doc.
+     * This test case checks the content received for the getter java doc.
      */
     @Test
     public void getterGenerationTest() {
@@ -132,7 +132,7 @@ public final class JavaDocGenTest {
     }
 
     /**
-     * This test case checks the content recieved for the impl class java doc.
+     * This test case checks the content received for the impl class java doc.
      */
     @Test
     public void implClassGenerationTest() {
@@ -143,7 +143,7 @@ public final class JavaDocGenTest {
     }
 
     /**
-     * This test case checks the content recieved for the interface java doc.
+     * This test case checks the content received for the interface java doc.
      */
     @Test
     public void interfaceGenerationTest() {
@@ -154,7 +154,7 @@ public final class JavaDocGenTest {
     }
 
     /**
-     * This test case checks the content recieved for the package info  java doc.
+     * This test case checks the content received for the package info  java doc.
      */
     @Test
     public void packageInfoGenerationTest() {
@@ -163,7 +163,17 @@ public final class JavaDocGenTest {
     }
 
     /**
-     * This test case checks the content recieved for the setter java doc.
+     * This test case checks the content received for the package info  java doc.
+     */
+    @Test
+    public void packageInfoGenerationForChildNodeTest() {
+        String packageInfo = getJavaDoc(PACKAGE_INFO, TEST_NAME, true);
+        assertThat(true, is(packageInfo.contains("Implementation of YANG node testName's children nodes")
+                && packageInfo.contains(END_STRING)));
+    }
+
+    /**
+     * This test case checks the content received for the setter java doc.
      */
     @Test
     public void setterGenerationTest() {

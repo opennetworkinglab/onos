@@ -147,7 +147,7 @@ public class JavaImportData {
             }
         }
 
-        if (isListToImport) {
+        if (getIfListImported()) {
             imports.add(getImportForList());
         }
 

@@ -51,7 +51,6 @@ public class TempJavaBeanFragmentFiles
 
         super(javaFileInfo);
 
-
         /*
          * Initialize getterImpl, attributes, constructor, hash code, equals and
          * to strings when generation file type matches to impl class mask.
@@ -98,6 +97,7 @@ public class TempJavaBeanFragmentFiles
      * files
      * @throws IOException IO operation fail
      */
+    @Override
     void addJavaSnippetInfoToApplicableTempFiles(JavaAttributeInfo newAttrInfo)
             throws IOException {
         super.addJavaSnippetInfoToApplicableTempFiles(newAttrInfo);
@@ -123,6 +123,5 @@ public class TempJavaBeanFragmentFiles
 
         super.freeTemporaryResources(isErrorOccurred);
     }
-
 
 }

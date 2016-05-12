@@ -23,6 +23,7 @@ import java.util.List;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaBeanFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.TempJavaEnumerationFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaTypeFragmentFiles;
@@ -39,6 +40,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ATTRIBUTES_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_FOR_TYPE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ENUM_IMPL_MASK;
@@ -58,13 +60,16 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
+import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.ORG;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
+import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_CLASS;
@@ -73,7 +78,7 @@ import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVE
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.IMPL_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_INTERFACE;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_MANAGER;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
 
 /**
@@ -105,7 +110,6 @@ public final class JavaFileGeneratorUtils {
      * Returns data stored in temporary files.
      *
      * @param generatedTempFiles temporary file types
-     * @param generatedTempFiles temporary file types
      * @param tempJavaFragmentFiles temp java fragment files
      * @return data stored in temporary files
      * @throws IOException when failed to get the data from temporary file handle
@@ -130,9 +134,10 @@ public final class JavaFileGeneratorUtils {
         if (tempJavaFragmentFiles instanceof TempJavaServiceFragmentFiles) {
             serviceFragmentFiles = (TempJavaServiceFragmentFiles) tempJavaFragmentFiles;
         }
-
-
-        if ((generatedTempFiles & GETTER_FOR_INTERFACE_MASK) != 0) {
+        if ((generatedTempFiles & ATTRIBUTES_MASK) != 0) {
+            return tempJavaFragmentFiles
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getAttributesTempFileHandle());
+        } else if ((generatedTempFiles & GETTER_FOR_INTERFACE_MASK) != 0) {
             return tempJavaFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getGetterInterfaceTempFileHandle());
         } else if ((generatedTempFiles & SETTER_FOR_INTERFACE_MASK) != 0) {
@@ -172,14 +177,16 @@ public final class JavaFileGeneratorUtils {
             return typeFragmentFiles
                     .getTemporaryDataFromFileHandle(typeFragmentFiles.getConstructorForTypeTempFileHandle());
         } else if ((generatedTempFiles & FROM_STRING_IMPL_MASK) != 0) {
-            if (typeFragmentFiles == null) {
-                throw new TranslatorException("Required from string info is missing.");
-            }
-            return typeFragmentFiles
-                    .getTemporaryDataFromFileHandle(typeFragmentFiles.getFromStringImplTempFileHandle());
-        } else if ((generatedTempFiles & ENUM_IMPL_MASK) != 0) {
             return tempJavaFragmentFiles
-                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getEnumClassTempFileHandle());
+                    .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getFromStringImplTempFileHandle());
+        } else if ((generatedTempFiles & ENUM_IMPL_MASK) != 0) {
+            if (!(tempJavaFragmentFiles instanceof TempJavaEnumerationFragmentFiles)) {
+                throw new TranslatorException("Required enum info is missing.");
+            }
+            TempJavaEnumerationFragmentFiles enumFragmentFiles =
+                    (TempJavaEnumerationFragmentFiles) tempJavaFragmentFiles;
+            return enumFragmentFiles
+                    .getTemporaryDataFromFileHandle(enumFragmentFiles.getEnumClassTempFileHandle());
         } else if ((generatedTempFiles & RPC_INTERFACE_MASK) != 0) {
             if (serviceFragmentFiles == null) {
                 throw new TranslatorException("Required rpc interface info is missing.");
@@ -328,7 +335,15 @@ public final class JavaFileGeneratorUtils {
      */
     private static void write(File file, String fileName, int genType, JavaDocType javaDocType)
             throws IOException {
-        insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false));
+        if ((genType & GENERATE_SERVICE_AND_MANAGER) != 0) {
+            if (!fileName.contains(SERVICE)) {
+                insertDataIntoJavaFile(file, getJavaDoc(RPC_MANAGER, fileName + MANAGER, false));
+            } else {
+                insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false));
+            }
+        } else {
+            insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false));
+        }
         insertDataIntoJavaFile(file, getJavaClassDefStart(genType, fileName));
     }
 

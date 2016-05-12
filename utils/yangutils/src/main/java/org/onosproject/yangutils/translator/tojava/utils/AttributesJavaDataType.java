@@ -38,6 +38,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.BYTE;
 import static org.onosproject.yangutils.utils.UtilConstants.BYTE_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.FROM_STRING_METHOD_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.INTEGER_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
@@ -45,7 +46,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.JAVA_MATH;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW;
-import static org.onosproject.yangutils.utils.UtilConstants.OF;
 import static org.onosproject.yangutils.utils.UtilConstants.PARSE_BYTE;
 import static org.onosproject.yangutils.utils.UtilConstants.PARSE_INT;
 import static org.onosproject.yangutils.utils.UtilConstants.PARSE_LONG;
@@ -146,7 +146,7 @@ public final class AttributesJavaDataType {
             case BINARY:
                 //TODO:BINARY
             case DERIVED:
-                return targetDataType + PERIOD + OF;
+                return targetDataType + PERIOD + FROM_STRING_METHOD_NAME;
             default:
                 throw new TranslatorException("given data type is not supported.");
         }
@@ -316,8 +316,7 @@ public final class AttributesJavaDataType {
         } else {
             switch (type) {
                 case UINT64:
-                    //TODO: BIGINTEGER.
-                    break;
+                    return JAVA_MATH;
                 case DECIMAL64:
                     //TODO: DECIMAL64
                     break;

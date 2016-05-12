@@ -158,6 +158,7 @@ public class YangUtilManager extends AbstractMojo {
                         logInfo = logInfo + NEW_LINE + e.getMessage();
                     }
                     getLog().info(logInfo);
+                    throw e;
                 }
             }
 

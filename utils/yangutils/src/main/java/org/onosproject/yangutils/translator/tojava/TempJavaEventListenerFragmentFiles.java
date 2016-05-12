@@ -56,7 +56,6 @@ public class TempJavaEventListenerFragmentFiles
         setExtendsList(new ArrayList<>());
         setJavaImportData(new JavaImportData());
         setJavaFileInfo(javaFileInfo);
-        clearGeneratedTempFileMask();
         setAbsoluteDirPath(getAbsolutePackagePath(getJavaFileInfo().getBaseCodeGenPath(),
                 getJavaFileInfo().getPackageFilePath()));
     }
@@ -79,7 +78,6 @@ public class TempJavaEventListenerFragmentFiles
         this.eventListenerJavaFileHandle = eventListenerJavaFileHandle;
     }
 
-
     /**
      * Constructs java code exit.
      *
@@ -87,6 +85,7 @@ public class TempJavaEventListenerFragmentFiles
      * @param curNode current YANG node
      * @throws IOException when fails to generate java files
      */
+    @Override
     public void generateJavaFile(int fileType, YangNode curNode)
             throws IOException {
 
@@ -112,6 +111,7 @@ public class TempJavaEventListenerFragmentFiles
      * and java files.
      * @throws IOException when failed to delete the temporary files
      */
+    @Override
     public void freeTemporaryResources(boolean isErrorOccurred)
             throws IOException {
         boolean isError = isErrorOccurred;

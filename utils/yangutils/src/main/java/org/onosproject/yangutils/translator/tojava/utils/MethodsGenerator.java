@@ -16,6 +16,9 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
+import java.util.List;
+import java.util.Map;
+
 import org.onosproject.yangutils.translator.tojava.JavaAttributeInfo;
 import org.onosproject.yangutils.utils.io.impl.JavaDocGen;
 
@@ -31,12 +34,15 @@ import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILD;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
+import static org.onosproject.yangutils.utils.UtilConstants.CASE;
 import static org.onosproject.yangutils.utils.UtilConstants.CATCH;
 import static org.onosproject.yangutils.utils.UtilConstants.CHECK_NOT_NULL_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.CLEAR;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
+import static org.onosproject.yangutils.utils.UtilConstants.COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
+import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
@@ -82,6 +88,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.STATIC;
 import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.SUFFIX_S;
+import static org.onosproject.yangutils.utils.UtilConstants.SWITCH;
 import static org.onosproject.yangutils.utils.UtilConstants.THIS;
 import static org.onosproject.yangutils.utils.UtilConstants.TMP_VAL;
 import static org.onosproject.yangutils.utils.UtilConstants.TO;
@@ -494,10 +501,11 @@ public final class MethodsGenerator {
 
         rpcName = getSmallCase(getCamelCase(rpcName, null));
         inputName = getCaptialCase(inputName);
-        outputName = getCaptialCase(outputName);
-
-        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + outputName + SPACE + rpcName + OPEN_PARENTHESIS
-                + inputName + SPACE + RPC_INPUT_VAR_NAME + CLOSE_PARENTHESIS + SEMI_COLAN;
+        if (!outputName.equals(VOID)) {
+            outputName = getCaptialCase(outputName);
+        }
+        return FOUR_SPACE_INDENTATION + outputName + SPACE + rpcName + OPEN_PARENTHESIS + inputName + SPACE
+                + RPC_INPUT_VAR_NAME + CLOSE_PARENTHESIS + SEMI_COLAN;
     }
 
     /**
@@ -512,12 +520,14 @@ public final class MethodsGenerator {
 
         rpcName = getSmallCase(getCamelCase(rpcName, null));
         inputName = getCaptialCase(inputName);
-        outputName = getCaptialCase(outputName);
+        if (!outputName.equals(VOID)) {
+            outputName = getCaptialCase(outputName);
+        }
 
-        String method = getOverRideString() +
-                FOUR_SPACE_INDENTATION + PUBLIC + SPACE + outputName + SPACE + rpcName + OPEN_PARENTHESIS
-                + inputName + SPACE + RPC_INPUT_VAR_NAME + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET
-                + NEW_LINE + EIGHT_SPACE_INDENTATION + YANG_UTILS_TODO + NEW_LINE;
+        String method =
+                getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + outputName + SPACE + rpcName
+                        + OPEN_PARENTHESIS + inputName + SPACE + RPC_INPUT_VAR_NAME + CLOSE_PARENTHESIS + SPACE
+                        + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + YANG_UTILS_TODO + NEW_LINE;
         if (!outputName.contentEquals(VOID)) {
             method += EIGHT_SPACE_INDENTATION + RETURN + SPACE + NULL + SEMI_COLAN + NEW_LINE;
         }
@@ -601,7 +611,7 @@ public final class MethodsGenerator {
      * @return from string method's open string
      */
     public static String getFromStringMethodSignature(String className) {
-        return getJavaDoc(FROM_METHOD, className, false) + FOUR_SPACE_INDENTATION + PUBLIC + SPACE
+        return getJavaDoc(FROM_METHOD, className, false) + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STATIC + SPACE
                 + className + SPACE + FROM_STRING_METHOD_NAME + OPEN_PARENTHESIS + STRING_DATA_TYPE + SPACE
                 + FROM_STRING_PARAM_NAME + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
@@ -676,7 +686,6 @@ public final class MethodsGenerator {
         return targetDataType + SPACE + TMP_VAL + SPACE + EQUAL + SPACE + parseFromStringMethod
                 + OPEN_PARENTHESIS + FROM_STRING_PARAM_NAME + CLOSE_PARENTHESIS;
     }
-
 
     /**
      * Returns hash code method open strings.
@@ -915,5 +924,39 @@ public final class MethodsGenerator {
         return FOUR_SPACE_INDENTATION + className + OPEN_PARENTHESIS + INT + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE
                 + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + getSmallCase(className) + SPACE + EQUAL
                 + SPACE + VALUE + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+    }
+
+    /**
+     * Returns of method for enum class.
+     *
+     * @param className class name
+     * @param attr java attribute
+     * @param enumMap enum's sets map
+     * @param enumList enum's sets list
+     * @return of method
+     */
+    public static String getEnumsOfMethod(String className, JavaAttributeInfo attr,
+            Map<String, Integer> enumMap, List<String> enumList) {
+        String attrType = getReturnType(attr);
+        String attrName = getSmallCase(attr.getAttributeName());
+
+        String method = FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STATIC + SPACE + className + SPACE + OF
+                + OPEN_PARENTHESIS
+                + attrType + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
+                + EIGHT_SPACE_INDENTATION + SWITCH + SPACE + OPEN_PARENTHESIS + VALUE
+                + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        int value = 0;
+        for (String str : enumList) {
+
+            value = enumMap.get(str);
+            method = method + TWELVE_SPACE_INDENTATION + CASE + SPACE + value + COLAN + NEW_LINE
+                    + SIXTEEN_SPACE_INDENTATION + RETURN + SPACE + className + PERIOD
+                    + str + SEMI_COLAN + NEW_LINE;
+        }
+        method = method + TWELVE_SPACE_INDENTATION + DEFAULT + SPACE + COLAN + NEW_LINE + SIXTEEN_SPACE_INDENTATION
+                + RETURN + SPACE + NULL + SEMI_COLAN + NEW_LINE + EIGHT_SPACE_INDENTATION + CLOSE_CURLY_BRACKET
+                + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
+
+        return getJavaDoc(OF_METHOD, className + " for type " + attrName, false) + method;
     }
 }

@@ -24,8 +24,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getJavaPackageFromPackagePath;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
@@ -35,7 +36,6 @@ import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.MULTIPLE_NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
-import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE_INFO_JAVADOC_OF_CHILD;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addPackageInfo;
@@ -62,7 +62,7 @@ public final class FileSystemUtil {
     public static boolean doesPackageExist(String pkg) {
         File pkgDir = new File(getPackageDirPathFromJavaJPackage(pkg));
         File pkgWithFile = new File(pkgDir + SLASH + "package-info.java");
-        return (pkgDir.exists() && pkgWithFile.isFile());
+        return pkgDir.exists() && pkgWithFile.isFile();
     }
 
     /**
@@ -71,26 +71,24 @@ public final class FileSystemUtil {
      * @param yangNode YANG node for which code is being generated
      * @throws IOException any IO exception
      */
-    public static void createPackage(YangNode yangNode)
-            throws IOException {
-
-        YangNode parent = getParentNodeInGenCode(yangNode);
-        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) yangNode).getJavaFileInfo();
-        String absolutePath = getAbsolutePackagePath(javaFileInfo.getBaseCodeGenPath(),
-                javaFileInfo.getPackageFilePath());
-
-        String pkgInfo;
-        if (parent != null) {
-            pkgInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName()
-                    + PACKAGE_INFO_JAVADOC_OF_CHILD;
-        } else {
-            pkgInfo = javaFileInfo.getJavaName();
+    public static void createPackage(YangNode yangNode) throws IOException {
+        if (!(yangNode instanceof JavaFileInfoContainer)) {
+            throw new TranslatorException("current node must have java file info");
         }
-
-        if (!doesPackageExist(absolutePath)) {
+        String pkgInfo;
+        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) yangNode).getJavaFileInfo();
+        String pkg = getAbsolutePackagePath(javaFileInfo.getBaseCodeGenPath(), javaFileInfo.getPackageFilePath());
+        if (!doesPackageExist(pkg)) {
             try {
-                File pack = createDirectories(absolutePath);
-                addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(absolutePath));
+                File pack = createDirectories(pkg);
+                YangNode parent = getParentNodeInGenCode(yangNode);
+                if (parent != null) {
+                    pkgInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName();
+                    addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg), true);
+                } else {
+                    pkgInfo = ((JavaFileInfoContainer) yangNode).getJavaFileInfo().getJavaName();
+                    addPackageInfo(pack, pkgInfo, getJavaPackageFromPackagePath(pkg), false);
+                }
             } catch (IOException e) {
                 throw new IOException("failed to create package-info file");
             }

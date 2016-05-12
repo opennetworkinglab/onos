@@ -78,6 +78,8 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorTyp
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.YangConstructType.ENUM_DATA;
+import static org.onosproject.yangutils.utils.UtilConstants.QUOTES;
+import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 
 /**
  * Represents listener based call back function corresponding to the "enum" rule
@@ -104,8 +106,16 @@ public final class EnumListener {
         checkStackIsNotEmpty(listener, MISSING_HOLDER, ENUM_DATA, ctx.string().getText(), ENTRY);
 
         YangEnum enumNode = new YangEnum();
-        enumNode.setNamedValue(ctx.string().getText());
+        enumNode.setNamedValue(getValidNamedValue(ctx.string().getText()));
         listener.getParsedDataStack().push(enumNode);
+    }
+
+    /* Removes quotes from the enum name if present.*/
+    private static String getValidNamedValue(String name) {
+        if (name.contains(QUOTES)) {
+            name = name.replace(QUOTES, EMPTY_STRING);
+        }
+        return name;
     }
 
     /**
@@ -163,7 +173,8 @@ public final class EnumListener {
             }
         } else {
             throw new ParserException(
-                    constructListenerErrorMessage(MISSING_CURRENT_HOLDER, ENUM_DATA, ctx.string().getText(), EXIT));
+                    constructListenerErrorMessage(MISSING_CURRENT_HOLDER, ENUM_DATA, ctx.string().getText(),
+                            EXIT));
         }
     }
 }

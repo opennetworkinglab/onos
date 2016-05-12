@@ -21,7 +21,11 @@ import java.io.IOException;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaImportDataContainer;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+
+import static java.util.Collections.sort;
 
 import static org.onosproject.yangutils.translator.tojava.JavaImportData.getAugmentedInfoImport;
 import static org.onosproject.yangutils.translator.tojava.JavaImportData.getHasAugmentationImport;
@@ -30,8 +34,6 @@ import static org.onosproject.yangutils.translator.tojava.JavaImportData.getImpo
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.HAS_AUGMENTATION;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
-
-import static java.util.Collections.sort;
 
 /**
  * Represents utilities for temporary java code fragments.
@@ -52,7 +54,8 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @param operation add or delete import
      * @return import for HasAugmentation class
      */
-    public static List<String> addHasAugmentationImport(YangNode curNode, List<String> imports, boolean operation) {
+    public static List<String> addHasAugmentationImport(YangNode curNode, List<String> imports,
+            boolean operation) {
         if (curNode instanceof JavaImportDataContainer) {
             String thisImport = getHasAugmentationImport();
             performOperationOnImports(imports, thisImport, operation);
@@ -109,13 +112,14 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @param operation add or remove
      * @return import list
      */
-    private static List<String> performOperationOnImports(List<String> imports, String curImport, boolean operation) {
+    private static List<String> performOperationOnImports(List<String> imports, String curImport,
+            boolean operation) {
         if (operation) {
             imports.add(curImport);
         } else {
             imports.remove(curImport);
         }
-        sort(imports);
+        sortImports(imports);
         return imports;
     }
 
@@ -142,7 +146,7 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @return true or false
      */
     public static boolean isHasAugmentationExtended(List<String> extendsList) {
-        return (extendsList != null && extendsList.contains(HAS_AUGMENTATION));
+        return extendsList != null && extendsList.contains(HAS_AUGMENTATION);
     }
 
     /**
@@ -152,7 +156,7 @@ public final class TempJavaCodeFragmentFilesUtils {
      * @return true or false
      */
     public static boolean isAugmentedInfoExtended(List<String> extendsList) {
-        return (extendsList != null && extendsList.contains(AUGMENTED_INFO));
+        return extendsList != null && extendsList.contains(AUGMENTED_INFO);
     }
 
     /**
@@ -172,4 +176,37 @@ public final class TempJavaCodeFragmentFilesUtils {
             }
         }
     }
+
+    /**
+     * Detects collision between parent and child node which have same name.
+     * When parent and child node both have the same name in that case child node should be used with
+     * qualified name.
+     *
+     * @param curNode current YANG node
+     * @param qualifiedTypeInfo current node's qualified info
+     * @return true if collision is detected
+     */
+    public static boolean detectCollisionBwParentAndChildForImport(YangNode curNode,
+            JavaQualifiedTypeInfo qualifiedTypeInfo) {
+
+        YangNode parent = curNode.getParent();
+        String parentsClassInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName();
+        String childsClassInfo = qualifiedTypeInfo.getClassInfo();
+        if (childsClassInfo.equals(parentsClassInfo)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns sorted import list.
+     *
+     * @param imports import list
+     * @return sorted import list
+     */
+    public static List<String> sortImports(List<String> imports) {
+        sort(imports);
+        return imports;
+    }
+
 }

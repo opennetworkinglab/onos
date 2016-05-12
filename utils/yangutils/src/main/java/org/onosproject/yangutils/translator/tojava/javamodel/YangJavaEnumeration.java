@@ -76,7 +76,6 @@ public class YangJavaEnumeration
      */
     @Override
     public void setJavaFileInfo(JavaFileInfo javaInfo) {
-
         javaFileInfo = javaInfo;
     }
 
@@ -87,7 +86,6 @@ public class YangJavaEnumeration
      */
     @Override
     public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
-
         return tempFileHandle;
     }
 
@@ -98,7 +96,6 @@ public class YangJavaEnumeration
      */
     @Override
     public void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle) {
-
         tempFileHandle = fileHandle;
     }
 

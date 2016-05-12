@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeHolder;
@@ -33,10 +34,9 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.OF_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
-import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedInfoOfFromString;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateTypeDefClassFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateUnionClassFile;
-import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getFromStringMethod;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getOfMethodStringAndJavaDoc;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getTypeConstructorStringAndJavaDoc;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
@@ -60,10 +60,6 @@ public class TempJavaTypeFragmentFiles
      * File name for construction for special type like union, typedef.
      */
     private static final String CONSTRUCTOR_FOR_TYPE_FILE_NAME = "ConstructorForType";
-    /**
-     * File name for from string method.
-     */
-    private static final String FROM_STRING_METHOD_FILE_NAME = "FromString";
 
     /**
      * File name for typedef class file name suffix.
@@ -84,11 +80,6 @@ public class TempJavaTypeFragmentFiles
      * Temporary file handle for constructor for type class.
      */
     private File constructorForTypeTempFileHandle;
-
-    /**
-     * Temporary file handle for from string method of class.
-     */
-    private File fromStringImplTempFileHandle;
 
     /**
      * Java file handle for typedef class file.
@@ -118,10 +109,8 @@ public class TempJavaTypeFragmentFiles
         addGeneratedTempFile(CONSTRUCTOR_FOR_TYPE_MASK);
         addGeneratedTempFile(FROM_STRING_IMPL_MASK);
 
-
         setOfStringImplTempFileHandle(getTemporaryFileHandle(OF_STRING_METHOD_FILE_NAME));
         setConstructorForTypeTempFileHandle(getTemporaryFileHandle(CONSTRUCTOR_FOR_TYPE_FILE_NAME));
-        setFromStringImplTempFileHandle(getTemporaryFileHandle(FROM_STRING_METHOD_FILE_NAME));
 
     }
 
@@ -143,25 +132,6 @@ public class TempJavaTypeFragmentFiles
      */
     private void setConstructorForTypeTempFileHandle(File constructorForTypeTempFileHandle) {
         this.constructorForTypeTempFileHandle = constructorForTypeTempFileHandle;
-    }
-
-    /**
-     * Returns from string method's temporary file handle.
-     *
-     * @return from string method's temporary file handle
-     */
-    public File getFromStringImplTempFileHandle() {
-        return fromStringImplTempFileHandle;
-    }
-
-    /**
-     * Sets from string method's temporary file handle.
-     *
-     * @param fromStringImplTempFileHandle from string method's temporary file
-     * handle
-     */
-    private void setFromStringImplTempFileHandle(File fromStringImplTempFileHandle) {
-        this.fromStringImplTempFileHandle = fromStringImplTempFileHandle;
     }
 
     /**
@@ -239,9 +209,14 @@ public class TempJavaTypeFragmentFiles
                 }
                 YangJavaType<?> javaType = (YangJavaType<?>) yangType;
                 javaType.updateJavaQualifiedInfo();
+                String typeName = javaType.getDataTypeName();
+
+                if (javaType.getDataType().equals(YangDataTypes.DERIVED)) {
+                    typeName = getCamelCase(typeName, null);
+                }
                 JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
                         javaType.getJavaQualifiedInfo(),
-                        javaType.getDataTypeName(), javaType,
+                        typeName, javaType,
                         getIsQualifiedAccessOrAddToImportList(javaType.getJavaQualifiedInfo()),
                         false);
                 addJavaSnippetInfoToApplicableTempFiles((YangNode) yangTypeHolder, javaAttributeInfo);
@@ -269,34 +244,6 @@ public class TempJavaTypeFragmentFiles
         if ((getGeneratedTempFiles() & CONSTRUCTOR_FOR_TYPE_MASK) != 0) {
             addTypeConstructor(javaAttributeInfo);
         }
-
-        JavaQualifiedTypeInfo qualifiedInfoOfFromString = getQualifiedInfoOfFromString(javaAttributeInfo);
-        /*
-         * Create a new java attribute info with qualified information of
-         * wrapper classes.
-         */
-        JavaAttributeInfo fromStringAttributeInfo = getAttributeInfoForTheData(qualifiedInfoOfFromString,
-                javaAttributeInfo.getAttributeName(),
-                javaAttributeInfo.getAttributeType(),
-                getIsQualifiedAccessOrAddToImportList(qualifiedInfoOfFromString), false);
-        if ((getGeneratedTempFiles() & FROM_STRING_IMPL_MASK) != 0) {
-            addFromStringMethod(javaAttributeInfo, fromStringAttributeInfo);
-        }
-    }
-
-
-    /**
-     * Adds from string method for union class.
-     *
-     * @param javaAttributeInfo type attribute info
-     * @param fromStringAttributeInfo from string attribute info
-     * @throws IOException when fails to append to temporary file
-     */
-    private void addFromStringMethod(JavaAttributeInfo javaAttributeInfo,
-            JavaAttributeInfo fromStringAttributeInfo)
-            throws IOException {
-        appendToFile(getFromStringImplTempFileHandle(), getFromStringMethod(javaAttributeInfo,
-                fromStringAttributeInfo) + NEW_LINE);
     }
 
     /**
@@ -324,7 +271,6 @@ public class TempJavaTypeFragmentFiles
                 + NEW_LINE);
     }
 
-
     /**
      * Removes all temporary file handles.
      *
@@ -333,6 +279,7 @@ public class TempJavaTypeFragmentFiles
      * and java files.
      * @throws IOException when failed to delete the temporary files
      */
+    @Override
     public void freeTemporaryResources(boolean isErrorOccurred)
             throws IOException {
         boolean isError = isErrorOccurred;
@@ -356,6 +303,7 @@ public class TempJavaTypeFragmentFiles
         }
 
         super.freeTemporaryResources(isErrorOccurred);
+
     }
 
     /**
@@ -365,6 +313,7 @@ public class TempJavaTypeFragmentFiles
      * @param curNode current YANG node
      * @throws IOException when fails to generate java files
      */
+    @Override
     public void generateJavaFile(int fileType, YangNode curNode)
             throws IOException {
         List<String> imports = new ArrayList<>();

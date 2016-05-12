@@ -149,7 +149,7 @@ public final class YangJavaModelUtils {
             /**
              * Enumeration
              */
-            javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles()
+            javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().getEnumerationTempFiles()
                     .addEnumAttributeToTempFiles((YangNode) javaCodeGeneratorInfo);
         } else if (javaCodeGeneratorInfo instanceof YangChoice) {
             /*Do nothing, only the interface needs to be generated*/

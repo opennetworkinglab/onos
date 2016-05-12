@@ -68,6 +68,7 @@ public class YangJavaType<T>
             }
             importInfo.setClassInfo(dataTypeName);
         }
+        setJavaQualifiedInfo(importInfo);
     }
 
     @Override

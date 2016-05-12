@@ -27,6 +27,7 @@ import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
 
 /**
  * Represents module information extended to support java code generation.
@@ -118,5 +119,7 @@ public class YangJavaModule
     public void generateCodeExit()
             throws IOException {
         getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
+        searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +
+                getJavaFileInfo().getPackageFilePath());
     }
 }

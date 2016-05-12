@@ -19,7 +19,6 @@ package org.onosproject.yangutils.translator.tojava.utils;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 
 import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
 import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
@@ -87,11 +86,6 @@ public final class JavaCodeSnippetGen {
      * @return corresponding textual java code information
      */
     public static String getJavaClassDefStart(int genFileTypes, String yangName) {
-
-        /*
-         * get the camel case name for java class / interface.
-         */
-        yangName = getCamelCase(yangName, null);
         return generateClassDefinition(genFileTypes, yangName);
     }
 
@@ -168,8 +162,9 @@ public final class JavaCodeSnippetGen {
      * @return string for enum's attribute
      */
     public static String generateEnumAttributeString(String name, int value) {
-        return getJavaDoc(ENUM_ATTRIBUTE, name, false) + FOUR_SPACE_INDENTATION + getEnumJavaAttribute(name)
-                + OPEN_PARENTHESIS + value + CLOSE_PARENTHESIS + COMMA + NEW_LINE;
+        return getJavaDoc(ENUM_ATTRIBUTE, name, false) + FOUR_SPACE_INDENTATION
+                + getEnumJavaAttribute(name).toUpperCase() + OPEN_PARENTHESIS
+                + value + CLOSE_PARENTHESIS + COMMA + NEW_LINE;
     }
 
 }

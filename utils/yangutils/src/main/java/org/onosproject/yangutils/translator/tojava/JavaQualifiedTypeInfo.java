@@ -166,6 +166,7 @@ public class JavaQualifiedTypeInfo
      * @return return the import info for this attribute
      */
     public static JavaQualifiedTypeInfo getQualifiedInfoOfFromString(JavaAttributeInfo referredTypesAttrInfo) {
+
         /*
          * Get the java qualified type information for the wrapper classes and
          * set it in new java attribute information.
@@ -177,7 +178,6 @@ public class JavaQualifiedTypeInfo
                 getJavaImportPackage(referredTypesAttrInfo.getAttributeType(), true, null));
         return qualifiedInfoOfFromString;
     }
-
 
     @Override
     public int hashCode() {

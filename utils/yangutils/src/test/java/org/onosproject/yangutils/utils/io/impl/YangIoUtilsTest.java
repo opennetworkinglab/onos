@@ -47,6 +47,10 @@ public final class YangIoUtilsTest {
     private static final String CREATE_PATH = BASE_DIR + File.separator + "dir1/dir2/dir3/dir4/";
     private static final String CHECK_STRING = "one, two, three, four, five, six";
     private static final String TRIM_STRING = "one, two, three, four, five, ";
+    private static final String CHECK1 = "check1";
+    private static final String PKG_INFO = "package-info.java";
+    private static final String PATH = "src/main/yangmodel/";
+    private static final String MSG = "Exception occured while creating package info file.";
 
     /**
      * Expected exceptions.
@@ -64,8 +68,8 @@ public final class YangIoUtilsTest {
 
         File dirPath = new File(CREATE_PATH);
         dirPath.mkdirs();
-        addPackageInfo(dirPath, "check1", CREATE_PATH);
-        File filePath = new File(dirPath + File.separator + "package-info.java");
+        addPackageInfo(dirPath, CHECK1, CREATE_PATH, false);
+        File filePath = new File(dirPath + File.separator + PKG_INFO);
         assertThat(filePath.isFile(), is(true));
     }
 
@@ -79,8 +83,23 @@ public final class YangIoUtilsTest {
 
         File dirPath = new File(CREATE_PATH);
         dirPath.mkdirs();
-        addPackageInfo(dirPath, "check1", "src/main/yangmodel/" + CREATE_PATH);
-        File filePath = new File(dirPath + File.separator + "package-info.java");
+        addPackageInfo(dirPath, CHECK1, PATH + CREATE_PATH, false);
+        File filePath = new File(dirPath + File.separator + PKG_INFO);
+        assertThat(filePath.isFile(), is(true));
+    }
+
+    /**
+     * This test case checks with a child node.
+     *
+     * @throws IOException when fails to do IO operations for test case
+     */
+    @Test
+    public void addPackageInfoWithChildNode() throws IOException {
+
+        File dirPath = new File(CREATE_PATH);
+        dirPath.mkdirs();
+        addPackageInfo(dirPath, CHECK1, PATH + CREATE_PATH, true);
+        File filePath = new File(dirPath + File.separator + PKG_INFO);
         assertThat(filePath.isFile(), is(true));
     }
 
@@ -94,9 +113,9 @@ public final class YangIoUtilsTest {
 
         File dirPath = new File("invalid/check");
         thrown.expect(IOException.class);
-        thrown.expectMessage("Exception occured while creating package info file.");
-        addPackageInfo(dirPath, "check1", CREATE_PATH);
-        File filePath1 = new File(dirPath + File.separator + "package-info.java");
+        thrown.expectMessage(MSG);
+        addPackageInfo(dirPath, CHECK1, CREATE_PATH, false);
+        File filePath1 = new File(dirPath + File.separator + PKG_INFO);
         assertThat(filePath1.isFile(), is(false));
     }
 

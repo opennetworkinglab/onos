@@ -67,7 +67,6 @@ public class TempJavaCodeFragmentFiles {
      */
     private TempJavaEventListenerFragmentFiles eventListenerTempFiles;
 
-
     /**
      * Creates an instance of temporary java code fragment.
      *
@@ -126,7 +125,6 @@ public class TempJavaCodeFragmentFiles {
         this.beanTempFiles = beanTempFiles;
     }
 
-
     /**
      * Retrieves the temp file handle for data type file generation.
      *
@@ -135,7 +133,6 @@ public class TempJavaCodeFragmentFiles {
     public TempJavaTypeFragmentFiles getTypeTempFiles() {
         return typeTempFiles;
     }
-
 
     /**
      * Sets temp file handle for data type file generation.
@@ -234,23 +231,29 @@ public class TempJavaCodeFragmentFiles {
             getBeanTempFiles().generateJavaFile(fileType, curNode);
         }
 
-        /**
+        /*
          * Creates user defined data type class file.
          */
         if ((fileType & GENERATE_TYPE_CLASS) != 0) {
             getTypeTempFiles().generateJavaFile(fileType, curNode);
         }
 
-
+        /*
+         * Creats service and manager class file.
+         */
         if (fileType == GENERATE_SERVICE_AND_MANAGER) {
-
             getServiceTempFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, curNode);
+        }
 
-
+        /*
+         * Creats enumeration class file.
+         */
+        if (fileType == GENERATE_ENUM_CLASS) {
+            getEnumerationTempFiles().generateJavaFile(GENERATE_ENUM_CLASS, curNode);
         }
 
         if ((fileType & GENERATE_EVENT_CLASS) != 0) {
-            /**
+            /*
              * Creates event class file.
              */
             if (getEventTempFiles() != null) {
@@ -350,7 +353,6 @@ public class TempJavaCodeFragmentFiles {
         throw new TranslatorException("default constructor should not be added");
     }
 
-
     /**
      * Adds build method's implementation for class.
      *
@@ -395,24 +397,6 @@ public class TempJavaCodeFragmentFiles {
         if (getEventListenerTempFiles() != null) {
             getEventListenerTempFiles().freeTemporaryResources(isErrorOccurred);
         }
-    }
-
-
-    /**
-     * Adds enum attributes to temporary files.
-     *
-     * @param curNode current YANG node
-     * @throws IOException when fails to do IO operations
-     */
-    public void addEnumAttributeToTempFiles(YangNode curNode)
-            throws IOException {
-
-        if (getEnumerationTempFiles() != null) {
-            getEnumerationTempFiles().addEnumAttributeToTempFiles(curNode);
-            return;
-        }
-
-        throw new TranslatorException("build should not be added");
     }
 
 }

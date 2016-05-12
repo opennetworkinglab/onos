@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
@@ -80,9 +82,11 @@ public final class YangIoUtils {
      * @param path directory path
      * @param classInfo class info for the package
      * @param pack package of the directory
+     * @param isChildNode is it a child node
      * @throws IOException when fails to create package info file
      */
-    public static void addPackageInfo(File path, String classInfo, String pack) throws IOException {
+    public static void addPackageInfo(File path, String classInfo, String pack, boolean isChildNode)
+            throws IOException {
 
         if (pack.contains(ORG)) {
             String[] strArray = pack.split(ORG);
@@ -97,7 +101,7 @@ public final class YangIoUtils {
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 
             bufferedWriter.write(CopyrightHeader.getCopyrightHeader());
-            bufferedWriter.write(getJavaDoc(PACKAGE_INFO, classInfo, false));
+            bufferedWriter.write(getJavaDoc(PACKAGE_INFO, classInfo, isChildNode));
             bufferedWriter.write(PACKAGE + SPACE + pack + SEMI_COLAN);
 
             bufferedWriter.close();
@@ -119,8 +123,42 @@ public final class YangIoUtils {
             try {
                 FileUtils.deleteDirectory(generatedDirectory);
             } catch (IOException e) {
-                throw new IOException("Failed to delete the generated files in " + generatedDirectory + " directory");
+                throw new IOException(
+                        "Failed to delete the generated files in " + generatedDirectory + " directory");
             }
+        }
+    }
+
+    /**
+     * Searches and deletes generated temporary directories.
+     *
+     * @param root root directory
+     * @throws IOException when fails to do IO operations.
+     */
+    public static void searchAndDeleteTempDir(String root) throws IOException {
+        List<File> store = new LinkedList<>();
+        Stack<String> stack = new Stack<>();
+        stack.push(root);
+
+        while (!stack.empty()) {
+            root = stack.pop();
+            File file = new File(root);
+            File[] filelist = file.listFiles();
+            if (filelist == null || filelist.length == 0) {
+                continue;
+            }
+            for (File current : filelist) {
+                if (current.isDirectory()) {
+                    stack.push(current.toString());
+                    if (current.getName().endsWith("-Temp")) {
+                        store.add(current);
+                    }
+                }
+            }
+        }
+
+        for (File dir : store) {
+            dir.delete();
         }
     }
 
