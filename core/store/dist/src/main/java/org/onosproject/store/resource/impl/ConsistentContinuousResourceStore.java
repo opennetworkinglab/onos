@@ -17,7 +17,6 @@ package org.onosproject.store.resource.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.onlab.util.GuavaCollectors;
 import org.onlab.util.Tools;
 import org.onosproject.net.resource.ContinuousResource;
@@ -135,9 +134,10 @@ class ConsistentContinuousResourceStore {
 
     Stream<ContinuousResource> getResources(ResourceConsumer consumer) {
         return consumers.values().stream()
-                .flatMap(x -> x.value().allocations().stream()
-                        .map(y -> Maps.immutableEntry(x.value().original(), y)))
-                .filter(x -> x.getValue().consumer().equals(consumer))
-                .map(x -> (ContinuousResource) (x.getValue().resource()));
+                .flatMap(x -> x.value().allocations().stream())
+                .filter(x -> x.consumer().equals(consumer))
+                // this cast is safe because this class stores
+                // continuous resource allocations only
+                .map(x -> (ContinuousResource) x.resource());
     }
 }
