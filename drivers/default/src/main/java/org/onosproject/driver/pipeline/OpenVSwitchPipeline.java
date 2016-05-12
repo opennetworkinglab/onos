@@ -23,9 +23,12 @@ import java.util.Objects;
 
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.EthType.EtherType;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.device.DeviceService;
@@ -40,6 +43,8 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion.Type;
+import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -71,6 +76,7 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
     private static final int SNAT_TABLE = 40;
     private static final int MAC_TABLE = 50;
     private static final int TABLE_MISS_PRIORITY = 0;
+    private static final String USERDATA_IP = "169.254.169.254";
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
@@ -213,7 +219,7 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
 
         treatment.transition(MAC_TABLE);
-
+        treatment.add(Instructions.createOutput(PortNumber.CONTROLLER));
         FlowRule rule;
         rule = DefaultFlowRule.builder().forDevice(deviceId)
                 .withSelector(selector.build())
@@ -290,8 +296,9 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
         Integer transition = null;
         Integer forTable = null;
         // MAC table flow rules
-        if (selector.getCriterion(Type.TUNNEL_ID) != null && selector
-                .getCriterion(Type.ETH_DST) != null) {
+        if (selector.getCriterion(Type.TUNNEL_ID) != null
+                && (selector.getCriterion(Type.ETH_DST) != null
+                        || selector.getCriterion(Type.ETH_SRC) != null)) {
             forTable = MAC_TABLE;
             return reassemblyFlowRule(ruleBuilder, tb, transition, forTable);
         }
@@ -306,6 +313,10 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
                 transition = MAC_TABLE;
             } else if (selector.getCriterion(Type.IPV4_DST) != null) {
                 transition = DNAT_TABLE;
+            } else if (selector.getCriterion(Type.ETH_TYPE) != null
+                    && selector.getCriterion(Type.ETH_TYPE).equals(Criteria
+                            .matchEthType(EtherType.ARP.ethType().toShort()))) {
+                transition = ARP_TABLE;
             }
             return reassemblyFlowRule(ruleBuilder, tb, transition, forTable);
         }
@@ -315,11 +326,22 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
                         .matchEthType(EtherType.ARP.ethType().toShort()))) {
             // CLASSIFIER table arp flow rules
             if (selector.getCriterion(Type.TUNNEL_ID) == null) {
+                if (selector.getCriterion(Type.ARP_OP) != null) {
+                    forTable = CLASSIFIER_TABLE;
+                    return reassemblyFlowRule(ruleBuilder, tb, null, forTable);
+                }
                 transition = ARP_TABLE;
                 forTable = CLASSIFIER_TABLE;
                 return reassemblyFlowRule(ruleBuilder, tb, transition, forTable);
             }
             forTable = ARP_TABLE;
+            return reassemblyFlowRule(ruleBuilder, tb, transition, forTable);
+        }
+        // SNAT table flow rules
+        if (selector.getCriterion(Type.TUNNEL_ID) != null
+                && selector.getCriterion(Type.IPV4_SRC) != null) {
+            transition = MAC_TABLE;
+            forTable = SNAT_TABLE;
             return reassemblyFlowRule(ruleBuilder, tb, transition, forTable);
         }
         // L3FWD table flow rules
@@ -331,15 +353,16 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
         }
         // DNAT table flow rules
         if (selector.getCriterion(Type.IPV4_DST) != null) {
+            IPCriterion ipCriterion = (IPCriterion) selector.getCriterion(Type.IPV4_DST);
+            IpPrefix ipPrefix = ipCriterion.ip();
+            // specific CLASSIFIER table flow rules for userdata
+            if (ipPrefix.address().equals(IpAddress.valueOf(USERDATA_IP))) {
+                forTable = CLASSIFIER_TABLE;
+                transition = MAC_TABLE;
+                return reassemblyFlowRule(ruleBuilder, tb, transition, forTable);
+            }
             transition = L3FWD_TABLE;
             forTable = DNAT_TABLE;
-            return reassemblyFlowRule(ruleBuilder, tb, transition, forTable);
-        }
-        // SNAT table flow rules
-        if (selector.getCriterion(Type.TUNNEL_ID) != null
-                && selector.getCriterion(Type.IPV4_SRC) != null) {
-            transition = MAC_TABLE;
-            forTable = SNAT_TABLE;
             return reassemblyFlowRule(ruleBuilder, tb, transition, forTable);
         }
         return Collections.singletonList(ruleBuilder.build());

@@ -461,6 +461,10 @@ public class DefaultOvsdbClient
             return;
         }
 
+        Map<String, String> options = new HashMap<>();
+        options.put("disable-in-band", "true");
+        bridge.setOtherConfig(options);
+
         String bridgeUuid = getBridgeUuid(bridgeName);
         if (bridgeUuid == null) {
             log.debug("Create a new bridge");
@@ -525,16 +529,18 @@ public class DefaultOvsdbClient
             return;
         }
 
+        Map<String, String> options = new HashMap<>();
+        options.put("disable-in-band", "true");
+        if (dpid != null) {
+            options.put("datapath-id", dpid);
+        }
+        bridge.setOtherConfig(options);
+
         String bridgeUuid = getBridgeUuid(bridgeName);
         if (bridgeUuid == null) {
             log.debug("Create a new bridge");
 
             bridge.setName(bridgeName);
-            if (dpid != null) {
-                Map<String, String> options = new HashMap<>();
-                options.put("datapath-id", dpid);
-                bridge.setOtherConfig(options);
-            }
             bridgeUuid = insertConfig(OvsdbConstant.BRIDGE, "_uuid",
                                       OvsdbConstant.DATABASENAME, "bridges",
                                       ovsUuid, bridge.getRow());
@@ -586,7 +592,10 @@ public class DefaultOvsdbClient
         bridge.setProtocols(protocols);
 
         Map<String, String> options = new HashMap<>();
-        options.put("datapath-id", dpid);
+        options.put("disable-in-band", "true");
+        if (dpid != null) {
+            options.put("datapath-id", dpid);
+        }
         bridge.setOtherConfig(options);
 
         String bridgeUuid = getBridgeUuid(bridgeName);
