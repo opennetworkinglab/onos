@@ -543,8 +543,22 @@ public class FlowEntryBuilder {
             }
             break;
         case ARP_OP:
+            @SuppressWarnings("unchecked")
+            OFOxm<org.projectfloodlight.openflow.types.ArpOpcode> arpop =
+                    (OFOxm<org.projectfloodlight.openflow.types.ArpOpcode>) oxm;
+            builder.setArpOp((short) arpop.getValue().getOpcode());
+            break;
         case ARP_SHA:
+            @SuppressWarnings("unchecked")
+            OFOxm<org.projectfloodlight.openflow.types.MacAddress> arpsha =
+                    (OFOxm<org.projectfloodlight.openflow.types.MacAddress>) oxm;
+            builder.setArpSha(MacAddress.valueOf(arpsha.getValue().getLong()));
+            break;
         case ARP_SPA:
+            @SuppressWarnings("unchecked")
+            OFOxm<IPv4Address> arpspa = (OFOxm<IPv4Address>) oxm;
+            builder.setArpSpa(Ip4Address.valueOf(arpspa.getValue().getInt()));
+            break;
         case ARP_THA:
         case ARP_TPA:
         case BSN_EGR_PORT_GROUP_ID:
