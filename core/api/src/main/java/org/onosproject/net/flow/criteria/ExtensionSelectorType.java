@@ -73,6 +73,15 @@ public class ExtensionSelectorType {
         this.type = type;
     }
 
+    /**
+     * Returns the integer value associated with this type.
+     *
+     * @return an integer value
+     */
+    public int toInt() {
+        return this.type;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(type);

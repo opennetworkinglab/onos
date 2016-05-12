@@ -32,6 +32,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
@@ -39,10 +40,14 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 
 import com.google.common.testing.EqualsTester;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
+import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.net.flow.criteria.Criterion.Type;
 
@@ -289,5 +294,36 @@ public class DefaultTrafficSelectorTest {
         selector = DefaultTrafficSelector.builder()
                 .add(Criteria.matchLambda(new OchSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 1, 1))).build();
         assertThat(selector, hasCriterionWithType(Type.OCH_SIGID));
+
+        selector = DefaultTrafficSelector.builder()
+                .matchEthDst(macValue)
+                .extension(new MockExtensionSelector(1), DeviceId.NONE)
+                .extension(new MockExtensionSelector(2), DeviceId.NONE)
+                .build();
+        assertThat(selector.criteria().size(), is(equalTo(3)));
+    }
+
+    private class MockExtensionSelector extends AbstractExtension implements ExtensionSelector {
+
+        ExtensionSelectorType type;
+
+        MockExtensionSelector(int typeInt) {
+            this.type = new ExtensionSelectorType(typeInt);
+        }
+
+        @Override
+        public ExtensionSelectorType type() {
+            return type;
+        }
+
+        @Override
+        public byte[] serialize() {
+            return new byte[0];
+        }
+
+        @Override
+        public void deserialize(byte[] data) {
+
+        }
     }
 }
