@@ -40,12 +40,10 @@ import org.onosproject.newoptical.api.OpticalPathListener;
 import org.onosproject.newoptical.api.OpticalPathService;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.mastership.MastershipService;
-import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
 import org.onosproject.net.config.NetworkConfigService;
@@ -87,6 +85,7 @@ import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 /**
  * Main component to configure optical connectivity.
@@ -149,6 +148,7 @@ public class OpticalPathProvisioner
 
     @Activate
     protected void activate() {
+        deviceService = opticalView(deviceService);
         appId = coreService.registerApplication("org.onosproject.newoptical");
 
         idCounter = storageService.atomicCounterBuilder()
@@ -360,12 +360,18 @@ public class OpticalPathProvisioner
             Port dstPort = deviceService.getPort(dst.getKey().deviceId(), dst.getKey().port());
 
             if (srcPort instanceof OduCltPort && dstPort instanceof OduCltPort) {
+                OduCltPort srcOCPort = (OduCltPort) srcPort;
+                OduCltPort dstOCPort = (OduCltPort) dstPort;
+                if (!srcOCPort.signalType().equals(dstOCPort.signalType())) {
+                    continue;
+                }
+
                 // Create OTN circuit
                 OpticalCircuitIntent circuitIntent = OpticalCircuitIntent.builder()
                         .appId(appId)
                         .src(src.getKey())
                         .dst(dst.getKey())
-                        .signalType(CltSignalType.CLT_10GBE)
+                        .signalType(srcOCPort.signalType())
                         .bidirectional(true)
                         .build();
                 intents.add(circuitIntent);
@@ -374,13 +380,18 @@ public class OpticalPathProvisioner
                 connectivity.addRealizingLink(pLink);
                 linkPathMap.put(pLink, connectivity);
             } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
+                OchPort srcOchPort = (OchPort) srcPort;
+                OchPort dstOchPort = (OchPort) dstPort;
+                if (!srcOchPort.signalType().equals(dstOchPort.signalType())) {
+                    continue;
+                }
+
                 // Create lightpath
-                // FIXME: hardcoded ODU signal type
                 OpticalConnectivityIntent opticalIntent = OpticalConnectivityIntent.builder()
                         .appId(appId)
                         .src(src.getKey())
                         .dst(dst.getKey())
-                        .signalType(OduSignalType.ODU4)
+                        .signalType(srcOchPort.signalType())
                         .bidirectional(true)
                         .build();
                 intents.add(opticalIntent);
@@ -533,17 +544,25 @@ public class OpticalPathProvisioner
 
         private boolean hasEnoughBandwidth(ConnectPoint cp) {
             if (cp.elementId() instanceof DeviceId) {
-                Device.Type type = deviceService.getDevice(cp.deviceId()).type();
+                Device device =  deviceService.getDevice(cp.deviceId());
+                Device.Type type = device.type();
+
                 if (isTransportLayer(type)) {
-                    // Optical ports are assumed to have enough bandwidth
-                    // TODO should look up physical limit?
-                    return true;
+                    // Check if the port has enough capacity
+                    Port port = deviceService.getPort(cp.deviceId(), cp.port());
+                    if (port instanceof OduCltPort || port instanceof OchPort) {
+                        // Port with capacity
+                        return bandwidth.bps() < port.portSpeed() * 1000000.0;
+                    } else {
+                        // Port without valid capacity (OMS port, etc.)
+                        return true;
+                    }
+                } else {
+                    // Check if enough amount of bandwidth resource remains
+                    ContinuousResource resource = Resources.continuous(cp.deviceId(), cp.port(), Bandwidth.class)
+                            .resource(bandwidth.bps());
+                    return resourceService.isAvailable(resource);
                 }
-
-                ContinuousResource resource = Resources.continuous(cp.deviceId(), cp.port(), Bandwidth.class)
-                        .resource(bandwidth.bps());
-
-                return resourceService.isAvailable(resource);
             }
             return false;
         }
