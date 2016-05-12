@@ -138,6 +138,6 @@ class ConsistentContinuousResourceStore {
                 .flatMap(x -> x.value().allocations().stream()
                         .map(y -> Maps.immutableEntry(x.value().original(), y)))
                 .filter(x -> x.getValue().consumer().equals(consumer))
-                .map(x -> x.getKey());
+                .map(x -> (ContinuousResource) (x.getValue().resource()));
     }
 }
