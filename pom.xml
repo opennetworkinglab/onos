@@ -348,7 +348,7 @@
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>4.2</version>
+                <version>5.0.3</version>
             </dependency>
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
