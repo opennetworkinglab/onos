@@ -187,9 +187,9 @@ remote_jar (
 
 remote_jar (
   name = 'onos-atomix',
-  out = 'atomix-1.0.onos-20160509.095359-258.jar',
-  url = 'https://oss.sonatype.org/content/repositories/snapshots/org/onosproject/atomix/1.0.onos-SNAPSHOT/atomix-1.0.onos-20160509.095359-258.jar',
-  sha1 = 'b6cbb10898b0ef003c78bad1c4c01f67959bf22c',
+  out = 'atomix-1.0.onos-20160511.220807-302.jar',
+  url = 'https://oss.sonatype.org/content/repositories/snapshots/org/onosproject/atomix/1.0.onos-SNAPSHOT/atomix-1.0.onos-20160511.220807-302.jar',
+  sha1 = 'a5686d5905b02202e8228f789268a536a47a1419',
   maven_coords = 'org.onosproject:atomix:1.0.onos-SNAPSHOT',
   visibility = [ 'PUBLIC' ],
 )
