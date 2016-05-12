@@ -1,11 +1,4 @@
 python_binary(
-  name = 'download_file',
-  main = 'download_file.py',
-  deps = [':util'],
-  visibility = ['PUBLIC'],
-)
-
-python_binary(
   name = 'onos-app-writer',
   main = 'onos_app.py',
   deps = [],
@@ -30,22 +23,6 @@ python_binary(
   name = 'onos-feature',
   main = 'onos_feature.py',
   deps = [],
-  visibility = ['PUBLIC'],
-)
-
-python_binary(
-  name = 'pack_war',
-  main = 'pack_war.py',
-  deps = [':util'],
-  visibility = ['PUBLIC'],
-)
-
-python_library(
-  name = 'util',
-  srcs = [
-    'util.py',
-    '__init__.py'
-  ],
   visibility = ['PUBLIC'],
 )
 
