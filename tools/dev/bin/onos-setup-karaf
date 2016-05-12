@@ -137,12 +137,6 @@ if ! grep -q ",onos-api," $KARAF_ROOT/etc/org.apache.karaf.features.cfg; then
         $KARAF_ROOT/etc/org.apache.karaf.features.cfg
 fi
 
-if ! grep -q "ignoreInterrupts" $KARAF_ROOT/bin/karaf; then
-    # Patch the karaf start script to disable user interrupts
-    perl -pi.old -e "s|(-Dkaraf.startLocalConsole=true -Dkaraf.startRemoteShell=true)|\1 -Dkaraf.ignoreInterrupts=true|" \
-        $KARAF_ROOT/bin/karaf
-fi
-
 if [ ! -f $KARAF_ROOT/lib/onos-branding-$ONOS_POM_VERSION.jar ]; then
     # Patch the Apache Karaf distribution with ONOS branding bundle
     echo "Branding as ONOS..."

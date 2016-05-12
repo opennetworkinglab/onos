@@ -44,9 +44,6 @@ perl -pi.old -e "s|^(featuresRepositories=).*|\1mvn:org.apache.karaf.features/st
 perl -pi.old -e "s|^(featuresBoot=).*|\1$BOOT_FEATURES|" \
     $KARAF_DIR/etc/org.apache.karaf.features.cfg
 
-# Patch the karaf start script to disable user interrupts
-perl -pi.old -e "s|(-Dkaraf.startLocalConsole=true -Dkaraf.startRemoteShell=true)|\1 -Dkaraf.ignoreInterrupts=true|" \
-    $KARAF_DIR/bin/karaf
 
 # Patch the Apache Karaf distribution with ONOS branding bundle
 cp $BRANDING $KARAF_DIR/lib

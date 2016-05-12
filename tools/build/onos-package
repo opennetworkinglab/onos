@@ -84,10 +84,6 @@ function build_stage_dir() {
     perl -pi.old -e "s|^(featuresBoot=.*)|\1,$BOOT_FEATURES|" \
         $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg
 
-    # Patch the karaf start script to disable user interrupts
-    perl -pi.old -e "s|(-Dkaraf.startLocalConsole=true -Dkaraf.startRemoteShell=true)|\1 -Dkaraf.ignoreInterrupts=true|" \
-        $ONOS_STAGE/$KARAF_DIST/bin/karaf
-
     # Patch the Apache Karaf distribution with ONOS branding bundle
     cp $M2_REPO/org/onosproject/onos-branding/$ONOS_POM_VERSION/onos-branding-*.jar \
         $ONOS_STAGE/$KARAF_DIST/lib
