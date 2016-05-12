@@ -36,6 +36,7 @@
         <module>core</module>
         <module>net</module>
         <module>store</module>
+        <module>protobuf</module>
         <module>rpc</module>
         <module>rpc-grpc</module>
     </modules>
