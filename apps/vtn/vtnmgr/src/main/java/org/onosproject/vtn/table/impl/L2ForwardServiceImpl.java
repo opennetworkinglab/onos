@@ -176,6 +176,28 @@ public final class L2ForwardServiceImpl implements L2ForwardService {
     }
 
     @Override
+    public void programExternalOut(DeviceId deviceId,
+                                SegmentationId segmentationId,
+                                PortNumber outPort, MacAddress sourceMac,
+                                Objective.Operation type) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchTunnelId(Long.parseLong(segmentationId.toString()))
+                .matchEthSrc(sourceMac).build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(outPort).build();
+        ForwardingObjective.Builder objective = DefaultForwardingObjective
+                .builder().withTreatment(treatment).withSelector(selector)
+                .fromApp(appId).withFlag(Flag.SPECIFIC)
+                .withPriority(MAC_PRIORITY);
+        if (type.equals(Objective.Operation.ADD)) {
+            flowObjectiveService.forward(deviceId, objective.add());
+        } else {
+            flowObjectiveService.forward(deviceId, objective.remove());
+        }
+
+    }
+
+    @Override
     public void programTunnelOut(DeviceId deviceId,
                                  SegmentationId segmentationId,
                                  PortNumber tunnelOutPort, MacAddress dstMac,

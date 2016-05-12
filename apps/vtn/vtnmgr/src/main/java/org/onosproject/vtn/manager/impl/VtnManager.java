@@ -18,6 +18,7 @@ package org.onosproject.vtn.manager.impl;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -36,14 +38,19 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.ARP;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -61,7 +68,12 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment.Builder;
+import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.group.DefaultGroupBucket;
@@ -75,6 +87,12 @@ import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.InboundPacket;
+import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketProcessor;
+import org.onosproject.net.packet.PacketService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMap;
@@ -96,13 +114,16 @@ import org.onosproject.vtn.table.impl.L2ForwardServiceImpl;
 import org.onosproject.vtn.table.impl.L3ForwardServiceImpl;
 import org.onosproject.vtn.table.impl.SnatServiceImpl;
 import org.onosproject.vtn.util.DataPathIdGenerator;
+import org.onosproject.vtn.util.IpUtil;
 import org.onosproject.vtn.util.VtnConfig;
 import org.onosproject.vtn.util.VtnData;
 import org.onosproject.vtnrsc.AllowedAddressPair;
 import org.onosproject.vtnrsc.BindingHostId;
+import org.onosproject.vtnrsc.DefaultFloatingIp;
 import org.onosproject.vtnrsc.DefaultVirtualPort;
 import org.onosproject.vtnrsc.FixedIp;
 import org.onosproject.vtnrsc.FloatingIp;
+import org.onosproject.vtnrsc.FloatingIpId;
 import org.onosproject.vtnrsc.RouterId;
 import org.onosproject.vtnrsc.RouterInterface;
 import org.onosproject.vtnrsc.SecurityGroup;
@@ -183,6 +204,9 @@ public class VtnManager implements VtnService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RouterInterfaceService routerInterfaceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowRuleService flowRuleService;
+
     private ApplicationId appId;
     private ClassifierService classifierService;
     private L2ForwardService l2ForwardService;
@@ -207,8 +231,12 @@ public class VtnManager implements VtnService {
     private static final String EX_PORT_OF_DEVICE = "exPortOfDevice";
     private static final String EX_PORT_MAP = "exPortMap";
     private static final String DEFAULT_IP = "0.0.0.0";
+    private static final String FLOATINGSTORE = "vtn-floatingIp";
     private static final String USERDATA_IP = "169.254.169.254";
     private static final int SUBNET_NUM = 2;
+    private static final int SNAT_TABLE = 40;
+    private static final int SNAT_DEFAULT_RULE_PRIORITY = 0;
+    private static final byte[] ZERO_MAC_ADDRESS = MacAddress.ZERO.toBytes();
 
     private EventuallyConsistentMap<VirtualPortId, VirtualPort> vPortStore;
     private EventuallyConsistentMap<IpAddress, Boolean> switchesOfController;
@@ -216,7 +244,12 @@ public class VtnManager implements VtnService {
     private EventuallyConsistentMap<SubnetId, Map<HostId, Host>> hostsOfSubnet;
     private EventuallyConsistentMap<TenantRouter, Boolean> routerInfFlagOfTenantRouter;
     private EventuallyConsistentMap<DeviceId, Port> exPortOfDevice;
+    private EventuallyConsistentMap<IpAddress, FloatingIp> floatingIpStore;
     private static ConsistentMap<String, String> exPortMap;
+
+    private VtnL3PacketProcessor l3PacketProcessor = new VtnL3PacketProcessor();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PacketService packetService;
 
     @Activate
     public void activate() {
@@ -238,18 +271,29 @@ public class VtnManager implements VtnService {
                                 .register(TenantNetworkId.class)
                                 .register(Host.class)
                                 .register(TenantNetwork.class)
+                                .register(TenantNetworkId.class)
                                 .register(TenantId.class)
                                 .register(SubnetId.class)
                                 .register(VirtualPortId.class)
                                 .register(VirtualPort.State.class)
                                 .register(AllowedAddressPair.class)
                                 .register(FixedIp.class)
+                                .register(FloatingIp.class)
+                                .register(FloatingIpId.class)
+                                .register(FloatingIp.Status.class)
+                                .register(UUID.class)
+                                .register(DefaultFloatingIp.class)
                                 .register(BindingHostId.class)
                                 .register(SecurityGroup.class)
                                 .register(IpAddress.class)
                                 .register(DefaultVirtualPort.class)
                                 .register(RouterId.class)
                                 .register(TenantRouter.class);
+        floatingIpStore = storageService
+                .<IpAddress, FloatingIp>eventuallyConsistentMapBuilder()
+                .withName(FLOATINGSTORE).withSerializer(serializer)
+                .withTimestampProvider((k, v) -> clockService.getTimestamp())
+                .build();
 
         vPortStore = storageService
                 .<VirtualPortId, VirtualPort>eventuallyConsistentMapBuilder()
@@ -295,6 +339,7 @@ public class VtnManager implements VtnService {
                 .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API)))
                 .build();
 
+        packetService.addProcessor(l3PacketProcessor, PacketProcessor.director(0));
         log.info("Started");
     }
 
@@ -464,6 +509,9 @@ public class VtnManager implements VtnService {
             // Save external port
             Port export = getExPort(device.id());
             if (export != null) {
+                classifierService.programExportPortArpClassifierRules(export,
+                                                                      device.id(),
+                                                                      type);
                 exPortOfDevice.put(device.id(), export);
             }
             switchOfLocalHostPorts.put(device.id(), new NetworkOfLocalHostPorts());
@@ -867,11 +915,14 @@ public class VtnManager implements VtnService {
 
     @Override
     public void onFloatingIpDetected(VtnRscEventFeedback l3Feedback) {
+        floatingIpStore.put(l3Feedback.floatingIp().floatingIp(),
+                            l3Feedback.floatingIp());
         programFloatingIpEvent(l3Feedback, VtnRscEvent.Type.FLOATINGIP_BIND);
     }
 
     @Override
     public void onFloatingIpVanished(VtnRscEventFeedback l3Feedback) {
+        floatingIpStore.remove(l3Feedback.floatingIp().floatingIp());
         programFloatingIpEvent(l3Feedback, VtnRscEvent.Type.FLOATINGIP_UNBIND);
     }
 
@@ -1100,8 +1151,6 @@ public class VtnManager implements VtnService {
         List gwIpMac = getGwIpAndMac(vmPort);
         IpAddress dstVmGwIp = (IpAddress) gwIpMac.get(0);
         MacAddress dstVmGwMac = (MacAddress) gwIpMac.get(1);
-        List fGwIpMac = getGwIpAndMac(fipPort);
-        MacAddress fGwMac = (MacAddress) fGwIpMac.get(1);
         TenantNetwork vmNetwork = tenantNetworkService
                 .getNetwork(vmPort.networkId());
         TenantNetwork fipNetwork = tenantNetworkService
@@ -1109,26 +1158,26 @@ public class VtnManager implements VtnService {
         // L3 downlink traffic flow
         MacAddress exPortMac = MacAddress.valueOf(exPort.annotations()
                                                   .value(AnnotationKeys.PORT_MAC));
-        classifierService.programArpClassifierRules(deviceId, floatingIp.floatingIp(),
-                                                    fipNetwork.segmentationId(),
-                                                    operation);
         classifierService.programL3ExPortClassifierRules(deviceId, exPort.number(),
                                                          floatingIp.floatingIp(), operation);
-        DriverHandler handler = driverService.createHandler(deviceId);
-        arpService.programArpRules(handler, deviceId, floatingIp.floatingIp(),
-                                         fipNetwork.segmentationId(), exPortMac,
-                                         operation);
         dnatService.programRules(deviceId, floatingIp.floatingIp(),
-                                     fGwMac, floatingIp.fixedIp(),
+                                 exPortMac, floatingIp.fixedIp(),
                                      l3vni, operation);
 
+        Subnet subnet = getSubnetOfFloatingIP(floatingIp);
+        IpPrefix ipPrefix = subnet.cidr();
+        snatService.programSnatSameSegmentUploadControllerRules(deviceId, l3vni,
+                                                                floatingIp.fixedIp(),
+                                                                floatingIp.floatingIp(),
+                                                                ipPrefix,
+                                                                operation);
         // L3 uplink traffic flow
         if (operation == Objective.Operation.ADD) {
             sendNorthSouthL3Flows(deviceId, floatingIp, dstVmGwIp, dstVmGwMac,
                                   l3vni, vmNetwork, vmPort, host, operation);
-            l2ForwardService.programLocalOut(deviceId,
-                                             fipNetwork.segmentationId(),
-                                             exPort.number(), fGwMac, operation);
+            l2ForwardService
+                    .programExternalOut(deviceId, fipNetwork.segmentationId(),
+                                        exPort.number(), exPortMac, operation);
         } else if (operation == Objective.Operation.REMOVE) {
             if (hostFlag || (!hostFlag
                     && routerInfFlagOfTenantRouter.get(tenantRouter) == null)) {
@@ -1147,15 +1196,13 @@ public class VtnManager implements VtnService {
                 }
             }
             if (exPortFlag) {
-                l2ForwardService.programLocalOut(deviceId,
-                                                 fipNetwork.segmentationId(),
-                                                 exPort.number(), fGwMac, operation);
+                l2ForwardService.programExternalOut(deviceId,
+                                                    fipNetwork.segmentationId(),
+                                                    exPort.number(), exPortMac,
+                                                    operation);
             }
+            removeRulesInSnat(deviceId, floatingIp.fixedIp());
         }
-        snatService.programRules(deviceId, l3vni, floatingIp.fixedIp(),
-                                     fGwMac, exPortMac,
-                                     floatingIp.floatingIp(),
-                                     fipNetwork.segmentationId(), operation);
     }
 
     private Port getExPort(DeviceId deviceId) {
@@ -1279,5 +1326,307 @@ public class VtnManager implements VtnService {
 
     public static void setExPortName(String name) {
         exPortMap.put(EX_PORT_KEY, name);
+    }
+
+    /**
+     * Packet processor responsible for forwarding packets along their paths.
+     */
+    private class VtnL3PacketProcessor implements PacketProcessor {
+
+        @Override
+        public void process(PacketContext context) {
+            InboundPacket pkt = context.inPacket();
+            ConnectPoint connectPoint = pkt.receivedFrom();
+            DeviceId deviceId = connectPoint.deviceId();
+            Ethernet ethPkt = pkt.parsed();
+            if (ethPkt == null) {
+                return;
+            }
+            if (ethPkt.getEtherType() == Ethernet.TYPE_ARP) {
+                ARP arpPacket = (ARP) ethPkt.getPayload();
+                if ((arpPacket.getOpCode() == ARP.OP_REQUEST)) {
+                    arprequestProcess(arpPacket, deviceId);
+                } else if (arpPacket.getOpCode() == ARP.OP_REPLY) {
+                    arpresponceProcess(arpPacket, deviceId);
+                }
+            } else if (ethPkt.getEtherType() == Ethernet.TYPE_IPV4) {
+                if (ethPkt.getDestinationMAC().isMulticast()) {
+                    return;
+                }
+                IPv4 ip = (IPv4) ethPkt.getPayload();
+                upStreamPacketProcessor(ip, deviceId);
+
+            } else {
+                return;
+            }
+        }
+
+        private void arprequestProcess(ARP arpPacket, DeviceId deviceId) {
+            MacAddress dstMac = MacAddress
+                    .valueOf(arpPacket.getSenderHardwareAddress());
+            IpAddress srcIp = IpAddress.valueOf(IPv4
+                    .toIPv4Address(arpPacket.getTargetProtocolAddress()));
+            IpAddress dstIp = IpAddress.valueOf(IPv4
+                    .toIPv4Address(arpPacket.getSenderProtocolAddress()));
+            FloatingIp floatingIp = floatingIpStore.get(srcIp);
+            if (floatingIp == null) {
+                return;
+            }
+            DeviceId deviceIdOfFloatingIp = getDeviceIdOfFloatingIP(floatingIp);
+            if (!deviceId.equals(deviceIdOfFloatingIp)) {
+                return;
+            }
+            Port exPort = exPortOfDevice.get(deviceId);
+            MacAddress srcMac = MacAddress.valueOf(exPort.annotations()
+                    .value(AnnotationKeys.PORT_MAC));
+            if (!downloadSnatRules(deviceId, srcMac, srcIp, dstMac, dstIp,
+                                   floatingIp)) {
+                return;
+            }
+            Ethernet ethernet = buildArpResponse(dstIp, dstMac, srcIp, srcMac);
+            if (ethernet != null) {
+                sendPacketOut(deviceId, exPort.number(), ethernet);
+            }
+        }
+
+        private void arpresponceProcess(ARP arpPacket, DeviceId deviceId) {
+            MacAddress srcMac = MacAddress
+                    .valueOf(arpPacket.getTargetHardwareAddress());
+            MacAddress dstMac = MacAddress
+                    .valueOf(arpPacket.getSenderHardwareAddress());
+            IpAddress srcIp = IpAddress.valueOf(IPv4
+                    .toIPv4Address(arpPacket.getTargetProtocolAddress()));
+            IpAddress dstIp = IpAddress.valueOf(IPv4
+                    .toIPv4Address(arpPacket.getSenderProtocolAddress()));
+            FloatingIp floatingIp = floatingIpStore.get(srcIp);
+            if (floatingIp == null) {
+                return;
+            }
+            DeviceId deviceIdOfFloatingIp = getDeviceIdOfFloatingIP(floatingIp);
+            if (!deviceId.equals(deviceIdOfFloatingIp)) {
+                return;
+            }
+            if (!downloadSnatRules(deviceId, srcMac, srcIp, dstMac, dstIp,
+                                   floatingIp)) {
+                return;
+            }
+        }
+
+        private void upStreamPacketProcessor(IPv4 ipPacket, DeviceId deviceId) {
+            IpAddress srcIp = IpAddress.valueOf(ipPacket.getSourceAddress());
+            IpAddress dstIp = IpAddress.valueOf(ipPacket.getDestinationAddress());
+            FloatingIp floatingIp = null;
+            Collection<FloatingIp> floatingIps = floatingIpService
+                    .getFloatingIps();
+            Set<FloatingIp> floatingIpSet = Sets.newHashSet(floatingIps)
+                    .stream().collect(Collectors.toSet());
+            for (FloatingIp f : floatingIpSet) {
+                IpAddress fixIp = f.fixedIp();
+                if (fixIp != null && fixIp.equals(srcIp)) {
+                    floatingIp = f;
+                    break;
+                }
+            }
+            if (floatingIp == null) {
+                return;
+            }
+            Subnet subnet = getSubnetOfFloatingIP(floatingIp);
+            IpAddress gwIp = subnet.gatewayIp();
+            Port exportPort = exPortOfDevice.get(deviceId);
+            MacAddress exPortMac = MacAddress.valueOf(exportPort.annotations()
+                    .value(AnnotationKeys.PORT_MAC));
+            IpPrefix ipPrefix = subnet.cidr();
+            if (ipPrefix == null) {
+                return;
+            }
+            int mask = ipPrefix.prefixLength();
+            if (mask <= 0) {
+                return;
+            }
+            Ethernet ethernet = null;
+            // if the same ip segment
+            if (IpUtil.checkSameSegment(floatingIp.floatingIp(), dstIp, mask)) {
+                ethernet = buildArpRequest(dstIp, floatingIp.floatingIp(),
+                                           exPortMac);
+            } else {
+                ethernet = buildArpRequest(gwIp, floatingIp.floatingIp(),
+                                           exPortMac);
+            }
+            if (ethernet != null) {
+                sendPacketOut(deviceId, exportPort.number(), ethernet);
+            }
+        }
+    }
+
+    private Ethernet buildArpRequest(IpAddress targetIp, IpAddress sourceIp,
+                                     MacAddress sourceMac) {
+        ARP arp = new ARP();
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
+           .setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH)
+           .setProtocolType(ARP.PROTO_TYPE_IP)
+           .setProtocolAddressLength((byte) Ip4Address.BYTE_LENGTH)
+           .setOpCode(ARP.OP_REQUEST);
+
+        arp.setSenderHardwareAddress(sourceMac.toBytes())
+           .setSenderProtocolAddress(sourceIp.getIp4Address().toInt())
+           .setTargetHardwareAddress(ZERO_MAC_ADDRESS)
+           .setTargetProtocolAddress(targetIp.getIp4Address().toInt());
+
+        Ethernet ethernet = new Ethernet();
+        ethernet.setEtherType(Ethernet.TYPE_ARP)
+                .setDestinationMACAddress(MacAddress.BROADCAST)
+                .setSourceMACAddress(sourceMac)
+                .setPayload(arp);
+
+        ethernet.setPad(true);
+        return ethernet;
+    }
+
+    private Ethernet buildArpResponse(IpAddress targetIp, MacAddress targetMac,
+                                      IpAddress sourceIp, MacAddress sourceMac) {
+        ARP arp = new ARP();
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
+           .setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH)
+           .setProtocolType(ARP.PROTO_TYPE_IP)
+           .setProtocolAddressLength((byte) Ip4Address.BYTE_LENGTH)
+           .setOpCode(ARP.OP_REPLY);
+
+        arp.setSenderHardwareAddress(sourceMac.toBytes())
+           .setSenderProtocolAddress(sourceIp.getIp4Address().toInt())
+           .setTargetHardwareAddress(targetMac.toBytes())
+           .setTargetProtocolAddress(targetIp.getIp4Address().toInt());
+
+        Ethernet ethernet = new Ethernet();
+        ethernet.setEtherType(Ethernet.TYPE_ARP)
+                .setDestinationMACAddress(targetMac)
+                .setSourceMACAddress(sourceMac)
+                .setPayload(arp);
+
+        ethernet.setPad(true);
+
+        return ethernet;
+    }
+
+    private void sendPacketOut(DeviceId deviceId, PortNumber portNumber,
+                               Ethernet payload) {
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(portNumber).build();
+        OutboundPacket packet = new DefaultOutboundPacket(deviceId, treatment,
+                                                          ByteBuffer
+                                                                  .wrap(payload
+                                                                          .serialize()));
+        packetService.emit(packet);
+    }
+
+    private Subnet getSubnetOfFloatingIP(FloatingIp floatingIp) {
+        DeviceId exVmPortId = DeviceId
+                .deviceId(floatingIp.id().floatingIpId().toString());
+        Collection<VirtualPort> exVmPortList = virtualPortService
+                .getPorts(exVmPortId);
+        VirtualPort exVmPort = null;
+        if (exVmPortList != null) {
+            exVmPort = exVmPortList.iterator().next();
+        }
+        if (exVmPort == null) {
+            return null;
+        }
+        Set<FixedIp> fixedIps = exVmPort.fixedIps();
+        SubnetId subnetId = null;
+        for (FixedIp f : fixedIps) {
+            IpAddress fp = f.ip();
+            if (fp.equals(floatingIp.floatingIp())) {
+                subnetId = f.subnetId();
+                break;
+            }
+        }
+        if (subnetId == null) {
+            return null;
+        }
+        Subnet subnet = subnetService.getSubnet(subnetId);
+        return subnet;
+    }
+
+    private DeviceId getDeviceIdOfFloatingIP(FloatingIp floatingIp) {
+        VirtualPortId vmPortId = floatingIp.portId();
+        VirtualPort vmPort = virtualPortService.getPort(vmPortId);
+        if (vmPort == null) {
+            vmPort = VtnData.getPort(vPortStore, vmPortId);
+        }
+        Set<Host> hostSet = hostService.getHostsByMac(vmPort.macAddress());
+        Host host = null;
+        for (Host h : hostSet) {
+            String ifaceid = h.annotations().value(IFACEID);
+            if (ifaceid != null && ifaceid.equals(vmPortId.portId())) {
+                host = h;
+                break;
+            }
+        }
+        if (host == null) {
+            return null;
+        } else {
+            return host.location().deviceId();
+        }
+    }
+
+    private boolean downloadSnatRules(DeviceId deviceId, MacAddress srcMac,
+                                      IpAddress srcIp, MacAddress dstMac,
+                                      IpAddress dstIp, FloatingIp floatingIp) {
+        TenantNetwork exNetwork = tenantNetworkService
+                .getNetwork(floatingIp.networkId());
+        IpAddress fixedIp = floatingIp.fixedIp();
+        VirtualPortId vmPortId = floatingIp.portId();
+        VirtualPort vmPort = virtualPortService.getPort(vmPortId);
+        if (vmPort == null) {
+            vmPort = VtnData.getPort(vPortStore, vmPortId);
+        }
+        Subnet subnet = getSubnetOfFloatingIP(floatingIp);
+        IpPrefix ipPrefix = subnet.cidr();
+        IpAddress gwIp = subnet.gatewayIp();
+        if (ipPrefix == null) {
+            return false;
+        }
+        int mask = ipPrefix.prefixLength();
+        if (mask <= 0) {
+            return false;
+        }
+        TenantRouter tenantRouter = TenantRouter
+                .tenantRouter(floatingIp.tenantId(), floatingIp.routerId());
+        SegmentationId l3vni = vtnRscService.getL3vni(tenantRouter);
+        // if the same ip segment
+        if (IpUtil.checkSameSegment(srcIp, dstIp, mask)) {
+            snatService.programSnatSameSegmentRules(deviceId, l3vni, fixedIp,
+                                                    dstIp, dstMac, srcMac,
+                                                    srcIp,
+                                                    exNetwork.segmentationId(),
+                                                    Objective.Operation.ADD);
+            if (dstIp.equals(gwIp)) {
+                snatService
+                        .programSnatDiffSegmentRules(deviceId, l3vni, fixedIp,
+                                                     dstMac, srcMac, srcIp,
+                                                     exNetwork.segmentationId(),
+                                                     Objective.Operation.ADD);
+            }
+        }
+        return true;
+    }
+
+    private void removeRulesInSnat(DeviceId deviceId, IpAddress fixedIp) {
+        for (FlowEntry f : flowRuleService.getFlowEntries(deviceId)) {
+            if (f.tableId() == SNAT_TABLE
+                    && f.priority() > SNAT_DEFAULT_RULE_PRIORITY) {
+                String srcIp = f.selector()
+                        .getCriterion(Criterion.Type.IPV4_SRC).toString();
+                int priority = f.priority();
+                if (srcIp != null && srcIp.contains(fixedIp.toString())) {
+                    log.info("Match snat rules bob");
+                    TrafficSelector selector = f.selector();
+                    TrafficTreatment treatment = f.treatment();
+                    snatService.removeSnatRules(deviceId, selector, treatment,
+                                                priority,
+                                                Objective.Operation.REMOVE);
+
+                }
+            }
+        }
     }
 }
