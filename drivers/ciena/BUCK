@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//utils/rest:onlab-rest',
     '//drivers/utilities:onos-drivers-utilities',
     '//protocols/rest/api:onos-protocols-rest-api',
+    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 osgi_jar_with_tests (

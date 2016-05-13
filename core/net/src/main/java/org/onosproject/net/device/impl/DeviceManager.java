@@ -546,6 +546,7 @@ public class DeviceManager
                 case VIRTUAL:
                     return desc;
                 default:
+                    // TODO: add plugin mechanism in order to decouple this
                     OpticalPortConfig opc = networkConfigService.getConfig(
                             new ConnectPoint(did, desc.portNumber()), OpticalPortConfig.class);
                     return OpticalPortOperator.combine(opc, desc);

@@ -1,0 +1,22 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+]
+
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    title = 'Optical infromation model',
+    category = 'Optical',
+    url = 'http://onosproject.org',
+    description = 'ONOS optical infromation model.',
+    required_apps = [ ],
+)

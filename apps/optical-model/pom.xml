@@ -14,55 +14,48 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>onos-drivers-general</artifactId>
+        <artifactId>onos-apps</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-drivers-optical</artifactId>
+    <artifactId>onos-optical-model</artifactId>
     <packaging>bundle</packaging>
 
-    <description>Other optical device drivers</description>
+    <description>ONOS Optical Model extensions</description>
 
     <properties>
-        <onos.app.name>org.onosproject.drivers.optical</onos.app.name>
+        <onos.app.name>org.onosproject.apps.optical-model</onos.app.name>
         <onos.app.origin>ON.Lab</onos.app.origin>
-        <onos.app.category>Drivers</onos.app.category>
-        <onos.app.title>Other optical Device Drivers</onos.app.title>
+        <onos.app.category>Optical</onos.app.category>
+        <onos.app.title>Optical information model</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.requires>
-            org.onosproject.drivers
         </onos.app.requires>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-optical-model</artifactId>
-            <version>${project.version}</version>
+            <artifactId>onos-api</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-drivers</artifactId>
-            <version>${project.version}</version>
+            <artifactId>onlab-junit</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>openflowj</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-of-api</artifactId>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava-testlib</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
-
 </project>

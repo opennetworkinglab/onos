@@ -2,6 +2,7 @@ COMPILE_DEPS = [
   '//lib:CORE_DEPS',
   '//lib:org.apache.karaf.shell.console',
   '//cli:onos-cli',
+  '//apps/optical-model:onos-apps-optical-model',
 ]
 
 osgi_jar_with_tests (
