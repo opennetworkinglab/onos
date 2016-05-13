@@ -2,11 +2,19 @@
 # Destroys an LXC cell with the specified name.
 
 name=$1
+spec=$2
+
+nodes=${spec%+*}
+mininet=${spec#*+}
 
 cd $(dirname $0)
 
-./destroy-node $name-n
+if [ $mininet -ge 1 ]; then
+    ./destroy-node $name-n
+fi
 
-for n in {1..3}; do
+let n=1
+while [ $n -le $nodes ]; do
     ./destroy-node $name-$n
+    let n=n+1
 done

@@ -49,8 +49,8 @@ public class WardenServlet extends HttpServlet {
                 if (reservation != null) {
                     long expiration = reservation.time + reservation.duration * 60_000;
                     long remaining = (expiration - System.currentTimeMillis()) / 60_000;
-                    out.println(String.format("%-10s\t%-10s\t%s\t%s\t%s mins (%s remaining)",
-                                              cellName,
+                    out.println(String.format("%-14s\t%-10s\t%s\t%s\t%s mins (%s remaining)",
+                                              cellName + "-" + reservation.cellSpec,
                                               reservation.userName,
                                               fmt.format(new Date(reservation.time)),
                                               fmt.format(new Date(expiration)),
@@ -72,8 +72,9 @@ public class WardenServlet extends HttpServlet {
             String sshKey = new String(ByteStreams.toByteArray(req.getInputStream()), "UTF-8");
             String userName = req.getParameter("user");
             String sd = req.getParameter("duration");
+            String spec = req.getParameter("spec");
             int duration = isNullOrEmpty(sd) ? 0 : Integer.parseInt(sd);
-            String cellDefinition = warden.borrowCell(userName, sshKey, duration);
+            String cellDefinition = warden.borrowCell(userName, sshKey, duration, spec);
             out.println(cellDefinition);
         } catch (Exception e) {
             resp.setStatus(Response.SC_INTERNAL_SERVER_ERROR);

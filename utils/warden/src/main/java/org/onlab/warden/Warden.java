@@ -16,8 +16,9 @@
 
 package org.onlab.warden;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 
 import java.io.File;
@@ -27,8 +28,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
@@ -52,9 +56,15 @@ class Warden {
     private static final int MINUTE = 60_000; // 1 minute
     private static final int DEFAULT_MINUTES = 60;
 
+    private static final String DEFAULT_SPEC = "3+1";
+
     private final File log = new File("warden.log");
 
-    private final File cells = new File("cells");
+    // Allow overriding these for unit tests.
+    static String cmdPrefix = "";
+    static File root = new File(".");
+
+    private final File cells = new File(root, "cells");
     private final File supported = new File(cells, "supported");
     private final File reserved = new File(cells, "reserved");
 
@@ -64,6 +74,7 @@ class Warden {
      * Creates a new cell warden.
      */
     Warden() {
+        reserved.mkdirs();
         random.setSeed(System.currentTimeMillis());
         Timer timer = new Timer("cell-pruner", true);
         timer.schedule(new Reposessor(), MINUTE / 4, MINUTE / 2);
@@ -84,7 +95,7 @@ class Warden {
      *
      * @return list of cell names
      */
-    private Set<String> getAvailableCells() {
+    Set<String> getAvailableCells() {
         Set<String> available = new HashSet<>(getCells());
         available.removeAll(getReservedCells());
         return ImmutableSet.copyOf(available);
@@ -95,9 +106,19 @@ class Warden {
      *
      * @return list of cell names
      */
-    private Set<String> getReservedCells() {
+    Set<String> getReservedCells() {
         String[] list = reserved.list();
         return list != null ? ImmutableSet.copyOf(list) : ImmutableSet.of();
+    }
+
+    /**
+     * Returns the host name on which the specified cell is hosted.
+     *
+     * @param cellName cell name
+     * @return host name where the cell runs
+     */
+    String getCellHost(String cellName) {
+        return getCellInfo(cellName).hostName;
     }
 
     /**
@@ -106,7 +127,7 @@ class Warden {
      * @param userName user name
      * @return cell reservation record or null if user does not have one
      */
-    private Reservation currentUserReservation(String userName) {
+    Reservation currentUserReservation(String userName) {
         checkNotNull(userName, USER_NOT_NULL);
         for (String cellName : getReservedCells()) {
             Reservation reservation = currentCellReservation(cellName);
@@ -141,32 +162,63 @@ class Warden {
      *
      * @param userName user name
      * @param sshKey   user ssh public key
-     * @param minutes  number of minutes for reservation
+     * @param minutes  optional number of minutes for reservation
+     * @param cellSpec optional cell specification string
      * @return reserved cell definition
      */
-    synchronized String borrowCell(String userName, String sshKey, int minutes) {
+    synchronized String borrowCell(String userName, String sshKey, int minutes,
+                                   String cellSpec) {
         checkNotNull(userName, USER_NOT_NULL);
+        checkArgument(userName.matches("[\\w]+"), "Invalid user name %s", userName);
         checkNotNull(sshKey, KEY_NOT_NULL);
         checkArgument(minutes < MAX_MINUTES, "Number of minutes must be less than %d", MAX_MINUTES);
-        long now = System.currentTimeMillis();
+        checkArgument(minutes >= 0, "Number of minutes must be non-negative");
+        checkArgument(cellSpec == null || cellSpec.matches("[\\d]+\\+[0-1]"),
+                      "Invalid cell spec string %s", cellSpec);
         Reservation reservation = currentUserReservation(userName);
         if (reservation == null) {
-            checkArgument(minutes >= 0, "Number of minutes must be non-negative");
-            Set<String> cells = getAvailableCells();
-            checkState(!cells.isEmpty(), "No cells are presently available");
-            String cellName = ImmutableList.copyOf(cells).get(random.nextInt(cells.size()));
-            reservation = new Reservation(cellName, userName, now, minutes == 0 ? DEFAULT_MINUTES : minutes);
+            // If there is no reservation for the user, create one
+            String cellName = findAvailableCell();
+            reservation = new Reservation(cellName, userName, System.currentTimeMillis(),
+                                          minutes == 0 ? DEFAULT_MINUTES : minutes,
+                                          cellSpec == null ? DEFAULT_SPEC : cellSpec);
         } else if (minutes == 0) {
             // If minutes are 0, simply return the cell definition
             return getCellDefinition(reservation.cellName);
         } else {
-            reservation = new Reservation(reservation.cellName, userName, now, minutes);
+            // If minutes are > 0, update the existing cell reservation
+            reservation = new Reservation(reservation.cellName, userName,
+                                          System.currentTimeMillis(), minutes,
+                                          reservation.cellSpec);
         }
 
         reserveCell(reservation);
         createCell(reservation, sshKey);
-        log(userName, reservation.cellName, "borrowed for " + reservation.duration + " minutes");
+        log(userName, reservation.cellName, reservation.cellSpec,
+            "borrowed for " + reservation.duration + " minutes");
         return getCellDefinition(reservation.cellName);
+    }
+
+    /**
+     * Returns name of an available cell. Cell is chosen based on the load
+     * of its hosting server; a random one will be chosen from the set of
+     * cells hosted by the least loaded server.
+     *
+     * @return name of an available cell
+     */
+    private String findAvailableCell() {
+        Set<String> cells = getAvailableCells();
+        checkState(!cells.isEmpty(), "No cells are presently available");
+        Map<String, ServerInfo> load = Maps.newHashMap();
+
+        cells.stream().map(this::getCellInfo)
+                .forEach(info -> load.compute(info.hostName, (k, v) -> v == null ?
+                        new ServerInfo(info.hostName) : v.bumpLoad(info)));
+
+        List<ServerInfo> servers = new ArrayList<>(load.values());
+        servers.sort((a, b) -> a.load - b.load);
+        ServerInfo server = servers.get(0);
+        return server.cells.get(random.nextInt(server.cells.size())).cellName;
     }
 
     /**
@@ -181,7 +233,7 @@ class Warden {
 
         unreserveCell(reservation);
         destroyCell(reservation);
-        log(userName, reservation.cellName, "returned");
+        log(userName, reservation.cellName, reservation.cellSpec, "returned");
     }
 
     /**
@@ -229,9 +281,9 @@ class Warden {
      */
     private void createCell(Reservation reservation, String sshKey) {
         CellInfo cellInfo = getCellInfo(reservation.cellName);
-        String cmd = String.format("ssh %s warden/bin/create-cell %s %s %s",
+        String cmd = String.format("ssh %s warden/bin/create-cell %s %s %s %s",
                                    cellInfo.hostName, cellInfo.cellName,
-                                   cellInfo.ipPrefix, sshKey);
+                                   cellInfo.ipPrefix, reservation.cellSpec, sshKey);
         exec(cmd);
     }
 
@@ -242,8 +294,8 @@ class Warden {
      */
     private void destroyCell(Reservation reservation) {
         CellInfo cellInfo = getCellInfo(reservation.cellName);
-        exec(String.format("ssh %s warden/bin/destroy-cell %s",
-                           cellInfo.hostName, cellInfo.cellName));
+        exec(String.format("ssh %s warden/bin/destroy-cell %s %s",
+                           cellInfo.hostName, cellInfo.cellName, reservation.cellSpec));
     }
 
     /**
@@ -265,7 +317,7 @@ class Warden {
     // Executes the specified command.
     private String exec(String command) {
         try {
-            Process process = Runtime.getRuntime().exec(command);
+            Process process = Runtime.getRuntime().exec(cmdPrefix + command);
             String output = new String(ByteStreams.toByteArray(process.getInputStream()), UTF_8);
             process.waitFor(TIMEOUT, TimeUnit.SECONDS);
             return process.exitValue() == 0 ? output : null;
@@ -275,12 +327,12 @@ class Warden {
     }
 
     // Creates an audit log entry.
-    private void log(String userName, String cellName, String action) {
+    private void log(String userName, String cellName, String cellSpec, String action) {
         try (FileOutputStream fos = new FileOutputStream(log, true);
              PrintWriter pw = new PrintWriter(fos)) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            pw.println(String.format("%s\t%s\t%s\t%s", format.format(new Date()),
-                                     userName, cellName, action));
+            pw.println(String.format("%s\t%s\t%s-%s\t%s", format.format(new Date()),
+                                     userName, cellName, cellSpec, action));
             pw.flush();
         } catch (IOException e) {
             throw new IllegalStateException("Unable to log reservation action", e);
@@ -297,6 +349,23 @@ class Warden {
             this.cellName = cellName;
             this.hostName = hostName;
             this.ipPrefix = ipPrefix;
+        }
+    }
+
+    // Carrier of cell server information
+    private final class ServerInfo {
+        final String hostName;
+        int load = 0;
+        List<CellInfo> cells = Lists.newArrayList();
+
+        private ServerInfo(String hostName) {
+            this.hostName = hostName;
+        }
+
+        private ServerInfo bumpLoad(CellInfo info) {
+            cells.add(info);
+            load++;     // TODO: bump by cell size later
+            return this;
         }
     }
 

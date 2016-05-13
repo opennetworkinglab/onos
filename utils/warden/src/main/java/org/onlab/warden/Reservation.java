@@ -27,13 +27,15 @@ final class Reservation {
     final String userName;
     final long time;
     final int duration;
+    final String cellSpec;
 
     // Creates a new reservation record
-    Reservation(String cellName, String userName, long time, int duration) {
+    Reservation(String cellName, String userName, long time, int duration, String cellSpec) {
         this.cellName = cellName;
         this.userName = userName;
         this.time = time;
         this.duration = duration;
+        this.cellSpec = cellSpec;
     }
 
     /**
@@ -43,11 +45,12 @@ final class Reservation {
      */
     Reservation(String line) {
         String[] fields = line.trim().split("\t");
-        checkState(fields.length == 4, "Incorrect reservation encoding");
+        checkState(fields.length == 5, "Incorrect reservation encoding");
         this.cellName = fields[0];
         this.userName = fields[1];
         this.time = Long.parseLong(fields[2]);
         this.duration = Integer.parseInt(fields[3]);
+        this.cellSpec = fields[4];
     }
 
     /**
@@ -56,7 +59,7 @@ final class Reservation {
      * @return encoded string
      */
     String encode() {
-        return String.format("%s\t%s\t%s\t%s\n", cellName, userName, time, duration);
+        return String.format("%s\t%s\t%s\t%s\t%s\n", cellName, userName, time, duration, cellSpec);
     }
 
 }
