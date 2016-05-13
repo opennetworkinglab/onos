@@ -19,6 +19,7 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -29,6 +30,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.MacAddress;
 import org.onlab.rest.BaseResource;
+import org.onosproject.app.ApplicationService;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.codec.impl.FlowRuleCodec;
@@ -65,6 +67,7 @@ import java.util.Set;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyShort;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -98,6 +101,8 @@ public class FlowsResourceTest extends ResourceTest {
     final Device device2 = new DefaultDevice(null, deviceId2, Device.Type.OTHER,
             "", "", "", "", null);
 
+    final ApplicationService mockApplicationService = createMock(ApplicationService.class);
+
     final MockFlowEntry flow1 = new MockFlowEntry(deviceId1, 1);
     final MockFlowEntry flow2 = new MockFlowEntry(deviceId1, 2);
 
@@ -106,6 +111,14 @@ public class FlowsResourceTest extends ResourceTest {
 
     final MockFlowEntry flow5 = new MockFlowEntry(deviceId2, 5);
     final MockFlowEntry flow6 = new MockFlowEntry(deviceId2, 6);
+
+    final MockFlowRule flowRule1 = new MockFlowRule(deviceId1, 1);
+    final MockFlowRule flowRule2 = new MockFlowRule(deviceId1, 2);
+
+    final MockFlowRule flowRule3 = new MockFlowRule(deviceId2, 3);
+    final MockFlowRule flowRule4 = new MockFlowRule(deviceId2, 4);
+
+    final Set<FlowRule> flowRules = Sets.newHashSet();
 
     /**
      * Mock class for a flow entry.
@@ -219,6 +232,83 @@ public class FlowsResourceTest extends ResourceTest {
     }
 
     /**
+     * Mock class for a flow rule.
+     */
+    private static class MockFlowRule implements FlowRule {
+
+        final DeviceId deviceId;
+        final long baseValue;
+        TrafficTreatment treatment;
+        TrafficSelector selector;
+
+        public MockFlowRule(DeviceId deviceId, long id) {
+            this.deviceId = deviceId;
+            this.baseValue = id * 100;
+        }
+
+        @Override
+        public FlowId id() {
+            final long id = baseValue + 55;
+            return FlowId.valueOf(id);
+        }
+
+        @Override
+        public short appId() {
+            return 4;
+        }
+
+        @Override
+        public GroupId groupId() {
+            return new DefaultGroupId(3);
+        }
+
+        @Override
+        public int priority() {
+            return 0;
+        }
+
+        @Override
+        public DeviceId deviceId() {
+            return deviceId;
+        }
+
+        @Override
+        public TrafficSelector selector() {
+            return selector;
+        }
+
+        @Override
+        public TrafficTreatment treatment() {
+            return treatment;
+        }
+
+        @Override
+        public int timeout() {
+            return (int) (baseValue + 77);
+        }
+
+        @Override
+        public boolean isPermanent() {
+            return false;
+        }
+
+        @Override
+        public int tableId() {
+            return 0;
+        }
+
+        @Override
+        public boolean exactMatch(FlowRule rule) {
+            return false;
+        }
+
+        @Override
+        public FlowRuleExtPayLoad payLoad() {
+            return null;
+        }
+    }
+
+    /**
      * Populates some flows used as testing data.
      */
     private void setupMockFlows() {
@@ -249,6 +339,26 @@ public class FlowsResourceTest extends ResourceTest {
     }
 
     /**
+     * Populates some flow rules used as testing data.
+     */
+    private void setupMockFlowRules() {
+        flowRule2.treatment = DefaultTrafficTreatment.builder()
+                .setEthDst(MacAddress.BROADCAST)
+                .build();
+        flowRule2.selector = DefaultTrafficSelector.builder()
+                .matchEthType((short) 3)
+                .matchIPProtocol((byte) 9)
+                .build();
+        flowRule4.treatment = DefaultTrafficTreatment.builder()
+                .build();
+
+        flowRules.add(flowRule1);
+        flowRules.add(flowRule2);
+        flowRules.add(flowRule3);
+        flowRules.add(flowRule4);
+    }
+
+    /**
      * Sets up the global values for all the tests.
      */
     @Before
@@ -264,6 +374,8 @@ public class FlowsResourceTest extends ResourceTest {
         // Mock Core Service
         expect(mockCoreService.getAppId(anyShort()))
                 .andReturn(NetTestTools.APP_ID).anyTimes();
+        expect(mockCoreService.getAppId(anyString()))
+                .andReturn(NetTestTools.APP_ID).anyTimes();
         expect(mockCoreService.registerApplication(FlowRuleCodec.REST_APP_ID))
                 .andReturn(APP_ID).anyTimes();
         replay(mockCoreService);
@@ -276,7 +388,8 @@ public class FlowsResourceTest extends ResourceTest {
                         .add(FlowRuleService.class, mockFlowService)
                         .add(DeviceService.class, mockDeviceService)
                         .add(CodecService.class, codecService)
-                        .add(CoreService.class, mockCoreService);
+                        .add(CoreService.class, mockCoreService)
+                        .add(ApplicationService.class, mockApplicationService);
 
         BaseResource.setServiceDirectory(testDirectory);
     }
@@ -294,12 +407,12 @@ public class FlowsResourceTest extends ResourceTest {
      * Hamcrest matcher to check that a flow representation in JSON matches
      * the actual flow entry.
      */
-    public static class FlowJsonMatcher extends TypeSafeMatcher<JsonObject> {
+    public static class FlowEntryJsonMatcher extends TypeSafeMatcher<JsonObject> {
         private final FlowEntry flow;
         private final String expectedAppId;
         private String reason = "";
 
-        public FlowJsonMatcher(FlowEntry flowValue, String expectedAppIdValue) {
+        public FlowEntryJsonMatcher(FlowEntry flowValue, String expectedAppIdValue) {
             flow = flowValue;
             expectedAppId = expectedAppIdValue;
         }
@@ -398,19 +511,19 @@ public class FlowsResourceTest extends ResourceTest {
      * @param flow flow object we are looking for
      * @return matcher
      */
-    private static FlowJsonMatcher matchesFlow(FlowEntry flow, String expectedAppName) {
-        return new FlowJsonMatcher(flow, expectedAppName);
+    private static FlowEntryJsonMatcher matchesFlow(FlowEntry flow, String expectedAppName) {
+        return new FlowEntryJsonMatcher(flow, expectedAppName);
     }
 
     /**
      * Hamcrest matcher to check that a flow is represented properly in a JSON
      * array of flows.
      */
-    public static class FlowJsonArrayMatcher extends TypeSafeMatcher<JsonArray> {
+    public static class FlowEntryJsonArrayMatcher extends TypeSafeMatcher<JsonArray> {
         private final FlowEntry flow;
         private String reason = "";
 
-        public FlowJsonArrayMatcher(FlowEntry flowValue) {
+        public FlowEntryJsonArrayMatcher(FlowEntry flowValue) {
             flow = flowValue;
         }
 
@@ -452,8 +565,174 @@ public class FlowsResourceTest extends ResourceTest {
      * @param flow flow object we are looking for
      * @return matcher
      */
-    private static FlowJsonArrayMatcher hasFlow(FlowEntry flow) {
-        return new FlowJsonArrayMatcher(flow);
+    private static FlowEntryJsonArrayMatcher hasFlow(FlowEntry flow) {
+        return new FlowEntryJsonArrayMatcher(flow);
+    }
+
+    /**
+     * Hamcrest matcher to check that a flow representation in JSON matches
+     * the actual flow rule.
+     */
+    public static class FlowRuleJsonMatcher extends TypeSafeMatcher<JsonObject> {
+        private final FlowRule flow;
+        private final String expectedAppId;
+        private String reason = "";
+
+        public FlowRuleJsonMatcher(FlowRule flowValue, String expectedAppIdValue) {
+            flow = flowValue;
+            expectedAppId = expectedAppIdValue;
+        }
+
+        @Override
+        public boolean matchesSafely(JsonObject jsonFlow) {
+            // check id
+            final String jsonId = jsonFlow.get("id").asString();
+            final String flowId = Long.toString(flow.id().value());
+            if (!jsonId.equals(flowId)) {
+                reason = "id " + flow.id().toString();
+                return false;
+            }
+
+            // check application id
+            final String jsonAppId = jsonFlow.get("appId").asString();
+            if (!jsonAppId.equals(expectedAppId)) {
+                reason = "appId " + Short.toString(flow.appId());
+                return false;
+            }
+
+            // check device id
+            final String jsonDeviceId = jsonFlow.get("deviceId").asString();
+            if (!jsonDeviceId.equals(flow.deviceId().toString())) {
+                reason = "deviceId " + flow.deviceId();
+                return false;
+            }
+
+            // check treatment and instructions array
+            if (flow.treatment() != null) {
+                final JsonObject jsonTreatment = jsonFlow.get("treatment").asObject();
+                final JsonArray jsonInstructions = jsonTreatment.get("instructions").asArray();
+                if (flow.treatment().immediate().size() != jsonInstructions.size()) {
+                    reason = "instructions array size of " +
+                            Integer.toString(flow.treatment().immediate().size());
+                    return false;
+                }
+                for (final Instruction instruction : flow.treatment().immediate()) {
+                    boolean instructionFound = false;
+                    for (int instructionIndex = 0; instructionIndex < jsonInstructions.size(); instructionIndex++) {
+                        final String jsonType =
+                                jsonInstructions.get(instructionIndex)
+                                        .asObject().get("type").asString();
+                        final String instructionType = instruction.type().name();
+                        if (jsonType.equals(instructionType)) {
+                            instructionFound = true;
+                        }
+                    }
+                    if (!instructionFound) {
+                        reason = "instruction " + instruction.toString();
+                        return false;
+                    }
+                }
+            }
+
+            // check selector and criteria array
+            if (flow.selector() != null) {
+                final JsonObject jsonTreatment = jsonFlow.get("selector").asObject();
+                final JsonArray jsonCriteria = jsonTreatment.get("criteria").asArray();
+                if (flow.selector().criteria().size() != jsonCriteria.size()) {
+                    reason = "criteria array size of " +
+                            Integer.toString(flow.selector().criteria().size());
+                    return false;
+                }
+                for (final Criterion criterion : flow.selector().criteria()) {
+                    boolean criterionFound = false;
+
+                    for (int criterionIndex = 0; criterionIndex < jsonCriteria.size(); criterionIndex++) {
+                        final String jsonType =
+                                jsonCriteria.get(criterionIndex)
+                                        .asObject().get("type").asString();
+                        final String criterionType = criterion.type().name();
+                        if (jsonType.equals(criterionType)) {
+                            criterionFound = true;
+                        }
+                    }
+                    if (!criterionFound) {
+                        reason = "criterion " + criterion.toString();
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText(reason);
+        }
+    }
+
+    /**
+     * Factory to allocate a flow matcher.
+     *
+     * @param flow flow rule object we are looking for
+     * @return matcher
+     */
+    private static FlowRuleJsonMatcher matchesFlowRule(FlowRule flow, String expectedAppName) {
+        return new FlowRuleJsonMatcher(flow, expectedAppName);
+    }
+
+    /**
+     * Hamcrest matcher to check that a flow is represented properly in a JSON
+     * array of flow rules.
+     */
+    public static class FlowRuleJsonArrayMatcher extends TypeSafeMatcher<JsonArray> {
+        private final FlowRule flow;
+        private String reason = "";
+
+        public FlowRuleJsonArrayMatcher(FlowRule flowValue) {
+            flow = flowValue;
+        }
+
+        @Override
+        public boolean matchesSafely(JsonArray json) {
+            boolean flowFound = false;
+
+            for (int jsonFlowIndex = 0; jsonFlowIndex < json.size();
+                 jsonFlowIndex++) {
+
+                final JsonObject jsonFlow = json.get(jsonFlowIndex).asObject();
+
+                final String flowId = Long.toString(flow.id().value());
+                final String jsonFlowId = jsonFlow.get("id").asString();
+                if (jsonFlowId.equals(flowId)) {
+                    flowFound = true;
+
+                    //  We found the correct flow, check attribute values
+                    assertThat(jsonFlow, matchesFlowRule(flow, APP_ID.name()));
+                }
+            }
+            if (!flowFound) {
+                reason = "Flow with id " + flow.id().toString() + " not found";
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText(reason);
+        }
+    }
+
+    /**
+     * Factory to allocate a flow array matcher.
+     *
+     * @param flow flow rule object we are looking for
+     * @return matcher
+     */
+    private static FlowRuleJsonArrayMatcher hasFlowRule(FlowRule flow) {
+        return new FlowRuleJsonArrayMatcher(flow);
     }
 
     /**
@@ -572,7 +851,7 @@ public class FlowsResourceTest extends ResourceTest {
      * Tests creating a flow with POST.
      */
     @Test
-    public void testPost() {
+    public void testPostWithoutAppId() {
         mockFlowService.applyFlowRules(anyObject());
         expectLastCall();
         replay(mockFlowService);
@@ -582,6 +861,28 @@ public class FlowsResourceTest extends ResourceTest {
                 .getResourceAsStream("post-flow.json");
 
         Response response = wt.path("flows/of:0000000000000001")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
+        String location = response.getLocation().getPath();
+        assertThat(location, Matchers.startsWith("/flows/of:0000000000000001/"));
+    }
+
+    /**
+     * Tests creating a flow with POST while specifying application identifier.
+     */
+    @Test
+    public void testPostWithAppId() {
+        mockFlowService.applyFlowRules(anyObject());
+        expectLastCall();
+        replay(mockFlowService);
+
+        WebTarget wt = target();
+        InputStream jsonStream = FlowsResourceTest.class
+                .getResourceAsStream("post-flow.json");
+
+        Response response = wt.path("flows/of:0000000000000001")
+                .queryParam("appId", "org.onosproject.rest")
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
@@ -605,6 +906,57 @@ public class FlowsResourceTest extends ResourceTest {
 
         Response deleteResponse = wt.path(location)
                 .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
+        assertThat(deleteResponse.getStatus(),
+                is(HttpURLConnection.HTTP_NO_CONTENT));
+    }
+
+    /**
+     * Tests the result of a rest api GET for an application.
+     */
+    @Test
+    public void testGetFlowByAppId() {
+        setupMockFlowRules();
+
+        expect(mockApplicationService.getId(anyObject())).andReturn(APP_ID).anyTimes();
+        replay(mockApplicationService);
+
+        expect(mockFlowService.getFlowRulesById(APP_ID)).andReturn(flowRules).anyTimes();
+        replay(mockFlowService);
+
+        final WebTarget wt = target();
+        final String response = wt.path("flows/application/1").request().get(String.class);
+        final JsonObject result = Json.parse(response).asObject();
+        assertThat(result, notNullValue());
+
+        assertThat(result.names(), hasSize(1));
+        assertThat(result.names().get(0), is("flows"));
+        final JsonArray jsonFlows = result.get("flows").asArray();
+        assertThat(jsonFlows, notNullValue());
+        assertThat(jsonFlows, hasFlowRule(flowRule1));
+        assertThat(jsonFlows, hasFlowRule(flowRule2));
+        assertThat(jsonFlows, hasFlowRule(flowRule3));
+        assertThat(jsonFlows, hasFlowRule(flowRule4));
+    }
+
+    /**
+     * Tests the result of a rest api DELETE for an application.
+     */
+    @Test
+    public void testRemoveFlowByAppId() {
+        expect(mockApplicationService.getId(anyObject())).andReturn(APP_ID).anyTimes();
+        replay(mockApplicationService);
+
+        mockFlowService.removeFlowRulesById(APP_ID);
+        expectLastCall();
+        replay(mockFlowService);
+
+        WebTarget wt = target();
+
+        String location = "/flows/application/1";
+
+        Response deleteResponse = wt.path(location)
+                .request()
                 .delete();
         assertThat(deleteResponse.getStatus(),
                 is(HttpURLConnection.HTTP_NO_CONTENT));
