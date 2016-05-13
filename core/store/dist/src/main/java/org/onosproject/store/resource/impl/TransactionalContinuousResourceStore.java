@@ -191,11 +191,7 @@ class TransactionalContinuousResourceStore {
         ImmutableList<ResourceAllocation> finalAllocations = Stream.concat(nonMatched.stream(),
                 matched.stream()).collect(GuavaCollectors.toImmutableList());
 
-        if (!consumers.replace(resource.id(), oldAllocation,
-                new ContinuousResourceAllocation(oldAllocation.original(), finalAllocations))) {
-            return false;
-        }
-
-        return true;
+        return consumers.replace(resource.id(), oldAllocation,
+                new ContinuousResourceAllocation(oldAllocation.original(), finalAllocations));
     }
 }
