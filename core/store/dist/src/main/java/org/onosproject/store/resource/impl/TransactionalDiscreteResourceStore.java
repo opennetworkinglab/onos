@@ -117,7 +117,7 @@ class TransactionalDiscreteResourceStore {
         return childMap.replace(key, oldValues, newValues);
     }
 
-    boolean isAllocated(DiscreteResourceId id) {
+    private boolean isAllocated(DiscreteResourceId id) {
         return consumers.get(id) != null;
     }
 

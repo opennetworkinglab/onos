@@ -128,7 +128,7 @@ class TransactionalContinuousResourceStore {
         return childMap.replace(key, oldValues, newValues);
     }
 
-    boolean isAllocated(ContinuousResourceId id) {
+    private boolean isAllocated(ContinuousResourceId id) {
         ContinuousResourceAllocation allocations = consumers.get(id);
         return allocations != null && !allocations.allocations().isEmpty();
     }
