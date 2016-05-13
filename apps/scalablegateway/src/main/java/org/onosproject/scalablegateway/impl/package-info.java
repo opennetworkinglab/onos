@@ -15,6 +15,6 @@
  */
 
 /**
- * Application for ScaleableGateway management.
+ * Application for Scaleable Gateway management.
  */
 package org.onosproject.scalablegateway.impl;
