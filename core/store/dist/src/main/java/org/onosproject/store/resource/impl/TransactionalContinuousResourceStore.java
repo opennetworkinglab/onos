@@ -174,22 +174,22 @@ class TransactionalContinuousResourceStore {
     boolean release(ContinuousResource resource, ResourceConsumer consumer) {
         ContinuousResourceAllocation oldAllocation = consumers.get(resource.id());
 
-        List<ResourceAllocation> nonMatchResources = oldAllocation.allocations().stream()
+        List<ResourceAllocation> nonMatched = oldAllocation.allocations().stream()
                 .filter(x -> !(x.consumer().equals(consumer) &&
                         ((ContinuousResource) x.resource()).value() == resource.value()))
                 .collect(Collectors.toList());
 
-        List<ResourceAllocation> matchResources = oldAllocation.allocations().stream()
+        List<ResourceAllocation> matched = oldAllocation.allocations().stream()
                 .filter(x -> (x.consumer().equals(consumer) &&
                         ((ContinuousResource) x.resource()).value() == resource.value()))
                 .collect(Collectors.toList());
 
-        if (matchResources.size() > 1) {
-            matchResources.remove(0);
+        if (matched.size() > 1) {
+            matched.remove(0);
         }
 
-        ImmutableList<ResourceAllocation> finalAllocations = Stream.concat(nonMatchResources.stream(),
-                matchResources.stream()).collect(GuavaCollectors.toImmutableList());
+        ImmutableList<ResourceAllocation> finalAllocations = Stream.concat(nonMatched.stream(),
+                matched.stream()).collect(GuavaCollectors.toImmutableList());
 
         if (!consumers.replace(resource.id(), oldAllocation,
                 new ContinuousResourceAllocation(oldAllocation.original(), finalAllocations))) {
