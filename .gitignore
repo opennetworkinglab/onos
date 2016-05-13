@@ -23,3 +23,5 @@ core/store/data
 /bin/
 
 web/gui/src/main/webapp/tests/node_modules
+web/gui/src/main/webapp/node_modules/
+npm-debug.log

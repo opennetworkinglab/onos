@@ -85,7 +85,13 @@
             fs = _fs_;
             wss = _wss_;
 
-            cache = userPrefs;
+            try {
+                cache = angular.isDefined(userPrefs) ? userPrefs : {};
+            }
+            catch(e){
+                // browser throws error for non-existing globals
+                cache = {}
+            }
 
             wss.bindHandlers({
                 updatePrefs: updatePrefs

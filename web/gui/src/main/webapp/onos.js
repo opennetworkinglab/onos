@@ -17,7 +17,6 @@
 /*
  ONOS GUI -- Main Application Module
  */
-
 (function () {
     'use strict';
 

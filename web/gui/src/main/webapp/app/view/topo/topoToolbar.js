@@ -96,7 +96,6 @@
 
     function init(_api_) {
         api = _api_;
-
         // retrieve initial toggle button settings from user prefs
         setInitToggleState();
     }
