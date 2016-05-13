@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
-import static org.onosproject.store.resource.impl.ResourceStoreUtil.hasEnoughResource;
+import static org.onosproject.store.resource.impl.ContinuousResourceAllocation.hasEnoughResource;
 
 class TransactionalContinuousResourceStore {
     private final Logger log = LoggerFactory.getLogger(getClass());

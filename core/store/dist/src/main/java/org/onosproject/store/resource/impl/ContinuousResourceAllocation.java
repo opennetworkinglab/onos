@@ -36,6 +36,32 @@ final class ContinuousResourceAllocation {
         this.allocations = allocations;
     }
 
+    /**
+     * Checks if there is enough resource volume to allocated the requested resource
+     * against the specified resource.
+     *
+     * @param original   original resource
+     * @param request    requested resource
+     * @param allocation current allocation of the resource
+     * @return true if there is enough resource volume. Otherwise, false.
+     */
+    // computational complexity: O(n) where n is the number of allocations
+    static boolean hasEnoughResource(ContinuousResource original,
+                                     ContinuousResource request,
+                                     ContinuousResourceAllocation allocation) {
+        if (allocation == null) {
+            return request.value() <= original.value();
+        }
+
+        double allocated = allocation.allocations().stream()
+                .filter(x -> x.resource() instanceof ContinuousResource)
+                .map(x -> (ContinuousResource) x.resource())
+                .mapToDouble(ContinuousResource::value)
+                .sum();
+        double left = original.value() - allocated;
+        return request.value() <= left;
+    }
+
     ContinuousResource original() {
         return original;
     }

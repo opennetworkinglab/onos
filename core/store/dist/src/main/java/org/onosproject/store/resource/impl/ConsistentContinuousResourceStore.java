@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.MAX_RETRIES;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.RETRY_DELAY;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
-import static org.onosproject.store.resource.impl.ResourceStoreUtil.hasEnoughResource;
+import static org.onosproject.store.resource.impl.ContinuousResourceAllocation.hasEnoughResource;
 
 class ConsistentContinuousResourceStore {
     private ConsistentMap<ContinuousResourceId, ContinuousResourceAllocation> consumers;
