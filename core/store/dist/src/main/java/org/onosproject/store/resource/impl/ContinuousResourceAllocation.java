@@ -40,6 +40,12 @@ final class ContinuousResourceAllocation {
         this.allocations = allocations;
     }
 
+    // for serializer
+    private ContinuousResourceAllocation() {
+        this.original = null;
+        this.allocations = null;
+    }
+
     /**
      * Checks if there is enough resource volume to allocated the requested resource
      * against the specified resource.
