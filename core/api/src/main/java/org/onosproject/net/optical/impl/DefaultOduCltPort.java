@@ -22,7 +22,7 @@ import java.util.Objects;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.optical.OduCltPort;
-import org.onosproject.net.optical.utils.ForwardingPort;
+import org.onosproject.net.utils.ForwardingPort;
 
 import com.google.common.annotations.Beta;
 

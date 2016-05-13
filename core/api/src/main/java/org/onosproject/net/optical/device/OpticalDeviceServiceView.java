@@ -25,7 +25,7 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.optical.OpticalDevice;
-import org.onosproject.net.optical.utils.ForwardingDeviceService;
+import org.onosproject.net.utils.ForwardingDeviceService;
 import org.slf4j.Logger;
 
 import com.google.common.annotations.Beta;

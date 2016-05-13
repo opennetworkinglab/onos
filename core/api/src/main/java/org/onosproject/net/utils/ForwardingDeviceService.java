@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.optical.utils;
+package org.onosproject.net.utils;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

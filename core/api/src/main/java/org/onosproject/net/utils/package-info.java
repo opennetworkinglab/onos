@@ -17,4 +17,4 @@
 /**
  * Utility classes.
  */
-package org.onosproject.net.optical.utils;
+package org.onosproject.net.utils;

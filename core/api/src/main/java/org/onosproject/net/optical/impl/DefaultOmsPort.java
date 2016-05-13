@@ -22,7 +22,7 @@ import java.util.Objects;
 import org.onlab.util.Frequency;
 import org.onosproject.net.Port;
 import org.onosproject.net.optical.OmsPort;
-import org.onosproject.net.optical.utils.ForwardingPort;
+import org.onosproject.net.utils.ForwardingPort;
 
 import com.google.common.annotations.Beta;
 

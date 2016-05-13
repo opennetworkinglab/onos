@@ -20,7 +20,7 @@ import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.optical.OchPort;
-import org.onosproject.net.optical.utils.ForwardingPort;
+import org.onosproject.net.utils.ForwardingPort;
 
 import com.google.common.annotations.Beta;
 

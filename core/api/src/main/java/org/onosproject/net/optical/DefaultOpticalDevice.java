@@ -32,7 +32,7 @@ import org.onosproject.net.optical.device.port.OduCltPortMapper;
 import org.onosproject.net.optical.device.port.OmsPortMapper;
 import org.onosproject.net.optical.device.port.OtuPortMapper;
 import org.onosproject.net.optical.device.port.PortMapper;
-import org.onosproject.net.optical.utils.ForwardingDevice;
+import org.onosproject.net.utils.ForwardingDevice;
 import org.slf4j.Logger;
 
 import com.google.common.annotations.Beta;
