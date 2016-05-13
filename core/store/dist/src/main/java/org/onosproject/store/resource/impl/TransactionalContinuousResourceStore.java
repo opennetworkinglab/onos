@@ -156,11 +156,7 @@ class TransactionalContinuousResourceStore {
             return true;
         }
 
-        ContinuousResourceAllocation newValue = new ContinuousResourceAllocation(original,
-                ImmutableList.<ResourceAllocation>builder()
-                        .addAll(oldValue.allocations())
-                        .add(value)
-                        .build());
+        ContinuousResourceAllocation newValue = oldValue.allocate(original, value);
         return consumers.replace(original.id(), oldValue, newValue);
     }
 

@@ -70,6 +70,13 @@ final class ContinuousResourceAllocation {
         return allocations;
     }
 
+    ContinuousResourceAllocation allocate(ContinuousResource original, ResourceAllocation value) {
+        return new ContinuousResourceAllocation(original, ImmutableList.<ResourceAllocation>builder()
+                .addAll(allocations)
+                .add(value)
+                .build());
+    }
+
     ContinuousResourceAllocation release(ContinuousResource resource, ResourceConsumerId consumerId) {
         List<ResourceAllocation> nonMatched = allocations.stream()
                 .filter(x -> !(x.consumerId().equals(consumerId) &&
