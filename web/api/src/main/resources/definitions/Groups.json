@@ -67,11 +67,6 @@
             "description": "types of the group",
             "example": "ALL"
           },
-          "deviceId": {
-            "type": "string",
-            "description": "device identifier",
-            "example": "of:0000000000000003"
-          },
           "appId": {
             "type": "string",
             "description": "application identifier",
@@ -80,7 +75,7 @@
           "appCookie": {
             "type": "string",
             "description": "application cookie",
-            "example": "1"
+            "example": "0x1234abcd"
           },
           "buckets": {
             "type": "array",
