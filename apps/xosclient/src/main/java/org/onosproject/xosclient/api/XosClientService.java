@@ -28,19 +28,26 @@ public interface XosClientService {
     XosAccess access();
 
     /**
-     * Sets the XOS API access information to the client service.
+     * Returns XOS client with access.
      *
      * @param xosAccess xos access information
-     * @return true if it is set and authenticated, otherwise false
+     * @return xos client; null if access fails authentication
      */
-    boolean setAccess(XosAccess xosAccess);
+    XosClientService getClient(XosAccess xosAccess);
 
     /**
-     * Returns CORD VTN service API.
+     * Returns CORD VTN service and service dependency API.
      *
      * @return cord vtn service api
      */
-    VtnServiceApi vtnServiceApi();
+    VtnServiceApi vtnService();
+
+    /**
+     * Returns CORD VTN port API.
+     *
+     * @return cord vtn port api
+     */
+    VtnPortApi vtnPort();
 
     /*
      * adds more XOS service APIs below.

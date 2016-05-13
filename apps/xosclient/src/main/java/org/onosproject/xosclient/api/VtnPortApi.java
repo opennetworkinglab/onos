@@ -18,38 +18,30 @@ package org.onosproject.xosclient.api;
 import java.util.Set;
 
 /**
- * Service for interacting with XOS VTN service and service dependency.
+ * Service for interacting with XOS VTN ports.
  */
-public interface VtnServiceApi {
+public interface VtnPortApi {
 
     /**
-     * Returns all services list.
+     * Returns all ports.
      *
-     * @return service list
+     * @return set of ports
      */
-    Set<VtnServiceId> services();
+    Set<VtnPort> vtnPorts();
 
     /**
-     * Returns VTN service.
+     * Returns all ports with a given service.
      *
      * @param serviceId service id
-     * @return vtn service
+     * @return set of ports
      */
-    VtnService service(VtnServiceId serviceId);
+    Set<VtnPort> vtnPorts(VtnServiceId serviceId);
 
     /**
-     * Returns dependent tenant services of a given provider service.
+     * Returns port information with port id.
      *
-     * @param pServiceId vtn service id
-     * @return set of service ids
+     * @param portId port id
+     * @return vtn port; null if it fails to get port information
      */
-    Set<VtnServiceId> tenantServices(VtnServiceId pServiceId);
-
-    /**
-     * Returns dependent provider services of a given tenant service.
-     *
-     * @param tServiceId vtn service id
-     * @return set of service ids
-     */
-    Set<VtnServiceId> providerServices(VtnServiceId tServiceId);
+    VtnPort vtnPort(VtnPortId portId);
 }

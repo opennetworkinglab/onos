@@ -33,6 +33,7 @@ import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.xosclient.api.VtnPortApi;
 import org.onosproject.xosclient.api.VtnServiceApi;
 import org.onosproject.xosclient.api.XosAccess;
 import org.onosproject.xosclient.api.XosAccessConfig;
@@ -41,6 +42,7 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
+import java.util.Objects;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -55,8 +57,11 @@ public class XosClient implements XosClientService {
 
     protected final Logger log = getLogger(getClass());
 
-    private static final String VTN_BASE_URL = "vtnBaseUrl";
-    private static final String DEFAULT_VTN_BASE_URL = "/api/service/vtn/services/";
+    private static final String VTN_SERVICE_URL = "vtnServiceBaseUrl";
+    private static final String DEFAULT_VTN_SERVICE_URL = "/api/service/vtn/services/";
+
+    private static final String VTN_PORT_URL = "vtnPortBaseUrl";
+    private static final String DEFAULT_VTN_PORT_URL = "/api/service/vtn/ports/";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -67,9 +72,13 @@ public class XosClient implements XosClientService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry configRegistry;
 
-    @Property(name = VTN_BASE_URL, value = DEFAULT_VTN_BASE_URL,
+    @Property(name = VTN_SERVICE_URL, value = DEFAULT_VTN_SERVICE_URL,
             label = "XOS VTN service API base url")
-    private String vtnBaseUrl = DEFAULT_VTN_BASE_URL;
+    private String vtnServiceUrl = DEFAULT_VTN_SERVICE_URL;
+
+    @Property(name = VTN_PORT_URL, value = DEFAULT_VTN_PORT_URL,
+            label = "XOS VTN port API base url")
+    private String vtnPortUrl = DEFAULT_VTN_PORT_URL;
 
     private final ConfigFactory configFactory =
             new ConfigFactory(SubjectFactories.APP_SUBJECT_FACTORY, XosAccessConfig.class, "xosclient") {
@@ -83,6 +92,13 @@ public class XosClient implements XosClientService {
 
     private ApplicationId appId;
     private XosAccess access = null;
+
+    private VtnServiceApi vtnServiceApi = null;
+    private VtnPortApi vtnPortApi = null;
+
+    /*
+     * adds more XOS service APIs below.
+     */
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -99,16 +115,27 @@ public class XosClient implements XosClientService {
 
     @Deactivate
     protected void deactivate() {
+        configRegistry.unregisterConfigFactory(configFactory);
+        configRegistry.removeListener(configListener);
+
         log.info("Stopped");
     }
 
     @Modified
     protected void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
+        String updatedUrl;
 
-        String updatedUrl = Tools.get(properties, VTN_BASE_URL);
-        if (!Strings.isNullOrEmpty(updatedUrl)) {
-            vtnBaseUrl = updatedUrl;
+        updatedUrl = Tools.get(properties, VTN_SERVICE_URL);
+        if (!Strings.isNullOrEmpty(updatedUrl) && !updatedUrl.equals(vtnServiceUrl)) {
+            vtnServiceUrl = updatedUrl;
+            vtnServiceApi = new DefaultVtnServiceApi(vtnServiceUrl, access);
+        }
+
+       updatedUrl = Tools.get(properties, VTN_PORT_URL);
+        if (!Strings.isNullOrEmpty(updatedUrl) && !updatedUrl.equals(vtnPortUrl)) {
+            vtnPortUrl = updatedUrl;
+            vtnPortApi = new DefaultVtnPortApi(vtnPortUrl, access);
         }
 
         log.info("Modified");
@@ -120,18 +147,29 @@ public class XosClient implements XosClientService {
     }
 
     @Override
-    public synchronized boolean setAccess(XosAccess xosAccess) {
-        checkNotNull(xosAccess);
+    public synchronized XosClient getClient(XosAccess access) {
+        checkNotNull(access);
 
-        // TODO authentication later before using the access
-        access = xosAccess;
-        return true;
+        if (!Objects.equals(this.access, access)) {
+            // TODO do authentication before return
+            this.access = access;
+
+            vtnServiceApi = new DefaultVtnServiceApi(vtnServiceUrl, access);
+            vtnPortApi = new DefaultVtnPortApi(vtnPortUrl, access);
+        }
+        return this;
     }
 
     @Override
-    public VtnServiceApi vtnServiceApi() {
-        checkNotNull(access, "XOS API access is not set");
-        return DefaultVtnServiceApi.getInstance(vtnBaseUrl, access);
+    public VtnServiceApi vtnService() {
+        checkNotNull(vtnServiceApi, "VtnServiceApi is null");
+        return vtnServiceApi;
+    }
+
+    @Override
+    public VtnPortApi vtnPort() {
+        checkNotNull(vtnPortApi, "VtnPortApi is null");
+        return vtnPortApi;
     }
 
     /*
@@ -144,8 +182,7 @@ public class XosClient implements XosClientService {
             log.debug("No configuration found");
             return;
         }
-
-        setAccess(config.xosAccess());
+        getClient(config.xosAccess());
     }
 
     private class InternalConfigListener implements NetworkConfigListener {

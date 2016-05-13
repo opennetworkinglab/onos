@@ -66,6 +66,8 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.xosclient.api.VtnServiceApi;
+import org.onosproject.xosclient.api.VtnServiceId;
 import org.onosproject.xosclient.api.XosAccess;
 import org.onosproject.xosclient.api.XosClientService;
 import org.openstack4j.api.OSClient;
@@ -166,6 +168,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     private CordVtnRuleInstaller ruleInstaller;
     private CordVtnArpProxy arpProxy;
 
+    private volatile XosAccess xosAccess = null;
     private volatile Access osAccess = null;
     private volatile MacAddress privateGatewayMac = MacAddress.NONE;
 
@@ -446,15 +449,16 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         Set<CordServiceId> tServices = Sets.newHashSet();
         Set<CordServiceId> pServices = Sets.newHashSet();
 
-        if (xosClient.access() != null) {
-            tServices = xosClient.vtnServiceApi().getTenantServices(serviceId.id())
+        if (xosAccess != null) {
+            VtnServiceApi vtnServiceApi = xosClient.getClient(xosAccess).vtnService();
+            tServices = vtnServiceApi.tenantServices(VtnServiceId.of(serviceId.id()))
                     .stream()
-                    .map(CordServiceId::of)
+                    .map(id -> CordServiceId.of(id.id()))
                     .collect(Collectors.toSet());
 
-            pServices = xosClient.vtnServiceApi().getProviderServices(serviceId.id())
+            pServices = vtnServiceApi.providerServices(VtnServiceId.of(serviceId.id()))
                     .stream()
-                    .map(CordServiceId::of)
+                    .map(id -> CordServiceId.of(id.id()))
                     .collect(Collectors.toSet());
         }
 
@@ -788,8 +792,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                   xosAccess.endpoint(),
                   xosAccess.username(),
                   xosAccess.password());
-
-        xosClient.setAccess(xosAccess);
+        this.xosAccess = xosAccess;
     }
 
     /**
