@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
@@ -162,11 +163,6 @@ class TransactionalContinuousResourceStore {
             return true;
         }
 
-        if (oldValue.allocations().contains(value)) {
-            // don't write to map because all values are already stored
-            return true;
-        }
-
         ContinuousResourceAllocation newValue = new ContinuousResourceAllocation(original,
                 ImmutableList.<ResourceAllocation>builder()
                         .addAll(oldValue.allocations())
@@ -177,13 +173,26 @@ class TransactionalContinuousResourceStore {
 
     boolean release(ContinuousResource resource, ResourceConsumer consumer) {
         ContinuousResourceAllocation oldAllocation = consumers.get(resource.id());
-        ImmutableList<ResourceAllocation> newAllocations = oldAllocation.allocations().stream()
+
+        List<ResourceAllocation> nonMatchResources = oldAllocation.allocations().stream()
                 .filter(x -> !(x.consumer().equals(consumer) &&
                         ((ContinuousResource) x.resource()).value() == resource.value()))
-                .collect(GuavaCollectors.toImmutableList());
+                .collect(Collectors.toList());
+
+        List<ResourceAllocation> matchResources = oldAllocation.allocations().stream()
+                .filter(x -> (x.consumer().equals(consumer) &&
+                        ((ContinuousResource) x.resource()).value() == resource.value()))
+                .collect(Collectors.toList());
+
+        if (matchResources.size() > 1) {
+            matchResources.remove(0);
+        }
+
+        ImmutableList<ResourceAllocation> finalAllocations = Stream.concat(nonMatchResources.stream(),
+                matchResources.stream()).collect(GuavaCollectors.toImmutableList());
 
         if (!consumers.replace(resource.id(), oldAllocation,
-                new ContinuousResourceAllocation(oldAllocation.original(), newAllocations))) {
+                new ContinuousResourceAllocation(oldAllocation.original(), finalAllocations))) {
             return false;
         }
 
