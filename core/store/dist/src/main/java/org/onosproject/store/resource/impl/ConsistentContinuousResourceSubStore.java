@@ -107,7 +107,7 @@ class ConsistentContinuousResourceSubStore {
             return true;
         }
 
-        return allocation.value().hasEnoughResource(allocation.value().original(), resource);
+        return allocation.value().hasEnoughResource(resource);
     }
 
     <T> Stream<ContinuousResource> getAllocatedResources(DiscreteResourceId parent, Class<T> cls) {

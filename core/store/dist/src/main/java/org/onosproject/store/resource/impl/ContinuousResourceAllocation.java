@@ -44,12 +44,11 @@ final class ContinuousResourceAllocation {
      * Checks if there is enough resource volume to allocated the requested resource
      * against the specified resource.
      *
-     * @param original   original resource
      * @param request    requested resource
      * @return true if there is enough resource volume. Otherwise, false.
      */
     // computational complexity: O(n) where n is the number of allocations
-    boolean hasEnoughResource(ContinuousResource original, ContinuousResource request) {
+    boolean hasEnoughResource(ContinuousResource request) {
         double allocated = allocations.stream()
                 .filter(x -> x.resource() instanceof ContinuousResource)
                 .map(x -> (ContinuousResource) x.resource())

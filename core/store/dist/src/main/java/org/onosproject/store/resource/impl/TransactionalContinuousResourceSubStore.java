@@ -141,7 +141,7 @@ class TransactionalContinuousResourceSubStore {
         ContinuousResourceAllocation allocations = consumers.get(request.id());
         if (!Optional.ofNullable(allocations)
                 .orElse(ContinuousResourceAllocation.empty(original))
-                .hasEnoughResource(original, request)) {
+                .hasEnoughResource(request)) {
             return false;
         }
 
