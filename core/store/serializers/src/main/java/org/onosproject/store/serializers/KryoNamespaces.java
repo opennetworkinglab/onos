@@ -234,6 +234,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class KryoNamespaces {
 
+    public static final int BASIC_MAX_SIZE = 50;
     public static final KryoNamespace BASIC = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.FLOATING_ID)
             .register(byte[].class)
@@ -284,6 +285,7 @@ public final class KryoNamespaces {
     /**
      * KryoNamespace which can serialize ON.lab misc classes.
      */
+    public static final int MISC_MAX_SIZE = 30;
     public static final KryoNamespace MISC = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.FLOATING_ID)
             .register(new IpPrefixSerializer(), IpPrefix.class)
@@ -302,20 +304,15 @@ public final class KryoNamespaces {
             .build("MISC");
 
     /**
-     * Kryo registration Id for user custom registration.
-     */
-    public static final int BEGIN_USER_CUSTOM_ID = 500;
-
-    // TODO: Populate other classes
-    /**
      * KryoNamespace which can serialize API bundle classes.
      */
+    public static final int API_MAX_SIZE = 499;
     public static final KryoNamespace API = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.INITIAL_ID)
             .register(BASIC)
-            .nextId(KryoNamespace.INITIAL_ID + 50)
+            .nextId(KryoNamespace.INITIAL_ID + BASIC_MAX_SIZE)
             .register(MISC)
-            .nextId(KryoNamespace.INITIAL_ID + 50 + 30)
+            .nextId(KryoNamespace.INITIAL_ID + BASIC_MAX_SIZE + MISC_MAX_SIZE)
             .register(
                     Instructions.MeterInstruction.class,
                     MeterId.class,
@@ -552,6 +549,10 @@ public final class KryoNamespaces {
             .register(new ImmutableByteSequenceSerializer(), ImmutableByteSequence.class)
             .build("API");
 
+    /**
+     * Kryo registration Id for user custom registration.
+     */
+    public static final int BEGIN_USER_CUSTOM_ID = API_MAX_SIZE + 1;
 
     // not to be instantiated
     private KryoNamespaces() {

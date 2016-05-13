@@ -79,7 +79,6 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
     private final boolean registrationRequired;
     private final String friendlyName;
 
-
     /**
      * KryoNamespace builder.
      */
@@ -403,6 +402,17 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
 
     private String friendlyName() {
         return friendlyName;
+    }
+
+    /**
+     * Gets the number of classes registered in this Kryo namespace.
+     *
+     * @return size of namespace
+     */
+    public int size() {
+        return (int) registeredBlocks.stream()
+                .flatMap(block -> block.types().stream())
+                .count();
     }
 
     /**
