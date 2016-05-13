@@ -32,15 +32,25 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <onos.app.name>org.onosproject.newoptical</onos.app.name>
+        <onos.app.title>Packet/Optical Use-Case App</onos.app.title>
         <onos.app.category>Traffic Steering</onos.app.category>
         <onos.app.url>https://wiki.onosproject.org/display/ONOS/Packet+Optical+Convergence</onos.app.url>
         <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.requires>
+            org.onosproject.optical-model
+        </onos.app.requires>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-optical-model</artifactId>
             <version>${project.version}</version>
         </dependency>
 

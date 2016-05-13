@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
+    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 TEST_DEPS = [
@@ -30,5 +31,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'ONOS Fujitsu device drivers application.',
     included_bundles = BUNDLES,
-    required_apps = [ 'org.onosproject.netconf' ],
+    required_apps = [ 'org.onosproject.netconf', 'org.onosproject.optical-model' ],
 )

@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//utils/rest:onlab-rest',
     '//drivers/utilities:onos-drivers-utilities',
     '//protocols/rest/api:onos-protocols-rest-api',
+    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 TEST_DEPS = [
@@ -30,5 +31,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'ONOS Ciena Device Drivers application.',
     included_bundles = BUNDLES,
-    required_apps = [ 'org.onosproject.restsb' ],
+    required_apps = [ 'org.onosproject.restsb', 'org.onosproject.optical-model' ],
 )

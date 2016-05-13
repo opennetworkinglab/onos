@@ -36,9 +36,17 @@
         <onos.app.category>Traffic Steering</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Packet/Optical use-case application.</onos.app.readme>
+        <onos.app.requires>
+            org.onosproject.optical-model
+        </onos.app.requires>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-optical-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-cli</artifactId>

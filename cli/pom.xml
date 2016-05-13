@@ -49,6 +49,13 @@
             <artifactId>onos-core-common</artifactId>
         </dependency>
 
+        <!-- TODO Remove after decoupling optical -->
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-optical-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>

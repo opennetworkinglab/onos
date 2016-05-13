@@ -142,6 +142,8 @@
              description="ONOS admin command console components">
         <feature>onos-api</feature>
         <bundle>mvn:org.onosproject/onos-cli/@ONOS-VERSION</bundle>
+        <!-- TODO Remove after decoupling optical -->
+        <bundle>mvn:org.onosproject/onos-optical-model/@ONOS-VERSION</bundle>
     </feature>
 
     <feature name="onos-security" version="@FEATURE-VERSION"

@@ -34,6 +34,7 @@
         <module>mobility</module>
         <module>proxyarp</module>
         <module>sdnip</module>
+        <module>optical-model</module>
         <module>optical</module>
         <module>newoptical</module>
         <module>metrics</module>

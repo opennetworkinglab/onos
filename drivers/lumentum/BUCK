@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//drivers/utilities:onos-drivers-utilities',
     '//protocols/snmp/api:onos-protocols-snmp-api',
     '//incubator/api:onos-incubator-api',
+    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 TEST_DEPS = [
@@ -24,5 +25,5 @@ onos_app (
     category = 'Drivers',
     url = 'http://onosproject.org',
     description = 'ONOS Lumentum Device Drivers application.',
-    required_apps = [ 'org.onosproject.snmp', 'org.onosproject.faultmanagement' ],
+    required_apps = [ 'org.onosproject.snmp', 'org.onosproject.faultmanagement', 'org.onosproject.optical-model' ],
 )

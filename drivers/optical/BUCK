@@ -3,6 +3,7 @@ COMPILE_DEPS = [
     '//lib:openflowj',
     '//protocols/openflow/api:onos-protocols-openflow-api',
     '//drivers/default:onos-drivers-default',
+    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 TEST_DEPS = [
@@ -23,5 +24,5 @@ onos_app (
     category = 'Drivers',
     url = 'http://onosproject.org',
     description = 'ONOS other optical Device Drivers application.',
-    required_apps = [ 'org.onosproject.drivers' ],
+    required_apps = [ 'org.onosproject.drivers', 'org.onosproject.optical-model' ],
 )

@@ -104,6 +104,16 @@
             <artifactId>onos-incubator-api</artifactId>
         </dependency>
 
+        <!-- TODO Remove after decoupling optical -->
+        <!-- - DeviceManager.InternalDeviceProviderService#ensureGeneric -->
+        <!-- - OpticalCompilers x4 -->
+        <!-- - OpticalPortOperator -->
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-optical-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.karaf.features</groupId>
             <artifactId>org.apache.karaf.features.core</artifactId>
