@@ -41,11 +41,11 @@ import static org.onosproject.store.resource.impl.ConsistentResourceStore.RETRY_
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
 import static org.onosproject.store.resource.impl.ContinuousResourceAllocation.hasEnoughResource;
 
-class ConsistentContinuousResourceStore {
+class ConsistentContinuousResourceSubStore {
     private ConsistentMap<ContinuousResourceId, ContinuousResourceAllocation> consumers;
     private ConsistentMap<DiscreteResourceId, Set<ContinuousResource>> childMap;
 
-    ConsistentContinuousResourceStore(StorageService service) {
+    ConsistentContinuousResourceSubStore(StorageService service) {
         this.consumers = service.<ContinuousResourceId, ContinuousResourceAllocation>consistentMapBuilder()
                 .withName(MapNames.CONTINUOUS_CONSUMER_MAP)
                 .withSerializer(SERIALIZER)
@@ -59,8 +59,8 @@ class ConsistentContinuousResourceStore {
                 ConsistentMapException.class, MAX_RETRIES, RETRY_DELAY);
     }
 
-    TransactionalContinuousResourceStore transactional(TransactionContext tx) {
-        return new TransactionalContinuousResourceStore(tx);
+    TransactionalContinuousResourceSubStore transactional(TransactionContext tx) {
+        return new TransactionalContinuousResourceSubStore(tx);
     }
 
     // computational complexity: O(n) where n is the number of the existing allocations for the resource

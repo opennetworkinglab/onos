@@ -37,12 +37,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
 import static org.onosproject.store.resource.impl.ContinuousResourceAllocation.hasEnoughResource;
 
-class TransactionalContinuousResourceStore {
+class TransactionalContinuousResourceSubStore {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final TransactionalMap<DiscreteResourceId, Set<ContinuousResource>> childMap;
     private final TransactionalMap<ContinuousResourceId, ContinuousResourceAllocation> consumers;
 
-    TransactionalContinuousResourceStore(TransactionContext tx) {
+    TransactionalContinuousResourceSubStore(TransactionContext tx) {
         this.childMap = tx.getTransactionalMap(MapNames.CONTINUOUS_CHILD_MAP, SERIALIZER);
         this.consumers = tx.getTransactionalMap(MapNames.CONTINUOUS_CONSUMER_MAP, SERIALIZER);
     }

@@ -80,13 +80,13 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService service;
 
-    private ConsistentDiscreteResourceStore discreteStore;
-    private ConsistentContinuousResourceStore continuousStore;
+    private ConsistentDiscreteResourceSubStore discreteStore;
+    private ConsistentContinuousResourceSubStore continuousStore;
 
     @Activate
     public void activate() {
-        discreteStore = new ConsistentDiscreteResourceStore(service);
-        continuousStore = new ConsistentContinuousResourceStore(service);
+        discreteStore = new ConsistentDiscreteResourceSubStore(service);
+        continuousStore = new ConsistentContinuousResourceSubStore(service);
 
         log.info("Started");
     }
@@ -120,8 +120,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 .filter(x -> x.parent().isPresent())
                 .collect(Collectors.groupingBy(x -> x.parent().get(), LinkedHashMap::new, Collectors.toList()));
 
-        TransactionalDiscreteResourceStore discreteTxStore = discreteStore.transactional(tx);
-        TransactionalContinuousResourceStore continuousTxStore = continuousStore.transactional(tx);
+        TransactionalDiscreteResourceSubStore discreteTxStore = discreteStore.transactional(tx);
+        TransactionalContinuousResourceSubStore continuousTxStore = continuousStore.transactional(tx);
         for (Map.Entry<DiscreteResource, List<Resource>> entry : resourceMap.entrySet()) {
             DiscreteResourceId parentId = entry.getKey().id();
             if (!discreteTxStore.lookup(parentId).isPresent()) {
@@ -154,8 +154,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
 
-        TransactionalDiscreteResourceStore discreteTxStore = discreteStore.transactional(tx);
-        TransactionalContinuousResourceStore continuousTxStore = continuousStore.transactional(tx);
+        TransactionalDiscreteResourceSubStore discreteTxStore = discreteStore.transactional(tx);
+        TransactionalContinuousResourceSubStore continuousTxStore = continuousStore.transactional(tx);
         // Look up resources by resource IDs
         List<Resource> resources = ids.stream()
                 .filter(x -> x.parent().isPresent())
@@ -205,8 +205,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
 
-        TransactionalDiscreteResourceStore discreteTxStore = discreteStore.transactional(tx);
-        TransactionalContinuousResourceStore continuousTxStore = continuousStore.transactional(tx);
+        TransactionalDiscreteResourceSubStore discreteTxStore = discreteStore.transactional(tx);
+        TransactionalContinuousResourceSubStore continuousTxStore = continuousStore.transactional(tx);
         for (Resource resource : resources) {
             if (resource instanceof DiscreteResource) {
                 if (!discreteTxStore.allocate(consumer.consumerId(), (DiscreteResource) resource)) {
@@ -229,8 +229,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
 
-        TransactionalDiscreteResourceStore discreteTxStore = discreteStore.transactional(tx);
-        TransactionalContinuousResourceStore continuousTxStore = continuousStore.transactional(tx);
+        TransactionalDiscreteResourceSubStore discreteTxStore = discreteStore.transactional(tx);
+        TransactionalContinuousResourceSubStore continuousTxStore = continuousStore.transactional(tx);
         for (ResourceAllocation allocation : allocations) {
             Resource resource = allocation.resource();
             ResourceConsumerId consumerId = allocation.consumerId();
@@ -323,8 +323,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
      * @return true if the operation succeeds, false otherwise.
      */
     // computational complexity: O(n) where n is the number of the specified value
-    private boolean register(TransactionalDiscreteResourceStore discreteTxStore,
-                             TransactionalContinuousResourceStore continuousTxStore,
+    private boolean register(TransactionalDiscreteResourceSubStore discreteTxStore,
+                             TransactionalContinuousResourceSubStore continuousTxStore,
                              DiscreteResourceId key, List<Resource> values) {
         // it's assumed that the passed "values" is non-empty
 
@@ -352,8 +352,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
      * @param values            values to be removed
      * @return true if the operation succeeds, false otherwise
      */
-    private boolean unregister(TransactionalDiscreteResourceStore discreteTxStore,
-                               TransactionalContinuousResourceStore continuousTxStore,
+    private boolean unregister(TransactionalDiscreteResourceSubStore discreteTxStore,
+                               TransactionalContinuousResourceSubStore continuousTxStore,
                                DiscreteResourceId key, List<Resource> values) {
         // it's assumed that the passed "values" is non-empty
 

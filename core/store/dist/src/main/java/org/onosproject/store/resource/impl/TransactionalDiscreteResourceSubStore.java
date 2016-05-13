@@ -33,12 +33,12 @@ import java.util.Set;
 
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
 
-class TransactionalDiscreteResourceStore {
+class TransactionalDiscreteResourceSubStore {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final TransactionalMap<DiscreteResourceId, Set<DiscreteResource>> childMap;
     private final TransactionalMap<DiscreteResourceId, ResourceConsumerId> consumers;
 
-    TransactionalDiscreteResourceStore(TransactionContext tx) {
+    TransactionalDiscreteResourceSubStore(TransactionContext tx) {
         this.childMap = tx.getTransactionalMap(MapNames.DISCRETE_CHILD_MAP, SERIALIZER);
         this.consumers = tx.getTransactionalMap(MapNames.DISCRETE_CONSUMER_MAP, SERIALIZER);
     }

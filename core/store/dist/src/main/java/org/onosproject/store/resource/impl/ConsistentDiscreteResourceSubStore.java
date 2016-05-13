@@ -40,11 +40,11 @@ import static org.onosproject.store.resource.impl.ConsistentResourceStore.MAX_RE
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.RETRY_DELAY;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
 
-class ConsistentDiscreteResourceStore {
+class ConsistentDiscreteResourceSubStore {
     private ConsistentMap<DiscreteResourceId, ResourceConsumerId> consumers;
     private ConsistentMap<DiscreteResourceId, Set<DiscreteResource>> childMap;
 
-    ConsistentDiscreteResourceStore(StorageService service) {
+    ConsistentDiscreteResourceSubStore(StorageService service) {
         this.consumers = service.<DiscreteResourceId, ResourceConsumerId>consistentMapBuilder()
                 .withName(MapNames.DISCRETE_CONSUMER_MAP)
                 .withSerializer(SERIALIZER)
@@ -58,8 +58,8 @@ class ConsistentDiscreteResourceStore {
                 ConsistentMapException.class, MAX_RETRIES, RETRY_DELAY);
     }
 
-    TransactionalDiscreteResourceStore transactional(TransactionContext tx) {
-        return new TransactionalDiscreteResourceStore(tx);
+    TransactionalDiscreteResourceSubStore transactional(TransactionContext tx) {
+        return new TransactionalDiscreteResourceSubStore(tx);
     }
 
     // computational complexity: O(1)
