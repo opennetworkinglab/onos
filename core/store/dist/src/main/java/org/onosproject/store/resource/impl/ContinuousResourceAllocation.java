@@ -30,6 +30,10 @@ final class ContinuousResourceAllocation {
     private final ContinuousResource original;
     private final ImmutableList<ResourceAllocation> allocations;
 
+    static ContinuousResourceAllocation empty(ContinuousResource original) {
+        return new ContinuousResourceAllocation(original, ImmutableList.of());
+    }
+
     ContinuousResourceAllocation(ContinuousResource original,
                                  ImmutableList<ResourceAllocation> allocations) {
         this.original = original;
@@ -42,18 +46,11 @@ final class ContinuousResourceAllocation {
      *
      * @param original   original resource
      * @param request    requested resource
-     * @param allocation current allocation of the resource
      * @return true if there is enough resource volume. Otherwise, false.
      */
     // computational complexity: O(n) where n is the number of allocations
-    static boolean hasEnoughResource(ContinuousResource original,
-                                     ContinuousResource request,
-                                     ContinuousResourceAllocation allocation) {
-        if (allocation == null) {
-            return request.value() <= original.value();
-        }
-
-        double allocated = allocation.allocations().stream()
+    boolean hasEnoughResource(ContinuousResource original, ContinuousResource request) {
+        double allocated = allocations.stream()
                 .filter(x -> x.resource() instanceof ContinuousResource)
                 .map(x -> (ContinuousResource) x.resource())
                 .mapToDouble(ContinuousResource::value)

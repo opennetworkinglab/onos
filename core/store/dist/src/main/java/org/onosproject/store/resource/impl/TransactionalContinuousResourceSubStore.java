@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
-import static org.onosproject.store.resource.impl.ContinuousResourceAllocation.hasEnoughResource;
 
 class TransactionalContinuousResourceSubStore {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -140,7 +139,9 @@ class TransactionalContinuousResourceSubStore {
         // Down cast: this must be safe as ContinuousResource is associated with ContinuousResourceId
         ContinuousResource original = lookedUp.get();
         ContinuousResourceAllocation allocations = consumers.get(request.id());
-        if (!hasEnoughResource(original, request, allocations)) {
+        if (!Optional.ofNullable(allocations)
+                .orElse(ContinuousResourceAllocation.empty(original))
+                .hasEnoughResource(original, request)) {
             return false;
         }
 

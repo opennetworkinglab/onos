@@ -39,7 +39,6 @@ import java.util.stream.Stream;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.MAX_RETRIES;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.RETRY_DELAY;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
-import static org.onosproject.store.resource.impl.ContinuousResourceAllocation.hasEnoughResource;
 
 class ConsistentContinuousResourceSubStore {
     private ConsistentMap<ContinuousResourceId, ContinuousResourceAllocation> consumers;
@@ -108,7 +107,7 @@ class ConsistentContinuousResourceSubStore {
             return true;
         }
 
-        return hasEnoughResource(allocation.value().original(), resource, allocation.value());
+        return allocation.value().hasEnoughResource(allocation.value().original(), resource);
     }
 
     <T> Stream<ContinuousResource> getAllocatedResources(DiscreteResourceId parent, Class<T> cls) {
