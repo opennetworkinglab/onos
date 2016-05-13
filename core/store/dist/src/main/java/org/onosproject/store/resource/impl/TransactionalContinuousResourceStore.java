@@ -146,12 +146,7 @@ class TransactionalContinuousResourceStore {
             return false;
         }
 
-        boolean success = appendValue(original, new ResourceAllocation(request, consumer));
-        if (!success) {
-            return false;
-        }
-
-        return true;
+        return appendValue(original, new ResourceAllocation(request, consumer));
     }
 
     // Appends the specified ResourceAllocation to the existing values stored in the map
