@@ -158,23 +158,38 @@ public class SdnIpFib {
                     nextHopIpAddress);
             return null;
         }
-
-        // Generate the intent itself
-        Set<ConnectPoint> ingressPorts = new HashSet<>();
         ConnectPoint egressPort = egressInterface.connectPoint();
+
+        Set<Interface> ingressInterfaces = new HashSet<>();
+        Set<ConnectPoint> ingressPorts = new HashSet<>();
         log.debug("Generating intent for prefix {}, next hop mac {}",
                 prefix, nextHopMacAddress);
 
-        for (Interface intf : interfaceService.getInterfaces()) {
-            // TODO this should be only peering interfaces
-            if (!intf.connectPoint().equals(egressInterface.connectPoint())) {
-                ConnectPoint srcPort = intf.connectPoint();
-                ingressPorts.add(srcPort);
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+
+        // Get ingress interfaces and ports
+        // TODO this should be only peering interfaces
+        interfaceService.getInterfaces().stream()
+                .filter(intf -> !intf.equals(egressInterface))
+                .forEach(intf -> {
+                    ingressInterfaces.add(intf);
+                    ConnectPoint ingressPort = intf.connectPoint();
+                    ingressPorts.add(ingressPort);
+                });
+
+        // By default the ingress traffic is not tagged
+        VlanId ingressVlanId = VlanId.NONE;
+
+        // Match VLAN Id ANY if the source VLAN Id is not null
+        // TODO need to be able to set a different VLAN Id per ingress interface
+        for (Interface intf : ingressInterfaces) {
+            if (!intf.vlan().equals(VlanId.NONE)) {
+                selector.matchVlanId(VlanId.ANY);
+                ingressVlanId = intf.vlan();
             }
         }
 
         // Match the destination IP prefix at the first hop
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         if (prefix.isIp4()) {
             selector.matchEthType(Ethernet.TYPE_IPV4);
             // if it is default route, then we do not need match destination
@@ -189,22 +204,29 @@ public class SdnIpFib {
             if (prefix.prefixLength() != 0) {
                 selector.matchIPv6Dst(prefix);
             }
-
         }
 
         // Rewrite the destination MAC address
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
                 .setEthDst(nextHopMacAddress);
-        if (!egressInterface.vlan().equals(VlanId.NONE)) {
-            treatment.setVlanId(egressInterface.vlan());
-            // If we set VLAN ID, we have to make sure a VLAN tag exists.
-            // TODO support no VLAN -> VLAN routing
-            selector.matchVlanId(VlanId.ANY);
+
+        // Set egress VLAN Id
+        // TODO need to make the comparison with different ingress VLAN Ids
+        if (!ingressVlanId.equals(egressInterface.vlan())) {
+            if (egressInterface.vlan().equals(VlanId.NONE)) {
+                treatment.popVlan();
+            } else {
+                treatment.setVlanId(egressInterface.vlan());
+            }
         }
 
+        // Set priority
         int priority =
                 prefix.prefixLength() * PRIORITY_MULTIPLIER + PRIORITY_OFFSET;
+
+        // Set key
         Key key = Key.of(prefix.toString(), appId);
+
         return MultiPointToSinglePointIntent.builder()
                 .appId(appId)
                 .key(key)

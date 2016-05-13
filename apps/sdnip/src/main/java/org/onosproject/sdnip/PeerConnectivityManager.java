@@ -202,15 +202,14 @@ public class PeerConnectivityManager {
     }
 
     /**
-     * Builds the required intents between the two pairs of connect points and
-     * IP addresses.
+     * Builds the required intents between a BGP speaker and an external router.
      *
-     * @param portOne the first connect point
-     * @param vlanOne the ingress VLAN
-     * @param ipOne the first IP address
-     * @param portTwo the second connect point
-     * @param vlanTwo the egress VLAN
-     * @param ipTwo the second IP address
+     * @param portOne the BGP speaker connect point
+     * @param vlanOne the BGP speaker VLAN
+     * @param ipOne the BGP speaker IP address
+     * @param portTwo the external BGP peer connect point
+     * @param vlanTwo the external BGP peer VLAN
+     * @param ipTwo the external BGP peer IP address
      * @return the intents to install
      */
     private Collection<PointToPointIntent> buildIntents(ConnectPoint portOne,
@@ -239,9 +238,13 @@ public class PeerConnectivityManager {
             icmpProtocol = IPv6.PROTOCOL_ICMP6;
         }
 
-        // Add treatment for VLAN for traffic going from BGP speaker to BGP peer
-        if (!vlanTwo.equals(VlanId.NONE)) {
-            treatmentToPeer.setVlanId(vlanTwo);
+        // Add VLAN treatment for traffic going from BGP speaker to BGP peer
+        if (!vlanOne.equals(vlanTwo)) {
+            if (vlanTwo.equals(VlanId.NONE)) {
+                treatmentToPeer.popVlan();
+            } else {
+                treatmentToPeer.setVlanId(vlanTwo);
+            }
         }
 
         // Path from BGP speaker to BGP peer matching destination TCP port 179
@@ -305,9 +308,13 @@ public class PeerConnectivityManager {
                             .priority(PRIORITY_OFFSET)
                             .build());
 
-        // Add treatment for VLAN for traffic going from BGP peer to BGP speaker
-        if (!vlanOne.equals(VlanId.NONE)) {
-            treatmentToSpeaker.setVlanId(vlanOne);
+        // Add VLAN treatment for traffic going from BGP peer to BGP speaker
+        if (!vlanTwo.equals(vlanOne)) {
+            if (vlanOne.equals(VlanId.NONE)) {
+                treatmentToSpeaker.popVlan();
+            } else {
+                treatmentToSpeaker.setVlanId(vlanOne);
+            }
         }
 
         // Path from BGP peer to BGP speaker matching destination TCP port 179
