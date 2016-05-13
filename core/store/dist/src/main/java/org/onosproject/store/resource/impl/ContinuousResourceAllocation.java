@@ -16,8 +16,14 @@
 package org.onosproject.store.resource.impl;
 
 import com.google.common.collect.ImmutableList;
+import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceConsumerId;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // internal use only
 final class ContinuousResourceAllocation {
@@ -36,5 +42,25 @@ final class ContinuousResourceAllocation {
 
     ImmutableList<ResourceAllocation> allocations() {
         return allocations;
+    }
+
+    ContinuousResourceAllocation release(ContinuousResource resource, ResourceConsumerId consumerId) {
+        List<ResourceAllocation> nonMatched = allocations.stream()
+                .filter(x -> !(x.consumerId().equals(consumerId) &&
+                        ((ContinuousResource) x.resource()).value() == resource.value()))
+                .collect(Collectors.toList());
+
+        List<ResourceAllocation> matched = allocations.stream()
+                .filter(x -> (x.consumerId().equals(consumerId) &&
+                        ((ContinuousResource) x.resource()).value() == resource.value()))
+                .collect(Collectors.toList());
+
+        if (matched.size() > 1) {
+            matched.remove(0);
+        }
+
+        return new ContinuousResourceAllocation(original,
+                Stream.concat(nonMatched.stream(), matched.stream())
+                        .collect(GuavaCollectors.toImmutableList()));
     }
 }

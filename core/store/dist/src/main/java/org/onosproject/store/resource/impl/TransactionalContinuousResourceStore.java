@@ -17,7 +17,6 @@ package org.onosproject.store.resource.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.ContinuousResourceId;
 import org.onosproject.net.resource.DiscreteResourceId;
@@ -33,7 +32,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
@@ -168,25 +166,8 @@ class TransactionalContinuousResourceStore {
 
     boolean release(ContinuousResource resource, ResourceConsumerId consumerId) {
         ContinuousResourceAllocation oldAllocation = consumers.get(resource.id());
+        ContinuousResourceAllocation newAllocation = oldAllocation.release(resource, consumerId);
 
-        List<ResourceAllocation> nonMatched = oldAllocation.allocations().stream()
-                .filter(x -> !(x.consumerId().equals(consumerId) &&
-                        ((ContinuousResource) x.resource()).value() == resource.value()))
-                .collect(Collectors.toList());
-
-        List<ResourceAllocation> matched = oldAllocation.allocations().stream()
-                .filter(x -> (x.consumerId().equals(consumerId) &&
-                        ((ContinuousResource) x.resource()).value() == resource.value()))
-                .collect(Collectors.toList());
-
-        if (matched.size() > 1) {
-            matched.remove(0);
-        }
-
-        ImmutableList<ResourceAllocation> finalAllocations = Stream.concat(nonMatched.stream(),
-                matched.stream()).collect(GuavaCollectors.toImmutableList());
-
-        return consumers.replace(resource.id(), oldAllocation,
-                new ContinuousResourceAllocation(oldAllocation.original(), finalAllocations));
+        return consumers.replace(resource.id(), oldAllocation, newAllocation);
     }
 }
