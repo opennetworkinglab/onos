@@ -22,6 +22,8 @@ import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.net.MastershipRole.NONE;
 import static org.onosproject.net.MastershipRole.STANDBY;
+import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.DEVICE_READ;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -74,8 +76,14 @@ import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.DeviceStore;
 import org.onosproject.net.device.DeviceStoreDelegate;
+import org.onosproject.net.device.OchPortDescription;
+import org.onosproject.net.device.OduCltPortDescription;
+import org.onosproject.net.device.OmsPortDescription;
+import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.optical.device.OmsPortHelper;
+import org.onosproject.net.optical.device.OtuPortHelper;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
@@ -420,6 +428,60 @@ public class DeviceManager
             }
         }
 
+        /**
+         * Transforms optical specific PortDescription to generic PortDescription.
+         *
+         * @param descr PortDescription
+         * @return generic PortDescription
+         * @deprecated in Goldeneye (1.6.0)
+         */
+        @Deprecated
+        private PortDescription ensureGeneric(PortDescription descr) {
+            switch (descr.type()) {
+            case OCH:
+                if (descr instanceof OchPortDescription) {
+                    OchPortDescription och = (OchPortDescription) descr;
+                    return ochPortDescription(och,
+                                              och.signalType(),
+                                              och.isTunable(),
+                                              och.lambda(),
+                                              och.annotations());
+                }
+                break;
+            case ODUCLT:
+                if (descr instanceof OduCltPortDescription) {
+                    OduCltPortDescription clt = (OduCltPortDescription) descr;
+                    return oduCltPortDescription(clt,
+                                                 clt.signalType(),
+                                                 clt.annotations());
+                }
+                break;
+            case OMS:
+                if (descr instanceof OmsPortDescription) {
+                    OmsPortDescription oms = (OmsPortDescription) descr;
+                    return OmsPortHelper.omsPortDescription(oms,
+                                                            oms.minFrequency(),
+                                                            oms.maxFrequency(),
+                                                            oms.grid(),
+                                                            oms.annotations());
+                }
+                break;
+            case OTU:
+                if (descr instanceof OtuPortDescription) {
+                    OtuPortDescription otu = (OtuPortDescription) descr;
+                    return OtuPortHelper.otuPortDescription(otu,
+                                                            otu.signalType(),
+                                                            otu.annotations());
+                }
+                break;
+
+            default:
+                // no-op
+                break;
+            }
+            return descr;
+        }
+
         @Override
         public void updatePorts(DeviceId deviceId,
                                 List<PortDescription> portDescriptions) {
@@ -434,6 +496,7 @@ public class DeviceManager
             }
             portDescriptions = portDescriptions.stream()
                     .map(e -> consolidate(deviceId, e))
+                    .map(this::ensureGeneric)
                     .collect(Collectors.toList());
             List<DeviceEvent> events = store.updatePorts(this.provider().id(),
                                                          deviceId, portDescriptions);
@@ -462,12 +525,14 @@ public class DeviceManager
             if ((Device.Type.ROADM.equals(device.type())) ||
                 (Device.Type.OTN.equals(device.type()))) {
                 Port port = getPort(deviceId, portDescription.portNumber());
+                // FIXME This is ignoring all other info in portDescription given as input??
                 portDescription = OpticalPortOperator.descriptionOf(port, portDescription.isEnabled());
             }
 
             portDescription = consolidate(deviceId, portDescription);
             final DeviceEvent event = store.updatePortStatus(this.provider().id(),
-                                                             deviceId, portDescription);
+                                                             deviceId,
+                                                             ensureGeneric(portDescription));
             if (event != null) {
                 log.info("Device {} port {} status changed", deviceId, event.port().number());
                 post(event);

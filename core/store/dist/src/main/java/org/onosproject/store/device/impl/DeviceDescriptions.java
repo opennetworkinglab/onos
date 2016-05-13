@@ -17,11 +17,6 @@ package org.onosproject.store.device.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.DefaultAnnotations.union;
-import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
-import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
-import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
-import static org.onosproject.net.optical.device.OtuPortHelper.otuPortDescription;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,10 +27,6 @@ import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
-import org.onosproject.net.device.OchPortDescription;
-import org.onosproject.net.device.OduCltPortDescription;
-import org.onosproject.net.device.OmsPortDescription;
-import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.impl.Timestamped;
@@ -105,78 +96,9 @@ class DeviceDescriptions {
         if (oldOne != null) {
             SparseAnnotations merged = union(oldOne.value().annotations(),
                                              newDesc.value().annotations());
-            newOne = null;
-            switch (newDesc.value().type()) {
-                case OMS:
-                    if (newDesc.value() instanceof OmsPortDescription) {
-                        // remove if-block after deprecation is complete
-                        OmsPortDescription omsDesc = (OmsPortDescription) (newDesc.value());
-                        newOne = new Timestamped<>(
-                                omsPortDescription(omsDesc,
-                                                   omsDesc.minFrequency(),
-                                                   omsDesc.maxFrequency(),
-                                                   omsDesc.grid(), merged),
-                                newDesc.timestamp());
-                    } else {
-                        // same as default case
-                        newOne = new Timestamped<>(
-                                new DefaultPortDescription(newDesc.value(), merged),
-                                newDesc.timestamp());
-                    }
-                    break;
-                case OCH:
-                    if (newDesc.value() instanceof OchPortDescription) {
-                        // remove if-block after Och related deprecation is complete
-                        OchPortDescription ochDesc = (OchPortDescription) (newDesc.value());
-                        newOne = new Timestamped<>(
-                                ochPortDescription(ochDesc,
-                                                   ochDesc.signalType(),
-                                                   ochDesc.isTunable(),
-                                                   ochDesc.lambda(), merged),
-                                newDesc.timestamp());
-                    } else {
-                        // same as default case
-                        newOne = new Timestamped<>(
-                                new DefaultPortDescription(newDesc.value(), merged),
-                                newDesc.timestamp());
-                    }
-                    break;
-                case ODUCLT:
-                    if (newDesc.value() instanceof OduCltPortDescription) {
-                        // remove if-block after deprecation is complete
-                        OduCltPortDescription ocDesc = (OduCltPortDescription) (newDesc.value());
-                        newOne = new Timestamped<>(
-                                oduCltPortDescription(ocDesc,
-                                                      ocDesc.signalType(),
-                                                      merged),
-                                newDesc.timestamp());
-                    } else {
-                        // same as default case
-                        newOne = new Timestamped<>(
-                                new DefaultPortDescription(newDesc.value(), merged),
-                                newDesc.timestamp());
-                    }
-                    break;
-                case OTU:
-                    if (newDesc.value() instanceof OtuPortDescription) {
-                        // remove if-block after deprecation is complete
-                        OtuPortDescription otuDesc = (OtuPortDescription) (newDesc.value());
-                        newOne = new Timestamped<>(
-                                otuPortDescription(
-                                                   otuDesc, otuDesc.signalType(), merged),
-                                newDesc.timestamp());
-                    } else {
-                        // same as default case
-                        newOne = new Timestamped<>(
-                                new DefaultPortDescription(newDesc.value(), merged),
-                                newDesc.timestamp());
-                    }
-                    break;
-                default:
-                    newOne = new Timestamped<>(
+            newOne = new Timestamped<>(
                             new DefaultPortDescription(newDesc.value(), merged),
                             newDesc.timestamp());
-            }
         }
         portDescs.put(newOne.value().portNumber(), newOne);
     }
