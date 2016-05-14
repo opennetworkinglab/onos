@@ -103,7 +103,7 @@ public class DistributedLabelResourceStore
     private static final Serializer SERIALIZER = Serializer
             .using(new KryoNamespace.Builder().register(KryoNamespaces.API)
                     .register(LabelResourceEvent.class)
-                    .register(LabelResourcePool.class).register(DeviceId.class)
+                    .register(LabelResourcePool.class)
                     .register(LabelResourceRequest.class)
                     .register(LabelResourceRequest.Type.class)
                     .register(LabelResourceEvent.Type.class)
@@ -197,7 +197,7 @@ public class DistributedLabelResourceStore
     }
 
     private boolean create(LabelResourcePool pool) {
-        Device device = (Device) deviceService.getDevice(pool.deviceId());
+        Device device = deviceService.getDevice(pool.deviceId());
         if (device == null) {
             return false;
         }
@@ -238,7 +238,7 @@ public class DistributedLabelResourceStore
 
     @Override
     public boolean destroyDevicePool(DeviceId deviceId) {
-        Device device = (Device) deviceService.getDevice(deviceId);
+        Device device = deviceService.getDevice(deviceId);
         if (device == null) {
             return false;
         }
@@ -280,7 +280,7 @@ public class DistributedLabelResourceStore
     @Override
     public Collection<LabelResource> applyFromDevicePool(DeviceId deviceId,
                                                          long applyNum) {
-        Device device = (Device) deviceService.getDevice(deviceId);
+        Device device = deviceService.getDevice(deviceId);
         if (device == null) {
             return Collections.emptyList();
         }
@@ -317,13 +317,13 @@ public class DistributedLabelResourceStore
             return Collections.emptyList();
         }
         LabelResourcePool pool = poolOld.value();
-        Collection<LabelResource> result = new HashSet<LabelResource>();
+        Collection<LabelResource> result = new HashSet<>();
         long freeNum = this.getFreeNumOfDevicePool(deviceId);
         if (applyNum > freeNum) {
             log.info("the free number of the label resource pool of deviceId {} is not enough.");
             return Collections.emptyList();
         }
-        Set<LabelResource> releaseLabels = new HashSet<LabelResource>(pool.releaseLabelId());
+        Set<LabelResource> releaseLabels = new HashSet<>(pool.releaseLabelId());
         long tmp = releaseLabels.size() > applyNum ? applyNum : releaseLabels
                 .size();
         LabelResource resource = null;
@@ -364,8 +364,8 @@ public class DistributedLabelResourceStore
         Set<DeviceId> deviceIdSet = maps.keySet();
         LabelResourceRequest request = null;
         for (Iterator<DeviceId> it = deviceIdSet.iterator(); it.hasNext();) {
-            DeviceId deviceId = (DeviceId) it.next();
-            Device device = (Device) deviceService.getDevice(deviceId);
+            DeviceId deviceId = it.next();
+            Device device = deviceService.getDevice(deviceId);
             if (device == null) {
                 continue;
             }
@@ -410,7 +410,7 @@ public class DistributedLabelResourceStore
             log.info("the label resource pool of device id {} does not exist");
             return false;
         }
-        Set<LabelResource> storeSet = new HashSet<LabelResource>(pool.releaseLabelId());
+        Set<LabelResource> storeSet = new HashSet<>(pool.releaseLabelId());
         LabelResource labelResource = null;
         long realReleasedNum = 0;
         for (Iterator<LabelResource> it = release.iterator(); it.hasNext();) {
@@ -486,7 +486,7 @@ public class DistributedLabelResourceStore
 
     @Override
     public boolean releaseToGlobalPool(Set<LabelResourceId> release) {
-        Set<LabelResource> set = new HashSet<LabelResource>();
+        Set<LabelResource> set = new HashSet<>();
         DefaultLabelResource resource = null;
         for (LabelResourceId labelResource : release) {
             resource = new DefaultLabelResource(DeviceId.deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID),

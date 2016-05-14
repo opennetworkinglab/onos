@@ -123,7 +123,7 @@ public class DistributedVirtualNetworkStore
     private static final Serializer SERIALIZER = Serializer
             .using(new KryoNamespace.Builder().register(KryoNamespaces.API)
                            .register(TenantId.class)
-                           .register(NetworkId.class).register(DeviceId.class)
+                           .register(NetworkId.class)
                            .register(VirtualNetwork.class)
                            .register(DefaultVirtualNetwork.class)
                            .register(VirtualDevice.class)
@@ -132,7 +132,6 @@ public class DistributedVirtualNetworkStore
                            .register(DefaultVirtualLink.class)
                            .register(VirtualPort.class)
                            .register(DefaultVirtualPort.class)
-                           .register(DeviceId.class)
                            .register(Device.class)
                            .register(DefaultDevice.class)
                            .register(DefaultPort.class)
@@ -284,9 +283,9 @@ public class DistributedVirtualNetworkStore
 
             tenantIdNetworkIdSetMap.compute(virtualNetwork.tenantId(), (id, existingNetworkIds) -> {
                 if (existingNetworkIds == null || existingNetworkIds.isEmpty()) {
-                    return new HashSet<NetworkId>();
+                    return new HashSet<>();
                 } else {
-                    return new HashSet<NetworkId>(Sets.difference(existingNetworkIds, networkIdSet));
+                    return new HashSet<>(Sets.difference(existingNetworkIds, networkIdSet));
                 }
             });
         }
@@ -332,9 +331,9 @@ public class DistributedVirtualNetworkStore
         if (deviceIdSet != null) {
             networkIdDeviceIdSetMap.compute(networkId, (id, existingDeviceIds) -> {
                 if (existingDeviceIds == null || existingDeviceIds.isEmpty()) {
-                    return new HashSet<DeviceId>();
+                    return new HashSet<>();
                 } else {
-                    return new HashSet<DeviceId>(Sets.difference(existingDeviceIds, deviceIdSet));
+                    return new HashSet<>(Sets.difference(existingDeviceIds, deviceIdSet));
                 }
             });
 
@@ -398,9 +397,9 @@ public class DistributedVirtualNetworkStore
         if (virtualLinkSet != null) {
             networkIdVirtualLinkSetMap.compute(networkId, (id, existingVirtualLinks) -> {
                 if (existingVirtualLinks == null || existingVirtualLinks.isEmpty()) {
-                    return new HashSet<VirtualLink>();
+                    return new HashSet<>();
                 } else {
-                    return new HashSet<VirtualLink>(Sets.difference(existingVirtualLinks, virtualLinkSet));
+                    return new HashSet<>(Sets.difference(existingVirtualLinks, virtualLinkSet));
                 }
             });
         }
@@ -436,9 +435,9 @@ public class DistributedVirtualNetworkStore
         if (virtualPortSet != null) {
             networkIdVirtualPortSetMap.compute(networkId, (id, existingVirtualPorts) -> {
                 if (existingVirtualPorts == null || existingVirtualPorts.isEmpty()) {
-                    return new HashSet<VirtualPort>();
+                    return new HashSet<>();
                 } else {
-                    return new HashSet<VirtualPort>(Sets.difference(existingVirtualPorts, virtualPortSet));
+                    return new HashSet<>(Sets.difference(existingVirtualPorts, virtualPortSet));
                 }
             });
         }
