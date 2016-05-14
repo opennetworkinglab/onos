@@ -24,6 +24,7 @@ import org.onosproject.net.Path;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service to setup optical domain connectivity.
@@ -64,7 +65,7 @@ public interface OpticalPathService extends ListenerService<OpticalPathEvent, Op
     /**
      * Returns path assigned to given ID.
      * @param id ID of connectivity
-     * @return list of link that compose a path. null if ID is invalid.
+     * @return list of link that compose a path. empty if ID is invalid.
      */
-    List<Link> getPath(OpticalConnectivityId id);
+    Optional<List<Link>> getPath(OpticalConnectivityId id);
 }

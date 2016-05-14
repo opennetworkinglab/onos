@@ -31,6 +31,9 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.event.ListenerTracker;
+import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.newoptical.api.OpticalConnectivityId;
 import org.onosproject.newoptical.api.OpticalPathEvent;
 import org.onosproject.newoptical.api.OpticalPathListener;
@@ -42,8 +45,6 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.OchPort;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
@@ -138,8 +139,7 @@ public class OpticalPathProvisioner
 
     private AtomicCounter idCounter;
 
-    private LinkListener linkListener = new InternalLinkListener();
-    private IntentListener intentListener = new InternalIntentListener();
+    private ListenerTracker listeners;
 
     private Map<PacketLinkRealizedByOptical, OpticalConnectivity> linkPathMap = new ConcurrentHashMap<>();
 
@@ -161,16 +161,18 @@ public class OpticalPathProvisioner
                 .asAtomicCounter();
 
         eventDispatcher.addSink(OpticalPathEvent.class, listenerRegistry);
-        linkService.addListener(linkListener);
-        intentService.addListener(intentListener);
+
+        listeners = new ListenerTracker();
+        listeners.addListener(linkService, new InternalLinkListener())
+                .addListener(intentService, new InternalIntentListener());
 
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-        intentService.removeListener(intentListener);
-        linkService.removeListener(linkListener);
+        listeners.removeListeners();
+        eventDispatcher.removeSink(OpticalPathEvent.class);
 
         log.info("Stopped");
     }
@@ -200,6 +202,8 @@ public class OpticalPathProvisioner
             }
         }
 
+        log.info("setupConnectivity({}, {}, {}, {}) failed.", ingress, egress, bandwidth, latency);
+
         return null;
     }
 
@@ -212,6 +216,7 @@ public class OpticalPathProvisioner
         List<Pair<ConnectPoint, ConnectPoint>> xcPointPairs = getCrossConnectPoints(path);
         if (!checkXcPoints(xcPointPairs)) {
             // Can't setup path if cross connect points are mismatched
+            log.error("Failed to setup path because of mismatched cross connect points.");
             return null;
         }
 
@@ -261,6 +266,7 @@ public class OpticalPathProvisioner
         OpticalConnectivity connectivity = connectivities.remove(id);
 
         if (connectivity == null) {
+            log.info("OpticalConnectivity with id {} not found.", id);
             return false;
         }
 
@@ -274,13 +280,14 @@ public class OpticalPathProvisioner
     }
 
     @Override
-    public List<Link> getPath(OpticalConnectivityId id) {
+    public Optional<List<Link>> getPath(OpticalConnectivityId id) {
         OpticalConnectivity connectivity = connectivities.get(id);
         if (connectivity == null) {
-            return null;
+            log.info("OpticalConnectivity with id {} not found.", id);
+            return Optional.empty();
         }
 
-        return ImmutableList.copyOf(connectivity.links());
+        return Optional.of(ImmutableList.copyOf(connectivity.links()));
     }
 
     /**
@@ -337,7 +344,7 @@ public class OpticalPathProvisioner
 
             // Only support connections between identical port types
             if (srcType != dstType) {
-                log.warn("Unsupported mix of cross connect points");
+                log.warn("Unsupported mix of cross connect points : {}, {}", srcType, dstType);
                 return false;
             }
         }
@@ -516,12 +523,12 @@ public class OpticalPathProvisioner
         public double weight(TopologyEdge edge) {
             Link l = edge.link();
 
-            // Ignore inactive links
+            // Avoid inactive links
             if (l.state() == Link.State.INACTIVE) {
                 return -1.0;
             }
 
-            // Ignore cross connect links with used ports
+            // Avoid cross connect links with used ports
             if (isCrossConnectLink(l) && usedCrossConnectLinks.contains(l)) {
                 return -1.0;
             }
