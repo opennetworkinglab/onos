@@ -28,8 +28,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.ItemNotFoundException;
-import org.onosproject.cordvtn.api.CordService;
-import org.onosproject.cordvtn.api.CordServiceId;
 import org.onosproject.cordvtn.api.CordVtnConfig;
 import org.onosproject.cordvtn.api.CordVtnNode;
 import org.onosproject.core.ApplicationId;
@@ -68,6 +66,9 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
+import org.onosproject.net.host.HostService;
+import org.onosproject.xosclient.api.VtnService;
+import org.onosproject.xosclient.api.VtnServiceId;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -76,6 +77,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_DST;
@@ -112,11 +114,13 @@ public class CordVtnRuleInstaller {
     private static final String DATA_PLANE_INTF = "dataPlaneIntf";
     private static final String DATA_PLANE_IP = "dataPlaneIp";
     private static final String S_TAG = "stag";
+    private static final String SERVICE_ID = "serviceId";
 
     private final ApplicationId appId;
     private final FlowRuleService flowRuleService;
     private final DeviceService deviceService;
     private final GroupService groupService;
+    private final HostService hostService;
     private final NetworkConfigRegistry configRegistry;
     private final String tunnelType;
 
@@ -134,12 +138,14 @@ public class CordVtnRuleInstaller {
                                 FlowRuleService flowRuleService,
                                 DeviceService deviceService,
                                 GroupService groupService,
+                                HostService hostService,
                                 NetworkConfigRegistry configRegistry,
                                 String tunnelType) {
         this.appId = appId;
         this.flowRuleService = flowRuleService;
         this.deviceService = deviceService;
         this.groupService = groupService;
+        this.hostService = hostService;
         this.configRegistry = configRegistry;
         this.tunnelType = checkNotNull(tunnelType);
     }
@@ -177,7 +183,7 @@ public class CordVtnRuleInstaller {
      * @param service cord service
      * @param install true to install or false to remove
      */
-    public void populateBasicConnectionRules(Host host, CordService service, boolean install) {
+    public void populateBasicConnectionRules(Host host, VtnService service, boolean install) {
         checkNotNull(host);
         checkNotNull(service);
 
@@ -186,8 +192,8 @@ public class CordVtnRuleInstaller {
         MacAddress dstMac = host.mac();
         IpAddress hostIp = host.ipAddresses().stream().findFirst().get();
 
-        long tunnelId = service.segmentationId();
-        Ip4Prefix serviceIpRange = service.serviceIpRange().getIp4Prefix();
+        long tunnelId = service.vni();
+        Ip4Prefix serviceIpRange = service.subnet().getIp4Prefix();
 
         populateLocalInPortRule(deviceId, inPort, hostIp, install);
         populateDstIpRule(deviceId, inPort, dstMac, hostIp, tunnelId, getTunnelIp(host), install);
@@ -196,7 +202,7 @@ public class CordVtnRuleInstaller {
         if (install) {
             populateDirectAccessRule(serviceIpRange, serviceIpRange, true);
             populateServiceIsolationRule(serviceIpRange, true);
-        } else if (service.hosts().isEmpty()) {
+        } else if (getInstances(service.id()).isEmpty()) {
             // removes network related rules only if there's no hosts left in this network
             populateDirectAccessRule(serviceIpRange, serviceIpRange, false);
             populateServiceIsolationRule(serviceIpRange, false);
@@ -211,13 +217,13 @@ public class CordVtnRuleInstaller {
      * @param isBidirectional true to enable bidirectional connection between two services
      * @param install true to install or false to remove
      */
-    public void populateServiceDependencyRules(CordService tService, CordService pService,
+    public void populateServiceDependencyRules(VtnService tService, VtnService pService,
                                                boolean isBidirectional, boolean install) {
         checkNotNull(tService);
         checkNotNull(pService);
 
-        Ip4Prefix srcRange = tService.serviceIpRange().getIp4Prefix();
-        Ip4Prefix dstRange = pService.serviceIpRange().getIp4Prefix();
+        Ip4Prefix srcRange = tService.subnet().getIp4Prefix();
+        Ip4Prefix dstRange = pService.subnet().getIp4Prefix();
         Ip4Address serviceIp = pService.serviceIp().getIp4Address();
 
         Map<DeviceId, GroupId> outGroups = Maps.newHashMap();
@@ -227,7 +233,7 @@ public class CordVtnRuleInstaller {
             GroupId groupId = createServiceGroup(deviceId, pService);
             outGroups.put(deviceId, groupId);
 
-            Set<PortNumber> tServiceVms = tService.hosts().keySet()
+            Set<PortNumber> tServiceVms = getInstances(tService.id())
                     .stream()
                     .filter(host -> host.location().deviceId().equals(deviceId))
                     .map(host -> host.location().port())
@@ -248,7 +254,7 @@ public class CordVtnRuleInstaller {
      *
      * @param service cord service
      */
-    public void updateProviderServiceGroup(CordService service) {
+    public void updateProviderServiceGroup(VtnService service) {
         checkNotNull(service);
 
         GroupKey groupKey = getGroupKey(service.id());
@@ -262,7 +268,7 @@ public class CordVtnRuleInstaller {
 
             List<GroupBucket> oldBuckets = group.buckets().buckets();
             List<GroupBucket> newBuckets = getServiceGroupBuckets(
-                    deviceId, service.segmentationId(), service.hosts()).buckets();
+                    deviceId, service.vni(), getInstances(service.id())).buckets();
 
             if (oldBuckets.equals(newBuckets)) {
                 continue;
@@ -296,7 +302,7 @@ public class CordVtnRuleInstaller {
      * @param host removed vm
      * @param service tenant service
      */
-    public void updateTenantServiceVm(Host host, CordService service) {
+    public void updateTenantServiceVm(Host host, VtnService service) {
         checkNotNull(host);
         checkNotNull(service);
 
@@ -320,7 +326,7 @@ public class CordVtnRuleInstaller {
      * @param host host which has management network interface
      * @param mService management network service
      */
-    public void populateManagementNetworkRules(Host host, CordService mService) {
+    public void populateManagementNetworkRules(Host host, VtnService mService) {
         checkNotNull(mService);
 
         DeviceId deviceId = host.location().deviceId();
@@ -372,7 +378,7 @@ public class CordVtnRuleInstaller {
         selector = DefaultTrafficSelector.builder()
                 .matchInPort(PortNumber.LOCAL)
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(mService.serviceIpRange())
+                .matchIPDst(mService.subnet())
                 .build();
 
         treatment = DefaultTrafficTreatment.builder()
@@ -1237,7 +1243,7 @@ public class CordVtnRuleInstaller {
      * @param service cord service
      * @return group id, or null if it fails to create
      */
-    private GroupId createServiceGroup(DeviceId deviceId, CordService service) {
+    private GroupId createServiceGroup(DeviceId deviceId, VtnService service) {
         checkNotNull(service);
 
         GroupKey groupKey = getGroupKey(service.id());
@@ -1250,7 +1256,7 @@ public class CordVtnRuleInstaller {
         }
 
         GroupBuckets buckets = getServiceGroupBuckets(
-                deviceId, service.segmentationId(), service.hosts());
+                deviceId, service.vni(), getInstances(service.id()));
         GroupDescription groupDescription = new DefaultGroupDescription(
                 deviceId,
                 GroupDescription.Type.SELECT,
@@ -1273,33 +1279,26 @@ public class CordVtnRuleInstaller {
      * @return group buckets
      */
     private GroupBuckets getServiceGroupBuckets(DeviceId deviceId, long tunnelId,
-                                                Map<Host, IpAddress> hosts) {
+                                                Set<Host> hosts) {
         List<GroupBucket> buckets = Lists.newArrayList();
 
-        for (Map.Entry<Host, IpAddress> entry : hosts.entrySet()) {
-            Host host = entry.getKey();
-            Ip4Address remoteIp = entry.getValue().getIp4Address();
+        hosts.stream().forEach(host -> {
+            Ip4Address tunnelIp = getTunnelIp(host).getIp4Address();
             DeviceId hostDevice = host.location().deviceId();
 
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment
                     .builder()
                     .setEthDst(host.mac());
-
             if (deviceId.equals(hostDevice)) {
                 tBuilder.setOutput(host.location().port());
             } else {
-                ExtensionTreatment tunnelDst = getTunnelDst(deviceId, remoteIp);
-                if (tunnelDst == null) {
-                    continue;
-                }
-
+                ExtensionTreatment tunnelDst = getTunnelDst(deviceId, tunnelIp);
                 tBuilder.extension(tunnelDst, deviceId)
                         .setTunnelId(tunnelId)
                         .setOutput(getTunnelPort(hostDevice));
             }
-
             buckets.add(DefaultGroupBucket.createSelectGroupBucket(tBuilder.build()));
-        }
+        });
 
         return new GroupBuckets(buckets);
     }
@@ -1311,7 +1310,7 @@ public class CordVtnRuleInstaller {
      * @param deviceId device id
      * @return group id
      */
-    private GroupId getGroupId(CordServiceId serviceId, DeviceId deviceId) {
+    private GroupId getGroupId(VtnServiceId serviceId, DeviceId deviceId) {
         return new DefaultGroupId(Objects.hash(serviceId, deviceId));
     }
 
@@ -1321,7 +1320,7 @@ public class CordVtnRuleInstaller {
      * @param serviceId service id
      * @return group key
      */
-    private GroupKey getGroupKey(CordServiceId serviceId) {
+    private GroupKey getGroupKey(VtnServiceId serviceId) {
         return new DefaultGroupKey(serviceId.id().getBytes());
     }
 
@@ -1369,6 +1368,20 @@ public class CordVtnRuleInstaller {
 
         return config.cordVtnNodes().stream()
                 .map(CordVtnNode::intBrId).collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns instances with a given network service.
+     *
+     * @param serviceId service id
+     * @return set of hosts
+     */
+    private Set<Host> getInstances(VtnServiceId serviceId) {
+        return StreamSupport.stream(hostService.getHosts().spliterator(), false)
+                .filter(host -> Objects.equals(
+                        serviceId.id(),
+                        host.annotations().value(SERVICE_ID)))
+                .collect(Collectors.toSet());
     }
 }
 

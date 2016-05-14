@@ -15,6 +15,7 @@
  */
 package org.onosproject.cordvtn.impl;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -29,8 +30,6 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.cordvtn.api.CordService;
-import org.onosproject.cordvtn.api.CordServiceId;
 import org.onosproject.cordvtn.api.CordVtnConfig;
 import org.onosproject.cordvtn.api.CordVtnNode;
 import org.onosproject.cordvtn.api.CordVtnService;
@@ -48,7 +47,6 @@ import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRuleService;
@@ -66,16 +64,15 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.xosclient.api.OpenStackAccess;
+import org.onosproject.xosclient.api.VtnPort;
+import org.onosproject.xosclient.api.VtnPortApi;
+import org.onosproject.xosclient.api.VtnPortId;
+import org.onosproject.xosclient.api.VtnService;
 import org.onosproject.xosclient.api.VtnServiceApi;
 import org.onosproject.xosclient.api.VtnServiceId;
 import org.onosproject.xosclient.api.XosAccess;
 import org.onosproject.xosclient.api.XosClientService;
-import org.openstack4j.api.OSClient;
-import org.openstack4j.api.exceptions.AuthenticationException;
-import org.openstack4j.model.identity.Access;
-import org.openstack4j.model.network.Network;
-import org.openstack4j.model.network.Subnet;
-import org.openstack4j.openstack.OSFactory;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -106,9 +103,6 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry configRegistry;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostProviderRegistry hostProviderRegistry;
@@ -145,14 +139,17 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                 }
             };
 
+    private static final String XOS_ACCESS_ERROR = "XOS access is not configured";
+    private static final String OPENSTACK_ACCESS_ERROR = "OpenStack access is not configured";
+
     private static final String DEFAULT_TUNNEL = "vxlan";
     private static final String SERVICE_ID = "serviceId";
-    private static final String OPENSTACK_PORT_ID = "openstackPortId";
+    private static final String PORT_ID = "vtnPortId";
     private static final String DATA_PLANE_IP = "dataPlaneIp";
     private static final String DATA_PLANE_INTF = "dataPlaneIntf";
     private static final String S_TAG = "stag";
     private static final String VSG_HOST_ID = "vsgHostId";
-    private static final String CREATED_TIME = "createdTime";
+    private static final String CREATE_TIME = "createTime";
 
     private static final Ip4Address DEFAULT_DNS = Ip4Address.valueOf("8.8.8.8");
 
@@ -169,7 +166,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     private CordVtnArpProxy arpProxy;
 
     private volatile XosAccess xosAccess = null;
-    private volatile Access osAccess = null;
+    private volatile OpenStackAccess osAccess = null;
     private volatile MacAddress privateGatewayMac = MacAddress.NONE;
 
     /**
@@ -185,6 +182,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         ruleInstaller = new CordVtnRuleInstaller(appId, flowRuleService,
                                                  deviceService,
                                                  groupService,
+                                                 hostService,
                                                  configRegistry,
                                                  DEFAULT_TUNNEL);
 
@@ -196,7 +194,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         hostProvider = hostProviderRegistry.register(this);
 
         configRegistry.registerConfigFactory(configFactory);
-        configService.addListener(configListener);
+        configRegistry.addListener(configListener);
 
         log.info("Started");
     }
@@ -209,7 +207,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         packetService.removeProcessor(packetProcessor);
 
         configRegistry.unregisterConfigFactory(configFactory);
-        configService.removeListener(configListener);
+        configRegistry.removeListener(configListener);
 
         eventExecutor.shutdown();
         log.info("Stopped");
@@ -224,88 +222,85 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     }
 
     @Override
-    public void createServiceDependency(CordServiceId tServiceId, CordServiceId pServiceId,
+    public void createServiceDependency(VtnServiceId tServiceId, VtnServiceId pServiceId,
                                         boolean isBidirectional) {
-        CordService tService = getCordService(tServiceId);
-        CordService pService = getCordService(pServiceId);
+        checkNotNull(osAccess, OPENSTACK_ACCESS_ERROR);
+        checkNotNull(xosAccess, XOS_ACCESS_ERROR);
+
+        // TODO remove openstack access when XOS provides all information
+        VtnServiceApi serviceApi = xosClient.getClient(xosAccess).vtnService();
+        VtnService tService = serviceApi.service(tServiceId, osAccess);
+        VtnService pService = serviceApi.service(pServiceId, osAccess);
 
         if (tService == null || pService == null) {
-            log.error("Failed to create CordService for {}", tServiceId.id());
+            log.error("Failed to create dependency between {} and {}",
+                      tServiceId, pServiceId);
             return;
         }
 
-        log.info("Service dependency from {} to {} created.", tService.id().id(), pService.id().id());
+        log.info("Created dependency between {} and {}", tService.name(), pService.name());
         ruleInstaller.populateServiceDependencyRules(tService, pService, isBidirectional, true);
     }
 
     @Override
-    public void removeServiceDependency(CordServiceId tServiceId, CordServiceId pServiceId) {
-        CordService tService = getCordService(tServiceId);
-        CordService pService = getCordService(pServiceId);
+    public void removeServiceDependency(VtnServiceId tServiceId, VtnServiceId pServiceId) {
+        checkNotNull(osAccess, OPENSTACK_ACCESS_ERROR);
+        checkNotNull(xosAccess, XOS_ACCESS_ERROR);
+
+        // TODO remove openstack access when XOS provides all information
+        VtnServiceApi serviceApi = xosClient.getClient(xosAccess).vtnService();
+        VtnService tService = serviceApi.service(tServiceId, osAccess);
+        VtnService pService = serviceApi.service(pServiceId, osAccess);
 
         if (tService == null || pService == null) {
-            log.error("Failed to create CordService for {}", tServiceId.id());
+            log.error("Failed to remove dependency between {} and {}",
+                      tServiceId, pServiceId);
             return;
         }
 
-        log.info("Service dependency from {} to {} removed.", tService.id().id(), pService.id().id());
+        log.info("Removed dependency between {} and {}", tService.name(), pService.name());
         ruleInstaller.populateServiceDependencyRules(tService, pService, true, false);
     }
 
     @Override
     public void addServiceVm(CordVtnNode node, ConnectPoint connectPoint) {
-        checkNotNull(osAccess, "OpenStack access is not set");
+        checkNotNull(osAccess, OPENSTACK_ACCESS_ERROR);
+        checkNotNull(xosAccess, XOS_ACCESS_ERROR);
 
-        OSClient osClient = OSFactory.clientFromAccess(osAccess);
         Port port = deviceService.getPort(connectPoint.deviceId(), connectPoint.port());
-        org.openstack4j.model.network.Port osPort = osClient.networking().port().list()
-                .stream()
-                .filter(p -> p.getId().contains(getPortName(port).substring(3)))
-                .findFirst().orElse(null);
-        if (osPort == null) {
-            log.warn("Failed to get OpenStack port for {}", getPortName(port));
+        String portName = port.annotations().value("portName");
+
+        // TODO remove openstack access when XOS provides all information
+        VtnPortApi portApi = xosClient.getClient(xosAccess).vtnPort();
+        VtnPort vtnPort = portApi.vtnPort(portName, osAccess);
+        if (vtnPort == null) {
+            log.warn("Failed to get port information of {}", portName);
             return;
         }
 
-        MacAddress mac = MacAddress.valueOf(osPort.getMacAddress());
-        HostId hostId = HostId.hostId(mac);
-
-        Host existingHost = hostService.getHost(hostId);
-        if (existingHost != null) {
-            String serviceId = existingHost.annotations().value(SERVICE_ID);
-            if (serviceId == null || !serviceId.equals(osPort.getNetworkId())) {
-                // this host is not injected by cordvtn or a stale host, remove it
-                hostProvider.hostVanished(existingHost.id());
-            }
-        }
-
-        // Included CREATED_TIME to annotation intentionally to trigger HOST_UPDATED
-        // event so that the flow rule population for this host can happen.
-        // This ensures refreshing data plane by pushing network config always make
-        // the data plane synced.
-        Set<IpAddress> fixedIps = osPort.getFixedIps().stream()
-                .map(ip -> IpAddress.valueOf(ip.getIpAddress()))
-                .collect(Collectors.toSet());
-
+        // Added CREATE_TIME intentionally to trigger HOST_UPDATED event for the
+        // existing instances.
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
-                .set(SERVICE_ID, osPort.getNetworkId())
-                .set(OPENSTACK_PORT_ID, osPort.getId())
+                .set(SERVICE_ID, vtnPort.serviceId().id())
+                .set(PORT_ID, vtnPort.id().id())
                 .set(DATA_PLANE_IP, node.dpIp().ip().toString())
                 .set(DATA_PLANE_INTF, node.dpIntf())
-                .set(CREATED_TIME, String.valueOf(System.currentTimeMillis()));
+                .set(CREATE_TIME, String.valueOf(System.currentTimeMillis()));
 
-        String serviceVlan = getServiceVlan(osPort);
-        if (serviceVlan != null) {
+        // TODO address service specific task in a separate package
+        String serviceVlan = getServiceVlan(vtnPort);
+        if (!Strings.isNullOrEmpty(serviceVlan)) {
             annotations.set(S_TAG, serviceVlan);
         }
 
         HostDescription hostDesc = new DefaultHostDescription(
-                mac,
+                vtnPort.mac(),
                 VlanId.NONE,
                 new HostLocation(connectPoint, System.currentTimeMillis()),
-                fixedIps,
+                Sets.newHashSet(vtnPort.ip()),
                 annotations.build());
 
+        HostId hostId = HostId.hostId(vtnPort.mac());
         hostProvider.hostDetected(hostId, hostDesc, false);
     }
 
@@ -317,6 +312,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     }
 
     @Override
+    // TODO address service specific task in a separate package
     public void updateVirtualSubscriberGateways(HostId vSgHostId, String serviceVlan,
                                                 Map<IpAddress, MacAddress> vSgs) {
         Host vSgHost = hostService.getHost(vSgHostId);
@@ -351,6 +347,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param vSgMac vSG mac address
      * @param serviceVlan service vlan
      */
+    // TODO address service specific task in a separate package
     private void addVirtualSubscriberGateway(Host vSgHost, IpAddress vSgIp, MacAddress vSgMac,
                                              String serviceVlan) {
         log.info("vSG with IP({}) MAC({}) added", vSgIp.toString(), vSgMac.toString());
@@ -359,7 +356,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                 .set(S_TAG, serviceVlan)
                 .set(VSG_HOST_ID, vSgHost.id().toString())
-                .set(CREATED_TIME, String.valueOf(System.currentTimeMillis()));
+                .set(CREATE_TIME, String.valueOf(System.currentTimeMillis()));
 
         HostDescription hostDesc = new DefaultHostDescription(
                 vSgMac,
@@ -377,125 +374,45 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param vSgHost vSG host
      * @return map of ip and mac address, or empty map
      */
+    // TODO address service specific task in a separate package
     private Map<IpAddress, MacAddress> getSubscriberGateways(Host vSgHost) {
-        checkNotNull(osAccess, "OpenStack access is not set");
+        checkNotNull(osAccess, OPENSTACK_ACCESS_ERROR);
+        checkNotNull(xosAccess, XOS_ACCESS_ERROR);
 
-        String osPortId = vSgHost.annotations().value(OPENSTACK_PORT_ID);
-        String serviceVlan = vSgHost.annotations().value(S_TAG);
+        String vtnPortId = vSgHost.annotations().value(PORT_ID);
+        String sTag = vSgHost.annotations().value(S_TAG);
 
-        OSClient osClient = OSFactory.clientFromAccess(osAccess);
-        org.openstack4j.model.network.Port osPort = osClient.networking().port().get(osPortId);
-        if (osPort == null) {
-            log.warn("Failed to get OpenStack port {} for VM {}", osPortId, vSgHost.id());
+        if (Strings.isNullOrEmpty(vtnPortId) || Strings.isNullOrEmpty(sTag)) {
+            log.warn("PORT_ID and S_TAG is not set, ignore {}", vSgHost);
             return Maps.newHashMap();
         }
 
-        if (!serviceVlan.equals(getServiceVlan(osPort))) {
-            log.error("Host({}) s-tag does not match with OpenStack port s-tag", vSgHost.id());
+        // TODO remove openstack access when XOS provides all information
+        VtnPortApi portApi = xosClient.getClient(xosAccess).vtnPort();
+        VtnPort vtnPort = portApi.vtnPort(VtnPortId.of(vtnPortId), osAccess);
+        if (vtnPort == null) {
+            log.warn("Failed to get port information of {}", vSgHost);
             return Maps.newHashMap();
         }
 
-        Map<IpAddress, MacAddress> addressPairs = Maps.newHashMap();
-        osPort.getAllowedAddressPairs()
-                .stream().forEach(p -> addressPairs.put(
-                IpAddress.valueOf(p.getIpAddress()),
-                MacAddress.valueOf(p.getMacAddress())));
-
-        return addressPairs;
-    }
-
-    /**
-     * Returns CordService by service ID.
-     *
-     * @param serviceId service id
-     * @return cord service, or null if it fails to get network from OpenStack
-     */
-    private CordService getCordService(CordServiceId serviceId) {
-        checkNotNull(osAccess, "OpenStack access is not set");
-
-        OSClient osClient = OSFactory.clientFromAccess(osAccess);
-        Network osNet = osClient.networking().network().get(serviceId.id());
-        if (osNet == null) {
-            log.warn("Couldn't find OpenStack network for service {}", serviceId.id());
-            return null;
+        if (!sTag.equals(getServiceVlan(vtnPort))) {
+            log.error("Host({}) s-tag does not match with VTN port s-tag", vSgHost);
+            return Maps.newHashMap();
         }
-
-        return getCordService(osNet);
+        return vtnPort.addressPairs();
     }
 
     /**
-     * Returns CordService by OpenStack network.
+     * Returns s-tag from a given VTN port.
      *
-     * @param osNet OpenStack network
-     * @return cord service
-     */
-    private CordService getCordService(Network osNet) {
-        checkNotNull(osNet);
-
-        CordServiceId serviceId = CordServiceId.of(osNet.getId());
-        // here it assumes all cord service networks has only one subnet
-        Subnet osSubnet = osNet.getNeutronSubnets().stream()
-                .findFirst().orElse(null);
-        if (osSubnet == null) {
-            log.warn("Couldn't find OpenStack subnet for network {}", serviceId.id());
-            return null;
-        }
-
-        Map<Host, IpAddress> hosts = getHostsWithOpenstackNetwork(osNet)
-                .stream()
-                .collect(Collectors.toMap(host -> host, this::getTunnelIp));
-
-        // allows working without XOS for now
-        Set<CordServiceId> tServices = Sets.newHashSet();
-        Set<CordServiceId> pServices = Sets.newHashSet();
-
-        if (xosAccess != null) {
-            VtnServiceApi vtnServiceApi = xosClient.getClient(xosAccess).vtnService();
-            tServices = vtnServiceApi.tenantServices(VtnServiceId.of(serviceId.id()))
-                    .stream()
-                    .map(id -> CordServiceId.of(id.id()))
-                    .collect(Collectors.toSet());
-
-            pServices = vtnServiceApi.providerServices(VtnServiceId.of(serviceId.id()))
-                    .stream()
-                    .map(id -> CordServiceId.of(id.id()))
-                    .collect(Collectors.toSet());
-        }
-
-        return new CordService(osNet, osSubnet, hosts, tServices, pServices);
-    }
-
-    /**
-     * Returns IP address for tunneling for a given host.
-     *
-     * @param host host
-     * @return ip address, or null
-     */
-    private IpAddress getTunnelIp(Host host) {
-        String ip = host.annotations().value(DATA_PLANE_IP);
-        return ip == null ? null : IpAddress.valueOf(ip);
-    }
-
-    /**
-     * Returns port name.
-     *
-     * @param port port
-     * @return port name
-     */
-    private String getPortName(Port port) {
-        return port.annotations().value("portName");
-    }
-
-    /**
-     * Returns s-tag from a given OpenStack port.
-     *
-     * @param osPort openstack port
+     * @param vtnPort vtn port
      * @return s-tag string
      */
-    private String getServiceVlan(org.openstack4j.model.network.Port osPort) {
-        checkNotNull(osPort);
+    // TODO address service specific task in a separate package
+    private String getServiceVlan(VtnPort vtnPort) {
+        checkNotNull(vtnPort);
 
-        String portName = osPort.getName();
+        String portName = vtnPort.name();
         if (portName != null && portName.startsWith(S_TAG)) {
             return portName.split("-")[1];
         } else {
@@ -504,27 +421,16 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     }
 
     /**
-     * Returns service ID of this host.
+     * Returns instances with a given network service.
      *
-     * @param host host
-     * @return service id, or null if not found
-     */
-    private String getServiceId(Host host) {
-        return host.annotations().value(SERVICE_ID);
-    }
-
-    /**
-     * Returns hosts associated with a given OpenStack network.
-     *
-     * @param osNet openstack network
+     * @param serviceId service id
      * @return set of hosts
      */
-    private Set<Host> getHostsWithOpenstackNetwork(Network osNet) {
-        checkNotNull(osNet);
-
-        String osNetId = osNet.getId();
+    private Set<Host> getInstances(VtnServiceId serviceId) {
         return StreamSupport.stream(hostService.getHosts().spliterator(), false)
-                .filter(host -> Objects.equals(osNetId, getServiceId(host)))
+                .filter(host -> Objects.equals(
+                        serviceId.id(),
+                        host.annotations().value(SERVICE_ID)))
                 .collect(Collectors.toSet());
     }
 
@@ -534,9 +440,9 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param host host
      * @param service cord service
      */
-    private void registerDhcpLease(Host host, CordService service) {
+    private void registerDhcpLease(Host host, VtnService service) {
         List<Ip4Address> options = Lists.newArrayList();
-        options.add(Ip4Address.makeMaskPrefix(service.serviceIpRange().prefixLength()));
+        options.add(Ip4Address.makeMaskPrefix(service.subnet().prefixLength()));
         options.add(service.serviceIp().getIp4Address());
         options.add(service.serviceIp().getIp4Address());
         options.add(DEFAULT_DNS);
@@ -554,28 +460,32 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param host host
      */
     private void serviceVmAdded(Host host) {
-        checkNotNull(osAccess, "OpenStack access is not set");
+        checkNotNull(osAccess, OPENSTACK_ACCESS_ERROR);
+        checkNotNull(xosAccess, XOS_ACCESS_ERROR);
 
+        // TODO address service specific task in a separate package
         String serviceVlan = host.annotations().value(S_TAG);
         if (serviceVlan != null) {
             virtualSubscriberGatewayAdded(host, serviceVlan);
         }
 
         String serviceId = host.annotations().value(SERVICE_ID);
-        if (serviceId == null) {
-            // ignore this host, it is not a service VM
+        if (Strings.isNullOrEmpty(serviceId)) {
+            // ignore this host, it is not a service instance
             return;
         }
 
-        log.info("VM is detected, MAC: {} IP: {}", host.mac(), host.ipAddresses());
+        log.info("Instance is detected {}", host);
 
-        CordService service = getCordService(CordServiceId.of(serviceId));
+        // TODO remove openstack access when XOS provides all information
+        VtnServiceApi serviceApi = xosClient.getClient(xosAccess).vtnService();
+        VtnService service = serviceApi.service(VtnServiceId.of(serviceId), osAccess);
         if (service == null) {
-            log.warn("Failed to get CordService for {}", serviceId);
+            log.warn("Failed to get VtnService for {}", serviceId);
             return;
         }
 
-        switch (service.serviceType()) {
+        switch (service.networkType()) {
             case MANAGEMENT:
                 ruleInstaller.populateManagementNetworkRules(host, service);
                 break;
@@ -606,32 +516,36 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param host host
      */
     private void serviceVmRemoved(Host host) {
-        checkNotNull(osAccess, "OpenStack access is not set");
+        checkNotNull(osAccess, OPENSTACK_ACCESS_ERROR);
+        checkNotNull(xosAccess, XOS_ACCESS_ERROR);
 
+        // TODO address service specific task in a separate package
         if (host.annotations().value(S_TAG) != null) {
             virtualSubscriberGatewayRemoved(host);
         }
 
         String serviceId = host.annotations().value(SERVICE_ID);
-        if (serviceId == null) {
-            // ignore it, it's not a service VM
+        if (Strings.isNullOrEmpty(serviceId)) {
+            // ignore this host, it is not a service instance
             return;
         }
 
-        log.info("VM is vanished, MAC: {} IP: {}", host.mac(), host.ipAddresses());
+        log.info("Instance is vanished {}", host);
 
-        CordService service = getCordService(CordServiceId.of(serviceId));
+        // TODO remove openstack access when XOS provides all information
+        VtnServiceApi vtnServiceApi = xosClient.getClient(xosAccess).vtnService();
+        VtnService service = vtnServiceApi.service(VtnServiceId.of(serviceId), osAccess);
         if (service == null) {
-            log.warn("Failed to get CORD service for {}", serviceId);
+            log.warn("Failed to get VtnService for {}", serviceId);
             return;
         }
-        // TODO need to consider the case that the network is removed also
 
-        switch (service.serviceType()) {
+        // TODO need to consider the case that the service is removed also
+        switch (service.networkType()) {
             case MANAGEMENT:
                 break;
             case PRIVATE:
-                if (service.hosts().isEmpty()) {
+                if (getInstances(VtnServiceId.of(serviceId)).isEmpty()) {
                     arpProxy.removeGateway(service.serviceIp());
                 }
             case PUBLIC:
@@ -656,13 +570,14 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param host new host with stag, it can be vsg VM or vsg
      * @param serviceVlan service vlan
      */
+    // TODO address service specific task in a separate package
     private void virtualSubscriberGatewayAdded(Host host, String serviceVlan) {
         Map<IpAddress, MacAddress> vSgs;
         Host vSgHost;
 
         String vSgHostId = host.annotations().value(VSG_HOST_ID);
         if (vSgHostId == null) {
-            log.debug("vSG VM detected {}", host.id());
+            log.info("vSG VM detected {}", host.id());
 
             vSgHost = host;
             vSgs = getSubscriberGateways(vSgHost);
@@ -677,7 +592,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
                 return;
             }
 
-            log.debug("vSG detected {}", host.id());
+            log.info("vSG detected {}", host.id());
             vSgs = getSubscriberGateways(vSgHost);
         }
 
@@ -689,6 +604,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      *
      * @param vSg vsg host to remove
      */
+    // TODO address service specific task in a separate package
     private void virtualSubscriberGatewayRemoved(Host vSg) {
         String vSgHostId = vSg.annotations().value(VSG_HOST_ID);
         if (vSgHostId == null) {
@@ -712,7 +628,8 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
      * @param newMac mac address to update
      */
     private void setPrivateGatewayMac(MacAddress newMac) {
-        checkNotNull(osAccess, "OpenStack access is not set");
+        checkNotNull(osAccess, OPENSTACK_ACCESS_ERROR);
+        checkNotNull(xosAccess, XOS_ACCESS_ERROR);
 
         if (newMac == null || newMac.equals(privateGatewayMac)) {
             // no updates, do nothing
@@ -722,14 +639,12 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         privateGatewayMac = newMac;
         log.debug("Set service gateway MAC address to {}", privateGatewayMac.toString());
 
-        OSClient osClient = OSFactory.clientFromAccess(osAccess);
-        List<Network> vNets = Lists.newArrayList(osClient.networking().network().list().iterator());
-
-        vNets.stream().forEach(vNet -> {
-            CordService service = getCordService(vNet);
+        VtnServiceApi vtnServiceApi = xosClient.getClient(xosAccess).vtnService();
+        vtnServiceApi.services().stream().forEach(serviceId -> {
+            VtnService service = vtnServiceApi.service(serviceId, osAccess);
             if (service != null) {
                 arpProxy.addGateway(service.serviceIp(), privateGatewayMac);
-                arpProxy.sendGratuitousArpForGateway(service.serviceIp(), service.hosts().keySet());
+                arpProxy.sendGratuitousArpForGateway(service.serviceIp(), getInstances(serviceId));
             }
         });
     }
@@ -751,51 +666,6 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     }
 
     /**
-     * Sets OpenStack access information.
-     * Access is the entity returned when authenticated and provides a singleton client
-     * between multiple threads.
-     *
-     * @param osConfig openstack config
-     */
-    private void setOpenstackAccess(CordVtnConfig.OpenStackConfig osConfig) {
-        checkNotNull(osConfig, "OpenStack access is not configured");
-
-        log.debug("Get OpenStack access with Endpoint: {} Tenant: {} User: {} Passwd: {}",
-                  osConfig.endpoint(),
-                  osConfig.tenant(),
-                  osConfig.user(),
-                  osConfig.password());
-        try {
-            osAccess = OSFactory.builder()
-                    .endpoint(osConfig.endpoint())
-                    .credentials(osConfig.user(), osConfig.password())
-                    .tenantName(osConfig.tenant())
-                    .authenticate()
-                    .getAccess();
-        } catch (AuthenticationException e) {
-            log.error("Failed to get OpenStack Access");
-        }
-    }
-
-    /**
-     * Sets XOS access information.
-     *
-     * @param xosAccess xos access
-     */
-    private void setXosAccess(XosAccess xosAccess) {
-        if (xosAccess == null) {
-            log.warn("XOS access is not configured");
-            return;
-        }
-
-        log.debug("Set XOS access with Endpoint: {} User: {} Passwd: {}",
-                  xosAccess.endpoint(),
-                  xosAccess.username(),
-                  xosAccess.password());
-        this.xosAccess = xosAccess;
-    }
-
-    /**
      * Updates configurations.
      */
     private void readConfiguration() {
@@ -805,8 +675,9 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             return;
         }
 
-        setXosAccess(config.xosAccess());
-        setOpenstackAccess(config.openstackConfig());
+        xosAccess = config.xosAccess();
+        osAccess = config.openstackAccess();
+
         setPrivateGatewayMac(config.privateGatewayMac());
         setPublicGatewayMac(config.publicGateways());
     }
@@ -824,10 +695,10 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             switch (event.type()) {
                 case HOST_UPDATED:
                 case HOST_ADDED:
-                    eventExecutor.submit(() -> serviceVmAdded(host));
+                    eventExecutor.execute(() -> serviceVmAdded(host));
                     break;
                 case HOST_REMOVED:
-                    eventExecutor.submit(() -> serviceVmRemoved(host));
+                    eventExecutor.execute(() -> serviceVmRemoved(host));
                     break;
                 default:
                     break;

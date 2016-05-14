@@ -237,6 +237,7 @@ public class CordVtnNodeManager {
         ruleInstaller = new CordVtnRuleInstaller(appId, flowRuleService,
                                                  deviceService,
                                                  groupService,
+                                                 hostService,
                                                  configRegistry,
                                                  DEFAULT_TUNNEL);
 

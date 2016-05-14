@@ -19,6 +19,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
+import org.onosproject.xosclient.api.VtnServiceId;
 
 import java.util.Map;
 
@@ -51,8 +52,7 @@ public interface CordVtnService {
      * @param pServiceId id of the service which provide dependency
      * @param isBidirectional true to enable bidirectional connectivity between two services
      */
-    void createServiceDependency(CordServiceId tServiceId,
-                                 CordServiceId pServiceId,
+    void createServiceDependency(VtnServiceId tServiceId, VtnServiceId pServiceId,
                                  boolean isBidirectional);
 
     /**
@@ -61,7 +61,7 @@ public interface CordVtnService {
      * @param tServiceId id of the service which has a dependency
      * @param pServiceId id of the service which provide dependency
      */
-    void removeServiceDependency(CordServiceId tServiceId, CordServiceId pServiceId);
+    void removeServiceDependency(VtnServiceId tServiceId, VtnServiceId pServiceId);
 
     /**
      * Updates virtual service gateways.

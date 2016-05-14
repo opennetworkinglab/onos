@@ -52,4 +52,14 @@ public interface VtnServiceApi {
      * @return set of service ids
      */
     Set<VtnServiceId> providerServices(VtnServiceId tServiceId);
+
+    /**
+     * Returns VTN service from OpenStack.
+     *
+     * @param serviceId service id
+     * @param osAccess openstack access
+     * @return vtn service
+     */
+    // TODO remove this when XOS provides service information
+    VtnService service(VtnServiceId serviceId, OpenStackAccess osAccess);
 }

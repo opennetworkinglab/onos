@@ -44,4 +44,22 @@ public interface VtnPortApi {
      * @return vtn port; null if it fails to get port information
      */
     VtnPort vtnPort(VtnPortId portId);
+
+    /**
+     * Returns port information from OpenStack with port id.
+     *
+     * @param portId port id
+     * @return vtn port; null if it fails to get port information
+     */
+    // TODO remove this when XOS provides port information
+    VtnPort vtnPort(VtnPortId portId, OpenStackAccess osAccess);
+
+    /**
+     * Returns port information from OpenStack with port name.
+     *
+     * @param portName port name
+     * @return vtn port; null if it fails to get port information
+     */
+    // TODO remove this when XOS provides port information
+    VtnPort vtnPort(String portName, OpenStackAccess osAccess);
 }

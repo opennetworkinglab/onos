@@ -25,6 +25,7 @@ import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
+import org.onosproject.xosclient.api.OpenStackAccess;
 import org.onosproject.xosclient.api.XosAccess;
 import org.slf4j.Logger;
 
@@ -209,9 +210,9 @@ public class CordVtnConfig extends Config<ApplicationId> {
     /**
      * Returns OpenStack API access information.
      *
-     * @return openstack config
+     * @return openstack access
      */
-    public OpenStackConfig openstackConfig() {
+    public OpenStackAccess openstackAccess() {
         JsonNode jsonNode = object.get(OPENSTACK);
         if (jsonNode == null) {
             log.error("Failed to get OpenStack configurations");
@@ -219,7 +220,7 @@ public class CordVtnConfig extends Config<ApplicationId> {
         }
 
         try {
-            return new OpenStackConfig(
+            return new OpenStackAccess(
                     jsonNode.path(ENDPOINT).asText(),
                     jsonNode.path(TENANT).asText(),
                     jsonNode.path(USER).asText(),
@@ -227,68 +228,6 @@ public class CordVtnConfig extends Config<ApplicationId> {
         } catch (IllegalArgumentException | NullPointerException e) {
             log.error("Failed to get OpenStack configurations");
             return null;
-        }
-    }
-
-    /**
-     * Configuration for OpenStack API access.
-     */
-    public static class OpenStackConfig {
-
-        private final String endpoint;
-        private final String tenant;
-        private final String user;
-        private final String password;
-
-        /**
-         * Default constructor.
-         *
-         * @param endpoint Keystone endpoint
-         * @param tenant tenant name
-         * @param user user name
-         * @param password passwowrd
-         */
-        public OpenStackConfig(String endpoint, String tenant, String user, String password) {
-            this.endpoint = endpoint;
-            this.tenant = tenant;
-            this.user = user;
-            this.password = password;
-        }
-
-        /**
-         * Returns OpenStack API endpoint.
-         *
-         * @return endpoint
-         */
-        public String endpoint() {
-            return this.endpoint;
-        }
-
-        /**
-         * Returns OpenStack tenant name.
-         *
-         * @return tenant name
-         */
-        public String tenant() {
-            return this.tenant;
-        }
-
-        /**
-         * Returns OpenStack user.
-         *
-         * @return user name
-         */
-        public String user() {
-            return this.user;
-        }
-
-        /**
-         * Returns OpenStack password for the user.
-         *
-         * @return password
-         */
-        public String password() {
-            return this.password;
         }
     }
 }

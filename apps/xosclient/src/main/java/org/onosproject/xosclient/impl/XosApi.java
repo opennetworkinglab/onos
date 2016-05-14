@@ -81,13 +81,15 @@ public class XosApi {
     public String restGet(String path) {
         WebTarget wt = client.target(access.endpoint() + baseUrl).path(path);
         Invocation.Builder builder = wt.request(JSON_UTF_8.toString());
-
-        Response response = builder.get();
-        if (response.getStatus() != HTTP_OK) {
-            log.warn("Failed to get resource {}", access.endpoint() + baseUrl + path);
+        try {
+            Response response = builder.get();
+            if (response.getStatus() != HTTP_OK) {
+                log.warn("Failed to get resource {}", access.endpoint() + baseUrl + path);
+                return EMPTY_JSON_STRING;
+            }
+        } catch (javax.ws.rs.ProcessingException e) {
             return EMPTY_JSON_STRING;
         }
-
         return builder.get(String.class);
     }
 }

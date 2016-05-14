@@ -16,8 +16,8 @@
 package org.onosproject.cordvtn.rest;
 
 import org.onosproject.cordvtn.api.CordVtnService;
-import org.onosproject.cordvtn.api.CordServiceId;
 import org.onosproject.rest.AbstractWebResource;
+import org.onosproject.xosclient.api.VtnServiceId;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
@@ -48,8 +48,8 @@ public class ServiceDependencyWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createServiceDependency(@PathParam("tenantServiceId") String tServiceId,
                                             @PathParam("providerServiceId") String pServiceId) {
-        service.createServiceDependency(CordServiceId.of(tServiceId),
-                                        CordServiceId.of(pServiceId),
+        service.createServiceDependency(VtnServiceId.of(tServiceId),
+                                        VtnServiceId.of(pServiceId),
                                         false);
         return Response.status(Response.Status.OK).build();
     }
@@ -68,8 +68,8 @@ public class ServiceDependencyWebResource extends AbstractWebResource {
     public Response createServiceDependency(@PathParam("tenantServiceId") String tServiceId,
                                             @PathParam("providerServiceId") String pServiceId,
                                             @PathParam("direction") String direction) {
-        service.createServiceDependency(CordServiceId.of(tServiceId),
-                                        CordServiceId.of(pServiceId),
+        service.createServiceDependency(VtnServiceId.of(tServiceId),
+                                        VtnServiceId.of(pServiceId),
                                         direction.equals(BIDIRECTION));
         return Response.status(Response.Status.OK).build();
     }
@@ -85,7 +85,7 @@ public class ServiceDependencyWebResource extends AbstractWebResource {
     @Path("{tenantServiceId}/{providerServiceId}")
     public Response removeServiceDependency(@PathParam("tenantServiceId") String tServiceId,
                                             @PathParam("providerServiceId") String pServiceId) {
-        service.removeServiceDependency(CordServiceId.of(tServiceId), CordServiceId.of(pServiceId));
+        service.removeServiceDependency(VtnServiceId.of(tServiceId), VtnServiceId.of(pServiceId));
         return Response.noContent().build();
     }
 }
