@@ -52,13 +52,10 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
-import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
-import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
@@ -241,18 +238,6 @@ public class OpticalPathProvisioner
     private OpticalConnectivity createConnectivity(Path path, Bandwidth bandwidth, Duration latency) {
         OpticalConnectivityId id = OpticalConnectivityId.of(idCounter.getAndIncrement());
         OpticalConnectivity connectivity = new OpticalConnectivity(id, path, bandwidth, latency);
-
-        ConnectPoint ingress = path.src();
-        ConnectPoint egress = path.dst();
-
-        Intent pktIntent = PointToPointIntent.builder()
-                .appId(appId)
-                .ingressPoint(ingress)
-                .egressPoint(egress)
-                .key(Key.of(id.id(), appId))
-                .build();
-
-        connectivity.setIntentId(pktIntent.id());
 
         // store connectivity information
         connectivities.put(connectivity.id(), connectivity);
@@ -470,10 +455,7 @@ public class OpticalPathProvisioner
      * @param connectivity Optical connectivity
      */
     private void updateBandwidthUsage(OpticalConnectivity connectivity) {
-        IntentId intentId = connectivity.getIntentId();
-        if (intentId == null) {
-            return;
-        }
+        OpticalConnectivityId connectivityId = connectivity.id();
 
         List<Link> links = connectivity.links();
 
@@ -483,14 +465,14 @@ public class OpticalPathProvisioner
                         Bandwidth.class).resource(connectivity.bandwidth().bps()))
                 .collect(Collectors.toList());
 
-        log.debug("allocating bandwidth for {} : {}", connectivity.getIntentId(), resources);
-        List<ResourceAllocation> allocations = resourceService.allocate(intentId, resources);
+        log.debug("allocating bandwidth for {} : {}", connectivityId, resources);
+        List<ResourceAllocation> allocations = resourceService.allocate(connectivityId, resources);
         if (allocations.isEmpty()) {
             log.warn("Failed to allocate bandwidth {} to {}",
                     connectivity.bandwidth().bps(), resources);
             // TODO any recovery?
         }
-        log.debug("Done allocating bandwidth for {}", connectivity.getIntentId());
+        log.debug("Done allocating bandwidth for {}", connectivityId);
     }
 
     /**
@@ -498,18 +480,15 @@ public class OpticalPathProvisioner
      * @param connectivity Optical connectivity
      */
     private void releaseBandwidthUsage(OpticalConnectivity connectivity) {
-        IntentId intentId = connectivity.getIntentId();
-        if (intentId == null) {
-            return;
-        }
+        OpticalConnectivityId connectivityId = connectivity.id();
 
-        log.debug("releasing bandwidth allocated to {}", connectivity.getIntentId());
-        if (!resourceService.release(connectivity.getIntentId())) {
+        log.debug("releasing bandwidth allocated to {}", connectivityId);
+        if (!resourceService.release(connectivityId)) {
             log.warn("Failed to release bandwidth allocated to {}",
-                    connectivity.getIntentId());
+                    connectivityId);
             // TODO any recovery?
         }
-        log.debug("DONE releasing bandwidth for {}", connectivity.getIntentId());
+        log.debug("DONE releasing bandwidth for {}", connectivityId);
     }
 
     private class BandwidthLinkWeight implements LinkWeight {

@@ -18,6 +18,8 @@ package org.onosproject.newoptical.api;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import org.onlab.util.Identifier;
+import org.onosproject.net.resource.ResourceConsumer;
+import org.onosproject.net.resource.ResourceConsumerId;
 
 // TODO: After ResourceManager is made to accept app-defined ResourceConsumer,
 //       this class should be implemented as ResourceConsumer.
@@ -25,7 +27,7 @@ import org.onlab.util.Identifier;
  * ID for optical connectivity.
  */
 @Beta
-public final class OpticalConnectivityId extends Identifier<Long> {
+public final class OpticalConnectivityId extends Identifier<Long> implements ResourceConsumer {
 
     public static OpticalConnectivityId of(long value) {
         return new OpticalConnectivityId(value);
@@ -33,6 +35,11 @@ public final class OpticalConnectivityId extends Identifier<Long> {
 
     OpticalConnectivityId(long value) {
         super(value);
+    }
+
+    @Override
+    public ResourceConsumerId consumerId() {
+        return ResourceConsumerId.of(this);
     }
 
     @Override

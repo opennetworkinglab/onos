@@ -23,7 +23,6 @@ import org.onosproject.newoptical.api.OpticalConnectivityId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
-import org.onosproject.net.intent.IntentId;
 
 import java.time.Duration;
 import java.util.HashSet;
@@ -47,11 +46,6 @@ public class OpticalConnectivity {
     private Bandwidth opticalCapacity;
 
     private final Set<PacketLinkRealizedByOptical> realizingLinks = new HashSet<>();
-
-    // TODO: This IntentId is used only to reserve bandwidth resource.
-    //       After ResourceManager is made to accept app-defined ResourceConsumer,
-    //       this Intent should be replaced with OpticalConnectivityId.
-    private IntentId intentId;
 
     private State state = State.CREATED;
 
@@ -162,13 +156,5 @@ public class OpticalConnectivity {
 
     public Set<PacketLinkRealizedByOptical> getRealizingLinks() {
         return ImmutableSet.copyOf(realizingLinks);
-    }
-
-    public IntentId getIntentId() {
-        return intentId;
-    }
-
-    public void setIntentId(IntentId intentId) {
-        this.intentId = intentId;
     }
 }
