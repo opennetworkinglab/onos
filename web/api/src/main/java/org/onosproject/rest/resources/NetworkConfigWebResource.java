@@ -151,8 +151,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         Class configClass =
                 nullIsNotFound(service.getConfigClass(subjectClassKey, configKey),
                                configKeyNotFoundErrorString(subjectClassKey, subjectKey, configKey));
-        Config config =
-                (Config) nullIsNotFound(service.getConfig(subject, configClass),
+        Config config = nullIsNotFound((Config) service.getConfig(subject, configClass),
                                configKeyNotFoundErrorString(subjectClassKey,
                                                             subjectKey,
                                                             configKey));
