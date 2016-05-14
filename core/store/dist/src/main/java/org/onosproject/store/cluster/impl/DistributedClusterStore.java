@@ -258,6 +258,11 @@ public class DistributedClusterStore
     private void notifyStateChange(NodeId nodeId, State oldState, State newState) {
         if (oldState != newState) {
             ControllerNode node = allNodes.get(nodeId);
+            // Either this node or that node is no longer part of the same cluster
+            if (node == null) {
+                log.warn("Could not find node {} in the cluster, ignoring state change", node);
+                return;
+            }
             ClusterEvent.Type type = newState == State.READY ? INSTANCE_READY :
                     newState == State.ACTIVE ? INSTANCE_ACTIVATED :
                             INSTANCE_DEACTIVATED;
