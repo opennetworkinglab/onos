@@ -18,6 +18,7 @@ package org.onosproject.pce.pceservice;
 import org.onosproject.net.resource.ResourceConsumer;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.resource.ResourceConsumerId;
 
 /**
  * Tunnel resource consumer identifier suitable to be used as a consumer id for
@@ -87,4 +88,9 @@ public final class TunnelConsumerId implements ResourceConsumer {
         return "0x" + Long.toHexString(value);
     }
 
+    @Override
+    public ResourceConsumerId consumerId() {
+        // TODO
+        return null;
+    }
 }
