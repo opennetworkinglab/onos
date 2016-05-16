@@ -20,7 +20,7 @@ Or with the user switch (or CPqD if installed):
 mn --custom onos.py --controller onos,3 \
    --switch onosuser --topo torus,4,4
 
-Currently you meed to specify a custom switch class
+Currently you meed to use a custom switch class
 because Mininet's Switch() class does't (yet?) handle
 controllers with multiple IP addresses directly.
 
@@ -59,7 +59,9 @@ import time
 
 ### ONOS Environment
 
-KarafPort = 8101  # ssh port indicating karaf is running
+KarafPort = 8101	# ssh port indicating karaf is running
+GUIPort = 8181		# GUI/REST port
+OpenFlowPort = 6653 	# OpenFlow port
 
 def defaultUser():
     "Return a reasonable default user"
@@ -70,7 +72,6 @@ def defaultUser():
     except:
         user = 'nobody'
     return user
-
 
 # Module vars, initialized below
 HOME = ONOS_ROOT = KARAF_ROOT = ONOS_HOME = ONOS_USER = None
@@ -239,13 +240,13 @@ class ONOSNode( Controller ):
             info( '.' )
             time.sleep( 1 )
         info( ' ssh-port' )
-        waitListening( client=self, server=self, port=8101 )
+        waitListening( server=self, port=KarafPort )
         info( ' openflow-port' )
-        waitListening( server=self, port=6653 )
+        waitListening( server=self, port=OpenFlowPort )
         info( ' client' )
         while True:
-            result = quietRun( 'echo apps -a | %s -h %s' % ( self.client, self.IP() ),
-                               shell=True )
+            result = quietRun( 'echo apps -a | %s -h %s' %
+                               ( self.client, self.IP() ), shell=True )
             if 'openflow' in result:
                 break
             info( '.' )
@@ -265,6 +266,7 @@ class ONOSCluster( Controller ):
         """name: (first parameter)
            *args: topology class parameters
            ipBase: IP range for ONOS nodes
+           forward: default port forwarding list,
            topo: topology class or instance
            **kwargs: additional topology parameters"""
         args = list( args )
@@ -277,11 +279,13 @@ class ONOSCluster( Controller ):
                 args = ( 1, )
         if not isinstance( topo, Topo ):
             topo = RenamedTopo( topo, *args, hnew='onos', **kwargs )
-        ipBase = kwargs.pop( 'ipBase', '192.168.123.0/24' )
+        self.ipBase = kwargs.pop( 'ipBase', '192.168.123.0/24' )
+        self.forward = kwargs.pop( 'forward',
+                                   [ KarafPort, GUIPort, OpenFlowPort ] )
         super( ONOSCluster, self ).__init__( name, inNamespace=False )
         fixIPTables()
         self.env = initONOSEnv()
-        self.net = Mininet( topo=topo, ipBase=ipBase,
+        self.net = Mininet( topo=topo, ipBase=self.ipBase,
                             host=ONOSNode, switch=LinuxBridge,
                             controller=None )
         self.net.addNAT().configDefault()
@@ -296,6 +300,7 @@ class ONOSCluster( Controller ):
         for node in self.nodes():
             node.start( self.env )
         info( '\n' )
+        self.configPortForwarding( ports=self.forward, action='A' )
         self.waitStarted()
         return
 
@@ -305,10 +310,12 @@ class ONOSCluster( Controller ):
         for node in self.nodes():
             info( node )
             node.waitStarted()
-        info( '*** Waited %.2f seconds for ONOS startup' % ( time.time() - startTime ) )
+        info( '*** Waited %.2f seconds for ONOS startup' %
+              ( time.time() - startTime ) )
 
     def stop( self ):
         "Shut down ONOS cluster"
+        self.configPortForwarding( ports=self.forward, action='D' )
         for node in self.nodes():
             node.stop()
         self.net.stop()
@@ -316,6 +323,18 @@ class ONOSCluster( Controller ):
     def nodes( self ):
         "Return list of ONOS nodes"
         return [ h for h in self.net.hosts if isinstance( h, ONOSNode ) ]
+
+    def configPortForwarding( self, ports=[], intf='eth0', action='A' ):
+        """Start or stop ports on intf to all nodes
+           action: A=add/start, D=delete/stop (default: A)"""
+        for port in ports:
+            for index, node in enumerate( self.nodes() ):
+                ip, inport = node.IP(), port + index
+                # Configure a destination NAT rule
+                cmd = ( 'iptables -t nat -{action} PREROUTING -t nat '
+                        '-i {intf} -p tcp --dport {inport} '
+                        '-j DNAT --to-destination {ip}:{port}' )
+                self.cmd( cmd.format( **locals() ) )
 
 
 class ONOSSwitchMixin( object ):
@@ -412,6 +431,9 @@ switches = { 'onos': ONOSOVSSwitch,
              'onosovs': ONOSOVSSwitch,
              'onosuser': ONOSUserSwitch,
              'default': ONOSOVSSwitch }
+
+# Null topology so we can control an external/hardware network
+topos = { 'none': Topo }
 
 if __name__ == '__main__':
     if len( argv ) != 2:
