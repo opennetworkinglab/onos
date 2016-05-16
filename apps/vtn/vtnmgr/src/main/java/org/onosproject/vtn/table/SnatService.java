@@ -78,6 +78,7 @@ public interface SnatService {
      * @param matchVni the vni of L3 network
      * @param srcIP source ip
      * @param dstIP destination ip
+     * @param prefix prefix
      * @param type the operation type of the flow rules
      */
     void programSnatSameSegmentUploadControllerRules(DeviceId deviceId,

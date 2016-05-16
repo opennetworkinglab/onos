@@ -30,7 +30,7 @@ public final class IpUtil {
      *
      * @param srcIp source Ip
      * @param dstIp destination
-     * @param masks netmask length
+     * @param mask netmask length
      * @return boolean
      */
     public static boolean checkSameSegment(IpAddress srcIp, IpAddress dstIp,
