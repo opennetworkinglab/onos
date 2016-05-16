@@ -18,7 +18,7 @@
         category="Traffic Steering" url="http://onosproject.org" title="CORD Virtual Tenant Network"
         featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
         features="${project.artifactId}"
-        apps="org.onosproject.ovsdb-base,org.onosproject.dhcp,org.onosproject.xosclient">
+        apps="org.onosproject.ovsdb-base,org.onosproject.dhcp,org.onosproject.xosclient,org.onosproject.cord-config">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/onos-app-cordvtn/${project.version}</artifact>
 </app>

@@ -22,6 +22,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.cordvtn.api.Instance;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Host;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -166,9 +167,9 @@ public class CordVtnArpProxy {
      * Emits gratuitous ARP when a gateway mac address has been changed.
      *
      * @param gatewayIp gateway ip address to update MAC
-     * @param hosts set of hosts to send gratuitous ARP packet
+     * @param instances set of instances to send gratuitous ARP packet
      */
-    public void sendGratuitousArpForGateway(IpAddress gatewayIp, Set<Host> hosts) {
+    public void sendGratuitousArpForGateway(IpAddress gatewayIp, Set<Instance> instances) {
         MacAddress gatewayMac = gateways.get(gatewayIp.getIp4Address());
         if (gatewayMac == null) {
             log.debug("Gateway {} is not registered to ARP proxy", gatewayIp.toString());
@@ -176,13 +177,13 @@ public class CordVtnArpProxy {
         }
 
         Ethernet ethArp = buildGratuitousArp(gatewayIp.getIp4Address(), gatewayMac);
-        hosts.stream().forEach(host -> {
+        instances.stream().forEach(instance -> {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                    .setOutput(host.location().port())
+                    .setOutput(instance.portNumber())
                     .build();
 
             packetService.emit(new DefaultOutboundPacket(
-                    host.location().deviceId(),
+                    instance.deviceId(),
                     treatment,
                     ByteBuffer.wrap(ethArp.serialize())));
         });

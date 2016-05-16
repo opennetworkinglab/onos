@@ -18,9 +18,10 @@ package org.onosproject.cordvtn.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
+import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onosproject.cordvtn.api.CordVtnService;
+import org.onosproject.cordvtn.impl.service.VsgInstanceHandler;
 import org.onosproject.net.HostId;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
@@ -57,7 +58,7 @@ public class NeutronMl2PortsWebResource extends AbstractWebResource {
     private static final String STAG_PREFIX = "stag-";
     private static final int STAG_BEGIN_INDEX = 5;
 
-    private final CordVtnService service = get(CordVtnService.class);
+    private final VsgInstanceHandler service = DefaultServiceDirectory.getService(VsgInstanceHandler.class);
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -74,6 +75,7 @@ public class NeutronMl2PortsWebResource extends AbstractWebResource {
     public Response updatePorts(@PathParam("id") String id, InputStream input) {
         log.debug(String.format(PORTS_MESSAGE, "update"));
 
+        // TODO get vSG updates from XOS to CORD VTN service directly
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode jsonNode = mapper.readTree(input).get(PORT);
@@ -88,17 +90,16 @@ public class NeutronMl2PortsWebResource extends AbstractWebResource {
 
             // this is allowed address pairs updates
             MacAddress mac = MacAddress.valueOf(jsonNode.path(MAC_ADDRESS).asText());
-            Map<IpAddress, MacAddress> vSgs = Maps.newHashMap();
+            Map<IpAddress, MacAddress> vsgInstances = Maps.newHashMap();
             jsonNode.path(ADDRESS_PAIRS).forEach(addrPair -> {
                 IpAddress pairIp = IpAddress.valueOf(addrPair.path(IP_ADDERSS).asText());
                 MacAddress pairMac = MacAddress.valueOf(addrPair.path(MAC_ADDRESS).asText());
-                vSgs.put(pairIp, pairMac);
+                vsgInstances.put(pairIp, pairMac);
             });
 
-            service.updateVirtualSubscriberGateways(
-                    HostId.hostId(mac),
-                    name.substring(STAG_BEGIN_INDEX),
-                    vSgs);
+            service.updateVsgInstances(HostId.hostId(mac),
+                                       name.substring(STAG_BEGIN_INDEX),
+                                       vsgInstances);
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
