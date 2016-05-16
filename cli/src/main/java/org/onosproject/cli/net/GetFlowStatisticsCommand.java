@@ -26,11 +26,12 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.TypedStoredFlowEntry;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.StoredFlowEntry;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.statistic.FlowEntryWithLoad;
 import org.onosproject.net.statistic.FlowStatisticService;
 import org.onosproject.net.statistic.SummaryFlowEntryWithLoad;
-import org.onosproject.net.statistic.TypedFlowEntryWithLoad;
 
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class GetFlowStatisticsCommand extends AbstractShellCommand {
     boolean showAll = false;
 
     @Option(name = "-t", aliases = "--topn",
-            description = "Show flow stats topn",
+            description = "Show flow stats topn entry",
             required = false, multiValued = false)
     String showTopn = null;
 
@@ -115,7 +116,7 @@ public class GetFlowStatisticsCommand extends AbstractShellCommand {
         }
 
         // convert String to FlowLiveType and check validity
-        TypedStoredFlowEntry.FlowLiveType inLiveType;
+        FlowEntry.FlowLiveType inLiveType;
         if (flowLiveType == null) {
             inLiveType = null;
         } else {
@@ -147,20 +148,20 @@ public class GetFlowStatisticsCommand extends AbstractShellCommand {
             }
 
             // print show topn head line with type
-            print("deviceId=%s, show TOPN=%s flows, live type=%s, instruction type=%s",
+            print("deviceId=%s, show TOPN=%s flows, liveType=%s, instruction type=%s",
                     deviceUri,
                     Integer.toString(topn),
                     flowLiveType == null ? "ALL" : flowLiveType,
                     instructionType == null ? "ALL" : instructionType);
             if (ingressPortNumber == null) {
-                Map<ConnectPoint, List<TypedFlowEntryWithLoad>> typedFlowLoadMap =
+                Map<ConnectPoint, List<FlowEntryWithLoad>> typedFlowLoadMap =
                           flowStatsService.loadTopnByType(device, inLiveType, inInstructionType, topn);
                 // print all ports topn flows load for a given device
                 for (ConnectPoint cp : typedFlowLoadMap.keySet()) {
                     printPortFlowsLoad(cp, typedFlowLoadMap.get(cp));
                 }
             } else {
-                List<TypedFlowEntryWithLoad> typedFlowLoad =
+                List<FlowEntryWithLoad> typedFlowLoad =
                         flowStatsService.loadTopnByType(device, ingressPortNumber, inLiveType, inInstructionType, topn);
                 // print device/port topn flows load
                 ConnectPoint cp = new ConnectPoint(ingressDeviceId, ingressPortNumber);
@@ -168,19 +169,19 @@ public class GetFlowStatisticsCommand extends AbstractShellCommand {
             }
         } else if (showAll) { // is true?
             // print show all head line with type
-            print("deviceId=%s, show ALL flows, live type=%s, instruction type=%s",
+            print("deviceId=%s, show ALL flows, liveType=%s, instruction type=%s",
                     deviceUri,
                     flowLiveType == null ? "ALL" : flowLiveType,
                     instructionType == null ? "ALL" : instructionType);
             if (ingressPortNumber == null) {
-                Map<ConnectPoint, List<TypedFlowEntryWithLoad>> typedFlowLoadMap =
+                Map<ConnectPoint, List<FlowEntryWithLoad>> typedFlowLoadMap =
                         flowStatsService.loadAllByType(device, inLiveType, inInstructionType);
                 // print all ports all flows load for a given device
                 for (ConnectPoint cp : typedFlowLoadMap.keySet()) {
                     printPortFlowsLoad(cp, typedFlowLoadMap.get(cp));
                 }
             } else {
-                List<TypedFlowEntryWithLoad> typedFlowLoad =
+                List<FlowEntryWithLoad> typedFlowLoad =
                         flowStatsService.loadAllByType(device, ingressPortNumber, inLiveType, inInstructionType);
                 // print device/port all flows load
                 ConnectPoint cp = new ConnectPoint(ingressDeviceId, ingressPortNumber);
@@ -243,24 +244,24 @@ public class GetFlowStatisticsCommand extends AbstractShellCommand {
     }
 
     /**
-     * converts string of flow live type to FloeLiveType enum.
+     * converts string of flow live type to FlowLiveType enum.
      *
      * @param liveType string representing the flow live type
-     * @return TypedStoredFlowEntry.FlowLiveType
+     * @return FlowEntry.FlowLiveType
      */
-    private TypedStoredFlowEntry.FlowLiveType getFlowLiveType(String liveType) {
+    private FlowEntry.FlowLiveType getFlowLiveType(String liveType) {
         String liveTypeUC = liveType.toUpperCase();
 
         if (liveTypeUC.equals("IMMEDIATE")) {
-            return TypedStoredFlowEntry.FlowLiveType.IMMEDIATE_FLOW;
+            return FlowEntry.FlowLiveType.IMMEDIATE;
         } else if (liveTypeUC.equals("SHORT")) {
-            return TypedStoredFlowEntry.FlowLiveType.SHORT_FLOW;
+            return FlowEntry.FlowLiveType.SHORT;
         } else if (liveTypeUC.equals("MID")) {
-            return TypedStoredFlowEntry.FlowLiveType.MID_FLOW;
+            return FlowEntry.FlowLiveType.MID;
         } else if (liveTypeUC.equals("LONG")) {
-            return TypedStoredFlowEntry.FlowLiveType.LONG_FLOW;
+            return FlowEntry.FlowLiveType.LONG;
         } else if (liveTypeUC.equals("UNKNOWN")) {
-            return TypedStoredFlowEntry.FlowLiveType.UNKNOWN_FLOW;
+            return FlowEntry.FlowLiveType.UNKNOWN;
         } else {
             return null; // flow live type error
         }
@@ -294,16 +295,16 @@ public class GetFlowStatisticsCommand extends AbstractShellCommand {
         }
     }
 
-    private void printPortFlowsLoad(ConnectPoint cp, List<TypedFlowEntryWithLoad> typedFlowLoad) {
+    private void printPortFlowsLoad(ConnectPoint cp, List<FlowEntryWithLoad> typedFlowLoad) {
        print("  deviceId/Port=%s/%s, %s flows", cp.elementId(), cp.port(), typedFlowLoad.size());
-        for (TypedFlowEntryWithLoad tfel: typedFlowLoad) {
-            TypedStoredFlowEntry tfe =  tfel.typedStoredFlowEntry();
+        for (FlowEntryWithLoad fel: typedFlowLoad) {
+            StoredFlowEntry sfe =  fel.storedFlowEntry();
             print("    flowId=%s, state=%s, liveType=%s, life=%s -> %s",
-                    Long.toHexString(tfe.id().value()),
-                    tfe.state(),
-                    tfe.flowLiveType(),
-                    tfe.life(),
-                    tfel.load().isValid() ? tfel.load() : "Load{rate=0, NOT VALID}");
+                  Long.toHexString(sfe.id().value()),
+                  sfe.state(),
+                  sfe.liveType(),
+                  sfe.life(),
+                  fel.load().isValid() ? fel.load() : "Load{rate=0, NOT VALID}");
         }
     }
 

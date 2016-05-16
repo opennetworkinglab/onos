@@ -169,6 +169,11 @@ public class IntentsResourceTest extends ResourceTest {
         }
 
         @Override
+        public FlowLiveType liveType() {
+            return null;
+        }
+
+        @Override
         public long life(TimeUnit timeUnit) {
             return SECONDS.convert(baseValue + 11, timeUnit);
         }

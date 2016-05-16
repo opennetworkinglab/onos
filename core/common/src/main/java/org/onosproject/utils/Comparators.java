@@ -31,7 +31,7 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.key.DeviceKey;
 import org.onosproject.net.region.Region;
-import org.onosproject.net.statistic.TypedFlowEntryWithLoad;
+import org.onosproject.net.statistic.FlowEntryWithLoad;
 import org.onosproject.net.topology.TopologyCluster;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 
@@ -72,6 +72,12 @@ public final class Comparators {
                         : priorityCompare;
             };
 
+    public static final Comparator<FlowEntryWithLoad> FLOWENTRY_WITHLOAD_COMPARATOR =
+            (fe1, fe2) -> {
+                long delta = fe1.load().rate() - fe2.load().rate();
+                return delta == 0 ? 0 : (delta > 0 ? -1 : +1);
+            };
+
     public static final Comparator<Group> GROUP_COMPARATOR =
             (g1, g2) -> Long.valueOf(g1.id().id()).compareTo((long) g2.id().id());
 
@@ -98,12 +104,6 @@ public final class Comparators {
     public static final Comparator<Interface> INTERFACES_COMPARATOR =
             (intf1, intf2) ->
                     CONNECT_POINT_COMPARATOR.compare(intf1.connectPoint(), intf2.connectPoint());
-
-    public static final Comparator<TypedFlowEntryWithLoad> TYPEFLOWENTRY_WITHLOAD_COMPARATOR =
-            (fe1, fe2) -> {
-                long delta = fe1.load().rate() - fe2.load().rate();
-                return delta == 0 ? 0 : (delta > 0 ? -1 : +1);
-            };
 
     public static final Comparator<DeviceKey> DEVICE_KEY_COMPARATOR =
             (dk1, dk2) -> dk1.deviceKeyId().id().compareTo(dk2.deviceKeyId().id());

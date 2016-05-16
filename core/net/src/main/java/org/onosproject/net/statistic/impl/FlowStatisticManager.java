@@ -25,32 +25,31 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-
+import org.onosproject.utils.Comparators;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
-import org.onosproject.net.ElementId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultTypedFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleEvent;
-import org.onosproject.net.flow.FlowRuleListener;
-import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.StoredFlowEntry;
 import org.onosproject.net.flow.TypedStoredFlowEntry;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.statistic.DefaultLoad;
+import org.onosproject.net.statistic.FlowEntryWithLoad;
 import org.onosproject.net.statistic.FlowStatisticService;
 import org.onosproject.net.statistic.Load;
-import org.onosproject.net.statistic.FlowStatisticStore;
+import org.onosproject.net.statistic.PollInterval;
+import org.onosproject.net.statistic.StatisticStore;
 import org.onosproject.net.statistic.SummaryFlowEntryWithLoad;
 import org.onosproject.net.statistic.TypedFlowEntryWithLoad;
 
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,52 +72,18 @@ public class FlowStatisticManager implements FlowStatisticService {
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowRuleService flowRuleService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowStatisticStore flowStatisticStore;
+    protected StatisticStore statisticStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
-    private final InternalFlowRuleStatsListener frListener = new InternalFlowRuleStatsListener();
-
-    // FIXME: refactor these comparators to be shared with the CLI implmentations
-    public static final Comparator<ElementId> ELEMENT_ID_COMPARATOR = new Comparator<ElementId>() {
-        @Override
-        public int compare(ElementId id1, ElementId id2) {
-            return id1.toString().compareTo(id2.toString());
-        }
-    };
-
-    public static final Comparator<ConnectPoint> CONNECT_POINT_COMPARATOR = new Comparator<ConnectPoint>() {
-        @Override
-        public int compare(ConnectPoint o1, ConnectPoint o2) {
-            int compareId = ELEMENT_ID_COMPARATOR.compare(o1.elementId(), o2.elementId());
-            return (compareId != 0) ?
-                    compareId :
-                    Long.signum(o1.port().toLong() - o2.port().toLong());
-        }
-    };
-
-    public static final Comparator<TypedFlowEntryWithLoad> TYPEFLOWENTRY_WITHLOAD_COMPARATOR =
-            new Comparator<TypedFlowEntryWithLoad>() {
-                @Override
-                public int compare(TypedFlowEntryWithLoad fe1, TypedFlowEntryWithLoad fe2) {
-                    long delta = fe1.load().rate() - fe2.load().rate();
-                    return delta == 0 ? 0 : (delta > 0 ? -1 : +1);
-                }
-            };
-
     @Activate
     public void activate() {
-        flowRuleService.addListener(frListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        flowRuleService.removeListener(frListener);
         log.info("Stopped");
     }
 
@@ -126,7 +91,8 @@ public class FlowStatisticManager implements FlowStatisticService {
     public Map<ConnectPoint, SummaryFlowEntryWithLoad> loadSummary(Device device) {
         checkPermission(STATISTIC_READ);
 
-        Map<ConnectPoint, SummaryFlowEntryWithLoad> summaryLoad = new TreeMap<>(CONNECT_POINT_COMPARATOR);
+        Map<ConnectPoint, SummaryFlowEntryWithLoad> summaryLoad =
+                                        new TreeMap<>(Comparators.CONNECT_POINT_COMPARATOR);
 
         if (device == null) {
             return summaryLoad;
@@ -152,12 +118,13 @@ public class FlowStatisticManager implements FlowStatisticService {
     }
 
     @Override
-    public Map<ConnectPoint, List<TypedFlowEntryWithLoad>> loadAllByType(Device device,
-                                                                  TypedStoredFlowEntry.FlowLiveType liveType,
+    public Map<ConnectPoint, List<FlowEntryWithLoad>> loadAllByType(Device device,
+                                                                  FlowEntry.FlowLiveType liveType,
                                                                   Instruction.Type instType) {
         checkPermission(STATISTIC_READ);
 
-        Map<ConnectPoint, List<TypedFlowEntryWithLoad>> allLoad = new TreeMap<>(CONNECT_POINT_COMPARATOR);
+        Map<ConnectPoint, List<FlowEntryWithLoad>> allLoad =
+                                        new TreeMap<>(Comparators.CONNECT_POINT_COMPARATOR);
 
         if (device == null) {
             return allLoad;
@@ -167,16 +134,16 @@ public class FlowStatisticManager implements FlowStatisticService {
 
         for (Port port : ports) {
             ConnectPoint cp = new ConnectPoint(device.id(), port.number());
-            List<TypedFlowEntryWithLoad> tfel = loadAllPortInternal(cp, liveType, instType);
-            allLoad.put(cp, tfel);
+            List<FlowEntryWithLoad> fel = loadAllPortInternal(cp, liveType, instType);
+            allLoad.put(cp, fel);
         }
 
         return allLoad;
     }
 
     @Override
-    public List<TypedFlowEntryWithLoad> loadAllByType(Device device, PortNumber pNumber,
-                                               TypedStoredFlowEntry.FlowLiveType liveType,
+    public List<FlowEntryWithLoad> loadAllByType(Device device, PortNumber pNumber,
+                                               FlowEntry.FlowLiveType liveType,
                                                Instruction.Type instType) {
         checkPermission(STATISTIC_READ);
 
@@ -185,13 +152,14 @@ public class FlowStatisticManager implements FlowStatisticService {
     }
 
     @Override
-    public Map<ConnectPoint, List<TypedFlowEntryWithLoad>> loadTopnByType(Device device,
-                                                                   TypedStoredFlowEntry.FlowLiveType liveType,
+    public Map<ConnectPoint, List<FlowEntryWithLoad>> loadTopnByType(Device device,
+                                                                   FlowEntry.FlowLiveType liveType,
                                                                    Instruction.Type instType,
                                                                    int topn) {
         checkPermission(STATISTIC_READ);
 
-        Map<ConnectPoint, List<TypedFlowEntryWithLoad>> allLoad = new TreeMap<>(CONNECT_POINT_COMPARATOR);
+        Map<ConnectPoint, List<FlowEntryWithLoad>> allLoad =
+                                        new TreeMap<>(Comparators.CONNECT_POINT_COMPARATOR);
 
         if (device == null) {
             return allLoad;
@@ -201,16 +169,16 @@ public class FlowStatisticManager implements FlowStatisticService {
 
         for (Port port : ports) {
             ConnectPoint cp = new ConnectPoint(device.id(), port.number());
-            List<TypedFlowEntryWithLoad> tfel = loadTopnPortInternal(cp, liveType, instType, topn);
-            allLoad.put(cp, tfel);
+            List<FlowEntryWithLoad> fel = loadTopnPortInternal(cp, liveType, instType, topn);
+            allLoad.put(cp, fel);
         }
 
         return allLoad;
     }
 
     @Override
-    public List<TypedFlowEntryWithLoad> loadTopnByType(Device device, PortNumber pNumber,
-                                                TypedStoredFlowEntry.FlowLiveType liveType,
+    public List<FlowEntryWithLoad> loadTopnByType(Device device, PortNumber pNumber,
+                                                FlowEntry.FlowLiveType liveType,
                                                 Instruction.Type instType,
                                                 int topn) {
         checkPermission(STATISTIC_READ);
@@ -226,12 +194,12 @@ public class FlowStatisticManager implements FlowStatisticService {
         Set<FlowEntry> previousStats;
 
         TypedStatistics typedStatistics;
-        synchronized (flowStatisticStore) {
-             currentStats = flowStatisticStore.getCurrentFlowStatistic(cp);
+        synchronized (statisticStore) {
+             currentStats = statisticStore.getCurrentStatistic(cp);
             if (currentStats == null) {
                 return new SummaryFlowEntryWithLoad(cp, new DefaultLoad());
             }
-            previousStats = flowStatisticStore.getPreviousFlowStatistic(cp);
+            previousStats = statisticStore.getPreviousStatistic(cp);
             if (previousStats == null) {
                 return new SummaryFlowEntryWithLoad(cp, new DefaultLoad());
             }
@@ -245,59 +213,62 @@ public class FlowStatisticManager implements FlowStatisticService {
         // current and previous set is not empty!
         Set<FlowEntry> currentSet = typedStatistics.current();
         Set<FlowEntry> previousSet = typedStatistics.previous();
-        Load totalLoad = new DefaultLoad(aggregateBytesSet(currentSet), aggregateBytesSet(previousSet),
-                TypedFlowEntryWithLoad.avgPollInterval());
+        PollInterval pollIntervalInstance = PollInterval.getInstance();
 
-        Map<FlowRule, TypedStoredFlowEntry> currentMap;
-        Map<FlowRule, TypedStoredFlowEntry> previousMap;
+        // We assume that default pollInterval is flowPollFrequency in case adaptiveFlowSampling is true or false
+        Load totalLoad = new DefaultLoad(aggregateBytesSet(currentSet), aggregateBytesSet(previousSet),
+                                         pollIntervalInstance.getPollInterval());
+
+        Map<FlowRule, FlowEntry> currentMap;
+        Map<FlowRule, FlowEntry> previousMap;
 
         currentMap = typedStatistics.currentImmediate();
         previousMap = typedStatistics.previousImmediate();
         Load immediateLoad = new DefaultLoad(aggregateBytesMap(currentMap), aggregateBytesMap(previousMap),
-                TypedFlowEntryWithLoad.shortPollInterval());
+                                             pollIntervalInstance.getPollInterval());
 
         currentMap = typedStatistics.currentShort();
         previousMap = typedStatistics.previousShort();
         Load shortLoad = new DefaultLoad(aggregateBytesMap(currentMap), aggregateBytesMap(previousMap),
-                TypedFlowEntryWithLoad.shortPollInterval());
+                                         pollIntervalInstance.getPollInterval());
 
         currentMap = typedStatistics.currentMid();
         previousMap = typedStatistics.previousMid();
         Load midLoad = new DefaultLoad(aggregateBytesMap(currentMap), aggregateBytesMap(previousMap),
-                TypedFlowEntryWithLoad.midPollInterval());
+                                       pollIntervalInstance.getMidPollInterval());
 
         currentMap = typedStatistics.currentLong();
         previousMap = typedStatistics.previousLong();
         Load longLoad = new DefaultLoad(aggregateBytesMap(currentMap), aggregateBytesMap(previousMap),
-                TypedFlowEntryWithLoad.longPollInterval());
+                                        pollIntervalInstance.getLongPollInterval());
 
         currentMap = typedStatistics.currentUnknown();
         previousMap = typedStatistics.previousUnknown();
         Load unknownLoad = new DefaultLoad(aggregateBytesMap(currentMap), aggregateBytesMap(previousMap),
-                TypedFlowEntryWithLoad.avgPollInterval());
+                                           pollIntervalInstance.getPollInterval());
 
         return new SummaryFlowEntryWithLoad(cp, totalLoad, immediateLoad, shortLoad, midLoad, longLoad, unknownLoad);
     }
 
-    private List<TypedFlowEntryWithLoad> loadAllPortInternal(ConnectPoint cp,
-                                                             TypedStoredFlowEntry.FlowLiveType liveType,
+    private List<FlowEntryWithLoad> loadAllPortInternal(ConnectPoint cp,
+                                                             FlowEntry.FlowLiveType liveType,
                                                              Instruction.Type instType) {
         checkPermission(STATISTIC_READ);
 
-        List<TypedFlowEntryWithLoad> retTfel = new ArrayList<>();
+        List<FlowEntryWithLoad> retFel = new ArrayList<>();
 
         Set<FlowEntry> currentStats;
         Set<FlowEntry> previousStats;
 
         TypedStatistics typedStatistics;
-        synchronized (flowStatisticStore) {
-            currentStats = flowStatisticStore.getCurrentFlowStatistic(cp);
+        synchronized (statisticStore) {
+            currentStats = statisticStore.getCurrentStatistic(cp);
             if (currentStats == null) {
-                return retTfel;
+                return retFel;
             }
-            previousStats = flowStatisticStore.getPreviousFlowStatistic(cp);
+            previousStats = statisticStore.getPreviousStatistic(cp);
             if (previousStats == null) {
-                return retTfel;
+                return retFel;
             }
             // copy to local flow entry set
             typedStatistics = new TypedStatistics(currentStats, previousStats);
@@ -307,211 +278,322 @@ public class FlowStatisticManager implements FlowStatisticService {
         }
 
         // current and previous set is not empty!
-        boolean isAllLiveType = (liveType == null ? true : false); // null is all live type
         boolean isAllInstType = (instType == null ? true : false); // null is all inst type
 
-        Map<FlowRule, TypedStoredFlowEntry> currentMap;
-        Map<FlowRule, TypedStoredFlowEntry> previousMap;
+        Map<FlowRule, FlowEntry> currentMap;
+        Map<FlowRule, FlowEntry> previousMap;
 
-        if (isAllLiveType || liveType == TypedStoredFlowEntry.FlowLiveType.IMMEDIATE_FLOW) {
-            currentMap = typedStatistics.currentImmediate();
-            previousMap = typedStatistics.previousImmediate();
-
-            List<TypedFlowEntryWithLoad> fel = typedFlowEntryLoadByInstInternal(cp, currentMap, previousMap,
-                    isAllInstType, instType, TypedFlowEntryWithLoad.shortPollInterval());
-            if (fel.size() > 0) {
-                retTfel.addAll(fel);
+        if (isAllInstType) {
+            currentMap = typedStatistics.currentAll();
+            previousMap = typedStatistics.previousAll();
+        } else {
+            switch (liveType) {
+                case IMMEDIATE:
+                    currentMap = typedStatistics.currentImmediate();
+                    previousMap = typedStatistics.previousImmediate();
+                    break;
+                case SHORT:
+                    currentMap = typedStatistics.currentShort();
+                    previousMap = typedStatistics.previousShort();
+                    break;
+                case MID:
+                    currentMap = typedStatistics.currentMid();
+                    previousMap = typedStatistics.previousMid();
+                    break;
+                case LONG:
+                    currentMap = typedStatistics.currentLong();
+                    previousMap = typedStatistics.previousLong();
+                    break;
+                case UNKNOWN:
+                    currentMap = typedStatistics.currentUnknown();
+                    previousMap = typedStatistics.previousUnknown();
+                    break;
+                default:
+                    currentMap = new HashMap<>();
+                    previousMap = new HashMap<>();
+                    break;
             }
         }
 
-        if (isAllLiveType || liveType == TypedStoredFlowEntry.FlowLiveType.SHORT_FLOW) {
-            currentMap = typedStatistics.currentShort();
-            previousMap = typedStatistics.previousShort();
-
-            List<TypedFlowEntryWithLoad> fel = typedFlowEntryLoadByInstInternal(cp, currentMap, previousMap,
-                    isAllInstType, instType, TypedFlowEntryWithLoad.shortPollInterval());
-            if (fel.size() > 0) {
-                retTfel.addAll(fel);
-            }
-        }
-
-        if (isAllLiveType || liveType == TypedStoredFlowEntry.FlowLiveType.MID_FLOW) {
-            currentMap = typedStatistics.currentMid();
-            previousMap = typedStatistics.previousMid();
-
-            List<TypedFlowEntryWithLoad> fel = typedFlowEntryLoadByInstInternal(cp, currentMap, previousMap,
-                    isAllInstType, instType, TypedFlowEntryWithLoad.midPollInterval());
-            if (fel.size() > 0) {
-                retTfel.addAll(fel);
-            }
-        }
-
-        if (isAllLiveType || liveType == TypedStoredFlowEntry.FlowLiveType.LONG_FLOW) {
-            currentMap = typedStatistics.currentLong();
-            previousMap = typedStatistics.previousLong();
-
-            List<TypedFlowEntryWithLoad> fel = typedFlowEntryLoadByInstInternal(cp, currentMap, previousMap,
-                    isAllInstType, instType, TypedFlowEntryWithLoad.longPollInterval());
-            if (fel.size() > 0) {
-                retTfel.addAll(fel);
-            }
-        }
-
-        if (isAllLiveType || liveType == TypedStoredFlowEntry.FlowLiveType.UNKNOWN_FLOW) {
-            currentMap = typedStatistics.currentUnknown();
-            previousMap = typedStatistics.previousUnknown();
-
-            List<TypedFlowEntryWithLoad> fel = typedFlowEntryLoadByInstInternal(cp, currentMap, previousMap,
-                    isAllInstType, instType, TypedFlowEntryWithLoad.avgPollInterval());
-            if (fel.size() > 0) {
-                retTfel.addAll(fel);
-            }
-        }
-
-        return retTfel;
+        return typedFlowEntryLoadByInstInternal(cp, currentMap, previousMap, isAllInstType, instType);
     }
 
-    private List<TypedFlowEntryWithLoad> typedFlowEntryLoadByInstInternal(ConnectPoint cp,
-                                                                      Map<FlowRule, TypedStoredFlowEntry> currentMap,
-                                                                      Map<FlowRule, TypedStoredFlowEntry> previousMap,
+    private List<FlowEntryWithLoad> typedFlowEntryLoadByInstInternal(ConnectPoint cp,
+                                                                      Map<FlowRule, FlowEntry> currentMap,
+                                                                      Map<FlowRule, FlowEntry> previousMap,
                                                                       boolean isAllInstType,
-                                                                      Instruction.Type instType,
-                                                                      int liveTypePollInterval) {
-        List<TypedFlowEntryWithLoad> fel = new ArrayList<>();
+                                                                      Instruction.Type instType) {
+        List<FlowEntryWithLoad> fel = new ArrayList<>();
 
-        for (TypedStoredFlowEntry tfe : currentMap.values()) {
+        currentMap.values().forEach(fe -> {
             if (isAllInstType ||
-                    tfe.treatment().allInstructions().stream().
+                    fe.treatment().allInstructions().stream().
                             filter(i -> i.type() == instType).
                             findAny().isPresent()) {
-                long currentBytes = tfe.bytes();
-                long previousBytes = previousMap.getOrDefault(tfe, new DefaultTypedFlowEntry((FlowRule) tfe)).bytes();
+                long currentBytes = fe.bytes();
+                long previousBytes = previousMap.getOrDefault(fe, new DefaultFlowEntry(fe)).bytes();
+                long liveTypePollInterval = getLiveTypePollInterval(fe.liveType());
                 Load fLoad = new DefaultLoad(currentBytes, previousBytes, liveTypePollInterval);
-                fel.add(new TypedFlowEntryWithLoad(cp, tfe, fLoad));
+                fel.add(new FlowEntryWithLoad(cp, fe, fLoad));
             }
-        }
+        });
 
         return fel;
     }
 
-    private List<TypedFlowEntryWithLoad> loadTopnPortInternal(ConnectPoint cp,
-                                                             TypedStoredFlowEntry.FlowLiveType liveType,
+    private List<FlowEntryWithLoad> loadTopnPortInternal(ConnectPoint cp,
+                                                             FlowEntry.FlowLiveType liveType,
                                                              Instruction.Type instType,
                                                              int topn) {
-        List<TypedFlowEntryWithLoad> fel = loadAllPortInternal(cp, liveType, instType);
+        List<FlowEntryWithLoad> fel = loadAllPortInternal(cp, liveType, instType);
 
         // Sort with descending order of load
-        List<TypedFlowEntryWithLoad> tfel =
-                fel.stream().sorted(TYPEFLOWENTRY_WITHLOAD_COMPARATOR).
+        List<FlowEntryWithLoad> retFel =
+                fel.stream().sorted(Comparators.FLOWENTRY_WITHLOAD_COMPARATOR).
                         limit(topn).collect(Collectors.toList());
 
-        return tfel;
+        return retFel;
     }
 
     private long aggregateBytesSet(Set<FlowEntry> setFE) {
         return setFE.stream().mapToLong(FlowEntry::bytes).sum();
     }
 
-    private long aggregateBytesMap(Map<FlowRule, TypedStoredFlowEntry> mapFE) {
+    private long aggregateBytesMap(Map<FlowRule, FlowEntry> mapFE) {
         return mapFE.values().stream().mapToLong(FlowEntry::bytes).sum();
     }
 
+    private long getLiveTypePollInterval(FlowEntry.FlowLiveType liveType) {
+        // returns the flow live type poll interval value
+        PollInterval pollIntervalInstance = PollInterval.getInstance();
+
+        switch (liveType) {
+            case LONG:
+                return pollIntervalInstance.getLongPollInterval();
+            case MID:
+                return pollIntervalInstance.getMidPollInterval();
+            case SHORT:
+            case IMMEDIATE:
+            default: // UNKNOWN
+                return pollIntervalInstance.getPollInterval();
+        }
+    }
+
+    //
+    // Deprecated interfaces...
+    //
+    @Override
+    public Map<ConnectPoint, List<TypedFlowEntryWithLoad>> loadAllByType(Device device,
+                                                                  TypedStoredFlowEntry.FlowLiveType liveType,
+                                                                  Instruction.Type instType) {
+        FlowEntry.FlowLiveType type = toFlowEntryLiveType(liveType);
+
+        Map<ConnectPoint, List<FlowEntryWithLoad>> loadMap = loadAllByType(device, type, instType);
+
+        return toFlowEntryWithLoadMap(loadMap);
+    }
+
+    @Override
+    public List<TypedFlowEntryWithLoad> loadAllByType(Device device, PortNumber pNumber,
+                                               TypedStoredFlowEntry.FlowLiveType liveType,
+                                               Instruction.Type instType) {
+        FlowEntry.FlowLiveType type = toFlowEntryLiveType(liveType);
+
+        List<FlowEntryWithLoad> loadList = loadAllByType(device, pNumber, type, instType);
+
+        return toFlowEntryWithLoad(loadList);
+    }
+
+    @Override
+    public Map<ConnectPoint, List<TypedFlowEntryWithLoad>> loadTopnByType(Device device,
+                                                                   TypedStoredFlowEntry.FlowLiveType liveType,
+                                                                   Instruction.Type instType,
+                                                                   int topn) {
+        FlowEntry.FlowLiveType type = toFlowEntryLiveType(liveType);
+
+        Map<ConnectPoint, List<FlowEntryWithLoad>> loadMap = loadTopnByType(device, type, instType, topn);
+
+        return toFlowEntryWithLoadMap(loadMap);
+    }
+
+    @Override
+    public List<TypedFlowEntryWithLoad> loadTopnByType(Device device, PortNumber pNumber,
+                                                TypedStoredFlowEntry.FlowLiveType liveType,
+                                                Instruction.Type instType,
+                                                int topn) {
+        FlowEntry.FlowLiveType type = toFlowEntryLiveType(liveType);
+
+        List<FlowEntryWithLoad> loadList = loadTopnByType(device, pNumber, type, instType, topn);
+
+        return toFlowEntryWithLoad(loadList);
+    }
+
+    private FlowEntry.FlowLiveType toFlowEntryLiveType(TypedStoredFlowEntry.FlowLiveType liveType) {
+        if (liveType == null) {
+            return null;
+        }
+
+        // convert TypedStoredFlowEntry flow live type to FlowEntry one
+        switch (liveType) {
+            case IMMEDIATE_FLOW:
+                return FlowEntry.FlowLiveType.IMMEDIATE;
+            case SHORT_FLOW:
+                return FlowEntry.FlowLiveType.SHORT;
+            case MID_FLOW:
+                return FlowEntry.FlowLiveType.MID;
+            case LONG_FLOW:
+                return FlowEntry.FlowLiveType.LONG;
+            default:
+                return FlowEntry.FlowLiveType.UNKNOWN;
+        }
+    }
+
+    private TypedStoredFlowEntry.FlowLiveType toTypedStoredFlowEntryLiveType(FlowEntry.FlowLiveType liveType) {
+        if (liveType == null) {
+            return null;
+        }
+
+        // convert TypedStoredFlowEntry flow live type to FlowEntry one
+        switch (liveType) {
+            case IMMEDIATE:
+                return TypedStoredFlowEntry.FlowLiveType.IMMEDIATE_FLOW;
+            case SHORT:
+                return TypedStoredFlowEntry.FlowLiveType.SHORT_FLOW;
+            case MID:
+                return TypedStoredFlowEntry.FlowLiveType.MID_FLOW;
+            case LONG:
+                return TypedStoredFlowEntry.FlowLiveType.LONG_FLOW;
+            default:
+                return TypedStoredFlowEntry.FlowLiveType.UNKNOWN_FLOW;
+        }
+    }
+
+    private Map<ConnectPoint, List<TypedFlowEntryWithLoad>> toFlowEntryWithLoadMap(
+            Map<ConnectPoint, List<FlowEntryWithLoad>> loadMap) {
+        // convert FlowEntryWithLoad list to TypedFlowEntryWithLoad list
+        Map<ConnectPoint, List<TypedFlowEntryWithLoad>> allLoad =
+                                        new TreeMap<>(Comparators.CONNECT_POINT_COMPARATOR);
+
+        loadMap.forEach((k, v) -> {
+            List<TypedFlowEntryWithLoad> tfelList =
+                    toFlowEntryWithLoad(v);
+            allLoad.put(k, tfelList);
+        });
+
+        return allLoad;
+    }
+
+    private List<TypedFlowEntryWithLoad> toFlowEntryWithLoad(List<FlowEntryWithLoad> loadList) {
+        // convert FlowEntryWithLoad list to TypedFlowEntryWithLoad list
+        List<TypedFlowEntryWithLoad> tfelList = new ArrayList<>();
+        loadList.forEach(fel -> {
+            StoredFlowEntry sfe = fel.storedFlowEntry();
+            TypedStoredFlowEntry.FlowLiveType liveType = toTypedStoredFlowEntryLiveType(sfe.liveType());
+            TypedStoredFlowEntry tfe = new DefaultTypedFlowEntry(sfe, liveType);
+            TypedFlowEntryWithLoad tfel = new TypedFlowEntryWithLoad(fel.connectPoint(), tfe, fel.load());
+            tfelList.add(tfel);
+        });
+
+        return tfelList;
+    }
+
     /**
-     * Internal data class holding two set of typed flow entries.
+     * Internal data class holding two set of flow entries included flow liveType.
      */
     private static class TypedStatistics {
-        private final ImmutableSet<FlowEntry> currentAll;
-        private final ImmutableSet<FlowEntry> previousAll;
+        private final ImmutableSet<FlowEntry> current;
+        private final ImmutableSet<FlowEntry> previous;
 
-        private final Map<FlowRule, TypedStoredFlowEntry> currentImmediate = new HashMap<>();
-        private final Map<FlowRule, TypedStoredFlowEntry> previousImmediate = new HashMap<>();
+        private final Map<FlowRule, FlowEntry> currentAll = new HashMap<>();
+        private final Map<FlowRule, FlowEntry> previousAll = new HashMap<>();
 
-        private final Map<FlowRule, TypedStoredFlowEntry> currentShort = new HashMap<>();
-        private final Map<FlowRule, TypedStoredFlowEntry> previousShort = new HashMap<>();
+        private final Map<FlowRule, FlowEntry> currentImmediate = new HashMap<>();
+        private final Map<FlowRule, FlowEntry> previousImmediate = new HashMap<>();
 
-        private final Map<FlowRule, TypedStoredFlowEntry> currentMid = new HashMap<>();
-        private final Map<FlowRule, TypedStoredFlowEntry> previousMid = new HashMap<>();
+        private final Map<FlowRule, FlowEntry> currentShort = new HashMap<>();
+        private final Map<FlowRule, FlowEntry> previousShort = new HashMap<>();
 
-        private final Map<FlowRule, TypedStoredFlowEntry> currentLong = new HashMap<>();
-        private final Map<FlowRule, TypedStoredFlowEntry> previousLong = new HashMap<>();
+        private final Map<FlowRule, FlowEntry> currentMid = new HashMap<>();
+        private final Map<FlowRule, FlowEntry> previousMid = new HashMap<>();
 
-        private final Map<FlowRule, TypedStoredFlowEntry> currentUnknown = new HashMap<>();
-        private final Map<FlowRule, TypedStoredFlowEntry> previousUnknown = new HashMap<>();
+        private final Map<FlowRule, FlowEntry> currentLong = new HashMap<>();
+        private final Map<FlowRule, FlowEntry> previousLong = new HashMap<>();
+
+        private final Map<FlowRule, FlowEntry> currentUnknown = new HashMap<>();
+        private final Map<FlowRule, FlowEntry> previousUnknown = new HashMap<>();
 
         public TypedStatistics(Set<FlowEntry> current, Set<FlowEntry> previous) {
-            this.currentAll = ImmutableSet.copyOf(checkNotNull(current));
-            this.previousAll = ImmutableSet.copyOf(checkNotNull(previous));
+            this.current = ImmutableSet.copyOf(checkNotNull(current));
+            this.previous = ImmutableSet.copyOf(checkNotNull(previous));
 
-            currentAll.forEach(fe -> {
-                TypedStoredFlowEntry tfe = TypedFlowEntryWithLoad.newTypedStoredFlowEntry(fe);
-
-                switch (tfe.flowLiveType()) {
-                    case IMMEDIATE_FLOW:
-                        currentImmediate.put(fe, tfe);
+            current.forEach(fe -> {
+                switch (fe.liveType()) {
+                    case IMMEDIATE:
+                        currentImmediate.put(fe, fe);
                         break;
-                    case SHORT_FLOW:
-                        currentShort.put(fe, tfe);
+                    case SHORT:
+                        currentShort.put(fe, fe);
                         break;
-                    case MID_FLOW:
-                        currentMid.put(fe, tfe);
+                    case MID:
+                        currentMid.put(fe, fe);
                         break;
-                    case LONG_FLOW:
-                        currentLong.put(fe, tfe);
+                    case LONG:
+                        currentLong.put(fe, fe);
                         break;
-                    default:
-                        currentUnknown.put(fe, tfe);
+                    default: // unknown
+                        currentUnknown.put(fe, fe);
                         break;
                 }
+                currentAll.put(fe, fe);
             });
 
-            previousAll.forEach(fe -> {
-                TypedStoredFlowEntry tfe = TypedFlowEntryWithLoad.newTypedStoredFlowEntry(fe);
-
-                switch (tfe.flowLiveType()) {
-                    case IMMEDIATE_FLOW:
+            previous.forEach(fe -> {
+                switch (fe.liveType()) {
+                    case IMMEDIATE:
                         if (currentImmediate.containsKey(fe)) {
-                            previousImmediate.put(fe, tfe);
+                            previousImmediate.put(fe, fe);
                         } else if (currentShort.containsKey(fe)) {
-                            previousShort.put(fe, tfe);
+                            previousShort.put(fe, fe);
                         } else if (currentMid.containsKey(fe)) {
-                            previousMid.put(fe, tfe);
+                            previousMid.put(fe, fe);
                         } else if (currentLong.containsKey(fe)) {
-                            previousLong.put(fe, tfe);
+                            previousLong.put(fe, fe);
                         } else {
-                            previousUnknown.put(fe, tfe);
+                            previousUnknown.put(fe, fe);
                         }
                         break;
-                    case SHORT_FLOW:
+                    case SHORT:
                         if (currentShort.containsKey(fe)) {
-                            previousShort.put(fe, tfe);
+                            previousShort.put(fe, fe);
                         } else if (currentMid.containsKey(fe)) {
-                            previousMid.put(fe, tfe);
+                            previousMid.put(fe, fe);
                         } else if (currentLong.containsKey(fe)) {
-                            previousLong.put(fe, tfe);
+                            previousLong.put(fe, fe);
                         } else {
-                            previousUnknown.put(fe, tfe);
+                            previousUnknown.put(fe, fe);
                         }
                         break;
-                    case MID_FLOW:
+                    case MID:
                         if (currentMid.containsKey(fe)) {
-                            previousMid.put(fe, tfe);
+                            previousMid.put(fe, fe);
                         } else if (currentLong.containsKey(fe)) {
-                            previousLong.put(fe, tfe);
+                            previousLong.put(fe, fe);
                         } else {
-                            previousUnknown.put(fe, tfe);
+                            previousUnknown.put(fe, fe);
                         }
                         break;
-                    case LONG_FLOW:
+                    case LONG:
                         if (currentLong.containsKey(fe)) {
-                            previousLong.put(fe, tfe);
+                            previousLong.put(fe, fe);
                         } else {
-                            previousUnknown.put(fe, tfe);
+                            previousUnknown.put(fe, fe);
                         }
                         break;
-                    default:
-                        previousUnknown.put(fe, tfe);
+                    default: // unknown
+                        previousUnknown.put(fe, fe);
                         break;
                 }
+                previousAll.put(fe, fe);
             });
         }
 
@@ -521,7 +603,7 @@ public class FlowStatisticManager implements FlowStatisticService {
          * @return flow entries as the current value
          */
         public ImmutableSet<FlowEntry> current() {
-            return currentAll;
+            return current;
         }
 
         /**
@@ -530,37 +612,45 @@ public class FlowStatisticManager implements FlowStatisticService {
          * @return flow entries as the previous value
          */
         public ImmutableSet<FlowEntry> previous() {
+            return previous;
+        }
+
+        public Map<FlowRule, FlowEntry> currentAll() {
+            return currentAll;
+        }
+
+        public Map<FlowRule, FlowEntry> previousAll() {
             return previousAll;
         }
 
-        public Map<FlowRule, TypedStoredFlowEntry> currentImmediate() {
+        public Map<FlowRule, FlowEntry> currentImmediate() {
             return currentImmediate;
         }
-        public Map<FlowRule, TypedStoredFlowEntry> previousImmediate() {
+        public Map<FlowRule, FlowEntry> previousImmediate() {
             return previousImmediate;
         }
-        public Map<FlowRule, TypedStoredFlowEntry> currentShort() {
+        public Map<FlowRule, FlowEntry> currentShort() {
             return currentShort;
         }
-        public Map<FlowRule, TypedStoredFlowEntry> previousShort() {
+        public Map<FlowRule, FlowEntry> previousShort() {
             return previousShort;
         }
-        public Map<FlowRule, TypedStoredFlowEntry> currentMid() {
+        public Map<FlowRule, FlowEntry> currentMid() {
             return currentMid;
         }
-        public Map<FlowRule, TypedStoredFlowEntry> previousMid() {
+        public Map<FlowRule, FlowEntry> previousMid() {
             return previousMid;
         }
-        public Map<FlowRule, TypedStoredFlowEntry> currentLong() {
+        public Map<FlowRule, FlowEntry> currentLong() {
             return currentLong;
         }
-        public Map<FlowRule, TypedStoredFlowEntry> previousLong() {
+        public Map<FlowRule, FlowEntry> previousLong() {
             return previousLong;
         }
-        public Map<FlowRule, TypedStoredFlowEntry> currentUnknown() {
+        public Map<FlowRule, FlowEntry> currentUnknown() {
             return currentUnknown;
         }
-        public Map<FlowRule, TypedStoredFlowEntry> previousUnknown() {
+        public Map<FlowRule, FlowEntry> previousUnknown() {
             return previousUnknown;
         }
 
@@ -632,32 +722,13 @@ public class FlowStatisticManager implements FlowStatisticService {
     }
 
     /**
-     * Internal flow rule event listener for FlowStatisticManager.
+     * Creates a predicate that checks the flow type of a flow entry is the same as
+     * the specified live type.
+     *
+     * @param liveType flow live type to be checked
+     * @return predicate
      */
-    private class InternalFlowRuleStatsListener implements FlowRuleListener {
-
-        @Override
-        public void event(FlowRuleEvent event) {
-            FlowRule rule = event.subject();
-            switch (event.type()) {
-                case RULE_ADDED:
-                    if (rule instanceof FlowEntry) {
-                        flowStatisticStore.addFlowStatistic((FlowEntry) rule);
-                    }
-                    break;
-                case RULE_UPDATED:
-                    flowStatisticStore.updateFlowStatistic((FlowEntry) rule);
-                    break;
-                case RULE_ADD_REQUESTED:
-                    break;
-                case RULE_REMOVE_REQUESTED:
-                    break;
-                case RULE_REMOVED:
-                    flowStatisticStore.removeFlowStatistic(rule);
-                    break;
-                default:
-                    log.warn("Unknown flow rule event {}", event);
-            }
-        }
+    private static Predicate<FlowEntry> hasLiveType(FlowEntry.FlowLiveType liveType) {
+        return flowEntry -> flowEntry.liveType() == liveType;
     }
 }

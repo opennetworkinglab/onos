@@ -26,7 +26,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
  */
 public class DefaultTypedFlowEntry extends DefaultFlowEntry
     implements TypedStoredFlowEntry {
-    private FlowLiveType liveType;
+    private TypedStoredFlowEntry.FlowLiveType liveType;
 
 
     /**
@@ -42,7 +42,7 @@ public class DefaultTypedFlowEntry extends DefaultFlowEntry
     public DefaultTypedFlowEntry(FlowRule rule, FlowEntryState state,
                                  long life, TimeUnit lifeTimeUnit, long packets, long bytes) {
         super(rule, state, life, lifeTimeUnit, packets, bytes);
-        this.liveType = FlowLiveType.IMMEDIATE_FLOW;
+        this.liveType = TypedStoredFlowEntry.FlowLiveType.IMMEDIATE_FLOW;
     }
 
     /**
@@ -58,7 +58,7 @@ public class DefaultTypedFlowEntry extends DefaultFlowEntry
     public DefaultTypedFlowEntry(FlowRule rule, FlowEntryState state,
                             long life, long packets, long bytes) {
         super(rule, state, life, packets, bytes);
-        this.liveType = FlowLiveType.IMMEDIATE_FLOW;
+        this.liveType = TypedStoredFlowEntry.FlowLiveType.IMMEDIATE_FLOW;
     }
 
     /**
@@ -69,7 +69,7 @@ public class DefaultTypedFlowEntry extends DefaultFlowEntry
      */
     public DefaultTypedFlowEntry(FlowRule rule) {
         super(rule);
-        this.liveType = FlowLiveType.IMMEDIATE_FLOW;
+        this.liveType = TypedStoredFlowEntry.FlowLiveType.IMMEDIATE_FLOW;
     }
 
     /**
@@ -80,7 +80,7 @@ public class DefaultTypedFlowEntry extends DefaultFlowEntry
      */
     public DefaultTypedFlowEntry(FlowEntry fe) {
         super(fe, fe.state(), fe.life(NANOSECONDS), NANOSECONDS, fe.packets(), fe.bytes());
-        this.liveType = FlowLiveType.IMMEDIATE_FLOW;
+        this.liveType = TypedStoredFlowEntry.FlowLiveType.IMMEDIATE_FLOW;
     }
 
     /**
@@ -90,7 +90,7 @@ public class DefaultTypedFlowEntry extends DefaultFlowEntry
      * @param liveType the flow live type
      *
      */
-    public DefaultTypedFlowEntry(FlowRule rule, FlowLiveType liveType) {
+    public DefaultTypedFlowEntry(FlowRule rule, TypedStoredFlowEntry.FlowLiveType liveType) {
         super(rule);
         this.liveType = liveType;
     }
@@ -102,7 +102,7 @@ public class DefaultTypedFlowEntry extends DefaultFlowEntry
      * @param liveType the flow live type
      *
      */
-    public DefaultTypedFlowEntry(FlowEntry fe,  FlowLiveType liveType) {
+    public DefaultTypedFlowEntry(FlowEntry fe,  TypedStoredFlowEntry.FlowLiveType liveType) {
         super(fe, fe.state(), fe.life(NANOSECONDS), NANOSECONDS, fe.packets(), fe.bytes());
         this.liveType = liveType;
     }
@@ -116,18 +116,19 @@ public class DefaultTypedFlowEntry extends DefaultFlowEntry
      * @param liveType the flow live type
      *
      */
-    public DefaultTypedFlowEntry(FlowRule rule, int errType, int errCode, FlowLiveType liveType) {
+    public DefaultTypedFlowEntry(FlowRule rule, int errType, int errCode,
+                                    TypedStoredFlowEntry.FlowLiveType liveType) {
         super(rule, errType, errCode);
         this.liveType = liveType;
     }
 
     @Override
-    public FlowLiveType flowLiveType() {
+    public TypedStoredFlowEntry.FlowLiveType flowLiveType() {
         return this.liveType;
     }
 
     @Override
-    public void setFlowLiveType(FlowLiveType liveType) {
+    public void setFlowLiveType(TypedStoredFlowEntry.FlowLiveType liveType) {
         this.liveType = liveType;
     }
 

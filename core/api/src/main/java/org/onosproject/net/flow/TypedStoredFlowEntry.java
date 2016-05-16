@@ -57,11 +57,11 @@ public interface TypedStoredFlowEntry extends StoredFlowEntry {
      *
      * @return flow live type
      */
-    FlowLiveType flowLiveType();
+    TypedStoredFlowEntry.FlowLiveType flowLiveType();
 
     /**
      * Sets the new flow live type for this entry.
      * @param liveType new flow live type.
      */
-    void setFlowLiveType(FlowLiveType liveType);
+    void setFlowLiveType(TypedStoredFlowEntry.FlowLiveType liveType);
 }

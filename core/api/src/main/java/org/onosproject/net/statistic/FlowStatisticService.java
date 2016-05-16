@@ -19,6 +19,7 @@ package org.onosproject.net.statistic;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TypedStoredFlowEntry;
 import org.onosproject.net.flow.instructions.Instruction;
 
@@ -56,6 +57,66 @@ public interface FlowStatisticService {
      * @param instType the InstructionType to filter, null means no filtering.
      * @return map of flow entry load
      */
+    Map<ConnectPoint, List<FlowEntryWithLoad>> loadAllByType(Device device,
+                                                             FlowEntry.FlowLiveType liveType,
+                                                             Instruction.Type instType);
+
+    /**
+     * Obtain the flow type and load list for the device with the given link or port.
+     *
+     * @param device the Device to query.
+     * @param pNumber the port number of the Device to query
+     * @param liveType the FlowLiveType  to filter, null means no filtering .
+     * @param instType the InstructionType to filter, null means no filtering.
+     * @return list of flow entry load
+     */
+    List<FlowEntryWithLoad> loadAllByType(Device device,
+                                          PortNumber pNumber,
+                                          FlowEntry.FlowLiveType liveType,
+                                          Instruction.Type instType);
+
+    /**
+     * Obtain the set of the flow type and load topn list for the device with the given link.
+     *
+     * @param device the Device  to query.
+     * @param liveType the FlowLiveType  to filter, null means no filtering .
+     * @param instType the InstructionType to filter, null means no filtering.
+     * @param topn the top number to filter, null means no filtering.
+     * @return map of flow entry load
+     */
+    Map<ConnectPoint, List<FlowEntryWithLoad>> loadTopnByType(Device device,
+                                                              FlowEntry.FlowLiveType liveType,
+                                                              Instruction.Type instType,
+                                                              int topn);
+
+    /**
+     * Obtain the flow type and load topn list for the device with the given link or port.
+     *
+     * @param device the Device  to query.
+     * @param pNumber the port number of the Device to query
+     * @param liveType the FlowLiveType  to filter, null means no filtering .
+     * @param instType the InstructionType to filter, null means no filtering.
+     * @param topn the top n list entry
+     * @return list of flow entry load
+     */
+    List<FlowEntryWithLoad> loadTopnByType(Device device,
+                                           PortNumber pNumber,
+                                           FlowEntry.FlowLiveType liveType,
+                                           Instruction.Type instType,
+                                           int topn);
+
+    // The belows are deprecated interfaces...
+
+    /**
+     * Obtain the set of the flow type and load list for the device with the given link.
+     *
+     * @param device the Device  to query.
+     * @param liveType the FlowLiveType  to filter, null means no filtering .
+     * @param instType the InstructionType to filter, null means no filtering.
+     * @return map of flow entry load
+     * @deprecated in Ibis(1.8.1) release
+     */
+    @Deprecated
     Map<ConnectPoint, List<TypedFlowEntryWithLoad>> loadAllByType(Device device,
                                                                   TypedStoredFlowEntry.FlowLiveType liveType,
                                                                   Instruction.Type instType);
@@ -68,8 +129,11 @@ public interface FlowStatisticService {
      * @param liveType the FlowLiveType  to filter, null means no filtering .
      * @param instType the InstructionType to filter, null means no filtering.
      * @return list of flow entry load
+     * @deprecated in Ibis(1.8.1) release
      */
-    List<TypedFlowEntryWithLoad> loadAllByType(Device device, PortNumber pNumber,
+    @Deprecated
+    List<TypedFlowEntryWithLoad> loadAllByType(Device device,
+                                               PortNumber pNumber,
                                                TypedStoredFlowEntry.FlowLiveType liveType,
                                                Instruction.Type instType);
 
@@ -81,7 +145,9 @@ public interface FlowStatisticService {
      * @param instType the InstructionType to filter, null means no filtering.
      * @param topn the top number to filter, null means no filtering.
      * @return map of flow entry load
+     * @deprecated in Ibis(1.8.1) release
      */
+    @Deprecated
     Map<ConnectPoint, List<TypedFlowEntryWithLoad>> loadTopnByType(Device device,
                                                                    TypedStoredFlowEntry.FlowLiveType liveType,
                                                                    Instruction.Type instType,
@@ -96,8 +162,11 @@ public interface FlowStatisticService {
      * @param instType the InstructionType to filter, null means no filtering.
      * @param topn topn //FIXME what?
      * @return list of flow entry load
+     * @deprecated in Ibis(1.8.1) release
      */
-    List<TypedFlowEntryWithLoad> loadTopnByType(Device device, PortNumber pNumber,
+    @Deprecated
+    List<TypedFlowEntryWithLoad> loadTopnByType(Device device,
+                                                PortNumber pNumber,
                                                 TypedStoredFlowEntry.FlowLiveType liveType,
                                                 Instruction.Type instType,
                                                 int topn);

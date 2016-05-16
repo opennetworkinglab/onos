@@ -59,7 +59,7 @@ public class FlowsListCommand extends AbstractShellCommand {
     public static final String ANY = "any";
 
     private static final String LONG_FORMAT = "    id=%s, state=%s, bytes=%s, "
-            + "packets=%s, duration=%s, priority=%s, tableId=%s, appId=%s, "
+            + "packets=%s, duration=%s, liveType=%s, priority=%s, tableId=%s, appId=%s, "
             + "payLoad=%s, selector=%s, treatment=%s";
 
     private static final String SHORT_FORMAT = "    %s, bytes=%s, packets=%s, "
@@ -237,7 +237,7 @@ public class FlowsListCommand extends AbstractShellCommand {
             } else {
                 ApplicationId appId = coreService.getAppId(f.appId());
                 print(LONG_FORMAT, Long.toHexString(f.id().value()), f.state(),
-                        f.bytes(), f.packets(), f.life(), f.priority(), f.tableId(),
+                        f.bytes(), f.packets(), f.life(), f.liveType(), f.priority(), f.tableId(),
                         appId != null ? appId.name() : "<none>",
                         f.payLoad() == null ? null : f.payLoad().payLoad().toString(),
                         f.selector().criteria(), f.treatment());

@@ -140,7 +140,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
     private Cache<Long, InternalCacheEntry> pendingBatches;
 
-    private final Timer timer = new Timer("onos-openflow-flowstats-collector");
+    private final Timer timer = new Timer("onos-openflow-collector");
+
+    // Old simple collector set
     private final Map<Dpid, FlowStatsCollector> simpleCollectors = Maps.newConcurrentMap();
 
     // NewAdaptiveFlowStatsCollector Set
@@ -303,14 +305,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
         }
         sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                 Optional.empty(), Optional.of(driverService)).buildFlowAdd());
-
-        if (adaptiveFlowSampling) {
-            // Add TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-            NewAdaptiveFlowStatsCollector collector = afsCollectors.get(dpid);
-            if (collector != null) {
-                collector.addWithFlowRule(flowRule);
-            }
-        }
     }
 
     @Override
@@ -336,14 +330,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
         }
         sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                                           Optional.empty(), Optional.of(driverService)).buildFlowDel());
-
-        if (adaptiveFlowSampling) {
-            // Remove TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-            NewAdaptiveFlowStatsCollector collector = afsCollectors.get(dpid);
-            if (collector != null) {
-                collector.removeFlows(flowRule);
-            }
-        }
     }
 
     @Override
@@ -384,25 +370,12 @@ public class OpenFlowRuleProvider extends AbstractProvider
             switch (fbe.operator()) {
                 case ADD:
                     mod = builder.buildFlowAdd();
-                    if (adaptiveFlowSampling && collector != null) {
-                        // Add TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-                        collector.addWithFlowRule(fbe.target());
-                    }
                     break;
                 case REMOVE:
                     mod = builder.buildFlowDel();
-                    if (adaptiveFlowSampling && collector != null) {
-                        // Remove TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-                        collector.removeFlows(fbe.target());
-                    }
                     break;
                 case MODIFY:
                     mod = builder.buildFlowMod();
-                    if (adaptiveFlowSampling && collector != null) {
-                        // Add or Update TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-                        // afsCollectors.get(dpid).addWithFlowRule(fbe.target()); //check if add is good or not
-                        collector.addOrUpdateFlows((FlowEntry) fbe.target());
-                    }
                     break;
                 default:
                     log.error("Unsupported batch operation {}; skipping flowmod {}",
@@ -462,14 +435,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
                     FlowEntry fr = new FlowEntryBuilder(deviceId, removed, driverService).build();
                     providerService.flowRemoved(fr);
-
-                    if (adaptiveFlowSampling) {
-                        // Removed TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-                        NewAdaptiveFlowStatsCollector collector = afsCollectors.get(dpid);
-                        if (collector != null) {
-                            collector.flowRemoved(fr);
-                        }
-                    }
                     break;
                 case STATS_REPLY:
                     if (((OFStatsReply) msg).getStatsType() == OFStatsType.FLOW) {
@@ -646,40 +611,34 @@ public class OpenFlowRuleProvider extends AbstractProvider
         private void pushFlowMetrics(Dpid dpid, OFFlowStatsReply replies) {
 
             DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
+            NewAdaptiveFlowStatsCollector afsc = afsCollectors.get(dpid);
 
-            List<FlowEntry> flowEntries = replies.getEntries().stream()
-                    .map(entry -> new FlowEntryBuilder(did, entry, driverService).build())
-                    .collect(Collectors.toList());
+            if (adaptiveFlowSampling && afsc != null)  {
+                List<FlowEntry> flowEntries = replies.getEntries().stream()
+                        .map(entry -> new FlowEntryBuilder(did, entry, driverService).withSetAfsc(afsc).build())
+                        .collect(Collectors.toList());
 
-            if (adaptiveFlowSampling)  {
-                NewAdaptiveFlowStatsCollector afsc = afsCollectors.get(dpid);
-
-                synchronized (afsc) {
-                    if (afsc.getFlowMissingXid() != NewAdaptiveFlowStatsCollector.NO_FLOW_MISSING_XID) {
-                        log.debug("OpenFlowRuleProvider:pushFlowMetrics, flowMissingXid={}, " +
-                                        "OFFlowStatsReply Xid={}, for {}",
-                                afsc.getFlowMissingXid(), replies.getXid(), dpid);
+                // Check that OFFlowStatsReply Xid is same with the one of OFFlowStatsRequest?
+                if (afsc.getFlowMissingXid() != NewAdaptiveFlowStatsCollector.NO_FLOW_MISSING_XID) {
+                        log.debug("OpenFlowRuleProvider:pushFlowMetrics, flowMissingXid={}, "
+                                          + "OFFlowStatsReply Xid={}, for {}",
+                                  afsc.getFlowMissingXid(), replies.getXid(), dpid);
+                    if (afsc.getFlowMissingXid() == replies.getXid()) {
+                        // call entire flow stats update with flowMissing synchronization.
+                        // used existing pushFlowMetrics
+                        providerService.pushFlowMetrics(did, flowEntries);
                     }
-
-                    // Check that OFFlowStatsReply Xid is same with the one of OFFlowStatsRequest?
-                    if (afsc.getFlowMissingXid() != NewAdaptiveFlowStatsCollector.NO_FLOW_MISSING_XID) {
-                        if (afsc.getFlowMissingXid() == replies.getXid()) {
-                            // call entire flow stats update with flowMissing synchronization.
-                            // used existing pushFlowMetrics
-                            providerService.pushFlowMetrics(did, flowEntries);
-                        }
-                        // reset flowMissingXid to NO_FLOW_MISSING_XID
-                        afsc.setFlowMissingXid(NewAdaptiveFlowStatsCollector.NO_FLOW_MISSING_XID);
-
-                    } else {
-                        // call individual flow stats update
-                        providerService.pushFlowMetricsWithoutFlowMissing(did, flowEntries);
-                    }
-
-                    // Update TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-                    afsc.pushFlowMetrics(flowEntries);
+                    // reset flowMissingXid to NO_FLOW_MISSING_XID
+                    afsc.setFlowMissingXid(NewAdaptiveFlowStatsCollector.NO_FLOW_MISSING_XID);
+                } else {
+                    // call individual flow stats update
+                    providerService.pushFlowMetricsWithoutFlowMissing(did, flowEntries);
                 }
             } else {
+                List<FlowEntry> flowEntries = replies.getEntries().stream()
+                        .map(entry -> new FlowEntryBuilder(did, entry, driverService).build())
+                        .collect(Collectors.toList());
+
                 // call existing entire flow stats update with flowMissing synchronization
                 providerService.pushFlowMetrics(did, flowEntries);
             }

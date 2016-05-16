@@ -45,6 +45,13 @@ public interface StoredFlowEntry extends FlowEntry {
     void setLife(long life, TimeUnit timeUnit);
 
     /**
+     * Sets the flow live type,
+     * i.e., IMMEDIATE, SHORT, MID, LONG.
+     * @param liveType flow live type
+     */
+    void setLiveType(FlowLiveType liveType);
+
+    /**
      * Number of packets seen by this entry.
      * @param packets a long value
      */

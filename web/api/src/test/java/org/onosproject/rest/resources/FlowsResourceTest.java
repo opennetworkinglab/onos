@@ -147,6 +147,11 @@ public class FlowsResourceTest extends ResourceTest {
         }
 
         @Override
+        public FlowLiveType liveType() {
+            return  FlowLiveType.IMMEDIATE;
+        }
+
+        @Override
         public long packets() {
             return baseValue + 22;
         }

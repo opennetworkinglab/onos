@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow;
 
+import com.google.common.collect.Iterables;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
@@ -50,6 +51,20 @@ public interface FlowRuleService
      * @return collection of flow rules
      */
     Iterable<FlowEntry> getFlowEntries(DeviceId deviceId);
+
+    /**
+     * Returns a list of rules filtered by device id and flow live type.
+     *
+     * @param deviceId the device id to lookup
+     * @param liveType the flow live type to lookup
+     * @return collection of flow entries
+     */
+    default Iterable<FlowEntry> getFlowEntriesByLiveType(DeviceId deviceId,
+                                                 FlowEntry.FlowLiveType liveType) {
+        return Iterables.filter(getFlowEntries(deviceId), fe -> fe.liveType() == liveType);
+    }
+
+    // TODO: add createFlowRule factory method and execute operations method
 
     /**
      * Applies the specified flow rules onto their respective devices. These

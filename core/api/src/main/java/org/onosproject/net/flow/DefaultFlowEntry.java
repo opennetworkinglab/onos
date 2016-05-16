@@ -29,29 +29,83 @@ public class DefaultFlowEntry extends DefaultFlowRule
 
     private static final Logger log = getLogger(DefaultFlowEntry.class);
 
+    private static final long DEFAULT_LAST_SEEN = -1;
+    private static final int DEFAULT_ERR_CODE = -1;
+    private static final int DEFAULT_ERR_TYPE = -1;
+
     /* Stored in nanoseconds (allows for 292 years) */
     private long life;
 
     private long packets;
     private long bytes;
     private FlowEntryState state;
+    private FlowLiveType liveType;
 
-    private long lastSeen = -1;
+    private long lastSeen = DEFAULT_LAST_SEEN;
 
     private final int errType;
 
     private final int errCode;
 
+    /**
+     * Creates a flow entry of flow table specified with the flow rule, state
+     * and statistic information.
+     *
+     * @param rule the flow rule
+     * @param state the flow state
+     * @param life the duration second of flow
+     * @param lifeTimeUnit life time unit
+     * @param packets the number of packets of this flow
+     * @param bytes the the number of bytes of this flow
+     */
     public DefaultFlowEntry(FlowRule rule, FlowEntryState state,
                             long life, TimeUnit lifeTimeUnit, long packets, long bytes) {
         super(rule);
         this.state = state;
         this.life = lifeTimeUnit.toNanos(life);
+        this.liveType = FlowLiveType.UNKNOWN;
         this.packets = packets;
         this.bytes = bytes;
-        this.errCode = -1;
-        this.errType = -1;
+        this.errCode = DEFAULT_ERR_CODE;
+        this.errType = DEFAULT_ERR_TYPE;
         this.lastSeen = System.currentTimeMillis();
+    }
+
+    /**
+     * Creates a flow entry of flow table specified with the flow rule, state
+     * and statistic information.
+     *
+     * @param rule the flow rule
+     * @param state the flow state
+     * @param life the duration second of flow
+     * @param lifeTimeUnit life time unit
+     * @param liveType the flow live type, i.e., IMMEDIATE, SHORT, MID, LONG
+     * @param packets the number of packets of this flow
+     * @param bytes the the number of bytes of this flow
+     */
+    public DefaultFlowEntry(FlowRule rule, FlowEntryState state,
+                            long life, TimeUnit lifeTimeUnit, FlowLiveType liveType,
+                            long packets, long bytes) {
+        this(rule, state, life, lifeTimeUnit, packets, bytes);
+        this.liveType = liveType;
+    }
+
+    /**
+     * Creates a flow entry of flow table specified with the flow rule, state,
+     * live type and statistic information.
+     *
+     * @param rule the flow rule
+     * @param state the flow state
+     * @param lifeSecs the duration second of flow
+     * @param liveType the flow live type, i.e., IMMEDIATE, SHORT, MID, LONG
+     * @param packets the number of packets of this flow
+     * @param bytes the the number of bytes of this flow
+     */
+    public DefaultFlowEntry(FlowRule rule, FlowEntryState state,
+                            long lifeSecs, FlowLiveType liveType,
+                            long packets, long bytes) {
+        this(rule, state, lifeSecs, SECONDS, packets, bytes);
+        this.liveType = liveType;
     }
 
     public DefaultFlowEntry(FlowRule rule, FlowEntryState state,
@@ -63,6 +117,14 @@ public class DefaultFlowEntry extends DefaultFlowRule
         this(rule, FlowEntryState.PENDING_ADD, 0, 0, 0);
     }
 
+    /**
+     * Creates a flow entry of flow table specified with the flow rule, state,
+     * live type and statistic information.
+     *
+     * @param rule the flow rule
+     * @param errType the error type
+     * @param errCode the error code
+     */
     public DefaultFlowEntry(FlowRule rule, int errType, int errCode) {
         super(rule);
         this.state = FlowEntryState.FAILED;
@@ -79,6 +141,11 @@ public class DefaultFlowEntry extends DefaultFlowRule
     @Override
     public long life(TimeUnit timeUnit) {
         return timeUnit.convert(life, NANOSECONDS);
+    }
+
+    @Override
+    public FlowLiveType liveType() {
+        return liveType;
     }
 
     @Override
@@ -122,6 +189,11 @@ public class DefaultFlowEntry extends DefaultFlowRule
     }
 
     @Override
+    public void setLiveType(FlowLiveType liveType) {
+        this.liveType = liveType;
+    }
+
+    @Override
     public void setPackets(long packets) {
         this.packets = packets;
     }
@@ -146,6 +218,13 @@ public class DefaultFlowEntry extends DefaultFlowRule
         return toStringHelper(this)
                 .add("rule", super.toString())
                 .add("state", state)
+                .add("life", life)
+                .add("liveType", liveType)
+                .add("packets", packets)
+                .add("bytes", bytes)
+                .add("errCode", errCode)
+                .add("errType", errType)
+                .add("lastSeen", lastSeen)
                 .toString();
     }
 }

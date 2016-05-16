@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//core/common:onos-core-common',
     '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
     '//incubator/net:onos-incubator-net',
@@ -9,7 +10,6 @@ COMPILE_DEPS = [
 TEST_DEPS = [
     '//lib:TEST_REST',
     '//lib:TEST_ADAPTERS',
-    '//core/common:onos-core-common',
     '//core/store/dist:onos-core-dist',
     '//core/store/dist:onos-core-dist-tests',
     '//utils/osgi:onlab-osgi-tests',

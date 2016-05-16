@@ -33,7 +33,7 @@ public class DefaultLoad implements Load {
     /**
      * Indicates the flow statistics poll interval in seconds.
      */
-    private static long pollInterval = 10;
+    private static long pollInterval = 10; // same as IMMEDIATE and SHORT flow live type
 
     /**
      * Creates an invalid load.

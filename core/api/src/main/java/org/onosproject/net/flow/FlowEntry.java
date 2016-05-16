@@ -68,6 +68,46 @@ public interface FlowEntry extends FlowRule {
      */
     long life();
 
+    enum FlowLiveType {
+
+        /**
+         * Indicates that this rule has been submitted for addition immediately.
+         * Not necessarily collecting flow stats.
+         */
+        IMMEDIATE,
+
+        /**
+         * Indicates that this rule has been submitted for a short time.
+         * Collecting flow stats every SHORT interval, defined by the implementation.
+         */
+        SHORT,
+
+        /**
+         * Indicates that this rule has been submitted for a mid time.
+         * Collecting flow stats every MID interval, defined by the implementation.
+         */
+        MID,
+
+        /**
+         * Indicates that this rule has been submitted for a long time.
+         * Collecting flow stats every LONG interval, defined by the implementation.
+         */
+        LONG,
+
+        /**
+         * Indicates that this rule has been submitted for UNKNOWN or ERROR.
+         * Not necessarily collecting flow stats.
+         */
+        UNKNOWN
+    }
+
+    /**
+     * Gets the flow live type for this entry.
+     *
+     * @return flow live type
+     */
+    FlowLiveType liveType();
+
     /**
      * Returns the time this flow rule has been applied.
      *

@@ -27,14 +27,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Load of flow entry of flow live type.
  */
 public class TypedFlowEntryWithLoad {
-    private ConnectPoint cp;
-    private TypedStoredFlowEntry tfe;
-    private Load load;
-
-    //TODO: make this variables class, and share with NewAdaptivceFlowStatsCollector class
-    private static final int CAL_AND_POLL_INTERVAL = 5; // means SHORT_POLL_INTERVAL
-    private static final int MID_POLL_INTERVAL = 10;
-    private static final int LONG_POLL_INTERVAL = 15;
+    private final ConnectPoint cp;
+    private final TypedStoredFlowEntry tfe;
+    private final Load load;
 
     /**
      * Creates a new typed flow entry with load.
@@ -82,45 +77,6 @@ public class TypedFlowEntryWithLoad {
     public Load load() {
         return load;
     }
-    public void setLoad(Load load) {
-        this.load = load;
-    }
-
-    /**
-     * Returns short polling interval.
-     *
-     * @return short poll interval
-     */
-    public static int shortPollInterval() {
-        return CAL_AND_POLL_INTERVAL;
-    }
-
-    /**
-     * Returns mid polling interval.
-     *
-     * @return mid poll interval
-     */
-    public static int midPollInterval() {
-        return MID_POLL_INTERVAL;
-    }
-
-    /**
-     * Returns long polling interval.
-     *
-     * @return long poll interval
-     */
-    public static int longPollInterval() {
-        return LONG_POLL_INTERVAL;
-    }
-
-    /**
-     * Returns average polling interval.
-     *
-     * @return average poll interval
-     */
-    public static int avgPollInterval() {
-        return (CAL_AND_POLL_INTERVAL + MID_POLL_INTERVAL + LONG_POLL_INTERVAL) / 3;
-    }
 
     /**
      * Returns current typed flow entry's polling interval.
@@ -131,15 +87,17 @@ public class TypedFlowEntryWithLoad {
     public static long typedPollInterval(TypedStoredFlowEntry tfe) {
         checkNotNull(tfe, "TypedStoredFlowEntry cannot be null");
 
+        PollInterval pollIntervalInstance = PollInterval.getInstance();
+
         switch (tfe.flowLiveType()) {
             case LONG_FLOW:
-                return LONG_POLL_INTERVAL;
+                return pollIntervalInstance.getLongPollInterval();
             case MID_FLOW:
-                return MID_POLL_INTERVAL;
+                return pollIntervalInstance.getMidPollInterval();
             case SHORT_FLOW:
             case IMMEDIATE_FLOW:
             default:
-                return CAL_AND_POLL_INTERVAL;
+                return pollIntervalInstance.getPollInterval();
         }
     }
 
@@ -155,17 +113,18 @@ public class TypedFlowEntryWithLoad {
         }
 
         long life = fe.life();
+        PollInterval pollIntervalInstance = PollInterval.getInstance();
 
-        if (life >= LONG_POLL_INTERVAL) {
-            return new DefaultTypedFlowEntry(fe, TypedStoredFlowEntry.FlowLiveType.LONG_FLOW);
-        } else if (life >= MID_POLL_INTERVAL) {
-            return new DefaultTypedFlowEntry(fe, TypedStoredFlowEntry.FlowLiveType.MID_FLOW);
-        } else if (life >= CAL_AND_POLL_INTERVAL) {
-            return new DefaultTypedFlowEntry(fe, TypedStoredFlowEntry.FlowLiveType.SHORT_FLOW);
-        } else if (life >= 0) {
-            return new DefaultTypedFlowEntry(fe, TypedStoredFlowEntry.FlowLiveType.IMMEDIATE_FLOW);
-        } else { // life < 0
+        if (life < 0) {
             return new DefaultTypedFlowEntry(fe, TypedStoredFlowEntry.FlowLiveType.UNKNOWN_FLOW);
+        } else if (life < pollIntervalInstance.getPollInterval()) {
+            return new DefaultTypedFlowEntry(fe, TypedStoredFlowEntry.FlowLiveType.IMMEDIATE_FLOW);
+        } else if (life < pollIntervalInstance.getMidPollInterval()) {
+            return new DefaultTypedFlowEntry(fe, TypedStoredFlowEntry.FlowLiveType.SHORT_FLOW);
+        } else if (life < pollIntervalInstance.getLongPollInterval()) {
+            return new DefaultTypedFlowEntry(fe, TypedStoredFlowEntry.FlowLiveType.MID_FLOW);
+        } else { // >= longPollInterval
+            return new DefaultTypedFlowEntry(fe, TypedStoredFlowEntry.FlowLiveType.LONG_FLOW);
         }
     }
 }
