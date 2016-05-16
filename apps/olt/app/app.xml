@@ -17,7 +17,7 @@
 <app name="org.onosproject.olt" origin="ON.Lab" version="${project.version}"
      category="Traffic Steering" url="http://onosproject.org" title="Optical Line Terminal App"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
-     features="${project.artifactId}">
+     features="${project.artifactId}" apps="org.onosproject.cord-config">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-olt-api/${project.version}</artifact>

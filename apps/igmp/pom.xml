@@ -37,6 +37,7 @@
         <onos.app.category>Traffic Steering</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>IGMP implementation.</onos.app.readme>
+        <onos.app.requires>org.onosproject.cord-config</onos.app.requires>
     </properties>
 
     <dependencies>
