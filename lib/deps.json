@@ -92,10 +92,7 @@
     "atomix-resource": "mvn:io.atomix:atomix-resource:1.0.0-rc3",
     "atomix-resource-manager": "mvn:io.atomix:atomix-resource-manager:1.0.0-rc3",
     "atomix-variables": "mvn:io.atomix:atomix-variables:1.0.0-rc3",
-    "onos-atomix": {
-      "uri": "mvn:org.onosproject:atomix:1.0.onos-SNAPSHOT",
-      "repo": "https://oss.sonatype.org/content/repositories/snapshots"
-    },
+    "onos-atomix": "mvn:org.onosproject:atomix:1.0.0.onos",
     "catalyst-buffer": "mvn:io.atomix.catalyst:catalyst-buffer:1.0.4",
     "catalyst-common": "mvn:io.atomix.catalyst:catalyst-common:1.0.4",
     "catalyst-local": "mvn:io.atomix.catalyst:catalyst-local:1.0.4",
