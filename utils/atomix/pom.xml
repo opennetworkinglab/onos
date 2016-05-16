@@ -29,7 +29,7 @@
   <groupId>org.onosproject</groupId>
   <artifactId>atomix</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0.0.onos</version>
+  <version>1.0.1.onos-SNAPSHOT</version>
 
   <description>Atomix shaded OSGi JAR</description>
   <url>http://onosproject.org/</url>
