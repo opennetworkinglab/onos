@@ -151,11 +151,7 @@ public class OpticalPathProvisioner
         deviceService = opticalView(deviceService);
         appId = coreService.registerApplication("org.onosproject.newoptical");
 
-        idCounter = storageService.atomicCounterBuilder()
-                .withName(OPTICAL_CONNECTIVITY_ID_COUNTER)
-                .withMeteringDisabled()
-                .build()
-                .asAtomicCounter();
+        idCounter = storageService.getAtomicCounter(OPTICAL_CONNECTIVITY_ID_COUNTER);
 
         eventDispatcher.addSink(OpticalPathEvent.class, listenerRegistry);
 
