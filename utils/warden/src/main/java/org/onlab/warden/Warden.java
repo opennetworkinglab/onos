@@ -216,7 +216,7 @@ class Warden {
                         new ServerInfo(info.hostName) : v.bumpLoad(info)));
 
         List<ServerInfo> servers = new ArrayList<>(load.values());
-        servers.sort((a, b) -> a.load - b.load);
+        servers.sort((a, b) -> b.load - a.load);
         ServerInfo server = servers.get(0);
         return server.cells.get(random.nextInt(server.cells.size())).cellName;
     }

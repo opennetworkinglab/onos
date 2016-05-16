@@ -85,9 +85,9 @@ public class WardenTest {
         validateCellState(doltCell);
         validateSizes(4, 2);
 
-        assertTrue("cells should not be on the same host",
-                   Objects.equals(warden.getCellHost(dudeCell.cellName),
-                                  warden.getCellHost(doltCell.cellName)));
+        assertFalse("cells should not be on the same host",
+                    Objects.equals(warden.getCellHost(dudeCell.cellName),
+                                   warden.getCellHost(doltCell.cellName)));
 
         warden.returnCell("dude");
         validateSizes(5, 1);
