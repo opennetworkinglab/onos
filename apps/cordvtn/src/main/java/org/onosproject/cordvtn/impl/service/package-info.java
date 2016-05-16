@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.cordvtn.cli;
-
-import org.apache.karaf.shell.commands.Command;
-import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cordvtn.impl.CordVtnPipeline;
-
 /**
- * Deletes nodes from the service.
+ * Implementation of instance handlers for various network services.
  */
-@Command(scope = "onos", name = "cordvtn-flush-rules",
-        description = "Flush flow rules installed by CORD VTN")
-public class CordVtnFlushRules extends AbstractShellCommand {
-
-    @Override
-    protected void execute() {
-        CordVtnPipeline pipeline = AbstractShellCommand.get(CordVtnPipeline.class);
-        pipeline.flushRules();
-        print("Successfully flushed");
-    }
-}
+package org.onosproject.cordvtn.impl.service;

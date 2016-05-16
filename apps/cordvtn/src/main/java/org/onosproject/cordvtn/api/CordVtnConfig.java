@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
@@ -46,6 +47,7 @@ public class CordVtnConfig extends Config<ApplicationId> {
     public static final String GATEWAY_IP = "gatewayIp";
     public static final String GATEWAY_MAC = "gatewayMac";
     public static final String LOCAL_MANAGEMENT_IP = "localManagementIp";
+    public static final String MANAGEMENT_IP = "managementIpRange";
     public static final String OVSDB_PORT = "ovsdbPort";
 
     public static final String CORDVTN_NODES = "nodes";
@@ -184,6 +186,25 @@ public class CordVtnConfig extends Config<ApplicationId> {
         });
 
         return publicGateways;
+    }
+
+    /**
+     * Returns management IP address range.
+     *
+     * @return management network ip prefix, or null
+     */
+    public IpPrefix managementIpRange() {
+        JsonNode jsonNode = object.get(MANAGEMENT_IP);
+        if (jsonNode == null) {
+            return null;
+        }
+
+        try {
+            return IpPrefix.valueOf(jsonNode.asText());
+        } catch (IllegalArgumentException e) {
+            log.error("{}:{} wrong address format", MANAGEMENT_IP, jsonNode);
+            return null;
+        }
     }
 
     /**

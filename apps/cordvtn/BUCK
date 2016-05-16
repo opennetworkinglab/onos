@@ -11,6 +11,7 @@ COMPILE_DEPS = [
     '//core/store/serializers:onos-core-serializers',
     '//apps/dhcp/api:onos-apps-dhcp-api',
     '//apps/xosclient:onos-apps-xosclient',
+    '//apps/cordconfig:onos-apps-cordconfig',
     '//protocols/ovsdb/api:onos-protocols-ovsdb-api',
     '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc',
 ]
@@ -35,5 +36,5 @@ onos_app (
     included_bundles = BUNDLES,
     excluded_bundles = EXCLUDED_BUNDLES,
     description = 'APIs for interacting with the CORD VTN application.',
-    required_apps = [ 'org.onosproject.xosclient', 'org.onosproject.dhcp', 'org.onosproject.ovsdb' ],
+    required_apps = [ 'org.onosproject.cord-config', 'org.onosproject.xosclient', 'org.onosproject.dhcp', 'org.onosproject.ovsdb' ],
 )

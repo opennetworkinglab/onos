@@ -15,13 +15,7 @@
  */
 package org.onosproject.cordvtn.api;
 
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.HostId;
 import org.onosproject.xosclient.api.VtnServiceId;
-
-import java.util.Map;
 
 /**
  * Service for provisioning overlay virtual networks on compute nodes.
@@ -29,21 +23,6 @@ import java.util.Map;
 public interface CordVtnService {
 
     String CORDVTN_APP_ID = "org.onosproject.cordvtn";
-
-    /**
-     * Adds a new VM on a given node and connect point.
-     *
-     * @param node cordvtn node
-     * @param connectPoint connect point
-     */
-    void addServiceVm(CordVtnNode node, ConnectPoint connectPoint);
-
-    /**
-     * Removes a VM from a given node and connect point.
-     *
-     * @param connectPoint connect point
-     */
-    void removeServiceVm(ConnectPoint connectPoint);
 
     /**
      * Creates dependencies for a given tenant service.
@@ -62,14 +41,4 @@ public interface CordVtnService {
      * @param pServiceId id of the service which provide dependency
      */
     void removeServiceDependency(VtnServiceId tServiceId, VtnServiceId pServiceId);
-
-    /**
-     * Updates virtual service gateways.
-     *
-     * @param vSgHost host id of vSG host
-     * @param serviceVlan service vlan id
-     * @param vSgs map of ip and mac address of vSGs running in this vSG host
-     */
-    void updateVirtualSubscriberGateways(HostId vSgHost, String serviceVlan,
-                                         Map<IpAddress, MacAddress> vSgs);
 }
