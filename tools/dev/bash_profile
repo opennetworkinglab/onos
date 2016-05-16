@@ -106,18 +106,27 @@ function setPrimaryInstance {
 # ON.Lab shared test cell warden address
 export CELL_WARDEN="10.254.1.19"
 
+# Clears cell environment
+function clearCell {
+    unset ONOS_CELL ONOS_NIC ONOS_IP ONOS_APPS ONOS_BOOT_FEATURES
+    unset OCI OCN OCT ONOS_INSTANCES ONOS_FEATURES
+    unset $(env | sed -n 's:\(^OC[0-9]\{1,\}\)=.*:\1 :g p')
+}
+
 # Applies the settings in the specified cell file or lists current cell definition
 # if no cell file is given.
 function cell {
     cell=${1:-""}
     case "$cell" in
     "borrow")
+        clearCell
         aux="/tmp/cell-$$"
+        duration=${2:-0}
         spec=${3:-3+1}
         spec=${spec/+/%2B}
         user=${4:-$(id -un)}
-        curl -sS -X POST "http://$CELL_WARDEN:4321/?duration=${2:-0}&spec=${spec}&user=${user}" \
-            -d "$(cat ~/.ssh/id_rsa.pub)" > $aux
+        query="duration=$duration&spec=$spec&user=$user"
+        curl -sS -X POST "http://$CELL_WARDEN:4321/?$query" -d "$(cat ~/.ssh/id_rsa.pub)" > $aux
         . $aux
         rm -f $aux
         export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
@@ -126,9 +135,7 @@ function cell {
         ;;
     "return")
         curl -sS -X DELETE "http://$CELL_WARDEN:4321/?user=${2:-$(id -un)}"
-        unset ONOS_CELL ONOS_NIC ONOS_IP ONOS_APPS ONOS_BOOT_FEATURES
-        unset OCI OCN OCT ONOS_INSTANCES ONOS_FEATURES
-        unset $(env | sed -n 's:\(^OC[0-9]\{1,\}\)=.*:\1 :g p')
+        clearCell
         ;;
 
     "status")
@@ -144,15 +151,12 @@ function cell {
         ;;
 
     *)
-        [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && \
-            echo "No such cell: $1" >&2 && return 1
-        unset ONOS_CELL ONOS_NIC ONOS_IP ONOS_APPS ONOS_BOOT_FEATURES
-        unset OCI OCN OCT ONOS_INSTANCES ONOS_FEATURES
-        unset $(env | sed -n 's:\(^OC[0-9]\{1,\}\)=.*:\1 :g p')
+        [ ! -f $ONOS_ROOT/tools/test/cells/$1 ] && echo "No such cell: $1" >&2 && return 1
+        clearCell
         export ONOS_USER=${ONOS_USER:-sdn}
         export ONOS_GROUP=${ONOS_GROUP:-sdn}
-        export ONOS_WEB_USER=onos
-        export ONOS_WEB_PASS=rocks
+        export ONOS_WEB_USER=${ONOS_WEB_USER:-onos}
+        export ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks}
         export ONOS_CELL=$1
         . $ONOS_ROOT/tools/test/cells/$1
         export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
