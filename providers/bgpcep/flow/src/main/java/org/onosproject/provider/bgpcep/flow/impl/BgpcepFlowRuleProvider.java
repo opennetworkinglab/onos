@@ -74,6 +74,9 @@ import org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import static org.onosproject.pcep.controller.PcepSyncStatus.IN_SYNC;
+import static org.onosproject.pcep.controller.PcepSyncStatus.SYNCED;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -188,7 +191,13 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
 
     //Pushes node labels to the specified device.
     private void pushGlobalNodeLabel(DeviceId deviceId, LabelResourceId labelId,
-            IpPrefix ipPrefix, Objective.Operation type) throws PcepParseException {
+            IpPrefix ipPrefix, Objective.Operation type, boolean isBos) throws PcepParseException {
+
+        checkNotNull(deviceId);
+        checkNotNull(labelId);
+        checkNotNull(ipPrefix);
+        checkNotNull(type);
+
         PcepClient pc = getPcepClient(deviceId);
         if (pc == null) {
             log.error("PCEP client not found");
@@ -201,7 +210,20 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
                                       .setNodeID(ipPrefix.address().getIp4Address().toInt())
                                       .build();
 
-        PcepSrpObject srpObj = getSrpObject(pc, type);
+        boolean bSFlag = false;
+        if (pc.labelDbSyncStatus() == IN_SYNC) {
+            if (isBos) {
+                /*
+                 * Now the sync is completed.
+                 * Need to send label DB end-of-sync msg, i.e. S flag in SRP id is reset.
+                 */
+                pc.setLabelDbSyncStatus(SYNCED);
+            } else {
+                bSFlag = true;
+            }
+        }
+
+        PcepSrpObject srpObj = getSrpObject(pc, type, bSFlag);
 
         //Global NODE-SID as label object
         PcepLabelObject labelObject = pc.factory().buildLabelObject()
@@ -224,26 +246,35 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
         pc.sendMessage(labelMsg);
     }
 
-    private PcepSrpObject getSrpObject(PcepClient pc, Objective.Operation type) throws PcepParseException {
+    private PcepSrpObject getSrpObject(PcepClient pc, Objective.Operation type, boolean bSFlag)
+            throws PcepParseException {
         PcepSrpObject srpObj;
-        if (type.equals(Objective.Operation.ADD)) {
-            srpObj = pc.factory().buildSrpObject()
-                    .setRFlag(false)
-                    .setSrpID(SrpIdGenerators.create())
-                    .build();
-        } else {
-            //To cleanup labels, R bit is set
-            srpObj = pc.factory().buildSrpObject()
-                    .setRFlag(true)
-                    .setSrpID(SrpIdGenerators.create())
-                    .build();
+        boolean bRFlag = false;
+
+        if (!type.equals(Objective.Operation.ADD)) {
+            // To cleanup labels, R bit is set
+            bRFlag = true;
         }
+
+        srpObj = pc.factory().buildSrpObject()
+                .setRFlag(bRFlag)
+                .setSFlag(bSFlag)
+                .setSrpID(SrpIdGenerators.create())
+                .build();
+
         return srpObj;
     }
 
     //Pushes adjacency labels to the specified device.
     private void pushAdjacencyLabel(DeviceId deviceId, LabelResourceId labelId,
             PortNumber srcPortNum, PortNumber dstPortNum, Objective.Operation type) throws PcepParseException {
+
+        checkNotNull(deviceId);
+        checkNotNull(labelId);
+        checkNotNull(srcPortNum);
+        checkNotNull(dstPortNum);
+        checkNotNull(type);
+
         PcepClient pc = getPcepClient(deviceId);
         if (pc == null) {
             log.error("PCEP client not found");
@@ -262,7 +293,7 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
                                                   .seLocalIPv4Address((int) srcPortNo)
                                                   .build();
 
-        PcepSrpObject srpObj = getSrpObject(pc, type);
+        PcepSrpObject srpObj = getSrpObject(pc, type, false);
 
         //Adjacency label object
         PcepLabelObject labelObject = pc.factory().buildLabelObject()
@@ -289,6 +320,13 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
     private void pushLocalLabels(DeviceId deviceId, LabelResourceId labelId,
             PortNumber portNum, TunnelId tunnelId,
             Boolean isBos, Long labelType, Objective.Operation type) throws PcepParseException {
+
+        checkNotNull(deviceId);
+        checkNotNull(labelId);
+        checkNotNull(portNum);
+        checkNotNull(tunnelId);
+        checkNotNull(labelType);
+        checkNotNull(type);
 
         PcepClient pc = getPcepClient(deviceId);
         if (pc == null) {
@@ -335,7 +373,7 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
         //Add OUT label object in case of transit node
         labelObjects.add(labelObj);
 
-        srpObj = getSrpObject(pc, type);
+        srpObj = getSrpObject(pc, type, false);
 
         String lspId = tunnel.annotations().value(PcepAnnotationKeys.PLSP_ID);
         String plspId = tunnel.annotations().value(PcepAnnotationKeys.LOCAL_LSP_ID);
