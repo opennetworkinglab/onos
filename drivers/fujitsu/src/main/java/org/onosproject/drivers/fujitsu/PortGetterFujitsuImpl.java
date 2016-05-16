@@ -16,7 +16,16 @@
 
 package org.onosproject.drivers.fujitsu;
 
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.onosproject.drivers.utilities.XmlConfigParser;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.CltSignalType;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.GridType;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalType;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -25,11 +34,16 @@ import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 
+import com.google.common.collect.Lists;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -50,7 +64,7 @@ public class PortGetterFujitsuImpl extends AbstractHandlerBehaviour
         } catch (IOException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
         }
-        List<PortDescription> descriptions = XmlConfigParser.
+        List<PortDescription> descriptions =
                 parseFujitsuT100Ports(XmlConfigParser.
                         loadXml(new ByteArrayInputStream(reply.getBytes())));
         return descriptions;
@@ -74,4 +88,54 @@ public class PortGetterFujitsuImpl extends AbstractHandlerBehaviour
         rpc.append("</rpc>");
         return rpc.toString();
     }
+
+    /**
+     * Parses a configuration and returns a set of ports for the fujitsu T100.
+     * @param cfg a hierarchical configuration
+     * @return a list of port descriptions
+     */
+    private static List<PortDescription> parseFujitsuT100Ports(HierarchicalConfiguration cfg) {
+        AtomicInteger counter = new AtomicInteger(1);
+        List<PortDescription> portDescriptions = Lists.newArrayList();
+        List<HierarchicalConfiguration> subtrees =
+                cfg.configurationsAt("data.interfaces.interface");
+        for (HierarchicalConfiguration portConfig : subtrees) {
+            if (!portConfig.getString("name").contains("LCN") &&
+                    !portConfig.getString("name").contains("LMP") &&
+                    portConfig.getString("type").equals("ianaift:ethernetCsmacd")) {
+                portDescriptions.add(parseT100OduPort(portConfig, counter.getAndIncrement()));
+            } else if (portConfig.getString("type").equals("ianaift:otnOtu")) {
+                portDescriptions.add(parseT100OchPort(portConfig, counter.getAndIncrement()));
+            }
+        }
+        return portDescriptions;
+    }
+
+    private static PortDescription parseT100OchPort(HierarchicalConfiguration cfg, long count) {
+        PortNumber portNumber = PortNumber.portNumber(count);
+        HierarchicalConfiguration otuConfig = cfg.configurationAt("otu");
+        boolean enabled = otuConfig.getString("administrative-state").equals("up");
+        OduSignalType signalType = otuConfig.getString("rate").equals("OTU4") ? OduSignalType.ODU4 : null;
+        //Unsure how to retreive, outside knowledge it is tunable.
+        boolean isTunable = true;
+        OchSignal lambda = new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, 0, 4);
+        DefaultAnnotations annotations = DefaultAnnotations.builder().
+                set(AnnotationKeys.PORT_NAME, cfg.getString("name")).
+                build();
+        return ochPortDescription(portNumber, enabled, signalType, isTunable, lambda, annotations);
+    }
+
+    private static PortDescription parseT100OduPort(HierarchicalConfiguration cfg, long count) {
+        PortNumber portNumber = PortNumber.portNumber(count);
+        HierarchicalConfiguration ethernetConfig = cfg.configurationAt("ethernet");
+        boolean enabled = ethernetConfig.getString("administrative-state").equals("up");
+        //Rate is in kbps
+        CltSignalType signalType = ethernetConfig.getString("rate").equals("100000000") ?
+                CltSignalType.CLT_100GBE : null;
+        DefaultAnnotations annotations = DefaultAnnotations.builder().
+                set(AnnotationKeys.PORT_NAME, cfg.getString("name")).
+                build();
+        return oduCltPortDescription(portNumber, enabled, signalType, annotations);
+    }
+
 }
