@@ -22,10 +22,15 @@ import com.google.common.collect.Lists;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.GridType;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -36,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 
 /**
@@ -80,7 +86,7 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
         HierarchicalConfiguration config = XmlConfigParser.
                 loadXml(controller.get(deviceId, GENERAL_PORT_REQUEST, XML));
         List<HierarchicalConfiguration> portsConfig =
-                XmlConfigParser.parseWaveServerCienaPorts(config);
+                parseWaveServerCienaPorts(config);
         portsConfig.stream().forEach(sub -> {
             String portId = sub.getString(PORT_ID);
             String name = sub.getString(NAME);
@@ -90,7 +96,7 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
                         .set(AnnotationKeys.PORT_NAME, txName);
                 String wsportInfoRequest = SPECIFIC_PORT_PATH + portId +
                         SPECIFIC_PORT_CONFIG;
-                ports.add(XmlConfigParser.parseWaveServerCienaOchPorts(
+                ports.add(parseWaveServerCienaOchPorts(
                         sub.getLong(PORT_ID),
                         toGbps(Long.parseLong(sub.getString(SPEED).replace(GBPS, EMPTY_STRING)
                                                       .replace(" ", EMPTY_STRING))),
@@ -98,7 +104,7 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
                         annotations.build()));
                 //adding corresponding opposite side port
                 String rxName = name.replace(".1", ".2") + " Rx";
-                ports.add(XmlConfigParser.parseWaveServerCienaOchPorts(
+                ports.add(parseWaveServerCienaOchPorts(
                         sub.getLong(PORT_ID) + 1,
                         toGbps(Long.parseLong(sub.getString(SPEED).replace(GBPS, EMPTY_STRING)
                                                       .replace(" ", EMPTY_STRING))),
@@ -122,10 +128,44 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
         return ports;
     }
 
+    public static List<HierarchicalConfiguration> parseWaveServerCienaPorts(HierarchicalConfiguration cfg) {
+        return cfg.configurationsAt("ws-ports.port-interface");
+    }
+
+    public static PortDescription parseWaveServerCienaOchPorts(long portNumber, long oduPortSpeed,
+                                                               HierarchicalConfiguration config,
+                                                               SparseAnnotations annotations) {
+        final List<String> tunableType = Lists.newArrayList("Performance-Optimized", "Accelerated");
+        final String transmitterPath = "ptp-config.transmitter-state";
+        final String tunablePath = "ptp-config.adv-config.tx-tuning-mode";
+        final String gridTypePath = "ptp-config.adv-config.wl-spacing";
+        final String frequencyPath = "ptp-config.adv-config.frequency";
+
+        boolean isEnabled = config.getString(transmitterPath).equals("enabled");
+        boolean isTunable = tunableType.contains(config.getString(tunablePath));
+
+        //FIXME change when all optical types have two way information methods, see jira tickets
+        final int speed100GbpsinMbps = 100000;
+        OduSignalType oduSignalType = oduPortSpeed == speed100GbpsinMbps ? OduSignalType.ODU4 : null;
+        GridType gridType = config.getString(gridTypePath).equals("FlexGrid") ? GridType.FLEX : null;
+        ChannelSpacing chSpacing = gridType == GridType.FLEX ? ChannelSpacing.CHL_6P25GHZ : null;
+
+        //Working in Ghz //(Nominal central frequency - 193.1)/channelSpacing = spacingMultiplier
+        final int baseFrequency = 193100;
+        int spacingMult = (int) (toGbps((Integer.parseInt(config.getString(frequencyPath)) -
+                baseFrequency)) / toGbpsFromHz(chSpacing.frequency().asHz())); //FIXME is there a better way ?
+
+        return ochPortDescription(PortNumber.portNumber(portNumber), isEnabled, oduSignalType, isTunable,
+                                      new OchSignal(gridType, chSpacing, spacingMult, 1), annotations);
+    }
+
     //FIXME remove when all optical types have two way information methods, see jira tickets
-    private long toGbps(long speed) {
+    private static long toGbps(long speed) {
         return speed * 1000;
     }
 
+    private static long toGbpsFromHz(long speed) {
+        return speed / 1000;
+    }
 }
 
