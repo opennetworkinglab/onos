@@ -49,6 +49,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.JAVA_MATH;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG;
 import static org.onosproject.yangutils.utils.UtilConstants.LONG_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW;
+import static org.onosproject.yangutils.utils.UtilConstants.PARSE_BOOLEAN;
 import static org.onosproject.yangutils.utils.UtilConstants.PARSE_BYTE;
 import static org.onosproject.yangutils.utils.UtilConstants.PARSE_INT;
 import static org.onosproject.yangutils.utils.UtilConstants.PARSE_LONG;
@@ -58,6 +59,10 @@ import static org.onosproject.yangutils.utils.UtilConstants.SHORT;
 import static org.onosproject.yangutils.utils.UtilConstants.SHORT_WRAPPER;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_BINARY_CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_BITS_CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_DECIMAL64_CLASS;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_TYPES_PKG;
 
 /**
  * Represents java data types info corresponding to YANG type.
@@ -97,8 +102,10 @@ public final class AttributesJavaDataType {
                 return LONG;
             case UINT64:
                 return BIG_INTEGER;
+            case BINARY:
+                return YANG_BINARY_CLASS;
             case DECIMAL64:
-                //TODO: DECIMAL64.
+                return YANG_DECIMAL64_CLASS;
             case STRING:
                 return STRING_DATA_TYPE;
             case BOOLEAN:
@@ -112,7 +119,7 @@ public final class AttributesJavaDataType {
      * Returns from string method parsed string.
      *
      * @param targetDataType target data type
-     * @param yangType       YANG type
+     * @param yangType YANG type
      * @return parsed string
      */
     public static String getParseFromStringMethod(String targetDataType, YangType<?> yangType) {
@@ -136,18 +143,16 @@ public final class AttributesJavaDataType {
                 return LONG_WRAPPER + PERIOD + PARSE_LONG;
             case UINT64:
                 return NEW + SPACE + BIG_INTEGER;
-            case DECIMAL64:
-                //TODO: DECIMAL64.
             case STRING:
                 return EMPTY_STRING;
+            case EMPTY:
             case BOOLEAN:
-                return BOOLEAN_DATA_TYPE;
-            case ENUMERATION:
-                //TODO:ENUMERATION.
+                return BOOLEAN_WRAPPER + PERIOD + PARSE_BOOLEAN;
+            case DECIMAL64:
             case BITS:
-                //TODO:BITS
             case BINARY:
-                //TODO:BINARY
+            case UNION:
+            case ENUMERATION:
             case DERIVED:
                 return targetDataType + PERIOD + FROM_STRING_METHOD_NAME;
             default:
@@ -158,11 +163,13 @@ public final class AttributesJavaDataType {
     /**
      * Returns java import class.
      *
-     * @param yangType   YANG type
+     * @param yangType YANG type
      * @param isListAttr if the attribute need to be a list
+     * @param pluginConfig plugin configurations
      * @return java import class
      */
-    public static String getJavaImportClass(YangType<?> yangType, boolean isListAttr) {
+    public static String getJavaImportClass(YangType<?> yangType, boolean isListAttr,
+            YangToJavaNamingConflictUtil pluginConfig) {
 
         YangDataTypes type = yangType.getDataType();
 
@@ -185,21 +192,19 @@ public final class AttributesJavaDataType {
                 case UINT64:
                     return BIG_INTEGER;
                 case DECIMAL64:
-                    //TODO: DECIMAL64.
-                    break;
+                    return YANG_DECIMAL64_CLASS;
                 case STRING:
                     return STRING_DATA_TYPE;
                 case BOOLEAN:
                     return BOOLEAN_WRAPPER;
                 case ENUMERATION:
                     return getCapitalCase(
-                            getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(), null));
+                        getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(),
+                                pluginConfig));
                 case BITS:
-                    //TODO:BITS
-                    break;
+                    return YANG_BITS_CLASS;
                 case BINARY:
-                    //TODO:BINARY
-                    break;
+                    return YANG_BINARY_CLASS;
                 case LEAFREF:
                     //TODO:LEAFREF
                     break;
@@ -210,11 +215,13 @@ public final class AttributesJavaDataType {
                     return BOOLEAN_WRAPPER;
                 case UNION:
                     return getCapitalCase(getCamelCase(((YangJavaUnion) yangType.getDataTypeExtendedInfo()).getName(),
-                            null));
+                        pluginConfig));
                 case INSTANCE_IDENTIFIER:
                     //TODO:INSTANCE_IDENTIFIER
+                    break;
                 case DERIVED:
-                    return getCapitalCase(getCamelCase(yangType.getDataTypeName(), null));
+                return getCapitalCase(
+                        getCamelCase(yangType.getDataTypeName(), pluginConfig));
                 default:
                     throw new TranslatorException("given data type is not supported.");
             }
@@ -223,19 +230,17 @@ public final class AttributesJavaDataType {
                 case UINT64:
                     return BIG_INTEGER;
                 case DECIMAL64:
-                    //TODO: DECIMAL64.
-                    break;
+                    return YANG_DECIMAL64_CLASS;
                 case STRING:
                     return STRING_DATA_TYPE;
                 case ENUMERATION:
                     return getCapitalCase(
-                            getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(), null));
+                        getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(),
+                                pluginConfig));
                 case BITS:
-                    //TODO:BITS
-                    break;
+                    return YANG_BITS_CLASS;
                 case BINARY:
-                    //TODO:BINARY
-                    break;
+                    return YANG_BINARY_CLASS;
                 case LEAFREF:
                     //TODO:LEAFREF
                     break;
@@ -243,16 +248,16 @@ public final class AttributesJavaDataType {
                     //TODO:IDENTITYREF
                     break;
                 case EMPTY:
-                    //TODO:EMPTY
-                    break;
+                    return BOOLEAN_DATA_TYPE;
                 case UNION:
                     return getCapitalCase(getCamelCase(((YangJavaUnion) yangType.getDataTypeExtendedInfo()).getName(),
-                            null));
+                        pluginConfig));
                 case INSTANCE_IDENTIFIER:
                     //TODO:INSTANCE_IDENTIFIER
                     break;
                 case DERIVED:
-                    return getCapitalCase(getCamelCase(yangType.getDataTypeName(), null));
+                return getCapitalCase(
+                        getCamelCase(yangType.getDataTypeName(), pluginConfig));
                 default:
                     return null;
             }
@@ -263,9 +268,9 @@ public final class AttributesJavaDataType {
     /**
      * Returns java import package.
      *
-     * @param yangType   YANG type
+     * @param yangType YANG type
      * @param isListAttr if the attribute is of list type
-     * @param classInfo  java import class info
+     * @param classInfo java import class info
      * @return java import package
      */
     public static String getJavaImportPackage(YangType<?> yangType, boolean isListAttr, String classInfo) {
@@ -283,28 +288,21 @@ public final class AttributesJavaDataType {
                 case UINT32:
                 case STRING:
                 case BOOLEAN:
+                case EMPTY:
                     return JAVA_LANG;
                 case UINT64:
                     return JAVA_MATH;
-                case DECIMAL64:
-                    //TODO: DECIMAL64.
-                    break;
                 case ENUMERATION:
                     return getEnumsPackage(yangType);
+                case DECIMAL64:
                 case BITS:
-                    //TODO:BITS
-                    break;
                 case BINARY:
-                    //TODO:BINARY
-                    break;
+                    return YANG_TYPES_PKG;
                 case LEAFREF:
                     //TODO:LEAFREF
                     break;
                 case IDENTITYREF:
                     //TODO:IDENTITYREF
-                    break;
-                case EMPTY:
-                    //TODO:EMPTY
                     break;
                 case UNION:
                     return getUnionPackage(yangType);
@@ -320,19 +318,14 @@ public final class AttributesJavaDataType {
             switch (type) {
                 case UINT64:
                     return JAVA_MATH;
-                case DECIMAL64:
-                    //TODO: DECIMAL64
-                    break;
                 case STRING:
                     return JAVA_LANG;
                 case ENUMERATION:
                     return getEnumsPackage(yangType);
+                case DECIMAL64:
                 case BITS:
-                    //TODO:BITS
-                    break;
                 case BINARY:
-                    //TODO:BINARY
-                    break;
+                    return YANG_TYPES_PKG;
                 case LEAFREF:
                     //TODO:LEAFREF
                     break;
@@ -340,8 +333,7 @@ public final class AttributesJavaDataType {
                     //TODO:IDENTITYREF
                     break;
                 case EMPTY:
-                    //TODO:EMPTY
-                    break;
+                    return JAVA_LANG;
                 case UNION:
                     return getUnionPackage(yangType);
                 case INSTANCE_IDENTIFIER:

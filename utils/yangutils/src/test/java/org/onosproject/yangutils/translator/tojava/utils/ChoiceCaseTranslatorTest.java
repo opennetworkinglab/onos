@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import java.io.IOException;
+
 import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
@@ -44,7 +45,7 @@ public final class ChoiceCaseTranslatorTest {
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir(userDir + "/target/ChoiceCaseTestGenFile/");
 
-        generateJavaCode(node, yangPluginConfig, "ChoiceCaseTranslator");
+        generateJavaCode(node, yangPluginConfig);
 
         deleteDirectory(userDir + "/target/ChoiceCaseTestGenFile/");
     }

@@ -37,6 +37,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
@@ -47,6 +48,11 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ENUM_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EQUALS_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_ENUM_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_METHOD_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_SUBJECT_ATTRIBUTE_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_SUBJECT_GETTER_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_SUBJECT_SETTER_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_INTERFACE_MASK;
@@ -60,28 +66,37 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.utils.ClassDefinitionGenerator.generateClassDefinition;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getJavaPackageFromPackagePath;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
+import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
+import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT_ANNOTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.IMMEDIATE;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
-import static org.onosproject.yangutils.utils.UtilConstants.ORG;
+import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
+import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
+import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
+import static org.onosproject.yangutils.utils.UtilConstants.TRUE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.BUILDER_INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.ENUM_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT_LISTENER;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.EVENT_SUBJECT_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.IMPL_CLASS;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_INTERFACE;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.RPC_MANAGER;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.parsePkg;
 
 /**
  * Represents utilities for java file generator.
@@ -136,6 +151,7 @@ public final class JavaFileGeneratorUtils {
         if (tempJavaFragmentFiles instanceof TempJavaServiceFragmentFiles) {
             serviceFragmentFiles = (TempJavaServiceFragmentFiles) tempJavaFragmentFiles;
         }
+
         if ((generatedTempFiles & ATTRIBUTES_MASK) != 0) {
             return tempJavaFragmentFiles
                     .getTemporaryDataFromFileHandle(tempJavaFragmentFiles.getAttributesTempFileHandle());
@@ -201,6 +217,36 @@ public final class JavaFileGeneratorUtils {
             }
             return serviceFragmentFiles
                     .getTemporaryDataFromFileHandle(serviceFragmentFiles.getRpcImplTempFileHandle());
+        } else if ((generatedTempFiles & EVENT_ENUM_MASK) != 0) {
+            if (serviceFragmentFiles == null) {
+                throw new TranslatorException("Required rpc implementation info is missing.");
+            }
+            return serviceFragmentFiles
+                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getEventEnumTempFileHandle());
+        } else if ((generatedTempFiles & EVENT_METHOD_MASK) != 0) {
+            if (serviceFragmentFiles == null) {
+                throw new TranslatorException("Required rpc implementation info is missing.");
+            }
+            return serviceFragmentFiles
+                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getEventMethodTempFileHandle());
+        } else if ((generatedTempFiles & EVENT_SUBJECT_GETTER_MASK) != 0) {
+            if (serviceFragmentFiles == null) {
+                throw new TranslatorException("Required rpc implementation info is missing.");
+            }
+            return serviceFragmentFiles
+                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getEventSubjectGetterTempFileHandle());
+        } else if ((generatedTempFiles & EVENT_SUBJECT_SETTER_MASK) != 0) {
+            if (serviceFragmentFiles == null) {
+                throw new TranslatorException("Required rpc implementation info is missing.");
+            }
+            return serviceFragmentFiles
+                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getEventSubjectSetterTempFileHandle());
+        } else if ((generatedTempFiles & EVENT_SUBJECT_ATTRIBUTE_MASK) != 0) {
+            if (serviceFragmentFiles == null) {
+                throw new TranslatorException("Required rpc implementation info is missing.");
+            }
+            return serviceFragmentFiles
+                    .getTemporaryDataFromFileHandle(serviceFragmentFiles.getEventSubjectAttributeTempFileHandle());
         }
         return null;
     }
@@ -213,15 +259,16 @@ public final class JavaFileGeneratorUtils {
      * @param type generated file type
      * @param imports imports for the file
      * @param pkg generated file package
+     * @param pluginConfig plugin configurations
      * @throws IOException when fails to generate a file
      */
     public static void initiateJavaFileGeneration(File file, String className, int type, List<String> imports,
-            String pkg)
+            String pkg, YangPluginConfig pluginConfig)
             throws IOException {
 
         try {
             file.createNewFile();
-            appendContents(file, className, type, imports, pkg);
+            appendContents(file, className, type, imports, pkg, pluginConfig);
         } catch (IOException e) {
             throw new IOException("Failed to create " + file.getName() + " class file.");
         }
@@ -263,9 +310,17 @@ public final class JavaFileGeneratorUtils {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
+        String name = javaFileInfo.getJavaName();
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
-        String pkgString = parsePackageString(path, importsList);
 
+        String pkgString = null;
+        if (type == GENERATE_EVENT_CLASS
+                || type == GENERATE_EVENT_LISTENER_INTERFACE
+                || type == GENERATE_EVENT_SUBJECT_CLASS) {
+            pkgString = parsePackageString(path + PERIOD + name, importsList);
+        } else {
+            pkgString = parsePackageString(path, importsList);
+        }
         switch (type) {
         case INTERFACE_MASK:
             appendHeaderContents(file, pkgString, importsList);
@@ -278,6 +333,14 @@ public final class JavaFileGeneratorUtils {
         case GENERATE_EVENT_CLASS:
             appendHeaderContents(file, pkgString, importsList);
             write(file, type, EVENT, curNode, className);
+            break;
+        case GENERATE_EVENT_LISTENER_INTERFACE:
+            appendHeaderContents(file, pkgString, importsList);
+            write(file, type, EVENT_LISTENER, curNode, className);
+            break;
+        case GENERATE_EVENT_SUBJECT_CLASS:
+            appendHeaderContents(file, pkgString, importsList);
+            write(file, type, EVENT_SUBJECT_CLASS, curNode, className);
             break;
         default:
             break;
@@ -294,37 +357,34 @@ public final class JavaFileGeneratorUtils {
      * @param importsList list of java imports.
      * @throws IOException when fails to append contents
      */
-    private static void appendContents(File file, String fileName, int type, List<String> importsList, String pkg)
+    private static void appendContents(File file, String fileName, int type, List<String> importsList, String pkg,
+            YangPluginConfig pluginConfig)
             throws IOException {
 
         String pkgString = parsePackageString(pkg, importsList);
 
         switch (type) {
         case IMPL_CLASS_MASK:
-            write(file, fileName, type, IMPL_CLASS);
+            write(file, fileName, type, IMPL_CLASS, pluginConfig);
             break;
         case BUILDER_INTERFACE_MASK:
-            write(file, fileName, type, BUILDER_INTERFACE);
+            write(file, fileName, type, BUILDER_INTERFACE, pluginConfig);
             break;
         case GENERATE_TYPEDEF_CLASS:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, type, IMPL_CLASS);
+            write(file, fileName, type, IMPL_CLASS, pluginConfig);
             break;
         case BUILDER_CLASS_MASK:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, type, BUILDER_CLASS);
+            write(file, fileName, type, BUILDER_CLASS, pluginConfig);
             break;
         case GENERATE_UNION_CLASS:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, type, IMPL_CLASS);
+            write(file, fileName, type, IMPL_CLASS, pluginConfig);
             break;
         case GENERATE_ENUM_CLASS:
             appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, type, ENUM_CLASS);
-            break;
-        case GENERATE_EVENT_LISTENER_INTERFACE:
-            appendHeaderContents(file, pkgString, importsList);
-            write(file, fileName, type, EVENT_LISTENER);
+            write(file, fileName, type, ENUM_CLASS, pluginConfig);
             break;
         default:
             break;
@@ -340,10 +400,7 @@ public final class JavaFileGeneratorUtils {
      */
     private static String parsePackageString(String javaPkg, List<String> importsList) {
 
-        if (javaPkg.contains(ORG)) {
-            String[] strArray = javaPkg.split(ORG);
-            javaPkg = ORG + getJavaPackageFromPackagePath(strArray[1]);
-        }
+        javaPkg = parsePkg(getJavaPackageFromPackagePath(javaPkg));
         if (importsList != null) {
             if (!importsList.isEmpty()) {
                 return PACKAGE + SPACE + javaPkg + SEMI_COLAN + NEW_LINE;
@@ -395,14 +452,16 @@ public final class JavaFileGeneratorUtils {
     private static void write(File file, int genType, JavaDocType javaDocType, YangNode curNode, String fileName)
             throws IOException {
 
+        YangPluginConfig pluginConfig = ((JavaFileInfoContainer) curNode).getJavaFileInfo().getPluginConfig();
         if ((genType & GENERATE_SERVICE_AND_MANAGER) != 0) {
             if (!fileName.contains(SERVICE)) {
-                insertDataIntoJavaFile(file, getJavaDoc(RPC_MANAGER, fileName + MANAGER, false));
+                insertDataIntoJavaFile(file, getJavaDoc(RPC_MANAGER, fileName + MANAGER, false, pluginConfig));
+                insertDataIntoJavaFile(file, addComponentString());
             } else {
-                insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false));
+                insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false, pluginConfig));
             }
         } else {
-            insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false));
+            insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false, pluginConfig));
         }
         insertDataIntoJavaFile(file, generateClassDefinition(genType, fileName, curNode));
     }
@@ -416,9 +475,10 @@ public final class JavaFileGeneratorUtils {
      * @param javaDocType java doc type
      * @throws IOException when fails to write into a file
      */
-    private static void write(File file, String fileName, int genType, JavaDocType javaDocType)
+    private static void write(File file, String fileName, int genType, JavaDocType javaDocType,
+            YangPluginConfig pluginConfig)
             throws IOException {
-        insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false));
+        insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false, pluginConfig));
         insertDataIntoJavaFile(file, generateClassDefinition(genType, fileName));
     }
 
@@ -433,4 +493,13 @@ public final class JavaFileGeneratorUtils {
                 + SEMI_COLAN + NEW_LINE;
     }
 
+    /**
+     * Returns component string.
+     *
+     * @return component string
+     */
+    public static String addComponentString() {
+        return NEW_LINE + COMPONENT_ANNOTATION + SPACE + OPEN_PARENTHESIS + IMMEDIATE + SPACE
+                + EQUAL + SPACE + TRUE + CLOSE_PARENTHESIS + NEW_LINE + SERVICE_ANNOTATION;
+    }
 }

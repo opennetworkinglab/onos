@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -35,7 +36,6 @@ import org.onosproject.yangutils.linker.impl.YangLinkerManager;
 import org.onosproject.yangutils.parser.YangUtilsParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
-import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 import org.onosproject.yangutils.translator.tojava.utils.YangToJavaNamingConflictUtil;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
@@ -69,6 +69,7 @@ public class YangUtilManager extends AbstractMojo {
     private Set<YangFileInfo> yangFileInfoSet = new HashSet<>();
     private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
     private YangLinker yangLinker = new YangLinkerManager();
+    private YangFileInfo curYangFileInfo = new YangFileInfo();
 
     private static final String DEFAULT_PKG = SLASH + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
 
@@ -161,7 +162,7 @@ public class YangUtilManager extends AbstractMojo {
                 return;
             }
 
-            //Carry out the parsing for all the YANG files.
+            // Carry out the parsing for all the YANG files.
             parseYangFileInfoSet();
 
             // Resolve dependencies using linker.
@@ -170,13 +171,13 @@ public class YangUtilManager extends AbstractMojo {
             // Perform translation to JAVA.
             translateToJava(getYangFileInfoSet(), yangPlugin);
 
-            addToSource(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG, project, context);
+            addToSource(getDirectory(baseDir, genFilesDir), project, context);
 
             copyYangFilesToTarget(getYangFileInfoSet(), getDirectory(baseDir, outputDirectory), project);
         } catch (Exception e) {
             String fileName = "";
-            if (e instanceof TranslatorException) {
-                fileName = ((TranslatorException) e).getFileName();
+            if (getCurYangFileInfo() != null) {
+                fileName = getCurYangFileInfo().getYangFileName();
             }
             try {
                 translatorErrorHandler(getRootNode());
@@ -198,6 +199,7 @@ public class YangUtilManager extends AbstractMojo {
      */
     public void resolveDependenciesUsingLinker() throws MojoExecutionException {
         for (YangFileInfo yangFileInfo : getYangFileInfoSet()) {
+            setCurYangFileInfo(yangFileInfo);
             try {
                 yangLinker.resolveDependencies(getYangFileInfoSet());
             } catch (LinkerException e) {
@@ -213,6 +215,7 @@ public class YangUtilManager extends AbstractMojo {
      */
     public void parseYangFileInfoSet() throws IOException {
         for (YangFileInfo yangFileInfo : getYangFileInfoSet()) {
+            setCurYangFileInfo(yangFileInfo);
             try {
                 YangNode yangNode = yangUtilsParser.getDataModel(yangFileInfo.getYangFileName());
                 yangFileInfo.setRootNode(yangNode);
@@ -264,7 +267,8 @@ public class YangUtilManager extends AbstractMojo {
         Iterator<YangFileInfo> yangFileIterator = yangFileInfoSet.iterator();
         while (yangFileIterator.hasNext()) {
             YangFileInfo yangFileInfo = yangFileIterator.next();
-            generateJavaCode(yangFileInfo.getRootNode(), yangPlugin, yangFileInfo.getYangFileName());
+            setCurYangFileInfo(yangFileInfo);
+            generateJavaCode(yangFileInfo.getRootNode(), yangPlugin);
         }
     }
 
@@ -297,5 +301,23 @@ public class YangUtilManager extends AbstractMojo {
      */
     public void setYangFileInfoSet(Set<YangFileInfo> yangFileInfoSet) {
         this.yangFileInfoSet = yangFileInfoSet;
+    }
+
+    /**
+     * Returns current YANG file's info.
+     *
+     * @return the yangFileInfo
+     */
+    public YangFileInfo getCurYangFileInfo() {
+        return curYangFileInfo;
+    }
+
+    /**
+     * Sets current YANG file's info.
+     *
+     * @param yangFileInfo the yangFileInfo to set
+     */
+    public void setCurYangFileInfo(YangFileInfo yangFileInfo) {
+        this.curYangFileInfo = yangFileInfo;
     }
 }

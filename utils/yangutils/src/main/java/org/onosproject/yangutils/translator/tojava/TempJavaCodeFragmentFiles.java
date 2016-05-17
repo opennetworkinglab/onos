@@ -21,10 +21,9 @@ import java.io.IOException;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangTypeHolder;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPE_CLASS;
@@ -57,16 +56,6 @@ public class TempJavaCodeFragmentFiles {
     private TempJavaEnumerationFragmentFiles enumerationTempFiles;
 
     /**
-     * Has the temporary files required for generated event classes.
-     */
-    private TempJavaEventFragmentFiles eventTempFiles;
-
-    /**
-     * Has the temporary files required for generated event listenerclasses.
-     */
-    private TempJavaEventListenerFragmentFiles eventListenerTempFiles;
-
-    /**
      * Creates an instance of temporary java code fragment.
      *
      * @param javaFileInfo generated java file info
@@ -79,16 +68,10 @@ public class TempJavaCodeFragmentFiles {
             setBeanTempFiles(new TempJavaBeanFragmentFiles(javaFileInfo));
         }
 
-        /**
-         * Creates user defined data type class file.
-         */
         if ((javaFileInfo.getGeneratedFileTypes() & GENERATE_TYPE_CLASS) != 0) {
             setTypeTempFiles(new TempJavaTypeFragmentFiles(javaFileInfo));
         }
 
-        /**
-         * Creates enumeration class file.
-         */
         if ((javaFileInfo.getGeneratedFileTypes() & GENERATE_ENUM_CLASS) != 0) {
             setEnumerationTempFiles(new TempJavaEnumerationFragmentFiles(javaFileInfo));
         }
@@ -97,13 +80,6 @@ public class TempJavaCodeFragmentFiles {
             setServiceTempFiles(new TempJavaServiceFragmentFiles(javaFileInfo));
         }
 
-        if ((javaFileInfo.getGeneratedFileTypes() & GENERATE_EVENT_CLASS) != 0) {
-            setEventTempFiles(new TempJavaEventFragmentFiles(javaFileInfo));
-        }
-
-        if ((javaFileInfo.getGeneratedFileTypes() & GENERATE_EVENT_LISTENER_INTERFACE) != 0) {
-            setEventListenerTempFiles(new TempJavaEventListenerFragmentFiles(javaFileInfo));
-        }
     }
 
     /**
@@ -180,43 +156,6 @@ public class TempJavaCodeFragmentFiles {
     }
 
     /**
-     * Retrieves the temp file handle for event file generation.
-     *
-     * @return temp file handle for event file generation
-     */
-    public TempJavaEventFragmentFiles getEventTempFiles() {
-        return eventTempFiles;
-    }
-
-    /**
-     * Sets temp file handle for event file generation.
-     *
-     * @param eventTempFiles temp file handle for event file generation
-     */
-    public void setEventTempFiles(TempJavaEventFragmentFiles eventTempFiles) {
-        this.eventTempFiles = eventTempFiles;
-    }
-
-    /**
-     * Retrieves the temp file handle for event listener file generation.
-     *
-     * @return temp file handle for event listener file generation
-     */
-    public TempJavaEventListenerFragmentFiles getEventListenerTempFiles() {
-        return eventListenerTempFiles;
-    }
-
-    /**
-     * Sets temp file handle for event listener file generation.
-     *
-     * @param eventListenerTempFiles temp file handle for event listener file generation
-     */
-    public void setEventListenerTempFiles(
-            TempJavaEventListenerFragmentFiles eventListenerTempFiles) {
-        this.eventListenerTempFiles = eventListenerTempFiles;
-    }
-
-    /**
      * Constructs java code exit.
      *
      * @param fileType generated file type
@@ -238,7 +177,7 @@ public class TempJavaCodeFragmentFiles {
         }
 
         /*
-         * Creats service and manager class file.
+         * Creates service and manager class file.
          */
         if (fileType == GENERATE_SERVICE_AND_MANAGER) {
             getServiceTempFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, curNode);
@@ -251,22 +190,6 @@ public class TempJavaCodeFragmentFiles {
             getEnumerationTempFiles().generateJavaFile(GENERATE_ENUM_CLASS, curNode);
         }
 
-        if ((fileType & GENERATE_EVENT_CLASS) != 0) {
-            /*
-             * Creates event class file.
-             */
-            if (getEventTempFiles() != null) {
-                getEventTempFiles().generateJavaFile(fileType, curNode);
-            }
-        }
-
-        if ((fileType & GENERATE_EVENT_LISTENER_INTERFACE) != 0) {
-            /**
-             * Creates event listener class file.
-             */
-            getEventListenerTempFiles().generateJavaFile(fileType, curNode);
-        }
-
         freeTemporaryResources(false);
     }
 
@@ -275,14 +198,16 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param newAttrInfo the attribute info that needs to be added to temporary
      * files
+     * @param pluginConfig plugin configurations
      * @throws IOException IO operation fail
      */
-    public void addJavaSnippetInfoToApplicableTempFiles(JavaAttributeInfo newAttrInfo)
+    public void addJavaSnippetInfoToApplicableTempFiles(JavaAttributeInfo newAttrInfo,
+            YangPluginConfig pluginConfig)
             throws IOException {
 
         if (getBeanTempFiles() != null) {
             getBeanTempFiles()
-                    .addJavaSnippetInfoToApplicableTempFiles(newAttrInfo);
+                    .addJavaSnippetInfoToApplicableTempFiles(newAttrInfo, pluginConfig);
         }
 
         /**
@@ -290,7 +215,7 @@ public class TempJavaCodeFragmentFiles {
          */
         if (getTypeTempFiles() != null) {
             getTypeTempFiles()
-                    .addJavaSnippetInfoToApplicableTempFiles(newAttrInfo);
+                    .addJavaSnippetInfoToApplicableTempFiles(newAttrInfo, pluginConfig);
         }
     }
 
@@ -299,24 +224,26 @@ public class TempJavaCodeFragmentFiles {
      * generated temporary file.
      *
      * @param yangTypeHolder YANG java data model node which has type info, eg union / typedef
+     * @param pluginConfig plugin configurations for naming convention
      * @throws IOException IO operation fail
      */
-    public void addTypeInfoToTempFiles(YangTypeHolder yangTypeHolder)
+    public void addTypeInfoToTempFiles(YangTypeHolder yangTypeHolder, YangPluginConfig pluginConfig)
             throws IOException {
         getTypeTempFiles()
-                .addTypeInfoToTempFiles(yangTypeHolder);
+                .addTypeInfoToTempFiles(yangTypeHolder, pluginConfig);
     }
 
     /**
      * Adds build method for interface.
      *
+     * @param pluginConfig plugin configurations
      * @return build method for interface
      * @throws IOException when fails to append to temporary file
      */
-    public String addBuildMethodForInterface()
+    public String addBuildMethodForInterface(YangPluginConfig pluginConfig)
             throws IOException {
         if (getBeanTempFiles() != null) {
-            return getBeanTempFiles().addBuildMethodForInterface();
+            return getBeanTempFiles().addBuildMethodForInterface(pluginConfig);
         }
         throw new TranslatorException("build method only supported for bean class");
     }
@@ -326,18 +253,19 @@ public class TempJavaCodeFragmentFiles {
      *
      * @param modifier modifier for constructor.
      * @param toAppend string which need to be appended with the class name
+     * @param pluginConfig plugin configurations
      * @return default constructor for class
      * @throws IOException when fails to append to file
      */
-    public String addDefaultConstructor(String modifier, String toAppend)
+    public String addDefaultConstructor(String modifier, String toAppend, YangPluginConfig pluginConfig)
             throws IOException {
         if (getTypeTempFiles() != null) {
             return getTypeTempFiles()
-                    .addDefaultConstructor(modifier, toAppend);
+                    .addDefaultConstructor(modifier, toAppend, pluginConfig);
         }
 
         if (getBeanTempFiles() != null) {
-            return getBeanTempFiles().addDefaultConstructor(modifier, toAppend);
+            return getBeanTempFiles().addDefaultConstructor(modifier, toAppend, pluginConfig);
         }
 
         throw new TranslatorException("default constructor should not be added");
@@ -380,13 +308,10 @@ public class TempJavaCodeFragmentFiles {
             getEnumerationTempFiles().freeTemporaryResources(isErrorOccurred);
         }
 
-        if (getEventTempFiles() != null) {
-            getEventTempFiles().freeTemporaryResources(isErrorOccurred);
+        if (getServiceTempFiles() != null) {
+            getServiceTempFiles().freeTemporaryResources(isErrorOccurred);
         }
 
-        if (getEventListenerTempFiles() != null) {
-            getEventListenerTempFiles().freeTemporaryResources(isErrorOccurred);
-        }
     }
 
 }

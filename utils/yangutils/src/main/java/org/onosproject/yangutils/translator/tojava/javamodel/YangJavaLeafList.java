@@ -29,6 +29,7 @@ public class YangJavaLeafList
         extends YangLeafList
         implements JavaLeafInfoContainer {
     private JavaQualifiedTypeInfo javaQualifiedAccess;
+    private YangToJavaNamingConflictUtil conflictResolveConfig;
 
     /**
      * Returns a new YANG leaf object with java qualified access details.
@@ -61,5 +62,25 @@ public class YangJavaLeafList
     @Override
     public void setJavaQualifiedInfo(JavaQualifiedTypeInfo typeInfo) {
         javaQualifiedAccess = typeInfo;
+    }
+
+    /**
+     * Returns java naming conflict resolve configurations.
+     *
+     * @return java naming conflict resolve configurations
+     */
+    @Override
+    public YangToJavaNamingConflictUtil getConflictResolveConfig() {
+        return conflictResolveConfig;
+    }
+
+    /**
+     * Sets java naming conflict resolve configurations.
+     *
+     * @param conflictResolveConfig java naming conflict resolve configurations
+     */
+    @Override
+    public void setConflictResolveConfig(YangToJavaNamingConflictUtil conflictResolveConfig) {
+        this.conflictResolveConfig = conflictResolveConfig;
     }
 }

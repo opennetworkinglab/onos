@@ -30,6 +30,7 @@ public class YangJavaLeaf
         implements JavaLeafInfoContainer {
 
     private JavaQualifiedTypeInfo javaQualifiedAccess;
+    private YangToJavaNamingConflictUtil conflictResolveConfig;
 
     /**
      * Returns a new YANG leaf object with java qualified access details.
@@ -50,6 +51,7 @@ public class YangJavaLeaf
 
     }
 
+    @Override
     public String getJavaName(YangToJavaNamingConflictUtil conflictResolveConfig) {
         return getCamelCase(getName(), conflictResolveConfig);
     }
@@ -63,4 +65,23 @@ public class YangJavaLeaf
     public void updateJavaQualifiedInfo() {
         updateLeavesJavaQualifiedInfo(this);
     }
+
+    /**
+     * Returns java naming conflict resolve configurations.
+     *
+     * @return java naming conflict resolve configurations
+     */
+    public YangToJavaNamingConflictUtil getConflictResolveConfig() {
+        return conflictResolveConfig;
+    }
+
+    /**
+     * Sets java naming conflict resolve configurations.
+     *
+     * @param conflictResolveConfig java naming conflict resolve configurations
+     */
+    public void setConflictResolveConfig(YangToJavaNamingConflictUtil conflictResolveConfig) {
+        this.conflictResolveConfig = conflictResolveConfig;
+    }
+
 }

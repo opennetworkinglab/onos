@@ -60,8 +60,8 @@ public final class YangFileScanner {
      *                              operations
      */
     public static List<String> getYangFiles(String root) throws IOException {
-        List<String> yangFiles = getFiles(root, YANG_FILE_EXTENTION);
-        return yangFiles;
+
+        return getFiles(root, YANG_FILE_EXTENTION);
     }
 
     /**

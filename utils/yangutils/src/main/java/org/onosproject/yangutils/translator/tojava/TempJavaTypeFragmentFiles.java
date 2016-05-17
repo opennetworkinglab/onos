@@ -26,6 +26,7 @@ import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeHolder;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaType;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
@@ -196,9 +197,10 @@ public class TempJavaTypeFragmentFiles
      *
      * @param yangTypeHolder YANG java data model node which has type info, eg union /
      * typedef
+     * @param pluginConfig plugin configurations for naming conventions
      * @throws IOException IO operation fail
      */
-    public void addTypeInfoToTempFiles(YangTypeHolder yangTypeHolder)
+    public void addTypeInfoToTempFiles(YangTypeHolder yangTypeHolder, YangPluginConfig pluginConfig)
             throws IOException {
 
         List<YangType<?>> typeList = yangTypeHolder.getTypeList();
@@ -208,18 +210,19 @@ public class TempJavaTypeFragmentFiles
                     throw new TranslatorException("Type does not have Java info");
                 }
                 YangJavaType<?> javaType = (YangJavaType<?>) yangType;
-                javaType.updateJavaQualifiedInfo();
+                javaType.updateJavaQualifiedInfo(pluginConfig.getConflictResolver());
                 String typeName = javaType.getDataTypeName();
 
                 if (javaType.getDataType().equals(DERIVED)) {
-                    typeName = getCamelCase(typeName, null);
+                    typeName = getCamelCase(typeName, pluginConfig.getConflictResolver());
                 }
                 JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
                         javaType.getJavaQualifiedInfo(),
                         typeName, javaType,
                         getIsQualifiedAccessOrAddToImportList(javaType.getJavaQualifiedInfo()),
                         false);
-                addJavaSnippetInfoToApplicableTempFiles((YangNode) yangTypeHolder, javaAttributeInfo);
+                addJavaSnippetInfoToApplicableTempFiles((YangNode) yangTypeHolder, javaAttributeInfo,
+                        pluginConfig);
             }
         }
     }
@@ -231,18 +234,20 @@ public class TempJavaTypeFragmentFiles
      * @param hasType the node for which the type is being added as an attribute
      * @param javaAttributeInfo the attribute info that needs to be added to
      * temporary files
+     * @param pluginConfig plugin configurations
      * @throws IOException IO operation fail
      */
-    private void addJavaSnippetInfoToApplicableTempFiles(YangNode hasType, JavaAttributeInfo javaAttributeInfo)
+    private void addJavaSnippetInfoToApplicableTempFiles(YangNode hasType, JavaAttributeInfo javaAttributeInfo,
+            YangPluginConfig pluginConfig)
             throws IOException {
 
-        super.addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo);
+        super.addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo, pluginConfig);
 
         if ((getGeneratedTempFiles() & OF_STRING_IMPL_MASK) != 0) {
-            addOfStringMethod(javaAttributeInfo);
+            addOfStringMethod(javaAttributeInfo, pluginConfig);
         }
         if ((getGeneratedTempFiles() & CONSTRUCTOR_FOR_TYPE_MASK) != 0) {
-            addTypeConstructor(javaAttributeInfo);
+            addTypeConstructor(javaAttributeInfo, pluginConfig);
         }
     }
 
@@ -250,24 +255,26 @@ public class TempJavaTypeFragmentFiles
      * Adds type constructor.
      *
      * @param attr attribute info
+     * @param pluginConfig plugin configurations
      * @throws IOException when fails to append to temporary file
      */
-    private void addTypeConstructor(JavaAttributeInfo attr)
+    private void addTypeConstructor(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
             throws IOException {
         appendToFile(getConstructorForTypeTempFileHandle(), getTypeConstructorStringAndJavaDoc(attr,
-                getGeneratedJavaClassName()) + NEW_LINE);
+                getGeneratedJavaClassName(), pluginConfig) + NEW_LINE);
     }
 
     /**
      * Adds of string for type.
      *
      * @param attr attribute info
+     * @param pluginConfig plugin configurations
      * @throws IOException when fails to append to temporary file
      */
-    private void addOfStringMethod(JavaAttributeInfo attr)
+    private void addOfStringMethod(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
             throws IOException {
         appendToFile(getOfStringImplTempFileHandle(), getOfMethodStringAndJavaDoc(attr,
-                getGeneratedJavaClassName())
+                getGeneratedJavaClassName(), pluginConfig)
                 + NEW_LINE);
     }
 

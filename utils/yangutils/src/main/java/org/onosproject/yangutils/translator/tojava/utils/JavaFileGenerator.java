@@ -27,6 +27,7 @@ import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaEnumerationFragmentFiles;
+import org.onosproject.yangutils.translator.tojava.TempJavaServiceFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
@@ -34,6 +35,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
@@ -44,6 +46,11 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.ENUM_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EQUALS_IMPL_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_ENUM_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_METHOD_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_SUBJECT_ATTRIBUTE_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_SUBJECT_GETTER_MASK;
+import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.EVENT_SUBJECT_SETTER_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.FROM_STRING_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.GETTER_FOR_INTERFACE_MASK;
@@ -59,6 +66,8 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerato
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getEnumsValueAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.initiateJavaFileGeneration;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.addActivateMethod;
+import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.addDeActivateMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAddAugmentInfoMethodImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentInfoListImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getConstructorStart;
@@ -75,6 +84,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRemoveAugmentationImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodOpen;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.getEventEnumTypeStart;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isAugmentationHolderExtended;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
@@ -82,20 +92,22 @@ import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_LISTENER_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.EVENT_SUBJECT_NAME_SUFFIX;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
+import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_STATEMENT;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_METHOD_STRING;
+import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.GETTER_METHOD;
 import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.JavaDocType.TYPE_CONSTRUCTOR;
-import static org.onosproject.yangutils.utils.io.impl.JavaDocGen.getJavaDoc;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.insertDataIntoJavaFile;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.partString;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.validateLineLength;
 
 /**
  * Representation of java file generator.
@@ -141,7 +153,7 @@ public final class JavaFileGenerator {
                         + " while interface file generation");
             }
         }
-        return file;
+        return validateLineLength(file);
     }
 
     /**
@@ -157,11 +169,12 @@ public final class JavaFileGenerator {
             throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
+        YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
 
         String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
-        initiateJavaFileGeneration(file, className, BUILDER_INTERFACE_MASK, null, path);
+        initiateJavaFileGeneration(file, className, BUILDER_INTERFACE_MASK, null, path, pluginConfig);
         List<String> methods = new ArrayList<>();
         if (isAttrPresent) {
             try {
@@ -188,7 +201,7 @@ public final class JavaFileGenerator {
          */
         methods.add(
                 ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                        .addBuildMethodForInterface());
+                        .addBuildMethodForInterface(pluginConfig));
 
         /**
          * Add getters and setters in builder interface.
@@ -198,7 +211,7 @@ public final class JavaFileGenerator {
         }
 
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
-        return file;
+        return validateLineLength(file);
     }
 
     /**
@@ -216,11 +229,12 @@ public final class JavaFileGenerator {
             throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
+        YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
 
         String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
-        initiateJavaFileGeneration(file, className, BUILDER_CLASS_MASK, imports, path);
+        initiateJavaFileGeneration(file, className, BUILDER_CLASS_MASK, imports, path, pluginConfig);
 
         List<String> methods = new ArrayList<>();
 
@@ -265,7 +279,7 @@ public final class JavaFileGenerator {
         methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                 .addBuildMethodImpl());
         methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                .addDefaultConstructor(PUBLIC, BUILDER));
+                .addDefaultConstructor(PUBLIC, BUILDER, pluginConfig));
 
         /**
          * Add methods in builder class.
@@ -273,7 +287,7 @@ public final class JavaFileGenerator {
         for (String method : methods) {
             insertDataIntoJavaFile(file, method);
         }
-        return file;
+        return validateLineLength(file);
     }
 
     /**
@@ -297,6 +311,10 @@ public final class JavaFileGenerator {
         initiateJavaFileGeneration(file, GENERATE_SERVICE_AND_MANAGER, imports, curNode, className);
 
         List<String> methods = new ArrayList<>();
+
+        insertDataIntoJavaFile(file, LOGGER_STATEMENT);
+        methods.add(addActivateMethod());
+        methods.add(addDeActivateMethod());
 
         try {
             if (isAttrPresent) {
@@ -338,7 +356,7 @@ public final class JavaFileGenerator {
         for (String method : methods) {
             insertDataIntoJavaFile(file, method);
         }
-        return file;
+        return validateLineLength(file);
     }
 
     /**
@@ -354,11 +372,12 @@ public final class JavaFileGenerator {
             throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
+        YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
 
         String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
-        initiateJavaFileGeneration(file, className, IMPL_CLASS_MASK, null, path);
+        initiateJavaFileGeneration(file, className, IMPL_CLASS_MASK, null, path, pluginConfig);
 
         List<String> methods = new ArrayList<>();
 
@@ -398,10 +417,10 @@ public final class JavaFileGenerator {
                 /**
                  * Hash code method.
                  */
-                methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() + partString(
+                methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() +
                         getDataFromTempFileHandle(HASH_CODE_IMPL_MASK,
                                 ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                                        .getBeanTempFiles()).replace(NEW_LINE, EMPTY_STRING))));
+                                        .getBeanTempFiles()).replace(NEW_LINE, EMPTY_STRING)));
                 /**
                  * Equals method.
                  */
@@ -429,9 +448,10 @@ public final class JavaFileGenerator {
             /**
              * Constructor.
              */
-            String constructor = getConstructorStart(className) + getDataFromTempFileHandle(CONSTRUCTOR_IMPL_MASK,
-                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                            .getBeanTempFiles());
+            String constructor =
+                    getConstructorStart(className, pluginConfig) + getDataFromTempFileHandle(CONSTRUCTOR_IMPL_MASK,
+                            ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                                    .getBeanTempFiles());
 
             methods.add(constructor + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET);
         } catch (IOException e) {
@@ -456,7 +476,7 @@ public final class JavaFileGenerator {
         }
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
 
-        return file;
+        return validateLineLength(file);
     }
 
     /**
@@ -472,11 +492,12 @@ public final class JavaFileGenerator {
             throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
+        YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
 
         String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
-        initiateJavaFileGeneration(file, className, GENERATE_TYPEDEF_CLASS, imports, path);
+        initiateJavaFileGeneration(file, className, GENERATE_TYPEDEF_CLASS, imports, path, pluginConfig);
 
         List<String> methods = new ArrayList<>();
 
@@ -497,7 +518,7 @@ public final class JavaFileGenerator {
          * Default constructor.
          */
         methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                .addDefaultConstructor(PRIVATE, EMPTY_STRING));
+                .addDefaultConstructor(PRIVATE, EMPTY_STRING, pluginConfig));
 
         try {
 
@@ -522,11 +543,11 @@ public final class JavaFileGenerator {
             /**
              * Hash code method.
              */
-            methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() + partString(
+            methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() +
                     getDataFromTempFileHandle(HASH_CODE_IMPL_MASK,
                             ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                                     .getTypeTempFiles())
-                            .replace(NEW_LINE, EMPTY_STRING))));
+                                            .replace(NEW_LINE, EMPTY_STRING)));
 
             /**
              * Equals method.
@@ -546,7 +567,7 @@ public final class JavaFileGenerator {
             /**
              * From string method.
              */
-            methods.add(getFromStringMethodSignature(className)
+            methods.add(getFromStringMethodSignature(className, pluginConfig)
                     + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK, javaGeninfo.getTempJavaCodeFragmentFiles()
                     .getTypeTempFiles()) + getFromStringMethodClose());
 
@@ -560,7 +581,7 @@ public final class JavaFileGenerator {
         }
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
 
-        return file;
+        return validateLineLength(file);
     }
 
     /**
@@ -576,11 +597,12 @@ public final class JavaFileGenerator {
             throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
+        YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
 
         String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
-        initiateJavaFileGeneration(file, className, GENERATE_UNION_CLASS, imports, path);
+        initiateJavaFileGeneration(file, className, GENERATE_UNION_CLASS, imports, path, pluginConfig);
 
         List<String> methods = new ArrayList<>();
 
@@ -601,7 +623,7 @@ public final class JavaFileGenerator {
          * Default constructor.
          */
         methods.add(((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                .addDefaultConstructor(PRIVATE, EMPTY_STRING));
+                .addDefaultConstructor(PRIVATE, EMPTY_STRING, pluginConfig));
 
         try {
 
@@ -626,11 +648,11 @@ public final class JavaFileGenerator {
             /**
              * Hash code method.
              */
-            methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() + partString(
+            methods.add(getHashCodeMethodClose(getHashCodeMethodOpen() +
                     getDataFromTempFileHandle(HASH_CODE_IMPL_MASK,
                             ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                                     .getTypeTempFiles())
-                            .replace(NEW_LINE, EMPTY_STRING))));
+                                            .replace(NEW_LINE, EMPTY_STRING)));
 
             /**
              * Equals method.
@@ -650,7 +672,7 @@ public final class JavaFileGenerator {
             /**
              * From string method.
              */
-            methods.add(getFromStringMethodSignature(className)
+            methods.add(getFromStringMethodSignature(className, pluginConfig)
                     + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK,
                     ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getTypeTempFiles())
                     + getFromStringMethodClose());
@@ -665,7 +687,7 @@ public final class JavaFileGenerator {
         }
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
 
-        return file;
+        return validateLineLength(file);
     }
 
     /**
@@ -680,11 +702,12 @@ public final class JavaFileGenerator {
             throws IOException {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
+        YangPluginConfig pluginConfig = javaFileInfo.getPluginConfig();
 
         String className = javaFileInfo.getJavaName();
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
-        initiateJavaFileGeneration(file, getCapitalCase(className), GENERATE_ENUM_CLASS, null, path);
+        initiateJavaFileGeneration(file, getCapitalCase(className), GENERATE_ENUM_CLASS, null, path, pluginConfig);
         /**
          * Add attribute strings.
          */
@@ -708,26 +731,26 @@ public final class JavaFileGenerator {
         /**
          * Add a constructor for enum.
          */
-        insertDataIntoJavaFile(file, getJavaDoc(TYPE_CONSTRUCTOR, className, false)
+        insertDataIntoJavaFile(file, getJavaDoc(TYPE_CONSTRUCTOR, className, false, pluginConfig)
                 + getEnumsConstrcutor(getCapitalCase(className)) + NEW_LINE);
 
         TempJavaEnumerationFragmentFiles enumFragFiles =
                 ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                         .getEnumerationTempFiles();
         insertDataIntoJavaFile(file, getEnumsOfMethod(className,
-                enumFragFiles.getJavaAttributeForEnum(),
+                enumFragFiles.getJavaAttributeForEnum(pluginConfig),
                 enumFragFiles.getEnumSetJavaMap(),
-                enumFragFiles.getEnumStringList())
+                enumFragFiles.getEnumStringList(), pluginConfig)
                 + NEW_LINE);
 
         /**
          * Add a getter method for enum.
          */
-        insertDataIntoJavaFile(file, getJavaDoc(GETTER_METHOD, className, false)
+        insertDataIntoJavaFile(file, getJavaDoc(GETTER_METHOD, className, false, pluginConfig)
                 + getGetter(INT, className, GENERATE_ENUM_CLASS) + NEW_LINE);
 
         try {
-            insertDataIntoJavaFile(file, getFromStringMethodSignature(getCapitalCase(className))
+            insertDataIntoJavaFile(file, getFromStringMethodSignature(getCapitalCase(className), pluginConfig)
                     + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK,
                             ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                                     .getEnumerationTempFiles())
@@ -739,7 +762,7 @@ public final class JavaFileGenerator {
 
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
 
-        return file;
+        return validateLineLength(file);
     }
 
     /**
@@ -797,7 +820,7 @@ public final class JavaFileGenerator {
         }
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
 
-        return file;
+        return validateLineLength(file);
     }
 
     /**
@@ -810,49 +833,28 @@ public final class JavaFileGenerator {
      */
     public static void generateEventFile(File file, YangNode curNode, List<String> imports) throws IOException {
 
-        YangNode parent = curNode.getParent();
-        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
-
         String className =
-                getCapitalCase(((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName())
+                getCapitalCase(((JavaFileInfoContainer) curNode).getJavaFileInfo().getJavaName())
                         + EVENT_STRING;
 
-        initiateJavaFileGeneration(file, GENERATE_EVENT_CLASS, imports, curNode, className);
-        insertDataIntoJavaFile(file, getEventFileContents(className, javaFileInfo.getJavaName()));
-        insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
-    }
+        TempJavaServiceFragmentFiles tempFiles = ((TempJavaCodeFragmentFilesContainer) curNode)
+                .getTempJavaCodeFragmentFiles().getServiceTempFiles();
 
-    private static String getEventFileContents(String eventClassname, String classname) {
-        return "\n" +
-                "    public enum Type {\n" +
-                "        /**\n" +
-                "         * " + getCapitalCase(classname) + " notification.\n" +
-                "         */\n" +
-                "        " + classname.toUpperCase() + "_EVENT\n" +
-                "    }\n" +
-                "\n" +
-                "    /**\n" +
-                "     * Creates " + classname + " event with type and subject.\n" +
-                "     *\n" +
-                "     * @param type event type\n" +
-                "     * @param subject subject " + classname + "\n" +
-                "     */\n" +
-                "    public " + eventClassname + "(Type type, " + getCapitalCase(classname) + " subject) {\n" +
-                "        super(type, subject);\n" +
-                "    }\n" +
-                "\n" +
-                "    /**\n" +
-                "     * Creates " + classname + " event with type, subject and time.\n" +
-                "     *\n" +
-                "     * @param type event type\n" +
-                "     * @param subject subject " + classname + "\n" +
-                "     * @param time time of event\n" +
-                "     */\n" +
-                "    public " + eventClassname + "(Type type, " + getCapitalCase(classname)
-                + " subject, long time) {\n" +
-                "        super(type, subject, time);\n" +
-                "    }\n" +
-                "\n";
+        initiateJavaFileGeneration(file, GENERATE_EVENT_CLASS, imports, curNode, className);
+        try {
+            insertDataIntoJavaFile(file, NEW_LINE + getEventEnumTypeStart() +
+                    trimAtLast(getDataFromTempFileHandle(EVENT_ENUM_MASK, tempFiles), COMMA)
+                    + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET + NEW_LINE);
+
+            insertDataIntoJavaFile(file, getDataFromTempFileHandle(EVENT_METHOD_MASK, tempFiles));
+
+        } catch (IOException e) {
+            throw new IOException("No data found in temporary java code fragment files for " + className
+                    + " while event class file generation");
+        }
+
+        insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
+        validateLineLength(file);
     }
 
     /**
@@ -865,15 +867,48 @@ public final class JavaFileGenerator {
      */
     public static void generateEventListenerFile(File file, YangNode curNode, List<String> imports)
             throws IOException {
-        YangNode parent = curNode.getParent();
-        JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className =
-                getCapitalCase(((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName())
+                getCapitalCase(((JavaFileInfoContainer) curNode).getJavaFileInfo().getJavaName())
                         + EVENT_LISTENER_STRING;
-        String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
-        initiateJavaFileGeneration(file, className, GENERATE_EVENT_LISTENER_INTERFACE, imports, path);
+        initiateJavaFileGeneration(file, GENERATE_EVENT_LISTENER_INTERFACE, imports, curNode, className);
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
+        validateLineLength(file);
+    }
+
+    /**
+     * Generates event subject's file.
+     *
+     * @param file file handle
+     * @param curNode current YANG node
+     * @throws IOException when fails to do IO exceptions
+     */
+    public static void generateEventSubjectFile(File file, YangNode curNode)
+            throws IOException {
+
+        String className = getCapitalCase(((JavaFileInfoContainer) curNode).getJavaFileInfo().getJavaName())
+                + EVENT_SUBJECT_NAME_SUFFIX;
+
+        initiateJavaFileGeneration(file, GENERATE_EVENT_SUBJECT_CLASS, null, curNode, className);
+
+        TempJavaServiceFragmentFiles tempFiles = ((TempJavaCodeFragmentFilesContainer) curNode)
+                .getTempJavaCodeFragmentFiles().getServiceTempFiles();
+
+        insertDataIntoJavaFile(file, NEW_LINE);
+        try {
+            insertDataIntoJavaFile(file, getDataFromTempFileHandle(EVENT_SUBJECT_ATTRIBUTE_MASK, tempFiles));
+
+            insertDataIntoJavaFile(file, getDataFromTempFileHandle(EVENT_SUBJECT_GETTER_MASK, tempFiles));
+
+            insertDataIntoJavaFile(file, getDataFromTempFileHandle(EVENT_SUBJECT_SETTER_MASK, tempFiles));
+
+        } catch (IOException e) {
+            throw new IOException("No data found in temporary java code fragment files for " + className
+                    + " while event class file generation");
+        }
+
+        insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
+        validateLineLength(file);
     }
 }

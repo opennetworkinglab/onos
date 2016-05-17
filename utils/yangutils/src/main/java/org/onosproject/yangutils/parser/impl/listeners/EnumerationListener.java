@@ -138,8 +138,8 @@ public final class EnumerationListener {
                      * integer number, this is done because under union there
                      * could be multiple child union types.
                      */
-                    enumerationNode.setName(yangUnion.getName() + yangUnion.getChildUnionNumber()
-                            + ENUMERATION_CLASS_SUFFIX);
+                    enumerationNode.setName(yangUnion.getName() + ENUMERATION_CLASS_SUFFIX
+                            + yangUnion.getChildUnionNumber());
                     // Increment the running number.
                     yangUnion.setChildUnionNumber(yangUnion.getChildUnionNumber() + 1);
                     // Add union as a child to parent union.

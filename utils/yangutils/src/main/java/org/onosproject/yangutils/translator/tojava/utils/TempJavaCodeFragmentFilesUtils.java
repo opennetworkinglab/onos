@@ -35,24 +35,35 @@ import static java.util.Collections.sort;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
+import static org.onosproject.yangutils.utils.UtilConstants.ACTIVATE_ANNOTATION_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.ADD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION_HOLDER;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_PARENTHESIS;
+import static org.onosproject.yangutils.utils.UtilConstants.COMPONENT_ANNOTATION_IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.DEACTIVATE_ANNOTATION_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
+import static org.onosproject.yangutils.utils.UtilConstants.ENUM;
 import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
+import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
+import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_FACTORY_IMPORT;
+import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
+import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
+import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION_IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.THIS;
+import static org.onosproject.yangutils.utils.UtilConstants.TYPE;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.updateFileHandle;
 
 /**
@@ -101,12 +112,6 @@ public final class TempJavaCodeFragmentFilesUtils {
                 .getTempJavaCodeFragmentFiles();
         if (container.getBeanTempFiles() != null) {
             return container.getBeanTempFiles();
-        }
-        if (container.getEventTempFiles() != null) {
-            return container.getEventTempFiles();
-        }
-        if (container.getEventListenerTempFiles() != null) {
-            return container.getEventListenerTempFiles();
         }
         if (container.getServiceTempFiles() != null) {
             return container.getServiceTempFiles();
@@ -234,6 +239,31 @@ public final class TempJavaCodeFragmentFilesUtils {
     }
 
     /**
+     * Adds annotations imports.
+     *
+     * @param imports list if imports
+     * @param operation to add or to delete
+     */
+    public static void addAnnotationsImports(List<String> imports, boolean operation) {
+        if (operation) {
+            imports.add(ACTIVATE_ANNOTATION_IMPORT);
+            imports.add(DEACTIVATE_ANNOTATION_IMPORT);
+            imports.add(COMPONENT_ANNOTATION_IMPORT);
+            imports.add(SERVICE_ANNOTATION_IMPORT);
+            imports.add(LOGGER_FACTORY_IMPORT);
+            imports.add(LOGGER_IMPORT);
+        } else {
+            imports.remove(ACTIVATE_ANNOTATION_IMPORT);
+            imports.remove(DEACTIVATE_ANNOTATION_IMPORT);
+            imports.remove(COMPONENT_ANNOTATION_IMPORT);
+            imports.remove(SERVICE_ANNOTATION_IMPORT);
+            imports.remove(LOGGER_FACTORY_IMPORT);
+            imports.remove(LOGGER_IMPORT);
+        }
+        sortImports(imports);
+    }
+
+    /**
      * Performs given operations on import list.
      *
      * @param imports list of imports
@@ -328,4 +358,13 @@ public final class TempJavaCodeFragmentFilesUtils {
         return imports;
     }
 
+    /**
+     * Returns event enum start.
+     *
+     * @return event enum start
+     */
+    public static String getEventEnumTypeStart() {
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + ENUM + SPACE + TYPE + SPACE + OPEN_CURLY_BRACKET
+                + NEW_LINE;
+    }
 }

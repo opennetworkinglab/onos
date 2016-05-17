@@ -57,4 +57,19 @@ public interface JavaLeafInfoContainer
      * updates the qualified info.
      */
     void updateJavaQualifiedInfo();
+
+    /**
+     * Returns java naming conflict resolver.
+     *
+     * @return  java naming conflict resolver
+     */
+    YangToJavaNamingConflictUtil getConflictResolveConfig();
+
+    /**
+     * Sets  java naming conflict resolver.
+     *
+     * @param conflictResolveConfig  java naming conflict resolver
+     */
+    void setConflictResolveConfig(YangToJavaNamingConflictUtil conflictResolveConfig);
+
 }

@@ -795,35 +795,40 @@ public class TempJavaFragmentFiles {
      * Adds attribute for class.
      *
      * @param attr attribute info
+     * @param pluginConfig plugin configurations
      * @throws IOException when fails to append to temporary file
      */
-    private void addAttribute(JavaAttributeInfo attr)
+    private void addAttribute(JavaAttributeInfo attr, YangPluginConfig yangPluginConfig)
             throws IOException {
-        appendToFile(getAttributesTempFileHandle(), parseAttribute(attr) + FOUR_SPACE_INDENTATION);
+        appendToFile(getAttributesTempFileHandle(), parseAttribute(attr, yangPluginConfig)
+                + FOUR_SPACE_INDENTATION);
     }
 
     /**
      * Adds getter for interface.
      *
      * @param attr attribute info
+     * @param pluginConfig plugin configurations
      * @throws IOException when fails to append to temporary file
      */
-    private void addGetterForInterface(JavaAttributeInfo attr)
+    private void addGetterForInterface(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
             throws IOException {
         appendToFile(getGetterInterfaceTempFileHandle(),
-                getGetterString(attr, getGeneratedJavaFiles()) + NEW_LINE);
+                getGetterString(attr, getGeneratedJavaFiles(), pluginConfig) + NEW_LINE);
     }
 
     /**
      * Adds setter for interface.
      *
      * @param attr attribute info
+     * @param pluginConfig plugin configurations
      * @throws IOException when fails to append to temporary file
      */
-    private void addSetterForInterface(JavaAttributeInfo attr)
+    private void addSetterForInterface(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
             throws IOException {
         appendToFile(getSetterInterfaceTempFileHandle(),
-                getSetterString(attr, getGeneratedJavaClassName(), getGeneratedJavaFiles()) + NEW_LINE);
+                getSetterString(attr, getGeneratedJavaClassName(), getGeneratedJavaFiles(), pluginConfig)
+                        + NEW_LINE);
     }
 
     /**
@@ -844,9 +849,10 @@ public class TempJavaFragmentFiles {
      * Adds getter method's impl for class.
      *
      * @param attr attribute info
+     * @param pluginConfig plugin configurations
      * @throws IOException when fails to append to temporary file
      */
-    private void addGetterImpl(JavaAttributeInfo attr)
+    private void addGetterImpl(JavaAttributeInfo attr, YangPluginConfig pluginConfig)
             throws IOException {
         if ((getGeneratedJavaFiles() & BUILDER_CLASS_MASK) != 0
                 || (getGeneratedJavaFiles() & GENERATE_SERVICE_AND_MANAGER) != 0) {
@@ -854,7 +860,7 @@ public class TempJavaFragmentFiles {
                     getGeneratedJavaFiles()) + NEW_LINE);
         } else {
             appendToFile(getGetterImplTempFileHandle(),
-                    getJavaDoc(GETTER_METHOD, getCapitalCase(attr.getAttributeName()), false)
+                    getJavaDoc(GETTER_METHOD, getCapitalCase(attr.getAttributeName()), false, pluginConfig)
                             + getGetterForClass(attr, getGeneratedJavaFiles()) + NEW_LINE);
         }
     }
@@ -863,11 +869,12 @@ public class TempJavaFragmentFiles {
      * Adds build method for interface.
      *
      * @return build method for interface
+     * @param pluginConfig plugin configurations
      * @throws IOException when fails to append to temporary file
      */
-    String addBuildMethodForInterface()
+    String addBuildMethodForInterface(YangPluginConfig pluginConfig)
             throws IOException {
-        return parseBuilderInterfaceBuildMethodString(getGeneratedJavaClassName());
+        return parseBuilderInterfaceBuildMethodString(getGeneratedJavaClassName(), pluginConfig);
     }
 
     /**
@@ -886,23 +893,26 @@ public class TempJavaFragmentFiles {
      *
      * @param modifier modifier for constructor.
      * @param toAppend string which need to be appended with the class name
+     * @param pluginConfig plugin configurations
      * @return default constructor for class
      * @throws IOException when fails to append to file
      */
-    String addDefaultConstructor(String modifier, String toAppend)
+    String addDefaultConstructor(String modifier, String toAppend, YangPluginConfig pluginConfig)
             throws IOException {
-        return NEW_LINE + getDefaultConstructorString(getGeneratedJavaClassName() + toAppend, modifier);
+        return NEW_LINE
+                + getDefaultConstructorString(getGeneratedJavaClassName() + toAppend, modifier, pluginConfig);
     }
 
     /**
      * Adds default constructor for class.
      *
+     * @param pluginCnfig plugin configurations
      * @return default constructor for class
      * @throws IOException when fails to append to file
      */
-    public String addOfMethod()
+    public String addOfMethod(YangPluginConfig pluginCnfig)
             throws IOException {
-        return getJavaDoc(OF_METHOD, getGeneratedJavaClassName(), false)
+        return getJavaDoc(OF_METHOD, getGeneratedJavaClassName(), false, pluginCnfig)
                 + getOfMethod(getGeneratedJavaClassName(), null);
     }
 
@@ -994,6 +1004,7 @@ public class TempJavaFragmentFiles {
      */
     public String getTemporaryDataFromFileHandle(File file)
             throws IOException {
+
         String path = getTempDirPath();
         if (new File(path + file.getName()).exists()) {
             return readAppendFile(path + file.getName(), EMPTY_STRING);
@@ -1017,13 +1028,14 @@ public class TempJavaFragmentFiles {
      * Parses attribute to get the attribute string.
      *
      * @param attr attribute info
+     * @param pluginConfig plugin configurations
      * @return attribute string
      */
-    private String parseAttribute(JavaAttributeInfo attr) {
+    public String parseAttribute(JavaAttributeInfo attr, YangPluginConfig pluginConfig) {
         /*
          * TODO: check if this utility needs to be called or move to the caller
          */
-        String attributeName = getCamelCase(attr.getAttributeName(), null);
+        String attributeName = getCamelCase(attr.getAttributeName(), pluginConfig.getConflictResolver());
         if (attr.isQualifiedName()) {
             return getJavaAttributeDefination(attr.getImportInfo().getPkgInfo(),
                     attr.getImportInfo().getClassInfo(),
@@ -1056,10 +1068,11 @@ public class TempJavaFragmentFiles {
      * @param curNode current node which needs to be added as an attribute in
      * the parent generated code
      * @param isList is list construct
+     * @param pluginConfig plugin configurations
      * @throws IOException IO operation exception
      */
     public static void addCurNodeInfoInParentTempFile(YangNode curNode,
-            boolean isList)
+            boolean isList, YangPluginConfig pluginConfig)
             throws IOException {
         YangNode parent = getParentNodeInGenCode(curNode);
         if (!(parent instanceof JavaCodeGenerator)) {
@@ -1071,7 +1084,7 @@ public class TempJavaFragmentFiles {
             throw new TranslatorException("missing parent temp file handle");
         }
         getNodesInterfaceFragmentFiles(parent)
-                .addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo);
+                .addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo, pluginConfig);
     }
 
     /**
@@ -1134,8 +1147,9 @@ public class TempJavaFragmentFiles {
      * Adds parent's info to current node import list.
      *
      * @param curNode current node for which import list needs to be updated
+     * @param pluginConfig plugin configurations
      */
-    public void addParentInfoInCurNodeTempFile(YangNode curNode) {
+    public void addParentInfoInCurNodeTempFile(YangNode curNode, YangPluginConfig pluginConfig) {
         caseImportInfo = new JavaQualifiedTypeInfo();
         YangNode parent = getParentNodeInGenCode(curNode);
         if (!(parent instanceof JavaCodeGenerator)) {
@@ -1145,7 +1159,8 @@ public class TempJavaFragmentFiles {
             throw new TranslatorException("missing java file information to get the package details "
                     + "of attribute corresponding to child node");
         }
-        caseImportInfo.setClassInfo(getCapitalCase(getCamelCase(parent.getName(), null)));
+        caseImportInfo.setClassInfo(getCapitalCase(getCamelCase(parent.getName(),
+                pluginConfig.getConflictResolver())));
         caseImportInfo.setPkgInfo(((JavaFileInfoContainer) parent).getJavaFileInfo().getPackage());
         ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                 .getBeanTempFiles().getJavaImportData().addImportInfo(caseImportInfo);
@@ -1167,6 +1182,7 @@ public class TempJavaFragmentFiles {
                     throw new TranslatorException("Leaf does not have java information");
                 }
                 JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leaf;
+                javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
                 javaLeaf.updateJavaQualifiedInfo();
                 JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
                         javaLeaf.getJavaQualifiedInfo(),
@@ -1174,7 +1190,7 @@ public class TempJavaFragmentFiles {
                         javaLeaf.getDataType(),
                         getIsQualifiedAccessOrAddToImportList(javaLeaf.getJavaQualifiedInfo()),
                         false);
-                addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo);
+                addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo, yangPluginConfig);
             }
         }
     }
@@ -1194,6 +1210,7 @@ public class TempJavaFragmentFiles {
                     throw new TranslatorException("Leaf-list does not have java information");
                 }
                 JavaLeafInfoContainer javaLeaf = (JavaLeafInfoContainer) leafList;
+                javaLeaf.setConflictResolveConfig(yangPluginConfig.getConflictResolver());
                 javaLeaf.updateJavaQualifiedInfo();
                 getJavaImportData().setIfListImported(true);
                 JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
@@ -1202,7 +1219,7 @@ public class TempJavaFragmentFiles {
                         javaLeaf.getDataType(),
                         getIsQualifiedAccessOrAddToImportList(javaLeaf.getJavaQualifiedInfo()),
                         true);
-                addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo);
+                addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfo, yangPluginConfig);
             }
         }
     }
@@ -1231,21 +1248,22 @@ public class TempJavaFragmentFiles {
      *
      * @param newAttrInfo the attribute info that needs to be added to temporary
      * files
+     * @param pluginConfig plugin configurations
      * @throws IOException IO operation fail
      */
-    void addJavaSnippetInfoToApplicableTempFiles(JavaAttributeInfo newAttrInfo)
+    void addJavaSnippetInfoToApplicableTempFiles(JavaAttributeInfo newAttrInfo, YangPluginConfig pluginConfig)
             throws IOException {
         setAttributePresent(true);
         if ((getGeneratedTempFiles() & ATTRIBUTES_MASK) != 0) {
-            addAttribute(newAttrInfo);
+            addAttribute(newAttrInfo, pluginConfig);
         }
 
         if ((getGeneratedTempFiles() & GETTER_FOR_INTERFACE_MASK) != 0) {
-            addGetterForInterface(newAttrInfo);
+            addGetterForInterface(newAttrInfo, pluginConfig);
         }
 
         if ((getGeneratedTempFiles() & SETTER_FOR_INTERFACE_MASK) != 0) {
-            addSetterForInterface(newAttrInfo);
+            addSetterForInterface(newAttrInfo, pluginConfig);
         }
 
         if ((getGeneratedTempFiles() & SETTER_FOR_CLASS_MASK) != 0) {
@@ -1253,7 +1271,7 @@ public class TempJavaFragmentFiles {
         }
 
         if ((getGeneratedTempFiles() & GETTER_FOR_CLASS_MASK) != 0) {
-            addGetterImpl(newAttrInfo);
+            addGetterImpl(newAttrInfo, pluginConfig);
         }
         if ((getGeneratedTempFiles() & HASH_CODE_IMPL_MASK) != 0) {
             addHashCodeMethod(newAttrInfo);
@@ -1266,7 +1284,8 @@ public class TempJavaFragmentFiles {
         }
 
         if ((getGeneratedTempFiles() & FROM_STRING_IMPL_MASK) != 0) {
-            JavaQualifiedTypeInfo qualifiedInfoOfFromString = getQualifiedInfoOfFromString(newAttrInfo);
+            JavaQualifiedTypeInfo qualifiedInfoOfFromString =
+                    getQualifiedInfoOfFromString(newAttrInfo, pluginConfig.getConflictResolver());
             /*
              * Create a new java attribute info with qualified information of
              * wrapper classes.
@@ -1309,9 +1328,8 @@ public class TempJavaFragmentFiles {
     public void generateJavaFile(int fileType, YangNode curNode)
             throws IOException {
         List<String> imports = new ArrayList<>();
-        if (isAttributePresent()) {
-            imports = getJavaImportData().getImports();
-        }
+        imports = getJavaImportData().getImports();
+
         createPackage(curNode);
 
         /*

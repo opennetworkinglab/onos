@@ -19,6 +19,7 @@ import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
+import org.onosproject.yangutils.translator.tojava.utils.YangToJavaNamingConflictUtil;
 
 /**
  * Represents java information corresponding to the YANG type.
@@ -40,13 +41,13 @@ public class YangJavaType<T>
     }
 
     @Override
-    public void updateJavaQualifiedInfo() {
+    public void updateJavaQualifiedInfo(YangToJavaNamingConflictUtil confilictResolver) {
         JavaQualifiedTypeInfo importInfo = getJavaQualifiedInfo();
 
         /*
          * Type is added as an attribute in the class.
          */
-        String className = AttributesJavaDataType.getJavaImportClass(this, false);
+        String className = AttributesJavaDataType.getJavaImportClass(this, false, confilictResolver);
         if (className != null) {
             /*
              * Corresponding to the attribute type a class needs to be imported,

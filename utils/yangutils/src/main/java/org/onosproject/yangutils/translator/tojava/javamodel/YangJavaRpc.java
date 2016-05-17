@@ -135,6 +135,7 @@ public class YangJavaRpc
         try {
             ((TempJavaCodeFragmentFilesContainer) parent).getTempJavaCodeFragmentFiles().getServiceTempFiles()
                     .addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfoOfInput, javaAttributeInfoOfOutput,
+                            ((JavaFileInfoContainer) parent).getJavaFileInfo().getPluginConfig(),
                             ((YangNode) this).getName());
         } catch (IOException e) {
             throw new TranslatorException("Failed to generate code for RPC node " + this.getName());

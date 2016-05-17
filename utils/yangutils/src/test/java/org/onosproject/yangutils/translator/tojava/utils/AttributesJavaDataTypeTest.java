@@ -71,7 +71,8 @@ public class AttributesJavaDataTypeTest {
      * @throws InvocationTargetException when an exception occurs by the method or constructor
      */
     @Test
-    public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
+    public void callPrivateConstructors()
+            throws SecurityException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
         Class<?>[] classesToConstruct = {AttributesJavaDataType.class };
@@ -87,16 +88,17 @@ public class AttributesJavaDataTypeTest {
      */
     @Test
     public void testgetJavaClassInfo() {
-        test = getJavaImportClass(getStubYangType(TYPE1), false);
+        YangToJavaNamingConflictUtil pluginConfig = null;
+        test = getJavaImportClass(getStubYangType(TYPE1), false, pluginConfig);
         assertThat(true, is(test.equals(CLASS_INFO1)));
 
-        test = getJavaImportClass(getStubYangType(TYPE2), true);
+        test = getJavaImportClass(getStubYangType(TYPE2), true, pluginConfig);
         assertThat(true, is(test.equals(CLASS_INFO5)));
 
-        test = getJavaImportClass(getStubYangType(TYPE3), false);
+        test = getJavaImportClass(getStubYangType(TYPE3), false, pluginConfig);
         assertThat(null, is(test));
 
-        test = getJavaImportClass(getStubYangType(TYPE4), false);
+        test = getJavaImportClass(getStubYangType(TYPE4), false, pluginConfig);
         assertThat(null, is(test));
     }
 

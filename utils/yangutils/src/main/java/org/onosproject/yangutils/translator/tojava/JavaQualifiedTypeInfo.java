@@ -22,6 +22,7 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaLeafInfoContainer;
 import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
+import org.onosproject.yangutils.translator.tojava.utils.YangToJavaNamingConflictUtil;
 
 import com.google.common.base.MoreObjects;
 
@@ -88,7 +89,7 @@ public class JavaQualifiedTypeInfo
     /**
      * Updates the leaf's java information.
      *
-     * @param leaf leaf whose jave information is being updated
+     * @param leaf leaf whose java information is being updated
      */
     public static void updateLeavesJavaQualifiedInfo(JavaLeafInfoContainer leaf) {
 
@@ -102,7 +103,9 @@ public class JavaQualifiedTypeInfo
          * Current leaves holder is adding a leaf info as a attribute to the
          * current class.
          */
-        String className = AttributesJavaDataType.getJavaImportClass(leaf.getDataType(), leaf.isLeafList());
+        String className =
+                AttributesJavaDataType.getJavaImportClass(leaf.getDataType(), leaf.isLeafList(),
+                        leaf.getConflictResolveConfig());
         if (className != null) {
             /*
              * Corresponding to the attribute type a class needs to be imported,
@@ -163,17 +166,20 @@ public class JavaQualifiedTypeInfo
      * Returns the java qualified type information for the wrapper classes.
      *
      * @param referredTypesAttrInfo attribute of referred type
+     * @param confilictResolver plugin configurations
      * @return return the import info for this attribute
      */
-    public static JavaQualifiedTypeInfo getQualifiedInfoOfFromString(JavaAttributeInfo referredTypesAttrInfo) {
+    public static JavaQualifiedTypeInfo getQualifiedInfoOfFromString(JavaAttributeInfo referredTypesAttrInfo,
+            YangToJavaNamingConflictUtil confilictResolver) {
 
         /*
          * Get the java qualified type information for the wrapper classes and
          * set it in new java attribute information.
          */
         JavaQualifiedTypeInfo qualifiedInfoOfFromString = new JavaQualifiedTypeInfo();
+
         qualifiedInfoOfFromString.setClassInfo(
-                getJavaImportClass(referredTypesAttrInfo.getAttributeType(), true));
+                getJavaImportClass(referredTypesAttrInfo.getAttributeType(), true, confilictResolver));
         qualifiedInfoOfFromString.setPkgInfo(
                 getJavaImportPackage(referredTypesAttrInfo.getAttributeType(), true, null));
         return qualifiedInfoOfFromString;

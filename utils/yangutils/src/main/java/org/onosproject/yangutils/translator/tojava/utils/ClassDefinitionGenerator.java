@@ -17,7 +17,6 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaNotification;
@@ -27,12 +26,12 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_LISTENER_INTERFACE;
+import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_EVENT_SUBJECT_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
@@ -56,6 +55,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
+import static org.onosproject.yangutils.utils.UtilConstants.SUBJECT;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
 
 /**
@@ -95,8 +95,6 @@ public final class ClassDefinitionGenerator {
             return getTypeClassDefinition(yangName);
         case GENERATE_ENUM_CLASS:
             return getEnumClassDefinition(yangName);
-        case GENERATE_EVENT_LISTENER_INTERFACE:
-            return getEventListenerDefinition(yangName);
         default:
             return null;
         }
@@ -123,9 +121,12 @@ public final class ClassDefinitionGenerator {
         case GENERATE_SERVICE_AND_MANAGER:
             return getRpcInterfaceDefinition(yangName, curNode);
         case GENERATE_EVENT_CLASS:
-            String eventName = getCapitalCase(((JavaFileInfoContainer) curNode)
-                    .getJavaFileInfo().getJavaName());
+            String eventName = yangName + SUBJECT;
             return getEventDefinition(yangName, eventName);
+        case GENERATE_EVENT_LISTENER_INTERFACE:
+            return getEventListenerDefinition(yangName);
+        case GENERATE_EVENT_SUBJECT_CLASS:
+            return getClassDefinition(yangName);
         default:
             return null;
         }
@@ -183,7 +184,6 @@ public final class ClassDefinitionGenerator {
      * Returns builder file class definition.
      *
      * @param yangName file name
-     * @param genFileTypes
      * @return definition
      */
     private static String getBuilderClassDefinition(String yangName) {
@@ -198,8 +198,18 @@ public final class ClassDefinitionGenerator {
      * @return definition
      */
     private static String getImplClassDefinition(String yangName) {
-        return PUBLIC + SPACE + FINAL + SPACE + CLASS + SPACE + yangName + IMPL + SPACE + IMPLEMENTS + SPACE + yangName
-                + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        return PUBLIC + SPACE + FINAL + SPACE + CLASS + SPACE + yangName + IMPL + SPACE + IMPLEMENTS + SPACE
+                + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /**
+     * Returns impl file class definition.
+     *
+     * @param yangName file name
+     * @return definition
+     */
+    private static String getClassDefinition(String yangName) {
+        return PUBLIC + SPACE + CLASS + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 
     /**
@@ -244,14 +254,14 @@ public final class ClassDefinitionGenerator {
 
         if (yangName.contains(SERVICE)) {
             String[] strArray = yangName.split(SERVICE);
-            return PUBLIC + SPACE + INTERFACE + SPACE + yangName + SPACE + NEW_LINE + EIGHT_SPACE_INDENTATION
+            return PUBLIC + SPACE + INTERFACE + SPACE + yangName + NEW_LINE + EIGHT_SPACE_INDENTATION
                     + EXTEND + SPACE + LISTENER_SERVICE + DIAMOND_OPEN_BRACKET + strArray[0] + EVENT_STRING + COMMA
                     + SPACE + strArray[0] + EVENT_LISTENER_STRING + DIAMOND_CLOSE_BRACKET + SPACE
                     + OPEN_CURLY_BRACKET + NEW_LINE;
         }
-        return PUBLIC + SPACE + CLASS + SPACE + yangName + MANAGER + SPACE + NEW_LINE + EIGHT_SPACE_INDENTATION
+        return PUBLIC + SPACE + CLASS + SPACE + yangName + MANAGER + NEW_LINE + EIGHT_SPACE_INDENTATION
                 + EXTEND + SPACE + LISTENER_REG + DIAMOND_OPEN_BRACKET + yangName + EVENT_STRING + COMMA + SPACE
-                + yangName + EVENT_LISTENER_STRING + DIAMOND_CLOSE_BRACKET + SPACE + NEW_LINE
+                + yangName + EVENT_LISTENER_STRING + DIAMOND_CLOSE_BRACKET + NEW_LINE
                 + EIGHT_SPACE_INDENTATION + IMPLEMENTS + SPACE + yangName + SERVICE + SPACE + OPEN_CURLY_BRACKET
                 + NEW_LINE;
     }

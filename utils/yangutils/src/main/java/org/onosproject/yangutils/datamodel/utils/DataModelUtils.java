@@ -65,8 +65,8 @@ public final class DataModelUtils {
             while (node != null) {
                 Parsable parsable = (Parsable) node;
                 if (node instanceof CollisionDetector
-                        && (parsable.getYangConstructType() != YangConstructType.USES_DATA)
-                        && (parsable.getYangConstructType() != YangConstructType.GROUPING_DATA)) {
+                        && parsable.getYangConstructType() != YangConstructType.USES_DATA
+                        && parsable.getYangConstructType() != YangConstructType.GROUPING_DATA) {
                     ((CollisionDetector) node).detectSelfCollision(identifierName, dataType);
                 }
                 node = node.getNextSibling();
@@ -90,7 +90,7 @@ public final class DataModelUtils {
         while (node != null) {
             Parsable parsable = (Parsable) node;
             if (node instanceof CollisionDetector
-                    && (parsable.getYangConstructType() == dataType)) {
+                    && parsable.getYangConstructType() == dataType) {
                 ((CollisionDetector) node).detectSelfCollision(identifierName, dataType);
             }
             node = node.getNextSibling();

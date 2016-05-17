@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
+import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -125,7 +126,20 @@ public final class FileSystemUtilTest {
         javafileInfo.setJavaName(TEST_DATA_1);
         javafileInfo.setBaseCodeGenPath("");
         javafileInfo.setPackageFilePath(BASE_PKG);
+        javafileInfo.setPluginConfig(getStubPluginConfig());
         module.setJavaFileInfo(javafileInfo);
         return module;
     }
+
+    /**
+     * Returns stub pluginConfig.
+     *
+     * @return stub pluginConfig
+     */
+    private YangPluginConfig getStubPluginConfig() {
+        YangPluginConfig pluginConfig = new YangPluginConfig();
+        pluginConfig.setConflictResolver(null);
+        return pluginConfig;
+    }
+
 }
