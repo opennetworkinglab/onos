@@ -21,8 +21,6 @@ import java.util.Map;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
@@ -97,11 +95,4 @@ public interface DeviceProperties {
      */
     Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId)
             throws DeviceConfigNotFoundException;
-
-    /**
-     * Returns the VLAN cross-connect configuration.
-     *
-     * @return A map of that maps VLAN ID to a list of cross-connect endpoints
-     */
-    Map<VlanId, List<ConnectPoint>> getXConnects();
 }

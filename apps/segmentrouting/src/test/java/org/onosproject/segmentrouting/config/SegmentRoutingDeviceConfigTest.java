@@ -47,7 +47,7 @@ public class SegmentRoutingDeviceConfigTest {
     @Before
     public void setUp() throws Exception {
         InputStream jsonStream = SegmentRoutingDeviceConfigTest.class
-                .getResourceAsStream("/sr-device-config.json");
+                .getResourceAsStream("/device.json");
 
         adjacencySids1 = new HashMap<>();
         Set<Integer> ports1 = new HashSet<>();

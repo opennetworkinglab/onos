@@ -35,29 +35,29 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Handles network config events.
+ * Handles Segment Routing app config events.
  */
-public class NetworkConfigEventHandler {
-    private static final Logger log = LoggerFactory.getLogger(NetworkConfigEventHandler.class);
+public class AppConfigHandler {
+    private static final Logger log = LoggerFactory.getLogger(AppConfigHandler.class);
     private final SegmentRoutingManager srManager;
     private final DeviceService deviceService;
 
     /**
-     * Constructs Network Config Event Handler.
+     * Constructs Segment Routing App Config Handler.
      *
      * @param srManager instance of {@link SegmentRoutingManager}
      */
-    public NetworkConfigEventHandler(SegmentRoutingManager srManager) {
+    public AppConfigHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
         this.deviceService = srManager.deviceService;
     }
 
     /**
-     * Processes vRouter config added event.
+     * Processes Segment Routing App Config added event.
      *
      * @param event network config added event
      */
-    protected void processVRouterConfigAdded(NetworkConfigEvent event) {
+    protected void processAppConfigAdded(NetworkConfigEvent event) {
         log.info("Processing vRouter CONFIG_ADDED");
         SegmentRoutingAppConfig config = (SegmentRoutingAppConfig) event.config().get();
         deviceService.getAvailableDevices().forEach(device -> {
@@ -66,11 +66,11 @@ public class NetworkConfigEventHandler {
     }
 
     /**
-     * Processes vRouter config updated event.
+     * Processes Segment Routing App Config updated event.
      *
      * @param event network config updated event
      */
-    protected void processVRouterConfigUpdated(NetworkConfigEvent event) {
+    protected void processAppConfigUpdated(NetworkConfigEvent event) {
         log.info("Processing vRouter CONFIG_UPDATED");
         SegmentRoutingAppConfig config = (SegmentRoutingAppConfig) event.config().get();
         SegmentRoutingAppConfig prevConfig = (SegmentRoutingAppConfig) event.prevConfig().get();
@@ -91,11 +91,11 @@ public class NetworkConfigEventHandler {
     }
 
     /**
-     * Processes vRouter config removed event.
+     * Processes Segment Routing App Config removed event.
      *
      * @param event network config removed event
      */
-    protected void processVRouterConfigRemoved(NetworkConfigEvent event) {
+    protected void processAppConfigRemoved(NetworkConfigEvent event) {
         log.info("Processing vRouter CONFIG_REMOVED");
         SegmentRoutingAppConfig prevConfig = (SegmentRoutingAppConfig) event.prevConfig().get();
         deviceService.getAvailableDevices().forEach(device -> {

@@ -564,7 +564,6 @@ public class DefaultRoutingHandler {
      * @param deviceId Switch ID to set the rules
      */
     public void populatePortAddressingRules(DeviceId deviceId) {
-        rulePopulator.populateXConnectVlanFilters(deviceId);
         rulePopulator.populateRouterIpPunts(deviceId);
 
         // Although device is added, sometimes device store does not have the

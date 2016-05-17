@@ -114,7 +114,8 @@ public class Ofdpa2GroupHandler {
 
     protected DeviceId deviceId;
     private FlowObjectiveStore flowObjectiveStore;
-    private Cache<GroupKey, List<OfdpaNextGroup>> pendingNextObjectives;
+    private Cache<GroupKey, List<OfdpaNextGroup>> pendingAddNextObjectives;
+    private Cache<NextObjective, List<GroupKey>> pendingRemoveNextObjectives;
     private ConcurrentHashMap<GroupKey, Set<GroupChainElem>> pendingGroups;
     private ScheduledExecutorService groupChecker =
             Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner", "ofdpa2-%d", log));
@@ -134,7 +135,7 @@ public class Ofdpa2GroupHandler {
         this.storageService = serviceDirectory.get(StorageService.class);
         this.nextIndex = storageService.getAtomicCounter("group-id-index-counter");
 
-        pendingNextObjectives = CacheBuilder.newBuilder()
+        pendingAddNextObjectives = CacheBuilder.newBuilder()
                 .expireAfterWrite(20, TimeUnit.SECONDS)
                 .removalListener((
                         RemovalNotification<GroupKey, List<OfdpaNextGroup>> notification) -> {
@@ -142,7 +143,16 @@ public class Ofdpa2GroupHandler {
                         notification.getValue().forEach(ofdpaNextGrp ->
                                 Ofdpa2Pipeline.fail(ofdpaNextGrp.nextObj,
                                         ObjectiveError.GROUPINSTALLATIONFAILED));
+                    }
+                }).build();
 
+        pendingRemoveNextObjectives = CacheBuilder.newBuilder()
+                .expireAfterWrite(20, TimeUnit.SECONDS)
+                .removalListener((
+                        RemovalNotification<NextObjective, List<GroupKey>> notification) -> {
+                    if (notification.getCause() == RemovalCause.EXPIRED) {
+                            Ofdpa2Pipeline.fail(notification.getKey(),
+                                    ObjectiveError.GROUPREMOVALFAILED);
                     }
                 }).build();
         pendingGroups = new ConcurrentHashMap<>();
@@ -1012,6 +1022,11 @@ public class Ofdpa2GroupHandler {
      */
     protected void removeGroup(NextObjective nextObjective, NextGroup next) {
         List<Deque<GroupKey>> allgkeys = Ofdpa2Pipeline.appKryo.deserialize(next.data());
+
+        List<GroupKey> groupKeys = allgkeys.stream()
+                .map(Deque::getFirst).collect(Collectors.toList());
+        pendingRemoveNextObjectives.put(nextObjective, groupKeys);
+
         allgkeys.forEach(groupChain -> groupChain.forEach(groupKey ->
                 groupService.removeGroup(deviceId, groupKey, nextObjective.appId())));
         flowObjectiveStore.removeNextGroup(nextObjective.id());
@@ -1024,7 +1039,7 @@ public class Ofdpa2GroupHandler {
     private void updatePendingNextObjective(GroupKey key, OfdpaNextGroup value) {
         List<OfdpaNextGroup> nextList = new CopyOnWriteArrayList<OfdpaNextGroup>();
         nextList.add(value);
-        List<OfdpaNextGroup> ret = pendingNextObjectives.asMap()
+        List<OfdpaNextGroup> ret = pendingAddNextObjectives.asMap()
                 .putIfAbsent(key, nextList);
         if (ret != null) {
             ret.add(value);
@@ -1079,13 +1094,13 @@ public class Ofdpa2GroupHandler {
             Set<GroupKey> keys = pendingGroups.keySet().stream()
                     .filter(key -> groupService.getGroup(deviceId, key) != null)
                     .collect(Collectors.toSet());
-            Set<GroupKey> otherkeys = pendingNextObjectives.asMap().keySet().stream()
+            Set<GroupKey> otherkeys = pendingAddNextObjectives.asMap().keySet().stream()
                     .filter(otherkey -> groupService.getGroup(deviceId, otherkey) != null)
                     .collect(Collectors.toSet());
             keys.addAll(otherkeys);
 
             keys.stream().forEach(key ->
-                    processPendingGroupsOrNextObjectives(key, false));
+                    processPendingAddGroupsOrNextObjs(key, false));
         }
     }
 
@@ -1093,14 +1108,20 @@ public class Ofdpa2GroupHandler {
         @Override
         public void event(GroupEvent event) {
             log.trace("received group event of type {}", event.type());
-            if (event.type() == GroupEvent.Type.GROUP_ADDED) {
-                GroupKey key = event.subject().appCookie();
-                processPendingGroupsOrNextObjectives(key, true);
+            switch (event.type()) {
+                case GROUP_ADDED:
+                    processPendingAddGroupsOrNextObjs(event.subject().appCookie(), true);
+                    break;
+                case GROUP_REMOVED:
+                    processPendingRemoveNextObjs(event.subject().appCookie());
+                    break;
+                default:
+                    break;
             }
         }
     }
 
-    private void processPendingGroupsOrNextObjectives(GroupKey key, boolean added) {
+    private void processPendingAddGroupsOrNextObjs(GroupKey key, boolean added) {
         //first check for group chain
         Set<GroupChainElem> gceSet = pendingGroups.remove(key);
         if (gceSet != null) {
@@ -1114,9 +1135,9 @@ public class Ofdpa2GroupHandler {
             }
         } else {
             // otherwise chain complete - check for waiting nextObjectives
-            List<OfdpaNextGroup> nextGrpList = pendingNextObjectives.getIfPresent(key);
+            List<OfdpaNextGroup> nextGrpList = pendingAddNextObjectives.getIfPresent(key);
             if (nextGrpList != null) {
-                pendingNextObjectives.invalidate(key);
+                pendingAddNextObjectives.invalidate(key);
                 nextGrpList.forEach(nextGrp -> {
                     log.debug("Group service {} group key {} in device:{}. "
                                     + "Done implementing next objective: {} <<-->> gid:0x{}",
@@ -1135,6 +1156,17 @@ public class Ofdpa2GroupHandler {
                 });
             }
         }
+    }
+
+    private void processPendingRemoveNextObjs(GroupKey key) {
+        pendingRemoveNextObjectives.asMap().forEach((nextObjective, groupKeys) -> {
+            if (groupKeys.isEmpty()) {
+                pendingRemoveNextObjectives.invalidate(nextObjective);
+                Ofdpa2Pipeline.pass(nextObjective);
+            } else {
+                groupKeys.remove(key);
+            }
+        });
     }
 
     protected int getNextAvailableIndex() {

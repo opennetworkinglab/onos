@@ -79,8 +79,8 @@ public class McastHandler {
     private static final Logger log = LoggerFactory.getLogger(McastHandler.class);
     private final SegmentRoutingManager srManager;
     private final ApplicationId coreAppId;
-    private StorageService storageService;
-    private TopologyService topologyService;
+    private final StorageService storageService;
+    private final TopologyService topologyService;
     private final ConsistentMap<McastStoreKey, NextObjective> mcastNextObjStore;
     private final KryoNamespace.Builder mcastKryo;
     private final ConsistentMap<McastStoreKey, McastRole> mcastRoleStore;
@@ -132,7 +132,7 @@ public class McastHandler {
     /**
      * Read initial multicast from mcast store.
      */
-    public void init() {
+    protected void init() {
         srManager.multicastRouteService.getRoutes().forEach(mcastRoute -> {
             ConnectPoint source = srManager.multicastRouteService.fetchSource(mcastRoute);
             Set<ConnectPoint> sinks = srManager.multicastRouteService.fetchSinks(mcastRoute);
@@ -472,7 +472,7 @@ public class McastHandler {
                             log.warn("Failed to update {} on {}/{}, vlan {}: {}",
                                     mcastIp, deviceId, port.toLong(), assignedVlan, error));
             newNextObj = nextObjBuilder(mcastIp, assignedVlan, existingPorts).add();
-            fwdObj = fwdObjBuilder(mcastIp, assignedVlan, newNextObj.id()).add();
+            fwdObj = fwdObjBuilder(mcastIp, assignedVlan, newNextObj.id()).add(context);
             mcastNextObjStore.put(mcastStoreKey, newNextObj);
             srManager.flowObjectiveService.next(deviceId, newNextObj);
             srManager.flowObjectiveService.forward(deviceId, fwdObj);
@@ -779,11 +779,7 @@ public class McastHandler {
                 // Spine-facing port should have no subnet and no xconnect
                 if (srManager.deviceConfiguration != null &&
                         srManager.deviceConfiguration.getPortSubnet(ingressDevice, port) == null &&
-                        srManager.deviceConfiguration.getXConnects().values().stream()
-                                .allMatch(connectPoints ->
-                                        connectPoints.stream().noneMatch(connectPoint ->
-                                                connectPoint.port().equals(port))
-                                )) {
+                        !srManager.xConnectHandler.hasXConnect(new ConnectPoint(ingressDevice, port))) {
                     return port;
                 }
             }

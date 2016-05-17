@@ -35,7 +35,6 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
@@ -55,7 +54,6 @@ import org.onosproject.segmentrouting.config.DeviceProperties;
 import org.onosproject.segmentrouting.storekey.NeighborSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.SubnetNextObjectiveStoreKey;
-import org.onosproject.segmentrouting.storekey.XConnectNextObjectiveStoreKey;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.slf4j.Logger;
 
@@ -89,8 +87,6 @@ public class DefaultGroupHandler {
             subnetNextObjStore = null;
     protected EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
             portNextObjStore = null;
-    protected EventuallyConsistentMap<XConnectNextObjectiveStoreKey, Integer>
-            xConnectNextObjStore = null;
     private SegmentRoutingManager srManager;
 
     protected KryoNamespace.Builder kryo = new KryoNamespace.Builder()
@@ -123,7 +119,6 @@ public class DefaultGroupHandler {
         this.nsNextObjStore = srManager.nsNextObjStore;
         this.subnetNextObjStore = srManager.subnetNextObjStore;
         this.portNextObjStore = srManager.portNextObjStore;
-        this.xConnectNextObjStore = srManager.xConnectNextObjStore;
         this.srManager = srManager;
 
         populateNeighborMaps();
@@ -471,32 +466,6 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Returns the next objective ID of type broadcast associated with the VLAN
-     * cross-connection.
-     *
-     * @param vlanId VLAN ID for the cross-connection
-     * @return int if found or created, -1 if there are errors during the
-     *         creation of the next objective
-     */
-    public int getXConnectNextObjectiveId(VlanId vlanId) {
-        Integer nextId = xConnectNextObjStore
-                .get(new XConnectNextObjectiveStoreKey(deviceId, vlanId));
-        if (nextId == null) {
-            log.trace("getXConnectNextObjectiveId: Next objective id "
-                    + "not found for device {} and vlan {}. Creating", deviceId, vlanId);
-            createGroupsForXConnect(deviceId);
-            nextId = xConnectNextObjStore.get(
-                    new XConnectNextObjectiveStoreKey(deviceId, vlanId));
-            if (nextId == null) {
-                log.warn("getXConnectNextObjectiveId: Next objective id "
-                        + "not found for device {} and vlan {}.", deviceId, vlanId);
-                return -1;
-            }
-        }
-        return nextId;
-    }
-
-    /**
      * Checks if the next objective ID (group) for the neighbor set exists or not.
      *
      * @param ns neighbor set to check
@@ -741,55 +710,6 @@ public class DefaultGroupHandler {
             subnetNextObjStore.put(key, nextId);
         });
     }
-
-    /**
-     * Creates broadcast groups for VLAN cross-connect ports.
-     *
-     * @param deviceId the DPID of the switch
-     */
-    public void createGroupsForXConnect(DeviceId deviceId) {
-        Map<VlanId, List<ConnectPoint>> xConnectsForDevice = deviceConfig.getXConnects();
-
-        xConnectsForDevice.forEach((vlanId, connectPoints) -> {
-            // Only proceed  the xConnect for given device
-            for (ConnectPoint connectPoint : connectPoints) {
-                if (!connectPoint.deviceId().equals(deviceId)) {
-                    return;
-                }
-            }
-
-            // Check if the next obj is already in the store
-            XConnectNextObjectiveStoreKey key =
-                    new XConnectNextObjectiveStoreKey(deviceId, vlanId);
-            if (xConnectNextObjStore.containsKey(key)) {
-                log.debug("Cross-connect Broadcast group for device {} and vlanId {} exists",
-                        deviceId, vlanId);
-                return;
-            }
-
-            TrafficSelector metadata =
-                    DefaultTrafficSelector.builder().matchVlanId(vlanId).build();
-            int nextId = flowObjectiveService.allocateNextId();
-
-            NextObjective.Builder nextObjBuilder = DefaultNextObjective
-                    .builder().withId(nextId)
-                    .withType(NextObjective.Type.BROADCAST).fromApp(appId)
-                    .withMeta(metadata);
-
-            connectPoints.forEach(connectPoint -> {
-                TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-                tBuilder.setOutput(connectPoint.port());
-                nextObjBuilder.addTreatment(tBuilder.build());
-            });
-
-            NextObjective nextObj = nextObjBuilder.add();
-            flowObjectiveService.next(deviceId, nextObj);
-            log.debug("createGroupsForXConnect: Submited next objective {} in device {}",
-                    nextId, deviceId);
-            xConnectNextObjStore.put(key, nextId);
-        });
-    }
-
 
     /**
      * Create simple next objective for a single port. The treatments can include

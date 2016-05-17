@@ -41,9 +41,6 @@ import static org.junit.Assert.*;
  * Tests for class {@link SegmentRoutingAppConfig}.
  */
 public class SegmentRoutingAppConfigTest {
-    private static final ApplicationId APP_ID =
-            new TestApplicationId(SegmentRoutingManager.SR_APP_ID);
-
     private SegmentRoutingAppConfig config;
     private SegmentRoutingAppConfig invalidConfig;
 
@@ -67,12 +64,12 @@ public class SegmentRoutingAppConfigTest {
     @Before
     public void setUp() throws Exception {
         InputStream jsonStream = SegmentRoutingAppConfigTest.class
-                .getResourceAsStream("/sr-app-config.json");
+                .getResourceAsStream("/app.json");
         InputStream invalidJsonStream = SegmentRoutingAppConfigTest.class
-                .getResourceAsStream("/sr-app-config-invalid.json");
+                .getResourceAsStream("/app-invalid.json");
 
-        ApplicationId subject = APP_ID;
         String key = SegmentRoutingManager.SR_APP_ID;
+        ApplicationId subject = new TestApplicationId(key);
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(jsonStream);
         JsonNode invalidJsonNode = mapper.readTree(invalidJsonStream);
