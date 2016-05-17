@@ -17,7 +17,9 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import java.io.IOException;
 import java.util.ListIterator;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
@@ -34,6 +36,9 @@ import static org.hamcrest.core.Is.is;
  * Test case for type listener.
  */
 public class TypeListenerTest {
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     private final YangUtilsParserManager manager = new YangUtilsParserManager();
 
@@ -113,5 +118,47 @@ public class TypeListenerTest {
         assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getDataType().getDataTypeName(), is("uint16"));
         assertThat(leafListInfo.getDataType().getDataType(), is(YangDataTypes.UINT16));
+    }
+
+    /**
+     * Checks for unsupported type leafref.
+     */
+    @Test
+    public void processLeafrefType() throws IOException, ParserException {
+
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("YANG file error : \"leafref\" is not supported in current version,"
+                + " please check wiki for YANG utils road map.");
+
+        YangNode node = manager
+                .getDataModel("src/test/resources/LeafrefInvalidIdentifier.yang");
+    }
+
+    /**
+     * Checks for unsupported type identityref.
+     */
+    @Test
+    public void processIdentityrefType() throws IOException, ParserException {
+
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("YANG file error : \"identityref\" is not supported in current version,"
+                + " please check wiki for YANG utils road map.");
+
+        YangNode node = manager
+                .getDataModel("src/test/resources/IdentityrefInvalidIdentifier.yang");
+    }
+
+    /**
+     * Checks for unsupported type instance identifier.
+     */
+    @Test
+    public void processInstanceIdentifierType() throws IOException, ParserException {
+
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("YANG file error : \"instance-identifier\" is not supported in current version,"
+                + " please check wiki for YANG utils road map.");
+
+        YangNode node = manager
+                .getDataModel("src/test/resources/InstanceIdentifierInvalidIdentifier.yang");
     }
 }

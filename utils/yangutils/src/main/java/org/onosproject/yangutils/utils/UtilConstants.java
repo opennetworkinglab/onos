@@ -272,6 +272,21 @@ public final class UtilConstants {
     public static final String INPUT = "input";
 
     /**
+     * Static attribute for leafref string.
+     */
+    public static final String LEAFREF = "leafref";
+
+    /**
+     * Static attribute for identityref string.
+     */
+    public static final String IDENTITYREF = "identityref";
+
+    /**
+     * Static attribute for instance identifier string.
+     */
+    public static final String INSTANCE_IDENTIFIER = "instance-identifier";
+
+    /**
      * Static attribute for output variable of rpc.
      */
     public static final String RPC_INPUT_VAR_NAME = "inputVar";

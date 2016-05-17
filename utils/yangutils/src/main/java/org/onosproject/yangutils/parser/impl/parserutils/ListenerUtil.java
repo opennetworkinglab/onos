@@ -34,12 +34,16 @@ import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.COLON;
 import static org.onosproject.yangutils.utils.UtilConstants.CARET;
+import static org.onosproject.yangutils.utils.UtilConstants.CURRENTLY_UNSUPPORTED;
 import static org.onosproject.yangutils.utils.UtilConstants.QUOTES;
 import static org.onosproject.yangutils.utils.UtilConstants.HYPHEN;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.TRUE;
 import static org.onosproject.yangutils.utils.UtilConstants.FALSE;
 import static org.onosproject.yangutils.utils.UtilConstants.YANG_FILE_ERROR;
+import static org.onosproject.yangutils.utils.UtilConstants.IDENTITYREF;
+import static org.onosproject.yangutils.utils.UtilConstants.LEAFREF;
+import static org.onosproject.yangutils.utils.UtilConstants.INSTANCE_IDENTIFIER;
 
 /**
  * Represents an utility for listener.
@@ -263,6 +267,7 @@ public final class ListenerUtil {
         String[] tmpData = tmpIdentifierString.split(Pattern.quote(COLON));
         if (tmpData.length == 1) {
             YangNodeIdentifier nodeIdentifier = new YangNodeIdentifier();
+            checkForUnsupportedTypes(tmpData[0], yangConstruct, ctx);
             nodeIdentifier.setName(getValidIdentifier(tmpData[0], yangConstruct, ctx));
             return nodeIdentifier;
         } else if (tmpData.length == 2) {
@@ -277,6 +282,30 @@ public final class ListenerUtil {
             parserException.setLine(ctx.getStart().getLine());
             parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
             throw parserException;
+        }
+    }
+
+    /**
+     * Checks whether the type is an unsupported type.
+     *
+     * @param typeName name of the type
+     * @param yangConstruct yang construct to check if it is type
+     * @param ctx yang construct's context to get the line number and character position
+     */
+    private static void checkForUnsupportedTypes(String typeName,
+            YangConstructType yangConstruct, ParserRuleContext ctx) {
+
+        if (yangConstruct == YangConstructType.TYPE_DATA) {
+            if (typeName.equalsIgnoreCase(LEAFREF)) {
+                handleUnsupportedYangConstruct(YangConstructType.LEAFREF_DATA,
+                        ctx, CURRENTLY_UNSUPPORTED);
+            } else if (typeName.equalsIgnoreCase(IDENTITYREF)) {
+                handleUnsupportedYangConstruct(YangConstructType.IDENTITYREF_DATA,
+                        ctx, CURRENTLY_UNSUPPORTED);
+            } else if (typeName.equalsIgnoreCase(INSTANCE_IDENTIFIER)) {
+                handleUnsupportedYangConstruct(YangConstructType.INSTANCE_IDENTIFIER_DATA,
+                        ctx, CURRENTLY_UNSUPPORTED);
+            }
         }
     }
 
