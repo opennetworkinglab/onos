@@ -64,10 +64,6 @@ final class ContinuousResourceAllocation {
         return request.value() <= left;
     }
 
-    ContinuousResource original() {
-        return original;
-    }
-
     ImmutableList<ResourceAllocation> allocations() {
         return allocations;
     }
