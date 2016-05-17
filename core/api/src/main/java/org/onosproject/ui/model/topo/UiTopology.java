@@ -35,6 +35,10 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class UiTopology extends UiElement {
 
+    private static final String INDENT_1 = "  ";
+    private static final String INDENT_2 = "    ";
+    private static final String EOL = String.format("%n");
+
     private static final String E_UNMAPPED =
             "Attempting to retrieve unmapped {}: {}";
 
@@ -133,15 +137,6 @@ public class UiTopology extends UiElement {
     }
 
     /**
-     * Returns the number of regions configured in the topology.
-     *
-     * @return number of regions
-     */
-    public int regionCount() {
-        return regionLookup.size();
-    }
-
-    /**
      * Adds the given region to the topology model.
      *
      * @param uiRegion region to add
@@ -156,7 +151,19 @@ public class UiTopology extends UiElement {
      * @param uiRegion region to remove
      */
     public void remove(UiRegion uiRegion) {
-        regionLookup.remove(uiRegion.id());
+        UiRegion r = regionLookup.remove(uiRegion.id());
+        if (r != null) {
+            r.destroy();
+        }
+    }
+
+    /**
+     * Returns the number of regions configured in the topology.
+     *
+     * @return number of regions
+     */
+    public int regionCount() {
+        return regionLookup.size();
     }
 
     /**
@@ -192,6 +199,15 @@ public class UiTopology extends UiElement {
     }
 
     /**
+     * Returns the number of devices configured in the topology.
+     *
+     * @return number of devices
+     */
+    public int deviceCount() {
+        return deviceLookup.size();
+    }
+
+    /**
      * Returns the link with the specified identifier, or null if no such
      * link exists.
      *
@@ -217,10 +233,19 @@ public class UiTopology extends UiElement {
      * @param uiLink link to remove
      */
     public void remove(UiLink uiLink) {
-        UiLink link = linkLookup.get(uiLink.id());
+        UiLink link = linkLookup.remove(uiLink.id());
         if (link != null) {
             link.destroy();
         }
+    }
+
+    /**
+     * Returns the number of links configured in the topology.
+     *
+     * @return number of links
+     */
+    public int linkCount() {
+        return linkLookup.size();
     }
 
     /**
@@ -254,6 +279,16 @@ public class UiTopology extends UiElement {
             h.destroy();
         }
     }
+
+    /**
+     * Returns the number of hosts configured in the topology.
+     *
+     * @return number of hosts
+     */
+    public int hostCount() {
+        return hostLookup.size();
+    }
+
 
     // ==
     // package private methods for supporting linkage amongst topology entities
@@ -314,6 +349,44 @@ public class UiTopology extends UiElement {
             }
         }
         return uiLinks;
+    }
+
+    /**
+     * Returns a detailed (multi-line) string showing the contents of the
+     * topology.
+     *
+     * @return detailed string
+     */
+    public String dumpString() {
+        StringBuilder sb = new StringBuilder("Topology:").append(EOL);
+
+        sb.append(INDENT_1).append("Cluster Members").append(EOL);
+        for (UiClusterMember m : cnodeLookup.values()) {
+            sb.append(INDENT_2).append(m).append(EOL);
+        }
+
+        sb.append(INDENT_1).append("Regions").append(EOL);
+        for (UiRegion r : regionLookup.values()) {
+            sb.append(INDENT_2).append(r).append(EOL);
+        }
+
+        sb.append(INDENT_1).append("Devices").append(EOL);
+        for (UiDevice d : deviceLookup.values()) {
+            sb.append(INDENT_2).append(d).append(EOL);
+        }
+
+        sb.append(INDENT_1).append("Hosts").append(EOL);
+        for (UiHost h : hostLookup.values()) {
+            sb.append(INDENT_2).append(h).append(EOL);
+        }
+
+        sb.append(INDENT_1).append("Links").append(EOL);
+        for (UiLink link : linkLookup.values()) {
+            sb.append(INDENT_2).append(link).append(EOL);
+        }
+        sb.append("------").append(EOL);
+
+        return sb.toString();
     }
 
 }

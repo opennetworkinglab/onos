@@ -16,6 +16,7 @@
 
 package org.onosproject.ui.model.topo;
 
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.region.Region;
@@ -117,6 +118,15 @@ public class UiRegion extends UiNode {
     }
 
     /**
+     * Returns the set of device identifiers for this region.
+     *
+     * @return device identifiers for this region
+     */
+    public Set<DeviceId> deviceIds() {
+        return ImmutableSet.copyOf(deviceIds);
+    }
+
+    /**
      * Returns the devices in this region.
      *
      * @return the devices in this region
@@ -126,12 +136,30 @@ public class UiRegion extends UiNode {
     }
 
     /**
+     * Returns the set of host identifiers for this region.
+     *
+     * @return host identifiers for this region
+     */
+    public Set<HostId> hostIds() {
+        return ImmutableSet.copyOf(hostIds);
+    }
+
+    /**
      * Returns the hosts in this region.
      *
      * @return the hosts in this region
      */
     public Set<UiHost> hosts() {
         return topology.hostSet(hostIds);
+    }
+
+    /**
+     * Returns the set of link identifiers for this region.
+     *
+     * @return link identifiers for this region
+     */
+    public Set<UiLinkId> linkIds() {
+        return ImmutableSet.copyOf(uiLinkIds);
     }
 
     /**

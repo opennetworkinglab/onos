@@ -20,16 +20,27 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.event.Event;
 import org.onosproject.event.EventDispatcher;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.region.Region;
 import org.onosproject.ui.impl.topo.model.UiModelEvent.Type;
 import org.onosproject.ui.model.topo.UiClusterMember;
+import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiElement;
+import org.onosproject.ui.model.topo.UiLink;
+import org.onosproject.ui.model.topo.UiLinkId;
+import org.onosproject.ui.model.topo.UiRegion;
+
+import java.util.Collection;
+import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.cluster.NodeId.nodeId;
+import static org.onosproject.ui.model.topo.UiLinkId.uiLinkId;
 
 /**
  * Unit tests for {@link ModelCache}.
@@ -64,6 +75,12 @@ public class ModelCacheTest extends AbstractTopoModelTest {
 
     private ModelCache cache;
 
+    private void assertContains(String msg, Collection<?> coll, Object... things) {
+        for (Object o : things) {
+            assertTrue(msg, coll.contains(o));
+        }
+    }
+
     @Before
     public void setUp() {
         cache = new ModelCache(MOCK_SERVICES, dispatcher);
@@ -95,6 +112,20 @@ public class ModelCacheTest extends AbstractTopoModelTest {
         assertEquals("unex # members", 0, cache.clusterMemberCount());
         dispatcher.assertEventCount(2);
         dispatcher.assertLast(Type.CLUSTER_MEMBER_REMOVED, C1);
+    }
+
+    @Test
+    public void nonExistentClusterMember() {
+        title("nonExistentClusterMember");
+        cache.addOrUpdateClusterMember(CNODE_1);
+        print(cache);
+        assertEquals("unex # members", 1, cache.clusterMemberCount());
+        dispatcher.assertEventCount(1);
+        dispatcher.assertLast(Type.CLUSTER_MEMBER_ADDED_OR_UPDATED, C1);
+
+        cache.removeClusterMember(CNODE_2);
+        assertEquals("unex # members", 1, cache.clusterMemberCount());
+        dispatcher.assertEventCount(1);
     }
 
     @Test
@@ -146,23 +177,145 @@ public class ModelCacheTest extends AbstractTopoModelTest {
     public void addNodeAndDevices() {
         title("addNodeAndDevices");
         cache.addOrUpdateClusterMember(CNODE_1);
+        dispatcher.assertLast(Type.CLUSTER_MEMBER_ADDED_OR_UPDATED, C1);
         cache.addOrUpdateDevice(DEV_1);
+        dispatcher.assertLast(Type.DEVICE_ADDED_OR_UPDATED, D1);
         cache.addOrUpdateDevice(DEV_2);
+        dispatcher.assertLast(Type.DEVICE_ADDED_OR_UPDATED, D2);
         cache.addOrUpdateDevice(DEV_3);
+        dispatcher.assertLast(Type.DEVICE_ADDED_OR_UPDATED, D3);
+        dispatcher.assertEventCount(4);
         print(cache);
+
+        assertEquals("unex # nodes", 1, cache.clusterMemberCount());
+        assertEquals("unex # devices", 3, cache.deviceCount());
+        cache.removeDevice(DEV_4);
+        assertEquals("unex # devices", 3, cache.deviceCount());
+        dispatcher.assertEventCount(4);
+
+        cache.removeDevice(DEV_2);
+        dispatcher.assertLast(Type.DEVICE_REMOVED, D2);
+        dispatcher.assertEventCount(5);
+
+        // check out details of device
+        UiDevice dev = cache.accessDevice(DEVID_1);
+        assertEquals("wrong id", D1, dev.idAsString());
+        assertEquals("wrong region", R1, dev.regionId().toString());
+        Device d = dev.backingDevice();
+        assertEquals("wrong serial", SERIAL, d.serialNumber());
     }
 
     @Test
     public void addRegions() {
         title("addRegions");
         cache.addOrUpdateRegion(REGION_1);
+        dispatcher.assertLast(Type.REGION_ADDED_OR_UPDATED, R1);
+        dispatcher.assertEventCount(1);
+        assertEquals("unex # regions", 1, cache.regionCount());
+
+        cache.addOrUpdateRegion(REGION_2);
+        dispatcher.assertLast(Type.REGION_ADDED_OR_UPDATED, R2);
+        dispatcher.assertEventCount(2);
+        assertEquals("unex # regions", 2, cache.regionCount());
+
         print(cache);
+
+        cache.removeRegion(REGION_3);
+        dispatcher.assertEventCount(2);
+        assertEquals("unex # regions", 2, cache.regionCount());
+
+        cache.removeRegion(REGION_1);
+        dispatcher.assertLast(Type.REGION_REMOVED, R1);
+        dispatcher.assertEventCount(3);
+        assertEquals("unex # regions", 1, cache.regionCount());
+
+        print(cache);
+
+        UiRegion region = cache.accessRegion(REGION_2.id());
+        assertEquals("wrong id", REGION_2.id(), region.id());
+        assertEquals("unex # device IDs", 3, region.deviceIds().size());
+        assertContains("missing ID", region.deviceIds(), DEVID_4, DEVID_5, DEVID_6);
+        Region r = region.backingRegion();
+        print(r);
+        assertEquals("wrong region name", "Region-R2", r.name());
+    }
+
+    private static final String[] LINKS_2_7 = {D2, "27", D7, "72"};
+
+    @Test
+    public void addLinks() {
+        title("addLinks");
+
+        Iterator<Link> iter = makeLinkPair(LINKS_2_7).iterator();
+        Link link1 = iter.next();
+        Link link2 = iter.next();
+        print(link1);
+        print(link2);
+
+        UiLinkId idA2B = uiLinkId(link1);
+        UiLinkId idB2A = uiLinkId(link2);
+        // remember, link IDs are canonicalized
+        assertEquals("not same link ID", idA2B, idB2A);
+
+        // we've established that the ID is the same for both
+        UiLinkId linkId = idA2B;
+
+        cache.addOrUpdateLink(link1);
+        dispatcher.assertLast(Type.LINK_ADDED_OR_UPDATED, linkId.toString());
+        dispatcher.assertEventCount(1);
+        assertEquals("unex # links", 1, cache.linkCount());
+
+        UiLink link = cache.accessLink(linkId);
+        assertEquals("dev A not d2", DEVID_2, link.deviceA());
+        assertEquals("dev B not d7", DEVID_7, link.deviceB());
+        assertEquals("wrong backing link A-B", link1, link.linkAtoB());
+        assertEquals("backing link B-A?", null, link.linkBtoA());
+
+        cache.addOrUpdateLink(link2);
+        dispatcher.assertLast(Type.LINK_ADDED_OR_UPDATED, linkId.toString());
+        dispatcher.assertEventCount(2);
+        // NOTE: yes! expect 1 UiLink
+        assertEquals("unex # links", 1, cache.linkCount());
+
+        link = cache.accessLink(linkId);
+        assertEquals("dev A not d2", DEVID_2, link.deviceA());
+        assertEquals("dev B not d7", DEVID_7, link.deviceB());
+        assertEquals("wrong backing link A-B", link1, link.linkAtoB());
+        assertEquals("wrong backing link B-A", link2, link.linkBtoA());
+
+        // now remove links one at a time
+        cache.removeLink(link1);
+        // NOTE: yes! ADD_OR_UPDATE, since the link was updated
+        dispatcher.assertLast(Type.LINK_ADDED_OR_UPDATED, linkId.toString());
+        dispatcher.assertEventCount(3);
+        // NOTE: yes! expect 1 UiLink (still)
+        assertEquals("unex # links", 1, cache.linkCount());
+
+        link = cache.accessLink(linkId);
+        assertEquals("dev A not d2", DEVID_2, link.deviceA());
+        assertEquals("dev B not d7", DEVID_7, link.deviceB());
+        assertEquals("backing link A-B?", null, link.linkAtoB());
+        assertEquals("wrong backing link B-A", link2, link.linkBtoA());
+
+        // remove final link
+        cache.removeLink(link2);
+        dispatcher.assertLast(Type.LINK_REMOVED, linkId.toString());
+        dispatcher.assertEventCount(4);
+        // NOTE: finally link should be removed from cache
+        assertEquals("unex # links", 0, cache.linkCount());
     }
 
     @Test
     public void load() {
         title("load");
         cache.load();
-        print(cache);
+        print(cache.dumpString());
+
+        // See mock service bundle for expected values (AbstractTopoModelTest)
+        assertEquals("unex # cnodes", 3, cache.clusterMemberCount());
+        assertEquals("unex # regions", 3, cache.regionCount());
+        assertEquals("unex # devices", 9, cache.deviceCount());
+        assertEquals("unex # hosts", 18, cache.hostCount());
+        assertEquals("unex # hosts", 26, cache.linkCount());
     }
 }

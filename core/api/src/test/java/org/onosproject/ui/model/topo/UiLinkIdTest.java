@@ -26,6 +26,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.ui.model.AbstractUiModelTest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 
@@ -34,28 +35,34 @@ import static org.onosproject.net.PortNumber.portNumber;
  */
 public class UiLinkIdTest extends AbstractUiModelTest {
 
-
-    private static final ProviderId PROVIDER_ID = ProviderId.NONE;
-
     private static final DeviceId DEV_X = deviceId("device-X");
     private static final DeviceId DEV_Y = deviceId("device-Y");
     private static final PortNumber P1 = portNumber(1);
     private static final PortNumber P2 = portNumber(2);
+    private static final PortNumber P3 = portNumber(3);
 
-    private static final ConnectPoint CP_X = new ConnectPoint(DEV_X, P1);
-    private static final ConnectPoint CP_Y = new ConnectPoint(DEV_Y, P2);
+    private static final ConnectPoint CP_X1 = new ConnectPoint(DEV_X, P1);
+    private static final ConnectPoint CP_Y2 = new ConnectPoint(DEV_Y, P2);
+    private static final ConnectPoint CP_Y3 = new ConnectPoint(DEV_Y, P3);
 
-    private static final Link LINK_X_TO_Y = DefaultLink.builder()
+    private static final Link LINK_X1_TO_Y2 = DefaultLink.builder()
             .providerId(ProviderId.NONE)
-            .src(CP_X)
-            .dst(CP_Y)
+            .src(CP_X1)
+            .dst(CP_Y2)
             .type(Link.Type.DIRECT)
             .build();
 
-    private static final Link LINK_Y_TO_X = DefaultLink.builder()
+    private static final Link LINK_Y2_TO_X1 = DefaultLink.builder()
             .providerId(ProviderId.NONE)
-            .src(CP_Y)
-            .dst(CP_X)
+            .src(CP_Y2)
+            .dst(CP_X1)
+            .type(Link.Type.DIRECT)
+            .build();
+
+    private static final Link LINK_X1_TO_Y3 = DefaultLink.builder()
+            .providerId(ProviderId.NONE)
+            .src(CP_X1)
+            .dst(CP_Y3)
             .type(Link.Type.DIRECT)
             .build();
 
@@ -63,10 +70,20 @@ public class UiLinkIdTest extends AbstractUiModelTest {
     @Test
     public void canonical() {
         title("canonical");
-        UiLinkId one = UiLinkId.uiLinkId(LINK_X_TO_Y);
-        UiLinkId two = UiLinkId.uiLinkId(LINK_Y_TO_X);
+        UiLinkId one = UiLinkId.uiLinkId(LINK_X1_TO_Y2);
+        UiLinkId two = UiLinkId.uiLinkId(LINK_Y2_TO_X1);
         print("link one: %s", one);
         print("link two: %s", two);
         assertEquals("not equiv", one, two);
+    }
+
+    @Test
+    public void sameDevsDiffPorts() {
+        title("sameDevsDiffPorts");
+        UiLinkId one = UiLinkId.uiLinkId(LINK_X1_TO_Y2);
+        UiLinkId other = UiLinkId.uiLinkId(LINK_X1_TO_Y3);
+        print("link one: %s", one);
+        print("link other: %s", other);
+        assertNotEquals("equiv?", one, other);
     }
 }

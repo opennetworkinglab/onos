@@ -197,6 +197,11 @@ class ModelCache {
         postEvent(REGION_ADDED_OR_UPDATED, uiRegion);
     }
 
+    // package private for unit test access
+    UiRegion accessRegion(RegionId id) {
+        return uiTopology.findRegion(id);
+    }
+
     // invoked from UiSharedTopologyModel region listener
     void removeRegion(Region region) {
         RegionId id = region.id();
@@ -239,6 +244,11 @@ class ModelCache {
         updateDevice(uiDevice);
 
         postEvent(DEVICE_ADDED_OR_UPDATED, uiDevice);
+    }
+
+    // package private for unit test access
+    UiDevice accessDevice(DeviceId id) {
+        return uiTopology.findDevice(id);
     }
 
     // invoked from UiSharedTopologyModel device listener
@@ -290,6 +300,11 @@ class ModelCache {
         postEvent(LINK_ADDED_OR_UPDATED, uiLink);
     }
 
+    // package private for unit test access
+    UiLink accessLink(UiLinkId id) {
+        return uiTopology.findLink(id);
+    }
+
     // invoked from UiSharedTopologyModel link listener
     void removeLink(Link link) {
         UiLinkId id = uiLinkId(link);
@@ -310,36 +325,55 @@ class ModelCache {
 
     // === HOSTS
 
+    private EdgeLink synthesizeLink(Host h) {
+        return createEdgeLink(h, true);
+    }
+
     private UiHost addNewHost(Host h) {
         UiHost host = new UiHost(uiTopology, h);
         uiTopology.add(host);
 
-        UiLink edgeLink = addNewEdgeLink(host);
-        host.setEdgeLinkId(edgeLink.id());
+        EdgeLink elink = synthesizeLink(h);
+        UiLinkId elinkId = uiLinkId(elink);
+        host.setEdgeLinkId(elinkId);
+
+        // add synthesized edge link to the topology
+        UiLink edgeLink = addNewLink(elinkId);
+        edgeLink.attachEdgeLink(elink);
 
         return host;
     }
 
-    private void removeOldEdgeLink(UiHost uiHost) {
-        UiLink old = uiTopology.findLink(uiHost.edgeLinkId());
-        if (old != null) {
-            uiTopology.remove(old);
-        }
-    }
+    private void insertNewUiLink(UiLinkId id, EdgeLink e) {
+        UiLink newEdgeLink = addNewLink(id);
+        newEdgeLink.attachEdgeLink(e);
 
-    private UiLink addNewEdgeLink(UiHost uiHost) {
-        EdgeLink elink = createEdgeLink(uiHost.backingHost(), true);
-        UiLinkId elinkId = UiLinkId.uiLinkId(elink);
-        UiLink uiLink = addNewLink(elinkId);
-        uiLink.attachEdgeLink(elink);
-        return uiLink;
     }
 
     private void updateHost(UiHost uiHost, Host h) {
-        removeOldEdgeLink(uiHost);
+        UiLink existing = uiTopology.findLink(uiHost.edgeLinkId());
+
+        EdgeLink currentElink = synthesizeLink(h);
+        UiLinkId currentElinkId = uiLinkId(currentElink);
+
+        if (existing != null) {
+            if (!currentElinkId.equals(existing.id())) {
+                // edge link has changed
+                insertNewUiLink(currentElinkId, currentElink);
+                uiHost.setEdgeLinkId(currentElinkId);
+
+                uiTopology.remove(existing);
+            }
+
+        } else {
+            // no previously existing edge link
+            insertNewUiLink(currentElinkId, currentElink);
+            uiHost.setEdgeLinkId(currentElinkId);
+
+        }
+
         HostLocation hloc = h.location();
         uiHost.setLocation(hloc.deviceId(), hloc.port());
-        addNewEdgeLink(uiHost);
     }
 
     private void loadHosts() {
@@ -364,9 +398,17 @@ class ModelCache {
     // invoked from UiSharedTopologyModel host listener
     void moveHost(Host host, Host prevHost) {
         UiHost uiHost = uiTopology.findHost(prevHost.id());
-        updateHost(uiHost, host);
+        if (uiHost != null) {
+            updateHost(uiHost, host);
+            postEvent(HOST_MOVED, uiHost);
+        } else {
+            log.warn(E_NO_ELEMENT, "host", prevHost.id());
+        }
+    }
 
-        postEvent(HOST_MOVED, uiHost);
+    // package private for unit test access
+    UiHost accessHost(HostId id) {
+        return uiTopology.findHost(id);
     }
 
     // invoked from UiSharedTopologyModel host listener
@@ -374,8 +416,9 @@ class ModelCache {
         HostId id = host.id();
         UiHost uiHost = uiTopology.findHost(id);
         if (uiHost != null) {
+            UiLink edgeLink = uiTopology.findLink(uiHost.edgeLinkId());
+            uiTopology.remove(edgeLink);
             uiTopology.remove(uiHost);
-            removeOldEdgeLink(uiHost);
             postEvent(HOST_REMOVED, uiHost);
         } else {
             log.warn(E_NO_ELEMENT, "host", id);
@@ -384,6 +427,15 @@ class ModelCache {
 
 
     // === CACHE STATISTICS
+
+    /**
+     * Returns a detailed (multi-line) string showing the contents of the cache.
+     *
+     * @return detailed string
+     */
+    public String dumpString() {
+        return uiTopology.dumpString();
+    }
 
     /**
      * Returns the number of members in the cluster.
@@ -401,5 +453,32 @@ class ModelCache {
      */
     public int regionCount() {
         return uiTopology.regionCount();
+    }
+
+    /**
+     * Returns the number of devices in the topology.
+     *
+     * @return number of devices
+     */
+    public int deviceCount() {
+        return uiTopology.deviceCount();
+    }
+
+    /**
+     * Returns the number of links in the topology.
+     *
+     * @return number of links
+     */
+    public int linkCount() {
+        return uiTopology.linkCount();
+    }
+
+    /**
+     * Returns the number of hosts in the topology.
+     *
+     * @return number of hosts
+     */
+    public int hostCount() {
+        return uiTopology.hostCount();
     }
 }

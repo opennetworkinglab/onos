@@ -19,6 +19,7 @@ package org.onosproject.ui.model.topo;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
+import org.onosproject.net.PortNumber;
 
 /**
  * A canonical representation of an identifier for {@link UiLink}s.
@@ -33,10 +34,14 @@ public final class UiLinkId {
         B_TO_A
     }
 
-    private static final String ID_DELIMITER = "~";
+    private static final String CP_DELIMITER = "~";
+    private static final String ID_PORT_DELIMITER = "/";
 
     private final ElementId idA;
+    private final PortNumber portA;
     private final ElementId idB;
+    private final PortNumber portB;
+
     private final String idStr;
 
     /**
@@ -46,13 +51,18 @@ public final class UiLinkId {
      * underlying link.
      *
      * @param a first element ID
+     * @param pa first element port
      * @param b second element ID
+     * @param pb second element port
      */
-    private UiLinkId(ElementId a, ElementId b) {
+    private UiLinkId(ElementId a, PortNumber pa, ElementId b, PortNumber pb) {
         idA = a;
+        portA = pa;
         idB = b;
+        portB = pb;
 
-        idStr = a.toString() + ID_DELIMITER + b.toString();
+        idStr = a + ID_PORT_DELIMITER + pa + CP_DELIMITER +
+                b + ID_PORT_DELIMITER + pb;
     }
 
     @Override
@@ -70,12 +80,30 @@ public final class UiLinkId {
     }
 
     /**
+     * Returns the port of the first element.
+     *
+     * @return first element port
+     */
+    public PortNumber portA() {
+        return portA;
+    }
+
+    /**
      * Returns the identifier of the second element.
      *
      * @return second element identity
      */
     public ElementId elementB() {
         return idB;
+    }
+
+    /**
+     * Returns the port of the second element.
+     *
+     * @return second element port
+     */
+    public PortNumber portB() {
+        return portB;
     }
 
     @Override
@@ -127,13 +155,10 @@ public final class UiLinkId {
 
         ElementId srcId = src.elementId();
         ElementId dstId = dst.elementId();
-        if (srcId == null || dstId == null) {
-            throw new NullPointerException("null element ID in connect point: " + link);
-        }
 
         // canonicalize
         int comp = srcId.toString().compareTo(dstId.toString());
-        return comp <= 0 ? new UiLinkId(srcId, dstId)
-                : new UiLinkId(dstId, srcId);
+        return comp <= 0 ? new UiLinkId(srcId, src.port(), dstId, dst.port())
+                : new UiLinkId(dstId, dst.port(), srcId, src.port());
     }
 }

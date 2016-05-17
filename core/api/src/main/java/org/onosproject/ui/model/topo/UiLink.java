@@ -177,4 +177,42 @@ public class UiLink extends UiElement {
         edgeLink = elink;
         edgeDevice = elink.hostLocation().deviceId();
     }
+
+
+    /**
+     * Returns the identity of device A.
+     *
+     * @return device A ID
+     */
+    public DeviceId deviceA() {
+        return deviceA;
+    }
+
+    /**
+     * Returns the identity of device B.
+     *
+     * @return device B ID
+     */
+    public DeviceId deviceB() {
+        return deviceB;
+    }
+
+    /**
+     * Returns backing link from A to B.
+     *
+     * @return backing link A to B
+     */
+    public Link linkAtoB() {
+        return linkAtoB;
+    }
+
+    /**
+     * Returns backing link from B to A.
+     *
+     * @return backing link B to A
+     */
+    public Link linkBtoA() {
+        return linkBtoA;
+    }
+
 }

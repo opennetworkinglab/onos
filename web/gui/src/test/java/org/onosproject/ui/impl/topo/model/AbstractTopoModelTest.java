@@ -136,15 +136,15 @@ abstract class AbstractTopoModelTest extends AbstractUiImplTest {
     protected static final Set<Region> REGION_SET =
             ImmutableSet.of(REGION_1, REGION_2, REGION_3);
 
-    protected static final String D1 = "D1";
-    protected static final String D2 = "D2";
-    protected static final String D3 = "D3";
-    protected static final String D4 = "D4";
-    protected static final String D5 = "D5";
-    protected static final String D6 = "D6";
-    protected static final String D7 = "D7";
-    protected static final String D8 = "D8";
-    protected static final String D9 = "D9";
+    protected static final String D1 = "d1";
+    protected static final String D2 = "d2";
+    protected static final String D3 = "d3";
+    protected static final String D4 = "d4";
+    protected static final String D5 = "d5";
+    protected static final String D6 = "d6";
+    protected static final String D7 = "d7";
+    protected static final String D8 = "d8";
+    protected static final String D9 = "d9";
 
     protected static final String MFR = "Mfr";
     protected static final String HW = "h/w";
@@ -301,7 +301,6 @@ abstract class AbstractTopoModelTest extends AbstractUiImplTest {
     private static final DeviceService MOCK_DEVICE = new MockDeviceService();
     private static final LinkService MOCK_LINK = new MockLinkService();
     private static final HostService MOCK_HOST = new MockHostService();
-
 
 
     private static class MockClusterService extends ClusterServiceAdapter {
@@ -470,38 +469,46 @@ abstract class AbstractTopoModelTest extends AbstractUiImplTest {
 
     }
 
+    /**
+     * Synthesizes a pair of unidirectional links between two devices. The
+     * string array should be of the form:
+     * <pre>
+     *     { "device-A-id", "device-A-port", "device-B-id", "device-B-port" }
+     * </pre>
+     *
+     * @param linkPairData device ids and ports
+     * @return pair of synthesized links
+     */
+    protected static List<Link> makeLinkPair(String[] linkPairData) {
+        DeviceId devA = deviceId(linkPairData[0]);
+        PortNumber portA = portNumber(Long.valueOf(linkPairData[1]));
+        DeviceId devB = deviceId(linkPairData[2]);
+        PortNumber portB = portNumber(Long.valueOf(linkPairData[3]));
+
+        Link linkA = DefaultLink.builder()
+                .providerId(ProviderId.NONE)
+                .type(Link.Type.DIRECT)
+                .src(new ConnectPoint(devA, portA))
+                .dst(new ConnectPoint(devB, portB))
+                .build();
+
+        Link linkB = DefaultLink.builder()
+                .providerId(ProviderId.NONE)
+                .type(Link.Type.DIRECT)
+                .src(new ConnectPoint(devB, portB))
+                .dst(new ConnectPoint(devA, portA))
+                .build();
+
+        return ImmutableList.of(linkA, linkB);
+    }
 
     private static class MockLinkService extends LinkServiceAdapter {
         private final Set<Link> links = new HashSet<>();
 
         MockLinkService() {
             for (String[] linkPair : LINK_CONNECT_DATA) {
-                links.addAll(makeLinks(linkPair));
+                links.addAll(makeLinkPair(linkPair));
             }
-
-        }
-
-        private Set<Link> makeLinks(String[] linkPair) {
-            DeviceId devA = deviceId(linkPair[0]);
-            PortNumber portA = portNumber(Long.valueOf(linkPair[1]));
-            DeviceId devB = deviceId(linkPair[2]);
-            PortNumber portB = portNumber(Long.valueOf(linkPair[3]));
-
-            Link linkA = DefaultLink.builder()
-                    .providerId(ProviderId.NONE)
-                    .type(Link.Type.DIRECT)
-                    .src(new ConnectPoint(devA, portA))
-                    .dst(new ConnectPoint(devB, portB))
-                    .build();
-
-            Link linkB = DefaultLink.builder()
-                    .providerId(ProviderId.NONE)
-                    .type(Link.Type.DIRECT)
-                    .src(new ConnectPoint(devB, portB))
-                    .dst(new ConnectPoint(devA, portA))
-                    .build();
-
-            return ImmutableSet.of(linkA, linkB);
         }
 
         @Override
