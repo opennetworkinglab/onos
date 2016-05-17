@@ -3,9 +3,9 @@ module Test {
     namespace http://huawei.com;
     prefix Ant;
     leaf invalid-interval {
-        type hello;
+        type Ant:hello;
     }
     typedef hi {
-        type String;
+        type string;
     }
 }

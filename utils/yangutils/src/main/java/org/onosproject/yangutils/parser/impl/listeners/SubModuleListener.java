@@ -16,7 +16,7 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
-import org.onosproject.yangutils.datamodel.YangReferenceResolver;
+import org.onosproject.yangutils.linker.impl.YangReferenceResolver;
 import org.onosproject.yangutils.datamodel.YangRevision;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;

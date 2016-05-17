@@ -23,18 +23,20 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.Stack;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
+import org.onosproject.yangutils.plugin.manager.YangFileInfo;
+
 import org.slf4j.Logger;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
-import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
@@ -81,9 +83,9 @@ public final class YangIoUtils {
     /**
      * Adds package info file for the created directory.
      *
-     * @param path directory path
-     * @param classInfo class info for the package
-     * @param pack package of the directory
+     * @param path        directory path
+     * @param classInfo   class info for the package
+     * @param pack        package of the directory
      * @param isChildNode is it a child node
      * @throws IOException when fails to create package info file
      */
@@ -167,7 +169,7 @@ public final class YangIoUtils {
     /**
      * Adds generated source directory to the compilation root.
      *
-     * @param source directory
+     * @param source  directory
      * @param project current maven project
      * @param context current build context
      */
@@ -180,7 +182,7 @@ public final class YangIoUtils {
     /**
      * Removes extra char from the string.
      *
-     * @param valueString string to be trimmed
+     * @param valueString    string to be trimmed
      * @param removealStirng extra chars
      * @return new string
      */
@@ -215,8 +217,8 @@ public final class YangIoUtils {
      * Returns the directory path of the package in canonical form.
      *
      * @param baseCodeGenPath base path where the generated files needs to be
-     *            put
-     * @param pathOfJavaPkg java package of the file being generated
+     *                        put
+     * @param pathOfJavaPkg   java package of the file being generated
      * @return absolute path of the package in canonical form
      */
     public static String getDirectory(String baseCodeGenPath, String pathOfJavaPkg) {
@@ -236,8 +238,8 @@ public final class YangIoUtils {
      * Returns the absolute path of the package in canonical form.
      *
      * @param baseCodeGenPath base path where the generated files needs to be
-     *            put
-     * @param pathOfJavaPkg java package of the file being generated
+     *                        put
+     * @param pathOfJavaPkg   java package of the file being generated
      * @return absolute path of the package in canonical form
      */
     public static String getAbsolutePackagePath(String baseCodeGenPath, String pathOfJavaPkg) {
@@ -247,12 +249,12 @@ public final class YangIoUtils {
     /**
      * Copies YANG files to the current project's output directory.
      *
-     * @param yangFileInfo list of YANG files
-     * @param outputDir project's output directory
-     * @param project maven project
+     * @param yangFileInfo set of YANG files
+     * @param outputDir    project's output directory
+     * @param project      maven project
      * @throws IOException when fails to copy files to destination resource directory
      */
-    public static void copyYangFilesToTarget(List<YangFileInfo> yangFileInfo, String outputDir, MavenProject project)
+    public static void copyYangFilesToTarget(Set<YangFileInfo> yangFileInfo, String outputDir, MavenProject project)
             throws IOException {
 
         List<File> files = getListOfFile(yangFileInfo);
@@ -274,10 +276,10 @@ public final class YangIoUtils {
     /**
      * Provides a list of files from list of strings.
      *
-     * @param yangFileInfo list of yang file information
+     * @param yangFileInfo set of yang file information
      * @return list of files
      */
-    private static List<File> getListOfFile(List<YangFileInfo> yangFileInfo) {
+    private static List<File> getListOfFile(Set<YangFileInfo> yangFileInfo) {
         List<File> files = new ArrayList<>();
         Iterator<YangFileInfo> yangFileIterator = yangFileInfo.iterator();
         while (yangFileIterator.hasNext()) {
@@ -291,7 +293,7 @@ public final class YangIoUtils {
      * Merges the temp java files to main java files.
      *
      * @param appendFile temp file
-     * @param srcFile main file
+     * @param srcFile    main file
      * @throws IOException when fails to append contents
      */
     public static void mergeJavaFiles(File appendFile, File srcFile) throws IOException {

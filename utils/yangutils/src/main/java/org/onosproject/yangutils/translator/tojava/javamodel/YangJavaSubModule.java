@@ -16,7 +16,6 @@
 package org.onosproject.yangutils.translator.tojava.javamodel;
 
 import java.io.IOException;
-
 import org.onosproject.yangutils.datamodel.YangBelongsTo;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangSubModule;
@@ -105,10 +104,10 @@ public class YangJavaSubModule
      * Returns the name space of the module to which the sub module belongs to.
      *
      * @param belongsToInfo Information of the module to which the sub module
-     * belongs
+     *                      belongs
      * @return the name space string of the module.
      */
-    private String getNameSpaceFromModule(YangBelongsTo belongsToInfo) {
+    public String getNameSpaceFromModule(YangBelongsTo belongsToInfo) {
         return ((YangModule) belongsToInfo.getModuleNode()).getNameSpace().getUri();
     }
 

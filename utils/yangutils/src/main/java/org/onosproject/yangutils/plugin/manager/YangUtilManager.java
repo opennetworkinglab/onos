@@ -17,9 +17,10 @@
 package org.onosproject.yangutils.plugin.manager;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-
+import java.util.Set;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -28,8 +29,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangSubModule;
-import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.YangLinker;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
+import org.onosproject.yangutils.linker.impl.YangLinkerManager;
 import org.onosproject.yangutils.parser.YangUtilsParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
@@ -48,10 +50,9 @@ import static org.onosproject.yangutils.utils.UtilConstants.DEFAULT_BASE_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.addToSource;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.copyYangFilesToTarget;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.deleteDirectory;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getDirectory;
-import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.findBelongsToModuleNode;
 
 /**
  * Represents ONOS YANG utility maven plugin.
@@ -62,6 +63,14 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.findBelon
 @Mojo(name = "yang2java", defaultPhase = GENERATE_SOURCES, requiresDependencyResolution = COMPILE,
         requiresProject = true)
 public class YangUtilManager extends AbstractMojo {
+
+    private YangNode rootNode;
+    // YANG file information set.
+    private Set<YangFileInfo> yangFileInfoSet = new HashSet<>();
+    private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
+    private YangLinker yangLinker = new YangLinkerManager();
+
+    private static final String DEFAULT_PKG = SLASH + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
 
     /**
      * Source directory for YANG files.
@@ -117,12 +126,6 @@ public class YangUtilManager extends AbstractMojo {
     @Component
     private BuildContext context;
 
-    private static final String DEFAULT_PKG = SLASH
-            + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
-
-    private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
-    private YangNode rootNode;
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -136,47 +139,40 @@ public class YangUtilManager extends AbstractMojo {
 
             String searchDir = getDirectory(baseDir, yangFilesDir);
             String codeGenDir = getDirectory(baseDir, genFilesDir) + SLASH;
+
+            // Creates conflict resolver and set values to it.
             YangToJavaNamingConflictUtil conflictResolver = new YangToJavaNamingConflictUtil();
             conflictResolver.setReplacementForPeriod(replacementForPeriod);
             conflictResolver.setReplacementForHyphen(replacementForHyphen);
             conflictResolver.setReplacementForUnderscore(replacementForUnderscore);
-            List<YangFileInfo> yangFileInfo = YangFileScanner.getYangFiles(searchDir);
-            if (yangFileInfo == null || yangFileInfo.isEmpty()) {
-                // no files to translate
-                return;
-            }
             YangPluginConfig yangPlugin = new YangPluginConfig();
             yangPlugin.setCodeGenDir(codeGenDir);
             yangPlugin.setConflictResolver(conflictResolver);
 
-            Iterator<YangFileInfo> yangFileIterator = yangFileInfo.iterator();
-            while (yangFileIterator.hasNext()) {
-                YangFileInfo yangFile = yangFileIterator.next();
-                try {
-                    YangNode yangNode = yangUtilsParser.getDataModel(yangFile.getYangFileName());
-                    yangFile.setRootNode(yangNode);
-                    setRootNode(yangNode);
-                } catch (ParserException e) {
-                    String logInfo = "Error in file: " + e.getFileName();
-                    if (e.getLineNumber() != 0) {
-                        logInfo = logInfo + " at line: " + e.getLineNumber() + " at position: "
-                                + e.getCharPositionInLine();
+            /*
+             * Obtain the YANG files at a path mentioned in plugin and creates
+             * YANG file information set.
+             */
+            createYangFileInfoSet(YangFileScanner.getYangFiles(searchDir));
 
-                    }
-                    if (e.getMessage() != null) {
-                        logInfo = logInfo + NEW_LINE + e.getMessage();
-                    }
-                    getLog().info(logInfo);
-                    throw e;
-                }
+            // Check if there are any file to translate, if not return.
+            if (getYangFileInfoSet() == null || getYangFileInfoSet().isEmpty()) {
+                // No files to translate
+                return;
             }
 
-            resolveLinkingForSubModule(yangFileInfo);
+            //Carry out the parsing for all the YANG files.
+            parseYangFileInfoSet();
 
-            translateToJava(yangFileInfo, yangPlugin);
+            // Resolve dependencies using linker.
+            resolveDependenciesUsingLinker();
+
+            // Perform translation to JAVA.
+            translateToJava(getYangFileInfoSet(), yangPlugin);
 
             addToSource(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG, project, context);
-            copyYangFilesToTarget(yangFileInfo, getDirectory(baseDir, outputDirectory), project);
+
+            copyYangFilesToTarget(getYangFileInfoSet(), getDirectory(baseDir, outputDirectory), project);
         } catch (Exception e) {
             String fileName = "";
             if (e instanceof TranslatorException) {
@@ -196,22 +192,45 @@ public class YangUtilManager extends AbstractMojo {
     }
 
     /**
-     * Set current project.
+     * Links all the provided with the YANG file info set.
      *
-     * @param curProject maven project
+     * @throws MojoExecutionException a violation in mojo excecution
      */
-    public void setCurrentProject(MavenProject curProject) {
-        project = curProject;
-
+    public void resolveDependenciesUsingLinker() throws MojoExecutionException {
+        for (YangFileInfo yangFileInfo : getYangFileInfoSet()) {
+            try {
+                yangLinker.resolveDependencies(getYangFileInfoSet());
+            } catch (LinkerException e) {
+                throw new MojoExecutionException(e.getMessage());
+            }
+        }
     }
 
     /**
-     * Returns current project.
+     * Parses all the provided YANG files and generates YANG data model tree.
      *
-     * @return current project
+     * @throws IOException a violation in IO
      */
-    public MavenProject getCurrentProject() {
-        return project;
+    public void parseYangFileInfoSet() throws IOException {
+        for (YangFileInfo yangFileInfo : getYangFileInfoSet()) {
+            try {
+                YangNode yangNode = yangUtilsParser.getDataModel(yangFileInfo.getYangFileName());
+                yangFileInfo.setRootNode(yangNode);
+                setRootNode(yangNode);
+            } catch (ParserException e) {
+                String logInfo = "Error in file: " + e.getFileName();
+                if (e.getLineNumber() != 0) {
+                    logInfo = logInfo + " at line: " + e.getLineNumber() + " at position: "
+                            + e.getCharPositionInLine();
+
+                }
+                if (e.getMessage() != null) {
+                    logInfo = logInfo + NEW_LINE + e.getMessage();
+                }
+                getLog().info(logInfo);
+                throw e;
+            }
+        }
     }
 
     /**
@@ -219,7 +238,7 @@ public class YangUtilManager extends AbstractMojo {
      *
      * @return current root YANG node of data-model tree
      */
-    public YangNode getRootNode() {
+    private YangNode getRootNode() {
         return rootNode;
     }
 
@@ -228,44 +247,55 @@ public class YangUtilManager extends AbstractMojo {
      *
      * @param rootNode current root YANG node of data-model tree
      */
-    public void setRootNode(YangNode rootNode) {
+    private void setRootNode(YangNode rootNode) {
         this.rootNode = rootNode;
     }
 
     /**
      * Translates to java code corresponding to the YANG schema.
      *
-     * @param yangFileInfo YANG file information
-     * @param yangPlugin YANG plugin config
+     * @param yangFileInfoSet YANG file information
+     * @param yangPlugin      YANG plugin config
      * @throws IOException when fails to generate java code file the current
-     *             node
+     *                     node
      */
-    public static void translateToJava(List<YangFileInfo> yangFileInfo, YangPluginConfig yangPlugin)
+    public void translateToJava(Set<YangFileInfo> yangFileInfoSet, YangPluginConfig yangPlugin)
             throws IOException {
-        Iterator<YangFileInfo> yangFileIterator = yangFileInfo.iterator();
+        Iterator<YangFileInfo> yangFileIterator = yangFileInfoSet.iterator();
         while (yangFileIterator.hasNext()) {
-            YangFileInfo yangFile = yangFileIterator.next();
-            generateJavaCode(yangFile.getRootNode(), yangPlugin, yangFile.getYangFileName());
+            YangFileInfo yangFileInfo = yangFileIterator.next();
+            generateJavaCode(yangFileInfo.getRootNode(), yangPlugin, yangFileInfo.getYangFileName());
         }
     }
 
     /**
-     * Resolves sub-module linking.
+     * Creates a YANG file info set.
      *
-     * @param yangFileInfo YANG file information
-     * @throws DataModelException when belongs-to module node is not found
+     * @param yangFileList YANG files list
      */
-    public static void resolveLinkingForSubModule(List<YangFileInfo> yangFileInfo) throws DataModelException {
-        Iterator<YangFileInfo> yangFileIterator = yangFileInfo.iterator();
-        while (yangFileIterator.hasNext()) {
-            YangFileInfo yangFile = yangFileIterator.next();
-            YangNode yangNode = yangFile.getRootNode();
-            if (yangNode instanceof YangSubModule) {
-                String belongsToModuleName = ((YangSubModule) yangNode).getBelongsTo()
-                        .getBelongsToModuleName();
-                YangNode moduleNode = findBelongsToModuleNode(yangFileInfo, belongsToModuleName);
-                ((YangSubModule) yangNode).getBelongsTo().setModuleNode(moduleNode);
-            }
+    public void createYangFileInfoSet(List<String> yangFileList) {
+        for (String yangFile : yangFileList) {
+            YangFileInfo yangFileInfo = new YangFileInfo();
+            yangFileInfo.setYangFileName(yangFile);
+            getYangFileInfoSet().add(yangFileInfo);
         }
+    }
+
+    /**
+     * Returns the YANG file info set.
+     *
+     * @return the YANG file info set
+     */
+    public Set<YangFileInfo> getYangFileInfoSet() {
+        return yangFileInfoSet;
+    }
+
+    /**
+     * Sets the YANG file info set.
+     *
+     * @param yangFileInfoSet the YANG file info set
+     */
+    public void setYangFileInfoSet(Set<YangFileInfo> yangFileInfoSet) {
+        this.yangFileInfoSet = yangFileInfoSet;
     }
 }

@@ -6,13 +6,13 @@ module Test {
         list valid {
             key "invalid-interval";
             leaf invalid-interval {
-                type hello;
+                type Ant:hello;
             }
         }
     }
     container isis {
         typedef hello {
-            type String;
+            type string;
         }
     }
 }

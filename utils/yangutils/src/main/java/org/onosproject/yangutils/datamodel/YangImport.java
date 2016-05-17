@@ -15,9 +15,13 @@
  */
 package org.onosproject.yangutils.datamodel;
 
+import java.util.Set;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.utils.YangConstructType;
+
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.findReferredNode;
 
 /*
  *  Reference:RFC 6020.
@@ -64,7 +68,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  * Represents the information about the imported modules.
  */
 public class YangImport
-        implements Parsable {
+        implements Parsable, LocationInfo {
 
     /**
      * Name of the module that is being imported.
@@ -78,7 +82,7 @@ public class YangImport
 
     /**
      * Reference:RFC 6020.
-     *
+     * <p>
      * The import's "revision-date" statement is used to specify the exact
      * version of the module to import. The "revision-date" statement MUST match
      * the most recent "revision" statement in the imported module. organization
@@ -87,10 +91,20 @@ public class YangImport
     private String revision;
 
     /**
+     * Reference to node which is imported.
+     */
+    private YangNode importedNode;
+
+    // Error Line number.
+    private int lineNumber;
+
+    // Error character position.
+    private int charPosition;
+
+    /**
      * Creates a YANG import.
      */
     public YangImport() {
-
     }
 
     /**
@@ -180,5 +194,92 @@ public class YangImport
             throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
 
+    }
+
+    /**
+     * Returns imported node.
+     *
+     * @return imported node
+     */
+    public YangNode getImportedNode() {
+        return importedNode;
+    }
+
+    /**
+     * Sets imported node.
+     *
+     * @param importedNode imported node
+     */
+    public void setImportedNode(YangNode importedNode) {
+        this.importedNode = importedNode;
+    }
+
+    @Override
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    @Override
+    public int getCharPosition() {
+        return charPosition;
+    }
+
+    @Override
+    public void setLineNumber(int lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    @Override
+    public void setCharPosition(int charPositionInLine) {
+        this.charPosition = charPositionInLine;
+    }
+
+    /**
+     * Adds reference to an import.
+     *
+     * @param yangFileInfoSet YANG file info set
+     * @throws DataModelException a violation of data model rules
+     */
+    public void addReferenceToImport(Set<YangFileInfo> yangFileInfoSet) throws DataModelException {
+        String importedModuleName = getModuleName();
+        String importedModuleRevision = getRevision();
+        YangNode moduleNode = null;
+        /*
+         * Find the imported module node for a given module name
+         * with a specified revision if revision is not null.
+         */
+        if (importedModuleRevision != null) {
+            String importedModuleNameWithRevision = importedModuleName + "@" + importedModuleRevision;
+            moduleNode = findReferredNode(yangFileInfoSet, importedModuleNameWithRevision);
+        }
+
+        /*
+         * Find the imported module node for a given module name
+         * without revision if can't find with revision.
+         */
+        if (moduleNode == null) {
+            moduleNode = findReferredNode(yangFileInfoSet, importedModuleName);
+        }
+
+        if (moduleNode != null) {
+            if (moduleNode instanceof YangModule) {
+                if (getRevision() == null || getRevision().isEmpty()) {
+                    setImportedNode(moduleNode);
+                    return;
+                }
+                // Match revision if import is with revision.
+                if (((YangModule) moduleNode).getRevision().getRevDate().equals(importedModuleRevision)) {
+                    setImportedNode(moduleNode);
+                    return;
+                }
+            }
+        }
+
+        // Exception if there is no match.
+        DataModelException exception = new DataModelException("YANG file error : Imported module "
+                + importedModuleName + " with revision " + importedModuleRevision + " is not found.");
+        exception.setLine(getLineNumber());
+        exception.setCharPosition(getCharPosition());
+        throw exception;
     }
 }

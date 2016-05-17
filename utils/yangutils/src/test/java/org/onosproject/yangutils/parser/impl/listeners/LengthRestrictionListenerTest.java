@@ -144,7 +144,7 @@ public class LengthRestrictionListenerTest {
     public void processLengthWithInvalidType() throws IOException, ParserException {
         thrown.expect(ParserException.class);
         thrown.expectMessage("YANG file error : length name \"1..100\" can be used to restrict the built-in type" +
-                " string or types derived from string.");
+                " string/binary or types derived from string/binary.");
         YangNode node = manager.getDataModel("src/test/resources/LengthWithInvalidType.yang");
     }
 

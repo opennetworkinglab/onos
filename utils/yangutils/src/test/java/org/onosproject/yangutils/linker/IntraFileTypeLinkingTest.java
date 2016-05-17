@@ -32,12 +32,13 @@ import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.onosproject.yangutils.datamodel.ResolvableStatus.INTRA_FILE_RESOLVED;
-import static org.onosproject.yangutils.datamodel.ResolvableStatus.RESOLVED;
+import static org.onosproject.yangutils.datamodel.YangDataTypes.BINARY;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.INT32;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
+import static org.onosproject.yangutils.linker.impl.ResolvableStatus.INTRA_FILE_RESOLVED;
+import static org.onosproject.yangutils.linker.impl.ResolvableStatus.RESOLVED;
 
 /**
  * Test cases for testing "type" intra file linking.
@@ -515,5 +516,49 @@ public class IntraFileTypeLinkingTest {
 
         YangNode node =
                 manager.getDataModel("src/test/resources/SelfFileLinkingWithHierarchicalTypeFailureScenario.yang");
+    }
+
+    /**
+     * Checks self resolution when typedef and leaf using type are siblings for binary type.
+     */
+    @Test
+    public void processSelfResolutionWhenTypeAndTypedefAtRootLevelForBinary()
+            throws IOException, ParserException {
+
+        YangNode node
+                = manager.getDataModel("src/test/resources/SelfResolutionWhenTypeAndTypedefAtRootLevelForBinary.yang");
+
+        // Check whether the data model tree returned is of type module.
+        assertThat(node instanceof YangModule, is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("ospf"));
+
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getName(), is("typedef14"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("type14"));
+        assertThat(leafInfo.getDataType().getDataType(), is(DERIVED));
+
+        assertThat(((YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo()).getReferredTypeDef(),
+                is((YangTypeDef) node.getChild()));
+
+        assertThat(leafInfo.getDataType().getResolvableStatus(), is(RESOLVED));
+
+        YangDerivedInfo<?> derivedInfo = (YangDerivedInfo<?>) leafInfo.getDataType().getDataTypeExtendedInfo();
+
+        // Check for the effective built-in type.
+        assertThat(derivedInfo.getEffectiveBuiltInType(), is(BINARY));
+
+        // Check for the restriction.
+        assertThat(derivedInfo.getLengthRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getRangeRestrictionString(), is(nullValue()));
+        assertThat(derivedInfo.getPatternRestriction(), is(nullValue()));
+        assertThat(derivedInfo.getResolvedExtendedInfo(), is(nullValue()));
     }
 }

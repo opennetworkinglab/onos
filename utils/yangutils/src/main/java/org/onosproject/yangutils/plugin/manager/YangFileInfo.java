@@ -16,6 +16,8 @@
 
 package org.onosproject.yangutils.plugin.manager;
 
+import java.util.Objects;
+import org.onosproject.yangutils.linker.impl.ResolvableStatus;
 import org.onosproject.yangutils.datamodel.YangNode;
 
 /**
@@ -29,9 +31,19 @@ public class YangFileInfo {
     private String yangFileName;
 
     /**
+     * YANG file revision.
+     */
+    private String revision;
+
+    /**
      * Data model node after parsing YANG file.
      */
     private YangNode rootNode;
+
+    /**
+     * Resolution status of YANG file.
+     */
+    private ResolvableStatus resolvableStatus;
 
     /**
      * Returns data model node for YANG file.
@@ -67,5 +79,59 @@ public class YangFileInfo {
      */
     public void setYangFileName(String yangFileName) {
         this.yangFileName = yangFileName;
+    }
+
+    /**
+     * Returns the revision of YANG file.
+     *
+     * @return revision of YANG file
+     */
+    public String getRevision() {
+        return revision;
+    }
+
+    /**
+     * Sets the revision of YANG file.
+     *
+     * @param revision revision of YANG file
+     */
+    public void setRevision(String revision) {
+        this.revision = revision;
+    }
+
+    /**
+     * Returns the resolution status of YANG file.
+     *
+     * @return resolution status of YANG file
+     */
+    public ResolvableStatus getResolvableStatus() {
+        return resolvableStatus;
+    }
+
+    /**
+     * Sets the resolution status of YANG file.
+     *
+     * @param resolvableStatus resolution status of YANG file
+     */
+    public void setResolvableStatus(ResolvableStatus resolvableStatus) {
+        this.resolvableStatus = resolvableStatus;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof YangFileInfo) {
+            final YangFileInfo other = (YangFileInfo) obj;
+            return Objects.equals(this.yangFileName, other.yangFileName);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.yangFileName);
     }
 }

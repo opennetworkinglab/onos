@@ -17,10 +17,10 @@
 package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.impl.ResolvableStatus;
 import com.google.common.base.Strings;
 
-import static org.onosproject.yangutils.datamodel.ResolvableStatus.INTRA_FILE_RESOLVED;
-import static org.onosproject.yangutils.datamodel.ResolvableStatus.RESOLVED;
+import static org.onosproject.yangutils.datamodel.YangDataTypes.BINARY;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.BITS;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.BOOLEAN;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
@@ -30,6 +30,8 @@ import static org.onosproject.yangutils.datamodel.YangDataTypes.IDENTITYREF;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.LEAFREF;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.UNION;
+import static org.onosproject.yangutils.linker.impl.ResolvableStatus.INTRA_FILE_RESOLVED;
+import static org.onosproject.yangutils.linker.impl.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.utils.RestrictionResolver.isOfRangeRestrictedType;
 import static org.onosproject.yangutils.utils.RestrictionResolver.processLengthRestriction;
 import static org.onosproject.yangutils.utils.RestrictionResolver.processRangeRestriction;
@@ -236,7 +238,7 @@ public class YangDerivedInfo<T> implements LocationInfo {
              * Check whether the referred typedef is resolved.
              */
             if (baseType.getResolvableStatus() != INTRA_FILE_RESOLVED && baseType.getResolvableStatus() != RESOLVED) {
-                throw new DataModelException("Linker Error: Referred typedef is not resolved.");
+                throw new DataModelException("Linker Error: Referred typedef is not resolved for type.");
             }
 
             /*
@@ -301,6 +303,28 @@ public class YangDerivedInfo<T> implements LocationInfo {
                      */
                     return RESOLVED;
                 }
+            } else if (getEffectiveBuiltInType() == BINARY) {
+                if (refDerivedInfo.getResolvedExtendedInfo() == null) {
+                    resolveLengthRestriction(null);
+                    /*
+                     * Return the resolution status as resolved, if it's not
+                     * resolve length restriction will throw exception
+                     * in previous function.
+                     */
+                    return RESOLVED;
+                } else {
+                    if (!(refDerivedInfo.getResolvedExtendedInfo() instanceof YangRangeRestriction)) {
+                        throw new DataModelException("Linker error: Referred typedef restriction info is of invalid " +
+                                "type.");
+                    }
+                    resolveLengthRestriction((YangRangeRestriction) refDerivedInfo.getResolvedExtendedInfo());
+                    /*
+                     * Return the resolution status as resolved, if it's not
+                     * resolve length restriction will throw exception
+                     * in previous function.
+                     */
+                    return RESOLVED;
+                }
             }
         } else {
             setEffectiveBuiltInType((baseType.getDataType()));
@@ -352,6 +376,28 @@ public class YangDerivedInfo<T> implements LocationInfo {
                     /*
                      * Return the resolution status as resolved, if it's not
                      * resolve range/string restriction will throw exception
+                     * in previous function.
+                     */
+                    return RESOLVED;
+                }
+            } else if (getEffectiveBuiltInType() == BINARY) {
+                if (baseType.getDataTypeExtendedInfo() == null) {
+                    resolveLengthRestriction(null);
+                    /*
+                     * Return the resolution status as resolved, if it's not
+                     * resolve length restriction will throw exception
+                     * in previous function.
+                     */
+                    return RESOLVED;
+                } else {
+                    if (!(baseType.getDataTypeExtendedInfo() instanceof YangRangeRestriction)) {
+                        throw new DataModelException("Linker error: Referred typedef restriction info is of invalid " +
+                                "type.");
+                    }
+                    resolveLengthRestriction((YangRangeRestriction) baseType.getDataTypeExtendedInfo());
+                    /*
+                     * Return the resolution status as resolved, if it's not
+                     * resolve length restriction will throw exception
                      * in previous function.
                      */
                     return RESOLVED;

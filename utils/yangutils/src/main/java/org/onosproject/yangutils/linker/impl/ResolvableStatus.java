@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.datamodel;
+package org.onosproject.yangutils.linker.impl;
 
 /**
  * Represents the status of resolvable entity.
@@ -40,6 +40,12 @@ public enum ResolvableStatus {
     /**
      * Identifies that resolvable entity is resolved.
      */
-    RESOLVED
+    RESOLVED,
+
+    /**
+     * Identifies that resolvable entity is inter file linked (i.e. complete
+     * linking with external files).
+     */
+    INTER_FILE_LINKED
 
 }

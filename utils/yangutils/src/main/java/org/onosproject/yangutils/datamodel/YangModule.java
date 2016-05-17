@@ -15,14 +15,20 @@
  */
 package org.onosproject.yangutils.datamodel;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
+import java.util.Set;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
+import org.onosproject.yangutils.linker.impl.YangReferenceResolver;
+import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCollidingChildUtil;
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.linkInterFileReferences;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.resolveLinkingForResolutionList;
 
 /*-
@@ -79,7 +85,7 @@ public class YangModule extends YangNode
 
     /**
      * Reference:RFC 6020.
-     *
+     * <p>
      * The "contact" statement provides contact information for the module. The
      * argument is a string that is used to specify contact information for the
      * person or persons to whom technical queries concerning this module should
@@ -90,7 +96,7 @@ public class YangModule extends YangNode
 
     /**
      * Reference:RFC 6020.
-     *
+     * <p>
      * The "description" statement takes as an argument a string that contains a
      * human-readable textual description of this definition. The text is
      * provided in a language (or languages) chosen by the module developer; for
@@ -125,7 +131,7 @@ public class YangModule extends YangNode
 
     /**
      * Reference:RFC 6020.
-     *
+     * <p>
      * The "organization" statement defines the party responsible for this
      * module. The argument is a string that is used to specify a textual
      * description of the organization(s) under whose auspices this module was
@@ -408,6 +414,14 @@ public class YangModule extends YangNode
         resolveLinkingForResolutionList(resolutionList, this);
     }
 
+    @Override
+    public void resolveInterFileLinking() throws DataModelException {
+        // Get the list to be resolved.
+        List<YangResolutionInfo> resolutionList = getUnresolvedResolutionList();
+        // Resolve linking for a resolution list.
+        linkInterFileReferences(resolutionList, this);
+    }
+
     /**
      * Returns the textual reference.
      *
@@ -524,5 +538,44 @@ public class YangModule extends YangNode
     @Override
     public void setResolutionList(List<YangResolutionInfo> resolutionList) {
         unresolvedResolutionList = resolutionList;
+    }
+
+    @Override
+    public void addReferencesToImportList(Set<YangFileInfo> yangFileInfoSet)
+            throws LinkerException {
+        Iterator<YangImport> importInfoIterator = getImportList().iterator();
+        // Run through the imported list to add references.
+        while (importInfoIterator.hasNext()) {
+            YangImport yangImport = importInfoIterator.next();
+            try {
+                yangImport.addReferenceToImport(yangFileInfoSet);
+            } catch (DataModelException e) {
+                throw new LinkerException(e.getMessage());
+            }
+        }
+    }
+
+    @Override
+    public void addReferencesToIncludeList(Set<YangFileInfo> yangFileInfoSet)
+            throws LinkerException {
+        Iterator<YangInclude> includeInfoIterator = getIncludeList().iterator();
+        // Run through the included list to add references.
+        while (includeInfoIterator.hasNext()) {
+            YangInclude yangInclude = includeInfoIterator.next();
+            YangSubModule subModule = null;
+            try {
+                subModule = yangInclude.addReferenceToInclude(yangFileInfoSet);
+            } catch (DataModelException e) {
+                throw new LinkerException(e.getMessage());
+            }
+            // Check if the referred sub-modules parent is self
+            if (!(subModule.getBelongsTo().getModuleNode() == this)) {
+                try {
+                    yangInclude.reportIncludeError();
+                } catch (DataModelException e) {
+                    throw new LinkerException(e.getMessage());
+                }
+            }
+        }
     }
 }

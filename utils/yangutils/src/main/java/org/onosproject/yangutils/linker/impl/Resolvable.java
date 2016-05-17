@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.datamodel;
+package org.onosproject.yangutils.linker.impl;
 
-import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
 
 /**
  * Abstraction of YANG resolvable information. Abstracted to obtain the
@@ -47,8 +47,8 @@ public interface Resolvable {
     /**
      * Resolves the linking.
      *
-     * @throws DataModelException data model error
+     * @throws LinkerException linker error
      */
     void resolve()
-            throws DataModelException;
+            throws LinkerException;
 }

@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package org.onosproject.yangutils.datamodel;
+package org.onosproject.yangutils.linker.impl;
 
 import java.util.List;
+import java.util.Set;
+import org.onosproject.yangutils.datamodel.YangImport;
+import org.onosproject.yangutils.datamodel.YangInclude;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
+import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 
 /**
  * Abstraction of YANG dependency resolution information. Abstracted to obtain the
@@ -33,7 +38,7 @@ public interface YangReferenceResolver {
     List<YangResolutionInfo> getUnresolvedResolutionList();
 
     /**
-     * Add to the resolution list.
+     * Adds to the resolution list.
      *
      * @param resolutionInfo resolution information
      */
@@ -54,7 +59,7 @@ public interface YangReferenceResolver {
     List<YangImport> getImportList();
 
     /**
-     * Add to the import list.
+     * Adds to the import list.
      *
      * @param yangImport import to be added
      */
@@ -75,14 +80,14 @@ public interface YangReferenceResolver {
     List<YangInclude> getIncludeList();
 
     /**
-     * Add to the include list.
+     * Adds to the include list.
      *
      * @param yangInclude include to be added
      */
     void addToIncludeList(YangInclude yangInclude);
 
     /**
-     * Create include list.
+     * Creates include list.
      *
      * @param includeList include list
      */
@@ -96,16 +101,39 @@ public interface YangReferenceResolver {
     String getPrefix();
 
     /**
-     * Set prefix of resolution list root node.
+     * Sets prefix of resolution list root node.
      *
      * @param prefix resolution root node prefix
      */
     void setPrefix(String prefix);
 
     /**
-     * Resolve self file linking.
+     * Resolves self file linking.
      *
      * @throws DataModelException a violation in data model rule
      */
     void resolveSelfFileLinking() throws DataModelException;
+
+    /**
+     * Resolves inter file linking.
+     *
+     * @throws DataModelException a violation in data model rule
+     */
+    void resolveInterFileLinking() throws DataModelException;
+
+    /**
+     * Adds references to include.
+     *
+     * @param yangFileInfoSet YANG file info set
+     * @throws LinkerException a violation of linker rules
+     */
+    void addReferencesToIncludeList(Set<YangFileInfo> yangFileInfoSet) throws LinkerException;
+
+    /**
+     * Adds references to import.
+     *
+     * @param yangFileInfoSet YANG file info set
+     * @throws LinkerException a violation of linker rules
+     */
+    void addReferencesToImportList(Set<YangFileInfo> yangFileInfoSet) throws LinkerException;
 }

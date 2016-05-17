@@ -15,6 +15,6 @@
  */
 
 /**
- * Provide inter file and inter jar linking implementation.
+ * Provide intra/inter file and inter jar linking implementation.
  */
 package org.onosproject.yangutils.linker.impl;

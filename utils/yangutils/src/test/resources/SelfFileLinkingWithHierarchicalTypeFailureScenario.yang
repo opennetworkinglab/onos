@@ -3,7 +3,7 @@ module Test {
     namespace http://huawei.com;
     prefix Ant;
     typedef Percentage {
-    type INT;
+        type Ant:INT;
     }
     container ospf {
         list valid {
