@@ -46,7 +46,7 @@ from mininet.net import Mininet
 from mininet.topo import SingleSwitchTopo, Topo
 from mininet.log import setLogLevel, info
 from mininet.cli import CLI
-from mininet.util import quietRun, errRun, waitListening
+from mininet.util import quietRun, waitListening
 from mininet.clean import killprocs
 from mininet.examples.controlnet import MininetFacade
 
@@ -129,7 +129,7 @@ def updateNodeIPs( env, nodes ):
 
 tarDefaultPath = 'buck-out/gen/tools/package/onos-package/onos.tar.gz'
 
-def unpackONOS( destDir='/tmp' ):
+def unpackONOS( destDir='/tmp', run=quietRun ):
     "Unpack ONOS and return its location"
     global ONOS_TAR
     environ.setdefault( 'ONOS_TAR', join( ONOS_ROOT, tarDefaultPath ) )
@@ -139,16 +139,18 @@ def unpackONOS( destDir='/tmp' ):
         raise Exception( 'Missing ONOS tarball %s - run buck build onos?'
                          % tarPath )
     info( '(unpacking %s)' % destDir)
-    cmds = ( 'mkdir -p "%s" && cd "%s" && tar xvzf "%s"'
+    cmds = ( 'mkdir -p "%s" && cd "%s" && tar xzf "%s"'
              % ( destDir, destDir, tarPath) )
-    out, _err, _code  = errRun( cmds, shell=True, verbose=True )
-    first = out.split( '\n' )[ 0 ]
-    assert '/' in first
-    onosDir = join( destDir, dirname( first ) )
+    run( cmds, shell=True, verbose=True )
+    # We can use quietRun for this usually
+    tarOutput = quietRun( 'tar tzf "%s" | head -1' % tarPath, shell=True)
+    tarOutput = tarOutput.split()[ 0 ].strip()
+    assert '/' in tarOutput
+    onosDir = join( destDir, dirname( tarOutput ) )
     # Add symlink to log file
-    quietRun( 'cd %s; ln -s onos*/apache* karaf;'
-              'ln -s karaf/data/log/karaf.log log' % destDir,
-              shell=True )
+    run( 'cd %s; ln -s onos*/apache* karaf;'
+         'ln -s karaf/data/log/karaf.log log' % destDir,
+         shell=True )
     return onosDir
 
 
@@ -209,19 +211,19 @@ class ONOSNode( Controller ):
            env: environment var dict"""
         env = dict( env )
         self.cmd( 'rm -rf', self.dir )
-        self.ONOS_HOME = unpackONOS( self.dir )
+        self.ONOS_HOME = unpackONOS( self.dir, run=self.ucmd )
         env.update( ONOS_HOME=self.ONOS_HOME )
         self.updateEnv( env )
         karafbin = glob( '%s/apache*/bin' % self.ONOS_HOME )[ 0 ]
         onosbin = join( ONOS_ROOT, 'tools/test/bin' )
         self.cmd( 'export PATH=%s:%s:$PATH' % ( onosbin, karafbin ) )
         self.cmd( 'cd', self.ONOS_HOME )
-        self.cmd( 'mkdir -p config && '
-                  'onos-gen-partitions config/cluster.json' )
+        self.ucmd( 'mkdir -p config && '
+                   'onos-gen-partitions config/cluster.json' )
         info( '(starting %s)' % self )
         service = join( self.ONOS_HOME, 'bin/onos-service' )
-        self.cmd( service, 'server 1>../onos.log 2>../onos.log &' )
-        self.cmd( 'echo $! > onos.pid' )
+        self.ucmd( service, 'server 1>../onos.log 2>../onos.log'
+                   ' & echo $! > onos.pid; ln -s `pwd`/onos.pid ..' )
 
     # pylint: enable=arguments-differ
 
@@ -234,7 +236,7 @@ class ONOSNode( Controller ):
         "Wait until we've really started"
         info( '(checking: karaf' )
         while True:
-            status = self.cmd( 'karaf status' ).lower()
+            status = self.ucmd( 'karaf status' ).lower()
             if 'running' in status and 'not running' not in status:
                 break
             info( '.' )
@@ -258,6 +260,13 @@ class ONOSNode( Controller ):
         cmd = ';'.join( 'export %s="%s"' % ( var, val )
                         for var, val in envDict.iteritems() )
         self.cmd( cmd )
+
+    def ucmd( self, *args, **_kwargs ):
+        "Run command as $ONOS_USER using sudo -E -u"
+        if ONOS_USER != 'root':  # don't bother with sudo
+            args = [ "sudo -E -u $ONOS_USER PATH=$PATH "
+                     "bash -c '%s'" % ' '.join( args ) ]
+        return self.cmd( *args )
 
 
 class ONOSCluster( Controller ):
