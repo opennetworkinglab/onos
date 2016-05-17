@@ -28,8 +28,6 @@ import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiTopoOverlayFactory;
-import org.onosproject.ui.impl.topo.UiTopoSession;
-import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.topo.TopoConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +63,7 @@ public class UiWebSocket
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final ServiceDirectory directory;
-    private final UiTopoSession topoSession;
+//    private final UiTopoSession topoSession;
 
     private Connection connection;
     private FrameConnection control;
@@ -85,8 +83,8 @@ public class UiWebSocket
     public UiWebSocket(ServiceDirectory directory, String userName) {
         this.directory = directory;
         this.userName = userName;
-        this.topoSession =
-                new UiTopoSession(this, directory.get(UiSharedTopologyModel.class));
+//        this.topoSession =
+//                new UiTopoSession(this, directory.get(UiSharedTopologyModel.class));
     }
 
     @Override
@@ -130,7 +128,7 @@ public class UiWebSocket
         this.connection = connection;
         this.control = (FrameConnection) connection;
         try {
-            topoSession.init();
+//            topoSession.init();
             createHandlersAndOverlays();
             sendBootstrapData();
             log.info("GUI client connected -- user <{}>", userName);
@@ -145,7 +143,7 @@ public class UiWebSocket
 
     @Override
     public synchronized void onClose(int closeCode, String message) {
-        topoSession.destroy();
+//        topoSession.destroy();
         destroyHandlersAndOverlays();
         log.info("GUI client disconnected [close-code={}, message={}]",
                 closeCode, message);
