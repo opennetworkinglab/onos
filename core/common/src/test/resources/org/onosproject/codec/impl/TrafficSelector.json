@@ -1,0 +1,20 @@
+{
+  "criteria": [
+    {
+      "type": "IN_PORT",
+      "port": -3
+    },
+    {
+      "type": "ETH_SRC",
+      "mac": "11:22:33:44:55:66"
+    },
+    {
+      "type": "ETH_DST",
+      "mac": "44:55:66:77:88:99"
+    },
+    {
+      "type": "ETH_TYPE",
+      "ethType": 2054
+    }
+  ]
+}
