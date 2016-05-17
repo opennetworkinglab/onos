@@ -21,15 +21,15 @@ import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.onosproject.yangutils.parser.impl.parserutils.AugmentJavaFileNameGenUtil.clearOccurrenceCount;
-import static org.onosproject.yangutils.parser.impl.parserutils.AugmentJavaFileNameGenUtil.createValidNameForAugment;
-import static org.onosproject.yangutils.parser.impl.parserutils.AugmentJavaFileNameGenUtil.getAugmentJavaFileNameList;
-import static org.onosproject.yangutils.parser.impl.parserutils.AugmentJavaFileNameGenUtil.updateNameWhenHasMultipleOuccrrence;
+import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.clearOccurrenceCount;
+import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.createValidNameForAugment;
+import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.getAugmentJavaFileNameList;
+import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.updateNameWhenHasMultipleOuccrrence;
 
 /**
- * Unit test case for augment java file name generator utility.
+ * Unit test case for augment listener utility.
  */
-public class AugmentJavaFileNameGenUtilTest {
+public class AugmentListnerUtilTest {
 
     private static final String TEST1 = "test1Node";
     private static final String PARENT_PREFIX = "if";

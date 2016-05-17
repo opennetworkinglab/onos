@@ -103,23 +103,31 @@ public class YangJavaTypeDef
      * typedef info.
      *
      * @param yangPlugin YANG plugin config
-     * @throws IOException IO operations fails
+     * @throws TranslatorException when fails to translate
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin)
-            throws IOException {
-        generateCodeOfNode(this, yangPlugin);
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
+        try {
+            generateCodeOfNode(this, yangPlugin);
+        } catch (IOException e) {
+            throw new TranslatorException(
+                    "Failed to prepare generate code entry for typedef node " + this.getName());
+        }
+
     }
 
     /**
      * Create a java file using the YANG typedef info.
      *
-     * @throws IOException IO operations fails
+     * @throws TranslatorException when fails to translate
      */
     @Override
-    public void generateCodeExit()
-            throws IOException {
-        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_TYPEDEF_CLASS, this);
+    public void generateCodeExit() throws TranslatorException {
+        try {
+            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_TYPEDEF_CLASS, this);
+        } catch (IOException e) {
+            throw new TranslatorException("Failed to generate code for typedef node " + this.getName());
+        }
     }
 
 }

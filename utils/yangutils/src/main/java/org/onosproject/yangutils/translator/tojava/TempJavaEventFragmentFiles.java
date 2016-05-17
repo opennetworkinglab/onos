@@ -18,11 +18,12 @@ package org.onosproject.yangutils.translator.tojava;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEventFile;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPackage;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
@@ -53,7 +54,7 @@ public class TempJavaEventFragmentFiles
      */
     public TempJavaEventFragmentFiles(JavaFileInfo javaFileInfo)
             throws IOException {
-        setExtendsList(new ArrayList<>());
+        setJavaExtendsListHolder(new JavaExtendsListHolder());
         setJavaImportData(new JavaImportData());
         setJavaFileInfo(javaFileInfo);
 
@@ -92,11 +93,13 @@ public class TempJavaEventFragmentFiles
             throws IOException {
 
         createPackage(curNode);
+        String parentInfo = getCapitalCase(((JavaFileInfoContainer) curNode.getParent())
+                .getJavaFileInfo().getJavaName());
 
         /**
          * Creates event interface file.
          */
-        setEventJavaFileHandle(getJavaFileHandle(getJavaClassName(EVENT_FILE_NAME_SUFFIX)));
+        setEventJavaFileHandle(getJavaFileHandle(parentInfo + EVENT_FILE_NAME_SUFFIX));
         generateEventFile(getEventJavaFileHandle(), curNode, null);
 
         /**

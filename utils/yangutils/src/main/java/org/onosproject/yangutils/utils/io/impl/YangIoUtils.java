@@ -158,7 +158,7 @@ public final class YangIoUtils {
         }
 
         for (File dir : store) {
-            dir.delete();
+            FileUtils.deleteDirectory(dir);
         }
     }
 

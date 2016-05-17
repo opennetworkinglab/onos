@@ -18,11 +18,12 @@ package org.onosproject.yangutils.translator.tojava;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEventListenerFile;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPackage;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getAbsolutePackagePath;
@@ -53,7 +54,7 @@ public class TempJavaEventListenerFragmentFiles
      */
     public TempJavaEventListenerFragmentFiles(JavaFileInfo javaFileInfo)
             throws IOException {
-        setExtendsList(new ArrayList<>());
+        setJavaExtendsListHolder(new JavaExtendsListHolder());
         setJavaImportData(new JavaImportData());
         setJavaFileInfo(javaFileInfo);
         setAbsoluteDirPath(getAbsolutePackagePath(getJavaFileInfo().getBaseCodeGenPath(),
@@ -90,11 +91,12 @@ public class TempJavaEventListenerFragmentFiles
             throws IOException {
 
         createPackage(curNode);
-
+        String parentInfo = getCapitalCase(((JavaFileInfoContainer) curNode.getParent())
+                .getJavaFileInfo().getJavaName());
         /**
          * Creates event listener interface file.
          */
-        setEventListenerJavaFileHandle(getJavaFileHandle(getJavaClassName(EVENT_LISTENER_FILE_NAME_SUFFIX)));
+        setEventListenerJavaFileHandle(getJavaFileHandle(parentInfo + EVENT_LISTENER_FILE_NAME_SUFFIX));
         generateEventListenerFile(getEventListenerJavaFileHandle(), curNode, null);
 
         /**

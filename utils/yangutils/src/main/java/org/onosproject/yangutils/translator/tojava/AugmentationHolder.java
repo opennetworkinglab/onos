@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * Abstraction of an entity which represents augmentation of a YANG node.
  */
-public interface HasAugmentation {
+public interface AugmentationHolder {
 
     /**
      * Adds augment info to the augment info list.

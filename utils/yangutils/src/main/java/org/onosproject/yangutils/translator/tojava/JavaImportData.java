@@ -20,25 +20,28 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static java.util.Collections.sort;
+
 import static org.onosproject.yangutils.utils.UtilConstants.ARRAY_LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION_HOLDER_CLASS_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO_CLASS_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.COLLECTION_IMPORTS;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.GOOGLE_MORE_OBJECT_IMPORT_PKG;
-import static org.onosproject.yangutils.utils.UtilConstants.HAS_AUGMENTATION_CLASS_IMPORT_CLASS;
-import static org.onosproject.yangutils.utils.UtilConstants.HAS_AUGMENTATION_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_UTIL_OBJECTS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
+import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_PKG;
+import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_REG;
+import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
+import static org.onosproject.yangutils.utils.UtilConstants.PROVIDED_AUGMENTATION_CLASS_IMPORT_PKG;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
-
-import static java.util.Collections.sort;
 
 /**
  * Represents that generated Java file can contain imports.
@@ -178,7 +181,7 @@ public class JavaImportData {
      *
      * @return import for list attribute
      */
-    public static String getImportForList() {
+    public String getImportForList() {
         return IMPORT + COLLECTION_IMPORTS + PERIOD + LIST + SEMI_COLAN + NEW_LINE;
     }
 
@@ -187,17 +190,17 @@ public class JavaImportData {
      *
      * @return import for array list attribute
      */
-    public static String getImportForArrayList() {
+    public String getImportForArrayList() {
         return IMPORT + COLLECTION_IMPORTS + PERIOD + ARRAY_LIST + SEMI_COLAN + NEW_LINE;
     }
 
     /**
-     * Returns import string for HasAugmentation class.
+     * Returns import string for AugmentationHolder class.
      *
-     * @return import string for HasAugmentation class
+     * @return import string for AugmentationHolder class
      */
-    public static String getHasAugmentationImport() {
-        return IMPORT + HAS_AUGMENTATION_CLASS_IMPORT_PKG + PERIOD + HAS_AUGMENTATION_CLASS_IMPORT_CLASS;
+    public String getAugmentationHolderImport() {
+        return IMPORT + PROVIDED_AUGMENTATION_CLASS_IMPORT_PKG + PERIOD + AUGMENTATION_HOLDER_CLASS_IMPORT_CLASS;
     }
 
     /**
@@ -205,7 +208,25 @@ public class JavaImportData {
      *
      * @return import string for AugmentedInfo class
      */
-    public static String getAugmentedInfoImport() {
+    public String getAugmentedInfoImport() {
         return IMPORT + AUGMENTED_INFO_CLASS_IMPORT_PKG + PERIOD + AUGMENTED_INFO_CLASS_IMPORT_CLASS;
+    }
+
+    /**
+     * Returns import string for ListenerService class.
+     *
+     * @return import string for ListenerService class
+     */
+    public String getListenerServiceImport() {
+        return IMPORT + LISTENER_PKG + PERIOD + LISTENER_SERVICE + SEMI_COLAN + NEW_LINE;
+    }
+
+    /**
+     * Returns import string for ListenerRegistry class.
+     *
+     * @return import string for ListenerRegistry class
+     */
+    public String getListenerRegistryImport() {
+        return IMPORT + LISTENER_PKG + PERIOD + LISTENER_REG + SEMI_COLAN + NEW_LINE;
     }
 }

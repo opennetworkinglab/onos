@@ -25,24 +25,18 @@ import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
-import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getImportText;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaAttributeDefination;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaClassDefClose;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaClassDefStart;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getListAttribute;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPORT;
-import static org.onosproject.yangutils.utils.UtilConstants.INTERFACE;
 import static org.onosproject.yangutils.utils.UtilConstants.JAVA_LANG;
 import static org.onosproject.yangutils.utils.UtilConstants.LIST;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
-import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
-import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.STRING_DATA_TYPE;
@@ -54,7 +48,6 @@ public class JavaCodeSnippetGenTest {
 
     private static final String PKG_INFO = "org.onosproject.unittest";
     private static final String CLASS_INFO = "JavaCodeSnippetGenTest";
-    private static final int FILE_GEN_TYPE = INTERFACE_MASK;
     private static final String YANG_NAME = "Test";
 
     /**
@@ -68,7 +61,8 @@ public class JavaCodeSnippetGenTest {
      * @throws InvocationTargetException when an exception occurs by the method or constructor
      */
     @Test
-    public void callPrivateConstructors() throws SecurityException, NoSuchMethodException, IllegalArgumentException,
+    public void callPrivateConstructors()
+            throws SecurityException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
         Class<?>[] classesToConstruct = {JavaCodeSnippetGen.class };
@@ -91,26 +85,6 @@ public class JavaCodeSnippetGenTest {
         String imports = getImportText(importInfo);
 
         assertThat(true, is(imports.equals(IMPORT + PKG_INFO + PERIOD + CLASS_INFO + SEMI_COLAN + NEW_LINE)));
-    }
-
-    /**
-     * Unit test case for java class definition start.
-     */
-    @Test
-    public void testForJavaClassDefStart() {
-        String classDef = getJavaClassDefStart(FILE_GEN_TYPE, YANG_NAME);
-        assertThat(true, is(classDef
-                .equals(PUBLIC + SPACE + INTERFACE + SPACE + YANG_NAME + SPACE + OPEN_CURLY_BRACKET + NEW_LINE)));
-    }
-
-    /**
-     * Unit test case for list attribute.
-     */
-    @Test
-    public void testForListAttribute() {
-        String listAttribute = getListAttribute(STRING_DATA_TYPE);
-        assertThat(true,
-                is(listAttribute.equals(LIST + DIAMOND_OPEN_BRACKET + STRING_DATA_TYPE + DIAMOND_CLOSE_BRACKET)));
     }
 
     /**

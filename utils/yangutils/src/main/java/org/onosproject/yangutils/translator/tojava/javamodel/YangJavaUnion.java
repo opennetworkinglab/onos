@@ -18,13 +18,13 @@ package org.onosproject.yangutils.translator.tojava.javamodel;
 import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.YangUnion;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfNode;
 
 /**
@@ -84,10 +84,6 @@ public class YangJavaUnion
      */
     @Override
     public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
-        if (tempFileHandle == null) {
-            throw new RuntimeException("Missing temp file hand for current node "
-                    + getCapitalCase(getJavaFileInfo().getJavaName()));
-        }
         return tempFileHandle;
     }
 
@@ -106,22 +102,30 @@ public class YangJavaUnion
      * union info.
      *
      * @param yangPlugin YANG plugin config
-     * @throws IOException IO operations fails
+     * @throws TranslatorException when fails to translate
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin)
-            throws IOException {
-        generateCodeOfNode(this, yangPlugin);
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
+        try {
+            generateCodeOfNode(this, yangPlugin);
+        } catch (IOException e) {
+            throw new TranslatorException(
+                    "Failed to prepare generate code entry for union node " + this.getName());
+        }
+
     }
 
     /**
      * Creates a java file using the YANG union info.
      *
-     * @throws IOException IO operations fails
+     * @throws TranslatorException when fails to translate
      */
     @Override
-    public void generateCodeExit()
-            throws IOException {
-        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_UNION_CLASS, this);
+    public void generateCodeExit() throws TranslatorException {
+        try {
+            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_UNION_CLASS, this);
+        } catch (IOException e) {
+            throw new TranslatorException("Failed to generate code for union node " + this.getName());
+        }
     }
 }

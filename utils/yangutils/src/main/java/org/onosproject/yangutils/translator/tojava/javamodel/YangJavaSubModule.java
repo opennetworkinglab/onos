@@ -23,11 +23,11 @@ import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
-import org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
+import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfRootNode;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
 
 /**
@@ -117,24 +117,32 @@ public class YangJavaSubModule
      * submodule info.
      *
      * @param yangPlugin YANG plugin config
-     * @throws IOException IO operation fail
+     * @throws TranslatorException when fails to translate
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin)
-            throws IOException {
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
         String subModulePkg = getRootPackage(getVersion(), getNameSpaceFromModule(getBelongsTo()),
                 getRevision().getRevDate());
-        YangJavaModelUtils.generateCodeOfRootNode(this, yangPlugin, subModulePkg);
+        try {
+            generateCodeOfRootNode(this, yangPlugin, subModulePkg);
+        } catch (IOException e) {
+            throw new TranslatorException(
+                    "failed to prepare generate code entry for submodule node " + this.getName());
+        }
+
     }
 
     /**
      * Creates a java file using the YANG submodule info.
      */
     @Override
-    public void generateCodeExit()
-            throws IOException {
-        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
-        searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +
-                getJavaFileInfo().getPackageFilePath());
+    public void generateCodeExit() throws TranslatorException {
+        try {
+            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
+            searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +
+                    getJavaFileInfo().getPackageFilePath());
+        } catch (IOException e) {
+            throw new TranslatorException("Failed to generate code for submodule node " + this.getName());
+        }
     }
 }

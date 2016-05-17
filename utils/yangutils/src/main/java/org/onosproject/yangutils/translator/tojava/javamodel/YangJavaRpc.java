@@ -71,31 +71,32 @@ public class YangJavaRpc
      * RPC info.
      *
      * @param yangPlugin YANG plugin config
-     * @throws IOException IO operations fails
+     * @throws TranslatorException translator operations fails
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin)
-            throws IOException {
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
 
         if (!(this instanceof JavaCodeGeneratorInfo)) {
             // TODO:throw exception
         }
 
         // Add package information for rpc and create corresponding folder.
-        updatePackageInfo((JavaCodeGeneratorInfo) this, yangPlugin);
-
+        try {
+            updatePackageInfo(this, yangPlugin);
+        } catch (IOException e) {
+            throw new TranslatorException("Failed to prepare generate code entry for RPC node " + this.getName());
+        }
     }
 
     /**
      * Creates a java file using the YANG RPC info.
      *
-     * @throws IOException IO operations fails
+     * @throws TranslatorException translator operations fails
      */
     @Override
-    public void generateCodeExit()
-            throws IOException {
+    public void generateCodeExit() throws TranslatorException {
         // Get the parent module/sub-module.
-        YangNode parent = getParentNodeInGenCode((YangNode) this);
+        YangNode parent = getParentNodeInGenCode(this);
 
         // Parent should be holder of rpc or notification.
         if (!(parent instanceof RpcNotificationContainer)) {
@@ -110,7 +111,8 @@ public class YangJavaRpc
         JavaAttributeInfo javaAttributeInfoOfInput = null;
         JavaAttributeInfo javaAttributeInfoOfOutput = null;
 
-        // Get the child input and output node and obtain create java attribute info.
+        // Get the child input and output node and obtain create java attribute
+        // info.
         YangNode yangNode = this.getChild();
         while (yangNode != null) {
             if (yangNode instanceof YangInput) {
@@ -130,10 +132,13 @@ public class YangJavaRpc
         /*
          * Add the rpc information to the parent's service temp file.
          */
-        ((TempJavaCodeFragmentFilesContainer) parent)
-                .getTempJavaCodeFragmentFiles().getServiceTempFiles()
-                .addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfoOfInput, javaAttributeInfoOfOutput,
-                        ((YangNode) this).getName());
+        try {
+            ((TempJavaCodeFragmentFilesContainer) parent).getTempJavaCodeFragmentFiles().getServiceTempFiles()
+                    .addJavaSnippetInfoToApplicableTempFiles(javaAttributeInfoOfInput, javaAttributeInfoOfOutput,
+                            ((YangNode) this).getName());
+        } catch (IOException e) {
+            throw new TranslatorException("Failed to generate code for RPC node " + this.getName());
+        }
         // No file will be generated during RPC exit.
     }
 
@@ -210,5 +215,5 @@ public class YangJavaRpc
     public void setTempJavaCodeFragmentFiles(TempJavaCodeFragmentFiles fileHandle) {
         tempJavaCodeFragmentFiles = fileHandle;
     }
-}
 
+}

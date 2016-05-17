@@ -18,7 +18,6 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import java.util.List;
 
-import org.onosproject.yangutils.datamodel.CollisionDetector;
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
@@ -33,9 +32,10 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
 import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangAugmentNode;
-import static org.onosproject.yangutils.parser.impl.parserutils.AugmentJavaFileNameGenUtil.clearOccurrenceCount;
-import static org.onosproject.yangutils.parser.impl.parserutils.AugmentJavaFileNameGenUtil.createValidNameForAugment;
-import static org.onosproject.yangutils.parser.impl.parserutils.AugmentJavaFileNameGenUtil.updateNameWhenHasMultipleOuccrrence;
+import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.generateNameForAugmentNode;
+import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.getParentsPrefix;
+import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.parserException;
+import static org.onosproject.yangutils.parser.impl.parserutils.AugmentListenerUtil.validateNodeInTargetPath;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerCollisionDetector.detectCollidingChildUtil;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
@@ -119,8 +119,11 @@ public final class AugmentListener {
         if (curData instanceof YangModule || curData instanceof YangSubModule || curData instanceof YangUses) {
             YangNode curNode = (YangNode) curData;
             YangAugment yangAugment = getYangAugmentNode(JAVA_GENERATION);
+
+            validateTargetNodePath(targetNodes, curNode, ctx);
+
             yangAugment.setTargetNode(targetNodes);
-            yangAugment.setName(detectCollisionForTargetNode(curData, targetNodes, line, charPositionInLine, listener));
+            yangAugment.setName(generateNameForAugmentNode(curData, targetNodes, listener));
 
             try {
                 curNode.addChild(yangAugment);
@@ -171,58 +174,34 @@ public final class AugmentListener {
     }
 
     /**
-     * Detects collision for java file generation of augment node when
-     * it is updating the same target node in same parent multiple times.
-     * Returns name for generated java file of augment node
+     * Validates whether the current target node path is correct or not.
      *
-     * @param curData parsable data
      * @param targetNodes list of target nodes
      * @param line line in YANG file
      * @param charPositionInLine char position in YANG file
-     * @param listener tree walk listener
-     * @return name for generated java file for augment node
+     * @param curNode current YANG node
      */
-    private static String detectCollisionForTargetNode(Parsable curData, List<YangNodeIdentifier> targetNodes, int line,
-            int charPositionInLine, TreeWalkListener listener) {
+    private static void validateTargetNodePath(List<YangNodeIdentifier> targetNodes, YangNode curNode,
+            GeneratedYangParser.AugmentStatementContext ctx) {
 
-        String curPrefix = null;
-        if (curData instanceof YangModule) {
-            curPrefix = ((YangModule) curData).getPrefix();
-        } else if (curData instanceof YangSubModule) {
-            curPrefix = ((YangSubModule) curData).getPrefix();
-        }
-        YangNodeIdentifier nodeId = targetNodes.get(targetNodes.size() - 1);
-        boolean isPrefix = isPrefixPresent(nodeId, curPrefix);
-        String xpath = createValidNameForAugment(nodeId, isPrefix);
-
-        if (listener.getParsedDataStack().peek() instanceof CollisionDetector) {
-            try {
-                ((CollisionDetector) listener.getParsedDataStack().peek()).detectCollidingChild(xpath,
-                        AUGMENT_DATA);
-            } catch (DataModelException e) {
-                return updateNameWhenHasMultipleOuccrrence(nodeId, isPrefix);
+        YangNodeIdentifier moduleId = targetNodes.get(0);
+        if (moduleId.getPrefix() == null) {
+            if (!moduleId.getName().equals(curNode.getName())) {
+                throw parserException(ctx);
+            } else {
+                validateNodeInTargetPath(curNode, targetNodes, ctx);
+            }
+        } else {
+            String parentPrefix = getParentsPrefix(curNode);
+            if (parentPrefix != null) {
+                if (!parentPrefix.equals(moduleId.getPrefix())) {
+                    // TODO: handle in linker.
+                } else {
+                    validateNodeInTargetPath(curNode, targetNodes, ctx);
+                }
+            } else {
+                // TODO: handle in linker.
             }
         }
-
-        clearOccurrenceCount();
-        return xpath;
-    }
-
-    /**
-     * Returns true if a prefix is present and it is not equals to parents prefix.
-     *
-     * @param nodeId YANG node identifier
-     * @param parentsPrefix parent's prefix
-     * @return true if a prefix is present and it is not equals to parents prefix
-     */
-    private static boolean isPrefixPresent(YangNodeIdentifier nodeId, String parentsPrefix) {
-        return nodeId.getPrefix() != null && nodeId.getPrefix() != parentsPrefix;
-    }
-
-    /**
-     * Validates for the child nodes of augment node.
-     */
-    private static void validateForChildNodes() {
-        //TODO: implement with linker.
     }
 }

@@ -24,6 +24,7 @@ import java.util.List;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaEnumerationFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaCodeGeneratorInfo;
@@ -74,8 +75,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRemoveAugmentationImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodClose;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethodOpen;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils
-        .isHasAugmentationExtended;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isAugmentationHolderExtended;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLOSE_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
@@ -102,56 +102,7 @@ import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.trimAtLast;
  */
 public final class JavaFileGenerator {
 
-    /**
-     * Flag to check whether generated interface file need to extends any class.
-     */
-    private static boolean isExtendsList = false;
-
-    /**
-     * List of classes to be extended by generated interface file.
-     */
-    private static List<String> extendsList = new ArrayList<>();
-
-    /**
-     * Creates an instance of java file generator.
-     */
     private JavaFileGenerator() {
-    }
-
-    /**
-     * Returns true if extends list is not empty.
-     *
-     * @return true or false
-     */
-    public static boolean isExtendsList() {
-        return isExtendsList;
-    }
-
-    /**
-     * Sets the value of is extends list.
-     *
-     * @param isExtends true or false
-     */
-    public static void setIsExtendsList(boolean isExtends) {
-        isExtendsList = isExtends;
-    }
-
-    /**
-     * Returns list of extended classes.
-     *
-     * @return list of extended classes
-     */
-    public static List<String> getExtendsList() {
-        return extendsList;
-    }
-
-    /**
-     * Sets the list of extended classes.
-     *
-     * @param extendList list of extended classes
-     */
-    public static void setExtendsList(List<String> extendList) {
-        extendsList = extendList;
     }
 
     /**
@@ -171,9 +122,8 @@ public final class JavaFileGenerator {
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className = getCapitalCase(javaFileInfo.getJavaName());
-        String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
-        initiateJavaFileGeneration(file, className, INTERFACE_MASK, imports, path);
+        initiateJavaFileGeneration(file, INTERFACE_MASK, imports, curNode, className);
 
         if (isAttrPresent) {
             /**
@@ -343,9 +293,8 @@ public final class JavaFileGenerator {
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className = getCapitalCase(javaFileInfo.getJavaName());
-        String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
-        initiateJavaFileGeneration(file, className, GENERATE_SERVICE_AND_MANAGER, imports, path);
+        initiateJavaFileGeneration(file, GENERATE_SERVICE_AND_MANAGER, imports, curNode, className);
 
         List<String> methods = new ArrayList<>();
 
@@ -412,6 +361,17 @@ public final class JavaFileGenerator {
         initiateJavaFileGeneration(file, className, IMPL_CLASS_MASK, null, path);
 
         List<String> methods = new ArrayList<>();
+
+        TempJavaCodeFragmentFiles javaCodeFragmentFiles = ((TempJavaCodeFragmentFilesContainer) curNode)
+                .getTempJavaCodeFragmentFiles();
+        boolean isAugmentationHolderExtended = isAugmentationHolderExtended(
+                javaCodeFragmentFiles.getBeanTempFiles().getJavaExtendsListHolder().getExtendsList());
+        /**
+         * Add attribute for augmented info's list.
+         */
+        if (isAugmentationHolderExtended) {
+            insertDataIntoJavaFile(file, getAugmentedInfoAttribute());
+        }
         if (isAttrPresent) {
             /**
              * Add attribute strings.
@@ -426,12 +386,6 @@ public final class JavaFileGenerator {
                         + " while impl class file generation");
             }
 
-            /**
-             * Add attribute for augmented info's list.
-             */
-            if (isHasAugmentationExtended(getExtendsList())) {
-                insertDataIntoJavaFile(file, getAugmentedInfoAttribute());
-            }
             insertDataIntoJavaFile(file, NEW_LINE);
             try {
                 /**
@@ -471,12 +425,15 @@ public final class JavaFileGenerator {
             insertDataIntoJavaFile(file, NEW_LINE);
         }
         try {
+
             /**
              * Constructor.
              */
-            methods.add(getConstructorStart(className) + getDataFromTempFileHandle(CONSTRUCTOR_IMPL_MASK,
-                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles().getBeanTempFiles())
-                    + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET);
+            String constructor = getConstructorStart(className) + getDataFromTempFileHandle(CONSTRUCTOR_IMPL_MASK,
+                    ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
+                            .getBeanTempFiles());
+
+            methods.add(constructor + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET);
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " + className
                     + " while impl class file generation");
@@ -485,7 +442,7 @@ public final class JavaFileGenerator {
         /**
          * Add method for augment info's list.
          */
-        if (isHasAugmentationExtended(getExtendsList())) {
+        if (isAugmentationHolderExtended) {
             methods.add(getAddAugmentInfoMethodImpl());
             methods.add(getAugmentInfoListImpl());
             methods.add(getRemoveAugmentationImpl());
@@ -777,7 +734,7 @@ public final class JavaFileGenerator {
                     + getFromStringMethodClose());
         } catch (IOException e) {
             throw new IOException("No data found in temporary java code fragment files for " +
-                     getCapitalCase(className) + " while enum class file generation");
+                    getCapitalCase(className) + " while enum class file generation");
         }
 
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
@@ -802,9 +759,7 @@ public final class JavaFileGenerator {
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
         String className = getCapitalCase(javaFileInfo.getJavaName()) + SERVICE_METHOD_STRING;
-        String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
-
-        initiateJavaFileGeneration(file, className, GENERATE_SERVICE_AND_MANAGER, imports, path);
+        initiateJavaFileGeneration(file, GENERATE_SERVICE_AND_MANAGER, imports, curNode, className);
 
         List<String> methods = new ArrayList<>();
 
@@ -853,16 +808,16 @@ public final class JavaFileGenerator {
      * @param imports imports for file
      * @throws IOException when fails to generate class file
      */
-    public static void generateEventFile(File file, YangNode curNode, List<String> imports)
-            throws IOException {
+    public static void generateEventFile(File file, YangNode curNode, List<String> imports) throws IOException {
 
+        YangNode parent = curNode.getParent();
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCapitalCase(javaFileInfo.getJavaName()) + EVENT_STRING;
-        String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
+        String className =
+                getCapitalCase(((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName())
+                        + EVENT_STRING;
 
-        initiateJavaFileGeneration(file, className, GENERATE_EVENT_CLASS, imports, path);
-
+        initiateJavaFileGeneration(file, GENERATE_EVENT_CLASS, imports, curNode, className);
         insertDataIntoJavaFile(file, getEventFileContents(className, javaFileInfo.getJavaName()));
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
     }
@@ -871,7 +826,7 @@ public final class JavaFileGenerator {
         return "\n" +
                 "    public enum Type {\n" +
                 "        /**\n" +
-                "         * " + eventClassname + "notification.\n" +
+                "         * " + getCapitalCase(classname) + " notification.\n" +
                 "         */\n" +
                 "        " + classname.toUpperCase() + "_EVENT\n" +
                 "    }\n" +
@@ -880,9 +835,9 @@ public final class JavaFileGenerator {
                 "     * Creates " + classname + " event with type and subject.\n" +
                 "     *\n" +
                 "     * @param type event type\n" +
-                "     * @param subject subject interface\n" +
+                "     * @param subject subject " + classname + "\n" +
                 "     */\n" +
-                "    public " + eventClassname + "(Type type, Interface subject) {\n" +
+                "    public " + eventClassname + "(Type type, " + getCapitalCase(classname) + " subject) {\n" +
                 "        super(type, subject);\n" +
                 "    }\n" +
                 "\n" +
@@ -890,10 +845,11 @@ public final class JavaFileGenerator {
                 "     * Creates " + classname + " event with type, subject and time.\n" +
                 "     *\n" +
                 "     * @param type event type\n" +
-                "     * @param subject subject interface\n" +
+                "     * @param subject subject " + classname + "\n" +
                 "     * @param time time of event\n" +
                 "     */\n" +
-                "    public " + eventClassname + "(Type type, Interface subject, long time) {\n" +
+                "    public " + eventClassname + "(Type type, " + getCapitalCase(classname)
+                + " subject, long time) {\n" +
                 "        super(type, subject, time);\n" +
                 "    }\n" +
                 "\n";
@@ -909,10 +865,12 @@ public final class JavaFileGenerator {
      */
     public static void generateEventListenerFile(File file, YangNode curNode, List<String> imports)
             throws IOException {
-
+        YangNode parent = curNode.getParent();
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCapitalCase(javaFileInfo.getJavaName()) + EVENT_LISTENER_STRING;
+        String className =
+                getCapitalCase(((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName())
+                        + EVENT_LISTENER_STRING;
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, GENERATE_EVENT_LISTENER_INTERFACE, imports, path);

@@ -19,7 +19,6 @@ import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfoContainer;
 import org.onosproject.yangutils.translator.tojava.utils.YangToJavaNamingConflictUtil;
 
-
 /**
  * Represent java based identification of the YANG leaves.
  */
@@ -46,7 +45,6 @@ public interface JavaLeafInfoContainer
      * @return name of the leaf
      */
     String getJavaName(YangToJavaNamingConflictUtil conflictResolveConfig);
-
 
     /**
      * Identifies if object is a leaf-list.

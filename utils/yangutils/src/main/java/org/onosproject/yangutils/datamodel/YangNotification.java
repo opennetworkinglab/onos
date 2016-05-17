@@ -74,8 +74,8 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
 /**
  * Represents data model node to maintain information defined in YANG notification.
  */
-public class YangNotification extends YangNode implements YangLeavesHolder, YangCommonInfo, Parsable,
-        CollisionDetector {
+public class YangNotification extends YangNode
+        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder {
 
     /**
      * Name of the notification.

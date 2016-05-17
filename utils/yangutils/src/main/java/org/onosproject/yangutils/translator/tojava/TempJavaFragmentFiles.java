@@ -28,6 +28,7 @@ import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaLeafInfoContainer;
+import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
@@ -74,13 +75,12 @@ import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getToStringMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.parseBuilderInterfaceBuildMethodString;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addArrayListImport;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addAugmentationHoldersImport;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addAugmentedInfoImport;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addHasAugmentationImport;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.detectCollisionBwParentAndChildForImport;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isAugmentationHolderExtended;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isAugmentedInfoExtended;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isHasAugmentationExtended;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.prepareJavaFileGeneratorForExtendsList;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.sortImports;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
@@ -131,8 +131,7 @@ public class TempJavaFragmentFiles {
     /**
      * Contains all the interface(s)/class name which will be extended by generated files.
      */
-    private List<String> extendsList = new ArrayList<>();
-
+    private JavaExtendsListHolder javaExtendsListHolder;
     /**
      * File type extension for java classes.
      */
@@ -499,9 +498,8 @@ public class TempJavaFragmentFiles {
      * @param javaFileInfo generated java file information
      * @throws IOException when fails to create new file handle
      */
-    TempJavaFragmentFiles(JavaFileInfo javaFileInfo)
-            throws IOException {
-        setExtendsList(new ArrayList<>());
+    TempJavaFragmentFiles(JavaFileInfo javaFileInfo) throws IOException {
+        setJavaExtendsListHolder(new JavaExtendsListHolder());
         setJavaImportData(new JavaImportData());
         setJavaFileInfo(javaFileInfo);
         setAbsoluteDirPath(getAbsolutePackagePath(getJavaFileInfo().getBaseCodeGenPath(),
@@ -776,30 +774,21 @@ public class TempJavaFragmentFiles {
     }
 
     /**
-     * Returns list of classes to be extended by generated files.
+     * Returns java extends list holder.
      *
-     * @return list of classes to be extended by generated files
+     * @return java extends list holder
      */
-    List<String> getExtendsList() {
-        return extendsList;
+    public JavaExtendsListHolder getJavaExtendsListHolder() {
+        return javaExtendsListHolder;
     }
 
     /**
-     * Sets class to be extended by generated file.
+     * Sets java extends list holder.
      *
-     * @param extendsList list of classes to be extended
+     * @param javaExtendsListHolder java extends list holder
      */
-    void setExtendsList(List<String> extendsList) {
-        this.extendsList = extendsList;
-    }
-
-    /**
-     * Adds class to the extends list.
-     *
-     * @param extend class to be extended
-     */
-    public void addToExtendsList(String extend) {
-        getExtendsList().add(extend);
+    public void setJavaExtendsListHolder(JavaExtendsListHolder javaExtendsListHolder) {
+        this.javaExtendsListHolder = javaExtendsListHolder;
     }
 
     /**
@@ -1323,10 +1312,6 @@ public class TempJavaFragmentFiles {
         if (isAttributePresent()) {
             imports = getJavaImportData().getImports();
         }
-        /*
-         * Prepares java file generator for extends list.
-         */
-        prepareJavaFileGeneratorForExtendsList(getExtendsList());
         createPackage(curNode);
 
         /*
@@ -1347,16 +1332,7 @@ public class TempJavaFragmentFiles {
                     }
                 }
             }
-            /*
-             * Adds import for HasAugmentation class.
-             */
-            if (isHasAugmentationExtended(getExtendsList())) {
-                addHasAugmentationImport(curNode, imports, true);
-            }
-            if (isAugmentedInfoExtended(getExtendsList())) {
-                addAugmentedInfoImport(curNode, imports, true);
-            }
-            sortImports(imports);
+
             /*
              * Create interface file.
              */
@@ -1378,10 +1354,10 @@ public class TempJavaFragmentFiles {
                 mergeJavaFiles(getBuilderInterfaceJavaFileHandle(), getInterfaceJavaFileHandle());
             }
             insertDataIntoJavaFile(getInterfaceJavaFileHandle(), getJavaClassDefClose());
-            if (isHasAugmentationExtended(getExtendsList())) {
-                addHasAugmentationImport(curNode, imports, false);
+            if (isAugmentationHolderExtended(getJavaExtendsListHolder().getExtendsList())) {
+                addAugmentationHoldersImport(curNode, imports, false);
             }
-            if (isAugmentedInfoExtended(getExtendsList())) {
+            if (isAugmentedInfoExtended(getJavaExtendsListHolder().getExtendsList())) {
                 addAugmentedInfoImport(curNode, imports, false);
             }
             if (curNode instanceof YangCase) {
@@ -1392,7 +1368,7 @@ public class TempJavaFragmentFiles {
             if (isAttributePresent()) {
                 addImportsToStringAndHasCodeMethods(curNode, imports);
             }
-            if (isHasAugmentationExtended(getExtendsList())) {
+            if (isAugmentationHolderExtended(getJavaExtendsListHolder().getExtendsList())) {
                 addAugmentedInfoImport(curNode, imports, true);
                 addArrayListImport(curNode, imports, true);
             }
@@ -1417,8 +1393,11 @@ public class TempJavaFragmentFiles {
                 mergeJavaFiles(getImplClassJavaFileHandle(), getBuilderClassJavaFileHandle());
             }
             insertDataIntoJavaFile(getBuilderClassJavaFileHandle(), getJavaClassDefClose());
+            if (isAugmentationHolderExtended(getJavaExtendsListHolder().getExtendsList())) {
+                addAugmentedInfoImport(curNode, imports, false);
+                addArrayListImport(curNode, imports, false);
+            }
         }
-
         /*
          * Close all the file handles.
          */

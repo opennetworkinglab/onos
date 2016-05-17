@@ -28,7 +28,6 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPE_CLASS;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.getExtendsList;
 
 /**
  * Represents implementation of java code fragments temporary implementations.
@@ -306,15 +305,6 @@ public class TempJavaCodeFragmentFiles {
             throws IOException {
         getTypeTempFiles()
                 .addTypeInfoToTempFiles(yangTypeHolder);
-    }
-
-    /**
-     * Adds class to the extends list.
-     *
-     * @param extend class to be extended
-     */
-    public void addToExtendsList(String extend) {
-        getExtendsList().add(extend);
     }
 
     /**

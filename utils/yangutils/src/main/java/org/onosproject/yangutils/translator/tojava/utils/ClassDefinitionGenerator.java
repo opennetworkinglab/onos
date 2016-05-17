@@ -16,6 +16,12 @@
 
 package org.onosproject.yangutils.translator.tojava.utils;
 
+import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
+import org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo;
+import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaNotification;
+
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.BUILDER_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_ENUM_CLASS;
@@ -26,17 +32,23 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.IMPL_CLASS_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.getExtendsList;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.isExtendsList;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.CLASS;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
+import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_CLOSE_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.DIAMOND_OPEN_BRACKET;
+import static org.onosproject.yangutils.utils.UtilConstants.EIGHT_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM;
+import static org.onosproject.yangutils.utils.UtilConstants.EVENT_LISTENER_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.EVENT_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.EXTEND;
 import static org.onosproject.yangutils.utils.UtilConstants.FINAL;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
 import static org.onosproject.yangutils.utils.UtilConstants.IMPLEMENTS;
 import static org.onosproject.yangutils.utils.UtilConstants.INTERFACE;
+import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_REG;
+import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
@@ -71,28 +83,52 @@ public final class ClassDefinitionGenerator {
          * Based on the file type and the YANG name of the file, generate the
          * class / interface definition start.
          */
-        if ((genFileTypes & INTERFACE_MASK) != 0) {
-            return getInterfaceDefinition(yangName);
-        } else if ((genFileTypes & BUILDER_CLASS_MASK) != 0) {
+        switch (genFileTypes) {
+        case BUILDER_CLASS_MASK:
             return getBuilderClassDefinition(yangName);
-        } else if ((genFileTypes & IMPL_CLASS_MASK) != 0) {
+        case IMPL_CLASS_MASK:
             return getImplClassDefinition(yangName);
-        } else if ((genFileTypes & BUILDER_INTERFACE_MASK) != 0) {
+        case BUILDER_INTERFACE_MASK:
             return getBuilderInterfaceDefinition(yangName);
-        } else if ((genFileTypes & GENERATE_TYPEDEF_CLASS) != 0) {
+        case GENERATE_TYPEDEF_CLASS:
+        case GENERATE_UNION_CLASS:
             return getTypeClassDefinition(yangName);
-        } else if ((genFileTypes & GENERATE_UNION_CLASS) != 0) {
-            return getTypeClassDefinition(yangName);
-        } else if ((genFileTypes & GENERATE_ENUM_CLASS) != 0) {
+        case GENERATE_ENUM_CLASS:
             return getEnumClassDefinition(yangName);
-        } else if ((genFileTypes & GENERATE_SERVICE_AND_MANAGER) != 0) {
-            return getRpcInterfaceDefinition(yangName);
-        } else if ((genFileTypes & GENERATE_EVENT_CLASS) != 0) {
-            return getEventDefinition(yangName);
-        } else if ((genFileTypes & GENERATE_EVENT_LISTENER_INTERFACE) != 0) {
+        case GENERATE_EVENT_LISTENER_INTERFACE:
             return getEventListenerDefinition(yangName);
+        default:
+            return null;
         }
-        return null;
+    }
+
+    /**
+     * Based on the file type and the YANG name of the file, generate the class
+     * / interface definition start.
+     *
+     * @param genFileTypes generated file type
+     * @param yangName class name
+     * @param curNode current YANG node
+     * @return class definition
+     */
+    public static String generateClassDefinition(int genFileTypes, String yangName, YangNode curNode) {
+
+        /**
+         * Based on the file type and the YANG name of the file, generate the
+         * class / interface definition start.
+         */
+        switch (genFileTypes) {
+        case INTERFACE_MASK:
+            return getInterfaceDefinition(yangName, curNode);
+        case GENERATE_SERVICE_AND_MANAGER:
+            return getRpcInterfaceDefinition(yangName, curNode);
+        case GENERATE_EVENT_CLASS:
+            String eventName = getCapitalCase(((JavaFileInfoContainer) curNode)
+                    .getJavaFileInfo().getJavaName());
+            return getEventDefinition(yangName, eventName);
+        default:
+            return null;
+        }
     }
 
     /**
@@ -111,17 +147,25 @@ public final class ClassDefinitionGenerator {
      * @param yangName file name
      * @return definition
      */
-    private static String getInterfaceDefinition(String yangName) {
-        if (!isExtendsList()) {
-            return PUBLIC + SPACE + INTERFACE + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
-        }
-        String def = PUBLIC + SPACE + INTERFACE + SPACE + yangName + SPACE + EXTEND + SPACE;
-        for (String extend : getExtendsList()) {
-            def = def + extend + COMMA + SPACE;
-        }
-        def = trimAtLast(def, COMMA);
+    private static String getInterfaceDefinition(String yangName, YangNode curNode) {
+        JavaExtendsListHolder holder = ((TempJavaCodeFragmentFilesContainer) curNode)
+                .getTempJavaCodeFragmentFiles().getBeanTempFiles().getJavaExtendsListHolder();
 
-        return def + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        if (holder.getExtendsList() != null && !holder.getExtendsList().isEmpty()) {
+            String def = PUBLIC + SPACE + INTERFACE + SPACE + yangName + SPACE + EXTEND + SPACE;
+            for (JavaQualifiedTypeInfo info : holder.getExtendsList()) {
+                if (!holder.getExtendedClassStore().get(info)) {
+                    def = def + info.getClassInfo() + COMMA + SPACE;
+                } else {
+                    def = def + info.getPkgInfo() + PERIOD + info.getClassInfo() + COMMA + SPACE;
+                }
+            }
+
+            def = trimAtLast(def, COMMA);
+
+            return def + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        }
+        return PUBLIC + SPACE + INTERFACE + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 
     /**
@@ -169,17 +213,47 @@ public final class ClassDefinitionGenerator {
     }
 
     /**
-     * Returns rpc file interface definition.
+     * Returns RPC file interface definition.
      *
      * @param yangName file name
+     * @param curNode current YANG node
      * @return definition
      */
-    private static String getRpcInterfaceDefinition(String yangName) {
+    private static String getRpcInterfaceDefinition(String yangName, YangNode curNode) {
+        JavaExtendsListHolder holder = ((TempJavaCodeFragmentFilesContainer) curNode)
+                .getTempJavaCodeFragmentFiles().getServiceTempFiles().getJavaExtendsListHolder();
+        if (holder.getExtendsList() != null && !holder.getExtendsList().isEmpty()) {
+            curNode = curNode.getChild();
+            while (curNode != null) {
+                if (curNode instanceof YangJavaNotification) {
+                    return getRpcInterfaceDefinitionWhenItExtends(yangName, holder);
+                }
+                curNode = curNode.getNextSibling();
+            }
+        }
         if (yangName.contains(SERVICE)) {
             return PUBLIC + SPACE + INTERFACE + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
         }
-        return PUBLIC + SPACE + CLASS + SPACE + yangName + MANAGER + SPACE + IMPLEMENTS + SPACE + yangName + SERVICE
-                + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        return PUBLIC + SPACE + CLASS + SPACE + yangName + MANAGER + SPACE + IMPLEMENTS + SPACE + yangName
+                + SERVICE + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+    }
+
+    /* Provides class definition when RPC interface needs to extends any event.*/
+    private static String getRpcInterfaceDefinitionWhenItExtends(String yangName,
+            JavaExtendsListHolder holder) {
+
+        if (yangName.contains(SERVICE)) {
+            String[] strArray = yangName.split(SERVICE);
+            return PUBLIC + SPACE + INTERFACE + SPACE + yangName + SPACE + NEW_LINE + EIGHT_SPACE_INDENTATION
+                    + EXTEND + SPACE + LISTENER_SERVICE + DIAMOND_OPEN_BRACKET + strArray[0] + EVENT_STRING + COMMA
+                    + SPACE + strArray[0] + EVENT_LISTENER_STRING + DIAMOND_CLOSE_BRACKET + SPACE
+                    + OPEN_CURLY_BRACKET + NEW_LINE;
+        }
+        return PUBLIC + SPACE + CLASS + SPACE + yangName + MANAGER + SPACE + NEW_LINE + EIGHT_SPACE_INDENTATION
+                + EXTEND + SPACE + LISTENER_REG + DIAMOND_OPEN_BRACKET + yangName + EVENT_STRING + COMMA + SPACE
+                + yangName + EVENT_LISTENER_STRING + DIAMOND_CLOSE_BRACKET + SPACE + NEW_LINE
+                + EIGHT_SPACE_INDENTATION + IMPLEMENTS + SPACE + yangName + SERVICE + SPACE + OPEN_CURLY_BRACKET
+                + NEW_LINE;
     }
 
     /**
@@ -188,14 +262,9 @@ public final class ClassDefinitionGenerator {
      * @param javaName file name
      * @return definition
      */
-    private static String getEventDefinition(String javaName) {
+    private static String getEventDefinition(String javaName, String eventName) {
         String classDef = PUBLIC + SPACE + CLASS + SPACE + javaName + SPACE + "extends AbstractEvent<"
-                + javaName + ".Type, " + javaName;
-        if (classDef.length() < 5) {
-            throw new RuntimeException("Event class name is error");
-        }
-        classDef = classDef.substring(0, classDef.length() - 5);
-        classDef = classDef + ">" + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+                + javaName + ".Type, " + eventName + ">" + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
 
         return classDef;
     }

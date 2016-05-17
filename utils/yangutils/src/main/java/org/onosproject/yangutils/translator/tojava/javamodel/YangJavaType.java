@@ -22,6 +22,8 @@ import org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType;
 
 /**
  * Represents java information corresponding to the YANG type.
+ *
+ * @param <T> generic parameter for YANG java type
  */
 public class YangJavaType<T>
         extends YangType<T>

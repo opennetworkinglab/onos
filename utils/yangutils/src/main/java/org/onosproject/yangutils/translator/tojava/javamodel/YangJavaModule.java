@@ -22,11 +22,11 @@ import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
-import org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
+import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfRootNode;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.searchAndDeleteTempDir;
 
 /**
@@ -103,23 +103,30 @@ public class YangJavaModule
      * Generates java code for module.
      *
      * @param yangPlugin YANG plugin config
-     * @throws IOException when fails to generate the source files
+     * @throws TranslatorException when fails to generate the source files
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin)
-            throws IOException {
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
         String modulePkg = getRootPackage(getVersion(), getNameSpace().getUri(), getRevision().getRevDate());
-        YangJavaModelUtils.generateCodeOfRootNode(this, yangPlugin, modulePkg);
+        try {
+            generateCodeOfRootNode(this, yangPlugin, modulePkg);
+        } catch (IOException e) {
+            throw new TranslatorException(
+                    "Failed to prepare generate code entry for module node " + this.getName());
+        }
     }
 
     /**
      * Creates a java file using the YANG module info.
      */
     @Override
-    public void generateCodeExit()
-            throws IOException {
-        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
-        searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +
-                getJavaFileInfo().getPackageFilePath());
+    public void generateCodeExit() throws TranslatorException {
+        try {
+            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_SERVICE_AND_MANAGER, this);
+            searchAndDeleteTempDir(getJavaFileInfo().getBaseCodeGenPath() +
+                    getJavaFileInfo().getPackageFilePath());
+        } catch (IOException e) {
+            throw new TranslatorException("Failed to generate code for module node " + this.getName());
+        }
     }
 }

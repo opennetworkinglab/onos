@@ -46,7 +46,7 @@ public final class UnionTranslatorTest {
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir("target/UnionTestGenFile/");
 
-        generateJavaCode(node, yangPluginConfig);
+        generateJavaCode(node, yangPluginConfig, "UnionTranslator");
 
         deleteDirectory(userDir + "/target/UnionTestGenFile/");
     }

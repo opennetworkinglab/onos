@@ -16,8 +16,7 @@
 
 package org.onosproject.yangutils.translator.tojava;
 
-import java.io.IOException;
-
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 /**
@@ -29,16 +28,16 @@ public interface JavaCodeGenerator {
      * Traverse the schema of application and generate corresponding code.
      *
      * @param yangPlugin YANG plugin config
-     * @throws IOException when fails to translate the data model tree
+     * @throws TranslatorException when fails to translate the data model tree
      */
     void generateCodeEntry(YangPluginConfig yangPlugin)
-            throws IOException;
+            throws TranslatorException;
 
     /**
      * Traverse the schema of application and generate corresponding code.
      *
-     * @throws IOException when fails to generate java code
+     * @throws TranslatorException when fails to generate java code
      */
     void generateCodeExit()
-            throws IOException;
+            throws TranslatorException;
 }

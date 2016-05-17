@@ -46,7 +46,7 @@ public final class NotificationTranslatorTest {
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir(userDir + "/target/NotificationTest/");
 
-        generateJavaCode(node, yangPluginConfig);
+        generateJavaCode(node, yangPluginConfig, "NotificationTest");
 
         deleteDirectory(userDir + "/target/NotificationTest/");
     }

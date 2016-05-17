@@ -59,7 +59,8 @@ import static org.onosproject.yangutils.utils.YangConstructType.CHOICE_DATA;
 /**
  * Represents data model node to maintain information defined in YANG choice.
  */
-public class YangChoice extends YangNode implements YangCommonInfo, Parsable, CollisionDetector {
+public class YangChoice extends YangNode
+        implements YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder {
 
     /**
      * Name of choice.

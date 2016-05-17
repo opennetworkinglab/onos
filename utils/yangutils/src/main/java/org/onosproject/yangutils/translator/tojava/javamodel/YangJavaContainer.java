@@ -102,23 +102,30 @@ public class YangJavaContainer
      * container info.
      *
      * @param yangPlugin YANG plugin config
-     * @throws IOException IO operation fail
+     * @throws TranslatorException translator operation fail
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin)
-            throws IOException {
-        generateCodeAndUpdateInParent(this, yangPlugin, false);
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
+        try {
+            generateCodeAndUpdateInParent(this, yangPlugin, false);
+        } catch (IOException e) {
+            throw new TranslatorException(
+                    "Failed to prepare generate code entry for container node " + this.getName());
+        }
     }
 
     /**
      * Create a java file using the YANG container info.
      *
-     * @throws IOException IO operation fail
+     * @throws TranslatorException translator operation fail
      */
     @Override
-    public void generateCodeExit()
-            throws IOException {
-        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+    public void generateCodeExit() throws TranslatorException {
+        try {
+            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+        } catch (IOException e) {
+            throw new TranslatorException("Failed to generate code for container node " + this.getName());
+        }
     }
 
 }

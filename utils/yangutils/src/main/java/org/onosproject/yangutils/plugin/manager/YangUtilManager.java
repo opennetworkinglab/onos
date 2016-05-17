@@ -28,10 +28,10 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.YangUtilsParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
+import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 import org.onosproject.yangutils.translator.tojava.utils.YangToJavaNamingConflictUtil;
 import org.onosproject.yangutils.utils.io.impl.YangFileScanner;
@@ -114,7 +114,8 @@ public class YangUtilManager extends AbstractMojo {
     @Component
     private BuildContext context;
 
-    private static final String DEFAULT_PKG = SLASH + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
+    private static final String DEFAULT_PKG = SLASH
+            + getPackageDirPathFromJavaJPackage(DEFAULT_BASE_PKG);
 
     private YangUtilsParser yangUtilsParser = new YangUtilsParserManager();
     private YangNode rootNode;
@@ -124,7 +125,7 @@ public class YangUtilManager extends AbstractMojo {
 
         try {
 
-            /**
+            /*
              * For deleting the generated code in previous build.
              */
             deleteDirectory(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG);
@@ -146,7 +147,7 @@ public class YangUtilManager extends AbstractMojo {
                 try {
                     YangNode yangNode = yangUtilsParser.getDataModel(yangFile);
                     setRootNode(yangNode);
-                    generateJavaCode(yangNode, yangPlugin);
+                    generateJavaCode(yangNode, yangPlugin, yangFile);
                 } catch (ParserException e) {
                     String logInfo = "Error in file: " + e.getFileName();
                     if (e.getLineNumber() != 0) {
@@ -165,13 +166,20 @@ public class YangUtilManager extends AbstractMojo {
             addToSource(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG, project, context);
             copyYangFilesToTarget(yangFiles, getDirectory(baseDir, outputDirectory), project);
         } catch (Exception e) {
+            String fileName = "";
+            if (e instanceof TranslatorException) {
+                fileName = ((TranslatorException) e).getFileName();
+            }
             try {
                 translatorErrorHandler(getRootNode());
                 deleteDirectory(getDirectory(baseDir, genFilesDir) + DEFAULT_PKG);
-            } catch (IOException | DataModelException ex) {
-                throw new MojoExecutionException("Error handler failed to delete files for data model node.");
+            } catch (IOException ex) {
+                throw new MojoExecutionException(
+                        "Error handler failed to delete files for data model node.");
             }
-            throw new MojoExecutionException("Exception occured due to " + e.getLocalizedMessage());
+            throw new MojoExecutionException(
+                    "Exception occured due to " + e.getLocalizedMessage() + " in " + fileName
+                            + " YANG file.");
         }
     }
 

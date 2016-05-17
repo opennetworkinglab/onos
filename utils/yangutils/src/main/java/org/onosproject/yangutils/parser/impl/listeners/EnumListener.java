@@ -110,7 +110,7 @@ public final class EnumListener {
         listener.getParsedDataStack().push(enumNode);
     }
 
-    /* Removes quotes from the enum name if present.*/
+    /*Removes quotes from the enum name if present.*/
     private static String getValidNamedValue(String name) {
         if (name.contains(QUOTES)) {
             name = name.replace(QUOTES, EMPTY_STRING);

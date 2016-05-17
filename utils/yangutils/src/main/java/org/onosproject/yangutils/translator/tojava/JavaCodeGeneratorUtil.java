@@ -19,7 +19,6 @@ package org.onosproject.yangutils.translator.tojava;
 import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
@@ -67,11 +66,12 @@ public final class JavaCodeGeneratorUtil {
      *
      * @param rootNode root node of the data model tree
      * @param yangPlugin YANG plugin config
-     * @throws IOException when fails to generate java code file the current
+     * @param fileName YANG file name
+     * @throws TranslatorException when fails to generate java code file the current
      *                     node
      */
-    public static void generateJavaCode(YangNode rootNode, YangPluginConfig yangPlugin)
-            throws IOException {
+    public static void generateJavaCode(YangNode rootNode, YangPluginConfig yangPlugin, String fileName)
+            throws TranslatorException {
 
         YangNode codeGenNode = rootNode;
         TraversalType curTraversal = ROOT;
@@ -80,7 +80,7 @@ public final class JavaCodeGeneratorUtil {
             if (curTraversal != PARENT) {
                 if (codeGenNode instanceof JavaCodeGenerator) {
                     setCurNode(codeGenNode);
-                    generateCodeEntry(codeGenNode, yangPlugin);
+                    generateCodeEntry(codeGenNode, yangPlugin, fileName);
                 } else {
                     /*
                      * For grouping and uses, there is no code generation, skip the generation for the child.
@@ -100,11 +100,11 @@ public final class JavaCodeGeneratorUtil {
                 curTraversal = CHILD;
                 codeGenNode = codeGenNode.getChild();
             } else if (codeGenNode.getNextSibling() != null) {
-                generateCodeExit(codeGenNode);
+                generateCodeExit(codeGenNode, fileName);
                 curTraversal = SIBILING;
                 codeGenNode = codeGenNode.getNextSibling();
             } else {
-                generateCodeExit(codeGenNode);
+                generateCodeExit(codeGenNode, fileName);
                 curTraversal = PARENT;
                 codeGenNode = codeGenNode.getParent();
             }
@@ -117,16 +117,20 @@ public final class JavaCodeGeneratorUtil {
      * @param codeGenNode current data model node for which the code needs to be
      * generated
      * @param yangPlugin YANG plugin config
-     * @throws IOException IO operation exception
+     * @param fileName YANG file name
+     * @throws TranslatorException when fails to generate java code file the current
+     *                     node
      */
-    private static void generateCodeEntry(YangNode codeGenNode, YangPluginConfig yangPlugin)
-            throws IOException {
+    private static void generateCodeEntry(YangNode codeGenNode, YangPluginConfig yangPlugin, String fileName)
+            throws TranslatorException {
 
         if (codeGenNode instanceof JavaCodeGenerator) {
             ((JavaCodeGenerator) codeGenNode).generateCodeEntry(yangPlugin);
         } else {
-            throw new TranslatorException(
+            TranslatorException ex = new TranslatorException(
                     "Generated data model node cannot be translated to target language code");
+            ex.setFileName(fileName);
+            throw ex;
         }
     }
 
@@ -135,27 +139,27 @@ public final class JavaCodeGeneratorUtil {
      *
      * @param codeGenNode current data model node for which the code needs to be
      * generated
-     * @throws IOException IO operation exception
+     * @param fileName YANG file name
+     * @throws TranslatorException when fails to generate java code file the current
+     *                     node
      */
-    private static void generateCodeExit(YangNode codeGenNode)
-            throws IOException {
+    private static void generateCodeExit(YangNode codeGenNode, String fileName) throws TranslatorException {
 
         if (codeGenNode instanceof JavaCodeGenerator) {
             ((JavaCodeGenerator) codeGenNode).generateCodeExit();
         } else {
-            throw new TranslatorException(
+            TranslatorException ex = new TranslatorException(
                     "Generated data model node cannot be translated to target language code");
+            ex.setFileName(fileName);
+            throw ex;
         }
     }
 
     /**
      * Free other YANG nodes of data-model tree when error occurs while file
      * generation of current node.
-     *
-     * @throws DataModelException when fails to do datamodel operations
      */
-    private static void freeRestResources()
-            throws DataModelException {
+    private static void freeRestResources() {
 
         YangNode freedNode = getCurNode();
         YangNode tempNode = freedNode;
@@ -205,10 +209,9 @@ public final class JavaCodeGeneratorUtil {
      *
      * @param rootNode root node of data-model tree
      * @throws IOException        when fails to delete java code file the current node
-     * @throws DataModelException when fails to do datamodel operations
      */
     public static void translatorErrorHandler(YangNode rootNode)
-            throws IOException, DataModelException {
+            throws IOException {
 
         /**
          * Free other resources where translator has failed.

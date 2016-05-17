@@ -44,7 +44,7 @@ public final class ChoiceCaseTranslatorTest {
         YangPluginConfig yangPluginConfig = new YangPluginConfig();
         yangPluginConfig.setCodeGenDir(userDir + "/target/ChoiceCaseTestGenFile/");
 
-        generateJavaCode(node, yangPluginConfig);
+        generateJavaCode(node, yangPluginConfig, "ChoiceCaseTranslator");
 
         deleteDirectory(userDir + "/target/ChoiceCaseTestGenFile/");
     }

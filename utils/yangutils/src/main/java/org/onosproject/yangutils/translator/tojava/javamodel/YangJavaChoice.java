@@ -22,10 +22,10 @@ import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
-import org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.INTERFACE_MASK;
+import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeAndUpdateInParent;
 
 /**
  * Represents choice information extended to support java code generation.
@@ -102,20 +102,27 @@ public class YangJavaChoice
      * choice info.
      *
      * @param yangPlugin YANG plugin config
-     * @throws IOException IO operation fail
+     * @throws TranslatorException translator operation fail
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin)
-            throws IOException {
-        YangJavaModelUtils.generateCodeAndUpdateInParent(this, yangPlugin, false);
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
+        try {
+            generateCodeAndUpdateInParent(this, yangPlugin, false);
+        } catch (IOException e) {
+            throw new TranslatorException(
+                    "Failed to prepare generate code entry for choice node " + this.getName());
+        }
     }
 
     /**
      * Creates a java file using the YANG choice info.
      */
     @Override
-    public void generateCodeExit()
-            throws IOException {
-        getTempJavaCodeFragmentFiles().generateJavaFile(INTERFACE_MASK, this);
+    public void generateCodeExit() throws TranslatorException {
+        try {
+            getTempJavaCodeFragmentFiles().generateJavaFile(INTERFACE_MASK, this);
+        } catch (IOException e) {
+            throw new TranslatorException("Failed to generate code for choice node " + this.getName());
+        }
     }
 }

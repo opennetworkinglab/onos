@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaNotification;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_IMPL_MASK;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_INTERFACE_MASK;
@@ -31,11 +32,11 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerato
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRpcManagerMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRpcServiceMethod;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addArrayListImport;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addAugmentedInfoImport;
+import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addListnersImport;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
-import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.isHasAugmentationExtended;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_REG;
+import static org.onosproject.yangutils.utils.UtilConstants.LISTENER_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.RPC_INPUT_VAR_NAME;
 import static org.onosproject.yangutils.utils.UtilConstants.VOID;
@@ -183,7 +184,7 @@ public class TempJavaServiceFragmentFiles
     }
 
     /**
-     * Generate java code.
+     * Constructs java code exit.
      *
      * @param fileType generated file type
      * @param curNode current YANG node
@@ -197,17 +198,29 @@ public class TempJavaServiceFragmentFiles
 
         createPackage(curNode);
 
+        boolean isNotification = false;
+        YangNode tempNode = curNode.getChild();
+        while (tempNode != null) {
+            if (tempNode instanceof YangJavaNotification) {
+                isNotification = true;
+                break;
+            }
+            tempNode = tempNode.getNextSibling();
+        }
+
+        if (isNotification) {
+            addListnersImport(curNode, imports, true, LISTENER_SERVICE);
+        }
         /**
          * Creates rpc interface file.
          */
         setServiceInterfaceJavaFileHandle(getJavaFileHandle(getJavaClassName(SERVICE_FILE_NAME_SUFFIX)));
         generateServiceInterfaceFile(getServiceInterfaceJavaFileHandle(), curNode, imports, isAttributePresent());
 
-        if (isHasAugmentationExtended(getExtendsList())) {
-            addAugmentedInfoImport(curNode, imports, true);
-            addArrayListImport(curNode, imports, true);
+        if (isNotification) {
+            addListnersImport(curNode, imports, false, LISTENER_SERVICE);
+            addListnersImport(curNode, imports, true, LISTENER_REG);
         }
-
         /**
          * Create builder class file.
          */
@@ -215,7 +228,9 @@ public class TempJavaServiceFragmentFiles
         generateManagerClassFile(getManagerJavaFileHandle(), imports, curNode, isAttributePresent());
 
         insertDataIntoJavaFile(getManagerJavaFileHandle(), getJavaClassDefClose());
-
+        if (isNotification) {
+            addListnersImport(curNode, imports, false, LISTENER_REG);
+        }
         /**
          * Close all the file handles.
          */

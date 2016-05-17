@@ -68,7 +68,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.detectCol
  * Represents list data represented in YANG.
  */
 public class YangList extends YangNode
-        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
+        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder {
 
     /**
      * Name of the YANG list.

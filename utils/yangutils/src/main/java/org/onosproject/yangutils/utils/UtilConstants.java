@@ -242,6 +242,21 @@ public final class UtilConstants {
     public static final String SPACE = " ";
 
     /**
+     * Static attribute for ListenerRegistry.
+     */
+    public static final String LISTENER_REG = "ListenerRegistry";
+
+    /**
+     * Static attribute for ListenerService.
+     */
+    public static final String LISTENER_SERVICE = "ListenerService";
+
+    /**
+     * Static attribute for listener package.
+     */
+    public static final String LISTENER_PKG = "org.onosproject.event";
+
+    /**
      * Static attribute for input string.
      */
     public static final String INPUT = "input";
@@ -862,14 +877,15 @@ public final class UtilConstants {
     public static final String JAVA_UTIL_OBJECTS_IMPORT_CLASS = "Objects;\n";
 
     /**
-     * Static attribute for HasAugmentation class import package.
+     * Static attribute for AugmentationHolder class import package.
      */
-    public static final String HAS_AUGMENTATION_CLASS_IMPORT_PKG = "org.onosproject.yangutils.translator.tojava";
+    public static final String PROVIDED_AUGMENTATION_CLASS_IMPORT_PKG =
+            "org.onosproject.yangutils.translator.tojava";
 
     /**
-     * Static attribute for HasAugmentation class import class.
+     * Static attribute for AugmentationHolder class import class.
      */
-    public static final String HAS_AUGMENTATION_CLASS_IMPORT_CLASS = "HasAugmentation;\n";
+    public static final String AUGMENTATION_HOLDER_CLASS_IMPORT_CLASS = "AugmentationHolder;\n";
 
     /**
      * Static attribute for AugmentedInfo class import package.
@@ -887,15 +903,19 @@ public final class UtilConstants {
     public static final String AUGMENTATION = "Augmentation";
 
     /**
-     * Static attribute for HasAugmentation class.
+     * Static attribute for AugmentationHolder class.
      */
-    public static final String HAS_AUGMENTATION = "HasAugmentation";
+    public static final String AUGMENTATION_HOLDER = "AugmentationHolder";
 
     /**
      * Static attribute for AugmentedInfo class.
      */
     public static final String AUGMENTED_INFO = "AugmentedInfo";
 
+    /**
+     * Static attribute for augmentable.
+     */
+    public static final String AUGMENTABLE = "Augmentable";
     /**
      * Static attribute for list.
      */

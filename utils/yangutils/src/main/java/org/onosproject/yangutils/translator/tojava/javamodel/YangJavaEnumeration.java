@@ -104,23 +104,30 @@ public class YangJavaEnumeration
      * enumeration info.
      *
      * @param yangPlugin YANG plugin config
-     * @throws IOException IO operations fails
+     * @throws TranslatorException translator operations fails
      */
     @Override
-    public void generateCodeEntry(YangPluginConfig yangPlugin)
-            throws IOException {
-        generateCodeOfNode(this, yangPlugin);
+    public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
+        try {
+            generateCodeOfNode(this, yangPlugin);
+        } catch (IOException e) {
+            throw new TranslatorException(
+                    "Failed to prepare generate code entry for enumeration node " + this.getName());
+        }
     }
 
     /**
      * Creates a java file using the YANG enumeration info.
      *
-     * @throws IOException IO operation fail
+     * @throws TranslatorException translator operation fail
      */
     @Override
-    public void generateCodeExit()
-            throws IOException {
-        getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_ENUM_CLASS, this);
+    public void generateCodeExit() throws TranslatorException {
+        try {
+            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_ENUM_CLASS, this);
+        } catch (IOException e) {
+            throw new TranslatorException("Failed to generate code for enumeration node " + this.getName());
+        }
     }
 
 }

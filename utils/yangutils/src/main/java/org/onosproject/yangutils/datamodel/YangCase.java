@@ -92,7 +92,7 @@ import static org.onosproject.yangutils.utils.YangConstructType.CASE_DATA;
  * Represents data model node to maintain information defined in YANG case.
  */
 public class YangCase extends YangNode
-        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector {
+        implements YangLeavesHolder, YangCommonInfo, Parsable, CollisionDetector, YangAugmentationHolder {
 
     /**
      * Case name.
