@@ -26,7 +26,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -37,31 +39,72 @@ public class WardenServlet extends HttpServlet {
 
     static Warden warden;
 
+    private SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         resp.setContentType("text/plain; charset=UTF-8");
-        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
         try (PrintWriter out = resp.getWriter()) {
-            for (String cellName : warden.getCells()) {
-                Reservation reservation = warden.currentCellReservation(cellName);
-                if (reservation != null) {
-                    long expiration = reservation.time + reservation.duration * 60_000;
-                    long remaining = (expiration - System.currentTimeMillis()) / 60_000;
-                    out.println(String.format("%-14s\t%-10s\t%s\t%s\t%s mins (%s remaining)",
-                                              cellName + "-" + reservation.cellSpec,
-                                              reservation.userName,
-                                              fmt.format(new Date(reservation.time)),
-                                              fmt.format(new Date(expiration)),
-                                              reservation.duration, remaining));
+            if (req.getPathInfo().endsWith("data")) {
+                String userName = req.getParameter("user");
+                if (userName != null) {
+                    printUserInfo(out, userName);
                 } else {
-                    out.println(String.format("%-10s\t%-10s", cellName, "available"));
+                    printAvailability(out);
                 }
+            } else {
+                printAvailabilityText(out);
             }
         } catch (Exception e) {
             resp.setStatus(Response.SC_INTERNAL_SERVER_ERROR);
             e.printStackTrace();
+        }
+    }
+
+    private void printUserInfo(PrintWriter out, String userName) {
+        Reservation reservation = warden.currentUserReservation(userName);
+        out.println(getCellStatus(null, reservation));
+    }
+
+    private void printAvailability(PrintWriter out) {
+        List<String> list = new ArrayList<>(warden.getCells());
+        list.sort(String::compareTo);
+        for (String cellName : list) {
+            Reservation reservation = warden.currentCellReservation(cellName);
+            out.println(getCellStatus(cellName, reservation));
+        }
+    }
+
+    private String getCellStatus(String cellName, Reservation reservation) {
+        if (reservation != null) {
+            long expiration = reservation.time + reservation.duration * 60_000;
+            long remaining = (expiration - System.currentTimeMillis()) / 60_000;
+            return String.format("%s,%s,%s,%s", reservation.cellName,
+                    reservation.cellSpec, reservation.userName, remaining);
+        } else if (cellName != null) {
+            return String.format("%s", cellName);
+        }
+        return null;
+    }
+
+    private void printAvailabilityText(PrintWriter out) {
+        List<String> list = new ArrayList<>(warden.getCells());
+        list.sort(String::compareTo);
+        for (String cellName : list) {
+            Reservation reservation = warden.currentCellReservation(cellName);
+            if (reservation != null) {
+                long expiration = reservation.time + reservation.duration * 60_000;
+                long remaining = (expiration - System.currentTimeMillis()) / 60_000;
+                out.println(String.format("%-14s\t%-10s\t%s\t%s\t%s mins (%s remaining)",
+                                          cellName + "-" + reservation.cellSpec,
+                                          reservation.userName,
+                                          fmt.format(new Date(reservation.time)),
+                                          fmt.format(new Date(expiration)),
+                                          reservation.duration, remaining));
+            } else {
+                out.println(String.format("%-10s\t%-10s", cellName, "available"));
+            }
         }
     }
 
