@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * Key of VLAN cross-connect next objective store.
  */
-public class XConnectNextObjectiveStoreKey {
+public class XConnectStoreKey {
     private final DeviceId deviceId;
     private final VlanId vlanId;
 
@@ -34,7 +34,7 @@ public class XConnectNextObjectiveStoreKey {
      * @param deviceId device ID of the VLAN cross-connection
      * @param vlanId VLAN ID of the VLAN cross-connection
      */
-    public XConnectNextObjectiveStoreKey(DeviceId deviceId, VlanId vlanId) {
+    public XConnectStoreKey(DeviceId deviceId, VlanId vlanId) {
         this.deviceId = deviceId;
         this.vlanId = vlanId;
     }
@@ -62,11 +62,11 @@ public class XConnectNextObjectiveStoreKey {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof XConnectNextObjectiveStoreKey)) {
+        if (!(o instanceof XConnectStoreKey)) {
             return false;
         }
-        XConnectNextObjectiveStoreKey that =
-                (XConnectNextObjectiveStoreKey) o;
+        XConnectStoreKey that =
+                (XConnectStoreKey) o;
         return (Objects.equals(this.deviceId, that.deviceId) &&
                 Objects.equals(this.vlanId, that.vlanId));
     }

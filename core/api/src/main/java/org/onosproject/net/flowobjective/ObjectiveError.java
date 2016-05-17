@@ -34,9 +34,14 @@ public enum ObjectiveError {
     FLOWINSTALLATIONFAILED,
 
     /**
-     * THe group installation for this objective failed.
+     * The group installation for this objective failed.
      */
     GROUPINSTALLATIONFAILED,
+
+    /**
+     * The group removal for this objective failed.
+     */
+    GROUPREMOVALFAILED,
 
     /**
      * The group was reported as installed but is missing.

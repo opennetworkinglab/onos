@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,7 +57,6 @@ public class DeviceConfiguration implements DeviceProperties {
     private static final Logger log = LoggerFactory.getLogger(DeviceConfiguration.class);
     private final List<Integer> allSegmentIds = new ArrayList<>();
     private final Map<DeviceId, SegmentRouterInfo> deviceConfigMap = new ConcurrentHashMap<>();
-    private final Map<VlanId, List<ConnectPoint>> xConnects = new ConcurrentHashMap<>();
     private ApplicationId appId;
     private NetworkConfigService cfgService;
 
@@ -148,28 +146,6 @@ public class DeviceConfiguration implements DeviceProperties {
                         }
                         info.subnets.put(port, interfaceAddress.subnetAddress().getIp4Prefix());
                     });
-
-                    // Extract VLAN cross-connect information
-                    // Do not setup cross-connect if VLAN is NONE
-                    if (vlanId.equals(VlanId.NONE)) {
-                        return;
-                    }
-                    List<ConnectPoint> connectPoints = xConnects.get(vlanId);
-                    if (connectPoints != null) {
-                        if (connectPoints.size() != 1) {
-                            log.warn("Cross-connect should only have two endpoints. Aborting.");
-                            return;
-                        }
-                        if (!connectPoints.get(0).deviceId().equals(connectPoint.deviceId())) {
-                            log.warn("Cross-connect endpoints must be on the same switch. Aborting.");
-                            return;
-                        }
-                        connectPoints.add(connectPoint);
-                    } else {
-                        connectPoints = new LinkedList<>();
-                        connectPoints.add(connectPoint);
-                        xConnects.put(vlanId, connectPoints);
-                    }
                 }
             });
         });
@@ -296,11 +272,6 @@ public class DeviceConfiguration implements DeviceProperties {
             }
         });
         return subnetPortMap;
-    }
-
-    @Override
-    public Map<VlanId, List<ConnectPoint>> getXConnects() {
-        return xConnects;
     }
 
     /**

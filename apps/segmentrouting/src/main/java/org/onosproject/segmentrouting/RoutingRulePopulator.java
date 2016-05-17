@@ -50,7 +50,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -690,85 +689,6 @@ public class RoutingRulePopulator {
                     (objective) -> log.debug("Subnet broadcast rule for {} populated", subnet),
                     (objective, error) ->
                             log.warn("Failed to populate subnet broadcast rule for {}: {}", subnet, error));
-            srManager.flowObjectiveService.forward(deviceId, fob.add(context));
-        });
-    }
-
-    /**
-     * Creates a filtering objective to permit VLAN cross-connect traffic.
-     *
-     * @param deviceId the DPID of the switch
-     */
-    public void populateXConnectVlanFilters(DeviceId deviceId) {
-        Map<VlanId, List<ConnectPoint>> xConnectsForDevice =
-                config.getXConnects();
-        xConnectsForDevice.forEach((vlanId, connectPoints) -> {
-            // Only proceed  the xConnect for given device
-            for (ConnectPoint connectPoint : connectPoints) {
-                if (!connectPoint.deviceId().equals(deviceId)) {
-                    return;
-                }
-            }
-
-            connectPoints.forEach(connectPoint -> {
-                FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
-                fob.withKey(Criteria.matchInPort(connectPoint.port()))
-                        .addCondition(Criteria.matchVlanId(vlanId))
-                        .addCondition(Criteria.matchEthDst(MacAddress.NONE))
-                        .withPriority(SegmentRoutingService.XCONNECT_PRIORITY);
-                fob.permit().fromApp(srManager.appId);
-                ObjectiveContext context = new DefaultObjectiveContext(
-                        (objective) -> log.debug("XConnect filter for {} populated", connectPoint),
-                        (objective, error) ->
-                                log.warn("Failed to populate xconnect filter for {}: {}", connectPoint, error));
-                srManager.flowObjectiveService.filter(deviceId, fob.add(context));
-            });
-        });
-    }
-
-    /**
-     * Populates a forwarding objective that points the VLAN cross-connect
-     * packets to a broadcast group.
-     *
-     * @param deviceId switch ID to set the rules
-     */
-    public void populateXConnectBroadcastRule(DeviceId deviceId) {
-        Map<VlanId, List<ConnectPoint>> xConnects =
-                config.getXConnects();
-        xConnects.forEach((vlanId, connectPoints) -> {
-            // Only proceed  the xConnect for given device
-            for (ConnectPoint connectPoint : connectPoints) {
-                if (!connectPoint.deviceId().equals(deviceId)) {
-                    return;
-                }
-            }
-
-            int nextId = srManager.getXConnectNextObjectiveId(deviceId, vlanId);
-            if (nextId < 0) {
-                log.error("Cannot install cross-connect broadcast rule in dev:{} " +
-                        "due to missing nextId:{}", deviceId, nextId);
-                return;
-            }
-
-            /*
-             * Driver should treat objectives with MacAddress.NONE and !VlanId.NONE
-             * as the VLAN cross-connect broadcast rules
-             */
-            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-            sbuilder.matchVlanId(vlanId);
-            sbuilder.matchEthDst(MacAddress.NONE);
-
-            ForwardingObjective.Builder fob = DefaultForwardingObjective.builder();
-            fob.withFlag(Flag.SPECIFIC)
-                    .withSelector(sbuilder.build())
-                    .nextStep(nextId)
-                    .withPriority(SegmentRoutingService.DEFAULT_PRIORITY)
-                    .fromApp(srManager.appId)
-                    .makePermanent();
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("XConnect rule for {} populated", xConnects),
-                    (objective, error) ->
-                            log.warn("Failed to populate xconnect rule for {}: {}", xConnects, error));
             srManager.flowObjectiveService.forward(deviceId, fob.add(context));
         });
     }
