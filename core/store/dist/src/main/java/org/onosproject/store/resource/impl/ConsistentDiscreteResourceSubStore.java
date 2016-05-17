@@ -30,7 +30,6 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.Versioned;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,19 +41,19 @@ import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIAL
 
 class ConsistentDiscreteResourceSubStore {
     private ConsistentMap<DiscreteResourceId, ResourceConsumerId> consumers;
-    private ConsistentMap<DiscreteResourceId, Set<DiscreteResource>> childMap;
+    private ConsistentMap<DiscreteResourceId, DiscreteResources> childMap;
 
     ConsistentDiscreteResourceSubStore(StorageService service) {
         this.consumers = service.<DiscreteResourceId, ResourceConsumerId>consistentMapBuilder()
                 .withName(MapNames.DISCRETE_CONSUMER_MAP)
                 .withSerializer(SERIALIZER)
                 .build();
-        this.childMap = service.<DiscreteResourceId, Set<DiscreteResource>>consistentMapBuilder()
+        this.childMap = service.<DiscreteResourceId, DiscreteResources>consistentMapBuilder()
                 .withName(MapNames.DISCRETE_CHILD_MAP)
                 .withSerializer(SERIALIZER)
                 .build();
 
-        Tools.retryable(() -> childMap.put(Resource.ROOT.id(), new LinkedHashSet<>()),
+        Tools.retryable(() -> childMap.put(Resource.ROOT.id(), DiscreteResources.empty()),
                 ConsistentMapException.class, MAX_RETRIES, RETRY_DELAY);
     }
 
@@ -73,13 +72,13 @@ class ConsistentDiscreteResourceSubStore {
     }
 
     Set<DiscreteResource> getChildResources(DiscreteResourceId parent) {
-        Versioned<Set<DiscreteResource>> children = childMap.get(parent);
+        Versioned<DiscreteResources> children = childMap.get(parent);
 
         if (children == null) {
             return ImmutableSet.of();
         }
 
-        return children.value();
+        return children.value().values();
     }
 
     boolean isAvailable(DiscreteResource resource) {

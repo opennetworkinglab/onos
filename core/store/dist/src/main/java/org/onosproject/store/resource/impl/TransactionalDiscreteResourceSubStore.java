@@ -15,27 +15,23 @@
  */
 package org.onosproject.store.resource.impl;
 
-import com.google.common.collect.Sets;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceConsumerId;
-import org.onosproject.net.resource.Resources;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionalMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
 
 class TransactionalDiscreteResourceSubStore {
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final TransactionalMap<DiscreteResourceId, Set<DiscreteResource>> childMap;
+    private final TransactionalMap<DiscreteResourceId, DiscreteResources> childMap;
     private final TransactionalMap<DiscreteResourceId, ResourceConsumerId> consumers;
 
     TransactionalDiscreteResourceSubStore(TransactionContext tx) {
@@ -49,17 +45,12 @@ class TransactionalDiscreteResourceSubStore {
             return Optional.of(Resource.ROOT);
         }
 
-        Set<DiscreteResource> values = childMap.get(id.parent().get());
+        DiscreteResources values = childMap.get(id.parent().get());
         if (values == null) {
             return Optional.empty();
         }
 
-        DiscreteResource resource = Resources.discrete(id).resource();
-        if (values.contains(resource)) {
-            return Optional.of(resource);
-        } else {
-            return Optional.empty();
-        }
+        return values.lookup(id);
     }
 
     boolean register(DiscreteResourceId key, List<DiscreteResource> values) {
@@ -68,21 +59,20 @@ class TransactionalDiscreteResourceSubStore {
             return true;
         }
 
-        Set<DiscreteResource> requested = new LinkedHashSet<>(values);
-        Set<DiscreteResource> oldValues = childMap.putIfAbsent(key, requested);
+        DiscreteResources requested = new DiscreteResources(values);
+        DiscreteResources oldValues = childMap.putIfAbsent(key, requested);
         if (oldValues == null) {
             return true;
         }
 
-        Set<DiscreteResource> addedValues = Sets.difference(requested, oldValues);
+        DiscreteResources addedValues = requested.difference(oldValues);
         // no new value, then no-op
         if (addedValues.isEmpty()) {
             // don't write to map because all values are already stored
             return true;
         }
 
-        Set<DiscreteResource> newValues = new LinkedHashSet<>(oldValues);
-        newValues.addAll(addedValues);
+        DiscreteResources newValues = oldValues.add(addedValues);
         return childMap.replace(key, oldValues, newValues);
     }
 
@@ -100,20 +90,19 @@ class TransactionalDiscreteResourceSubStore {
             return false;
         }
 
-        Set<DiscreteResource> oldValues = childMap.putIfAbsent(key, new LinkedHashSet<>());
+        DiscreteResources oldValues = childMap.putIfAbsent(key, DiscreteResources.empty());
         if (oldValues == null) {
             log.trace("No-Op removing values. key {} did not exist", key);
             return true;
         }
 
-        if (values.stream().allMatch(x -> !oldValues.contains(x))) {
+        if (!oldValues.containsAny(values)) {
             // don't write map because none of the values are stored
             log.trace("No-Op removing values. key {} did not contain {}", key, values);
             return true;
         }
 
-        LinkedHashSet<DiscreteResource> newValues = new LinkedHashSet<>(oldValues);
-        newValues.removeAll(values);
+        DiscreteResources newValues = oldValues.remove(values);
         return childMap.replace(key, oldValues, newValues);
     }
 

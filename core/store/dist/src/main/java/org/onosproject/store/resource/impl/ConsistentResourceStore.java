@@ -71,6 +71,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
 
     static final Serializer SERIALIZER = Serializer.using(
             Arrays.asList(KryoNamespaces.API),
+            DiscreteResources.class,
             ContinuousResourceAllocation.class);
 
     // TODO: We should provide centralized values for this
