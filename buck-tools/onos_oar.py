@@ -11,7 +11,10 @@ def generateOar(output, files=[]):
             if mvnCoords == 'NONE':
                 dest = filename
             else:
-                groupId, artifactId, version = mvnCoords.split(':')
+                parts = mvnCoords.split(':')
+                if len(parts) > 3:
+                    parts.insert(2, parts.pop()) # move version to the 3rd position
+                groupId, artifactId, version = parts[0:3]
                 groupId = groupId.replace('.', '/')
                 extension = filename.split('.')[-1]
                 if extension == 'jar':
