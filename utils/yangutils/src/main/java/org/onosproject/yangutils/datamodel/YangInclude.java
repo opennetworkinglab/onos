@@ -15,9 +15,13 @@
  */
 package org.onosproject.yangutils.datamodel;
 
+import java.util.Set;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.utils.YangConstructType;
+
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.findReferredNode;
 
 /*
  * Reference:RFC 6020.
@@ -38,7 +42,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
  * Represents the information about the included sub-modules.
  */
 public class YangInclude
-        implements Parsable {
+        implements Parsable, LocationInfo {
 
     /**
      * Name of the sub-module that is being included.
@@ -50,6 +54,17 @@ public class YangInclude
      * version of the submodule to import.
      */
     private String revision;
+
+    /**
+     * Reference to node which is included.
+     */
+    private YangNode includedNode;
+
+    // Error Line number.
+    private int lineNumber;
+
+    // Error character position.
+    private int charPosition;
 
     /**
      * Creates a YANG include.
@@ -127,4 +142,98 @@ public class YangInclude
 
     }
 
+    public YangNode getIncludedNode() {
+        return includedNode;
+    }
+
+    public void setIncludedNode(YangNode includedNode) {
+        this.includedNode = includedNode;
+    }
+
+    @Override
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    @Override
+    public int getCharPosition() {
+        return charPosition;
+    }
+
+    @Override
+    public void setLineNumber(int lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    @Override
+    public void setCharPosition(int charPositionInLine) {
+        this.charPosition = charPositionInLine;
+    }
+
+    /**
+     * Adds reference to an include.
+     *
+     * @param yangFileInfoSet YANG file info set
+     * @return YANG sub module node
+     * @throws DataModelException a violation of data model rules
+     */
+    public YangSubModule addReferenceToInclude(Set<YangFileInfo> yangFileInfoSet) throws DataModelException {
+        String includedSubModuleName = getSubModuleName();
+        String includedSubModuleRevision = getRevision();
+        YangNode subModuleNode = null;
+
+        /*
+         * Find the included sub-module node for a given module name
+         * with a specified revision if revision is not null.
+         */
+        if (includedSubModuleRevision != null) {
+            String includedSubModuleNameWithRevision = includedSubModuleName + "@" + includedSubModuleRevision;
+            subModuleNode = findReferredNode(yangFileInfoSet, includedSubModuleNameWithRevision);
+        }
+
+        /*
+         * Find the imported sub module node for a given module name
+         * without revision if can't find with revision.
+         */
+        if (subModuleNode == null) {
+            subModuleNode = findReferredNode(yangFileInfoSet, includedSubModuleName);
+        }
+
+        if (subModuleNode != null) {
+            if (subModuleNode instanceof YangSubModule) {
+                if (getRevision() == null || getRevision().isEmpty()) {
+                    setIncludedNode(subModuleNode);
+                    return (YangSubModule) subModuleNode;
+                }
+                // Match revision if inclusion is with revision.
+                if (((YangSubModule) subModuleNode).getRevision().getRevDate().equals(includedSubModuleRevision)) {
+                    setIncludedNode(subModuleNode);
+                    return (YangSubModule) subModuleNode;
+                }
+            }
+        }
+        // Exception if there is no match.
+        DataModelException exception = new DataModelException("YANG file error : Included sub module " +
+                includedSubModuleName + "with a given revision is not found.");
+        exception.setLine(getLineNumber());
+        exception.setCharPosition(getCharPosition());
+        throw exception;
+    }
+
+    /**
+     * Reports an error when included sub-module doesn't meet condition that
+     * "included sub-modules should belong module, as defined by the
+     * "belongs-to" statement or sub-modules are only allowed to include other
+     * sub-modules belonging to the same module.
+     *
+     * @throws DataModelException a violation in data model rule
+     */
+    public void reportIncludeError() throws DataModelException {
+        DataModelException exception = new DataModelException("YANG file error : Included sub-module " +
+                getSubModuleName() + "doesn't belongs to parent module also it doesn't belongs" +
+                "to sub-module belonging to the same parent module.");
+        exception.setLine(getLineNumber());
+        exception.setCharPosition(getCharPosition());
+        throw exception;
+    }
 }

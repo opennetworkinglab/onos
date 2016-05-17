@@ -21,7 +21,6 @@ import java.util.ListIterator;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.onosproject.yangutils.datamodel.ResolvableStatus;
 import org.onosproject.yangutils.datamodel.YangContainer;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangGrouping;
@@ -32,6 +31,8 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUses;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
+import org.onosproject.yangutils.linker.impl.ResolvableStatus;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
@@ -293,9 +294,9 @@ public class IntraFileUsesLinkingTest {
      */
     @Test
     public void processSelfResolutionGroupingReferencingItselfFailureScenerio()
-            throws IOException, ParserException {
+            throws IOException {
 
-        thrown.expect(ParserException.class);
+        thrown.expect(LinkerException.class);
         thrown.expectMessage(
                 "YANG file error: Duplicate input identifier detected, same as leaf \"zip-code\"");
         YangNode node = manager

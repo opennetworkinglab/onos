@@ -26,7 +26,7 @@ import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
 import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.datamodel.YangOutput;
-import org.onosproject.yangutils.datamodel.YangResolutionInfo;
+import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.YangUses;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;

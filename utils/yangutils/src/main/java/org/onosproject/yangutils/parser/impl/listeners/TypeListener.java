@@ -22,26 +22,24 @@ import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
-import org.onosproject.yangutils.datamodel.YangResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUnion;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
-import static org.onosproject.yangutils.datamodel.ResolvableStatus.UNRESOLVED;
 import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.addResolutionInfo;
 import static org.onosproject.yangutils.datamodel.utils.GeneratedLanguage.JAVA_GENERATION;
 import static org.onosproject.yangutils.datamodel.utils.YangDataModelFactory.getYangType;
+import static org.onosproject.yangutils.linker.impl.ResolvableStatus.UNRESOLVED;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
-        .constructExtendedListenerErrorMessage;
-import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction
-        .constructListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructExtendedListenerErrorMessage;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
@@ -81,10 +79,10 @@ public final class TypeListener {
      * (type), performs validation and updates the data model tree.
      *
      * @param listener listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processTypeEntry(TreeWalkListener listener,
-            GeneratedYangParser.TypeStatementContext ctx) {
+                                        GeneratedYangParser.TypeStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, TYPE_DATA, ctx.string().getText(), ENTRY);
@@ -190,6 +188,8 @@ public final class TypeListener {
                     YangDerivedInfo<?> yangDerivedInfo = new YangDerivedInfo<>();
                     ((YangType<YangDerivedInfo>) type).setDataTypeExtendedInfo(yangDerivedInfo);
 
+                    type.setResolvableStatus(UNRESOLVED);
+
                     // Add resolution information to the list
                     YangResolutionInfo resolutionInfo =
                             new YangResolutionInfo<YangType>(type, unionNode, errorLine, errorPosition);
@@ -211,13 +211,15 @@ public final class TypeListener {
                     YangDerivedInfo<?> yangDerivedInfo = new YangDerivedInfo<>();
                     ((YangType<YangDerivedInfo>) type).setDataTypeExtendedInfo(yangDerivedInfo);
 
+                    type.setResolvableStatus(UNRESOLVED);
+
                     // Add resolution information to the list
                     YangResolutionInfo resolutionInfo =
                             new YangResolutionInfo<YangType>(type, typeDef, errorLine, errorPosition);
                     addToResolutionList(resolutionInfo, ctx);
                 }
                 break;
-            //TODO: deviate replacement statement.case TYPEDEF_DATA: //TODO
+            //TODO: deviate replacement statement.
 
             default:
                 throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, TYPE_DATA,
@@ -233,10 +235,10 @@ public final class TypeListener {
      * validations and update the data model tree.
      *
      * @param listener Listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processTypeExit(TreeWalkListener listener,
-            GeneratedYangParser.TypeStatementContext ctx) {
+                                       GeneratedYangParser.TypeStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_CURRENT_HOLDER, TYPE_DATA, ctx.string().getText(), EXIT);
@@ -252,15 +254,15 @@ public final class TypeListener {
      * Adds to resolution list.
      *
      * @param resolutionInfo resolution information
-     * @param ctx context object of the grammar rule
+     * @param ctx            context object of the grammar rule
      */
     private static void addToResolutionList(YangResolutionInfo<YangType> resolutionInfo,
-            GeneratedYangParser.TypeStatementContext ctx) {
+                                            GeneratedYangParser.TypeStatementContext ctx) {
         try {
             addResolutionInfo(resolutionInfo);
         } catch (DataModelException e) {
             throw new ParserException(constructExtendedListenerErrorMessage(UNHANDLED_PARSED_DATA,
-                    TYPE_DATA, ctx.string().getText(), EXIT, e.getMessage()));
+                    TYPE_DATA, ctx.string().getText(), ENTRY, e.getMessage()));
         }
     }
 }

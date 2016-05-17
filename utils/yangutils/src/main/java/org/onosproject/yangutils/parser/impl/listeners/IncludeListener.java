@@ -72,18 +72,24 @@ public final class IncludeListener {
      * (include), perform validations and update the data model tree.
      *
      * @param listener Listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processIncludeEntry(TreeWalkListener listener, GeneratedYangParser.IncludeStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, ctx.identifier().getText(),
-                             ENTRY);
+                ENTRY);
 
         String identifier = getValidIdentifier(ctx.identifier().getText(), INCLUDE_DATA, ctx);
 
         YangInclude includeNode = new YangInclude();
         includeNode.setSubModuleName(identifier);
+
+        // Set the line number and character position in line for the belongs to.
+        int errorLine = ctx.getStart().getLine();
+        int errorPosition = ctx.getStart().getCharPositionInLine();
+        includeNode.setLineNumber(errorLine);
+        includeNode.setCharPosition(errorPosition);
 
         listener.getParsedDataStack().push(includeNode);
     }
@@ -93,7 +99,7 @@ public final class IncludeListener {
      * validations and update the data model tree.
      *
      * @param listener Listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processIncludeExit(TreeWalkListener listener, GeneratedYangParser.IncludeStatementContext ctx) {
 
@@ -106,7 +112,7 @@ public final class IncludeListener {
 
             // Check for stack to be non empty.
             checkStackIsNotEmpty(listener, MISSING_HOLDER, INCLUDE_DATA, ctx.identifier().getText(),
-                                 EXIT);
+                    EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getYangConstructType()) {
@@ -127,7 +133,7 @@ public final class IncludeListener {
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, INCLUDE_DATA,
-                                                                    ctx.identifier().getText(), EXIT));
+                    ctx.identifier().getText(), EXIT));
         }
     }
 }

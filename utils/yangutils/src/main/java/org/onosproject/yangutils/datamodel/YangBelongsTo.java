@@ -15,9 +15,13 @@
  */
 package org.onosproject.yangutils.datamodel;
 
+import java.util.Set;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.utils.YangConstructType;
+
+import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.findReferredNode;
 
 /*-
  *   Reference 6020.
@@ -46,7 +50,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Represents the belongs-to data type information.
  */
-public class YangBelongsTo implements Parsable {
+public class YangBelongsTo implements Parsable, LocationInfo {
 
     /**
      * Reference RFC 6020.
@@ -70,6 +74,12 @@ public class YangBelongsTo implements Parsable {
      */
     private String prefix;
 
+    // Error Line number.
+    private int lineNumber;
+
+    // Error character position.
+    private int charPosition;
+
     /**
      * Create a belongs to object.
      */
@@ -90,7 +100,6 @@ public class YangBelongsTo implements Parsable {
      * Sets the belongs to module name.
      *
      * @param belongsToModuleName the belongs to module name to set
-     *
      */
     public void setBelongsToModuleName(String belongsToModuleName) {
         this.belongsToModuleName = belongsToModuleName;
@@ -160,5 +169,48 @@ public class YangBelongsTo implements Parsable {
     @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
+    }
+
+    @Override
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    @Override
+    public int getCharPosition() {
+        return charPosition;
+    }
+
+    @Override
+    public void setLineNumber(int lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    @Override
+    public void setCharPosition(int charPositionInLine) {
+        this.charPosition = charPositionInLine;
+    }
+
+    /**
+     * Links the belongs to with a module.
+     *
+     * @param yangFileInfoSet YANG file information set
+     * @throws DataModelException a violation in data model rule
+     */
+    public void linkWithModule(Set<YangFileInfo> yangFileInfoSet)
+            throws DataModelException {
+        String belongsToModuleName = getBelongsToModuleName();
+        YangNode moduleNode = findReferredNode(yangFileInfoSet, belongsToModuleName);
+        if (moduleNode != null) {
+            if (moduleNode instanceof YangModule) {
+                setModuleNode(moduleNode);
+                return;
+            }
+        }
+        DataModelException exception = new DataModelException("YANG file error : Module " + belongsToModuleName +
+                "to which sub-module belongs to is not found.");
+        exception.setLine(getLineNumber());
+        exception.setCharPosition(getCharPosition());
+        throw exception;
     }
 }

@@ -16,8 +16,8 @@
 
 package org.onosproject.yangutils.linker;
 
-import java.util.Map;
-import org.onosproject.yangutils.datamodel.YangReferenceResolver;
+import java.util.Set;
+import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 
 /**
  * Abstraction of entity which provides linking service of YANG files.
@@ -28,8 +28,7 @@ public interface YangLinker {
      * Resolve the import and include dependencies for a given resolution
      * information.
      *
-     * @param fileMapEntry map entry for which resolution is to be done
-     * @param yangFilesMap map of dependent file and resolution information*/
-    void resolveDependencies(Map.Entry<String, YangReferenceResolver> fileMapEntry, Map<String,
-            YangReferenceResolver> yangFilesMap);
+     * @param yangFileInfoSet set of all dependent YANG files
+     */
+    void resolveDependencies(Set<YangFileInfo> yangFileInfoSet);
 }

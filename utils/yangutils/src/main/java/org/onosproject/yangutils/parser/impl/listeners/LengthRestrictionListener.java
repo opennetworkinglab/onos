@@ -16,7 +16,6 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
-import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangRangeRestriction;
 import org.onosproject.yangutils.datamodel.YangStringRestriction;
@@ -27,7 +26,9 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.utils.YangConstructType;
 
+import static org.onosproject.yangutils.datamodel.YangDataTypes.BINARY;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
+import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
@@ -99,8 +100,8 @@ public final class LengthRestrictionListener {
      * Sets the length restriction to type.
      *
      * @param listener listener's object
-     * @param type Yang type for which length restriction to be set
-     * @param ctx  context object of the grammar rule
+     * @param type     Yang type for which length restriction to be set
+     * @param ctx      context object of the grammar rule
      */
     private static void setLengthRestriction(TreeWalkListener listener, YangType type,
                                              GeneratedYangParser.LengthStatementContext ctx) {
@@ -115,10 +116,10 @@ public final class LengthRestrictionListener {
             return;
         }
 
-        if (type.getDataType() != YangDataTypes.STRING) {
+        if (type.getDataType() != STRING && type.getDataType() != BINARY) {
             ParserException parserException = new ParserException("YANG file error : " +
                     YangConstructType.getYangConstructType(LENGTH_DATA) + " name " + ctx.length().getText() +
-                    " can be used to restrict the built-in type string or types derived from string.");
+                    " can be used to restrict the built-in type string/binary or types derived from string/binary.");
             parserException.setLine(ctx.getStart().getLine());
             parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
             throw parserException;
@@ -127,14 +128,18 @@ public final class LengthRestrictionListener {
         YangRangeRestriction lengthRestriction = processLengthRestriction(null, ctx.getStart().getLine(),
                 ctx.getStart().getCharPositionInLine(), false, ctx.length().getText());
 
-        YangStringRestriction stringRestriction = (YangStringRestriction) type.getDataTypeExtendedInfo();
+        if (type.getDataType() == STRING) {
+            YangStringRestriction stringRestriction = (YangStringRestriction) type.getDataTypeExtendedInfo();
+            if (stringRestriction == null) {
+                stringRestriction = new YangStringRestriction();
+                type.setDataTypeExtendedInfo(stringRestriction);
+            }
 
-        if (stringRestriction == null) {
-            stringRestriction = new YangStringRestriction();
-            type.setDataTypeExtendedInfo(stringRestriction);
+            stringRestriction.setLengthRestriction(lengthRestriction);
+        } else {
+            type.setDataTypeExtendedInfo(lengthRestriction);
         }
 
-        stringRestriction.setLengthRestriction(lengthRestriction);
         listener.getParsedDataStack().push(lengthRestriction);
     }
 
@@ -143,7 +148,7 @@ public final class LengthRestrictionListener {
      * It is called when parser exits from grammar rule (length).
      *
      * @param listener listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processLengthRestrictionExit(TreeWalkListener listener,
                                                    GeneratedYangParser.LengthStatementContext ctx) {

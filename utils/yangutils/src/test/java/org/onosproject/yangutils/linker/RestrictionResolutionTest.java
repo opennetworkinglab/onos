@@ -30,6 +30,7 @@ import org.onosproject.yangutils.datamodel.YangRangeRestriction;
 import org.onosproject.yangutils.datamodel.YangStringRestriction;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 import org.onosproject.yangutils.utils.builtindatatype.YangInt32;
@@ -39,11 +40,11 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
-import static org.onosproject.yangutils.datamodel.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.INT32;
 import static org.onosproject.yangutils.datamodel.YangDataTypes.STRING;
 import static org.onosproject.yangutils.datamodel.YangNodeType.MODULE_NODE;
+import static org.onosproject.yangutils.linker.impl.ResolvableStatus.RESOLVED;
 
 /**
  * Test cases for testing restriction resolution.
@@ -225,9 +226,9 @@ public final class RestrictionResolutionTest {
     /**
      * Checks length restriction in typedef and in type with not stricter value.
      */
-    @Test(expected = ParserException.class)
+    @Test(expected = LinkerException.class)
     public void processLengthRestrictionInTypedefAndTypeInValid()
-            throws IOException, ParserException, DataModelException {
+            throws IOException, DataModelException {
         YangNode node = manager.getDataModel("src/test/resources/LengthRestrictionInTypedefAndTypeInValid.yang");
     }
 
@@ -429,9 +430,9 @@ public final class RestrictionResolutionTest {
     /**
      * Checks range restriction for string in referred type.
      */
-    @Test(expected = ParserException.class)
+    @Test(expected = LinkerException.class)
     public void processRangeRestrictionInStringInRefType()
-            throws IOException, ParserException, DataModelException {
+            throws IOException, DataModelException {
         YangNode node = manager.getDataModel("src/test/resources/RangeRestrictionInStringInRefType.yang");
     }
 
@@ -826,9 +827,9 @@ public final class RestrictionResolutionTest {
      * Checks multiple pattern and length restriction in referred type and
      * typedef invalid scenario.
      */
-    @Test(expected = ParserException.class)
+    @Test(expected = LinkerException.class)
     public void processMultiplePatternAndLengthRestrictionInValid()
-            throws IOException, ParserException, DataModelException {
+            throws IOException, DataModelException {
         YangNode node = manager.getDataModel("src/test/resources/MultiplePatternAndLengthRestrictionInValid.yang");
     }
 }

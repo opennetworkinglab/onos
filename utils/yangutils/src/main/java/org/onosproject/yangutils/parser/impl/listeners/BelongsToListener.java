@@ -74,19 +74,25 @@ public final class BelongsToListener {
      * (belongsto), perform validations and update the data model tree.
      *
      * @param listener Listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processBelongsToEntry(TreeWalkListener listener,
                                              GeneratedYangParser.BelongstoStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, ctx.identifier().getText(),
-                             ENTRY);
+                ENTRY);
 
         String identifier = getValidIdentifier(ctx.identifier().getText(), BELONGS_TO_DATA, ctx);
 
         YangBelongsTo belongstoNode = new YangBelongsTo();
         belongstoNode.setBelongsToModuleName(identifier);
+
+        // Set the line number and character position in line for the belongs to.
+        int errorLine = ctx.getStart().getLine();
+        int errorPosition = ctx.getStart().getCharPositionInLine();
+        belongstoNode.setLineNumber(errorLine);
+        belongstoNode.setCharPosition(errorPosition);
 
         // Push belongsto into the stack.
         listener.getParsedDataStack().push(belongstoNode);
@@ -97,14 +103,14 @@ public final class BelongsToListener {
      * validations and update the data model tree.
      *
      * @param listener Listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processBelongsToExit(TreeWalkListener listener,
                                             GeneratedYangParser.BelongstoStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA, ctx.identifier().getText(),
-                             EXIT);
+                EXIT);
 
         Parsable tmpBelongstoNode = listener.getParsedDataStack().peek();
         if (tmpBelongstoNode instanceof YangBelongsTo) {
@@ -112,7 +118,7 @@ public final class BelongsToListener {
 
             // Check for stack to be empty.
             checkStackIsNotEmpty(listener, MISSING_HOLDER, BELONGS_TO_DATA,
-                                 ctx.identifier().getText(), EXIT);
+                    ctx.identifier().getText(), EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getYangConstructType()) {
@@ -129,7 +135,7 @@ public final class BelongsToListener {
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, BELONGS_TO_DATA,
-                                                                    ctx.identifier().getText(), EXIT));
+                    ctx.identifier().getText(), EXIT));
         }
     }
 }

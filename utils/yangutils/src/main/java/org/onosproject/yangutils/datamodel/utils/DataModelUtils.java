@@ -16,17 +16,15 @@
 
 package org.onosproject.yangutils.datamodel.utils;
 
-import java.util.Iterator;
 import java.util.List;
-
+import java.util.Set;
 import org.onosproject.yangutils.datamodel.CollisionDetector;
-import org.onosproject.yangutils.datamodel.YangImport;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangReferenceResolver;
-import org.onosproject.yangutils.datamodel.YangResolutionInfo;
+import org.onosproject.yangutils.linker.impl.YangReferenceResolver;
+import org.onosproject.yangutils.linker.impl.YangResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
@@ -48,14 +46,13 @@ public final class DataModelUtils {
      * Detects the colliding identifier name in a given YANG node and its child.
      *
      * @param identifierName name for which collision detection is to be
-     * checked
-     * @param dataType type of YANG node asking for detecting collision
-     * @param node instance of calling node
+     *                       checked
+     * @param dataType       type of YANG node asking for detecting collision
+     * @param node           instance of calling node
      * @throws DataModelException a violation of data model rules
      */
     public static void detectCollidingChildUtil(String identifierName, YangConstructType dataType, YangNode node)
             throws DataModelException {
-
         if (dataType == YangConstructType.USES_DATA || dataType == YangConstructType.GROUPING_DATA) {
             detectCollidingForUsesGrouping(identifierName, dataType, node);
         } else {
@@ -81,9 +78,9 @@ public final class DataModelUtils {
      * Detects colliding of uses and grouping only with uses and grouping respectively.
      *
      * @param identifierName name for which collision detection is to be
-     * checked
-     * @param dataType type of YANG node asking for detecting collision
-     * @param node node instance of calling node
+     *                       checked
+     * @param dataType       type of YANG node asking for detecting collision
+     * @param node           node instance of calling node
      * @throws DataModelException a violation of data model rules
      */
     public static void detectCollidingForUsesGrouping(String identifierName, YangConstructType dataType, YangNode node)
@@ -103,9 +100,9 @@ public final class DataModelUtils {
     /**
      * Detects the colliding identifier name in a given leaf node.
      *
-     * @param listOfLeaf List of leaves to detect collision
+     * @param listOfLeaf     List of leaves to detect collision
      * @param identifierName name for which collision detection is to be
-     * checked
+     *                       checked
      * @throws DataModelException a violation of data model rules
      */
     private static void detectCollidingLeaf(List<YangLeaf> listOfLeaf, String identifierName)
@@ -127,7 +124,7 @@ public final class DataModelUtils {
      *
      * @param listOfLeafList list of leaf-lists to detect collision
      * @param identifierName name for which collision detection is to be
-     * checked
+     *                       checked
      * @throws DataModelException a violation of data model rules
      */
     private static void detectCollidingLeafList(List<YangLeafList> listOfLeafList, String identifierName)
@@ -148,7 +145,7 @@ public final class DataModelUtils {
      * Add a resolution information.
      *
      * @param resolutionInfo information about the YANG construct which has to
-     * be resolved
+     *                       be resolved
      * @throws DataModelException a violation of data model rules
      */
     public static void addResolutionInfo(YangResolutionInfo resolutionInfo)
@@ -165,64 +162,41 @@ public final class DataModelUtils {
         }
         YangReferenceResolver resolutionNode = (YangReferenceResolver) curNode;
 
-        if (!isPrefixValid(resolutionInfo.getEntityToResolveInfo().getEntityPrefix(),
-                resolutionNode)) {
-            throw new DataModelException("The prefix used is not valid");
-        }
         resolutionNode.addToResolutionList(resolutionInfo);
-    }
-
-    /**
-     * Evaluates whether the prefix in uses/type is valid.
-     *
-     * @param entityPrefix prefix in the current module/sub-module
-     * @param resolutionNode uses/type node which has the prefix with it
-     * @return whether prefix is valid or not
-     */
-    private static boolean isPrefixValid(String entityPrefix, YangReferenceResolver resolutionNode) {
-        if (entityPrefix == null) {
-            return true;
-        }
-
-        if (resolutionNode.getPrefix().contentEquals(entityPrefix)) {
-            return true;
-        }
-
-        if (resolutionNode.getImportList() != null) {
-            for (YangImport importedInfo : resolutionNode.getImportList()) {
-                if (importedInfo.getPrefixId().contentEquals(entityPrefix)) {
-                    return true;
-                }
-            }
-        }
-
-        if (resolutionNode.getIncludeList() != null) {
-            /**
-             * TODO: check if the prefix matches with the imported data
-
-             for (YangInclude includedInfo : resolutionNode.getIncludeList()) {
-             if (includedInfo.contentEquals(prefix)) {
-             return true;
-             }
-             }*/
-        }
-
-        return false;
     }
 
     /**
      * Resolve linking for a resolution list.
      *
-     * @param resolutionList resolution list for which linking to be done
+     * @param resolutionList    resolution list for which linking to be done
      * @param dataModelRootNode module/sub-module node
      * @throws DataModelException a violation of data model rules
      */
     public static void resolveLinkingForResolutionList(List<YangResolutionInfo> resolutionList,
-            YangReferenceResolver dataModelRootNode)
+                                                       YangReferenceResolver dataModelRootNode)
             throws DataModelException {
 
         for (YangResolutionInfo resolutionInfo : resolutionList) {
-            resolutionInfo.resolveLinkingForResolutionInfo(dataModelRootNode.getPrefix());
+            resolutionInfo.resolveLinkingForResolutionInfo(dataModelRootNode);
+        }
+    }
+
+    /**
+     * Links type/uses referring to typedef/uses of inter YANG file.
+     *
+     * @param resolutionList    resolution list for which linking to be done
+     * @param dataModelRootNode module/sub-module node
+     * @throws DataModelException a violation of data model rules
+     */
+    public static void linkInterFileReferences(List<YangResolutionInfo> resolutionList,
+                                               YangReferenceResolver dataModelRootNode)
+            throws DataModelException {
+        /*
+         * Run through the resolution list, find type/uses referring to
+         * inter file typedef/grouping, ask for linking.
+         */
+        for (YangResolutionInfo resolutionInfo : resolutionList) {
+            resolutionInfo.linkInterFile(dataModelRootNode);
         }
     }
 
@@ -244,24 +218,23 @@ public final class DataModelUtils {
     }
 
     /**
-     * Returns module's data model node to which sub-module belongs to.
+     * Returns referred node in a given set.
      *
-     * @param yangFileInfo YANG file information
-     * @param belongsToModuleName name of the module to which sub-module belongs to
-     * @return module node to which sub-module belongs to
-     * @throws DataModelException when belongs to module node is not found
+     * @param yangFileInfoSet YANG file info set
+     * @param refNodeName     name of the node which is referred
+     * @return referred node's reference
      */
-    public static YangNode findBelongsToModuleNode(List<YangFileInfo> yangFileInfo,
-                String belongsToModuleName) throws DataModelException {
-        Iterator<YangFileInfo> yangFileIterator = yangFileInfo.iterator();
-        while (yangFileIterator.hasNext()) {
-            YangFileInfo yangFile = yangFileIterator.next();
-            YangNode yangNode = yangFile.getRootNode();
-            if (yangNode.getName().equals(belongsToModuleName)) {
-                return yangNode;
+    public static YangNode findReferredNode(Set<YangFileInfo> yangFileInfoSet, String refNodeName) {
+        /*
+         * Run through the YANG files to see which YANG file matches the
+         * referred node name.
+         */
+        for (YangFileInfo yangFileInfo : yangFileInfoSet) {
+            YangNode yangNode = yangFileInfo.getRootNode();
+            if (yangNode.getName().equals(refNodeName)) {
+                return yangFileInfo.getRootNode();
             }
         }
-        throw new DataModelException("YANG file error : Module " + belongsToModuleName + " to which sub-module " +
-                "belongs to is not found.");
+        return null;
     }
 }

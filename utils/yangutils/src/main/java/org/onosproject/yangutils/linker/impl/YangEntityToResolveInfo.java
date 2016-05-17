@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.yangutils.datamodel;
+package org.onosproject.yangutils.linker.impl;
 
-import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.YangUses;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
 
 /**
  * Represents information about entity being resolved.
@@ -61,7 +64,7 @@ public class YangEntityToResolveInfo<T> {
      * Sets parent node which contains the entity to be resolved.
      *
      * @param holderOfEntityToResolve parent node which contains the entity to
-     * be resolved
+     *                                be resolved
      */
     public void setHolderOfEntityToResolve(YangNode holderOfEntityToResolve) {
         this.holderOfEntityToResolve = holderOfEntityToResolve;
@@ -71,10 +74,10 @@ public class YangEntityToResolveInfo<T> {
      * Retrieves the prefix of the entity.
      *
      * @return entities prefix
-     * @throws DataModelException data model error
+     * @throws LinkerException linker error
      */
     public String getEntityPrefix()
-            throws DataModelException {
+            throws LinkerException {
         if (getEntityToResolve() == null) {
             return null;
         }
@@ -86,7 +89,7 @@ public class YangEntityToResolveInfo<T> {
         } else if (entityToBeResolved instanceof YangUses) {
             prefix = ((YangUses) entityToBeResolved).getPrefix();
         } else {
-            throw new DataModelException("Data Model Exception: Entity to resolved is other than type/uses");
+            throw new LinkerException("Linker Exception: Entity to resolved is other than type/uses");
         }
         return prefix;
     }

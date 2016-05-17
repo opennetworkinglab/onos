@@ -73,7 +73,7 @@ public final class ImportListener {
      * (import), perform validations and update the data model tree.
      *
      * @param listener Listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processImportEntry(TreeWalkListener listener, GeneratedYangParser.ImportStatementContext ctx) {
 
@@ -85,6 +85,12 @@ public final class ImportListener {
         YangImport importNode = new YangImport();
         importNode.setModuleName(identifier);
 
+        // Set the line number and character position in line for the belongs to.
+        int errorLine = ctx.getStart().getLine();
+        int errorPosition = ctx.getStart().getCharPositionInLine();
+        importNode.setLineNumber(errorLine);
+        importNode.setCharPosition(errorPosition);
+
         // Push import node to the stack.
         listener.getParsedDataStack().push(importNode);
     }
@@ -94,7 +100,7 @@ public final class ImportListener {
      * validations and update the data model tree.
      *
      * @param listener Listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processImportExit(TreeWalkListener listener, GeneratedYangParser.ImportStatementContext ctx) {
 
@@ -107,7 +113,7 @@ public final class ImportListener {
 
             // Check for stack to be non empty.
             checkStackIsNotEmpty(listener, MISSING_HOLDER, IMPORT_DATA, ctx.identifier().getText(),
-                                 EXIT);
+                    EXIT);
 
             Parsable tmpNode = listener.getParsedDataStack().peek();
             switch (tmpNode.getYangConstructType()) {
@@ -128,7 +134,7 @@ public final class ImportListener {
             }
         } else {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, IMPORT_DATA,
-                                                                    ctx.identifier().getText(), EXIT));
+                    ctx.identifier().getText(), EXIT));
         }
     }
 }

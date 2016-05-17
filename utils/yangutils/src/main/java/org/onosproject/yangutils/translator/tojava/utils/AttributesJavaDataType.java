@@ -24,14 +24,17 @@ import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.datamodel.YangUnion;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
-import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.JavaFileInfo;
+import org.onosproject.yangutils.translator.tojava.JavaFileInfoContainer;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaEnumeration;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeDef;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUnion;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_WRAPPER;
@@ -109,7 +112,7 @@ public final class AttributesJavaDataType {
      * Returns from string method parsed string.
      *
      * @param targetDataType target data type
-     * @param yangType YANG type
+     * @param yangType       YANG type
      * @return parsed string
      */
     public static String getParseFromStringMethod(String targetDataType, YangType<?> yangType) {
@@ -155,7 +158,7 @@ public final class AttributesJavaDataType {
     /**
      * Returns java import class.
      *
-     * @param yangType YANG type
+     * @param yangType   YANG type
      * @param isListAttr if the attribute need to be a list
      * @return java import class
      */
@@ -260,9 +263,9 @@ public final class AttributesJavaDataType {
     /**
      * Returns java import package.
      *
-     * @param yangType YANG type
+     * @param yangType   YANG type
      * @param isListAttr if the attribute is of list type
-     * @param classInfo java import class info
+     * @param classInfo  java import class info
      * @return java import package
      */
     public static String getJavaImportPackage(YangType<?> yangType, boolean isListAttr, String classInfo) {
@@ -424,6 +427,20 @@ public final class AttributesJavaDataType {
             throw new TranslatorException("invalid child node is being processed.");
         }
         JavaFileInfo parentInfo = ((JavaFileInfoContainer) parent).getJavaFileInfo();
+        if (parentInfo.getPackage() == null) {
+            if (parent instanceof YangJavaModule) {
+                YangJavaModule module = (YangJavaModule) parent;
+                String modulePkg = getRootPackage(module.getVersion(), module.getNameSpace().getUri(), module
+                        .getRevision().getRevDate());
+                return modulePkg + PERIOD + getCamelCase(module.getName(), null).toLowerCase();
+            } else if (parent instanceof YangJavaSubModule) {
+                YangJavaSubModule submodule = (YangJavaSubModule) parent;
+                String subModulePkg = getRootPackage(submodule.getVersion(),
+                        submodule.getNameSpaceFromModule(submodule.getBelongsTo()),
+                        submodule.getRevision().getRevDate());
+                return subModulePkg + PERIOD + getCamelCase(submodule.getName(), null).toLowerCase();
+            }
+        }
         return parentInfo.getPackage() + PERIOD + parentInfo.getJavaName().toLowerCase();
     }
 }

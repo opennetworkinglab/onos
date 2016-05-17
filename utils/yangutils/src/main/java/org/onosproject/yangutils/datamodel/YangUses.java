@@ -16,6 +16,9 @@
 package org.onosproject.yangutils.datamodel;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.linker.exceptions.LinkerException;
+import org.onosproject.yangutils.linker.impl.Resolvable;
+import org.onosproject.yangutils.linker.impl.ResolvableStatus;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.utils.YangConstructType;
 
@@ -259,37 +262,49 @@ public class YangUses
 
     @Override
     public void resolve()
-            throws DataModelException {
+            throws LinkerException {
 
         YangGrouping referredGrouping = getRefGroup();
 
         if (referredGrouping == null) {
-            throw new DataModelException("YANG uses linker error, cannot resolve uses");
+            throw new LinkerException("Linker Exception: YANG uses linker error, cannot resolve uses");
         }
 
         YangNode usesParentNode = getParentNodeInGenCode(this);
         if ((!(usesParentNode instanceof YangLeavesHolder))
                 || (!(usesParentNode instanceof CollisionDetector))) {
-            throw new DataModelException("YANG uses holder construct is wrong");
+            throw new LinkerException("Linker Exception: YANG uses holder construct is wrong");
         }
 
         YangLeavesHolder usesParentLeavesHolder = (YangLeavesHolder) usesParentNode;
         if (referredGrouping.getListOfLeaf() != null) {
             for (YangLeaf leaf : referredGrouping.getListOfLeaf()) {
-                ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leaf.getName(),
-                        YangConstructType.LEAF_DATA);
+                try {
+                    ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leaf.getName(),
+                            YangConstructType.LEAF_DATA);
+                } catch (DataModelException e) {
+                    throw new LinkerException(e.getMessage());
+                }
                 usesParentLeavesHolder.addLeaf(leaf);
             }
         }
         if (referredGrouping.getListOfLeafList() != null) {
             for (YangLeafList leafList : referredGrouping.getListOfLeafList()) {
-                ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leafList.getName(),
-                        YangConstructType.LEAF_LIST_DATA);
+                try {
+                    ((CollisionDetector) usesParentLeavesHolder).detectCollidingChild(leafList.getName(),
+                            YangConstructType.LEAF_LIST_DATA);
+                } catch (DataModelException e) {
+                    throw new LinkerException(e.getMessage());
+                }
                 usesParentLeavesHolder.addLeafList(leafList);
             }
         }
 
-        YangNode.cloneSubTree(getRefGroup(), usesParentNode);
+        try {
+            YangNode.cloneSubTree(getRefGroup(), usesParentNode);
+        } catch (DataModelException e) {
+            throw new LinkerException(e.getMessage());
+        }
     }
 
     @Override
