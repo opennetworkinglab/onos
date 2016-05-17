@@ -24,14 +24,15 @@ import org.onosproject.snmp.SnmpDevice;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Test Adapter for SnmpController API.
  */
 public class SnmpControllerAdapter implements SnmpController {
 
-    protected HashMap<DeviceId, SnmpDevice> devices = new HashMap<>();
+    protected Map<DeviceId, SnmpDevice> devices = new ConcurrentHashMap<>();
     @Override
     public Collection<SnmpDevice> getDevices() {
         return devices.values();
