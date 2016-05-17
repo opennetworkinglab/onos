@@ -25,7 +25,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getJavaPackageFromPackagePath;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
@@ -61,6 +61,22 @@ public final class JavaIdentifierSyntaxTest {
     private static final String WITH_CAMEL_CASE3 = "yangAutoPrefix1123G123Gaa";
     private static final String WITHOUT_CAMEL_CASE4 = "a-b-c-d-e-f-g-h";
     private static final String WITH_CAMEL_CASE4 = "aBcDeFgh";
+    private static final String WITHOUT_CAMEL_CASE5 = "TestName";
+    private static final String WITH_CAMEL_CASE5 = "testName";
+    private static final String WITHOUT_CAMEL_CASE6 = "TEST-NAME";
+    private static final String WITH_CAMEL_CASE6 = "testName";
+    private static final String WITHOUT_CAMEL_CASE7 = "TESTNAME";
+    private static final String WITH_CAMEL_CASE7 = "testname";
+    private static final String WITHOUT_CAMEL_CASE8 = "TE-ST-NA-ME";
+    private static final String WITH_CAMEL_CASE8 = "teStNaMe";
+    private static final String WITHOUT_CAMEL_CASE9 = "TEST3NAME";
+    private static final String WITH_CAMEL_CASE9 = "test3Name";
+    private static final String WITHOUT_CAMEL_CASE10 = "TEST3";
+    private static final String WITH_CAMEL_CASE10 = "test3";
+    private static final String WITHOUT_CAMEL_CASE11 = "TEST3nAMe";
+    private static final String WITH_CAMEL_CASE11 = "test3Name";
+    private static final String WITHOUT_CAMEL_CASE12 = "TEST3name";
+    private static final String WITH_CAMEL_CASE12 = "test3Name";
     private static final String WITHOUT_CAPITAL = "test_this";
     private static final String WITH_CAPITAL = "Test_this";
     private static final String WITH_SMALL = "test_this";
@@ -129,7 +145,7 @@ public final class JavaIdentifierSyntaxTest {
      */
     @Test
     public void getCapitalCaseTest() {
-        String capitalCase = getCaptialCase(WITHOUT_CAPITAL);
+        String capitalCase = getCapitalCase(WITHOUT_CAPITAL);
         assertThat(capitalCase.equals(WITH_CAPITAL), is(true));
     }
 
@@ -148,6 +164,22 @@ public final class JavaIdentifierSyntaxTest {
         assertThat(camelCase3.equals(WITH_CAMEL_CASE3), is(true));
         String camelCase4 = getCamelCase(WITHOUT_CAMEL_CASE4, null);
         assertThat(camelCase4.equals(WITH_CAMEL_CASE4), is(true));
+        String camelCase5 = getCamelCase(WITHOUT_CAMEL_CASE5, null);
+        assertThat(camelCase5.equals(WITH_CAMEL_CASE5), is(true));
+        String camelCase6 = getCamelCase(WITHOUT_CAMEL_CASE6, null);
+        assertThat(camelCase6.equals(WITH_CAMEL_CASE6), is(true));
+        String camelCase7 = getCamelCase(WITHOUT_CAMEL_CASE7, null);
+        assertThat(camelCase7.equals(WITH_CAMEL_CASE7), is(true));
+        String camelCase8 = getCamelCase(WITHOUT_CAMEL_CASE8, null);
+        assertThat(camelCase8.equals(WITH_CAMEL_CASE8), is(true));
+        String camelCase9 = getCamelCase(WITHOUT_CAMEL_CASE9, null);
+        assertThat(camelCase9.equals(WITH_CAMEL_CASE9), is(true));
+        String camelCase10 = getCamelCase(WITHOUT_CAMEL_CASE10, null);
+        assertThat(camelCase10.equals(WITH_CAMEL_CASE10), is(true));
+        String camelCase11 = getCamelCase(WITHOUT_CAMEL_CASE11, null);
+        assertThat(camelCase11.equals(WITH_CAMEL_CASE11), is(true));
+        String camelCase12 = getCamelCase(WITHOUT_CAMEL_CASE12, null);
+        assertThat(camelCase12.equals(WITH_CAMEL_CASE12), is(true));
     }
 
     /**

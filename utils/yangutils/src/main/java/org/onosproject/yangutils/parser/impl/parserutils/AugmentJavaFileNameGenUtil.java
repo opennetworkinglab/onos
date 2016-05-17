@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNodeIdentifier;
 
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 
 /**
  * Represents a utility which provides valid name for generated java file for augment node.
@@ -110,9 +110,9 @@ public final class AugmentJavaFileNameGenUtil {
      */
     private static String createName(YangNodeIdentifier nodeId, boolean isPrefix) {
         if (isPrefix) {
-            return AUGMENTED + getCaptialCase(nodeId.getPrefix()) + getCaptialCase(nodeId.getName());
+            return AUGMENTED + getCapitalCase(nodeId.getPrefix()) + getCapitalCase(nodeId.getName());
         } else {
-            return AUGMENTED + getCaptialCase(nodeId.getName());
+            return AUGMENTED + getCapitalCase(nodeId.getName());
         }
     }
 

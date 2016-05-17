@@ -57,8 +57,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetG
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getDataFromTempFileHandle;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getEnumsValueAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.initiateJavaFileGeneration;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAddAugmentInfoMethodImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getAugmentInfoListImpl;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getConstructorStart;
@@ -171,7 +170,7 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName());
+        String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, INTERFACE_MASK, imports, path);
@@ -209,7 +208,7 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName());
+        String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, BUILDER_INTERFACE_MASK, null, path);
@@ -268,7 +267,7 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName());
+        String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, BUILDER_CLASS_MASK, imports, path);
@@ -343,7 +342,7 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName());
+        String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, GENERATE_SERVICE_AND_MANAGER, imports, path);
@@ -407,7 +406,7 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName());
+        String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, IMPL_CLASS_MASK, null, path);
@@ -517,7 +516,7 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName());
+        String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, GENERATE_TYPEDEF_CLASS, imports, path);
@@ -621,7 +620,7 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName());
+        String className = getCapitalCase(javaFileInfo.getJavaName());
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, GENERATE_UNION_CLASS, imports, path);
@@ -725,10 +724,10 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName());
+        String className = javaFileInfo.getJavaName();
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
-        initiateJavaFileGeneration(file, className, GENERATE_ENUM_CLASS, null, path);
+        initiateJavaFileGeneration(file, getCapitalCase(className), GENERATE_ENUM_CLASS, null, path);
         /**
          * Add attribute strings.
          */
@@ -739,7 +738,7 @@ public final class JavaFileGenerator {
                             .getTempJavaCodeFragmentFiles().getEnumerationTempFiles()), COMMA), NEW_LINE)
                             + SEMI_COLAN + NEW_LINE);
         } catch (IOException e) {
-            throw new IOException("No data found in temporary java code fragment files for " + className
+            throw new IOException("No data found in temporary java code fragment files for " + getCapitalCase(className)
                     + " while enum class file generation");
         }
 
@@ -747,13 +746,13 @@ public final class JavaFileGenerator {
          * Add an
          * attribute to get the enum's values.
          */
-        insertDataIntoJavaFile(file, getEnumsValueAttribute(className));
+        insertDataIntoJavaFile(file, getEnumsValueAttribute(getCapitalCase(className)));
 
         /**
          * Add a constructor for enum.
          */
-        insertDataIntoJavaFile(file, getJavaDoc(TYPE_CONSTRUCTOR, getSmallCase(className), false)
-                + getEnumsConstrcutor(className) + NEW_LINE);
+        insertDataIntoJavaFile(file, getJavaDoc(TYPE_CONSTRUCTOR, className, false)
+                + getEnumsConstrcutor(getCapitalCase(className)) + NEW_LINE);
 
         TempJavaEnumerationFragmentFiles enumFragFiles =
                 ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
@@ -767,18 +766,18 @@ public final class JavaFileGenerator {
         /**
          * Add a getter method for enum.
          */
-        insertDataIntoJavaFile(file, getJavaDoc(GETTER_METHOD, getSmallCase(className), false)
-                + getGetter(INT, getSmallCase(className), GENERATE_ENUM_CLASS) + NEW_LINE);
+        insertDataIntoJavaFile(file, getJavaDoc(GETTER_METHOD, className, false)
+                + getGetter(INT, className, GENERATE_ENUM_CLASS) + NEW_LINE);
 
         try {
-            insertDataIntoJavaFile(file, getFromStringMethodSignature(className)
+            insertDataIntoJavaFile(file, getFromStringMethodSignature(getCapitalCase(className))
                     + getDataFromTempFileHandle(FROM_STRING_IMPL_MASK,
                             ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                                     .getEnumerationTempFiles())
                     + getFromStringMethodClose());
         } catch (IOException e) {
-            throw new IOException("No data found in temporary java code fragment files for " + className
-                    + " while enum class file generation");
+            throw new IOException("No data found in temporary java code fragment files for " +
+                     getCapitalCase(className) + " while enum class file generation");
         }
 
         insertDataIntoJavaFile(file, CLOSE_CURLY_BRACKET + NEW_LINE);
@@ -802,7 +801,7 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName()) + SERVICE_METHOD_STRING;
+        String className = getCapitalCase(javaFileInfo.getJavaName()) + SERVICE_METHOD_STRING;
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, GENERATE_SERVICE_AND_MANAGER, imports, path);
@@ -859,7 +858,7 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName()) + EVENT_STRING;
+        String className = getCapitalCase(javaFileInfo.getJavaName()) + EVENT_STRING;
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, GENERATE_EVENT_CLASS, imports, path);
@@ -913,7 +912,7 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCaptialCase(javaFileInfo.getJavaName()) + EVENT_LISTENER_STRING;
+        String className = getCapitalCase(javaFileInfo.getJavaName()) + EVENT_LISTENER_STRING;
         String path = javaFileInfo.getBaseCodeGenPath() + javaFileInfo.getPackageFilePath();
 
         initiateJavaFileGeneration(file, className, GENERATE_EVENT_LISTENER_INTERFACE, imports, path);

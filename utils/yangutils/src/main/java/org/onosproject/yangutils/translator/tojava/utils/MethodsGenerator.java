@@ -25,7 +25,7 @@ import org.onosproject.yangutils.utils.io.impl.JavaDocGen;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getParseFromStringMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
 import static org.onosproject.yangutils.utils.UtilConstants.ADD_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.AND;
@@ -141,7 +141,7 @@ public final class MethodsGenerator {
     public static String getGetterString(JavaAttributeInfo attr, int generatedJavaFiles) {
 
         String returnType = getReturnType(attr);
-        String attributeName = getSmallCase(attr.getAttributeName());
+        String attributeName = attr.getAttributeName();
 
         return getJavaDoc(GETTER_METHOD, attributeName, attr.isListAttr())
                 + getGetterForInterface(attributeName, returnType, attr.isListAttr(), generatedJavaFiles);
@@ -158,7 +158,7 @@ public final class MethodsGenerator {
     public static String getSetterString(JavaAttributeInfo attr, String className, int generatedJavaFiles) {
 
         String attrType = getReturnType(attr);
-        String attributeName = getSmallCase(attr.getAttributeName());
+        String attributeName = attr.getAttributeName();
         JavaDocGen.JavaDocType type;
         if (generatedJavaFiles == GENERATE_SERVICE_AND_MANAGER) {
             type = MANAGER_SETTER_METHOD;
@@ -223,7 +223,7 @@ public final class MethodsGenerator {
     public static String getGetterForClass(JavaAttributeInfo attr, int generatedJavaFiles) {
 
         String attrQuaifiedType = getReturnType(attr);
-        String attributeName = getSmallCase(attr.getAttributeName());
+        String attributeName = attr.getAttributeName();
 
         if (!attr.isListAttr()) {
             return getGetter(attrQuaifiedType, attributeName, generatedJavaFiles);
@@ -242,7 +242,7 @@ public final class MethodsGenerator {
      */
     public static String getGetter(String type, String name, int generatedJavaFiles) {
         if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
-            return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + type + SPACE + GET_METHOD_PREFIX + getCaptialCase(name)
+            return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + type + SPACE + GET_METHOD_PREFIX + getCapitalCase(name)
                     + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE +
                     EIGHT_SPACE_INDENTATION + YANG_UTILS_TODO + NEW_LINE + EIGHT_SPACE_INDENTATION +
                     RETURN + SPACE + NULL + SEMI_COLAN + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
@@ -266,7 +266,7 @@ public final class MethodsGenerator {
     public static String getSetterForClass(JavaAttributeInfo attr, String className, int generatedJavaFiles) {
 
         String attrQuaifiedType = getReturnType(attr);
-        String attributeName = getSmallCase(attr.getAttributeName());
+        String attributeName = attr.getAttributeName();
         if (!attr.isListAttr()) {
             return getSetter(className, attributeName, attrQuaifiedType, generatedJavaFiles);
         }
@@ -285,7 +285,7 @@ public final class MethodsGenerator {
     private static String getSetter(String className, String name, String type, int generatedJavaFiles) {
         if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
             return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + SET_METHOD_PREFIX
-                    + getCaptialCase(name) + OPEN_PARENTHESIS + type + SPACE + name + CLOSE_PARENTHESIS + SPACE +
+                    + getCapitalCase(name) + OPEN_PARENTHESIS + type + SPACE + name + CLOSE_PARENTHESIS + SPACE +
                     OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + YANG_UTILS_TODO +
                     NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
         } else {
@@ -306,7 +306,7 @@ public final class MethodsGenerator {
     public static String getSetterForTypeDefClass(JavaAttributeInfo attr) {
 
         String attrQuaifiedType = getReturnType(attr);
-        String attributeName = getSmallCase(attr.getAttributeName());
+        String attributeName = attr.getAttributeName();
         return getTypeDefSetter(attrQuaifiedType, attributeName);
     }
 
@@ -318,7 +318,7 @@ public final class MethodsGenerator {
      * @return setter for type def's attribute
      */
     private static String getTypeDefSetter(String type, String name) {
-        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + SET_METHOD_PREFIX + getCaptialCase(name)
+        return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + VOID + SPACE + SET_METHOD_PREFIX + getCapitalCase(name)
                 + OPEN_PARENTHESIS + type + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
                 + EIGHT_SPACE_INDENTATION + THIS + PERIOD + name + SPACE + EQUAL + SPACE + VALUE + SEMI_COLAN + NEW_LINE
                 + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
@@ -362,7 +362,7 @@ public final class MethodsGenerator {
     private static String getGetterInterfaceString(String returnType, String yangName,
             int generatedJavaFiles) {
         if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
-            return FOUR_SPACE_INDENTATION + returnType + SPACE + GET_METHOD_PREFIX + getCaptialCase(yangName)
+            return FOUR_SPACE_INDENTATION + returnType + SPACE + GET_METHOD_PREFIX + getCapitalCase(yangName)
                     + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SEMI_COLAN;
         } else {
             return FOUR_SPACE_INDENTATION + returnType + SPACE + yangName
@@ -402,7 +402,7 @@ public final class MethodsGenerator {
             int generatedJavaFiles) {
         if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
 
-            return FOUR_SPACE_INDENTATION + VOID + SPACE + SET_METHOD_PREFIX + getCaptialCase(attrName)
+            return FOUR_SPACE_INDENTATION + VOID + SPACE + SET_METHOD_PREFIX + getCapitalCase(attrName)
                     + OPEN_PARENTHESIS + attrType + SPACE + attrName + CLOSE_PARENTHESIS + SEMI_COLAN;
         } else {
             return FOUR_SPACE_INDENTATION + className + BUILDER + SPACE + attrName
@@ -471,13 +471,13 @@ public final class MethodsGenerator {
      */
     public static String getConstructor(String yangName, JavaAttributeInfo attr, int generatedJavaFiles) {
 
-        String attributeName = getSmallCase(attr.getAttributeName());
+        String attributeName = attr.getAttributeName();
         String constructor;
 
         if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
             constructor = EIGHT_SPACE_INDENTATION + THIS + PERIOD + getCamelCase(attributeName, null) + SPACE + EQUAL
                     + SPACE + BUILDER.toLowerCase() + OBJECT + PERIOD + GET_METHOD_PREFIX
-                    + getCaptialCase(getCamelCase(attributeName, null)) + OPEN_PARENTHESIS + CLOSE_PARENTHESIS +
+                    + getCapitalCase(getCamelCase(attributeName, null)) + OPEN_PARENTHESIS + CLOSE_PARENTHESIS +
                     SEMI_COLAN
                     + NEW_LINE;
         } else {
@@ -499,10 +499,10 @@ public final class MethodsGenerator {
      */
     public static String getRpcServiceMethod(String rpcName, String inputName, String outputName) {
 
-        rpcName = getSmallCase(getCamelCase(rpcName, null));
-        inputName = getCaptialCase(inputName);
+        rpcName = getCamelCase(rpcName, null);
+        inputName = getCapitalCase(inputName);
         if (!outputName.equals(VOID)) {
-            outputName = getCaptialCase(outputName);
+            outputName = getCapitalCase(outputName);
         }
         return FOUR_SPACE_INDENTATION + outputName + SPACE + rpcName + OPEN_PARENTHESIS + inputName + SPACE
                 + RPC_INPUT_VAR_NAME + CLOSE_PARENTHESIS + SEMI_COLAN;
@@ -518,10 +518,10 @@ public final class MethodsGenerator {
      */
     public static String getRpcManagerMethod(String rpcName, String inputName, String outputName) {
 
-        rpcName = getSmallCase(getCamelCase(rpcName, null));
-        inputName = getCaptialCase(inputName);
+        rpcName = getCamelCase(rpcName, null);
+        inputName = getCapitalCase(inputName);
         if (!outputName.equals(VOID)) {
-            outputName = getCaptialCase(outputName);
+            outputName = getCapitalCase(outputName);
         }
 
         String method =
@@ -599,7 +599,7 @@ public final class MethodsGenerator {
      */
     public static String getToStringMethod(JavaAttributeInfo attr) {
 
-        String attributeName = getSmallCase(attr.getAttributeName());
+        String attributeName = attr.getAttributeName();
         return TWELVE_SPACE_INDENTATION + PERIOD + ADD_STRING + OPEN_PARENTHESIS + QUOTES + attributeName + QUOTES
                 + COMMA + SPACE + attributeName + CLOSE_PARENTHESIS;
     }
@@ -718,7 +718,7 @@ public final class MethodsGenerator {
      * @return hash code method
      */
     public static String getHashCodeMethod(JavaAttributeInfo attr) {
-        return getSmallCase(attr.getAttributeName()) + COMMA + SPACE;
+        return attr.getAttributeName() + COMMA + SPACE;
     }
 
     /**
@@ -781,7 +781,7 @@ public final class MethodsGenerator {
      */
     public static String getEqualsMethod(JavaAttributeInfo attr) {
 
-        String attributeName = getSmallCase(attr.getAttributeName());
+        String attributeName = attr.getAttributeName();
         return SIXTEEN_SPACE_INDENTATION + SPACE + OBJECT_STRING + SUFFIX_S + PERIOD + EQUALS_STRING + OPEN_PARENTHESIS
                 + attributeName + COMMA + SPACE + OTHER + PERIOD + attributeName + CLOSE_PARENTHESIS + SPACE + AND
                 + AND;
@@ -830,7 +830,7 @@ public final class MethodsGenerator {
     public static String getOfMethodStringAndJavaDoc(JavaAttributeInfo attr, String generatedJavaClassName) {
 
         String attrType = getReturnType(attr);
-        String attrName = getSmallCase(attr.getAttributeName());
+        String attrName = attr.getAttributeName();
 
         return getJavaDoc(OF_METHOD, generatedJavaClassName + " for type " + attrName, false)
                 + getOfMethodString(attrType, generatedJavaClassName);
@@ -861,7 +861,7 @@ public final class MethodsGenerator {
     public static String getTypeConstructorStringAndJavaDoc(JavaAttributeInfo attr, String generatedJavaClassName) {
 
         String attrType = getReturnType(attr);
-        String attrName = getSmallCase(attr.getAttributeName());
+        String attrName = attr.getAttributeName();
 
         return getJavaDoc(TYPE_CONSTRUCTOR, generatedJavaClassName + " for type " + attrName, false)
                 + getTypeConstructorString(attrType, attrName, generatedJavaClassName);
@@ -938,10 +938,10 @@ public final class MethodsGenerator {
     public static String getEnumsOfMethod(String className, JavaAttributeInfo attr,
             Map<String, Integer> enumMap, List<String> enumList) {
         String attrType = getReturnType(attr);
-        String attrName = getSmallCase(attr.getAttributeName());
+        String attrName = attr.getAttributeName();
 
-        String method = FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STATIC + SPACE + className + SPACE + OF
-                + OPEN_PARENTHESIS
+        String method = FOUR_SPACE_INDENTATION + PUBLIC + SPACE + STATIC + SPACE + getCapitalCase(className) + SPACE
+                + OF + OPEN_PARENTHESIS
                 + attrType + SPACE + VALUE + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE
                 + EIGHT_SPACE_INDENTATION + SWITCH + SPACE + OPEN_PARENTHESIS + VALUE
                 + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
@@ -950,13 +950,13 @@ public final class MethodsGenerator {
 
             value = enumMap.get(str);
             method = method + TWELVE_SPACE_INDENTATION + CASE + SPACE + value + COLAN + NEW_LINE
-                    + SIXTEEN_SPACE_INDENTATION + RETURN + SPACE + className + PERIOD
+                    + SIXTEEN_SPACE_INDENTATION + RETURN + SPACE + getCapitalCase(className) + PERIOD
                     + str + SEMI_COLAN + NEW_LINE;
         }
         method = method + TWELVE_SPACE_INDENTATION + DEFAULT + SPACE + COLAN + NEW_LINE + SIXTEEN_SPACE_INDENTATION
                 + RETURN + SPACE + NULL + SEMI_COLAN + NEW_LINE + EIGHT_SPACE_INDENTATION + CLOSE_CURLY_BRACKET
                 + NEW_LINE + FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
 
-        return getJavaDoc(OF_METHOD, className + " for type " + attrName, false) + method;
+        return getJavaDoc(OF_METHOD, getCapitalCase(className) + " for type " + attrName, false) + method;
     }
 }

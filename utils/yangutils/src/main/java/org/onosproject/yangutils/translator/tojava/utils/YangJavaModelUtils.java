@@ -40,7 +40,7 @@ import static org.onosproject.yangutils.datamodel.utils.DataModelUtils.isRpcChil
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.addCurNodeInfoInParentTempFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTED_INFO;
@@ -69,9 +69,8 @@ public final class YangJavaModelUtils {
             YangPluginConfig yangPluginConfig)
             throws IOException {
         javaCodeGeneratorInfo.getJavaFileInfo()
-                .setJavaName(getCaptialCase(
-                        getCamelCase(((YangNode) javaCodeGeneratorInfo).getName(),
-                                yangPluginConfig.getConflictResolver())));
+                .setJavaName(getCamelCase(((YangNode) javaCodeGeneratorInfo).getName(),
+                        yangPluginConfig.getConflictResolver()));
         javaCodeGeneratorInfo.getJavaFileInfo().setPackage(getCurNodePackage((YangNode) javaCodeGeneratorInfo));
         javaCodeGeneratorInfo.getJavaFileInfo().setPackageFilePath(
                 getPackageDirPathFromJavaJPackage(javaCodeGeneratorInfo.getJavaFileInfo().getPackage()));
@@ -89,8 +88,8 @@ public final class YangJavaModelUtils {
             String pkg)
             throws IOException {
         javaCodeGeneratorInfo.getJavaFileInfo()
-                .setJavaName(getCaptialCase(
-                        getCamelCase(((YangNode) javaCodeGeneratorInfo).getName(), yangPlugin.getConflictResolver())));
+                .setJavaName(getCamelCase(((YangNode) javaCodeGeneratorInfo).getName(),
+                        yangPlugin.getConflictResolver()));
         javaCodeGeneratorInfo.getJavaFileInfo().setPackage(pkg);
         javaCodeGeneratorInfo.getJavaFileInfo().setPackageFilePath(
                 getPackageDirPathFromJavaJPackage(javaCodeGeneratorInfo.getJavaFileInfo().getPackage()));
@@ -236,7 +235,7 @@ public final class YangJavaModelUtils {
             YangNode parent = ((YangCase) javaCodeGeneratorInfo).getParent();
             String curNodeName = ((YangCase) javaCodeGeneratorInfo).getName();
             if (!parent.getName().equals(curNodeName)) {
-                javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().addToExtendsList(getCaptialCase(getCamelCase(
+                javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().addToExtendsList(getCapitalCase(getCamelCase(
                         parent.getName(), null)));
                 javaCodeGeneratorInfo.getTempJavaCodeFragmentFiles().getBeanTempFiles()
                         .addParentInfoInCurNodeTempFile((YangNode) javaCodeGeneratorInfo);

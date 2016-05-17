@@ -24,6 +24,7 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfNode;
 
 /**
@@ -85,7 +86,7 @@ public class YangJavaUnion
     public TempJavaCodeFragmentFiles getTempJavaCodeFragmentFiles() {
         if (tempFileHandle == null) {
             throw new RuntimeException("Missing temp file hand for current node "
-                    + getJavaFileInfo().getJavaName());
+                    + getCapitalCase(getJavaFileInfo().getJavaName()));
         }
         return tempFileHandle;
     }

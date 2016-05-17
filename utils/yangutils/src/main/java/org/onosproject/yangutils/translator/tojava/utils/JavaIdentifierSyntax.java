@@ -17,6 +17,7 @@
 package org.onosproject.yangutils.translator.tojava.utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.YangNode;
@@ -39,6 +40,10 @@ import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_SINGLE_LETTER;
 import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_UNDERSCORE;
 import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_ALL_SPECIAL_CHAR;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_DIGITS;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_SINGLE_CAPITAL_CASE;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_SINGLE_CAPITAL_CASE_AND_DIGITS_SMALL_CASES;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_WITH_UPPERCASE;
 import static org.onosproject.yangutils.utils.UtilConstants.REVISION_PREFIX;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.UNDER_SCORE;
@@ -231,7 +236,7 @@ public final class JavaIdentifierSyntax {
      * Returns the YANG identifier name as java identifier.
      *
      * @param yangIdentifier identifier in YANG file
-     * @param conflictResolver object of YANG to java naming confilct util
+     * @param conflictResolver object of YANG to java naming conflict util
      * @return corresponding java identifier
      */
     public static String getCamelCase(String yangIdentifier, YangToJavaNamingConflictUtil conflictResolver) {
@@ -262,7 +267,57 @@ public final class JavaIdentifierSyntax {
             }
             strArray = stringArrangement.toArray(new String[stringArrangement.size()]);
         }
-        return applyCamelCaseRule(strArray);
+        return upperCaseConflictResolver(strArray);
+    }
+
+    /**
+     * Resolves the conflict when input has uppercase.
+     *
+     * @param stringArray containing strings for uppercase conflict resolver
+     * @return camel cased string
+     */
+    private static String upperCaseConflictResolver(String[] stringArray) {
+
+        for (int l = 0; l < stringArray.length; l++) {
+            String[] upperCaseSplitArray = stringArray[l].split(REGEX_WITH_UPPERCASE);
+            for (int m = 0; m < upperCaseSplitArray.length; m++) {
+                if (upperCaseSplitArray[m].matches(REGEX_WITH_SINGLE_CAPITAL_CASE)) {
+                    int check = m;
+                    while (check + 1 < upperCaseSplitArray.length) {
+                        if (upperCaseSplitArray[check + 1].matches(REGEX_WITH_SINGLE_CAPITAL_CASE)) {
+                            upperCaseSplitArray[check + 1] = upperCaseSplitArray[check + 1].toLowerCase();
+                            check = check + 1;
+                        } else if (upperCaseSplitArray[check + 1]
+                                .matches(REGEX_WITH_SINGLE_CAPITAL_CASE_AND_DIGITS_SMALL_CASES)) {
+                            upperCaseSplitArray[check + 1] = upperCaseSplitArray[check + 1].toLowerCase();
+                            break;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+            StringBuilder strBuilder = new StringBuilder();
+            for (String element : upperCaseSplitArray) {
+                strBuilder.append(element);
+            }
+            stringArray[l] = strBuilder.toString();
+        }
+        List<String> result = new ArrayList<String>();
+        for (String element : stringArray) {
+            String[] capitalCaseSplitArray = element.split(REGEX_WITH_UPPERCASE);
+            for (String letter : capitalCaseSplitArray) {
+                String[] arrayForAddition = letter.split(REGEX_WITH_DIGITS);
+                List<String> list = Arrays.asList(arrayForAddition);
+                for (String str : list) {
+                    if (str != null && !str.isEmpty()) {
+                        result.add(str);
+                    }
+                }
+            }
+        }
+        stringArray = result.toArray(new String[result.size()]);
+        return applyCamelCaseRule(stringArray);
     }
 
     /**
@@ -270,11 +325,11 @@ public final class JavaIdentifierSyntax {
      * the letter next to a number in an array.
      *
      * @param stringArray containing strings for camel case separation
-     * @return camel cased string
+     * @return camel case rule checked string
      */
-    public static String applyCamelCaseRule(String[] stringArray) {
+    private static String applyCamelCaseRule(String[] stringArray) {
 
-        String ruleChecker = stringArray[0];
+        String ruleChecker = stringArray[0].toLowerCase();
         int i;
         if (ruleChecker.matches(REGEX_FOR_FIRST_DIGIT)) {
             i = 0;
@@ -286,7 +341,7 @@ public final class JavaIdentifierSyntax {
             if ((i + 1) == stringArray.length) {
                 if (stringArray[i].matches(REGEX_FOR_SINGLE_LETTER)
                         || stringArray[i].matches(REGEX_FOR_DIGITS_WITH_SINGLE_LETTER)) {
-                    ruleChecker = ruleChecker + stringArray[i];
+                    ruleChecker = ruleChecker + stringArray[i].toLowerCase();
                     break;
                 }
             }
@@ -311,19 +366,19 @@ public final class JavaIdentifierSyntax {
     /**
      * Adds prefix YANG auto prefix if the string begins with digit or is a java key word.
      *
-     * @param camelCasePrefixer string for adding prefix
+     * @param camelCasePrefix string for adding prefix
      * @return prefixed camel case string
      */
-    public static String addPrefix(String camelCasePrefixer) {
+    private static String addPrefix(String camelCasePrefix) {
 
-        if (camelCasePrefixer.matches(REGEX_FOR_FIRST_DIGIT)) {
-            camelCasePrefixer = YANG_AUTO_PREFIX + camelCasePrefixer;
+        if (camelCasePrefix.matches(REGEX_FOR_FIRST_DIGIT)) {
+            camelCasePrefix = YANG_AUTO_PREFIX + camelCasePrefix;
         }
-        if (JAVA_KEY_WORDS.contains(camelCasePrefixer)) {
-            camelCasePrefixer = YANG_AUTO_PREFIX + camelCasePrefixer.substring(0, 1).toUpperCase()
-                    + camelCasePrefixer.substring(1);
+        if (JAVA_KEY_WORDS.contains(camelCasePrefix.toLowerCase())) {
+            camelCasePrefix = YANG_AUTO_PREFIX + camelCasePrefix.substring(0, 1).toUpperCase()
+                    + camelCasePrefix.substring(1);
         }
-        return camelCasePrefixer;
+        return camelCasePrefix;
     }
 
     /**
@@ -332,7 +387,7 @@ public final class JavaIdentifierSyntax {
      * @param consecCapitalCaseRemover which requires the restriction of consecutive capital case
      * @return string without consecutive capital case
      */
-    public static String restrictConsecutiveCapitalCase(String consecCapitalCaseRemover) {
+    private static String restrictConsecutiveCapitalCase(String consecCapitalCaseRemover) {
 
         for (int k = 0; k < consecCapitalCaseRemover.length(); k++) {
             if (k + 1 < consecCapitalCaseRemover.length()) {
@@ -350,13 +405,14 @@ public final class JavaIdentifierSyntax {
 
     /**
      * Returns the YANG identifier name as java identifier with first letter
-     * in caps.
+     * in capital.
      *
      * @param yangIdentifier identifier in YANG file
      * @return corresponding java identifier
      */
-    public static String getCaptialCase(String yangIdentifier) {
-        return yangIdentifier.substring(0, 1).toUpperCase() + yangIdentifier.substring(1);
+    public static String getCapitalCase(String yangIdentifier) {
+        yangIdentifier = yangIdentifier.substring(0, 1).toUpperCase() + yangIdentifier.substring(1);
+        return restrictConsecutiveCapitalCase(yangIdentifier);
     }
 
     /**

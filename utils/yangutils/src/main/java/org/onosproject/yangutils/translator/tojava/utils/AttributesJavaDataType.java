@@ -31,7 +31,7 @@ import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaTypeDef;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUnion;
 
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.utils.UtilConstants.BIG_INTEGER;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_DATA_TYPE;
 import static org.onosproject.yangutils.utils.UtilConstants.BOOLEAN_WRAPPER;
@@ -189,7 +189,7 @@ public final class AttributesJavaDataType {
                 case BOOLEAN:
                     return BOOLEAN_WRAPPER;
                 case ENUMERATION:
-                    return getCaptialCase(
+                    return getCapitalCase(
                             getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(), null));
                 case BITS:
                     //TODO:BITS
@@ -206,12 +206,12 @@ public final class AttributesJavaDataType {
                 case EMPTY:
                     return BOOLEAN_WRAPPER;
                 case UNION:
-                    return getCaptialCase(getCamelCase(((YangJavaUnion) yangType.getDataTypeExtendedInfo()).getName(),
+                    return getCapitalCase(getCamelCase(((YangJavaUnion) yangType.getDataTypeExtendedInfo()).getName(),
                             null));
                 case INSTANCE_IDENTIFIER:
                     //TODO:INSTANCE_IDENTIFIER
                 case DERIVED:
-                    return getCaptialCase(getCamelCase(yangType.getDataTypeName(), null));
+                    return getCapitalCase(getCamelCase(yangType.getDataTypeName(), null));
                 default:
                     throw new TranslatorException("given data type is not supported.");
             }
@@ -225,7 +225,7 @@ public final class AttributesJavaDataType {
                 case STRING:
                     return STRING_DATA_TYPE;
                 case ENUMERATION:
-                    return getCaptialCase(
+                    return getCapitalCase(
                             getCamelCase(((YangJavaEnumeration) yangType.getDataTypeExtendedInfo()).getName(), null));
                 case BITS:
                     //TODO:BITS
@@ -243,13 +243,13 @@ public final class AttributesJavaDataType {
                     //TODO:EMPTY
                     break;
                 case UNION:
-                    return getCaptialCase(getCamelCase(((YangJavaUnion) yangType.getDataTypeExtendedInfo()).getName(),
+                    return getCapitalCase(getCamelCase(((YangJavaUnion) yangType.getDataTypeExtendedInfo()).getName(),
                             null));
                 case INSTANCE_IDENTIFIER:
                     //TODO:INSTANCE_IDENTIFIER
                     break;
                 case DERIVED:
-                    return getCaptialCase(getCamelCase(yangType.getDataTypeName(), null));
+                    return getCapitalCase(getCamelCase(yangType.getDataTypeName(), null));
                 default:
                     return null;
             }

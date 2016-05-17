@@ -28,6 +28,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaClassDefClose;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateManagerClassFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateServiceInterfaceFile;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRpcManagerMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRpcServiceMethod;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.addArrayListImport;
@@ -235,10 +236,10 @@ public class TempJavaServiceFragmentFiles
         String rpcInput = EMPTY_STRING;
         String rpcOutput = VOID;
         if (javaAttributeInfoOfInput != null) {
-            rpcInput = javaAttributeInfoOfInput.getAttributeName();
+            rpcInput = getCapitalCase(javaAttributeInfoOfInput.getAttributeName());
         }
         if (javaAttributeInfoOfOutput != null) {
-            rpcOutput = javaAttributeInfoOfOutput.getAttributeName();
+            rpcOutput = getCapitalCase(javaAttributeInfoOfOutput.getAttributeName());
         }
         appendToFile(getRpcInterfaceTempFileHandle(), generateJavaDocForRpc(rpcName, RPC_INPUT_VAR_NAME, rpcOutput)
                 + getRpcServiceMethod(rpcName, rpcInput, rpcOutput) + NEW_LINE);

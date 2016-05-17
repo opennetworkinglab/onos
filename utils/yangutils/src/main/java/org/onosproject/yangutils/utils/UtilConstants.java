@@ -687,6 +687,11 @@ public final class UtilConstants {
     public static final String REGEX_FOR_FIRST_DIGIT = "\\d.*";
 
     /**
+     * Static attribute for regex with digits.
+     */
+    public static final String REGEX_WITH_DIGITS = "(?=\\d+)";
+
+    /**
      * Static attribute for regex for single letter.
      */
     public static final String REGEX_FOR_SINGLE_LETTER = "[a-zA-Z]";
@@ -695,6 +700,21 @@ public final class UtilConstants {
      * Static attribute for regex for digits with single letter.
      */
     public static final String REGEX_FOR_DIGITS_WITH_SINGLE_LETTER = "[0-9]+[a-zA-Z]";
+
+    /**
+     * Static attribute for regex with uppercase.
+     */
+    public static final String REGEX_WITH_UPPERCASE = "(?=\\p{Upper})";
+
+    /**
+     * Static attribute for regex for single capital case letter.
+     */
+    public static final String REGEX_WITH_SINGLE_CAPITAL_CASE = "[A-Z]";
+
+    /**
+     * Static attribute for regex for capital case letter with any number of digits and small case letters.
+     */
+    public static final String REGEX_WITH_SINGLE_CAPITAL_CASE_AND_DIGITS_SMALL_CASES = "[A-Z][0-9a-z]+";
 
     /**
      * Static attribute for class syntax.

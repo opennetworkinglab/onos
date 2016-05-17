@@ -57,10 +57,9 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerato
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateInterfaceFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getFileObject;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCaptialCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getParentNodeInGenCode;
-import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBuildString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getDefaultConstructorString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEqualsMethod;
@@ -382,7 +381,7 @@ public class TempJavaFragmentFiles {
      * @return mapped Java class name
      */
     String getGeneratedJavaClassName() {
-        return getJavaFileInfo().getJavaName();
+        return getCapitalCase(getJavaFileInfo().getJavaName());
     }
 
     /**
@@ -865,8 +864,9 @@ public class TempJavaFragmentFiles {
             appendToFile(getGetterImplTempFileHandle(), getOverRideString() + getGetterForClass(attr,
                     getGeneratedJavaFiles()) + NEW_LINE);
         } else {
-            appendToFile(getGetterImplTempFileHandle(), getJavaDoc(GETTER_METHOD, attr.getAttributeName(), false)
-                    + getGetterForClass(attr, getGeneratedJavaFiles()) + NEW_LINE);
+            appendToFile(getGetterImplTempFileHandle(),
+                    getJavaDoc(GETTER_METHOD, getCapitalCase(attr.getAttributeName()), false)
+                            + getGetterForClass(attr, getGeneratedJavaFiles()) + NEW_LINE);
         }
     }
 
@@ -1034,7 +1034,7 @@ public class TempJavaFragmentFiles {
         /*
          * TODO: check if this utility needs to be called or move to the caller
          */
-        String attributeName = getCamelCase(getSmallCase(attr.getAttributeName()), null);
+        String attributeName = getCamelCase(attr.getAttributeName(), null);
         if (attr.isQualifiedName()) {
             return getJavaAttributeDefination(attr.getImportInfo().getPkgInfo(),
                     attr.getImportInfo().getClassInfo(),
@@ -1104,7 +1104,7 @@ public class TempJavaFragmentFiles {
          * generated java files or qualified access
          */
         JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(parentNode,
-                curNodeName);
+                getCapitalCase(curNodeName));
         if (!(parentNode instanceof TempJavaCodeFragmentFilesContainer)) {
             throw new TranslatorException("Parent node does not have file info");
         }
@@ -1156,7 +1156,7 @@ public class TempJavaFragmentFiles {
             throw new TranslatorException("missing java file information to get the package details "
                     + "of attribute corresponding to child node");
         }
-        caseImportInfo.setClassInfo(getCaptialCase(getCamelCase(parent.getName(), null)));
+        caseImportInfo.setClassInfo(getCapitalCase(getCamelCase(parent.getName(), null)));
         caseImportInfo.setPkgInfo(((JavaFileInfoContainer) parent).getJavaFileInfo().getPackage());
         ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
                 .getBeanTempFiles().getJavaImportData().addImportInfo(caseImportInfo);
@@ -1298,7 +1298,7 @@ public class TempJavaFragmentFiles {
      * @return java class name
      */
     String getJavaClassName(String suffix) {
-        return getCaptialCase(getJavaFileInfo().getJavaName()) + suffix;
+        return getCapitalCase(getJavaFileInfo().getJavaName()) + suffix;
     }
 
     /**
