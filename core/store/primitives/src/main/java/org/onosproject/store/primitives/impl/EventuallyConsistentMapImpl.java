@@ -120,7 +120,7 @@ public class EventuallyConsistentMapImpl<K, V>
     private final boolean tombstonesDisabled;
 
     private static final int WINDOW_SIZE = 5;
-    private static final int HIGH_LOAD_THRESHOLD = 0;
+    private static final int HIGH_LOAD_THRESHOLD = 2;
     private static final int LOAD_WINDOW = 2;
     private SlidingWindowCounter counter = new SlidingWindowCounter(WINDOW_SIZE);
 
@@ -262,6 +262,9 @@ public class EventuallyConsistentMapImpl<K, V>
 
         this.tombstonesDisabled = tombstonesDisabled;
         this.lightweightAntiEntropy = !convergeFaster;
+
+        // Initiate first round of Gossip
+        this.bootstrap();
     }
 
     private StoreSerializer createSerializer(KryoNamespace ns) {
@@ -719,6 +722,35 @@ public class EventuallyConsistentMapImpl<K, V>
                 notifyListeners(new EventuallyConsistentMapEvent<>(mapName, PUT, key, value.get()));
             }
         });
+    }
+
+    private void bootstrap() {
+        /*
+         * Attempt to get in sync with the cluster when a map is created. This is to help avoid a new node
+         * writing to an ECM until it has a view of the map. Depending on how lightweight the map instance
+         * is, this will attempt to advertise to all or some of the peers.
+         */
+        int n = 0;
+        List<NodeId> activePeers = clusterService.getNodes()
+                .stream()
+                .map(ControllerNode::id)
+                .filter(id -> !localNodeId.equals(id))
+                .filter(id -> clusterService.getState(id).isActive())
+                .collect(Collectors.toList());
+
+        if (activePeers.isEmpty()) {
+            return;
+        }
+
+        if (lightweightAntiEntropy) {
+            n = activePeers.size() / 2;
+        } else {
+            n = activePeers.size();
+        }
+
+        for (int i = 0; i < n; i++) {
+            sendAdvertisementToPeer(activePeers.get(i));
+        }
     }
 
     // TODO pull this into the class if this gets pulled out...
