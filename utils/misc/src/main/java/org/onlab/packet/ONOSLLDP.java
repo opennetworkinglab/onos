@@ -250,24 +250,4 @@ public class ONOSLLDP extends LLDP {
         probe.setChassisId(chassisId);
         return probe;
     }
-
-    /**
-     * Creates a link probe carrying a fingerprint unique to the ONOS cluster managing
-     * link discovery/verification.
-     *
-     * @param deviceId The device ID as a String
-     * @param chassisId The chassis ID of the device
-     * @param portNum Port number of port to send probe out of
-     * @param domainId The cluster's fingerprint
-     * @return ONOSLLDP probe message
-     */
-    public static ONOSLLDP fingerprintedLLDP(
-            String deviceId, ChassisId chassisId, int portNum, String domainId) {
-        ONOSLLDP probe = new ONOSLLDP(NAME_SUBTYPE, DEVICE_SUBTYPE, DOMAIN_SUBTYPE);
-        probe.setPortId(portNum);
-        probe.setDevice(deviceId);
-        probe.setChassisId(chassisId);
-        probe.setDomainInfo(domainId);
-        return probe;
-    }
 }

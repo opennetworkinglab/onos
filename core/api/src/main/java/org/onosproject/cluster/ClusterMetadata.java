@@ -25,11 +25,14 @@ import org.onosproject.net.provider.ProviderId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Verify.verify;
+import static com.google.common.base.Charsets.UTF_8;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.hash.Funnel;
+import com.google.common.hash.PrimitiveSink;
 
 /**
  * Cluster metadata.
@@ -40,13 +43,17 @@ import com.google.common.collect.Sets;
  */
 public final class ClusterMetadata implements Provided {
 
-    // Name to use when the ClusterMetadataService is in transient state
-    public static final String NO_NAME = "";
-
     private final ProviderId providerId;
     private final String name;
     private final Set<ControllerNode> nodes;
     private final Set<Partition> partitions;
+
+    public static final Funnel<ClusterMetadata> HASH_FUNNEL = new Funnel<ClusterMetadata>() {
+        @Override
+        public void funnel(ClusterMetadata cm, PrimitiveSink into) {
+            into.putString(cm.name, UTF_8);
+        }
+    };
 
     @SuppressWarnings("unused")
     private ClusterMetadata() {
