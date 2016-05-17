@@ -157,7 +157,7 @@ class TransactionalContinuousResourceSubStore {
             return true;
         }
 
-        ContinuousResourceAllocation newValue = oldValue.allocate(original, value);
+        ContinuousResourceAllocation newValue = oldValue.allocate(value);
         return consumers.replace(original.id(), oldValue, newValue);
     }
 

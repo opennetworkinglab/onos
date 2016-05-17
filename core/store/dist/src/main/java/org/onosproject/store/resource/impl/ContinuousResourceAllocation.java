@@ -68,7 +68,7 @@ final class ContinuousResourceAllocation {
         return allocations;
     }
 
-    ContinuousResourceAllocation allocate(ContinuousResource original, ResourceAllocation value) {
+    ContinuousResourceAllocation allocate(ResourceAllocation value) {
         return new ContinuousResourceAllocation(original, ImmutableList.<ResourceAllocation>builder()
                 .addAll(allocations)
                 .add(value)
