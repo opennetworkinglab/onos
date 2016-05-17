@@ -16,6 +16,9 @@
 
 package org.onosproject.yangutils.datamodel;
 
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.utils.builtindatatype.YangUint64;
 
 /*-
@@ -28,7 +31,7 @@ import org.onosproject.yangutils.utils.builtindatatype.YangUint64;
 /**
  * Represents the restriction for string data type.
  */
-public class YangStringRestriction {
+public class YangStringRestriction implements YangDesc, YangReference, YangAppErrorInfo, Parsable {
 
     /*-
      * Reference RFC 6020.
@@ -75,6 +78,26 @@ public class YangStringRestriction {
      * Effective pattern restriction for the type.
      */
     private YangPatternRestriction patternRestriction;
+
+    /**
+     * Textual reference.
+     */
+    private String reference;
+
+    /**
+     * Application's error message, to be used for data error.
+     */
+    private String errorMessage;
+
+    /**
+     * Application's error tag, to be filled in data validation error response.
+     */
+    private String errorAppTag;
+
+    /**
+     * Textual description.
+     */
+    private String description;
 
     /**
      * Creates a YANG string restriction object.
@@ -128,5 +151,102 @@ public class YangStringRestriction {
             setPatternRestriction(new YangPatternRestriction());
         }
         getPatternRestriction().addPattern(newPattern);
+    }
+
+    /**
+     * Returns the textual reference of the string restriction.
+     *
+     * @return textual reference of the string restriction
+     */
+    @Override
+    public String getReference() {
+        return reference;
+    }
+
+    /**
+     * Sets the textual reference of the string restriction.
+     *
+     * @param ref textual reference of the string restriction
+     */
+    @Override
+    public void setReference(String ref) {
+        reference = ref;
+    }
+
+    /**
+     * Returns the description of the string restriction.
+     *
+     * @return description of the string restriction
+     */
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Sets the description of the string restriction.
+     *
+     * @param desc description of the string restriction
+     */
+    @Override
+    public void setDescription(String desc) {
+        description = desc;
+
+    }
+
+    /**
+     * Returns application's error message, to be used for data error.
+     *
+     * @return Application's error message, to be used for data error
+     */
+    @Override
+    public String getGetErrorMessage() {
+        return errorMessage;
+    }
+
+    /**
+     * Sets Application's error message, to be used for data error.
+     *
+     * @param errMsg Application's error message, to be used for data error
+     */
+    @Override
+    public void setErrorMessage(String errMsg) {
+        errorMessage = errMsg;
+
+    }
+
+    /**
+     * Returns application's error tag, to be used for data error.
+     *
+     * @return application's error tag, to be used for data error
+     */
+    @Override
+    public String getGetErrorAppTag() {
+        return errorAppTag;
+    }
+
+    /**
+     * Sets application's error tag, to be used for data error.
+     *
+     * @param errTag application's error tag, to be used for data error.
+     */
+    @Override
+    public void setErrorAppTag(String errTag) {
+        errorAppTag = errTag;
+    }
+
+    @Override
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.PATTERN_DATA;
+    }
+
+    @Override
+    public void validateDataOnEntry() throws DataModelException {
+        //TODO: implement the method.
+    }
+
+    @Override
+    public void validateDataOnExit() throws DataModelException {
+        //TODO: implement the method.
     }
 }

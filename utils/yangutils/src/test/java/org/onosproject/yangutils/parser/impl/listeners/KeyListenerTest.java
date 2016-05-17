@@ -203,12 +203,32 @@ public class KeyListenerTest {
     }
 
     /**
+     * Checks key values are set correctly.
+     */
+    @Test
+    public void processKeyWithUsesInList() throws IOException, ParserException {
+        YangNode node = manager.getDataModel("src/test/resources/KeyWithUsesInList.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        // Check whether the list is child of module
+        YangList yangList = (YangList) yangNode.getChild().getNextSibling();
+        assertThat(yangList.getName(), is("valid"));
+
+        ListIterator<String> keyList = yangList.getKeyList().listIterator();
+        assertThat(keyList.next(), is("invalid-interval"));
+    }
+
+    /**
      * Checks whether exception is thrown when key leaf identifier is not found in list.
      */
     @Test
     public void processInvalidLeafIdentifier() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Leaf identifier must refer to a child leaf of the list");
+        thrown.expectMessage("An identifier, in key, must refer to a child leaf of the list");
         YangNode node = manager.getDataModel("src/test/resources/InvalidLeafIdentifier.yang");
     }
 
@@ -218,7 +238,7 @@ public class KeyListenerTest {
     @Test
     public void processInvalidLeafListIdentifier() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("Leaf-list identifier must refer to a child leaf of the list");
+        thrown.expectMessage("An identifier, in key, must refer to a child leaf of the list");
         YangNode node = manager.getDataModel("src/test/resources/InvalidLeafListIdentifier.yang");
     }
 

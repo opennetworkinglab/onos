@@ -380,6 +380,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
                     | leafListStatement
                     | listStatement
                     | choiceStatement
+                    | anyxmlStatement
                     | usesStatement;
 
     /**
@@ -429,11 +430,24 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                        instance-identifier-specification /
      *                        bits-specification /
      *                        union-specification
-     * TODO : decimal64-specification to be added
+     *
      */
-    typeBodyStatements : numericalRestrictions | stringRestrictions | enumSpecification
+    typeBodyStatements : numericalRestrictions | decimal64Specification | stringRestrictions | enumSpecification
                     | leafrefSpecification | identityrefSpecification | instanceIdentifierSpecification
                     | bitsSpecification | unionSpecification;
+
+    /**
+     *  fraction-digits-stmt = fraction-digits-keyword sep
+     *                         fraction-digits-arg-str stmtend
+     *
+     *  fraction-digits-arg-str = < a string that matches the rule
+     *                             fraction-digits-arg >
+     *
+     *  fraction-digits-arg = ("1" ["0" / "1" / "2" / "3" / "4" /
+     *                              "5" / "6" / "7" / "8"])
+     *                        / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9"
+     */
+    decimal64Specification : FRACTION_DIGITS_KEYWORD fraction STMTEND;
 
     /**
      *  numerical-restrictions = range-stmt stmtsep
@@ -746,7 +760,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
     /**
      *  value-stmt          = value-keyword sep integer-value stmtend
      */
-    valueStatement : VALUE_KEYWORD ((MINUS INTEGER) | INTEGER) STMTEND;
+    valueStatement : VALUE_KEYWORD value STMTEND;
 
     /**
      *   grouping-stmt       = grouping-keyword sep identifier-arg-str optsep
@@ -899,7 +913,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      *                        list-stmt /
      *                        anyxml-stmt
      */
-    shortCaseStatement : containerStatement | leafStatement | leafListStatement | listStatement;
+    shortCaseStatement : containerStatement | leafStatement | leafListStatement | listStatement | anyxmlStatement;
 
     /**
      *  case-stmt           = case-keyword sep identifier-arg-str optsep
@@ -919,6 +933,25 @@ package org.onosproject.yangutils.parser.antlrgencode;
               | descriptionStatement | referenceStatement | dataDefStatement)* RIGHT_CURLY_BRACE);
 
     /**
+     *    anyxml-stmt         = anyxml-keyword sep identifier-arg-str optsep
+     *                         (";" /
+     *                         "{" stmtsep
+     *                             ;; these stmts can appear in any order
+     *                             [when-stmt stmtsep]
+     *                             *(if-feature-stmt stmtsep)
+     *                             *(must-stmt stmtsep)
+     *                             [config-stmt stmtsep]
+     *                             [mandatory-stmt stmtsep]
+     *                             [status-stmt stmtsep]
+     *                             [description-stmt stmtsep]
+     *                             [reference-stmt stmtsep]
+     *                          "}")
+     */
+     anyxmlStatement : ANYXML_KEYWORD identifier (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement
+                     | mustStatement | configStatement | mandatoryStatement | statusStatement | descriptionStatement
+                     | referenceStatement)* RIGHT_CURLY_BRACE);
+
+    /**
      *  uses-stmt           = uses-keyword sep identifier-ref-arg-str optsep
      *                        (";" /
      *                         "{" stmtsep
@@ -934,7 +967,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      * TODO : 0..1 occurance to be checked in listener
      */
     usesStatement : USES_KEYWORD string (STMTEND | LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement | statusStatement
-                | descriptionStatement | referenceStatement | refineStatement | usesAugmentStatement)* RIGHT_CURLY_BRACE);
+                | descriptionStatement | referenceStatement | refineStatement | augmentStatement)* RIGHT_CURLY_BRACE);
 
     /**
      *  refine-stmt         = refine-keyword sep refine-arg-str optsep
@@ -951,7 +984,7 @@ package org.onosproject.yangutils.parser.antlrgencode;
      */
     refineStatement : REFINE_KEYWORD refine (STMTEND  | LEFT_CURLY_BRACE (refineContainerStatements
                     | refineLeafStatements | refineLeafListStatements | refineListStatements | refineChoiceStatements
-                    | refineCaseStatements) RIGHT_CURLY_BRACE);
+                    | refineCaseStatements | refineAnyxmlStatements) RIGHT_CURLY_BRACE);
 
     /**
      *  refine-container-stmts =
@@ -1024,22 +1057,15 @@ package org.onosproject.yangutils.parser.antlrgencode;
     refineCaseStatements : (descriptionStatement | referenceStatement)? | (referenceStatement | descriptionStatement)?;
 
     /**
-     *  uses-augment-stmt   = augment-keyword sep uses-augment-arg-str optsep
-     *                        "{" stmtsep
-     *                            ;; these stmts can appear in any order
-     *                            [when-stmt stmtsep]
-     *                            *(if-feature-stmt stmtsep)
-     *                            [status-stmt stmtsep]
-     *                            [description-stmt stmtsep]
-     *                            [reference-stmt stmtsep]
-     *                            1*((data-def-stmt stmtsep) /
-     *                               (case-stmt stmtsep))
-     *                         "}"
-     * TODO : 0..1 occurance to be checked in listener
+     *  refine-anyxml-stmts = ;; these stmts can appear in any order
+     *                        *(must-stmt stmtsep)
+     *                        [config-stmt stmtsep]
+     *                        [mandatory-stmt stmtsep]
+     *                        [description-stmt stmtsep]
+     *                        [reference-stmt stmtsep]
      */
-    usesAugmentStatement : AUGMENT_KEYWORD augment LEFT_CURLY_BRACE (whenStatement | ifFeatureStatement
-                         | statusStatement | descriptionStatement | referenceStatement | dataDefStatement
-                         | caseStatement)* RIGHT_CURLY_BRACE;
+     refineAnyxmlStatements : (mustStatement | configStatement | mandatoryStatement | descriptionStatement
+                            | referenceStatement)*;
 
     /**
      *  augment-stmt        = augment-keyword sep augment-arg-str optsep
@@ -1250,6 +1276,10 @@ package org.onosproject.yangutils.parser.antlrgencode;
     augment : string;
 
     deviation : string;
+
+    value : string;
+
+    fraction : string;
 
     yangConstruct : ANYXML_KEYWORD | ARGUMENT_KEYWORD | AUGMENT_KEYWORD | BASE_KEYWORD | BELONGS_TO_KEYWORD
                   | BIT_KEYWORD | CASE_KEYWORD | CHOICE_KEYWORD | CONFIG_KEYWORD | CONTACT_KEYWORD | CONTAINER_KEYWORD

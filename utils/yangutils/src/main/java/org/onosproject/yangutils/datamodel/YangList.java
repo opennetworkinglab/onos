@@ -445,16 +445,10 @@ public class YangList extends YangNode
 
         /* A list must have atleast one key leaf if config is true */
         if (isConfig
-                && (keys == null || leaves == null && leafLists == null)) {
+                && (keys == null || leaves == null && leafLists == null && !isUsesPresentInList())) {
             throw new DataModelException("A list must have atleast one key leaf if config is true;");
         } else if (keys != null) {
-            if (leaves != null) {
-                validateLeafKey(leaves, keys);
-            }
-
-            if (leafLists != null) {
-                validateLeafListKey(leafLists, keys);
-            }
+            validateKey(leaves, leafLists, keys);
         }
     }
 
@@ -528,31 +522,51 @@ public class YangList extends YangNode
      * Validates key statement of list.
      *
      * @param leaves list of leaf attributes of list
+     * @param leafLists list of leaf-list attributes of list
      * @param keys list of key attributes of list
      * @throws DataModelException a violation of data model rules
      */
-    private void validateLeafKey(List<YangLeaf> leaves, List<String> keys) throws DataModelException {
+    private void validateKey(List<YangLeaf> leaves, List<YangLeafList> leafLists, List<String> keys) throws
+            DataModelException {
         boolean leafFound = false;
         List<YangLeaf> keyLeaves = new LinkedList<>();
+        List<YangLeafList> keyLeafLists = new LinkedList<>();
 
         /*
          * 1. Leaf identifier must refer to a child leaf of the list 2. A leaf
          * that is part of the key must not be the built-in type "empty".
          */
         for (String key : keys) {
-            for (YangLeaf leaf : leaves) {
-                if (key.equals(leaf.getName())) {
-                    if (leaf.getDataType().getDataType() == YangDataTypes.EMPTY) {
-                        throw new DataModelException(" A leaf that is part of the key must not be the built-in " +
-                                "type \"empty\".");
+            if (leaves != null && !leaves.isEmpty()) {
+                for (YangLeaf leaf : leaves) {
+                    if (key.equals(leaf.getName())) {
+                        if (leaf.getDataType().getDataType() == YangDataTypes.EMPTY) {
+                            throw new DataModelException(" A leaf that is part of the key must not be the built-in " +
+                                    "type \"empty\".");
+                        }
+                        leafFound = true;
+                        keyLeaves.add(leaf);
+                        break;
                     }
-                    leafFound = true;
-                    keyLeaves.add(leaf);
-                    break;
                 }
             }
-            if (!leafFound) {
-                throw new DataModelException("Leaf identifier must refer to a child leaf of the list");
+
+            if (leafLists != null && !leafLists.isEmpty()) {
+                for (YangLeafList leafList : leafLists) {
+                    if (key.equals(leafList.getName())) {
+                        if (leafList.getDataType().getDataType() == YangDataTypes.EMPTY) {
+                            throw new DataModelException(" A leaf-list that is part of the key" +
+                                    " must not be the built-in type \"empty\".");
+                        }
+                        leafFound = true;
+                        keyLeafLists.add(leafList);
+                        break;
+                    }
+                }
+            }
+
+            if (!leafFound && !isUsesPresentInList()) {
+                throw new DataModelException("An identifier, in key, must refer to a child leaf of the list");
             }
             leafFound = false;
         }
@@ -567,42 +581,8 @@ public class YangList extends YangNode
                         " \"config\" as the list itself.");
             }
         }
-    }
 
-    /**
-     * Validates key statement of list.
-     *
-     * @param leafLists list of leaf-list attributes of list
-     * @param keys list of key attributes of list
-     * @throws DataModelException a violation of data model rules
-     */
-    private void validateLeafListKey(List<YangLeafList> leafLists, List<String> keys) throws DataModelException {
-        boolean leafFound = false;
-        List<YangLeafList> keyLeafLists = new LinkedList<>();
-
-        /*
-         * 1. Leaf identifier must refer to a child leaf of the list 2. A leaf
-         * that is part of the key must not be the built-in type "empty".
-         */
-        for (String key : keys) {
-            for (YangLeafList leafList : leafLists) {
-                if (key.equals(leafList.getName())) {
-                    if (leafList.getDataType().getDataType() == YangDataTypes.EMPTY) {
-                        throw new DataModelException(" A leaf-list that is part of the key must not be the built-in " +
-                                "type \"empty\".");
-                    }
-                    leafFound = true;
-                    keyLeafLists.add(leafList);
-                    break;
-                }
-            }
-            if (!leafFound) {
-                throw new DataModelException("Leaf-list identifier must refer to a child leaf of the list");
-            }
-            leafFound = false;
-        }
-
-        /*
+         /*
          * All key leafs in a list MUST have the same value for their "config"
          * as the list itself.
          */
@@ -627,4 +607,16 @@ public class YangList extends YangNode
                     getName() + "\"");
         }
     }
+
+    private boolean isUsesPresentInList() {
+        YangNode node = this.getChild();
+        while (node != null) {
+            if (node instanceof YangUses) {
+                return true;
+            }
+            node = node.getNextSibling();
+        }
+        return false;
+    }
+
 }

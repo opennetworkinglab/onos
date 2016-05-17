@@ -16,6 +16,7 @@
 
 package org.onosproject.yangutils.datamodel.utils;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.onosproject.yangutils.datamodel.CollisionDetector;
@@ -29,6 +30,7 @@ import org.onosproject.yangutils.datamodel.YangResolutionInfo;
 import org.onosproject.yangutils.datamodel.YangRpc;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import org.onosproject.yangutils.utils.YangConstructType;
 
 /**
@@ -239,5 +241,27 @@ public final class DataModelUtils {
             childNode = childNode.getNextSibling();
         }
         return false;
+    }
+
+    /**
+     * Returns module's data model node to which sub-module belongs to.
+     *
+     * @param yangFileInfo YANG file information
+     * @param belongsToModuleName name of the module to which sub-module belongs to
+     * @return module node to which sub-module belongs to
+     * @throws DataModelException when belongs to module node is not found
+     */
+    public static YangNode findBelongsToModuleNode(List<YangFileInfo> yangFileInfo,
+                String belongsToModuleName) throws DataModelException {
+        Iterator<YangFileInfo> yangFileIterator = yangFileInfo.iterator();
+        while (yangFileIterator.hasNext()) {
+            YangFileInfo yangFile = yangFileIterator.next();
+            YangNode yangNode = yangFile.getRootNode();
+            if (yangNode.getName().equals(belongsToModuleName)) {
+                return yangNode;
+            }
+        }
+        throw new DataModelException("YANG file error : Module " + belongsToModuleName + " to which sub-module " +
+                "belongs to is not found.");
     }
 }

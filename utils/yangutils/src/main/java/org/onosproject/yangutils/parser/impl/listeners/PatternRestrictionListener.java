@@ -27,9 +27,12 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 import org.onosproject.yangutils.utils.YangConstructType;
 
+import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.YangConstructType.PATTERN_DATA;
@@ -84,7 +87,7 @@ public final class PatternRestrictionListener {
         Parsable tmpData = listener.getParsedDataStack().peek();
         if (tmpData.getYangConstructType() == TYPE_DATA) {
             YangType type = (YangType) tmpData;
-            setPatternRestriction(type, ctx);
+            setPatternRestriction(listener, type, ctx);
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, PATTERN_DATA,
                     ctx.string().getText(), ENTRY));
@@ -94,10 +97,11 @@ public final class PatternRestrictionListener {
     /**
      * Sets the pattern restriction to type.
      *
+     * @param listener listener's object
      * @param type Yang type for which pattern restriction to be set
      * @param ctx  context object of the grammar rule
      */
-    private static void setPatternRestriction(YangType type,
+    private static void setPatternRestriction(TreeWalkListener listener, YangType type,
                                               GeneratedYangParser.PatternStatementContext ctx) {
 
         if (type.getDataType() != YangDataTypes.STRING && type.getDataType() != YangDataTypes.DERIVED) {
@@ -121,6 +125,7 @@ public final class PatternRestrictionListener {
             } else {
                 stringRestriction.addPattern(patternArgument);
             }
+            listener.getParsedDataStack().push(stringRestriction);
         } else {
             YangPatternRestriction patternRestriction = (YangPatternRestriction) ((YangDerivedInfo<?>) type
                     .getDataTypeExtendedInfo()).getPatternRestriction();
@@ -132,6 +137,31 @@ public final class PatternRestrictionListener {
                 ((YangDerivedInfo<?>) type.getDataTypeExtendedInfo()).setPatternRestriction(patternRestriction);
                 patternRestriction.addPattern(patternArgument);
             }
+        }
+    }
+
+    /**
+     * Performs validation and updates the data model tree.
+     * It is called when parser exits from grammar rule (pattern).
+     *
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
+     */
+    public static void processPatternRestrictionExit(TreeWalkListener listener,
+                                                    GeneratedYangParser.PatternStatementContext ctx) {
+
+        // Check for stack to be non empty.
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, PATTERN_DATA, ctx.string().getText(), EXIT);
+
+        Parsable tmpData = listener.getParsedDataStack().peek();
+        if (tmpData instanceof YangStringRestriction) {
+            listener.getParsedDataStack().pop();
+        } else if (tmpData instanceof YangType
+                && ((YangType) tmpData).getDataType() == DERIVED) {
+            // TODO : need to handle in linker
+        } else {
+            throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, PATTERN_DATA,
+                    ctx.string().getText(), EXIT));
         }
     }
 }

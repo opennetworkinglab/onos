@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
@@ -33,6 +34,7 @@ import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
+import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 import static org.onosproject.yangutils.utils.UtilConstants.COMMA;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
@@ -245,15 +247,15 @@ public final class YangIoUtils {
     /**
      * Copies YANG files to the current project's output directory.
      *
-     * @param yangFiles list of YANG files
+     * @param yangFileInfo list of YANG files
      * @param outputDir project's output directory
      * @param project maven project
      * @throws IOException when fails to copy files to destination resource directory
      */
-    public static void copyYangFilesToTarget(List<String> yangFiles, String outputDir, MavenProject project)
+    public static void copyYangFilesToTarget(List<YangFileInfo> yangFileInfo, String outputDir, MavenProject project)
             throws IOException {
 
-        List<File> files = getListOfFile(yangFiles);
+        List<File> files = getListOfFile(yangFileInfo);
 
         String path = outputDir + TARGET_RESOURCE_PATH;
         File targetDir = new File(path);
@@ -272,13 +274,15 @@ public final class YangIoUtils {
     /**
      * Provides a list of files from list of strings.
      *
-     * @param strings list of strings
+     * @param yangFileInfo list of yang file information
      * @return list of files
      */
-    private static List<File> getListOfFile(List<String> strings) {
+    private static List<File> getListOfFile(List<YangFileInfo> yangFileInfo) {
         List<File> files = new ArrayList<>();
-        for (String file : strings) {
-            files.add(new File(file));
+        Iterator<YangFileInfo> yangFileIterator = yangFileInfo.iterator();
+        while (yangFileIterator.hasNext()) {
+            YangFileInfo yangFile = yangFileIterator.next();
+            files.add(new File(yangFile.getYangFileName()));
         }
         return files;
     }

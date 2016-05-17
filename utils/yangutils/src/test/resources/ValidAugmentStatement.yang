@@ -10,7 +10,6 @@ module Test {
              prefix "P";
          }
     augment "/if:interfaces/if:ifEntry" {
-        when "if:ifType='ds0'";
         leaf ds0ChannelNumber {
             type P:ChannelNumber;
         }

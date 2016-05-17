@@ -150,9 +150,9 @@ public class StatusListenerTest {
     @Test
     public void processModuleSubStatementStatus() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input 'status' expecting {'augment', 'choice', 'contact', 'container', "
-                + "'description', 'extension', 'deviation', 'feature', 'grouping', 'identity', 'import', 'include',"
-                + " 'leaf', 'leaf-list', 'list', 'notification', 'organization', 'reference', "
+        thrown.expectMessage("mismatched input 'status' expecting {'anyxml', 'augment', 'choice', 'contact', "
+                + "'container', 'description', 'extension', 'deviation', 'feature', 'grouping', 'identity', 'import',"
+                + " 'include', 'leaf', 'leaf-list', 'list', 'notification', 'organization', 'reference', "
                 + "'revision', 'rpc', 'typedef', 'uses', '}'}");
         YangNode node = manager.getDataModel("src/test/resources/ModuleSubStatementStatus.yang");
     }

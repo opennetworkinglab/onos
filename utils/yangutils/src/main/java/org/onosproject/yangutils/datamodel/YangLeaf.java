@@ -101,6 +101,12 @@ public class YangLeaf
     private YangType<?> dataType;
 
     /**
+     * Default value in string, needs to be converted to the target object,
+     * based on the type.
+     */
+    private String defaultValueInString;
+
+    /**
      * Creates a YANG leaf.
      */
     public YangLeaf() {
@@ -236,6 +242,24 @@ public class YangLeaf
      */
     public void setUnits(String units) {
         this.units = units;
+    }
+
+    /**
+     * Returns the default value.
+     *
+     * @return the default value
+     */
+    public String getDefaultValueInString() {
+        return defaultValueInString;
+    }
+
+    /**
+     * Sets the default value.
+     *
+     * @param defaultValueInString the default value
+     */
+    public void setDefaultValueInString(String defaultValueInString) {
+        this.defaultValueInString = defaultValueInString;
     }
 
     /**

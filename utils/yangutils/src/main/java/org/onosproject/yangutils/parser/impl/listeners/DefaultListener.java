@@ -39,6 +39,8 @@ package org.onosproject.yangutils.parser.impl.listeners;
  * defaultStatement : DEFAULT_KEYWORD string STMTEND;
  */
 
+import org.onosproject.yangutils.datamodel.YangChoice;
+import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
@@ -81,6 +83,16 @@ public final class DefaultListener {
             case TYPEDEF_DATA: {
                 YangTypeDef typeDef = (YangTypeDef) tmpNode;
                 typeDef.setDefaultValueInString(ctx.string().getText());
+                break;
+            }
+            case LEAF_DATA: {
+                YangLeaf leaf = (YangLeaf) tmpNode;
+                leaf.setDefaultValueInString(ctx.string().getText());
+                break;
+            }
+            case CHOICE_DATA: {
+                YangChoice choice = (YangChoice) tmpNode;
+                choice.setDefaultValueInString(ctx.string().getText());
                 break;
             }
             default:

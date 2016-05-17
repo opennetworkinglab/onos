@@ -166,4 +166,32 @@ public class PatternRestrictionListenerTest {
                 .getPatternList().listIterator();
         assertThat(patternListIterator.next(), is("-[0-9]+|[0-9]+"));
     }
+
+    /**
+     * Checks valid pattern substatement.
+     */
+    @Test
+    public void processPatternSubStatements() throws IOException, ParserException {
+
+        YangNode node = manager.getDataModel("src/test/resources/PatternSubStatements.yang");
+
+        assertThat((node instanceof YangModule), is(true));
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getName(), is("invalid-interval"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("string"));
+        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.STRING));
+        YangStringRestriction stringRestriction = (YangStringRestriction) leafInfo
+                .getDataType().getDataTypeExtendedInfo();
+        assertThat(stringRestriction.getDescription(), is("\"pattern description\""));
+        assertThat(stringRestriction.getReference(), is("\"pattern reference\""));
+        ListIterator<String> patternListIterator = stringRestriction.getPatternRestriction()
+                .getPatternList().listIterator();
+        assertThat(patternListIterator.next(), is("[a-zA-Z]"));
+    }
 }

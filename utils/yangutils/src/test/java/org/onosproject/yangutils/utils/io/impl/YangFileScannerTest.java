@@ -26,6 +26,7 @@ import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -135,7 +136,7 @@ public final class YangFileScannerTest {
 
         String emptyYangDir = baseDir + separator + "scanner1";
         File path = createDirectory(emptyYangDir);
-        List<String> emptyDirContents = getYangFiles(path.toString());
+        List<YangFileInfo> emptyDirContents = getYangFiles(path.toString());
         List<String> expectedContents = new LinkedList<>();
         assertThat(true, is(emptyDirContents.equals(expectedContents)));
     }

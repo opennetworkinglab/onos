@@ -135,6 +135,12 @@ public class YangChoice extends YangNode
     private YangStatusType status;
 
     /**
+     * Default value in string, needs to be converted to the target object,
+     * based on the type.
+     */
+    private String defaultValueInString;
+
+    /**
      * Create a choice node.
      */
     public YangChoice() {
@@ -273,6 +279,24 @@ public class YangChoice extends YangNode
     @Override
     public void setStatus(YangStatusType status) {
         this.status = status;
+    }
+
+    /**
+     * Returns the default value.
+     *
+     * @return the default value
+     */
+    public String getDefaultValueInString() {
+        return defaultValueInString;
+    }
+
+    /**
+     * Sets the default value.
+     *
+     * @param defaultValueInString the default value
+     */
+    public void setDefaultValueInString(String defaultValueInString) {
+        this.defaultValueInString = defaultValueInString;
     }
 
     /**

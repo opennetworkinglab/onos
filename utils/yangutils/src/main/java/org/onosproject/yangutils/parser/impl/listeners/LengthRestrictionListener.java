@@ -29,8 +29,10 @@ import org.onosproject.yangutils.utils.YangConstructType;
 
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.RestrictionResolver.processLengthRestriction;
@@ -86,7 +88,7 @@ public final class LengthRestrictionListener {
         Parsable tmpData = listener.getParsedDataStack().peek();
         if (tmpData.getYangConstructType() == TYPE_DATA) {
             YangType type = (YangType) tmpData;
-            setLengthRestriction(type, ctx);
+            setLengthRestriction(listener, type, ctx);
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, LENGTH_DATA,
                     ctx.length().getText(), ENTRY));
@@ -96,10 +98,11 @@ public final class LengthRestrictionListener {
     /**
      * Sets the length restriction to type.
      *
+     * @param listener listener's object
      * @param type Yang type for which length restriction to be set
      * @param ctx  context object of the grammar rule
      */
-    private static void setLengthRestriction(YangType type,
+    private static void setLengthRestriction(TreeWalkListener listener, YangType type,
                                              GeneratedYangParser.LengthStatementContext ctx) {
 
         if (type.getDataType() == DERIVED) {
@@ -132,5 +135,31 @@ public final class LengthRestrictionListener {
         }
 
         stringRestriction.setLengthRestriction(lengthRestriction);
+        listener.getParsedDataStack().push(lengthRestriction);
+    }
+
+    /**
+     * Performs validation and updates the data model tree.
+     * It is called when parser exits from grammar rule (length).
+     *
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
+     */
+    public static void processLengthRestrictionExit(TreeWalkListener listener,
+                                                   GeneratedYangParser.LengthStatementContext ctx) {
+
+        // Check for stack to be non empty.
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, LENGTH_DATA, ctx.length().getText(), EXIT);
+
+        Parsable tmpData = listener.getParsedDataStack().peek();
+        if (tmpData instanceof YangRangeRestriction) {
+            listener.getParsedDataStack().pop();
+        } else if (tmpData instanceof YangType
+                && ((YangType) tmpData).getDataType() == DERIVED) {
+            // TODO : need to handle in linker
+        } else {
+            throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, LENGTH_DATA,
+                    ctx.length().getText(), EXIT));
+        }
     }
 }

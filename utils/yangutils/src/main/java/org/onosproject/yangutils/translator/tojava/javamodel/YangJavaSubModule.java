@@ -18,6 +18,7 @@ package org.onosproject.yangutils.translator.tojava.javamodel;
 import java.io.IOException;
 
 import org.onosproject.yangutils.datamodel.YangBelongsTo;
+import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.JavaCodeGenerator;
@@ -108,8 +109,7 @@ public class YangJavaSubModule
      * @return the name space string of the module.
      */
     private String getNameSpaceFromModule(YangBelongsTo belongsToInfo) {
-        // TODO Auto-generated method stub
-        return "";
+        return ((YangModule) belongsToInfo.getModuleNode()).getNameSpace().getUri();
     }
 
     /**

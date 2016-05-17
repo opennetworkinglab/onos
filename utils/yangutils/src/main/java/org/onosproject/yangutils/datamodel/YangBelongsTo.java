@@ -57,6 +57,11 @@ public class YangBelongsTo implements Parsable {
     private String belongsToModuleName;
 
     /**
+     * Module node to which sub-module belongs to.
+     */
+    private YangNode moduleNode;
+
+    /**
      * Reference RFC 6020.
      *
      * The mandatory "prefix" substatement assigns a prefix for the module to
@@ -107,6 +112,24 @@ public class YangBelongsTo implements Parsable {
      */
     public void setPrefix(String prefix) {
         this.prefix = prefix;
+    }
+
+    /**
+     * Returns the module data model node.
+     *
+     * @return the module data model node
+     */
+    public YangNode getModuleNode() {
+        return moduleNode;
+    }
+
+    /**
+     * Sets the module node.
+     *
+     * @param moduleNode module data model node
+     */
+    public void setModuleNode(YangNode moduleNode) {
+        this.moduleNode = moduleNode;
     }
 
     /**

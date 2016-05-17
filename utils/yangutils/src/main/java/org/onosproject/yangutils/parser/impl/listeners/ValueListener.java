@@ -38,6 +38,7 @@ import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMes
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerUtil.getValidIntegerValue;
 import static org.onosproject.yangutils.utils.YangConstructType.VALUE_DATA;
 
 /**
@@ -62,25 +63,28 @@ public final class ValueListener {
     public static void processValueEntry(TreeWalkListener listener, GeneratedYangParser.ValueStatementContext ctx) {
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, VALUE_DATA, ctx.INTEGER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, VALUE_DATA, ctx.value().getText(), ENTRY);
+
+        // Validate value
+        int value = getValidIntegerValue(ctx.value().getText(), VALUE_DATA, ctx);
 
         // Obtain the node of the stack.
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getYangConstructType()) {
             case ENUM_DATA: {
                 YangEnum enumNode = (YangEnum) tmpNode;
-                if (!isEnumValueValid(listener, ctx)) {
+                if (!isEnumValueValid(listener, ctx, value)) {
                     ParserException parserException = new ParserException("Duplicate Value Entry");
-                    parserException.setLine(ctx.INTEGER().getSymbol().getLine());
-                    parserException.setCharPosition(ctx.INTEGER().getSymbol().getCharPositionInLine());
+                    parserException.setLine(ctx.getStart().getLine());
+                    parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
                     throw parserException;
                 }
-                enumNode.setValue(Integer.valueOf(ctx.INTEGER().getText()));
+                enumNode.setValue(value);
                 break;
             }
             default:
                 throw new ParserException(
-                        constructListenerErrorMessage(INVALID_HOLDER, VALUE_DATA, ctx.INTEGER().getText(), ENTRY));
+                        constructListenerErrorMessage(INVALID_HOLDER, VALUE_DATA, ctx.value().getText(), ENTRY));
         }
     }
 
@@ -89,20 +93,22 @@ public final class ValueListener {
      *
      * @param listener Listener's object
      * @param ctx context object of the grammar rule
+     * @param value enum value
      * @return validation result
      */
-    private static boolean isEnumValueValid(TreeWalkListener listener, GeneratedYangParser.ValueStatementContext ctx) {
+    private static boolean isEnumValueValid(TreeWalkListener listener, GeneratedYangParser.ValueStatementContext ctx,
+            int value) {
         Parsable enumNode = listener.getParsedDataStack().pop();
 
         // Check for stack to be non empty.
-        checkStackIsNotEmpty(listener, MISSING_HOLDER, VALUE_DATA, ctx.INTEGER().getText(), ENTRY);
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, VALUE_DATA, ctx.value().getText(), ENTRY);
 
         Parsable tmpNode = listener.getParsedDataStack().peek();
         switch (tmpNode.getYangConstructType()) {
             case ENUMERATION_DATA: {
                 YangEnumeration yangEnumeration = (YangEnumeration) tmpNode;
                 for (YangEnum curEnum : yangEnumeration.getEnumSet()) {
-                    if (Integer.valueOf(ctx.INTEGER().getText()) == curEnum.getValue()) {
+                    if (value == curEnum.getValue()) {
                         listener.getParsedDataStack().push(enumNode);
                         return false;
                     }
@@ -113,7 +119,7 @@ public final class ValueListener {
             default:
                 listener.getParsedDataStack().push(enumNode);
                 throw new ParserException(
-                        constructListenerErrorMessage(INVALID_HOLDER, VALUE_DATA, ctx.INTEGER().getText(), ENTRY));
+                        constructListenerErrorMessage(INVALID_HOLDER, VALUE_DATA, ctx.value().getText(), ENTRY));
         }
     }
 }

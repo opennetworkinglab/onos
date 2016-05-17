@@ -76,9 +76,9 @@ public class UnitsListenerTest {
     @Test
     public void processModuleSubStatementUnits() throws IOException, ParserException {
         thrown.expect(ParserException.class);
-        thrown.expectMessage("mismatched input 'type' expecting {'augment', 'choice', 'contact', 'container', "
-                + "'description', 'extension', 'deviation', 'feature', 'grouping', 'identity', 'import', "
-                + "'include', 'leaf', 'leaf-list', 'list', 'notification', 'organization', "
+        thrown.expectMessage("mismatched input 'type' expecting {'anyxml', 'augment', 'choice', 'contact', "
+                + "'container', 'description', 'extension', 'deviation', 'feature', 'grouping', 'identity',"
+                + " 'import', 'include', 'leaf', 'leaf-list', 'list', 'notification', 'organization', "
                 + "'reference', 'revision', 'rpc', 'typedef', 'uses', '}'}");
         YangNode node = manager.getDataModel("src/test/resources/ModuleSubStatementUnits.yang");
     }

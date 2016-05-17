@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+import org.onosproject.yangutils.plugin.manager.YangFileInfo;
 
 /**
  * Represents utility for searching the files in a directory.
@@ -51,17 +52,23 @@ public final class YangFileScanner {
     }
 
     /**
-     * Returns the list of YANG files.
+     * Returns the list of YANG file information.
      *
      * @param root specified directory
-     * @return list of YANG files
+     * @return list of YANG file information
      * @throws NullPointerException when no files are there
      * @throws IOException when files get deleted while performing the
      *             operations
      */
-    public static List<String> getYangFiles(String root) throws IOException {
-
-        return getFiles(root, YANG_FILE_EXTENTION);
+    public static List<YangFileInfo> getYangFiles(String root) throws IOException {
+        List<String> yangFiles = getFiles(root, YANG_FILE_EXTENTION);
+        List<YangFileInfo> fileInfo = new LinkedList<>();
+        for (String yangFile : yangFiles) {
+            YangFileInfo yangFileInfo = new YangFileInfo();
+            yangFileInfo.setYangFileName(yangFile);
+            fileInfo.add(yangFileInfo);
+        }
+        return fileInfo;
     }
 
     /**

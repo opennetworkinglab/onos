@@ -287,7 +287,77 @@ public enum YangConstructType {
     /**
      * Identifies the YANG pattern element parsed data.
      */
-    PATTERN_DATA;
+    PATTERN_DATA,
+
+    /**
+     * Identifies the YANG extension element parsed data.
+     */
+    EXTENSION_DATA,
+
+    /**
+     * Identifies the YANG identity element parsed data.
+     */
+    IDENTITY_DATA,
+
+    /**
+     * Identifies the YANG base element parsed data.
+     */
+    BASE_DATA,
+
+    /**
+     * Identifies the YANG feature element parsed data.
+     */
+    FEATURE_DATA,
+
+    /**
+     * Identifies the YANG if-feature element parsed data.
+     */
+    IF_FEATURE_DATA,
+
+    /**
+     * Identifies the YANG path element parsed data.
+     */
+    PATH_DATA,
+
+    /**
+     * Identifies the YANG require-instance element parsed data.
+     */
+    REQUIRE_INSTANCE_DATA,
+
+    /**
+     * Identifies the YANG ordered-by element parsed data.
+     */
+    ORDERED_BY_DATA,
+
+    /**
+     * Identifies the YANG error-message element parsed data.
+     */
+    ERROR_MESSAGE_DATA,
+
+    /**
+     * Identifies the YANG error-app-tag element parsed data.
+     */
+    ERROR_APP_TAG_DATA,
+
+    /**
+     * Identifies the YANG unique element parsed data.
+     */
+    UNIQUE_DATA,
+
+    /**
+     * Identifies the YANG refine element parsed data.
+     */
+    REFINE_DATA,
+
+    /**
+     * Identifies the YANG deviation element parsed data.
+     */
+    DEVIATION_DATA,
+
+    /**
+     * Identifies the YANG anyxml element parsed data.
+     */
+    ANYXML_DATA;
 
     /**
      * Returns the YANG construct keyword corresponding to enum values.
@@ -406,6 +476,34 @@ public enum YangConstructType {
                 return "length";
             case PATTERN_DATA:
                 return "pattern";
+            case EXTENSION_DATA:
+                return "extension";
+            case IDENTITY_DATA:
+                return "identity";
+            case BASE_DATA:
+                return "base";
+            case FEATURE_DATA:
+                return "feature";
+            case IF_FEATURE_DATA:
+                return "if-feature";
+            case PATH_DATA:
+                return "path";
+            case REQUIRE_INSTANCE_DATA:
+                return "require-instance";
+            case ORDERED_BY_DATA:
+                return "ordered-by";
+            case ERROR_MESSAGE_DATA:
+                return "error-message";
+            case ERROR_APP_TAG_DATA:
+                return "error-app-tag";
+            case UNIQUE_DATA:
+                return "unique";
+            case REFINE_DATA:
+                return "refine";
+            case DEVIATION_DATA:
+                return "deviation";
+            case ANYXML_DATA:
+                return "anyxml";
             default:
                 return "yang";
         }

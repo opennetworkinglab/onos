@@ -26,6 +26,7 @@ import org.onosproject.yangutils.datamodel.YangModule;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.datamodel.YangOutput;
+import org.onosproject.yangutils.datamodel.YangSubModule;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
@@ -141,7 +142,8 @@ public final class ListListener {
         if (curData instanceof YangModule || curData instanceof YangContainer
                 || curData instanceof YangList || curData instanceof YangCase
                 || curData instanceof YangNotification || curData instanceof YangInput
-                || curData instanceof YangOutput || curData instanceof YangAugment || curData instanceof YangGrouping) {
+                || curData instanceof YangOutput || curData instanceof YangAugment
+                || curData instanceof YangGrouping || curData instanceof YangSubModule) {
             curNode = (YangNode) curData;
             try {
                 curNode.addChild(yangList);

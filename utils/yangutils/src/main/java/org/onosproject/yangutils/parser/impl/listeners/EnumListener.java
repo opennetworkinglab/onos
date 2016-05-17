@@ -146,7 +146,14 @@ public final class EnumListener {
                         boolean isValuePresent = false;
 
                         for (YangEnum curEnum : yangEnumeration.getEnumSet()) {
-                            if (maxValue <= curEnum.getValue()) {
+                            if (curEnum.getValue() == Integer.MAX_VALUE) {
+                                ParserException parserException = new ParserException("YANG file error : "
+                                        + "An enum value MUST be specified for enum substatements following the one"
+                                        + "with the current highest value");
+                                parserException.setLine(ctx.getStart().getLine());
+                                parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+                                throw parserException;
+                            } else if (maxValue <= curEnum.getValue()) {
                                 maxValue = curEnum.getValue();
                                 isValuePresent = true;
                             }
@@ -161,8 +168,8 @@ public final class EnumListener {
                     } catch (DataModelException e) {
                         ParserException parserException = new ParserException(constructExtendedListenerErrorMessage(
                                 DUPLICATE_ENTRY, ENUM_DATA, ctx.string().getText(), EXIT, e.getMessage()));
-                        parserException.setLine(ctx.string().STRING(0).getSymbol().getLine());
-                        parserException.setCharPosition(ctx.string().STRING(0).getSymbol().getCharPositionInLine());
+                        parserException.setLine(ctx.getStart().getLine());
+                        parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
                         throw parserException;
                     }
                     break;
@@ -173,8 +180,7 @@ public final class EnumListener {
             }
         } else {
             throw new ParserException(
-                    constructListenerErrorMessage(MISSING_CURRENT_HOLDER, ENUM_DATA, ctx.string().getText(),
-                            EXIT));
+                    constructListenerErrorMessage(MISSING_CURRENT_HOLDER, ENUM_DATA, ctx.string().getText(), EXIT));
         }
     }
 }

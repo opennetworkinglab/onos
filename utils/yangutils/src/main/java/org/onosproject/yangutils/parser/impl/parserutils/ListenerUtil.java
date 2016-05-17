@@ -29,6 +29,18 @@ import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.utils.YangConstructType;
 
+import static org.onosproject.yangutils.utils.UtilConstants.ADD;
+import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
+import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
+import static org.onosproject.yangutils.utils.UtilConstants.COLON;
+import static org.onosproject.yangutils.utils.UtilConstants.CARET;
+import static org.onosproject.yangutils.utils.UtilConstants.QUOTES;
+import static org.onosproject.yangutils.utils.UtilConstants.HYPHEN;
+import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.TRUE;
+import static org.onosproject.yangutils.utils.UtilConstants.FALSE;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_FILE_ERROR;
+
 /**
  * Represents an utility for listener.
  */
@@ -37,18 +49,10 @@ public final class ListenerUtil {
     private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_.-]*");
     private static final String DATE_PATTERN = "[0-9]{4}-([0-9]{2}|[0-9])-([0-9]{2}|[0-9])";
     private static final String NON_NEGATIVE_INTEGER_PATTERN = "[0-9]+";
-    private static final String PLUS = "+";
+    private static final Pattern INTEGER_PATTERN = Pattern.compile("[-][0-9]+|[0-9]+");
     private static final String ONE = "1";
-    private static final String TRUE_KEYWORD = "true";
-    private static final String FALSE_KEYWORD = "false";
     private static final int IDENTIFIER_LENGTH = 64;
     private static final String DATE_FORMAT = "yyyy-MM-dd";
-    private static final String EMPTY_STRING = "";
-    private static final String HYPHEN = "-";
-    private static final String SLASH = "/";
-    private static final String SPACE = " ";
-    private static final String COLON = ":";
-    private static final String CARET = "^";
 
     /**
      * Creates a new listener util.
@@ -65,7 +69,7 @@ public final class ListenerUtil {
     public static String removeQuotesAndHandleConcat(String yangStringData) {
 
         yangStringData = yangStringData.replace("\"", EMPTY_STRING);
-        String[] tmpData = yangStringData.split(Pattern.quote(PLUS));
+        String[] tmpData = yangStringData.split(Pattern.quote(ADD));
         StringBuilder builder = new StringBuilder();
         for (String yangString : tmpData) {
             builder.append(yangString);
@@ -171,6 +175,41 @@ public final class ListenerUtil {
     }
 
     /**
+     * Validates integer value.
+     *
+     * @param integerValue integer to be validated
+     * @param yangConstruct yang construct for creating error message
+     * @param ctx context object of the grammar rule
+     * @return valid integer value
+     */
+    public static int getValidIntegerValue(String integerValue, YangConstructType yangConstruct,
+                                                      ParserRuleContext ctx) {
+
+        String value = removeQuotesAndHandleConcat(integerValue);
+        if (!INTEGER_PATTERN.matcher(value).matches()) {
+            ParserException parserException = new ParserException("YANG file error : " +
+                    YangConstructType.getYangConstructType(yangConstruct) + " value " + value + " is not " +
+                    "valid.");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+
+        int valueInInteger;
+        try {
+            valueInInteger = Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            ParserException parserException = new ParserException("YANG file error : " +
+                    YangConstructType.getYangConstructType(yangConstruct) + " value " + value + " is not " +
+                    "valid.");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+        return valueInInteger;
+    }
+
+    /**
      * Validates boolean value.
      *
      * @param booleanValue value to be validated
@@ -182,9 +221,9 @@ public final class ListenerUtil {
             ParserRuleContext ctx) {
 
         String value = removeQuotesAndHandleConcat(booleanValue);
-        if (value.equals(TRUE_KEYWORD)) {
+        if (value.equals(TRUE)) {
             return true;
-        } else if (value.equals(FALSE_KEYWORD)) {
+        } else if (value.equals(FALSE)) {
             return false;
         } else {
             ParserException parserException = new ParserException("YANG file error : " +
@@ -271,5 +310,22 @@ public final class ListenerUtil {
             targetNodes.add(yangNodeIdentifier);
         }
         return targetNodes;
+    }
+
+    /**
+     * Throws parser exception for unsupported YANG constructs.
+     *
+     * @param yangConstructType yang construct for creating error message
+     * @param ctx yang construct's context to get the line number and character position
+     * @param errorInfo error information
+     */
+    public static void handleUnsupportedYangConstruct(YangConstructType yangConstructType,
+        ParserRuleContext ctx, String errorInfo) {
+        ParserException parserException = new ParserException(YANG_FILE_ERROR
+                + QUOTES + YangConstructType.getYangConstructType(yangConstructType) + QUOTES
+                + errorInfo);
+        parserException.setLine(ctx.getStart().getLine());
+        parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+        throw parserException;
     }
 }

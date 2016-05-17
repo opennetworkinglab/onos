@@ -19,6 +19,8 @@ package org.onosproject.yangutils.datamodel;
 import java.util.LinkedList;
 import java.util.List;
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.parser.Parsable;
+import org.onosproject.yangutils.utils.YangConstructType;
 import org.onosproject.yangutils.utils.builtindatatype.YangBuiltInDataTypeInfo;
 
 import static org.onosproject.yangutils.utils.builtindatatype.BuiltInTypeObjectFactory.getDataObjectFromString;
@@ -55,7 +57,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param <T> range type (data type)
  */
 public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
-        implements YangDesc, YangReference, YangAppErrorInfo {
+        implements YangDesc, YangReference, YangAppErrorInfo, Parsable {
 
     /**
      * Ascending list of range interval restriction. If the restriction is a
@@ -310,5 +312,20 @@ public class YangRangeRestriction<T extends YangBuiltInDataTypeInfo<T>>
     @Override
     public void setErrorAppTag(String errTag) {
         errorAppTag = errTag;
+    }
+
+    @Override
+    public YangConstructType getYangConstructType() {
+        return YangConstructType.RANGE_DATA;
+    }
+
+    @Override
+    public void validateDataOnEntry() throws DataModelException {
+        //TODO: implement the method.
+    }
+
+    @Override
+    public void validateDataOnExit() throws DataModelException {
+        //TODO: implement the method.
     }
 }

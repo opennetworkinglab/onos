@@ -26,8 +26,10 @@ import org.onosproject.yangutils.parser.impl.TreeWalkListener;
 
 import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.ENTRY;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorLocation.EXIT;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorMessageConstruction.constructListenerErrorMessage;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.INVALID_HOLDER;
+import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_CURRENT_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerErrorType.MISSING_HOLDER;
 import static org.onosproject.yangutils.parser.impl.parserutils.ListenerValidation.checkStackIsNotEmpty;
 import static org.onosproject.yangutils.utils.RestrictionResolver.isOfRangeRestrictedType;
@@ -82,7 +84,7 @@ public final class RangeRestrictionListener {
         Parsable tmpData = listener.getParsedDataStack().peek();
         if (tmpData.getYangConstructType() == TYPE_DATA) {
             YangType type = (YangType) tmpData;
-            setRangeRestriction(type, ctx);
+            setRangeRestriction(listener, type, ctx);
         } else {
             throw new ParserException(constructListenerErrorMessage(INVALID_HOLDER, RANGE_DATA,
                     ctx.range().getText(), ENTRY));
@@ -92,10 +94,11 @@ public final class RangeRestrictionListener {
     /**
      * Sets the range restriction to type.
      *
+     * @param listener listener's object
      * @param type YANG type for which range restriction to be added
      * @param ctx  context object of the grammar rule
      */
-    private static void setRangeRestriction(YangType type,
+    private static void setRangeRestriction(TreeWalkListener listener, YangType type,
                                             GeneratedYangParser.RangeStatementContext ctx) {
 
         if (type.getDataType() == DERIVED) {
@@ -121,6 +124,32 @@ public final class RangeRestrictionListener {
 
         if (rangeRestriction != null) {
             type.setDataTypeExtendedInfo(rangeRestriction);
+        }
+        listener.getParsedDataStack().push(rangeRestriction);
+    }
+
+    /**
+     * Performs validation and updates the data model tree.
+     * It is called when parser exits from grammar rule (range).
+     *
+     * @param listener listener's object
+     * @param ctx context object of the grammar rule
+     */
+    public static void processRangeRestrictionExit(TreeWalkListener listener,
+                                       GeneratedYangParser.RangeStatementContext ctx) {
+
+        // Check for stack to be non empty.
+        checkStackIsNotEmpty(listener, MISSING_HOLDER, RANGE_DATA, ctx.range().getText(), EXIT);
+
+        Parsable tmpData = listener.getParsedDataStack().peek();
+        if (tmpData instanceof YangRangeRestriction) {
+            listener.getParsedDataStack().pop();
+        } else if (tmpData instanceof YangType
+                && ((YangType) tmpData).getDataType() == DERIVED) {
+            // TODO : need to handle in linker
+        } else {
+            throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, RANGE_DATA,
+                    ctx.range().getText(), EXIT));
         }
     }
 }
