@@ -17,6 +17,8 @@ package org.onosproject.pce.pcestore;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,15 +32,19 @@ import org.apache.felix.scr.annotations.Service;
 
 import org.onlab.util.KryoNamespace;
 import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.incubator.net.resource.label.LabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.Link;
 import org.onosproject.net.resource.ResourceConsumer;
 import org.onosproject.pce.pceservice.TunnelConsumerId;
+import org.onosproject.pce.pceservice.LspType;
 import org.onosproject.pce.pcestore.api.LspLocalLabelInfo;
 import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 
@@ -53,11 +59,15 @@ import org.slf4j.LoggerFactory;
 public class DistributedPceStore implements PceStore {
 
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
+    private static final String DEVICE_LABEL_STORE_INFO_NULL = "Device Label Store cannot be null";
+    private static final String LABEL_RESOURCE_ID_NULL = "Label Resource Id cannot be null";
+    private static final String LABEL_RESOURCE_LIST_NULL = "Label Resource List cannot be null";
+    private static final String LABEL_RESOURCE_NULL = "Label Resource cannot be null";
     private static final String LINK_NULL = "LINK cannot be null";
-    private static final String TUNNEL_ID_NULL = "Tunnel ID cannot be null";
-    private static final String LABEL_RESOURCE_ID_NULL = "Label Resource ID cannot be null";
+    private static final String LSP_LOCAL_LABEL_INFO_NULL = "LSP Local Label Info cannot be null";
+    private static final String PATH_INFO_NULL = "Path Info cannot be null";
     private static final String PCECC_TUNNEL_INFO_NULL = "PCECC Tunnel Info cannot be null";
-    private static final String LSP_LOCAL_LABEL_INFO_NULL = "LSP Local Label info cannot be null";
+    private static final String TUNNEL_ID_NULL = "Tunnel Id cannot be null";
     private static final String TUNNEL_CONSUMER_ID_NULL = "Tunnel consumer Id cannot be null";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -73,6 +83,9 @@ public class DistributedPceStore implements PceStore {
 
     // Mapping tunnel with device local info with tunnel consumer id
     private ConsistentMap<TunnelId, PceccTunnelInfo> tunnelInfoMap;
+
+    // List of Failed path info
+    private DistributedSet<PcePathInfo> failedPathSet;
 
     @Activate
     protected void activate() {
@@ -91,6 +104,7 @@ public class DistributedPceStore implements PceStore {
                         new KryoNamespace.Builder()
                                 .register(KryoNamespaces.API)
                                 .register(Link.class,
+                                          LabelResource.class,
                                           LabelResourceId.class)
                                 .build()))
                 .build();
@@ -107,6 +121,22 @@ public class DistributedPceStore implements PceStore {
                                           LabelResourceId.class)
                                 .build()))
                 .build();
+
+        failedPathSet = storageService.<PcePathInfo>setBuilder()
+                .withName("failed-path-info")
+                .withSerializer(Serializer.using(
+                        new KryoNamespace.Builder()
+                                .register(KryoNamespaces.API)
+                                .register(PcePathInfo.class,
+                                          //TODO: Instead of Constraint.class need to add actual implemented class
+                                          //TODO: on this interface like CostConstraint.class and
+                                          //TODO: BandwidthConstraint.class. Will be added once it is confirmed.
+                                          Constraint.class,
+                                          LspType.class)
+                                .build()))
+
+                .build()
+                .asDistributedSet();
 
         log.info("Started");
     }
@@ -135,6 +165,12 @@ public class DistributedPceStore implements PceStore {
     }
 
     @Override
+    public boolean existsFailedPathInfo(PcePathInfo failedPathInfo) {
+        checkNotNull(failedPathInfo, PATH_INFO_NULL);
+        return failedPathSet.contains(failedPathInfo);
+    }
+
+    @Override
     public int getGlobalNodeLabelCount() {
         return globalNodeLabelMap.size();
     }
@@ -147,6 +183,11 @@ public class DistributedPceStore implements PceStore {
     @Override
     public int getTunnelInfoCount() {
         return tunnelInfoMap.size();
+    }
+
+    @Override
+    public int getFailedPathInfoCount() {
+        return failedPathSet.size();
     }
 
     @Override
@@ -165,6 +206,11 @@ public class DistributedPceStore implements PceStore {
     public Map<TunnelId, PceccTunnelInfo> getTunnelInfos() {
        return tunnelInfoMap.entrySet().stream()
                  .collect(Collectors.toMap(Map.Entry::getKey, e -> (PceccTunnelInfo) e.getValue().value()));
+    }
+
+    @Override
+    public Iterable<PcePathInfo> getFailedPathInfos() {
+       return ImmutableSet.copyOf(failedPathSet);
     }
 
     @Override
@@ -207,6 +253,12 @@ public class DistributedPceStore implements PceStore {
         checkNotNull(pceccTunnelInfo, PCECC_TUNNEL_INFO_NULL);
 
         tunnelInfoMap.put(tunnelId, pceccTunnelInfo);
+    }
+
+    @Override
+    public void addFailedPathInfo(PcePathInfo failedPathInfo) {
+        checkNotNull(failedPathInfo, PATH_INFO_NULL);
+        failedPathSet.add(failedPathInfo);
     }
 
     @Override
@@ -271,6 +323,17 @@ public class DistributedPceStore implements PceStore {
 
         if (tunnelInfoMap.remove(tunnelId) == null) {
             log.error("Tunnel info deletion for tunnel id {} has failed.", tunnelId.toString());
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean removeFailedPathInfo(PcePathInfo failedPathInfo) {
+        checkNotNull(failedPathInfo, PATH_INFO_NULL);
+
+        if (!failedPathSet.remove(failedPathInfo)) {
+            log.error("Failed path info {} deletion has failed.", failedPathInfo.toString());
             return false;
         }
         return true;

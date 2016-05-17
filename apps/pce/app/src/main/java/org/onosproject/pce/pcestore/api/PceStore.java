@@ -23,6 +23,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.resource.ResourceConsumer;
 import org.onosproject.pce.pcestore.PceccTunnelInfo;
+import org.onosproject.pce.pcestore.PcePathInfo;
 
 import java.util.Map;
 
@@ -55,6 +56,14 @@ public interface PceStore {
     boolean existsTunnelInfo(TunnelId tunnelId);
 
     /**
+     * Checks whether path info is present in failed path info list.
+     *
+     * @param failedPathInfo failed path information
+     * @return success or failure
+     */
+    boolean existsFailedPathInfo(PcePathInfo failedPathInfo);
+
+    /**
      * Retrieves the node label count.
      *
      * @return node label count
@@ -76,6 +85,13 @@ public interface PceStore {
     int getTunnelInfoCount();
 
     /**
+     * Retrieves the failed path info count.
+     *
+     * @return failed path info count
+     */
+    int getFailedPathInfoCount();
+
+    /**
      * Retrieves device id and label pairs collection from global node label store.
      *
      * @return collection of device id and label pairs
@@ -95,6 +111,13 @@ public interface PceStore {
      * @return collection of tunnel id and pcecc tunnel info pairs
      */
     Map<TunnelId, PceccTunnelInfo> getTunnelInfos();
+
+    /**
+     * Retrieves path info collection from failed path info store.
+     *
+     * @return collection of failed path info
+     */
+    Iterable<PcePathInfo> getFailedPathInfos();
 
     /**
      * Retrieves node label for specified device id.
@@ -145,6 +168,13 @@ public interface PceStore {
     void addTunnelInfo(TunnelId tunnelId, PceccTunnelInfo pceccTunnelInfo);
 
     /**
+     * Stores path information into failed path info store.
+     *
+     * @param failedPathInfo failed path information
+     */
+    void addFailedPathInfo(PcePathInfo failedPathInfo);
+
+    /**
      * Updates local label info. The first entry is created with TunnelId and TunnelConsumerId.
      * Later this entry may be updated to store label information if it is basic PCECC case.
      *
@@ -186,4 +216,12 @@ public interface PceStore {
      * @return success or failure
      */
     boolean removeTunnelInfo(TunnelId tunnelId);
+
+    /**
+     * Removes path info from failed path info store.
+     *
+     * @param failedPathInfo failed path information
+     * @return success or failure
+     */
+    boolean removeFailedPathInfo(PcePathInfo failedPathInfo);
 }
