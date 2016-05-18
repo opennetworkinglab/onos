@@ -18,26 +18,25 @@ package org.onosproject.net.resource;
 import com.google.common.annotations.Beta;
 
 /**
- * Represents the common interface to encode a discrete resource to an integer,
- * and to decode an integer to a discrete resource.
+ * Represents the common interface to encode an object of the specified type to an integer,
+ * and to decode an integer to an object of the specified type.
  * This class is intended to be used only by the ResourceService implementation.
  */
 @Beta
-public interface DiscreteResourceCodec {
+public interface DiscreteResourceCodec<T> {
     /**
-     * Encodes the specified discrete resource to an integer.
+     * Encodes the specified object to an integer.
      *
      * @param resource resource
      * @return encoded integer
      */
-    int encode(DiscreteResource resource);
+    int encode(T resource);
 
     /**
-     * Decodes the specified integer to a discrete resource.
+     * Decodes the specified integer to an object.
      *
-     * @param parent parent of the returned resource
      * @param value encoded integer
      * @return decoded discrete resource
      */
-    DiscreteResource decode(DiscreteResourceId parent, int value);
+    T decode(int value);
 }

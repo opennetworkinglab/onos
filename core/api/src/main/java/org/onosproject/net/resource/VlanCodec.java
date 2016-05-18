@@ -18,25 +18,19 @@ package org.onosproject.net.resource;
 import com.google.common.annotations.Beta;
 import org.onlab.packet.VlanId;
 
-import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkArgument;
-
 /**
  * Codec for Vlan.
  */
 @Beta
-public final class VlanCodec implements DiscreteResourceCodec {
+public final class VlanCodec implements DiscreteResourceCodec<VlanId> {
     @Override
-    public int encode(DiscreteResource resource) {
-        Optional<VlanId> vlan = resource.valueAs(VlanId.class);
-        checkArgument(vlan.isPresent());
-        return vlan.map(x -> (int) x.toShort()).get();
+    public int encode(VlanId resource) {
+        return resource.toShort();
     }
 
     @Override
-    public DiscreteResource decode(DiscreteResourceId parent, int value) {
-        return Resources.discrete(parent, VlanId.vlanId((short) value)).resource();
+    public VlanId decode(int value) {
+        return VlanId.vlanId((short) value);
     }
 
     @Override
