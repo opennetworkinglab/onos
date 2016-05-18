@@ -31,14 +31,20 @@ public class PceWebLink extends BiLink {
 
     private boolean primary;
     private boolean secondary;
+
     /**
-     * Initialize the Link key attributes.
+     * Initialize the Link and key attributes.
+     * @param key the link key identifier
+     * @param link the link to be highlighted.
      */
     public PceWebLink(LinkKey key, Link link) {
         super(key, link);
     }
-    /**
+
+     /**
      * Highlight the color of given selected links.
+     * @param selectedLinks the primary links
+     * @param allLinks the secondary links
      */
     public void computeHilight(Set<Link> selectedLinks, Set<Link> allLinks) {
         primary = selectedLinks.contains(this.one()) ||
