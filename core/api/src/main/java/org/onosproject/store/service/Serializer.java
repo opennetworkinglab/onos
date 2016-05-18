@@ -50,7 +50,18 @@ public interface Serializer {
      * @return Serializer instance
      */
     static Serializer using(KryoNamespace kryo) {
-        return using(Arrays.asList(kryo));
+        return new Serializer() {
+
+            @Override
+            public <T> byte[] encode(T object) {
+                return kryo.serialize(object);
+            }
+
+            @Override
+            public <T> T decode(byte[] bytes) {
+                return kryo.deserialize(bytes);
+            }
+        };
     }
 
     /**
