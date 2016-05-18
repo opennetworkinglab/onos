@@ -277,7 +277,7 @@ public final class KryoNamespaces {
             .register(char[].class)
             .register(String[].class)
             .register(boolean[].class)
-            .build();
+            .build("BASIC");
 
     /**
      * KryoNamespace which can serialize ON.lab misc classes.
@@ -297,7 +297,7 @@ public final class KryoNamespaces {
             .register(Bandwidth.class)
             .register(Bandwidth.bps(1L).getClass())
             .register(Bandwidth.bps(1.0).getClass())
-            .build();
+            .build("MISC");
 
     /**
      * Kryo registration Id for user custom registration.
@@ -542,7 +542,7 @@ public final class KryoNamespaces {
             .register(VlanCodec.class)
             .register(MplsCodec.class)
             .register(NoOpCodec.class)
-            .build();
+            .build("API");
 
 
     // not to be instantiated
