@@ -15,99 +15,31 @@
  */
 package org.onosproject.store.resource.impl;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Sets;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
-import org.onosproject.net.resource.Resources;
 
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-final class DiscreteResources {
-    private final Set<DiscreteResource> values;
-
+interface DiscreteResources {
     static DiscreteResources empty() {
-        return new DiscreteResources();
+        return NonEncodableDiscreteResources.empty();
     }
 
-    private DiscreteResources() {
-        this.values = new LinkedHashSet<>();
-    }
+    Optional<DiscreteResource> lookup(DiscreteResourceId id);
 
-    DiscreteResources(List<DiscreteResource> values) {
-        this.values = new LinkedHashSet<>(values);
-    }
+    DiscreteResources difference(DiscreteResources other);
 
-    private DiscreteResources(Set<DiscreteResource> values) {
-        this.values = values;
-    }
+    boolean isEmpty();
 
-    Optional<DiscreteResource> lookup(DiscreteResourceId id) {
-        DiscreteResource resource = Resources.discrete(id).resource();
-        if (values.contains(resource)) {
-            return Optional.of(resource);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    DiscreteResources difference(DiscreteResources other) {
-        return new DiscreteResources(Sets.difference(this.values, other.values));
-    }
-
-    boolean isEmpty() {
-        return values.isEmpty();
-    }
-
-    boolean containsAny(List<DiscreteResource> other) {
-        return other.stream().anyMatch(values::contains);
-    }
+    boolean containsAny(List<DiscreteResource> other);
 
     // returns a new instance, not mutate the current instance
-    DiscreteResources add(DiscreteResources other) {
-        Set<DiscreteResource> newValues = new LinkedHashSet<>(this.values);
-        newValues.addAll(other.values);
-        return new DiscreteResources(newValues);
-    }
+    DiscreteResources add(DiscreteResources other);
 
     // returns a new instance, not mutate the current instance
-    DiscreteResources remove(List<DiscreteResource> removed) {
-        Set<DiscreteResource> newValues = new LinkedHashSet<>(this.values);
-        newValues.removeAll(removed);
-        return new DiscreteResources(newValues);
-    }
+    DiscreteResources remove(List<DiscreteResource> removed);
 
-    Set<DiscreteResource> values() {
-        // breaks immutability, but intentionally returns the field
-        // because this class is transient
-        return values;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(values);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final DiscreteResources other = (DiscreteResources) obj;
-        return Objects.equals(this.values, other.values);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("values", values)
-                .toString();
-    }
+    Set<DiscreteResource> values();
 }
