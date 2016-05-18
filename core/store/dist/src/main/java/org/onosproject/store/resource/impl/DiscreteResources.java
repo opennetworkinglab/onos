@@ -32,7 +32,17 @@ interface DiscreteResources {
      * @return a empty set.
      */
     static DiscreteResources empty() {
-        return NonEncodableDiscreteResources.empty();
+        return UnifiedDiscreteResources.empty();
+    }
+
+    /**
+     * Create an instace from the specified resources.
+     *
+     * @param resources resources
+     * @return instance
+     */
+    static DiscreteResources of(List<DiscreteResource> resources) {
+        return UnifiedDiscreteResources.of(resources);
     }
 
     /**

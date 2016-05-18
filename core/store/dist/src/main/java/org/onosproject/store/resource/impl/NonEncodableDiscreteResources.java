@@ -34,11 +34,15 @@ final class NonEncodableDiscreteResources implements DiscreteResources {
         return new NonEncodableDiscreteResources();
     }
 
+    static NonEncodableDiscreteResources of(List<DiscreteResource> resources) {
+        return new NonEncodableDiscreteResources(resources);
+    }
+
     private NonEncodableDiscreteResources() {
         this.values = new LinkedHashSet<>();
     }
 
-    NonEncodableDiscreteResources(List<DiscreteResource> values) {
+    private NonEncodableDiscreteResources(List<DiscreteResource> values) {
         this.values = new LinkedHashSet<>(values);
     }
 
