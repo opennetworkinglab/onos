@@ -5,8 +5,9 @@ COMPILE_DEPS = [
 ]
 
 BUNDLES = [
-    '//apps/routing-api:onos-apps-routing-api',
     '//apps/sdnip:onos-apps-sdnip',
+    '//apps/routing-api:onos-apps-routing-api',
+    '//apps/routing:onos-apps-routing',
 ]
 
 TEST_DEPS = [
@@ -25,5 +26,6 @@ onos_app (
   category = 'Utility',
   url = 'http://onosproject.org',
   included_bundles = BUNDLES,
+  required_apps = [ 'org.onosproject.proxyarp' ],
   description = 'SDN-IP peering application',
 )
