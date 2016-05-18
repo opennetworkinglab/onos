@@ -88,6 +88,8 @@ public class EventuallyConsistentMapImplTest {
             = new MessageSubject("ecm-" + MAP_NAME + "-update");
     private static final MessageSubject ANTI_ENTROPY_MESSAGE_SUBJECT
             = new MessageSubject("ecm-" + MAP_NAME + "-anti-entropy");
+    private static final MessageSubject UPDATE_REQUEST_SUBJECT
+            = new MessageSubject("ecm-" + MAP_NAME + "-update-request");
 
     private static final String KEY1 = "one";
     private static final String KEY2 = "two";
@@ -98,6 +100,7 @@ public class EventuallyConsistentMapImplTest {
             new DefaultControllerNode(new NodeId("local"), IpAddress.valueOf(1));
 
     private Consumer<Collection<UpdateEntry<String, String>>> updateHandler;
+    private Consumer<Collection<UpdateRequest<String>>> requestHandler;
     private Function<AntiEntropyAdvertisement<String>, AntiEntropyResponse> antiEntropyHandler;
 
     @Before
@@ -122,6 +125,9 @@ public class EventuallyConsistentMapImplTest {
                                                           anyObject(Function.class),
                                                           anyObject(Function.class),
                                                           anyObject(Executor.class));
+        expectLastCall().andDelegateTo(new TestClusterCommunicationService()).times(1);
+        clusterCommunicator.<Object>addSubscriber(anyObject(MessageSubject.class),
+                anyObject(Function.class), anyObject(Consumer.class), anyObject(Executor.class));
         expectLastCall().andDelegateTo(new TestClusterCommunicationService()).times(1);
 
         replay(clusterCommunicator);
@@ -627,6 +633,7 @@ public class EventuallyConsistentMapImplTest {
     @Test
     public void testDestroy() throws Exception {
         clusterCommunicator.removeSubscriber(UPDATE_MESSAGE_SUBJECT);
+        clusterCommunicator.removeSubscriber(UPDATE_REQUEST_SUBJECT);
         clusterCommunicator.removeSubscriber(ANTI_ENTROPY_MESSAGE_SUBJECT);
 
         replay(clusterCommunicator);
@@ -774,6 +781,8 @@ public class EventuallyConsistentMapImplTest {
                 Executor executor) {
             if (subject.equals(UPDATE_MESSAGE_SUBJECT)) {
                 updateHandler = (Consumer<Collection<UpdateEntry<String, String>>>) handler;
+            } else if (subject.equals(UPDATE_REQUEST_SUBJECT)) {
+                requestHandler = (Consumer<Collection<UpdateRequest<String>>>) handler;
             } else {
                 throw new RuntimeException("Unexpected message subject " + subject.toString());
             }
