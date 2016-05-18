@@ -2,7 +2,7 @@
 """
   Generate the partitions json file from the $OC* environment variables
 
-  Usage: onos-gen-partitions [output file]
+  Usage: onos-gen-partitions [output file] [node_ip ...]
   If output file is not provided, the json is written to stdout.
 """
 
@@ -48,7 +48,7 @@ def generate_extended_partitions(nodes, k):
   return perms
 
 if __name__ == '__main__':
-  nodes = get_nodes(sys.argv[1:])
+  nodes = get_nodes(sys.argv[2:])
   base_partition = generate_base_partition([v.get('id') for v in nodes])
   extended_partitions = generate_extended_partitions([v.get('id') for v in nodes], 3)
   partitions = []
