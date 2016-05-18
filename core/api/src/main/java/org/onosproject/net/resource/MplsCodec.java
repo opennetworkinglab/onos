@@ -18,25 +18,19 @@ package org.onosproject.net.resource;
 import com.google.common.annotations.Beta;
 import org.onlab.packet.MplsLabel;
 
-import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkArgument;
-
 /**
  * Codec for MplsLabel.
  */
 @Beta
-public final class MplsCodec implements DiscreteResourceCodec {
+public final class MplsCodec implements DiscreteResourceCodec<MplsLabel> {
     @Override
-    public int encode(DiscreteResource resource) {
-        Optional<MplsLabel> mpls = resource.valueAs(MplsLabel.class);
-        checkArgument(mpls.isPresent());
-        return mpls.map(MplsLabel::toInt).get();
+    public int encode(MplsLabel resource) {
+        return resource.toInt();
     }
 
     @Override
-    public DiscreteResource decode(DiscreteResourceId parent, int value) {
-        return Resources.discrete(parent, MplsLabel.mplsLabel(value)).resource();
+    public MplsLabel decode(int value) {
+        return MplsLabel.mplsLabel(value);
     }
 
     @Override

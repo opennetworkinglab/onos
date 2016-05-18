@@ -19,16 +19,16 @@ package org.onosproject.net.resource;
  * Represents no-op codec intended to used in an empty discrete resource set only.
  * It's not supposed to be used by other classes.
  */
-public class NoOpCodec implements DiscreteResourceCodec {
+public class NoOpCodec implements DiscreteResourceCodec<Object> {
     public static final DiscreteResourceCodec INSTANCE = new NoOpCodec();
 
     @Override
-    public int encode(DiscreteResource resource) {
+    public int encode(Object resource) {
         return 0;
     }
 
     @Override
-    public DiscreteResource decode(DiscreteResourceId parent, int value) {
+    public Object decode(int value) {
         return Resource.ROOT;
     }
 

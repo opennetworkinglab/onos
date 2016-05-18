@@ -24,6 +24,7 @@ import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.Range;
 import com.google.common.collect.TreeRangeSet;
 import org.onlab.util.ClosedOpenRange;
+import org.onlab.util.Tools;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,8 @@ public final class DiscreteResourceSetSerializer extends Serializer<DiscreteReso
     public void write(Kryo kryo, Output output, DiscreteResourceSet object) {
         TreeRangeSet<Integer> rangeSet = TreeRangeSet.create();
         object.values().stream()
+                .map(x -> x.valueAs(Object.class))
+                .flatMap(Tools::stream)
                 .map(x -> object.codec().encode(x))
                 .map(Range::singleton)
                 .map(x -> x.canonical(DiscreteDomain.integers()))
@@ -70,7 +73,8 @@ public final class DiscreteResourceSetSerializer extends Serializer<DiscreteReso
 
         Set<DiscreteResource> resources = ranges.stream()
                 .flatMapToInt(x -> IntStream.range(x.lowerBound(), x.upperBound()))
-                .mapToObj(x -> codec.decode(parent, x))
+                .mapToObj(x -> codec.decode(x))
+                .map(x -> Resources.discrete(parent, x).resource())
                 .collect(Collectors.toSet());
 
         return DiscreteResourceSet.of(resources, codec);
