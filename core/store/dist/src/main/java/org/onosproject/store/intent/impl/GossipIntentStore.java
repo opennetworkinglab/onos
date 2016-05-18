@@ -91,9 +91,9 @@ public class GossipIntentStore
     public void activate() {
         KryoNamespace.Builder intentSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
+                .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
                 .register(IntentData.class)
-                .register(MultiValuedTimestamp.class)
-                .register(WallClockTimestamp.class);
+                .register(MultiValuedTimestamp.class);
 
         currentMap = storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
                 .withName("intent-current")

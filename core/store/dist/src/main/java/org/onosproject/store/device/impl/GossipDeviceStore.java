@@ -231,8 +231,8 @@ public class GossipDeviceStore
         // Create a distributed map for port stats.
         KryoNamespace.Builder deviceDataSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
-                .register(MultiValuedTimestamp.class)
-                .register(WallClockTimestamp.class);
+                .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
+                .register(MultiValuedTimestamp.class);
 
         devicePortStats = storageService.<DeviceId, Map<PortNumber, PortStatistics>>eventuallyConsistentMapBuilder()
                 .withName("port-stats")

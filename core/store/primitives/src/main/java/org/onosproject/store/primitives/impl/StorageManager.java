@@ -35,7 +35,6 @@ import org.onosproject.cluster.PartitionId;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
-import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionService;
 import org.onosproject.store.primitives.TransactionId;
@@ -103,8 +102,6 @@ public class StorageManager implements StorageService, StorageAdminService {
         transactions = this.<TransactionId, Transaction.State>consistentMapBuilder()
                     .withName("onos-transactions")
                     .withSerializer(Serializer.using(KryoNamespaces.API,
-                            MapUpdate.class,
-                            MapUpdate.Type.class,
                             Transaction.class,
                             Transaction.State.class))
                     .buildAsyncMap();

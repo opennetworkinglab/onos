@@ -32,7 +32,6 @@ import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
-import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterState;
@@ -103,8 +102,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                                      Band.Type.class,
                                                      MeterState.class,
                                                      Meter.Unit.class,
-                                                     MeterFailReason.class,
-                                                     MeterId.class)).build();
+                                                     MeterFailReason.class)).build();
 
         meters.addListener(mapListener);
 

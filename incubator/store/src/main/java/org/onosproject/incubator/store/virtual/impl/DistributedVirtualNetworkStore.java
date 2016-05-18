@@ -42,8 +42,6 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStoreDelegate;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultDevice;
-import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -133,10 +131,9 @@ public class DistributedVirtualNetworkStore
                            .register(VirtualPort.class)
                            .register(DefaultVirtualPort.class)
                            .register(Device.class)
-                           .register(DefaultDevice.class)
-                           .register(DefaultPort.class)
                            .register(TunnelId.class)
-                           .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID).build());
+                           .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
+                           .build("VirtualNetworkStore"));
 
     /**
      * Distributed network store service activate method.
