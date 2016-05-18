@@ -169,7 +169,7 @@ class Warden {
     synchronized String borrowCell(String userName, String sshKey, int minutes,
                                    String cellSpec) {
         checkNotNull(userName, USER_NOT_NULL);
-        checkArgument(userName.matches("[\\w]+"), "Invalid user name %s", userName);
+        checkArgument(userName.matches("[\\w.-]+"), "Invalid user name %s", userName);
         checkNotNull(sshKey, KEY_NOT_NULL);
         checkArgument(minutes < MAX_MINUTES, "Number of minutes must be less than %d", MAX_MINUTES);
         checkArgument(minutes >= 0, "Number of minutes must be non-negative");
