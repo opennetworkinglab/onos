@@ -1,0 +1,74 @@
+#!/bin/bash
+CHECKSTYLE=$1
+FILES=$2
+CONFIG=$3
+SUPPRESSIONS=$4
+
+PORT_FILE="$1.port"
+
+function ppid() {
+    ps -p ${1:-$$} -o ppid= -o pid= -o comm=
+}
+
+function buck_pid() {
+    BUCK_PID=($(ppid))
+    while [ ${BUCK_PID[0]} -ne 0 ]; do
+        BUCK_PID=($(ppid $BUCK_PID))
+        if [ "${BUCK_PID[2]}" == "buck" ]; then
+            # use parent PID of buck
+            echo ${BUCK_PID[0]}
+            return
+        fi
+        if [ "${BUCK_PID[2]}" == "buckd" ] ||
+           [[ "${BUCK_PID[2]}" == *"python"* ]]; then
+            # use PID of buckd or python
+            echo ${BUCK_PID[1]}
+            return
+        fi
+    done
+    # fallback last read PID
+    echo ${BUCK_PID[1]}
+}
+
+function port() {
+    cat $PORT_FILE 2>/dev/null || echo 0
+}
+
+function check_socket() {
+    nc localhost $(port) < /dev/null 2>/dev/null
+    return $?
+}
+
+# check to see if checkstyle daemon is running; if not, start it
+if ! check_socket; then
+    # Starting checkstyle server...
+    #FIXME change to /dev/null if/when we are confident
+    nohup java -jar $CHECKSTYLE $PORT_FILE $(buck_pid) $3 $4 >>/tmp/checkstyle.daemon 2>&1 &
+
+    TRIES=20
+    i=0
+    # Wait for checkstyle server to start for 2 seconds
+    while [ $i -lt $TRIES ]; do
+        if check_socket; then
+            CONNECTED=true
+            break
+        fi
+        let i=i+1
+        sleep 0.1
+    done
+    if [ -z "$CONNECTED" ]; then
+        echo "Failed to start checkstyle server"
+        exit 3
+    fi
+fi
+
+# run the actual checkstyle client
+OUT=$(cat $FILES | nc localhost $(port))
+if [ $? -ne 0 ]; then
+    echo "Error connecting to checkstyle server"
+    exit 2
+fi
+if [ -n "$OUT" ]; then
+    printf "$OUT"
+    exit 1
+fi

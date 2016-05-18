@@ -110,39 +110,29 @@ def osgi_jar(
 
   ### Checkstyle
   if srcs:
-    chk_cmd = '#!/bin/bash\n'
     base = get_base_path()
-    chk_cmd += 'OUT=$3\n'
-    chk_cmd += ' '.join(( 'java -jar $1',
-                          '-c $2',
-                          ' '.join(['%s/%s' % (base, s) for s in srcs]) ))
-    chk_cmd += ' | tee $OUT'
-    chk_cmd += ' | grep -E "^.*[0-9]+:[0-9]+: error:"'
-    chk_cmd += ' | sed "s#^.*%s/#%s:#g"\n' % (base, name)
-    chk_cmd += 'RESULT=(${PIPESTATUS[*]})\n' # RESULT[0] is checkstyle result, RESULT[2] is grep
-    chk_cmd += 'test ${RESULT[2]} -eq 0 || cat $OUT\n'
-    chk_cmd += 'rm $OUT\n'
-    chk_cmd += 'exit ${RESULT[0]}'
+    files = base + '\n' + '\n'.join(['%s/%s' % (base, s) for s in srcs])
 
     genrule(
-      name = name + '-checkstyle-sh',
-      bash = "echo '%s' > $OUT && chmod +x $OUT" % chk_cmd,
+      name = name + '-checkstyle-files',
+      bash = "echo '%s' > $OUT" % files,
       srcs = srcs,
-      out = 'checkstyle.sh',
+      out = 'checkstyle-files.txt',
     )
 
     sh_test(
       name = name + '-checkstyle',
-      test = ':' + name + '-checkstyle-sh',
-      args = [
-               '$(location //lib:checkstyle)',
-               '$(location //tools/build/conf:checkstyle-xml)',
-               '`mktemp /tmp/%s-checkstyle-XXXXXX`' % name,
-             ],
+      test = '//tools/build/conf:start-checkstyle',
       deps = [
                ':'+ bare_jar_name,
-               '//tools/build/conf:suppressions-xml',
              ],
+      args = [
+                '$(location //tools/build/conf:checkstyle-jar)',
+                '$(location :' + name + '-checkstyle-files)',
+                '$(location //tools/build/conf:checkstyle-xml)',
+                '$(location //tools/build/conf:suppressions-xml)',
+             ],
+      test_rule_timeout_ms = 20000,
       labels = [ 'checkstyle' ],
     )
   else:
@@ -219,4 +209,6 @@ def osgi_jar_with_tests(
     resources = test_resources,
     resources_root = test_resources_root,
     visibility = visibility
-    )
+  )
+
+  #FIXME need to run checkstyle on test sources
