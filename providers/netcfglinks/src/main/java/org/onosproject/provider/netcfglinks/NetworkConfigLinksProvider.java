@@ -446,7 +446,6 @@ public class NetworkConfigLinksProvider
 
         @Override
         public void event(NetworkConfigEvent event) {
-
             if (event.configClass().equals(BasicLinkConfig.class)) {
                 log.info("net config event of type {} for basic link {}",
                          event.type(), event.subject());
@@ -456,8 +455,8 @@ public class NetworkConfigLinksProvider
                 } else if (event.type() == NetworkConfigEvent.Type.CONFIG_REMOVED) {
                     removeLink(linkKey);
                 }
+                log.info("Link reconfigured");
             }
-            log.info("Reconfigured");
         }
     }
 
