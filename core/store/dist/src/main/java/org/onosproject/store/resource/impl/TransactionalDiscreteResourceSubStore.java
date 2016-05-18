@@ -59,7 +59,7 @@ class TransactionalDiscreteResourceSubStore {
             return true;
         }
 
-        DiscreteResources requested = new NonEncodableDiscreteResources(values);
+        DiscreteResources requested = DiscreteResources.of(values);
         DiscreteResources oldValues = childMap.putIfAbsent(key, requested);
         if (oldValues == null) {
             return true;
