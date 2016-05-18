@@ -19,7 +19,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
-// TODO: To be replaced with SerializationService from IOLoop activity
+import org.onlab.util.KryoNamespace;
+
 /**
  * Service to serialize Objects into byte array.
  */
@@ -84,4 +85,50 @@ public interface StoreSerializer {
      * @param <T> object type
      */
     <T> T copy(final T object);
+
+    /**
+     * Creates a new StoreSerializer instance from a KryoNamespace.
+     *
+     * @param ns kryo namespace
+     * @return StoreSerializer instance
+     */
+    static StoreSerializer using(KryoNamespace ns) {
+        return new StoreSerializer() {
+
+            @Override
+            public void encode(Object obj, OutputStream stream) {
+                ns.serialize(obj, stream);
+            }
+
+            @Override
+            public void encode(Object obj, ByteBuffer buffer) {
+                ns.serialize(obj, buffer);
+            }
+
+            @Override
+            public byte[] encode(Object obj) {
+                return ns.serialize(obj);
+            }
+
+            @Override
+            public <T> T decode(InputStream stream) {
+                return ns.deserialize(stream);
+            }
+
+            @Override
+            public <T> T decode(ByteBuffer buffer) {
+                return ns.deserialize(buffer);
+            }
+
+            @Override
+            public <T> T decode(byte[] bytes) {
+                return ns.deserialize(bytes);
+            }
+
+            @Override
+            public <T> T copy(T object) {
+                return ns.run(kryo -> kryo.copy(object));
+            }
+        };
+    }
 }

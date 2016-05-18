@@ -63,7 +63,7 @@ import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.impl.Timestamped;
-import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
 import org.slf4j.Logger;
 
@@ -145,10 +145,8 @@ public class GossipLinkStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
-    protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
+    protected static final StoreSerializer SERIALIZER = StoreSerializer.using(
+            KryoNamespace.newBuilder()
                     .register(DistributedStoreSerializers.STORE_COMMON)
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
                     .register(InternalLinkEvent.class)
@@ -156,9 +154,7 @@ public class GossipLinkStore
                     .register(LinkAntiEntropyAdvertisement.class)
                     .register(LinkFragmentId.class)
                     .register(LinkInjectedEvent.class)
-                    .build();
-        }
-    };
+                    .build("GossipLink"));
 
     private ExecutorService executor;
 

@@ -25,7 +25,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
@@ -40,7 +39,7 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.statistic.StatisticStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -95,16 +94,7 @@ public class DistributedStatisticStore implements StatisticStore {
     private Map<ConnectPoint, Set<FlowEntry>> current =
             new ConcurrentHashMap<>();
 
-    protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
-                    .register(KryoNamespaces.API)
-                    .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
-                    // register this store specific classes here
-                    .build();
-        }
-    };
+    protected static final StoreSerializer SERIALIZER = StoreSerializer.using(KryoNamespaces.API);
 
     private ExecutorService messageHandlingExecutor;
 

@@ -58,7 +58,6 @@ import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.StoreSerializer;
 import org.slf4j.Logger;
 
@@ -107,17 +106,13 @@ public class ConsistentDeviceMastershipStore
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final int WAIT_BEFORE_MASTERSHIP_HANDOFF_MILLIS = 3000;
 
-    public static final StoreSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
+    public static final StoreSerializer SERIALIZER = StoreSerializer.using(
+            KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
                     .register(MastershipRole.class)
                     .register(MastershipEvent.class)
                     .register(MastershipEvent.Type.class)
-                    .build();
-        }
-    };
+                    .build("MastershipStore"));
 
     @Activate
     public void activate() {

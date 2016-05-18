@@ -43,7 +43,7 @@ import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.cluster.messaging.MessagingService;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -90,16 +90,12 @@ public class DistributedClusterStore
             label = "the value of Phi threshold to detect accrual failure")
     private int phiFailureThreshold = DEFAULT_PHI_FAILURE_THRESHOLD;
 
-    private static final KryoSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
+    private static final StoreSerializer SERIALIZER = StoreSerializer.using(
+                  KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
+                    .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
                     .register(HeartbeatMessage.class)
-                    .build()
-                    .populate(1);
-        }
-    };
+                    .build("ClusterStore"));
 
     private static final String INSTANCE_ID_NULL = "Instance ID cannot be null";
 

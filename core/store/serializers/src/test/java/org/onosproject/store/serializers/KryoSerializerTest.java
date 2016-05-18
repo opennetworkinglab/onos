@@ -84,7 +84,6 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
-import org.onlab.util.KryoNamespace;
 import org.onosproject.net.resource.VlanCodec;
 
 import java.nio.ByteBuffer;
@@ -130,7 +129,7 @@ public class KryoSerializerTest {
             GridType.DWDM, ChannelSpacing.CHL_100GHZ, -8, 4);
     private static final VlanId VLAN1 = VlanId.vlanId((short) 100);
 
-    private KryoSerializer serializer;
+    private StoreSerializer serializer;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -138,16 +137,7 @@ public class KryoSerializerTest {
 
     @Before
     public void setUp() throws Exception {
-        serializer = new KryoSerializer() {
-
-            @Override
-            protected void setupKryoPool() {
-                serializerPool = KryoNamespace.newBuilder()
-                        .register(KryoNamespaces.API)
-                        .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
-                        .build();
-            }
-        };
+        serializer = StoreSerializer.using(KryoNamespaces.API);
     }
 
     @After

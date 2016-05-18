@@ -26,7 +26,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
@@ -41,7 +40,7 @@ import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.Serializer;
@@ -95,15 +94,7 @@ public class DistributedPacketStore
     private static final MessageSubject PACKET_OUT_SUBJECT =
             new MessageSubject("packet-out");
 
-    private static final KryoSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
-                    .register(KryoNamespaces.API)
-                    .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
-                    .build();
-        }
-    };
+    private static final StoreSerializer SERIALIZER = StoreSerializer.using(KryoNamespaces.API);
 
     private ExecutorService messageHandlingExecutor;
 

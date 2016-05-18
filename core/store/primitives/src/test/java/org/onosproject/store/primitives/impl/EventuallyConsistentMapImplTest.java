@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -58,19 +57,15 @@ import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.persistence.PersistenceService;
-import org.onosproject.store.LogicalTimestamp;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapter;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.persistence.TestPersistenceService;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
-import org.onosproject.store.service.WallClockTimestamp;
-
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -104,31 +99,6 @@ public class EventuallyConsistentMapImplTest {
 
     private Consumer<Collection<UpdateEntry<String, String>>> updateHandler;
     private Function<AntiEntropyAdvertisement<String>, AntiEntropyResponse> antiEntropyHandler;
-
-    /*
-     * Serialization is a bit tricky here. We need to serialize in the tests
-     * to set the expectations, which will use this serializer here, but the
-     * EventuallyConsistentMap will use its own internal serializer. This means
-     * this serializer must be set up exactly the same as map's internal
-     * serializer.
-     */
-    private static final KryoSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
-                    // Classes we give to the map
-                    .register(KryoNamespaces.API)
-                    .register(TestTimestamp.class)
-                    // Below is the classes that the map internally registers
-                    .register(LogicalTimestamp.class)
-                    .register(WallClockTimestamp.class)
-                    .register(ArrayList.class)
-                    .register(AntiEntropyAdvertisement.class)
-                    .register(HashMap.class)
-                    .register(Optional.class)
-                    .build();
-        }
-    };
 
     @Before
     public void setUp() throws Exception {

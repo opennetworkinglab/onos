@@ -25,7 +25,10 @@ import com.google.common.base.MoreObjects;
 
 /**
  * StoreSerializer implementation using Kryo.
+ *
+ * @deprecated in Goldeneye (1.6.0)
  */
+@Deprecated
 public class KryoSerializer implements StoreSerializer {
 
     protected KryoNamespace serializerPool;

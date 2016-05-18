@@ -54,7 +54,7 @@ import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.KryoSerializer;
+import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
@@ -83,7 +83,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
     private final ClusterService clusterService;
     private final ClusterCommunicationService clusterCommunicator;
-    private final KryoSerializer serializer;
+    private final StoreSerializer serializer;
     private final NodeId localNodeId;
     private final PersistenceService persistenceService;
 
@@ -268,12 +268,8 @@ public class EventuallyConsistentMapImpl<K, V>
         this.lightweightAntiEntropy = !convergeFaster;
     }
 
-    private KryoSerializer createSerializer(KryoNamespace.Builder builder) {
-        return new KryoSerializer() {
-            @Override
-            protected void setupKryoPool() {
-                // Add the map's internal helper classes to the user-supplied serializer
-                serializerPool = builder
+    private StoreSerializer createSerializer(KryoNamespace.Builder builder) {
+        return StoreSerializer.using(builder
                         .register(KryoNamespaces.BASIC)
                         .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
                         .register(LogicalTimestamp.class)
@@ -283,9 +279,7 @@ public class EventuallyConsistentMapImpl<K, V>
                         .register(UpdateEntry.class)
                         .register(MapValue.class)
                         .register(MapValue.Digest.class)
-                        .build();
-            }
-        };
+                        .build(name()));
     }
 
     @Override
@@ -340,7 +334,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
         MapValue<V> newValue = new MapValue<>(value, timestampProvider.apply(key, value));
         if (putInternal(key, newValue)) {
-            notifyPeers(new UpdateEntry<K, V>(key, newValue), peerUpdateFunction.apply(key, value));
+            notifyPeers(new UpdateEntry<>(key, newValue), peerUpdateFunction.apply(key, value));
             notifyListeners(new EventuallyConsistentMapEvent<>(mapName, PUT, key, value));
         }
     }
@@ -595,7 +589,7 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     private AntiEntropyAdvertisement<K> createAdvertisement() {
-        return new AntiEntropyAdvertisement<K>(localNodeId,
+        return new AntiEntropyAdvertisement<>(localNodeId,
                 ImmutableMap.copyOf(Maps.transformValues(items, MapValue::digest)));
     }
 

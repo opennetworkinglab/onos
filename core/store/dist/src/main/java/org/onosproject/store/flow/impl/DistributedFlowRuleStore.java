@@ -67,7 +67,6 @@ package org.onosproject.store.flow.impl;
  import org.onosproject.store.flow.ReplicaInfoService;
  import org.onosproject.store.impl.MastershipBasedTimestamp;
  import org.onosproject.store.serializers.KryoNamespaces;
- import org.onosproject.store.serializers.KryoSerializer;
  import org.onosproject.store.serializers.StoreSerializer;
  import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
  import org.onosproject.store.service.EventuallyConsistentMap;
@@ -176,15 +175,11 @@ public class DistributedFlowRuleStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
-    protected static final StoreSerializer SERIALIZER = new KryoSerializer() {
-        @Override
-        protected void setupKryoPool() {
-            serializerPool = KryoNamespace.newBuilder()
+    protected static final StoreSerializer SERIALIZER = StoreSerializer.using(
+            KryoNamespace.newBuilder()
                     .register(DistributedStoreSerializers.STORE_COMMON)
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
-                    .build();
-        }
-    };
+                    .build("FlowRuleStore"));
 
     protected static final KryoNamespace.Builder SERIALIZER_BUILDER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
