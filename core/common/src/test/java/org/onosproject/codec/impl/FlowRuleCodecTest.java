@@ -39,7 +39,12 @@ import org.onosproject.net.OchSignalType;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
@@ -178,11 +183,37 @@ public class FlowRuleCodecTest {
     public void testFlowRuleEncode() {
 
         DeviceId deviceId = DeviceId.deviceId("of:000000000000000a");
+
+        Instruction output = Instructions.createOutput(PortNumber.portNumber(0));
+        Instruction modL2Src = Instructions.modL2Src(MacAddress.valueOf("11:22:33:44:55:66"));
+        Instruction modL2Dst = Instructions.modL2Dst(MacAddress.valueOf("44:55:66:77:88:99"));
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        TrafficTreatment treatment = tBuilder
+                .add(output)
+                .add(modL2Src)
+                .add(modL2Dst)
+                .build();
+
+        Criterion inPort = Criteria.matchInPort(PortNumber.portNumber(0));
+        Criterion ethSrc = Criteria.matchEthSrc(MacAddress.valueOf("11:22:33:44:55:66"));
+        Criterion ethDst = Criteria.matchEthDst(MacAddress.valueOf("44:55:66:77:88:99"));
+        Criterion ethType = Criteria.matchEthType(Ethernet.TYPE_IPV4);
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        TrafficSelector selector = sBuilder
+                .add(inPort)
+                .add(ethSrc)
+                .add(ethDst)
+                .add(ethType)
+                .build();
+
         FlowRule permFlowRule = DefaultFlowRule.builder()
                                                     .withCookie(1)
                                                     .forTable(1)
                                                     .withPriority(1)
                                                     .makePermanent()
+                                                    .withTreatment(treatment)
+                                                    .withSelector(selector)
                                                     .forDevice(deviceId).build();
 
         FlowRule tempFlowRule =  DefaultFlowRule.builder()
@@ -190,6 +221,8 @@ public class FlowRuleCodecTest {
                                                 .forTable(1)
                                                 .withPriority(1)
                                                 .makeTemporary(1000)
+                                                .withTreatment(treatment)
+                                                .withSelector(selector)
                                                 .forDevice(deviceId).build();
 
         ObjectNode permFlowRuleJson = flowRuleCodec.encode(permFlowRule, context);
@@ -260,9 +293,27 @@ public class FlowRuleCodecTest {
                 return false;
             }
 
-            // TODO: need to check traffic treatment
+            // check traffic treatment
+            JsonNode jsonTreatment = jsonNode.get("treatment");
+            TrafficTreatmentCodecTest.TrafficTreatmentJsonMatcher treatmentMatcher =
+                    TrafficTreatmentCodecTest.TrafficTreatmentJsonMatcher
+                            .matchesTrafficTreatment(flowRule.treatment());
 
-            // TODO: need to check selector
+            if (!treatmentMatcher.matches(jsonTreatment)) {
+                description.appendText("treatment is not matched");
+                return false;
+            }
+
+            // check traffic selector
+            JsonNode jsonSelector = jsonNode.get("selector");
+            TrafficSelectorCodecTest.TrafficSelectorJsonMatcher selectorMatcher =
+                    TrafficSelectorCodecTest.TrafficSelectorJsonMatcher
+                            .matchesTrafficSelector(flowRule.selector());
+
+            if (!selectorMatcher.matches(jsonSelector)) {
+                description.appendText("selector is not matched");
+                return false;
+            }
 
             return true;
         }

@@ -95,7 +95,7 @@ public class TrafficTreatmentCodecTest {
         assertThat(types.contains(insts.get(1).type().name()), is(true));
     }
 
-    private static final class TrafficTreatmentJsonMatcher
+    public static final class TrafficTreatmentJsonMatcher
             extends TypeSafeDiagnosingMatcher<JsonNode> {
 
         private final TrafficTreatment trafficTreatment;
@@ -163,19 +163,23 @@ public class TrafficTreatmentCodecTest {
             // check metered
             JsonNode meterNode = getInstNode(jsonInstructions, "METER");
             String jsonMeterId = meterNode != null ? meterNode.get("meterId").asText() : null;
-            String meterId = trafficTreatment.metered().meterId().toString();
-            if (!StringUtils.equals(jsonMeterId, meterId)) {
-                description.appendText("meter id was " + jsonMeterId);
-                return false;
+            if (trafficTreatment.metered() != null) {
+                String meterId = trafficTreatment.metered().meterId().toString();
+                if (!StringUtils.equals(jsonMeterId, meterId)) {
+                    description.appendText("meter id was " + jsonMeterId);
+                    return false;
+                }
             }
 
             // check table transition
             JsonNode tableNode = getInstNode(jsonInstructions, "TABLE");
             String jsonTableId = tableNode != null ? tableNode.get("tableId").asText() : null;
-            String tableId = trafficTreatment.tableTransition().tableId().toString();
-            if (!StringUtils.equals(jsonTableId, tableId)) {
-                description.appendText("table id was " + jsonMeterId);
-                return false;
+            if (trafficTreatment.tableTransition() != null) {
+                String tableId = trafficTreatment.tableTransition().tableId().toString();
+                if (!StringUtils.equals(jsonTableId, tableId)) {
+                    description.appendText("table id was " + jsonMeterId);
+                    return false;
+                }
             }
 
             // TODO: check deferred
