@@ -144,8 +144,6 @@ public class DistributedGroupStore
 
     private final AtomicInteger groupIdGen = new AtomicInteger();
 
-    private KryoNamespace.Builder kryoBuilder = null;
-
     private KryoNamespace clusterMsgSerializer;
 
     @Property(name = "garbageCollect", boolValue = GARBAGE_COLLECT,
@@ -160,8 +158,9 @@ public class DistributedGroupStore
     @Activate
     public void activate() {
         cfgService.registerProperties(getClass());
-        kryoBuilder = new KryoNamespace.Builder()
+        KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
                 .register(KryoNamespaces.API)
+                .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
                 .register(DefaultGroup.class,
                           DefaultGroupBucket.class,
                           DefaultGroupDescription.class,
@@ -169,7 +168,6 @@ public class DistributedGroupStore
                           GroupDescription.Type.class,
                           Group.GroupState.class,
                           GroupBuckets.class,
-                          DefaultGroupId.class,
                           GroupStoreMessage.class,
                           GroupStoreMessage.Type.class,
                           UpdateType.class,
@@ -180,7 +178,8 @@ public class DistributedGroupStore
                           GroupStoreMapKey.class
                 );
 
-        clusterMsgSerializer = kryoBuilder.build();
+        clusterMsgSerializer = kryoBuilder.build("GroupStore");
+        Serializer serializer = Serializer.using(clusterMsgSerializer);
 
         messageHandlingExecutor = Executors.
                 newFixedThreadPool(MESSAGE_HANDLER_THREAD_POOL_SIZE,
@@ -197,7 +196,7 @@ public class DistributedGroupStore
 
         groupStoreEntriesByKey = storageService.<GroupStoreKeyMapKey, StoredGroupEntry>consistentMapBuilder()
                 .withName("onos-group-store-keymap")
-                .withSerializer(Serializer.using(kryoBuilder.build()))
+                .withSerializer(serializer)
                 .build();
         groupStoreEntriesByKey.addListener(new GroupStoreKeyMapListener());
         log.debug("Current size of groupstorekeymap:{}",
@@ -207,7 +206,7 @@ public class DistributedGroupStore
 
         auditPendingReqQueue = storageService.<GroupStoreKeyMapKey, StoredGroupEntry>consistentMapBuilder()
                 .withName("onos-pending-group-keymap")
-                .withSerializer(Serializer.using(kryoBuilder.build()))
+                .withSerializer(serializer)
                 .build();
         log.debug("Current size of pendinggroupkeymap:{}",
                   auditPendingReqQueue.size());
