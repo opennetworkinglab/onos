@@ -27,6 +27,7 @@ import org.onlab.packet.EthType;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.app.ApplicationService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
@@ -85,7 +86,7 @@ public class ControlPlaneRedirectManager {
     private static final int ACL_PRIORITY = 40001;
     private static final int OSPF_IP_PROTO = 0x59;
 
-    private static final String APP_NAME = "org.onosproject.cpredirect";
+    private static final String APP_NAME = "org.onosproject.vrouter";
     private ApplicationId appId;
 
     private ConnectPoint controlPlaneConnectPoint;
@@ -114,6 +115,9 @@ public class ControlPlaneRedirectManager {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ApplicationService applicationService;
+
     private final InternalDeviceListener deviceListener = new InternalDeviceListener();
     private final InternalNetworkConfigListener networkConfigListener =
             new InternalNetworkConfigListener();
@@ -129,7 +133,10 @@ public class ControlPlaneRedirectManager {
         hostService.addListener(hostListener);
         interfaceService.addListener(interfaceListener);
 
-        updateConfig();
+        updateConfig(true);
+        applicationService.registerDeactivateHook(this.appId, () -> {
+            this.updateConfig(false);
+        });
     }
 
     @Deactivate
@@ -140,7 +147,14 @@ public class ControlPlaneRedirectManager {
         interfaceService.removeListener(interfaceListener);
     }
 
-    private void updateConfig() {
+    /**
+     * Installs or removes interface configuration
+     * based on the flag used on activate or deactivate.
+     *
+     * @param operation true on activate application, false on deactivate
+     *            the application
+     **/
+    private void updateConfig(boolean operation) {
         ApplicationId routingAppId =
                 coreService.registerApplication(RoutingService.ROUTER_APP_ID);
 
@@ -156,10 +170,17 @@ public class ControlPlaneRedirectManager {
         ospfEnabled = config.getOspfEnabled();
         interfaces = config.getInterfaces();
 
-        updateDevice();
+        updateDevice(operation);
     }
 
-    private void updateDevice() {
+    /**
+     * Installs or removes interface configuration for each interface
+     * based on the flag used on activate or deactivate.
+     *
+     * @param operation true on activate application, false on deactivate
+     *            the application
+     **/
+    private void updateDevice(boolean operation) {
         if (controlPlaneConnectPoint != null &&
                 deviceService.isAvailable(controlPlaneConnectPoint.deviceId())) {
             DeviceId deviceId = controlPlaneConnectPoint.deviceId();
@@ -167,7 +188,7 @@ public class ControlPlaneRedirectManager {
             interfaceService.getInterfaces().stream()
                     .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
                     .filter(intf -> interfaces.isEmpty() || interfaces.contains(intf.name()))
-                    .forEach(this::provisionInterface);
+                    .forEach(operation ? this::provisionInterface : this::removeInterface);
 
             log.info("Set up interfaces on {}", controlPlaneConnectPoint.deviceId());
         }
@@ -383,7 +404,7 @@ public class ControlPlaneRedirectManager {
                 case DEVICE_AVAILABILITY_CHANGED:
                     if (deviceService.isAvailable(event.subject().id())) {
                         log.info("Device connected {}", event.subject().id());
-                        updateDevice();
+                        updateDevice(true);
                     }
                     break;
                 case DEVICE_UPDATED:
@@ -410,7 +431,7 @@ public class ControlPlaneRedirectManager {
                 switch (event.type()) {
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:
-                    updateConfig();
+                    updateConfig(true);
                     break;
                 case CONFIG_REGISTERED:
                 case CONFIG_UNREGISTERED:

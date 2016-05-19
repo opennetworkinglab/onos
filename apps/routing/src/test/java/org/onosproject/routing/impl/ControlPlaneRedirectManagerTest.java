@@ -24,6 +24,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.app.ApplicationService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.CoreServiceAdapter;
@@ -89,7 +90,7 @@ public class ControlPlaneRedirectManagerTest {
     private static final int OSPF_IP_PROTO = 0x59;
     private CoreService coreService = new TestCoreService();
     private InterfaceService interfaceService;
-    private static final ApplicationId APPID = TestApplicationId.create("org.onosproject.cpredirect");
+    private static final ApplicationId APPID = TestApplicationId.create("org.onosproject.vrouter");
 
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("of:0000000000000001");
 
@@ -111,6 +112,7 @@ public class ControlPlaneRedirectManagerTest {
     private DeviceListener deviceListener;
     private MastershipService mastershipService = new InternalMastershipServiceTest();
     private InterfaceListener interfaceListener;
+    private ApplicationService applicationService;
 
     @Before
     public void setUp() {
@@ -126,6 +128,8 @@ public class ControlPlaneRedirectManagerTest {
         networkConfigService = new TestNetworkConfigService();
         networkConfigService.addListener(networkConfigListener);
         flowObjectiveService = createMock(FlowObjectiveService.class);
+        applicationService = createNiceMock(ApplicationService.class);
+        replay(applicationService);
         setUpFlowObjectiveService();
         controlPlaneRedirectManager.coreService = coreService;
         controlPlaneRedirectManager.flowObjectiveService = flowObjectiveService;
@@ -134,6 +138,7 @@ public class ControlPlaneRedirectManagerTest {
         controlPlaneRedirectManager.deviceService = deviceService;
         controlPlaneRedirectManager.hostService = createNiceMock(HostService.class);
         controlPlaneRedirectManager.mastershipService = mastershipService;
+        controlPlaneRedirectManager.applicationService = applicationService;
         controlPlaneRedirectManager.activate();
         verify(flowObjectiveService);
     }
