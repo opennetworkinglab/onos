@@ -1,0 +1,61 @@
+<script src="app/view/sfcwebTopov/sfcwebTopovDemo.js"></script>
+<script src="app/view/sfcwebTopov/sfcwebTopovOverlay.js"></script>
+
+<style>
+    /* The Modal (background) */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        padding-top: 0px;
+        left: 0px;
+        top: 0;
+        width: 37%;
+        height: 25%;
+        overflow: auto;
+        background-color: none;
+        margin: 178px 0px 0px -8px;
+    }
+
+    /* Modal Content */
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+
+    /* The Close Button */
+    .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+</style>
+
+<!-- The Modal -->
+<div id="myModal" class="modal">
+
+    <!-- Modal content -->
+    <div class="modal-content">
+        <span class="close">×</span>
+            <table id='sfc-info'>
+                <thead>
+                    <td>SFP ID information</td>
+                </thead>
+                    <tbody id='sfc-info-body'>
+
+                    </tbody>
+            </table>
+    </div>
+</div>
