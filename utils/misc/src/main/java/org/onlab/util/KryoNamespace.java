@@ -125,9 +125,11 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
             if (!types.isEmpty()) {
                 if (id != FLOATING_ID && id < blockHeadId + types.size()) {
 
-                    log.warn("requested nextId {} could potentially overlap " +
-                             "with existing registrations {}+{} ",
-                             id, blockHeadId, types.size());
+                    if (log.isWarnEnabled()) {
+                        log.warn("requested nextId {} could potentially overlap " +
+                                 "with existing registrations {}+{} ",
+                                 id, blockHeadId, types.size(), new RuntimeException());
+                    }
                 }
                 blocks.add(new RegistrationBlock(this.blockHeadId, types));
                 types = new ArrayList<>();

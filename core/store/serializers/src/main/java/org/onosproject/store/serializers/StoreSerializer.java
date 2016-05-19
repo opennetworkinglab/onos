@@ -20,11 +20,12 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import org.onlab.util.KryoNamespace;
+import org.onosproject.store.service.Serializer;
 
 /**
  * Service to serialize Objects into byte array.
  */
-public interface StoreSerializer {
+public interface StoreSerializer extends Serializer {
 
     /**
      * Serializes the specified object into bytes.
@@ -32,6 +33,7 @@ public interface StoreSerializer {
      * @param obj object to be serialized
      * @return serialized bytes
      */
+    @Override
     byte[] encode(final Object obj);
 
     /**
@@ -57,6 +59,7 @@ public interface StoreSerializer {
      * @return deserialized object
      * @param <T> decoded type
      */
+    @Override
     <T> T decode(final byte[] bytes);
 
     /**

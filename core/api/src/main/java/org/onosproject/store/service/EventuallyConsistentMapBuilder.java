@@ -67,6 +67,20 @@ public interface EventuallyConsistentMapBuilder<K, V> {
             KryoNamespace.Builder serializerBuilder);
 
     /**
+     * Sets a serializer that can be used to create a serializer that
+     * can serialize both the keys and values put into the map. The serializer
+     * builder should be pre-populated with any classes that will be put into
+     * the map.
+     * <p>
+     * Note: This is a mandatory parameter.
+     * </p>
+     *
+     * @param serializer serializer
+     * @return this EventuallyConsistentMapBuilder
+     */
+    EventuallyConsistentMapBuilder<K, V> withSerializer(KryoNamespace serializer);
+
+    /**
      * Sets the function to use for generating timestamps for map updates.
      * <p>
      * The client must provide an {@code BiFunction<K, V, Timestamp>}

@@ -58,7 +58,6 @@ import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
-import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +137,7 @@ public class EventuallyConsistentMapImpl<K, V>
      * @param mapName               a String identifier for the map.
      * @param clusterService        the cluster service
      * @param clusterCommunicator   the cluster communications service
-     * @param serializerBuilder     a Kryo namespace builder that can serialize
+     * @param serializer            a Kryo namespace that can serialize
      *                              both K and V
      * @param timestampProvider     provider of timestamps for K and V
      * @param peerUpdateFunction    function that provides a set of nodes to immediately
@@ -159,7 +158,7 @@ public class EventuallyConsistentMapImpl<K, V>
     EventuallyConsistentMapImpl(String mapName,
                                 ClusterService clusterService,
                                 ClusterCommunicationService clusterCommunicator,
-                                KryoNamespace.Builder serializerBuilder,
+                                KryoNamespace ns,
                                 BiFunction<K, V, Timestamp> timestampProvider,
                                 BiFunction<K, V, Collection<NodeId>> peerUpdateFunction,
                                 ExecutorService eventExecutor,
@@ -172,25 +171,14 @@ public class EventuallyConsistentMapImpl<K, V>
                                 boolean persistent,
                                 PersistenceService persistenceService) {
         this.mapName = mapName;
-        this.serializer = createSerializer(serializerBuilder);
+        this.serializer = createSerializer(ns);
         this.persistenceService = persistenceService;
         this.persistent =
                 persistent;
         if (persistent) {
             items = this.persistenceService.<K, MapValue<V>>persistentMapBuilder()
                     .withName(PERSISTENT_LOCAL_MAP_NAME)
-                    .withSerializer(new Serializer() {
-
-                        @Override
-                        public <T> byte[] encode(T object) {
-                            return EventuallyConsistentMapImpl.this.serializer.encode(object);
-                        }
-
-                        @Override
-                        public <T> T decode(byte[] bytes) {
-                            return EventuallyConsistentMapImpl.this.serializer.decode(bytes);
-                        }
-                    })
+                    .withSerializer(this.serializer)
                     .build();
         } else {
             items = Maps.newConcurrentMap();
@@ -268,18 +256,21 @@ public class EventuallyConsistentMapImpl<K, V>
         this.lightweightAntiEntropy = !convergeFaster;
     }
 
-    private StoreSerializer createSerializer(KryoNamespace.Builder builder) {
-        return StoreSerializer.using(builder
-                        .register(KryoNamespaces.BASIC)
-                        .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
-                        .register(LogicalTimestamp.class)
-                        .register(WallClockTimestamp.class)
-                        .register(AntiEntropyAdvertisement.class)
-                        .register(AntiEntropyResponse.class)
-                        .register(UpdateEntry.class)
-                        .register(MapValue.class)
-                        .register(MapValue.Digest.class)
-                        .build(name()));
+    private StoreSerializer createSerializer(KryoNamespace ns) {
+        return StoreSerializer.using(KryoNamespace.newBuilder()
+                         .register(ns)
+                         // not so robust way to avoid collision with other
+                         // user supplied registrations
+                         .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID + 100)
+                         .register(KryoNamespaces.BASIC)
+                         .register(LogicalTimestamp.class)
+                         .register(WallClockTimestamp.class)
+                         .register(AntiEntropyAdvertisement.class)
+                         .register(AntiEntropyResponse.class)
+                         .register(UpdateEntry.class)
+                         .register(MapValue.class)
+                         .register(MapValue.Digest.class)
+                         .build(name() + "-ecmap"));
     }
 
     @Override

@@ -182,6 +182,11 @@ public final class VtnEventuallyConsistentMapTest<K, V> extends VtnEventuallyCon
         }
 
         @Override
+        public EventuallyConsistentMapBuilder<K, V> withSerializer(KryoNamespace serializer) {
+            return this;
+        }
+
+        @Override
         public EventuallyConsistentMapBuilder<K, V>
         withTimestampProvider(BiFunction<K, V, Timestamp> timestampProvider) {
             return this;
