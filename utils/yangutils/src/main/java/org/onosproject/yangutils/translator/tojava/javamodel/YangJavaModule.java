@@ -126,7 +126,8 @@ public class YangJavaModule
      */
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
-        String modulePkg = getRootPackage(getVersion(), getNameSpace().getUri(), getRevision().getRevDate());
+        String modulePkg = getRootPackage(getVersion(), getNameSpace().getUri(), getRevision().getRevDate(),
+                yangPlugin.getConflictResolver());
         try {
             generateCodeOfRootNode(this, yangPlugin, modulePkg);
         } catch (IOException e) {

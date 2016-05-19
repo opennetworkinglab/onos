@@ -72,14 +72,13 @@ import static org.onosproject.yangutils.utils.UtilConstants.EQUAL;
 import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.IMMEDIATE;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
-import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_PARENTHESIS;
 import static org.onosproject.yangutils.utils.UtilConstants.PACKAGE;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SEMI_COLAN;
-import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE_ANNOTATION;
 import static org.onosproject.yangutils.utils.UtilConstants.SLASH;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
@@ -317,7 +316,7 @@ public final class JavaFileGeneratorUtils {
         if (type == GENERATE_EVENT_CLASS
                 || type == GENERATE_EVENT_LISTENER_INTERFACE
                 || type == GENERATE_EVENT_SUBJECT_CLASS) {
-            pkgString = parsePackageString(path + PERIOD + name, importsList);
+            pkgString = parsePackageString((path + PERIOD + name).toLowerCase(), importsList);
         } else {
             pkgString = parsePackageString(path, importsList);
         }
@@ -454,8 +453,8 @@ public final class JavaFileGeneratorUtils {
 
         YangPluginConfig pluginConfig = ((JavaFileInfoContainer) curNode).getJavaFileInfo().getPluginConfig();
         if ((genType & GENERATE_SERVICE_AND_MANAGER) != 0) {
-            if (!fileName.contains(SERVICE)) {
-                insertDataIntoJavaFile(file, getJavaDoc(RPC_MANAGER, fileName + MANAGER, false, pluginConfig));
+            if (!fileName.matches(REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE)) {
+                insertDataIntoJavaFile(file, getJavaDoc(RPC_MANAGER, fileName, false, pluginConfig));
                 insertDataIntoJavaFile(file, addComponentString());
             } else {
                 insertDataIntoJavaFile(file, getJavaDoc(javaDocType, fileName, false, pluginConfig));

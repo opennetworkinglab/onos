@@ -271,9 +271,11 @@ public final class AttributesJavaDataType {
      * @param yangType YANG type
      * @param isListAttr if the attribute is of list type
      * @param classInfo java import class info
+     * @param conflictResolver object of YANG to java naming conflict util
      * @return java import package
      */
-    public static String getJavaImportPackage(YangType<?> yangType, boolean isListAttr, String classInfo) {
+    public static String getJavaImportPackage(YangType<?> yangType, boolean isListAttr, String classInfo,
+            YangToJavaNamingConflictUtil conflictResolver) {
 
         YangDataTypes type = yangType.getDataType();
 
@@ -293,7 +295,7 @@ public final class AttributesJavaDataType {
                 case UINT64:
                     return JAVA_MATH;
                 case ENUMERATION:
-                    return getEnumsPackage(yangType);
+                    return getEnumsPackage(yangType, conflictResolver);
                 case DECIMAL64:
                 case BITS:
                 case BINARY:
@@ -305,12 +307,12 @@ public final class AttributesJavaDataType {
                     //TODO:IDENTITYREF
                     break;
                 case UNION:
-                    return getUnionPackage(yangType);
+                    return getUnionPackage(yangType, conflictResolver);
                 case INSTANCE_IDENTIFIER:
                     //TODO:INSTANCE_IDENTIFIER
                     break;
                 case DERIVED:
-                    return getTypDefsPackage(yangType);
+                    return getTypDefsPackage(yangType, conflictResolver);
                 default:
                     throw new TranslatorException("given data type is not supported.");
             }
@@ -321,7 +323,7 @@ public final class AttributesJavaDataType {
                 case STRING:
                     return JAVA_LANG;
                 case ENUMERATION:
-                    return getEnumsPackage(yangType);
+                    return getEnumsPackage(yangType, conflictResolver);
                 case DECIMAL64:
                 case BITS:
                 case BINARY:
@@ -335,12 +337,12 @@ public final class AttributesJavaDataType {
                 case EMPTY:
                     return JAVA_LANG;
                 case UNION:
-                    return getUnionPackage(yangType);
+                    return getUnionPackage(yangType, conflictResolver);
                 case INSTANCE_IDENTIFIER:
                     //TODO:INSTANCE_IDENTIFIER
                     break;
                 case DERIVED:
-                    return getTypDefsPackage(yangType);
+                    return getTypDefsPackage(yangType, conflictResolver);
                 default:
                     return null;
             }
@@ -352,9 +354,10 @@ public final class AttributesJavaDataType {
      * Returns java package for typedef node.
      *
      * @param type YANG type
+     * @param conflictResolver object of YANG to java naming conflict util
      * @return java package for typedef node
      */
-    private static String getTypDefsPackage(YangType<?> type) {
+    private static String getTypDefsPackage(YangType<?> type, YangToJavaNamingConflictUtil conflictResolver) {
         Object var = type.getDataTypeExtendedInfo();
         if (!(var instanceof YangDerivedInfo)) {
             throw new TranslatorException("type should have been derived.");
@@ -366,7 +369,7 @@ public final class AttributesJavaDataType {
 
         YangJavaTypeDef typedef = (YangJavaTypeDef) ((YangDerivedInfo<?>) var).getReferredTypeDef();
         if (typedef.getJavaFileInfo().getPackage() == null) {
-            return getPackageFromParent(typedef.getParent());
+            return getPackageFromParent(typedef.getParent(), conflictResolver);
         }
         return typedef.getJavaFileInfo().getPackage();
     }
@@ -375,9 +378,10 @@ public final class AttributesJavaDataType {
      * Returns java package for union node.
      *
      * @param type YANG type
+     * @param conflictResolver object of YANG to java naming conflict util
      * @return java package for union node
      */
-    private static String getUnionPackage(YangType<?> type) {
+    private static String getUnionPackage(YangType<?> type, YangToJavaNamingConflictUtil conflictResolver) {
 
         if (!(type.getDataTypeExtendedInfo() instanceof YangUnion)) {
             throw new TranslatorException("type should have been union.");
@@ -385,7 +389,7 @@ public final class AttributesJavaDataType {
 
         YangJavaUnion union = (YangJavaUnion) type.getDataTypeExtendedInfo();
         if (union.getJavaFileInfo().getPackage() == null) {
-            return getPackageFromParent(union.getParent());
+            return getPackageFromParent(union.getParent(), conflictResolver);
         }
         return union.getJavaFileInfo().getPackage();
     }
@@ -394,16 +398,17 @@ public final class AttributesJavaDataType {
      * Returns YANG enumeration's java package.
      *
      * @param type YANG type
+     * @param conflictResolver object of YANG to java naming conflict util
      * @return YANG enumeration's java package
      */
-    private static String getEnumsPackage(YangType<?> type) {
+    private static String getEnumsPackage(YangType<?> type, YangToJavaNamingConflictUtil conflictResolver) {
 
         if (!(type.getDataTypeExtendedInfo() instanceof YangEnumeration)) {
             throw new TranslatorException("type should have been enumeration.");
         }
         YangJavaEnumeration enumeration = (YangJavaEnumeration) type.getDataTypeExtendedInfo();
         if (enumeration.getJavaFileInfo().getPackage() == null) {
-            return getPackageFromParent(enumeration.getParent());
+            return getPackageFromParent(enumeration.getParent(), conflictResolver);
         }
         return enumeration.getJavaFileInfo().getPackage();
     }
@@ -412,9 +417,10 @@ public final class AttributesJavaDataType {
      * Returns package from parent node.
      *
      * @param parent parent YANG node
+     * @param conflictResolver object of YANG to java naming conflict util
      * @return java package from parent node
      */
-    private static String getPackageFromParent(YangNode parent) {
+    private static String getPackageFromParent(YangNode parent, YangToJavaNamingConflictUtil conflictResolver) {
         if (!(parent instanceof JavaFileInfoContainer)) {
             throw new TranslatorException("invalid child node is being processed.");
         }
@@ -423,13 +429,13 @@ public final class AttributesJavaDataType {
             if (parent instanceof YangJavaModule) {
                 YangJavaModule module = (YangJavaModule) parent;
                 String modulePkg = getRootPackage(module.getVersion(), module.getNameSpace().getUri(), module
-                        .getRevision().getRevDate());
+                        .getRevision().getRevDate(), conflictResolver);
                 return modulePkg + PERIOD + getCamelCase(module.getName(), null).toLowerCase();
             } else if (parent instanceof YangJavaSubModule) {
                 YangJavaSubModule submodule = (YangJavaSubModule) parent;
                 String subModulePkg = getRootPackage(submodule.getVersion(),
                         submodule.getNameSpaceFromModule(submodule.getBelongsTo()),
-                        submodule.getRevision().getRevDate());
+                        submodule.getRevision().getRevDate(), conflictResolver);
                 return subModulePkg + PERIOD + getCamelCase(submodule.getName(), null).toLowerCase();
             }
         }

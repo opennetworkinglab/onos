@@ -103,9 +103,8 @@ public class JavaQualifiedTypeInfo
          * Current leaves holder is adding a leaf info as a attribute to the
          * current class.
          */
-        String className =
-                AttributesJavaDataType.getJavaImportClass(leaf.getDataType(), leaf.isLeafList(),
-                        leaf.getConflictResolveConfig());
+        String className = AttributesJavaDataType.getJavaImportClass(leaf.getDataType(), leaf.isLeafList(),
+                leaf.getConflictResolveConfig());
         if (className != null) {
             /*
              * Corresponding to the attribute type a class needs to be imported,
@@ -113,7 +112,7 @@ public class JavaQualifiedTypeInfo
              */
             importInfo.setClassInfo(className);
             String classPkg = AttributesJavaDataType.getJavaImportPackage(leaf.getDataType(),
-                    leaf.isLeafList(), className);
+                    leaf.isLeafList(), className, leaf.getConflictResolveConfig());
             if (classPkg == null) {
                 throw new TranslatorException("import package cannot be null when the class is used");
             }
@@ -166,11 +165,11 @@ public class JavaQualifiedTypeInfo
      * Returns the java qualified type information for the wrapper classes.
      *
      * @param referredTypesAttrInfo attribute of referred type
-     * @param confilictResolver plugin configurations
+     * @param conflictResolver plugin configurations
      * @return return the import info for this attribute
      */
     public static JavaQualifiedTypeInfo getQualifiedInfoOfFromString(JavaAttributeInfo referredTypesAttrInfo,
-            YangToJavaNamingConflictUtil confilictResolver) {
+            YangToJavaNamingConflictUtil conflictResolver) {
 
         /*
          * Get the java qualified type information for the wrapper classes and
@@ -179,9 +178,9 @@ public class JavaQualifiedTypeInfo
         JavaQualifiedTypeInfo qualifiedInfoOfFromString = new JavaQualifiedTypeInfo();
 
         qualifiedInfoOfFromString.setClassInfo(
-                getJavaImportClass(referredTypesAttrInfo.getAttributeType(), true, confilictResolver));
+                getJavaImportClass(referredTypesAttrInfo.getAttributeType(), true, conflictResolver));
         qualifiedInfoOfFromString.setPkgInfo(
-                getJavaImportPackage(referredTypesAttrInfo.getAttributeType(), true, null));
+                getJavaImportPackage(referredTypesAttrInfo.getAttributeType(), true, null, conflictResolver));
         return qualifiedInfoOfFromString;
     }
 

@@ -41,13 +41,13 @@ public class YangJavaType<T>
     }
 
     @Override
-    public void updateJavaQualifiedInfo(YangToJavaNamingConflictUtil confilictResolver) {
+    public void updateJavaQualifiedInfo(YangToJavaNamingConflictUtil conflictResolver) {
         JavaQualifiedTypeInfo importInfo = getJavaQualifiedInfo();
 
         /*
          * Type is added as an attribute in the class.
          */
-        String className = AttributesJavaDataType.getJavaImportClass(this, false, confilictResolver);
+        String className = AttributesJavaDataType.getJavaImportClass(this, false, conflictResolver);
         if (className != null) {
             /*
              * Corresponding to the attribute type a class needs to be imported,
@@ -55,7 +55,7 @@ public class YangJavaType<T>
              */
             importInfo.setClassInfo(className);
             String classPkg = AttributesJavaDataType.getJavaImportPackage(this,
-                    false, className);
+                    false, className, conflictResolver);
             if (classPkg == null) {
                 throw new TranslatorException("import package cannot be null when the class is used");
             }

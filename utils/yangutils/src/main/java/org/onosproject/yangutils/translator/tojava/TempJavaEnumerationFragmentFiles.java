@@ -34,8 +34,12 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.generateEnumAttributeString;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEnumClassFile;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPrefixForIdentifier;
 import static org.onosproject.yangutils.translator.tojava.utils.TempJavaCodeFragmentFilesUtils.closeFile;
 import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_FIRST_DIGIT;
+import static org.onosproject.yangutils.utils.UtilConstants.YANG_AUTO_PREFIX;
 import static org.onosproject.yangutils.utils.io.impl.FileSystemUtil.createPackage;
 
 /**
@@ -173,7 +177,7 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
     /**
      * Adds enum class attributes to temporary file.
      *
-     * @param curEnumInfo current YANG enum
+     * @param curEnumName current YANG enum
      * @throws IOException when fails to do IO operations.
      */
     private void addAttributesForEnumClass(String curEnumName, YangPluginConfig pluginConfig) throws IOException {
@@ -194,6 +198,16 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
         if (curNode instanceof YangEnumeration) {
             YangEnumeration enumeration = (YangEnumeration) curNode;
             for (YangEnum curEnum : enumeration.getEnumSet()) {
+                String enumName = curEnum.getNamedValue();
+                String prefixForIdentifier = null;
+                if (enumName.matches(REGEX_FOR_FIRST_DIGIT)) {
+                    prefixForIdentifier = getPrefixForIdentifier(pluginConfig.getConflictResolver());
+                    if (prefixForIdentifier != null) {
+                        curEnum.setNamedValue(prefixForIdentifier + enumName);
+                    } else {
+                        curEnum.setNamedValue(YANG_AUTO_PREFIX + enumName);
+                    }
+                }
                 setEnumValue(curEnum.getValue());
                 addToEnumStringList(curEnum.getNamedValue());
                 addToEnumSetJavaMap(curEnum.getNamedValue(), curEnum.getValue());
@@ -228,7 +242,7 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
      * @param curEnumName current enum name
      */
     private void addToEnumSetJavaMap(String curEnumName, int value) {
-        getEnumSetJavaMap().put(curEnumName.toUpperCase(), value);
+        getEnumSetJavaMap().put(getEnumJavaAttribute(curEnumName).toUpperCase(), value);
     }
 
     /**
@@ -240,7 +254,7 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
      */
     void addJavaSnippetInfoToApplicableTempFiles(String curEnumName, YangPluginConfig pluginConfig)
             throws IOException {
-        addAttributesForEnumClass(curEnumName, pluginConfig);
+        addAttributesForEnumClass(getEnumJavaAttribute(curEnumName), pluginConfig);
     }
 
     /**
@@ -279,7 +293,7 @@ public class TempJavaEnumerationFragmentFiles extends TempJavaFragmentFiles {
      * @param curEnumValue current enum value
      */
     private void addToEnumStringList(String curEnumValue) {
-        getEnumStringList().add(curEnumValue.toUpperCase());
+        getEnumStringList().add(getEnumJavaAttribute(curEnumValue).toUpperCase());
     }
 
     /**

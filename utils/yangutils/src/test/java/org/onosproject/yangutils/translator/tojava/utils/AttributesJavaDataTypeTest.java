@@ -59,6 +59,7 @@ public class AttributesJavaDataTypeTest {
     private static final String CLASS_INFO5 = "Integer";
     private static final String TYPE_DEF_PKG = "target.test";
     private static String test = "";
+    private static YangToJavaNamingConflictUtil pluginConfig = null;
 
     /**
      * Unit test for private constructor.
@@ -88,7 +89,6 @@ public class AttributesJavaDataTypeTest {
      */
     @Test
     public void testgetJavaClassInfo() {
-        YangToJavaNamingConflictUtil pluginConfig = null;
         test = getJavaImportClass(getStubYangType(TYPE1), false, pluginConfig);
         assertThat(true, is(test.equals(CLASS_INFO1)));
 
@@ -125,16 +125,16 @@ public class AttributesJavaDataTypeTest {
      */
     @Test
     public void testgetJavaPkgInfo() {
-        test = getJavaImportPackage(getStubYangType(TYPE1), false, CLASS_INFO1);
+        test = getJavaImportPackage(getStubYangType(TYPE1), false, CLASS_INFO1, pluginConfig);
         assertThat(true, is(test.equals(JAVA_LANG)));
 
-        test = getJavaImportPackage(getStubYangType(TYPE2), true, CLASS_INFO5);
+        test = getJavaImportPackage(getStubYangType(TYPE2), true, CLASS_INFO5, pluginConfig);
         assertThat(true, is(test.equals(JAVA_LANG)));
 
-        test = getJavaImportPackage(getStubYangType(TYPE3), false, CLASS_INFO3);
+        test = getJavaImportPackage(getStubYangType(TYPE3), false, CLASS_INFO3, pluginConfig);
         assertThat(null, is(test));
 
-        test = getJavaImportPackage(getStubYangType(TYPE4), false, CLASS_INFO4);
+        test = getJavaImportPackage(getStubYangType(TYPE4), false, CLASS_INFO4, pluginConfig);
         assertThat(null, is(test));
     }
 
@@ -145,7 +145,7 @@ public class AttributesJavaDataTypeTest {
      */
     @Test
     public void testForTypeDef() throws DataModelException {
-        test = getJavaImportPackage(getStubExtendedInfo(getStubYangType(TYPE_DEF)), false, TYPE_DEF_PKG);
+        test = getJavaImportPackage(getStubExtendedInfo(getStubYangType(TYPE_DEF)), false, TYPE_DEF_PKG, pluginConfig);
         assertThat(true, is(test.equals(TYPE_DEF_PKG)));
     }
 

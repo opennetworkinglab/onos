@@ -4,11 +4,10 @@ module Test {
     prefix Ant;
     container food {
         choice snack {
-            container sports-arena {
-                leaf pretzel {
-                    type empty;
-                }
+            list sports-arena {
             }
         }
     }
 }
+leaf invalid {
+

@@ -41,4 +41,6 @@
     <suppress checks="JavadocPackage"
               files=".*/thirdparty/.*.java"/>
 
+    <!-- Suppressions for yangutils generated code -->
+    <suppress files="org.onosproject.yang.gen.v1.*" checks="JavadocStyle" />
 </suppressions>

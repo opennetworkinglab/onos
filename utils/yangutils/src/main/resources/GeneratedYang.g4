@@ -25,8 +25,8 @@ import YangLexer;
 package org.onosproject.yangutils.parser.antlrgencode;
 }
 
-    yangfile : moduleStatement
-             | subModuleStatement;
+    yangfile : moduleStatement EOF
+             | subModuleStatement EOF;
 
     /**
      * module-stmt         = optsep module-keyword sep identifier-arg-str

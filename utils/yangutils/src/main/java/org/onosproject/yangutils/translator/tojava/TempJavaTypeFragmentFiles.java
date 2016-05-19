@@ -28,7 +28,6 @@ import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaType;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
-import static org.onosproject.yangutils.datamodel.YangDataTypes.DERIVED;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_TYPEDEF_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_UNION_CLASS;
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.CONSTRUCTOR_FOR_TYPE_MASK;
@@ -212,10 +211,7 @@ public class TempJavaTypeFragmentFiles
                 YangJavaType<?> javaType = (YangJavaType<?>) yangType;
                 javaType.updateJavaQualifiedInfo(pluginConfig.getConflictResolver());
                 String typeName = javaType.getDataTypeName();
-
-                if (javaType.getDataType().equals(DERIVED)) {
                     typeName = getCamelCase(typeName, pluginConfig.getConflictResolver());
-                }
                 JavaAttributeInfo javaAttributeInfo = getAttributeInfoForTheData(
                         javaType.getJavaQualifiedInfo(),
                         typeName, javaType,

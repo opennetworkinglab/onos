@@ -139,7 +139,7 @@ public class YangJavaSubModule
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
         String subModulePkg = getRootPackage(getVersion(), getNameSpaceFromModule(getBelongsTo()),
-                getRevision().getRevDate());
+                getRevision().getRevDate(), yangPlugin.getConflictResolver());
         try {
             generateCodeOfRootNode(this, yangPlugin, subModulePkg);
         } catch (IOException e) {

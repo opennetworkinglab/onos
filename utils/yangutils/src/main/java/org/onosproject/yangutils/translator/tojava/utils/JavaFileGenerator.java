@@ -97,6 +97,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.FOUR_SPACE_INDENTATI
 import static org.onosproject.yangutils.utils.UtilConstants.IMPL;
 import static org.onosproject.yangutils.utils.UtilConstants.INT;
 import static org.onosproject.yangutils.utils.UtilConstants.LOGGER_STATEMENT;
+import static org.onosproject.yangutils.utils.UtilConstants.MANAGER;
 import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.PRIVATE;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
@@ -306,7 +307,7 @@ public final class JavaFileGenerator {
 
         JavaFileInfo javaFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
 
-        String className = getCapitalCase(javaFileInfo.getJavaName());
+        String className = getCapitalCase(javaFileInfo.getJavaName()) + MANAGER;
 
         initiateJavaFileGeneration(file, GENERATE_SERVICE_AND_MANAGER, imports, curNode, className);
 

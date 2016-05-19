@@ -767,6 +767,11 @@ public final class UtilConstants {
     public static final String REGEX_WITH_SINGLE_CAPITAL_CASE_AND_DIGITS_SMALL_CASES = "[A-Z][0-9a-z]+";
 
     /**
+     * Static attribute for regex for any string ending with service.
+     */
+    public static final String REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE = ".+Service";
+
+    /**
      * Static attribute for class syntax.
      */
     public static final String CLASS = "class";

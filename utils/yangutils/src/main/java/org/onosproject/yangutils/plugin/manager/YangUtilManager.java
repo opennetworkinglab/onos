@@ -122,6 +122,12 @@ public class YangUtilManager extends AbstractMojo {
     private String replacementForHyphen;
 
     /**
+     * Prefix which is required for adding with the identifier.
+     */
+    @Parameter(property = "prefixForIdentifier")
+    private String prefixForIdentifier;
+
+    /**
      * Build context.
      */
     @Component
@@ -146,6 +152,7 @@ public class YangUtilManager extends AbstractMojo {
             conflictResolver.setReplacementForPeriod(replacementForPeriod);
             conflictResolver.setReplacementForHyphen(replacementForHyphen);
             conflictResolver.setReplacementForUnderscore(replacementForUnderscore);
+            conflictResolver.setPrefixForIdentifier(prefixForIdentifier);
             YangPluginConfig yangPlugin = new YangPluginConfig();
             yangPlugin.setCodeGenDir(codeGenDir);
             yangPlugin.setConflictResolver(conflictResolver);
@@ -174,7 +181,7 @@ public class YangUtilManager extends AbstractMojo {
             addToSource(getDirectory(baseDir, genFilesDir), project, context);
 
             copyYangFilesToTarget(getYangFileInfoSet(), getDirectory(baseDir, outputDirectory), project);
-        } catch (Exception e) {
+        } catch (IOException | ParserException e) {
             String fileName = "";
             if (getCurYangFileInfo() != null) {
                 fileName = getCurYangFileInfo().getYangFileName();

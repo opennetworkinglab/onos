@@ -53,6 +53,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.NEW_LINE;
 import static org.onosproject.yangutils.utils.UtilConstants.OPEN_CURLY_BRACKET;
 import static org.onosproject.yangutils.utils.UtilConstants.PERIOD;
 import static org.onosproject.yangutils.utils.UtilConstants.PUBLIC;
+import static org.onosproject.yangutils.utils.UtilConstants.REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SERVICE;
 import static org.onosproject.yangutils.utils.UtilConstants.SPACE;
 import static org.onosproject.yangutils.utils.UtilConstants.SUBJECT;
@@ -241,24 +242,25 @@ public final class ClassDefinitionGenerator {
                 curNode = curNode.getNextSibling();
             }
         }
-        if (yangName.contains(SERVICE)) {
+        if (yangName.matches(REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE)) {
             return PUBLIC + SPACE + INTERFACE + SPACE + yangName + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
         }
-        return PUBLIC + SPACE + CLASS + SPACE + yangName + MANAGER + SPACE + IMPLEMENTS + SPACE + yangName
-                + SERVICE + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
+        return PUBLIC + SPACE + CLASS + SPACE + yangName + SPACE + IMPLEMENTS + SPACE
+                + yangName.substring(0, yangName.length() - 7) + SERVICE + SPACE + OPEN_CURLY_BRACKET + NEW_LINE;
     }
 
     /* Provides class definition when RPC interface needs to extends any event.*/
     private static String getRpcInterfaceDefinitionWhenItExtends(String yangName,
             JavaExtendsListHolder holder) {
 
-        if (yangName.contains(SERVICE)) {
+        if (yangName.matches(REGEX_FOR_ANY_STRING_ENDING_WITH_SERVICE)) {
             String[] strArray = yangName.split(SERVICE);
             return PUBLIC + SPACE + INTERFACE + SPACE + yangName + NEW_LINE + EIGHT_SPACE_INDENTATION
                     + EXTEND + SPACE + LISTENER_SERVICE + DIAMOND_OPEN_BRACKET + strArray[0] + EVENT_STRING + COMMA
                     + SPACE + strArray[0] + EVENT_LISTENER_STRING + DIAMOND_CLOSE_BRACKET + SPACE
                     + OPEN_CURLY_BRACKET + NEW_LINE;
         }
+        yangName = yangName.substring(0, yangName.length() - 7);
         return PUBLIC + SPACE + CLASS + SPACE + yangName + MANAGER + NEW_LINE + EIGHT_SPACE_INDENTATION
                 + EXTEND + SPACE + LISTENER_REG + DIAMOND_OPEN_BRACKET + yangName + EVENT_STRING + COMMA + SPACE
                 + yangName + EVENT_LISTENER_STRING + DIAMOND_CLOSE_BRACKET + NEW_LINE

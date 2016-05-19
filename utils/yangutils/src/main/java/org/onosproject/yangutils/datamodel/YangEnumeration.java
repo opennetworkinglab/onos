@@ -31,7 +31,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
 /**
  * Represents the enumeration data type information.
  */
-public class YangEnumeration extends YangNode implements Parsable {
+public class YangEnumeration extends YangNode implements Parsable, CollisionDetector {
 
     // Enumeration info set.
     private Set<YangEnum> enumSet;
@@ -125,5 +125,19 @@ public class YangEnumeration extends YangNode implements Parsable {
     @Override
     public void validateDataOnExit() throws DataModelException {
         // TODO auto-generated method stub, to be implemented by parser
+    }
+
+    @Override
+    public void detectCollidingChild(String identifierName, YangConstructType dataType) throws DataModelException {
+        /*
+        Do nothing.The implementation for this is not required.
+         */
+    }
+
+    @Override
+    public void detectSelfCollision(String identifierName, YangConstructType dataType) throws DataModelException {
+        /*
+        Do nothing.The implementation for this is not required.
+         */
     }
 }
