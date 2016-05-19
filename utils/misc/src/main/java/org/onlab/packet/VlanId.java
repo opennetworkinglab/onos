@@ -29,6 +29,9 @@ public final class VlanId extends Identifier<Short> {
     // required.
     public static final short ANY_VALUE = (short) 0x1000;
 
+    public static final short NO_VID = 0;       // 0 is not used for VLAN ID
+    public static final short RESERVED = 4095;  // represents all tagged traffic
+
     public static final VlanId NONE = VlanId.vlanId(UNTAGGED);
     public static final VlanId ANY = VlanId.vlanId(ANY_VALUE);
 

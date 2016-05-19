@@ -18,6 +18,7 @@ package org.onosproject.driver.query;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.VlanId;
 import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.PortNumber;
@@ -36,6 +37,9 @@ public class FullVlanAvailable
 
     private static final int MAX_VLAN_ID = VlanId.MAX_VLAN;
     private static final Set<VlanId> ENTIRE_VLAN = getEntireVlans();
+    private static final Set<Integer> EXCLUDED = ImmutableSet.of(
+            (int) VlanId.NO_VID,
+            (int) VlanId.RESERVED);
 
     @Override
     public Set<VlanId> queryVlanIds(PortNumber port) {
@@ -44,6 +48,7 @@ public class FullVlanAvailable
 
     private static Set<VlanId> getEntireVlans() {
         return IntStream.range(0, MAX_VLAN_ID)
+                .filter(x -> !EXCLUDED.contains(x))
                 .mapToObj(x -> VlanId.vlanId((short) x))
                 .collect(GuavaCollectors.toImmutableSet());
     }
