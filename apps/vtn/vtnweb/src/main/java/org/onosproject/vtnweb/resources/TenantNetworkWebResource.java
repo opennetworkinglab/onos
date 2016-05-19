@@ -29,6 +29,7 @@ import org.onosproject.vtnrsc.TenantNetwork;
 import org.onosproject.vtnrsc.TenantNetwork.State;
 import org.onosproject.vtnrsc.TenantNetwork.Type;
 import org.onosproject.vtnrsc.TenantNetworkId;
+import org.onosproject.vtnrsc.service.VtnRscService;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
 import org.onosproject.vtnweb.web.TenantNetworkCodec;
 import org.slf4j.Logger;
@@ -278,11 +279,16 @@ public class TenantNetworkWebResource extends AbstractWebResource {
         boolean adminStateUp = node.get("admin_state_up").asBoolean();
         String state = node.get("status").asText();
         boolean shared = node.get("shared").asBoolean();
-        String tenantId = node.get("tenant_id").asText();
+        String tenantIdStr = node.get("tenant_id").asText();
         boolean routerExternal = node.get("router:external").asBoolean();
         String type = node.get("provider:network_type").asText();
         String physicalNetwork = node.get("provider:physical_network").asText();
-        String segmentationId = node.get("provider:segmentation_id").asText();
+        String segmentationIdStr = node.get("provider:segmentation_id").asText();
+        SegmentationId segmentationId = SegmentationId.segmentationId(segmentationIdStr);
+        TenantId tenantId = TenantId.tenantId(tenantIdStr);
+        if (segmentationIdStr == null || segmentationIdStr.equals("null")) {
+            segmentationId = get(VtnRscService.class).getL3vni(tenantId);
+        }
         TenantNetworkId id = null;
         if (flag.equals(CREATE_NETWORK)) {
             id = TenantNetworkId.networkId(node.get("id").asText());
@@ -295,13 +301,12 @@ public class TenantNetworkWebResource extends AbstractWebResource {
                                            adminStateUp,
                                            isState(state),
                                            shared,
-                                           TenantId.tenantId(tenantId),
+                                           tenantId,
                                            routerExternal,
                                            isType(type),
                                            PhysicalNetwork
                                                    .physicalNetwork(physicalNetwork),
-                                           SegmentationId
-                                                   .segmentationId(segmentationId));
+                                           segmentationId);
         networksMap.putIfAbsent(id, network);
 
         return Collections.unmodifiableCollection(networksMap.values());
@@ -324,23 +329,28 @@ public class TenantNetworkWebResource extends AbstractWebResource {
             boolean adminStateUp = node.get("admin_state_up").asBoolean();
             String state = node.get("status").asText();
             boolean shared = node.get("shared").asBoolean();
-            String tenantId = node.get("tenant_id").asText();
+            String tenantIdStr = node.get("tenant_id").asText();
             boolean routerExternal = node.get("router:external")
                     .asBoolean();
             String type = node.get("provider:network_type").asText();
             String physicalNetwork = node.get("provider:physical_network").asText();
-            String segmentationId = node.get("provider:segmentation_id").asText();
+            String segmentationIdStr = node.get("provider:segmentation_id").asText();
+            SegmentationId segmentationId = SegmentationId.segmentationId(segmentationIdStr);
+            TenantId tenantId = TenantId.tenantId(tenantIdStr);
+            if (segmentationIdStr == null || segmentationIdStr.equals("null")) {
+                segmentationId = get(VtnRscService.class).getL3vni(tenantId);
+            }
             network = new DefaultTenantNetwork(
                                                TenantNetworkId.networkId(id),
                                                name,
                                                adminStateUp,
                                                isState(state),
                                                shared,
-                                               TenantId.tenantId(tenantId),
+                                               tenantId,
                                                routerExternal,
                                                isType(type),
                                                PhysicalNetwork.physicalNetwork(physicalNetwork),
-                                               SegmentationId.segmentationId(segmentationId));
+                                               segmentationId);
             networksMap.putIfAbsent(TenantNetworkId.networkId(id), network);
         }
 
