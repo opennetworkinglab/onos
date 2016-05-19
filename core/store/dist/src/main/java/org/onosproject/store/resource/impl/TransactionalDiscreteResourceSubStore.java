@@ -24,6 +24,7 @@ import org.onosproject.store.service.TransactionalMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,7 +60,7 @@ class TransactionalDiscreteResourceSubStore {
             return true;
         }
 
-        DiscreteResources requested = DiscreteResources.of(values);
+        DiscreteResources requested = DiscreteResources.of(new LinkedHashSet<>(values));
         DiscreteResources oldValues = childMap.putIfAbsent(key, requested);
         if (oldValues == null) {
             return true;
