@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.apache.karaf.shell.commands.Option;
 
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.pce.pceservice.api.PceService;
 
@@ -45,8 +46,7 @@ public class PceQueryPathCommand extends AbstractShellCommand {
 
         PceService service = get(PceService.class);
         if (null == id) {
-            //TODO: need to uncomment below line once queryAllPath method is added to PceService
-            Iterable<Tunnel> tunnels = null; // = service.queryAllPath();
+            Iterable<Tunnel> tunnels = service.queryAllPath();
             if (tunnels != null) {
                 for (final Tunnel tunnel : tunnels) {
                     display(tunnel);
@@ -56,8 +56,7 @@ public class PceQueryPathCommand extends AbstractShellCommand {
                 return;
             }
         } else {
-            //TODO: need to uncomment below line once queryPath method is added to PceService
-            Tunnel tunnel = null; // = service.queryPath(PcePathId.of(id));
+            Tunnel tunnel = service.queryPath(TunnelId.valueOf(id));
             if (tunnel == null) {
                 print("Path doesnot exists.");
                 return;

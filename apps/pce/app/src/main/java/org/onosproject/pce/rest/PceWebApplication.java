@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 
+package org.onosproject.pce.rest;
+
+import org.onlab.rest.AbstractWebApplication;
+
+import java.util.Set;
+
 /**
- * PCE rest application.
+ * PCE rest api web application.
  */
-package org.onosproject.pce.web;
+public class PceWebApplication extends AbstractWebApplication {
+    @Override
+    public Set<Class<?>> getClasses() {
+        return getClasses(PcePathWebResource.class);
+    }
+}
+

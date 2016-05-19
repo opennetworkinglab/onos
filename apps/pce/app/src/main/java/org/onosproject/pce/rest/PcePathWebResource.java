@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pce.web;
+package org.onosproject.pce.rest;
 
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.onlab.util.Tools.nullIsNotFound;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,8 +35,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.pce.pceservice.api.PceService;
 import org.onosproject.pce.pceservice.PcePath;
 import org.onosproject.pce.pceservice.DefaultPcePath;
 import org.onosproject.pce.pceservice.LspType;
@@ -58,6 +61,7 @@ public class PcePathWebResource extends AbstractWebResource {
     public static final String PCE_PATH_NOT_FOUND = "Path not found";
     public static final String PCE_PATH_ID_EXIST = "Path exists";
     public static final String PCE_PATH_ID_NOT_EXIST = "Path does not exist for the identifier";
+    public static final String PCE_SETUP_PATH_FAILED = "PCE Setup path has failed.";
 
     /**
      * Retrieve details of all paths created.
@@ -68,8 +72,7 @@ public class PcePathWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response queryAllPath() {
         log.debug("Query all paths.");
-        //TODO: need to uncomment below line once queryAllPath method is added to PceService
-        Iterable<Tunnel> tunnels = null; // = get(PceService.class).queryAllPath();
+        Iterable<Tunnel> tunnels = get(PceService.class).queryAllPath();
         ObjectNode result = mapper().createObjectNode();
         ArrayNode pathEntry = result.putArray("paths");
         if (tunnels != null) {
@@ -92,9 +95,8 @@ public class PcePathWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response queryPath(@PathParam("path_id") String id) {
         log.debug("Query path by identifier {}.", id);
-        //TODO: need to uncomment below lines once queryPath method is added to PceService
-        Tunnel tunnel = null; // = nullIsNotFound(get(PceService.class).queryPath(PcePathId.of(id)),
-                //PCE_PATH_NOT_FOUND);
+        Tunnel tunnel = nullIsNotFound(get(PceService.class).queryPath(TunnelId.valueOf(id)),
+                                       PCE_PATH_NOT_FOUND);
         PcePath path = DefaultPcePath.builder().of(tunnel).build();
         ObjectNode result = mapper().createObjectNode();
         result.set("path", codec(PcePath.class).encode(path, this));
@@ -131,9 +133,9 @@ public class PcePathWebResource extends AbstractWebResource {
             //listConstrnt.add(LocalBandwidthConstraint.of(Double.valueOf(path.constraint().bandwidth()), DataRateUnit
             //        .valueOf("BPS")));
 
-            //TODO: need to uncomment below lines once setupPath method is modified in PceService
-            Boolean issuccess = true; // = (null != get(PceService.class)
-                    //.setupPath(srcDevice, dstDevice, path.name(), listConstrnt, lspType)) ? true : false;
+            Boolean issuccess = nullIsNotFound(get(PceService.class)
+                                               .setupPath(srcDevice, dstDevice, path.name(), listConstrnt, lspType),
+                                               PCE_SETUP_PATH_FAILED);
             return Response.status(OK).entity(issuccess.toString()).build();
         } catch (IOException e) {
             log.error("Exception while creating path {}.", e.toString());
@@ -174,9 +176,8 @@ public class PcePathWebResource extends AbstractWebResource {
                 //        .of(path.constraint().bandwidth(), DataRateUnit.valueOf("BPS")));
             }
 
-            //TODO: need to uncomment below line once updatePath is added to PceService
-            Boolean result = true; // = (null != (get(PceService.class).updatePath(PcePathId.of(id), constrntList)))
-                                      //? true : false;
+            Boolean result = nullIsNotFound(get(PceService.class).updatePath(TunnelId.valueOf(id), constrntList),
+                                            PCE_PATH_NOT_FOUND);
             return Response.status(OK).entity(result.toString()).build();
         } catch (IOException e) {
             log.error("Update path failed because of exception {}.", e.toString());
@@ -195,9 +196,8 @@ public class PcePathWebResource extends AbstractWebResource {
     public Response releasePath(@PathParam("path_id") String id) {
         log.debug("Deletes path by identifier {}.", id);
 
-        //TODO: need to uncomment below lines once releasePath method is added to PceService
-        Boolean isSuccess = true; // = nullIsNotFound(get(PceService.class).releasePath(PcePathId.of(id)),
-                //PCE_PATH_NOT_FOUND);
+        Boolean isSuccess = nullIsNotFound(get(PceService.class).releasePath(TunnelId.valueOf(id)),
+                                           PCE_PATH_NOT_FOUND);
         if (!isSuccess) {
             log.debug("Path identifier {} does not exist", id);
         }

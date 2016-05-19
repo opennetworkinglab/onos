@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.pce.rest;
 
-package org.onosproject.pce.web;
-
-import org.onlab.rest.AbstractWebApplication;
-
-import java.util.Set;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.test.JerseyTest;
 
 /**
- * PCE rest api web application.
+ * Base class for pce rest api tests.  Performs common configuration operations.
  */
-public class PceWebApplication extends AbstractWebApplication {
-    @Override
-    public Set<Class<?>> getClasses() {
-        return getClasses(PcePathWebResource.class);
+public class PceResourceTest extends JerseyTest {
+
+    /**
+     * Creates a new web-resource test.
+     */
+    public PceResourceTest() {
+        super(ResourceConfig.forApplicationClass(PceWebApplication.class));
     }
 }
-

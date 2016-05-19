@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.pce.pceservice.api.PceService;
 
 import org.slf4j.Logger;
@@ -41,10 +42,9 @@ public class PceDeletePathCommand extends AbstractShellCommand {
 
         PceService service = get(PceService.class);
 
-        //TODO: need to uncomment below lines once releasePath method is added to PceService
-        //if (!service.releasePath(PcePathId.of(id))) {
-        //    error("Path deletion failed.");
-        //    return;
-        //}
+        if (!service.releasePath(TunnelId.valueOf(id))) {
+            error("Path deletion failed.");
+            return;
+        }
     }
 }

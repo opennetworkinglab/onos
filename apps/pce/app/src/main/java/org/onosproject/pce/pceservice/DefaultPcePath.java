@@ -244,12 +244,14 @@ public final class DefaultPcePath implements PcePath {
             this.id = TunnelId.valueOf(tunnel.tunnelId().id());
             this.source = tunnel.src().toString();
             this.destination = tunnel.dst().toString();
-            //TODO: need to uncomment below line once LSP_SIG_TYPE is added to AnnotationKeys
-            this.lspType = null; // = LspType.valueOf(tunnel.annotations().value(AnnotationKeys.LSP_SIG_TYPE));
+            //TODO: need to uncomment below line once LSP_SIG_TYPE is added to AnnotationKeys.
+            this.lspType = null; // = LspType.valueOf(tunnel.annotations()
+                                           //.value(AnnotationKeys.LSP_SIG_TYPE));
             this.name = tunnel.tunnelName().toString();
-            this.costConstraint = null; //CostConstraint.of(tunnel.path().cost());
-            this.bandwidthConstraint = null;
-                                    //LocalBandwidthConstraint.of(tunnel.annotations().value(AnnotationKeys.BANDWIDTH));
+            //TODO: uncomment below lines once CostConstraint and LocalBandwidthConstraint classes are ready
+            this.costConstraint = null; // = CostConstraint.of(tunnel.path().cost());
+            this.bandwidthConstraint = null; // = LocalBandwidthConstraint.of(tunnel.annotations()
+                                                                        //.value(AnnotationKeys.BANDWIDTH));
             return this;
         }
 
