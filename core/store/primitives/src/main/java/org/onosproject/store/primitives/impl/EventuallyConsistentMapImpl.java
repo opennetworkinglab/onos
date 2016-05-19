@@ -137,7 +137,7 @@ public class EventuallyConsistentMapImpl<K, V>
      * @param mapName               a String identifier for the map.
      * @param clusterService        the cluster service
      * @param clusterCommunicator   the cluster communications service
-     * @param serializer            a Kryo namespace that can serialize
+     * @param ns                    a Kryo namespace that can serialize
      *                              both K and V
      * @param timestampProvider     provider of timestamps for K and V
      * @param peerUpdateFunction    function that provides a set of nodes to immediately
