@@ -125,4 +125,7 @@ public final class DiscreteResourceSet {
                 && Objects.equals(this.codec, other.codec);
     }
 
+    public boolean contains(DiscreteResource resource) {
+        return values.contains(resource);
+    }
 }
