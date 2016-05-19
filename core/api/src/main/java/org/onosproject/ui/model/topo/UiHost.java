@@ -106,12 +106,30 @@ public class UiHost extends UiNode {
     }
 
     /**
-     * Identifier for the edge link between this host and the device to which
-     * it is connected.
+     * Returns the identifier for the edge link between this host and
+     * the device to which it is connected.
      *
      * @return edge link identifier
      */
     public UiLinkId edgeLinkId() {
-        return null;
+        return edgeLinkId;
+    }
+
+    /**
+     * Returns the identifier of the device to which the host is connected.
+     *
+     * @return device identifier
+     */
+    public DeviceId locationDevice() {
+        return locDevice;
+    }
+
+    /**
+     * Returns the port number of the device to which the host is connected.
+     *
+     * @return port number
+     */
+    public PortNumber locationPort() {
+        return locPort;
     }
 }

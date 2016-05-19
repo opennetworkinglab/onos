@@ -22,12 +22,15 @@ import org.onosproject.event.Event;
 import org.onosproject.event.EventDispatcher;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.region.Region;
 import org.onosproject.ui.impl.topo.model.UiModelEvent.Type;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiElement;
+import org.onosproject.ui.model.topo.UiHost;
 import org.onosproject.ui.model.topo.UiLink;
 import org.onosproject.ui.model.topo.UiLinkId;
 import org.onosproject.ui.model.topo.UiRegion;
@@ -38,8 +41,10 @@ import java.util.Iterator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.cluster.NodeId.nodeId;
+import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.ui.model.topo.UiLinkId.uiLinkId;
 
 /**
@@ -304,6 +309,88 @@ public class ModelCacheTest extends AbstractTopoModelTest {
         // NOTE: finally link should be removed from cache
         assertEquals("unex # links", 0, cache.linkCount());
     }
+
+    private void assertHostLinkCounts(int nHosts, int nLinks) {
+        assertEquals("unex # hosts", nHosts, cache.hostCount());
+        assertEquals("unex # links", nLinks, cache.linkCount());
+    }
+
+    private void assertLocation(HostId hid, DeviceId expDev, int expPort) {
+        UiHost h = cache.accessHost(hid);
+        assertEquals("unex device", expDev, h.locationDevice());
+        assertEquals("unex port", portNumber(expPort), h.locationPort());
+    }
+
+    @Test
+    public void addHosts() {
+        title("addHosts");
+
+        assertHostLinkCounts(0, 0);
+        Host hostA = createHost(DEV_1, 101, "a");
+        Host hostB = createHost(DEV_1, 102, "b");
+
+        // add a host
+        cache.addOrUpdateHost(hostA);
+        dispatcher.assertLast(Type.HOST_ADDED_OR_UPDATED, hostA.id().toString());
+        dispatcher.assertEventCount(1);
+        assertHostLinkCounts(1, 1);
+        assertLocation(hostA.id(), DEVID_1, 101);
+
+        // add a second host
+        cache.addOrUpdateHost(hostB);
+        dispatcher.assertLast(Type.HOST_ADDED_OR_UPDATED, hostB.id().toString());
+        dispatcher.assertEventCount(2);
+        assertHostLinkCounts(2, 2);
+        assertLocation(hostB.id(), DEVID_1, 102);
+
+        // update the first host
+        cache.addOrUpdateHost(hostA);
+        dispatcher.assertLast(Type.HOST_ADDED_OR_UPDATED, hostA.id().toString());
+        dispatcher.assertEventCount(3);
+        assertHostLinkCounts(2, 2);
+        assertLocation(hostA.id(), DEVID_1, 101);
+
+        print(cache.dumpString());
+
+        // remove the second host
+        cache.removeHost(hostB);
+        dispatcher.assertLast(Type.HOST_REMOVED, hostB.id().toString());
+        dispatcher.assertEventCount(4);
+        assertHostLinkCounts(1, 1);
+        assertNull("still host B?", cache.accessHost(hostB.id()));
+
+        print(cache.dumpString());
+
+        // first, verify where host A is currently residing
+        assertLocation(hostA.id(), DEVID_1, 101);
+
+        // now let's move hostA to a different port
+        Host movedHost = createHost(DEV_1, 200, "a");
+        print(hostA);
+        print(movedHost);
+
+        cache.moveHost(movedHost, hostA);
+        dispatcher.assertLast(Type.HOST_MOVED, hostA.id().toString());
+        dispatcher.assertEventCount(5);
+        assertHostLinkCounts(1, 1);
+
+        assertLocation(hostA.id(), DEVID_1, 200);
+
+        print(cache.dumpString());
+
+        // finally, let's move the host to a different device and port
+        Host movedAgain = createHost(DEV_8, 800, "a");
+
+        cache.moveHost(movedAgain, movedHost);
+        dispatcher.assertLast(Type.HOST_MOVED, hostA.id().toString());
+        dispatcher.assertEventCount(6);
+        assertHostLinkCounts(1, 1);
+
+        assertLocation(hostA.id(), DEVID_8, 800);
+
+        print(cache.dumpString());
+    }
+
 
     @Test
     public void load() {

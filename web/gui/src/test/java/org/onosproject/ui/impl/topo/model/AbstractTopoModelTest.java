@@ -525,47 +525,58 @@ abstract class AbstractTopoModelTest extends AbstractUiImplTest {
     }
 
 
+    /**
+     * Creates a default host connected at the given edge device and port. Note
+     * that an identifying hex character ("a" - "f") should be supplied. This
+     * will be included in the MAC address of the host (and equivalent value
+     * as last byte in IP address).
+     *
+     * @param device  edge device
+     * @param port    port number
+     * @param hexChar identifying hex character
+     * @return host connected at that location
+     */
+    protected static Host createHost(Device device, int port, String hexChar) {
+        DeviceId deviceId = device.id();
+        String devNum = deviceId.toString().substring(1);
+
+        MacAddress mac = MacAddress.valueOf(HOST_MAC_PREFIX + devNum + hexChar);
+        HostId hostId = hostId(String.format("%s/-1", mac));
+
+        int ipByte = Integer.valueOf(hexChar, 16);
+        if (ipByte < 10 || ipByte > 15) {
+            throw new IllegalArgumentException("hexChar must be a-f");
+        }
+        HostLocation loc = new HostLocation(deviceId, portNumber(port), 0);
+
+        IpAddress ip = ip("10." + devNum + ".0." + ipByte);
+
+        return new DefaultHost(ProviderId.NONE, hostId, mac, VlanId.NONE,
+                loc, ImmutableSet.of(ip));
+    }
+
+    /**
+     * Creates a pair of hosts connected to the specified device.
+     *
+     * @param d edge device
+     * @return pair of hosts
+     */
+    protected static List<Host> createHostPair(Device d) {
+        List<Host> hosts = new ArrayList<>();
+        hosts.add(createHost(d, 101, "a"));
+        hosts.add(createHost(d, 102, "b"));
+        return hosts;
+    }
+
     private static class MockHostService extends HostServiceAdapter {
         private final Map<HostId, Host> hosts = new HashMap<>();
 
         MockHostService() {
             for (Device d : ALL_DEVS) {
-                // two hosts per device
-                createHosts(hosts, d);
+                for (Host h : createHostPair(d)) {
+                    hosts.put(h.id(), h);
+                }
             }
-        }
-
-        private void createHosts(Map<HostId, Host> hosts, Device d) {
-            DeviceId deviceId = d.id();
-            String devNum = deviceId.toString().substring(1);
-
-            String ha = devNum + "a";
-            String hb = devNum + "b";
-
-            MacAddress macA = MacAddress.valueOf(HOST_MAC_PREFIX + ha);
-            MacAddress macB = MacAddress.valueOf(HOST_MAC_PREFIX + hb);
-
-            HostId hostA = hostId(String.format("%s/-1", macA));
-            HostId hostB = hostId(String.format("%s/-1", macB));
-
-            PortNumber portA = portNumber(101);
-            PortNumber portB = portNumber(102);
-
-            HostLocation locA = new HostLocation(deviceId, portA, 0);
-            HostLocation locB = new HostLocation(deviceId, portB, 0);
-
-            IpAddress ipA = ip("10." + devNum + ".0.1");
-            IpAddress ipB = ip("10." + devNum + ".0.2");
-
-            Host host = new DefaultHost(ProviderId.NONE,
-                    hostA, macA, VlanId.NONE, locA,
-                    ImmutableSet.of(ipA));
-            hosts.put(hostA, host);
-
-            host = new DefaultHost(ProviderId.NONE,
-                    hostB, macB, VlanId.NONE, locB,
-                    ImmutableSet.of(ipB));
-            hosts.put(hostB, host);
         }
 
         @Override
