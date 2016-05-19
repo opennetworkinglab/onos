@@ -124,7 +124,9 @@ public interface MastershipService
      *
      * @param nodeId the ID of the controller
      * @return a set of device IDs
+     * @deprecated 1.6.0 Goldeneye release.
      */
+    @Deprecated
     Set<DeviceId> getDevicesOf(NodeId nodeId);
 
 }

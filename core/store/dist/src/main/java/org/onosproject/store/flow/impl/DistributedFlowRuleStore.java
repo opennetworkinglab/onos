@@ -843,8 +843,9 @@ public class DistributedFlowRuleStore
             }
             try {
                 // determine the set of devices that we need to backup during this run.
-                Set<DeviceId> devicesToBackup = mastershipService.getDevicesOf(local)
+                Set<DeviceId> devicesToBackup = flowEntries.keySet()
                             .stream()
+                            .filter(mastershipService::isLocalMaster)
                             .filter(deviceId -> {
                                 Long lastBackupTime = lastBackupTimes.get(deviceId);
                                 Long lastUpdateTime = lastUpdateTimes.get(deviceId);
