@@ -142,9 +142,8 @@ public final class EncodeInstructionCodecHelper {
                 result.put(InstructionCodec.MPLS_LABEL, modMplsLabelInstruction.label().toInt());
                 break;
             case MPLS_PUSH:
-                final L2ModificationInstruction.PushHeaderInstructions pushHeaderInstructions =
-                        (L2ModificationInstruction.PushHeaderInstructions) l2Instruction;
-
+                final L2ModificationInstruction.ModMplsHeaderInstruction pushHeaderInstructions =
+                        (L2ModificationInstruction.ModMplsHeaderInstruction) l2Instruction;
                 result.put(InstructionCodec.ETHERNET_TYPE,
                         pushHeaderInstructions.ethernetType().toShort());
                 break;

@@ -317,7 +317,7 @@ public class PathIntentCompilerTest {
                 .collect(Collectors.toSet()), hasSize(1));
         assertThat(vlanMod.iterator().next().vlanId(), is(egressVlan));
         assertThat(rule3.treatment().allInstructions().stream()
-                .filter(treat -> treat instanceof L2ModificationInstruction.PopVlanInstruction)
+                .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanHeaderInstruction)
                 .collect(Collectors.toSet()), hasSize(0));
 
         sut.deactivate();
@@ -350,7 +350,7 @@ public class PathIntentCompilerTest {
                                .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
                                .collect(Collectors.toSet()), hasSize(0));
             assertThat(trafficTreatment.allInstructions().stream()
-                               .filter(treat -> treat instanceof L2ModificationInstruction.PopVlanInstruction)
+                               .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanHeaderInstruction)
                                .collect(Collectors.toSet()), hasSize(1));
 
         }
@@ -436,7 +436,7 @@ public class PathIntentCompilerTest {
                                .filter(treat -> treat instanceof L2ModificationInstruction.ModMplsLabelInstruction)
                                .collect(Collectors.toSet()), hasSize(0));
             assertThat(trafficTreatment.allInstructions().stream()
-                               .filter(treat -> treat instanceof L2ModificationInstruction.PushHeaderInstructions)
+                               .filter(treat -> treat instanceof L2ModificationInstruction.ModMplsHeaderInstruction)
                                .collect(Collectors.toSet()), hasSize(1));
 
         }

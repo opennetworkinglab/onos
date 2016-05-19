@@ -29,10 +29,10 @@ import org.onosproject.net.flow.instructions.Instructions.SetQueueInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction.ModOduSignalIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsHeaderInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 
@@ -54,10 +54,10 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
      * @param description Description object used for recording errors
      * @return true if contents match, false otherwise
      */
-    private boolean matchPushHeaderInstruction(JsonNode instructionJson,
-                                               Description description) {
-        PushHeaderInstructions instructionToMatch =
-                (PushHeaderInstructions) instruction;
+    private boolean matchModMplsHeaderInstruction(JsonNode instructionJson,
+                                                  Description description) {
+        ModMplsHeaderInstruction instructionToMatch =
+                (ModMplsHeaderInstruction) instruction;
         final String jsonSubtype = instructionJson.get("subtype").textValue();
         if (!instructionToMatch.subtype().name().equals(jsonSubtype)) {
             description.appendText("subtype was " + jsonSubtype);
@@ -83,6 +83,8 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
 
         return true;
     }
+
+    // TODO: need to add matchModVlanHeaderInstruction
 
     /**
      * Matches the contents of an output instruction.
@@ -513,8 +515,8 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
                 return false;
         }
 
-        if (instruction instanceof PushHeaderInstructions) {
-            return matchPushHeaderInstruction(jsonInstruction, description);
+        if (instruction instanceof ModMplsHeaderInstruction) {
+            return matchModMplsHeaderInstruction(jsonInstruction, description);
         } else if (instruction instanceof OutputInstruction) {
             return matchOutputInstruction(jsonInstruction, description);
         } else if (instruction instanceof GroupInstruction) {

@@ -333,7 +333,7 @@ public final class Instructions {
      * @return a L2 modification.
      */
     public static Instruction pushMpls() {
-        return new L2ModificationInstruction.PushHeaderInstructions(
+        return new L2ModificationInstruction.ModMplsHeaderInstruction(
                 L2ModificationInstruction.L2SubType.MPLS_PUSH,
                                           EthType.EtherType.MPLS_UNICAST.ethType());
     }
@@ -344,7 +344,7 @@ public final class Instructions {
      * @return a L2 modification.
      */
     public static Instruction popMpls() {
-        return new L2ModificationInstruction.PushHeaderInstructions(
+        return new L2ModificationInstruction.ModMplsHeaderInstruction(
                 L2ModificationInstruction.L2SubType.MPLS_POP,
                 EthType.EtherType.MPLS_UNICAST.ethType());
     }
@@ -357,7 +357,7 @@ public final class Instructions {
      */
     public static Instruction popMpls(EthType etherType) {
         checkNotNull(etherType, "Ethernet type cannot be null");
-        return new L2ModificationInstruction.PushHeaderInstructions(
+        return new L2ModificationInstruction.ModMplsHeaderInstruction(
                 L2ModificationInstruction.L2SubType.MPLS_POP, etherType);
     }
 
@@ -367,7 +367,7 @@ public final class Instructions {
      * @return a L2 modification
      */
     public static Instruction popVlan() {
-        return new L2ModificationInstruction.PopVlanInstruction(
+        return new L2ModificationInstruction.ModVlanHeaderInstruction(
                 L2ModificationInstruction.L2SubType.VLAN_POP);
     }
 
@@ -377,7 +377,7 @@ public final class Instructions {
      * @return a L2 modification
      */
     public static Instruction pushVlan() {
-        return new L2ModificationInstruction.PushHeaderInstructions(
+        return new L2ModificationInstruction.ModVlanHeaderInstruction(
                 L2ModificationInstruction.L2SubType.VLAN_PUSH,
                 EthType.EtherType.VLAN.ethType());
     }

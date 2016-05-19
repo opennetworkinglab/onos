@@ -40,11 +40,12 @@ import org.onosproject.net.flow.instructions.L1ModificationInstruction.ModOduSig
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsBosInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsHeaderInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnelIdInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanHeaderInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpEthInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpIPInstruction;
@@ -394,13 +395,13 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 oxm = factory().oxms().vlanPcp(VlanPcp.of(vlanPcp.vlanPcp()));
                 break;
             case MPLS_PUSH:
-                PushHeaderInstructions pushHeaderInstructions =
-                        (PushHeaderInstructions) l2m;
+                ModMplsHeaderInstruction pushHeaderInstructions =
+                        (ModMplsHeaderInstruction) l2m;
                 return factory().actions().pushMpls(EthType.of(pushHeaderInstructions
                                                                .ethernetType().toShort()));
             case MPLS_POP:
-                PushHeaderInstructions popHeaderInstructions =
-                        (PushHeaderInstructions) l2m;
+                ModMplsHeaderInstruction popHeaderInstructions =
+                        (ModMplsHeaderInstruction) l2m;
                 return factory().actions().popMpls(EthType.of(popHeaderInstructions
                                                               .ethernetType().toShort()));
             case MPLS_LABEL:
@@ -419,7 +420,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             case VLAN_POP:
                 return factory().actions().popVlan();
             case VLAN_PUSH:
-                PushHeaderInstructions pushVlanInstruction = (PushHeaderInstructions) l2m;
+                ModVlanHeaderInstruction pushVlanInstruction = (ModVlanHeaderInstruction) l2m;
                 return factory().actions().pushVlan(
                         EthType.of(pushVlanInstruction.ethernetType().toShort()));
             case TUNNEL_ID:

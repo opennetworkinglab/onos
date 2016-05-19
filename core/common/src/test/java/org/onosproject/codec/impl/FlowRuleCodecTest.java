@@ -425,14 +425,14 @@ public class FlowRuleCodecTest {
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.MPLS_PUSH.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
-        assertThat(((L2ModificationInstruction.PushHeaderInstructions) instruction)
+        assertThat(((L2ModificationInstruction.ModMplsHeaderInstruction) instruction)
                         .ethernetType().toShort(),
                 is(Ethernet.MPLS_UNICAST));
 
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.MPLS_POP.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
-        assertThat(((L2ModificationInstruction.PushHeaderInstructions) instruction)
+        assertThat(((L2ModificationInstruction.ModMplsHeaderInstruction) instruction)
                         .ethernetType().toShort(),
                 is(Ethernet.MPLS_UNICAST));
 
@@ -444,12 +444,12 @@ public class FlowRuleCodecTest {
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.VLAN_POP.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
-        assertThat(instruction, instanceOf(L2ModificationInstruction.PopVlanInstruction.class));
+        assertThat(instruction, instanceOf(L2ModificationInstruction.ModVlanHeaderInstruction.class));
 
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.VLAN_PUSH.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
-        assertThat(instruction, instanceOf(L2ModificationInstruction.PushHeaderInstructions.class));
+        assertThat(instruction, instanceOf(L2ModificationInstruction.ModVlanHeaderInstruction.class));
 
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.TUNNEL_ID.name());

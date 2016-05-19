@@ -15,16 +15,8 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MplsLabel;
@@ -52,8 +44,15 @@ import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.Resources;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.onosproject.net.LinkKey.linkKey;
 
@@ -214,10 +213,11 @@ public class PathCompiler<T> {
                                 instruction -> instruction instanceof L2ModificationInstruction.ModVlanIdInstruction)
                         .map(x -> (L2ModificationInstruction.ModVlanIdInstruction) x).findAny();
 
-                Optional<L2ModificationInstruction.PopVlanInstruction> popVlanInstruction = intent.treatment()
+                Optional<L2ModificationInstruction.ModVlanHeaderInstruction> popVlanInstruction = intent.treatment()
                         .allInstructions().stream().filter(
-                                instruction -> instruction instanceof L2ModificationInstruction.PopVlanInstruction)
-                        .map(x -> (L2ModificationInstruction.PopVlanInstruction) x).findAny();
+                                instruction -> instruction instanceof
+                                        L2ModificationInstruction.ModVlanHeaderInstruction)
+                        .map(x -> (L2ModificationInstruction.ModVlanHeaderInstruction) x).findAny();
 
                 if (!modVlanIdInstruction.isPresent() && !popVlanInstruction.isPresent()) {
                     if (vlanCriterion.isPresent()) {

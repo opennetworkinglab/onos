@@ -15,10 +15,7 @@
  */
 package org.onosproject.codec.impl;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.onosproject.codec.impl.InstructionJsonMatcher.matchesInstruction;
-
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
@@ -40,7 +37,9 @@ import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.onosproject.codec.impl.InstructionJsonMatcher.matchesInstruction;
 
 /**
  * Unit tests for Instruction codec.
@@ -60,12 +59,12 @@ public class InstructionCodecTest {
     }
 
     /**
-     * Tests the encoding of push header instructions.
+     * Tests the encoding of push mpls header instructions.
      */
     @Test
     public void pushHeaderInstructionsTest() {
-        final L2ModificationInstruction.PushHeaderInstructions instruction =
-                (L2ModificationInstruction.PushHeaderInstructions) Instructions.pushMpls();
+        final L2ModificationInstruction.ModMplsHeaderInstruction instruction =
+                (L2ModificationInstruction.ModMplsHeaderInstruction) Instructions.pushMpls();
         final ObjectNode instructionJson = instructionCodec.encode(instruction, context);
 
         assertThat(instructionJson, matchesInstruction(instruction));

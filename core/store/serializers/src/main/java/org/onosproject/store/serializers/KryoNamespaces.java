@@ -189,6 +189,10 @@ import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.meter.MeterId;
+import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.DefaultPacketRequest;
+import org.onosproject.net.packet.PacketPriority;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.ContinuousResourceId;
 import org.onosproject.net.resource.DiscreteResource;
@@ -196,10 +200,6 @@ import org.onosproject.net.resource.DiscreteResourceCodec;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumerId;
-import org.onosproject.net.packet.DefaultOutboundPacket;
-import org.onosproject.net.packet.DefaultPacketRequest;
-import org.onosproject.net.packet.PacketPriority;
-import org.onosproject.net.provider.ProviderId;
 import org.onosproject.security.Permission;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.primitives.MapUpdate;
@@ -399,9 +399,11 @@ public final class KryoNamespaces {
                     L2ModificationInstruction.L2SubType.class,
                     L2ModificationInstruction.ModEtherInstruction.class,
                     L2ModificationInstruction.PushHeaderInstructions.class,
+                    L2ModificationInstruction.PopVlanInstruction.class,
+                    L2ModificationInstruction.ModMplsHeaderInstruction.class,
                     L2ModificationInstruction.ModVlanIdInstruction.class,
                     L2ModificationInstruction.ModVlanPcpInstruction.class,
-                    L2ModificationInstruction.PopVlanInstruction.class,
+                    L2ModificationInstruction.ModVlanHeaderInstruction.class,
                     L2ModificationInstruction.ModMplsLabelInstruction.class,
                     L2ModificationInstruction.ModMplsBosInstruction.class,
                     L2ModificationInstruction.ModMplsTtlInstruction.class,
