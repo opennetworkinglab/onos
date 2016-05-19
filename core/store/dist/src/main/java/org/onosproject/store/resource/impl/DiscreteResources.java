@@ -32,7 +32,7 @@ interface DiscreteResources {
      * @return a empty set.
      */
     static DiscreteResources empty() {
-        return UnifiedDiscreteResources.empty();
+        return EmptyDiscreteResources.INSTANCE;
     }
 
     /**
@@ -41,7 +41,7 @@ interface DiscreteResources {
      * @param resources resources
      * @return instance
      */
-    static DiscreteResources of(List<DiscreteResource> resources) {
+    static DiscreteResources of(Set<DiscreteResource> resources) {
         return UnifiedDiscreteResources.of(resources);
     }
 

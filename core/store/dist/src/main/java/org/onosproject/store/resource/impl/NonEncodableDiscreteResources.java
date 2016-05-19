@@ -30,24 +30,21 @@ import java.util.Set;
 final class NonEncodableDiscreteResources implements DiscreteResources {
     private final Set<DiscreteResource> values;
 
-    static NonEncodableDiscreteResources empty() {
-        return new NonEncodableDiscreteResources();
-    }
+    static DiscreteResources of(Set<DiscreteResource> resources) {
+        if (resources.isEmpty()) {
+            return DiscreteResources.empty();
+        }
 
-    static NonEncodableDiscreteResources of(List<DiscreteResource> resources) {
         return new NonEncodableDiscreteResources(resources);
-    }
-
-    private NonEncodableDiscreteResources() {
-        this.values = new LinkedHashSet<>();
-    }
-
-    private NonEncodableDiscreteResources(List<DiscreteResource> values) {
-        this.values = new LinkedHashSet<>(values);
     }
 
     private NonEncodableDiscreteResources(Set<DiscreteResource> values) {
         this.values = values;
+    }
+
+    // for serializer
+    private NonEncodableDiscreteResources() {
+        this.values = null;
     }
 
     @Override

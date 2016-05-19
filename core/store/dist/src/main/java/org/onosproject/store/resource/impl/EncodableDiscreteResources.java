@@ -43,6 +43,10 @@ final class EncodableDiscreteResources implements DiscreteResources {
     }
 
     static DiscreteResources of(Set<DiscreteResource> resources) {
+        if (resources.isEmpty()) {
+            return DiscreteResources.empty();
+        }
+
         DiscreteResource parent = resources.iterator().next().parent().get();
         return of(parent, resources);
     }

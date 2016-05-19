@@ -15,12 +15,18 @@
  */
 package org.onosproject.store.resource.impl;
 
+import com.google.common.collect.Sets;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
+import org.onosproject.net.resource.Resources;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Represents a set of resources containing resources that can be encoded as integer
@@ -28,55 +34,66 @@ import java.util.Set;
  */
 final class UnifiedDiscreteResources implements DiscreteResources {
     private final DiscreteResources nonEncodables;
+    private final DiscreteResources encodables;
+    private static final Codecs CODECS = Codecs.getInstance();
 
-    static DiscreteResources empty() {
-        return new UnifiedDiscreteResources();
+    static DiscreteResources of(Set<DiscreteResource> resources) {
+        if (resources.isEmpty()) {
+            return DiscreteResources.empty();
+        }
+
+        Map<Boolean, Set<DiscreteResource>> partitioned = resources.stream()
+                .collect(Collectors.partitioningBy(CODECS::isEncodable, Collectors.toCollection(LinkedHashSet::new)));
+        return new UnifiedDiscreteResources(
+                NonEncodableDiscreteResources.of(partitioned.get(false)),
+                EncodableDiscreteResources.of(partitioned.get(true))
+        );
     }
 
-    static DiscreteResources of(List<DiscreteResource> resources) {
-        return new UnifiedDiscreteResources(resources);
-    }
-
-    private UnifiedDiscreteResources() {
-        this.nonEncodables = NonEncodableDiscreteResources.empty();
-    }
-
-    private UnifiedDiscreteResources(List<DiscreteResource> resources) {
-        this.nonEncodables = NonEncodableDiscreteResources.of(resources);
+    private UnifiedDiscreteResources(DiscreteResources nonEncodables, DiscreteResources encodables) {
+        this.nonEncodables = nonEncodables;
+        this.encodables = encodables;
     }
 
     @Override
     public Optional<DiscreteResource> lookup(DiscreteResourceId id) {
+        if (CODECS.isEncodable(Resources.discrete(id).resource())) {
+            return encodables.lookup(id);
+        }
+
         return nonEncodables.lookup(id);
     }
 
     @Override
     public DiscreteResources difference(DiscreteResources other) {
-        return nonEncodables.difference(other);
+        return of(Sets.difference(values(), other.values()));
     }
 
     @Override
     public boolean isEmpty() {
-        return nonEncodables.isEmpty();
+        return nonEncodables.isEmpty() && encodables.isEmpty();
     }
 
     @Override
     public boolean containsAny(List<DiscreteResource> other) {
-        return nonEncodables.containsAny(other);
+        Map<Boolean, List<DiscreteResource>> partitioned = other.stream()
+                .collect(Collectors.partitioningBy(CODECS::isEncodable));
+        return nonEncodables.containsAny(partitioned.get(false)) || encodables.containsAny(partitioned.get(true));
     }
 
     @Override
     public DiscreteResources add(DiscreteResources other) {
-        return nonEncodables.add(other);
+        return of(Sets.union(this.values(), other.values()));
     }
 
     @Override
     public DiscreteResources remove(List<DiscreteResource> removed) {
-        return nonEncodables.remove(removed);
+        return of(Sets.difference(values(), new LinkedHashSet<>(removed)));
     }
 
     @Override
     public Set<DiscreteResource> values() {
-        return nonEncodables.values();
+        return Stream.concat(encodables.values().stream(), nonEncodables.values().stream())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }
