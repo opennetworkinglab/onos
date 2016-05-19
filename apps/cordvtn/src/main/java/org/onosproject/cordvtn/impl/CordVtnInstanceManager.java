@@ -15,7 +15,6 @@
  */
 package org.onosproject.cordvtn.impl;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -34,6 +33,7 @@ import org.onosproject.cordvtn.api.Instance;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.dhcp.DhcpService;
+import org.onosproject.dhcp.IpAssignment;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -70,7 +70,7 @@ import org.onosproject.xosclient.api.XosAccess;
 import org.onosproject.xosclient.api.XosClientService;
 import org.slf4j.Logger;
 
-import java.util.List;
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -82,6 +82,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.cordvtn.api.Instance.*;
+import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_RangeNotEnforced;
+import static org.onosproject.xosclient.api.VtnService.NetworkType.MANAGEMENT;
 import static org.onosproject.xosclient.api.VtnService.NetworkType.PRIVATE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -97,6 +99,7 @@ public class CordVtnInstanceManager extends AbstractProvider implements HostProv
     private static final String XOS_ACCESS_ERROR = "XOS access is not configured";
     private static final String OPENSTACK_ACCESS_ERROR = "OpenStack access is not configured";
     private static final Ip4Address DEFAULT_DNS = Ip4Address.valueOf("8.8.8.8");
+    private static final int DHCP_INFINITE_LEASE = -1;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -273,7 +276,6 @@ public class CordVtnInstanceManager extends AbstractProvider implements HostProv
             arpProxy.addGateway(service.serviceIp(), privateGatewayMac);
             arpProxy.sendGratuitousArpForGateway(service.serviceIp(), Sets.newHashSet(instance));
         }
-
         if (!instance.isNestedInstance()) {
             registerDhcpLease(instance, service);
         }
@@ -295,17 +297,25 @@ public class CordVtnInstanceManager extends AbstractProvider implements HostProv
     }
 
     private void registerDhcpLease(Instance instance, VtnService service) {
-        List<Ip4Address> options = Lists.newArrayList();
-        options.add(Ip4Address.makeMaskPrefix(service.subnet().prefixLength()));
-        options.add(service.serviceIp().getIp4Address());
-        options.add(service.serviceIp().getIp4Address());
-        options.add(DEFAULT_DNS);
+        Ip4Address broadcast = Ip4Address.makeMaskedAddress(
+                instance.ipAddress(),
+                service.subnet().prefixLength());
+
+        IpAssignment.Builder ipBuilder = IpAssignment.builder()
+                .ipAddress(instance.ipAddress())
+                .leasePeriod(DHCP_INFINITE_LEASE)
+                .timestamp(new Date())
+                .subnetMask(Ip4Address.makeMaskPrefix(service.subnet().prefixLength()))
+                .broadcast(broadcast)
+                .domainServer(DEFAULT_DNS)
+                .assignmentStatus(Option_RangeNotEnforced);
+
+        if (service.networkType() != MANAGEMENT) {
+            ipBuilder = ipBuilder.routerAddress(service.serviceIp().getIp4Address());
+        }
 
         log.debug("Set static DHCP mapping for {} {}", instance.mac(), instance.ipAddress());
-        dhcpService.setStaticMapping(instance.mac(),
-                                     instance.ipAddress(),
-                                     true,
-                                     options);
+        dhcpService.setStaticMapping(instance.mac(), ipBuilder.build());
     }
 
     private VtnService getVtnService(VtnServiceId serviceId) {

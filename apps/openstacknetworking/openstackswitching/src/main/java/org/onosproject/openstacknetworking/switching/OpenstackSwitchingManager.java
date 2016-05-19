@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworking.switching;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
@@ -26,9 +25,11 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.dhcp.DhcpService;
+import org.onosproject.dhcp.IpAssignment;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -61,13 +62,18 @@ import org.onosproject.openstacknetworking.OpenstackNetworkingConfig;
 import org.onosproject.openstacknetworking.OpenstackSwitchingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.List;
+
+import java.util.Date;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_RangeNotEnforced;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @Service
 @Component(immediate = true)
@@ -117,8 +123,9 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     public static final String PORTNAME = "portName";
     private static final String ROUTER_INTERFACE = "network:router_interface";
     public static final String DEVICE_OWNER_GATEWAY = "network:router_gateway";
-    public static final String DNS_SERVER_IP = "8.8.8.8";
+    public static final Ip4Address DNS_SERVER_IP = Ip4Address.valueOf("8.8.8.8");
     private static final String FORWARD_SLASH = "/";
+    private static final int DHCP_INFINITE_LEASE = -1;
 
 
     private ApplicationId appId;
@@ -372,41 +379,40 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     }
 
     private void registerDhcpInfo(OpenstackPort openstackPort) {
-        Ip4Address ip4Address, subnetMask, gatewayIPAddress, dhcpServer, domainServer;
-        OpenstackSubnet openstackSubnet;
+        checkNotNull(openstackPort);
+        checkArgument(!openstackPort.fixedIps().isEmpty());
 
-        ip4Address = (Ip4Address) openstackPort.fixedIps().values().stream().findFirst().orElse(null);
-
-        openstackSubnet = openstackService.subnets().stream()
+        OpenstackSubnet openstackSubnet = openstackService.subnets().stream()
                 .filter(n -> n.networkId().equals(openstackPort.networkId()))
-                .findFirst().get();
-
-        subnetMask = Ip4Address.valueOf(buildSubnetMask(openstackSubnet.cidr()));
-        gatewayIPAddress = Ip4Address.valueOf(openstackSubnet.gatewayIp());
-        dhcpServer = gatewayIPAddress;
-        // TODO: supports multiple DNS servers
-        if (openstackSubnet.dnsNameservers().isEmpty()) {
-            domainServer = Ip4Address.valueOf(DNS_SERVER_IP);
-        } else {
-            domainServer = openstackSubnet.dnsNameservers().get(0);
+                .findFirst().orElse(null);
+        if (openstackSubnet == null) {
+            log.warn("Failed to find subnet for {}", openstackPort);
+            return;
         }
-        List<Ip4Address> options = ImmutableList.of(subnetMask, dhcpServer, gatewayIPAddress, domainServer);
 
-        dhcpService.setStaticMapping(openstackPort.macAddress(), ip4Address, true, options);
+        Ip4Address ipAddress = openstackPort.fixedIps().values().stream().findFirst().get();
+        IpPrefix subnetPrefix = IpPrefix.valueOf(openstackSubnet.cidr());
+        Ip4Address broadcast = Ip4Address.makeMaskedAddress(
+                ipAddress,
+                subnetPrefix.prefixLength());
+
+        // TODO: supports multiple DNS servers
+        Ip4Address domainServer = openstackSubnet.dnsNameservers().isEmpty() ?
+                DNS_SERVER_IP : openstackSubnet.dnsNameservers().get(0);
+
+        IpAssignment ipAssignment = IpAssignment.builder()
+                .ipAddress(ipAddress)
+                .leasePeriod(DHCP_INFINITE_LEASE)
+                .timestamp(new Date())
+                .subnetMask(Ip4Address.makeMaskPrefix(subnetPrefix.prefixLength()))
+                .broadcast(broadcast)
+                .domainServer(domainServer)
+                .assignmentStatus(Option_RangeNotEnforced)
+                .routerAddress(Ip4Address.valueOf(openstackSubnet.gatewayIp()))
+                .build();
+
+        dhcpService.setStaticMapping(openstackPort.macAddress(), ipAssignment);
     }
-
-    private byte[] buildSubnetMask(String cidr) {
-        int prefix;
-        String[] parts = cidr.split(FORWARD_SLASH);
-        prefix = Integer.parseInt(parts[1]);
-        int mask = 0xffffffff << (32 - prefix);
-        byte[] bytes = new byte[]{(byte) (mask >>> 24),
-                (byte) (mask >> 16 & 0xff), (byte) (mask >> 8 & 0xff), (byte) (mask & 0xff)};
-
-        return bytes;
-    }
-
-
 
     private class InternalPacketProcessor implements PacketProcessor {
 
