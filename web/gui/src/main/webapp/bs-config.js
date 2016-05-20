@@ -20,7 +20,7 @@ var proxy = httpProxy.createProxyServer({
 });
 
 var defaultViews = fs.readdirSync('./app/view/');
-var viewNameMatcher = new RegExp(/\/onos\/ui\/app\/view\/(.+)\/.+\.js/);
+var viewNameMatcher = new RegExp(/\/onos\/ui\/app\/view\/(.+)\/.+\.(?:js|css|html)/);
 
 proxy.on('upgrade', function (req, socket, head) {
   console.log('[WS]: ', head);
@@ -54,20 +54,19 @@ module.exports = {
 
 
       var viewName = viewNameMatcher.exec(req.url);
-
       if(!!viewName && defaultViews.indexOf(viewName[1]) === -1){
         // in this case it is an external application that extend the view
-        // so we redirect the request to the app folder
+        // so we redirect the request to the app folder in case of .js, .css, .html
         req.url = req.url.replace('/onos/ui/', '/apps/' + viewName[1] + '/app/src/main/resources/');
         proxy.web(req, res);
       }
-      // NOTE onos.js should not be proxied (require server side injection)
-      else if(req.url.match(/.js$/) && req.url !== '/onos/ui/onos.js'){
+      // NOTE onos.js and index.html should not be proxied (require server side injection)
+      else if(req.url.match(/(?:js|css|html)/) && req.url !== '/onos/ui/onos.js' && req.url !== '/onos/ui/index.html' && req.url !== '/onos/ui/nav.html'){
         // redirect onos base js files to the source folder
         req.url = req.url.replace('/onos/ui/', '/web/gui/src/main/webapp/');
         proxy.web(req, res); 
       }
-      else{
+      else {
         return next();
       }
     }
