@@ -1337,19 +1337,6 @@ public class TempJavaFragmentFiles {
          */
         if ((fileType & INTERFACE_MASK) != 0 || (fileType &
                 BUILDER_INTERFACE_MASK) != 0) {
-            /*
-             * Adds import for case.
-             */
-            if (curNode instanceof YangCase) {
-                List<String> importData =
-                        ((TempJavaCodeFragmentFilesContainer) curNode).getTempJavaCodeFragmentFiles()
-                                .getBeanTempFiles().getJavaImportData().getImports();
-                for (String importInfo : importData) {
-                    if (!imports.contains(importInfo)) {
-                        imports.add(importInfo);
-                    }
-                }
-            }
 
             /*
              * Create interface file.

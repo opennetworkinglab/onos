@@ -116,6 +116,17 @@ public class MinElementsListenerTest {
     }
 
     /**
+     * Checks whether exception is thrown when invalid min-elements value is
+     * given as input.
+     */
+    @Test
+    public void processMinElementsMaxValue() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("YANG file error : min-elements value 77777777777777777777777 is not valid.");
+        YangNode node = manager.getDataModel("src/test/resources/MinElementsMaxValue.yang");
+    }
+
+    /**
      * Checks whether exception is thrown when min-elements statement without
      * statement end is given as input.
      */

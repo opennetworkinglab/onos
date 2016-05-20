@@ -42,6 +42,7 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_SERVICE_AND_MANAGER;
 import static org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles.addCurNodeInfoInParentTempFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCurNodePackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.utils.UtilConstants.AUGMENTATION_HOLDER;
@@ -279,7 +280,7 @@ public final class YangJavaModelUtils {
         if (javaCodeGeneratorInfo instanceof YangCase) {
             YangNode parent = ((YangCase) javaCodeGeneratorInfo).getParent();
             JavaQualifiedTypeInfo parentsInfo = new JavaQualifiedTypeInfo();
-            String parentName = ((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName();
+            String parentName = getCapitalCase(((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName());
             String parentPkg = ((JavaFileInfoContainer) parent).getJavaFileInfo().getPackage();
             parentsInfo.setClassInfo(parentName);
             parentsInfo.setPkgInfo(parentPkg);

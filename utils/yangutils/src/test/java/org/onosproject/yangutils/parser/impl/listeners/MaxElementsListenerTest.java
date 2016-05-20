@@ -176,4 +176,15 @@ public class MaxElementsListenerTest {
         assertThat(leafListInfo.getName(), is("invalid-interval"));
         assertThat(leafListInfo.getMaxElelements(), is(2147483647));
     }
+
+    /**
+     * Checks whether exception is thrown when invalid min-elements value is
+     * given as input.
+     */
+    @Test
+    public void processMaxElementsMaxValue() throws IOException, ParserException {
+        thrown.expect(ParserException.class);
+        thrown.expectMessage("YANG file error : max-elements value 77777777777777777777777 is not valid.");
+        YangNode node = manager.getDataModel("src/test/resources/MaxElementsMaxValue.yang");
+    }
 }

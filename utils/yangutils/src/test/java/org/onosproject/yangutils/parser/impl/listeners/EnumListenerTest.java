@@ -33,8 +33,9 @@ import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.ListIterator;
-import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * Test cases for enum listener.
@@ -73,7 +74,7 @@ public class EnumListenerTest {
         assertThat(((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getName(),
                 is("speed_enum"));
 
-        Set<YangEnum> enumSet = ((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getEnumSet();
+        SortedSet<YangEnum> enumSet = ((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getEnumSet();
         for (YangEnum tmp : enumSet) {
             if (tmp.getNamedValue().equals("10m")) {
                 assertThat(tmp.getValue(), is(0));
@@ -113,5 +114,35 @@ public class EnumListenerTest {
                 + "An enum value MUST be specified for enum substatements following the one"
                 + "with the current highest value");
         YangNode node = manager.getDataModel("src/test/resources/EnumMaxNextValue.yang");
+    }
+
+    /**
+     * Checks enum values stored are sorted.
+     */
+    @Test
+    public void processEnumSorted() throws IOException, ParserException {
+        YangNode node = manager.getDataModel("src/test/resources/EnumSorted.yang");
+        // Check whether the data model tree returned is of type module.
+        assertThat((node instanceof YangModule), is(true));
+
+        // Check whether the node type is set properly to module.
+        assertThat(node.getNodeType(), is(YangNodeType.MODULE_NODE));
+
+        // Check whether the module name is set correctly.
+        YangModule yangNode = (YangModule) node;
+        assertThat(yangNode.getName(), is("Test"));
+
+        ListIterator<YangLeaf> leafIterator = yangNode.getListOfLeaf().listIterator();
+        YangLeaf leafInfo = leafIterator.next();
+
+        assertThat(leafInfo.getName(), is("ifType"));
+        assertThat(leafInfo.getDataType().getDataTypeName(), is("enumeration"));
+        assertThat(leafInfo.getDataType().getDataType(), is(YangDataTypes.ENUMERATION));
+        assertThat(((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getName(),
+                is("ifType_enum"));
+
+        SortedSet<YangEnum> enumSet = ((YangEnumeration) leafInfo.getDataType().getDataTypeExtendedInfo()).getEnumSet();
+        Iterator<YangEnum> enumIterator = enumSet.iterator();
+        assertThat(enumIterator.next().getNamedValue(), is("five"));
     }
 }

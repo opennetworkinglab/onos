@@ -251,8 +251,8 @@ public final class JavaCodeGeneratorUtil {
      */
     private static void close(YangNode node)
             throws IOException {
-
-        if (((TempJavaCodeFragmentFilesContainer) node).getTempJavaCodeFragmentFiles() != null) {
+        if (node instanceof JavaCodeGenerator && ((TempJavaCodeFragmentFilesContainer) node)
+                .getTempJavaCodeFragmentFiles() != null) {
             ((TempJavaCodeFragmentFilesContainer) node).getTempJavaCodeFragmentFiles().freeTemporaryResources(true);
         }
     }

@@ -106,7 +106,16 @@ public final class MaxElementsListener {
         if (value.equals(UNBOUNDED_KEYWORD)) {
             maxElementsValue = Integer.MAX_VALUE;
         } else if (value.matches(POSITIVE_INTEGER_PATTERN)) {
-            maxElementsValue = Integer.parseInt(value);
+            try {
+                maxElementsValue = Integer.parseInt(value);
+            } catch (NumberFormatException e) {
+                ParserException parserException = new ParserException("YANG file error : " +
+                        YangConstructType.getYangConstructType(MAX_ELEMENT_DATA) + " value " + value + " is not " +
+                        "valid.");
+                parserException.setLine(ctx.getStart().getLine());
+                parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+                throw parserException;
+            }
         } else {
             ParserException parserException = new ParserException("YANG file error : " +
                     YangConstructType.getYangConstructType(MAX_ELEMENT_DATA) + " value " + value + " is not " +

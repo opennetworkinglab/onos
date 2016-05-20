@@ -54,6 +54,7 @@ public final class ListenerUtil {
     private static final String DATE_PATTERN = "[0-9]{4}-([0-9]{2}|[0-9])-([0-9]{2}|[0-9])";
     private static final String NON_NEGATIVE_INTEGER_PATTERN = "[0-9]+";
     private static final Pattern INTEGER_PATTERN = Pattern.compile("[-][0-9]+|[0-9]+");
+    private static final String XML = "xml";
     private static final String ONE = "1";
     private static final int IDENTIFIER_LENGTH = 64;
     private static final String DATE_FORMAT = "yyyy-MM-dd";
@@ -102,6 +103,10 @@ public final class ListenerUtil {
             parserException = new ParserException("YANG file error : " +
                     YangConstructType.getYangConstructType(yangConstruct) + " name " + identifierString + " is not " +
                     "valid.");
+        } else if (identifierString.toLowerCase().startsWith(XML)) {
+            parserException = new ParserException("YANG file error : " +
+                    YangConstructType.getYangConstructType(yangConstruct) + " identifier " + identifierString +
+                    " must not start with (('X'|'x') ('M'|'m') ('L'|'l')).");
         } else {
             return identifierString;
         }
@@ -175,7 +180,18 @@ public final class ListenerUtil {
             throw parserException;
         }
 
-        return Integer.parseInt(value);
+        int valueInInteger;
+        try {
+            valueInInteger = Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            ParserException parserException = new ParserException("YANG file error : " +
+                    YangConstructType.getYangConstructType(yangConstruct) + " value " + value + " is not " +
+                    "valid.");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+        return valueInInteger;
     }
 
     /**

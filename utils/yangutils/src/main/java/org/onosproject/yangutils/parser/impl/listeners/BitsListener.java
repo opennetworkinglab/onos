@@ -45,6 +45,8 @@ import org.onosproject.yangutils.datamodel.YangBits;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.datamodel.YangUnion;
 import org.onosproject.yangutils.parser.Parsable;
 import org.onosproject.yangutils.parser.antlrgencode.GeneratedYangParser;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
@@ -100,6 +102,12 @@ public final class BitsListener {
                     break;
                 case LEAF_LIST_DATA:
                     bitsNode.setBitsName(((YangLeafList) tmpData).getName());
+                    break;
+                case TYPEDEF_DATA:
+                    bitsNode.setBitsName(((YangTypeDef) tmpData).getName());
+                    break;
+                case UNION_DATA:
+                    bitsNode.setBitsName(((YangUnion) tmpData).getName());
                     break;
                 // TODO typedef, union, deviate.
                 default:

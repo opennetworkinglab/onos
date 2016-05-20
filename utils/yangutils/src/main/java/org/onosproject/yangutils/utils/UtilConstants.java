@@ -1122,6 +1122,18 @@ public final class UtilConstants {
             " for YANG utils road map.";
 
     /**
+     * Static attribute for typedef linker error information.
+     */
+    public static final String TYPEDEF_LINKER_ERROR = "YANG file error: Unable to find base "
+            + "typedef for given type";
+
+    /**
+     * Static attribute for grouping linker error information.
+     */
+    public static final String GROUPING_LINKER_ERROR = "YANG file error: Unable to find base "
+            + "grouping for given uses";
+
+    /**
      * Creates an instance of util constants.
      */
     private UtilConstants() {

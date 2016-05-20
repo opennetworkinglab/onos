@@ -34,6 +34,8 @@ import static org.onosproject.yangutils.linker.impl.ResolvableStatus.INTRA_FILE_
 import static org.onosproject.yangutils.linker.impl.ResolvableStatus.LINKED;
 import static org.onosproject.yangutils.linker.impl.ResolvableStatus.RESOLVED;
 import static org.onosproject.yangutils.linker.impl.ResolvableStatus.UNRESOLVED;
+import static org.onosproject.yangutils.utils.UtilConstants.TYPEDEF_LINKER_ERROR;
+import static org.onosproject.yangutils.utils.UtilConstants.GROUPING_LINKER_ERROR;
 
 /**
  * Represents resolution object which will be resolved by linker.
@@ -180,9 +182,14 @@ public class YangResolutionInfo<T> implements LocationInfo {
 
                         if (resolvable.getResolvableStatus() == UNRESOLVED) {
                             // If current entity is still not resolved, then linking/resolution has failed.
+                            String errorInfo;
+                            if (resolvable instanceof YangType) {
+                                errorInfo = TYPEDEF_LINKER_ERROR;
+                            } else {
+                                errorInfo = GROUPING_LINKER_ERROR;
+                            }
                             DataModelException dataModelException =
-                                    new DataModelException("YANG file error: Unable to find base "
-                                            + "typedef/grouping for given type/uses");
+                                    new DataModelException(errorInfo);
                             dataModelException.setLine(getLineNumber());
                             dataModelException.setCharPosition(getCharPosition());
                             throw dataModelException;

@@ -564,7 +564,7 @@ public class IntraFileUsesLinkingTest {
 
         thrown.expect(ParserException.class);
         thrown.expectMessage(
-                "YANG file error: Unable to find base typedef/grouping for given type/uses");
+                "YANG file error: Unable to find base grouping for given uses");
 
         YangNode node = manager
                 .getDataModel("src/test/resources/SelfResolutionNestedGroupingWithUnresolvedUses.yang");

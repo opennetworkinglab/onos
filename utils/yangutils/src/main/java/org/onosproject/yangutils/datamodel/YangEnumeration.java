@@ -16,8 +16,8 @@
 
 package org.onosproject.yangutils.datamodel;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yangutils.parser.Parsable;
@@ -34,7 +34,7 @@ import org.onosproject.yangutils.utils.YangConstructType;
 public class YangEnumeration extends YangNode implements Parsable, CollisionDetector {
 
     // Enumeration info set.
-    private Set<YangEnum> enumSet;
+    private SortedSet<YangEnum> enumSet;
 
     // Enumeration name.
     private String name;
@@ -44,7 +44,7 @@ public class YangEnumeration extends YangNode implements Parsable, CollisionDete
      */
     public YangEnumeration() {
         super(YangNodeType.ENUMERATION_NODE);
-        setEnumSet(new HashSet<YangEnum>());
+        setEnumSet(new TreeSet<YangEnum>());
     }
 
     /**
@@ -52,7 +52,7 @@ public class YangEnumeration extends YangNode implements Parsable, CollisionDete
      *
      * @return the ENUM set
      */
-    public Set<YangEnum> getEnumSet() {
+    public SortedSet<YangEnum> getEnumSet() {
         return enumSet;
     }
 
@@ -61,7 +61,7 @@ public class YangEnumeration extends YangNode implements Parsable, CollisionDete
      *
      * @param enumSet the ENUM set to set
      */
-    private void setEnumSet(Set<YangEnum> enumSet) {
+    private void setEnumSet(SortedSet<YangEnum> enumSet) {
         this.enumSet = enumSet;
     }
 
