@@ -16,6 +16,8 @@
 
 package org.onosproject.yangutils.parser.impl.listeners;
 
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangDerivedInfo;
 import org.onosproject.yangutils.datamodel.YangPatternRestriction;
@@ -98,8 +100,8 @@ public final class PatternRestrictionListener {
      * Sets the pattern restriction to type.
      *
      * @param listener listener's object
-     * @param type Yang type for which pattern restriction to be set
-     * @param ctx  context object of the grammar rule
+     * @param type     Yang type for which pattern restriction to be set
+     * @param ctx      context object of the grammar rule
      */
     private static void setPatternRestriction(TreeWalkListener listener, YangType type,
                                               GeneratedYangParser.PatternStatementContext ctx) {
@@ -114,7 +116,8 @@ public final class PatternRestrictionListener {
             throw parserException;
         }
 
-        String patternArgument = ctx.string().getText().replace("\"", EMPTY_STRING);
+        // Validate and get valid pattern restriction string.
+        String patternArgument = getValidPattern(ctx);
 
         if (type.getDataType() == YangDataTypes.STRING) {
             YangStringRestriction stringRestriction = (YangStringRestriction) type.getDataTypeExtendedInfo();
@@ -145,10 +148,10 @@ public final class PatternRestrictionListener {
      * It is called when parser exits from grammar rule (pattern).
      *
      * @param listener listener's object
-     * @param ctx context object of the grammar rule
+     * @param ctx      context object of the grammar rule
      */
     public static void processPatternRestrictionExit(TreeWalkListener listener,
-                                                    GeneratedYangParser.PatternStatementContext ctx) {
+                                                     GeneratedYangParser.PatternStatementContext ctx) {
 
         // Check for stack to be non empty.
         checkStackIsNotEmpty(listener, MISSING_HOLDER, PATTERN_DATA, ctx.string().getText(), EXIT);
@@ -163,5 +166,26 @@ public final class PatternRestrictionListener {
             throw new ParserException(constructListenerErrorMessage(MISSING_CURRENT_HOLDER, PATTERN_DATA,
                     ctx.string().getText(), EXIT));
         }
+    }
+
+    /**
+     * Validates and return the valid pattern.
+     *
+     * @param ctx context object of the grammar rule
+     * @return validated string
+     */
+    private static String getValidPattern(GeneratedYangParser.PatternStatementContext ctx) {
+        String userInputPattern = ctx.string().getText().replace("\"", EMPTY_STRING);
+        try {
+            Pattern.compile(userInputPattern);
+        } catch (PatternSyntaxException exception) {
+            ParserException parserException = new ParserException("YANG file error : " +
+                    YangConstructType.getYangConstructType(PATTERN_DATA) + " name " + ctx.string().getText() +
+                    " is not a valid regular expression");
+            parserException.setLine(ctx.getStart().getLine());
+            parserException.setCharPosition(ctx.getStart().getCharPositionInLine());
+            throw parserException;
+        }
+        return userInputPattern;
     }
 }
