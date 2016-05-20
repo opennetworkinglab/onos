@@ -8,9 +8,9 @@
       "of:1/1",
       "of:1/2"
   ],
-  "suppressHost" : [
+  "suppressHostByPort" : [
       "of:1/1",
       "wrongPort"
   ],
-  "hostLearning" : false
+  "suppressHostByProvider" : []
 }
