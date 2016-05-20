@@ -190,11 +190,11 @@ public class PtToPtIntentVirtualNetworkProvider extends AbstractProvider
 
         @Override
         public boolean isRelevant(IntentEvent event) {
-            PointToPointIntent intent = (PointToPointIntent) event.subject();
+            if (event.subject() instanceof  PointToPointIntent) {
+                PointToPointIntent intent = (PointToPointIntent) event.subject();
 
-            // Only events that are for this appId are relevent.
-            if (intent.appId().equals(appId)) {
-                return true;
+                // Only events that are for this appId are relevent.
+                return intent.appId().equals(appId);
             }
             return false;
         }
