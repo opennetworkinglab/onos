@@ -61,7 +61,7 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
 
     private ApplicationId appId;
     private static final String APP_NAME = "org.onosproject.netcfghost";
-    public static final ProviderId PROVIDER_ID = new ProviderId("host", APP_NAME);
+    private static final ProviderId PROVIDER_ID = new ProviderId("host", APP_NAME);
     protected HostProviderService providerService;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -95,7 +95,7 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
     @Override
     public void triggerProbe(Host host) {
         /*
-         * Note: In CORD deployment, we assume that all hosts are configured.
+         * Note: All hosts are configured in network config host provider.
          * Therefore no probe is required.
          */
     }

@@ -55,6 +55,9 @@ public class SegmentRoutingAppConfigTest {
     private static final ConnectPoint PORT_3 = ConnectPoint.deviceConnectPoint("of:1/3");
     private static final DeviceId VROUTER_ID_1 = DeviceId.deviceId("of:1");
     private static final DeviceId VROUTER_ID_2 = DeviceId.deviceId("of:2");
+    private static final String PROVIDER_1 = "org.onosproject.provider.host";
+    private static final String PROVIDER_2 = "org.onosproject.netcfghost";
+    private static final String PROVIDER_3 = "org.onosproject.anotherprovider";
 
     /**
      * Initialize test related variables.
@@ -180,55 +183,65 @@ public class SegmentRoutingAppConfigTest {
     }
 
     /**
-     * Tests suppressHost getter.
+     * Tests suppressHostByPort getter.
      *
      * @throws Exception
      */
     @Test
-    public void testSuppressHost() throws Exception {
-        Set<ConnectPoint> suppressHost = config.suppressHost();
-        assertNotNull("suppressHost should not be null", suppressHost);
-        assertThat(suppressHost.size(), is(2));
-        assertTrue(suppressHost.contains(PORT_1));
-        assertTrue(suppressHost.contains(PORT_2));
+    public void testSuppressHostByPort() throws Exception {
+        Set<ConnectPoint> suppressHostByPort = config.suppressHostByPort();
+        assertNotNull("suppressHostByPort should not be null", suppressHostByPort);
+        assertThat(suppressHostByPort.size(), is(2));
+        assertTrue(suppressHostByPort.contains(PORT_1));
+        assertTrue(suppressHostByPort.contains(PORT_2));
     }
 
     /**
-     * Tests suppressHost setter.
+     * Tests suppressHostByPort setter.
      *
      * @throws Exception
      */
     @Test
-    public void testSetSuppressHost() throws Exception {
+    public void testSetSuppressHostByPort() throws Exception {
         ImmutableSet.Builder<ConnectPoint> builder = ImmutableSet.builder();
         builder.add(PORT_3);
-        config.setSuppressHost(builder.build());
+        config.setSuppressHostByPort(builder.build());
 
-        Set<ConnectPoint> suppressHost = config.suppressHost();
-        assertNotNull("suppressHost should not be null", suppressHost);
-        assertThat(suppressHost.size(), is(1));
-        assertTrue(suppressHost.contains(PORT_3));
+        Set<ConnectPoint> suppressHostByPort = config.suppressHostByPort();
+        assertNotNull("suppressHostByPort should not be null", suppressHostByPort);
+        assertThat(suppressHostByPort.size(), is(1));
+        assertTrue(suppressHostByPort.contains(PORT_3));
     }
 
     /**
-     * Tests hostLearning getter.
+     * Tests suppressHostByProvider getter.
      *
      * @throws Exception
      */
     @Test
-    public void testHostLearning() throws Exception {
-        assertFalse(config.hostLearning());
+    public void testSuppressHostByProvider() throws Exception {
+        Set<String> supprsuppressHostByProvider = config.suppressHostByProvider();
+        assertNotNull("suppressHostByProvider should not be null", supprsuppressHostByProvider);
+        assertThat(supprsuppressHostByProvider.size(), is(2));
+        assertTrue(supprsuppressHostByProvider.contains(PROVIDER_1));
+        assertTrue(supprsuppressHostByProvider.contains(PROVIDER_2));
     }
 
     /**
-     * Tests hostLearning setter.
+     * Tests suppressHostByProvider setter.
      *
      * @throws Exception
      */
     @Test
     public void testSetHostLearning() throws Exception {
-        config.setHostLearning(true);
-        assertTrue(config.hostLearning());
+        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+        builder.add(PROVIDER_3);
+        config.setSuppressHostByProvider(builder.build());
+
+        Set<String> supprsuppressHostByProvider = config.suppressHostByProvider();
+        assertNotNull("suppressHostByProvider should not be null", supprsuppressHostByProvider);
+        assertThat(supprsuppressHostByProvider.size(), is(1));
+        assertTrue(supprsuppressHostByProvider.contains(PROVIDER_3));
     }
 
     private class MockDelegate implements ConfigApplyDelegate {

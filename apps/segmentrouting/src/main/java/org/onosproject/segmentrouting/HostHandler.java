@@ -38,7 +38,6 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostService;
-import org.onosproject.provider.netcfghost.NetworkConfigHostProvider;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -351,16 +350,12 @@ public class HostHandler {
      * @return true if segment routing accepts the host
      */
     private boolean accepted(Host host) {
-        // Always accept configured hosts
-        if (host.providerId().equals(NetworkConfigHostProvider.PROVIDER_ID)) {
-            return true;
-        }
-
         SegmentRoutingAppConfig appConfig = srManager.cfgService
                 .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
-        boolean accepted = appConfig != null &&
-                appConfig.hostLearning() &&
-                !appConfig.suppressHost().contains(host.location());
+
+        boolean accepted = appConfig == null ||
+                (!appConfig.suppressHostByProvider().contains(host.providerId().id()) &&
+                !appConfig.suppressHostByPort().contains(host.location()));
         if (!accepted) {
             log.info("Ignore suppressed host {}", host.id());
         }

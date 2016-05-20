@@ -8,9 +8,12 @@
       "of:1/1",
       "of:1/2"
   ],
-  "suppressHost" : [
+  "suppressHostByPort" : [
       "of:1/1",
       "of:1/2"
   ],
-  "hostLearning" : false
+  "suppressHostByProvider" : [
+      "org.onosproject.provider.host",
+      "org.onosproject.netcfghost"
+  ]
 }
