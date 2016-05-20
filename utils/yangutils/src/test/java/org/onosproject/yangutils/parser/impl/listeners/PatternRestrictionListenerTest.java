@@ -18,17 +18,16 @@ package org.onosproject.yangutils.parser.impl.listeners;
 
 import java.io.IOException;
 import java.util.ListIterator;
-
 import org.junit.Test;
-import org.onosproject.yangutils.datamodel.YangNode;
-import org.onosproject.yangutils.datamodel.YangNodeType;
-import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangDataTypes;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangLeafList;
-import org.onosproject.yangutils.datamodel.YangDataTypes;
-import org.onosproject.yangutils.datamodel.YangTypeDef;
+import org.onosproject.yangutils.datamodel.YangModule;
+import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangNodeType;
 import org.onosproject.yangutils.datamodel.YangPatternRestriction;
 import org.onosproject.yangutils.datamodel.YangStringRestriction;
+import org.onosproject.yangutils.datamodel.YangTypeDef;
 import org.onosproject.yangutils.parser.exceptions.ParserException;
 import org.onosproject.yangutils.parser.impl.YangUtilsParserManager;
 
@@ -193,5 +192,13 @@ public class PatternRestrictionListenerTest {
         ListIterator<String> patternListIterator = stringRestriction.getPatternRestriction()
                 .getPatternList().listIterator();
         assertThat(patternListIterator.next(), is("[a-zA-Z]"));
+    }
+
+    /**
+     * Checks invalid pattern sub-statement.
+     */
+    @Test(expected = ParserException.class)
+    public void processInvalidPatternSubStatements() throws IOException, ParserException {
+        YangNode node = manager.getDataModel("src/test/resources/InvalidPatternSubStatements.yang");
     }
 }
