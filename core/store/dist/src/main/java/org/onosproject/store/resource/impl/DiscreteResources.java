@@ -22,24 +22,73 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * A common API for a set of discrete resources.
+ */
 interface DiscreteResources {
+    /**
+     * Returns an instance representing an empty set.
+     *
+     * @return a empty set.
+     */
     static DiscreteResources empty() {
         return NonEncodableDiscreteResources.empty();
     }
 
+    /**
+     * Look up a discrete resource instance by ID.
+     *
+     * @param id id
+     * @return found instance enclosed by Optional
+     */
     Optional<DiscreteResource> lookup(DiscreteResourceId id);
 
+    /**
+     * Returns a difference set of this instance and the given instance.
+     *
+     * @param other other instance
+     * @return a new DiscreteResources instance representing a difference set
+     */
     DiscreteResources difference(DiscreteResources other);
 
+    /**
+     * Checks that this instance is empty.
+     *
+     * @return true if this instance is empty, otherwise false.
+     */
     boolean isEmpty();
 
+    /**
+     * Checks that this instance contains any of the given resources.
+     *
+     * @param other resources
+     * @return true this instance contains a resource included in the given resources,
+     * otherwise false.
+     */
     boolean containsAny(List<DiscreteResource> other);
 
-    // returns a new instance, not mutate the current instance
+    /**
+     * Returns a union set of this instance and the given instance.
+     * Note: This method returns a new instance, not mutate the current instance
+     *
+     * @param other other instance
+     * @return a new DiscreteResources instance representing a union set
+     */
     DiscreteResources add(DiscreteResources other);
 
-    // returns a new instance, not mutate the current instance
+    /**
+     * Returns a difference set of this instance and the given resources.
+     * Note: This method returns a new instance, not mutate the current intance.
+     *
+     * @param removed resources
+     * @return a new DiscreteResources instance representing a difference set
+     */
     DiscreteResources remove(List<DiscreteResource> removed);
 
+    /**
+     * Returns all of resources this instance holds.
+     *
+     * @return all resources
+     */
     Set<DiscreteResource> values();
 }
