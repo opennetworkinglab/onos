@@ -18,8 +18,10 @@ package org.onosproject.pce.pceservice;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.incubator.net.tunnel.Tunnel.Type.MPLS;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -34,14 +36,23 @@ import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Path;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.pce.pceservice.api.PceService;
+import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Implementation of PCE service.
@@ -65,6 +76,15 @@ public class PceManager implements PceService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PathService pathService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ResourceService resourceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     private ApplicationId appId;
 
@@ -92,6 +112,36 @@ public class PceManager implements PceService {
         log.info("Stopped");
     }
 
+    /**
+     * Returns an edge-weight capable of evaluating links on the basis of the
+     * specified constraints.
+     *
+     * @param constraints path constraints
+     * @return edge-weight function
+     */
+    private LinkWeight weight(List<Constraint> constraints) {
+        return new TeConstraintBasedLinkWeight(constraints);
+    }
+
+    /**
+     * Computes a path between two devices.
+     *
+     * @param src ingress device
+     * @param dst egress device
+     * @param constraints path constraints
+     * @return computed path based on constraints
+     */
+    protected Set<Path> computePath(DeviceId src, DeviceId dst, List<Constraint> constraints) {
+        if (pathService == null) {
+            return null;
+        }
+        Set<Path> paths = pathService.getPaths(src, dst, weight(constraints));
+        if (!paths.isEmpty()) {
+            return paths;
+        }
+        return null;
+    }
+
     //[TODO:] handle requests in queue
     @Override
     public boolean setupPath(DeviceId src, DeviceId dst, String tunnelName, List<Constraint> constraints,
@@ -103,8 +153,8 @@ public class PceManager implements PceService {
         checkNotNull(lspType);
 
         // TODO: compute and setup path.
-
-        return true;
+        //TODO: gets the path based on constraints and creates a tunnel in network via tunnel manager
+        return computePath(src, dst, constraints) != null ? true : false;
     }
 
 
@@ -159,4 +209,44 @@ public class PceManager implements PceService {
         return value;
     }
 
+    protected class TeConstraintBasedLinkWeight implements LinkWeight {
+
+        private final List<Constraint> constraints;
+
+        /**
+         * Creates a new edge-weight function capable of evaluating links
+         * on the basis of the specified constraints.
+         *
+         * @param constraints path constraints
+         */
+        public TeConstraintBasedLinkWeight(List<Constraint> constraints) {
+            if (constraints == null) {
+                this.constraints = Collections.emptyList();
+            } else {
+                this.constraints = ImmutableList.copyOf(constraints);
+            }
+        }
+
+        @Override
+        public double weight(TopologyEdge edge) {
+            if (!constraints.iterator().hasNext()) {
+                //Takes default cost/hopcount as 1 if no constraints specified
+                return 1.0;
+            }
+
+            Iterator<Constraint> it = constraints.iterator();
+            double cost = 1;
+
+            //If any constraint fails return -1 also value of cost returned from cost constraint can't be negative
+            while (it.hasNext() && cost > 0) {
+                Constraint constraint = it.next();
+                if (constraint instanceof CapabilityConstraint) {
+                    cost = ((CapabilityConstraint) constraint).isValidLink(edge.link(), deviceService) ? 1 : -1;
+                } else {
+                    cost = constraint.cost(edge.link(), resourceService::isAvailable);
+                }
+            }
+            return cost;
+        }
+    }
 }
