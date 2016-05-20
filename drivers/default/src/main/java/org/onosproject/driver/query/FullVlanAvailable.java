@@ -36,10 +36,10 @@ public class FullVlanAvailable
     implements VlanQuery {
 
     private static final int MAX_VLAN_ID = VlanId.MAX_VLAN;
-    private static final Set<VlanId> ENTIRE_VLAN = getEntireVlans();
     private static final Set<Integer> EXCLUDED = ImmutableSet.of(
             (int) VlanId.NO_VID,
             (int) VlanId.RESERVED);
+    private static final Set<VlanId> ENTIRE_VLAN = getEntireVlans();
 
     @Override
     public Set<VlanId> queryVlanIds(PortNumber port) {
