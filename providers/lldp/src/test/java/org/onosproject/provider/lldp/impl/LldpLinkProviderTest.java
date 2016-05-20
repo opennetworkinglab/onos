@@ -29,18 +29,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
 import org.onlab.packet.ONOSLLDP;
 import org.onosproject.cfg.ComponentConfigAdapter;
-import org.onosproject.cluster.ClusterMetadata;
-import org.onosproject.cluster.ClusterMetadataEventListener;
-import org.onosproject.cluster.ClusterMetadataService;
-import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.DefaultControllerNode;
-import org.onosproject.cluster.DefaultPartition;
+import org.onosproject.cluster.ClusterMetadataServiceAdapter;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.cluster.Partition;
-import org.onosproject.cluster.PartitionId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -83,7 +75,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -152,7 +143,7 @@ public class LldpLinkProviderTest {
         provider.packetService = packetService;
         provider.providerRegistry = linkRegistry;
         provider.masterService = masterService;
-        provider.clusterMetadataService = new TestMetadataService();
+        provider.clusterMetadataService = new ClusterMetadataServiceAdapter();
 
         provider.activate(null);
 
@@ -898,31 +889,6 @@ public class LldpLinkProviderTest {
         public SuppressionConfig annotation(Map<String, String> annotation) {
             this.annotation = ImmutableMap.copyOf(annotation);
             return this;
-        }
-    }
-
-    private final class TestMetadataService implements ClusterMetadataService {
-        @Override
-        public ClusterMetadata getClusterMetadata() {
-            final NodeId nid = new NodeId("test-node");
-            final IpAddress addr = IpAddress.valueOf(0);
-            final Partition p = new DefaultPartition(PartitionId.from(1), Sets.newHashSet(nid));
-            return new ClusterMetadata("test-cluster",
-                                       Sets.newHashSet(new DefaultControllerNode(nid, addr)),
-                                       Sets.newHashSet(p));
-        }
-
-        @Override
-        public ControllerNode getLocalNode() {
-            return null;
-        }
-
-        @Override
-        public void addListener(ClusterMetadataEventListener listener) {
-        }
-
-        @Override
-        public void removeListener(ClusterMetadataEventListener listener) {
         }
     }
 }
