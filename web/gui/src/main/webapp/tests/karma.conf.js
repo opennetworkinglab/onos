@@ -40,7 +40,10 @@ module.exports = function(config) {
 
         // unit test code...
         'app/*-spec.js',
-        'app/**/*-spec.js'
+        'app/**/*-spec.js',
+
+        // server mock
+        './server.mock.js'
     ],
 
 

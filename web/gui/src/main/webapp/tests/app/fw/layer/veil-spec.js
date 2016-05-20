@@ -18,9 +18,7 @@
  ONOS GUI -- Layer -- Veil Service - Unit Tests
  */
 
-// FIXME ReferenceError: userPrefs is not defined
-
-xdescribe('factory: fw/layer/veil.js', function () {
+describe('factory: fw/layer/veil.js', function () {
     var $log, $route, vs, fs, ks, gs;
 
     beforeEach(module('onosLayer', 'onosNav', 'onosSvg', 'ngRoute', 'onosRemote'));

@@ -18,14 +18,18 @@
  ONOS GUI -- Widget -- Table Builder Service - Unit Tests
  */
 
-xdescribe('factory: fw/widget/tableBuilder.js', function () {
+describe('factory: fw/widget/tableBuilder.js', function () {
     var $log, $rootScope, fs, tbs, is;
 
     var mockObj,
         mockWss = {
             bindHandlers: function () {},
             sendEvent: function () {},
-            unbindHandlers: function () {}
+            unbindHandlers: function () {},
+            _setLoadingDelegate: function(){},
+            isConnected: function() {
+                return true;
+            }
         };
 
     beforeEach(module('onosWidget', 'onosUtil', 'onosRemote', 'onosSvg', 'onosLayer'));

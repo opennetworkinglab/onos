@@ -27,6 +27,8 @@ describe('factory: fw/layer/panel.js', function () {
         $timeout = _$timeout_;
         fs = FnService;
         ps = PanelService;
+
+        spyOn(fs, 'debugOn').and.returnValue(true);
         d3Elem = d3.select('body').append('div').attr('id', 'floatpanels');
         ps.init();
     }));
@@ -44,7 +46,7 @@ describe('factory: fw/layer/panel.js', function () {
         expect(ps).toBeDefined();
     });
 
-    xit('should define api functions', function () {
+    it('should define api functions', function () {
         expect(fs.areFunctions(ps, [
             'init', 'createPanel', 'destroyPanel'
         ])).toBeTruthy();
@@ -62,7 +64,7 @@ describe('factory: fw/layer/panel.js', function () {
         expect(floatPanelSelection().size()).toBe(0);
     });
 
-    xit('should create a default panel', function () {
+    it('should create a default panel', function () {
         spyOn($log, 'warn');
         spyOn($log, 'debug');
         var p = ps.createPanel('foo');
@@ -107,13 +109,13 @@ describe('factory: fw/layer/panel.js', function () {
         expect(floatPanelSelection().size()).toBe(1);
     });
 
-    xit('should note when there is no panel to destroy', function () {
+    it('should note when there is no panel to destroy', function () {
         spyOn($log, 'debug');
         ps.destroyPanel('bar');
         expect($log.debug).toHaveBeenCalledWith('no panel to destroy:', 'bar');
     });
 
-    xit('should destroy the panel', function () {
+    it('should destroy the panel', function () {
         spyOn($log, 'debug');
         var p = ps.createPanel('foo');
         expect(floatPanelSelection().size()).toBe(1);
@@ -123,7 +125,7 @@ describe('factory: fw/layer/panel.js', function () {
         expect(floatPanelSelection().size()).toBe(0);
     });
 
-    xit('should allow alternate settings to be given', function () {
+    it('should allow alternate settings to be given', function () {
         spyOn($log, 'debug');
         var p = ps.createPanel('foo', { width: 250, edge: 'left' });
         expect($log.debug).toHaveBeenCalledWith('creating panel:', 'foo', {

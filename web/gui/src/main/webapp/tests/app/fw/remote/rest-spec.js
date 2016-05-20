@@ -17,7 +17,7 @@
 /*
  ONOS GUI -- Remote -- REST Service - Unit Tests
  */
-xdescribe('factory: fw/remote/rest.js', function() {
+describe('factory: fw/remote/rest.js', function() {
     var $log, $httpBackend, fs, rs, promise;
 
     beforeEach(module('onosUtil', 'onosRemote'));
@@ -27,7 +27,10 @@ xdescribe('factory: fw/remote/rest.js', function() {
             return {
                 protocol: function () { return 'http'; },
                 host: function () { return 'foo'; },
-                port: function () { return '80'; }
+                port: function () { return '80'; },
+                search: function() {
+                    return {debug: 'true'};
+                }
             };
         })
     }));
@@ -45,7 +48,8 @@ xdescribe('factory: fw/remote/rest.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(rs, [
-            'get'
+            'get',
+            'post'
         ])).toBeTruthy();
     });
 

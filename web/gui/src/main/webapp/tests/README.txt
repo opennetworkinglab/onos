@@ -37,7 +37,4 @@ Open Developer Tools in the captured Chrome browser, and reload the page.
 The debugger will break at the given point, allowing you to inspect context.
 
 ----------------------------------------------------------------------
-FIXME
-=====
 
-Most of the skipped test were failing because of: `ReferenceError: userPrefs is not defined`

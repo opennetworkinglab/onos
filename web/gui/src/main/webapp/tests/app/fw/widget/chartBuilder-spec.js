@@ -25,10 +25,14 @@ describe('factory: fw/widget/chartBuilder.js', function () {
         mockWss = {
             bindHandlers: function () {},
             sendEvent: function () {},
-            unbindHandlers: function () {}
+            unbindHandlers: function () {},
+            _setLoadingDelegate: function(){},
+            isConnected: function() {
+                return true;
+            }
         };
 
-    beforeEach(module('onosWidget', 'onosUtil', 'onosRemote', 'onosSvg'));
+    beforeEach(module('onosWidget', 'onosUtil', 'onosRemote', 'onosSvg', 'onosLayer'));
 
     beforeEach(function () {
         module(function ($provide) {
@@ -71,6 +75,7 @@ describe('factory: fw/widget/chartBuilder.js', function () {
         expect(mockObj.scope.requestCallback).not.toBeDefined();
         cbs.buildChart(mockObj);
         expect(mockObj.scope.requestCallback).toBeDefined();
+        mockObj.scope.requestCallback();
         expect(mockWss.sendEvent).toHaveBeenCalled();
     });
 
@@ -88,4 +93,4 @@ describe('factory: fw/widget/chartBuilder.js', function () {
         mockObj.scope.$destroy();
         expect(mockWss.unbindHandlers).toHaveBeenCalled();
     });
-}
+});

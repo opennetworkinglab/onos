@@ -18,9 +18,7 @@
  ONOS GUI -- Remote -- Web Socket Service - Unit Tests
  */
 
-// FIXME TypeError: $loc.search is not a function
-
-xdescribe('factory: fw/remote/websocket.js', function () {
+describe('factory: fw/remote/websocket.js', function () {
     var $log, fs, wss;
 
     var noop = function () {},
@@ -56,7 +54,10 @@ xdescribe('factory: fw/remote/websocket.js', function () {
             return {
                 protocol: function () { return 'http'; },
                 host: function () { return 'foo'; },
-                port: function () { return '80'; }
+                port: function () { return '80'; },
+                search: function() {
+                    return {debug: 'true'};
+                }
             };
         })
     }));
@@ -77,7 +78,9 @@ xdescribe('factory: fw/remote/websocket.js', function () {
         expect(fs.areFunctions(wss, [
             'resetSid', 'resetState',
             'createWebSocket', 'bindHandlers', 'unbindHandlers',
-            'addOpenListener', 'removeOpenListener', 'sendEvent'
+            'addOpenListener', 'removeOpenListener', 'sendEvent',
+            'isConnected', 'loggedInUser',
+            '_setVeilDelegate', '_setLoadingDelegate'
         ])).toBeTruthy();
     });
 

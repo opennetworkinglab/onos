@@ -18,9 +18,7 @@
  ONOS GUI -- Masthead Controller - Unit Tests
  */
 
-// FIXME ReferenceError: userPrefs is not defined
-
-xdescribe('Controller: MastCtrl', function () {
+describe('Controller: MastCtrl', function () {
     // instantiate the masthead module
     beforeEach(module('onosMast', 'onosUtil', 'onosLayer', 'onosWidget', 'onosSvg', 'onosRemote'));
 
@@ -29,7 +27,8 @@ xdescribe('Controller: MastCtrl', function () {
     // we need an instance of the controller
     beforeEach(inject(function(_$log_, $controller, MastService, FnService) {
         $log = _$log_;
-        ctrl = $controller('MastCtrl');
+        var $scope = {}
+        ctrl = $controller('MastCtrl', {$scope: $scope});
         ms = MastService;
         fs = FnService;
     }));

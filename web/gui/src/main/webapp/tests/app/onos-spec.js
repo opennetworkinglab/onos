@@ -26,10 +26,11 @@ describe('Controller: OnosCtrl', function () {
     // we need an instance of the controller
     beforeEach(inject(function(_$log_, $controller) {
         $log = _$log_;
-        ctrl = $controller('OnosCtrl');
+        var $scope = {};
+        ctrl = $controller('OnosCtrl', { $scope: $scope });
     }));
 
-    xit('should report version 1.2.0', function () {
-        expect(ctrl.version).toEqual('1.2.0');
+    it('should report version 1.5.0', function () {
+        expect(ctrl.version).toEqual('1.5.0');
     });
 });

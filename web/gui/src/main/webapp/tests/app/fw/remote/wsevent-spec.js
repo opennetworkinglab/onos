@@ -18,7 +18,7 @@
  ONOS GUI -- Remote -- Web Socket Event Service - Unit Tests
  */
 
-// NOTE WsEventService does not exist
+// NOTE WsEventService does not exist, it has been removed?
 
 xdescribe('factory: fw/remote/wsevent.js', function () {
     var $log, fs, wse;

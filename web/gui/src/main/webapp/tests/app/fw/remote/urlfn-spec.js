@@ -18,9 +18,7 @@
  ONOS GUI -- Remote -- General Functions - Unit Tests
  */
 
-// FIXME TypeError: $loc.search is not a function
-
-xdescribe('factory: fw/remote/urlfn.js', function () {
+describe('factory: fw/remote/urlfn.js', function () {
     var $log, $loc, ufs, fs;
 
     var protocol, host, port;
@@ -32,7 +30,10 @@ xdescribe('factory: fw/remote/urlfn.js', function () {
         return {
             protocol: function () { return protocol; },
             host: function () { return host; },
-            port: function () { return port; }
+            port: function () { return port; },
+            search: function() {
+                return {debug: 'true'};
+            }
         };
        })
     }));
