@@ -166,8 +166,20 @@ public class DistributedNetworkConfigStore
     @Override
     public void removeConfigFactory(ConfigFactory configFactory) {
         factoriesByConfig.remove(configFactory.configClass().getName());
+        processExistingConfigs(configFactory);
         notifyDelegate(new NetworkConfigEvent(CONFIG_UNREGISTERED, configFactory.configKey(),
                                               configFactory.configClass()));
+    }
+
+    // Sweep through any configurations for the config factory, set back to pending state.
+    private void processExistingConfigs(ConfigFactory configFactory) {
+        ImmutableSet.copyOf(configs.keySet()).forEach(k -> {
+            if (Objects.equals(configFactory.configClass().getName(), k.configClass)) {
+                JsonNode json = configs.remove(k).value();
+                configs.put(key(k.subject, configFactory.configKey()), json);
+                log.debug("Set config pending: {}, {}", k.subject, k.configClass);
+            }
+        });
     }
 
     @Override
