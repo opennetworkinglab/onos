@@ -224,7 +224,10 @@ class ModelCache {
     }
 
     private void updateDevice(UiDevice device) {
-        device.setRegionId(services.region().getRegionForDevice(device.id()).id());
+        Region regionForDevice = services.region().getRegionForDevice(device.id());
+        if (regionForDevice != null) {
+            device.setRegionId(regionForDevice.id());
+        }
     }
 
     private void loadDevices() {

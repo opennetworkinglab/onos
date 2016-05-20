@@ -66,7 +66,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Service that creates and maintains the UI-model of the network topology.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 @Service(value = UiSharedTopologyModel.class)
 public final class UiSharedTopologyModel
         extends AbstractListenerManager<UiModelEvent, UiModelListener> {

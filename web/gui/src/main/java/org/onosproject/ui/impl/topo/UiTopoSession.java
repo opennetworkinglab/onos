@@ -45,19 +45,24 @@ public class UiTopoSession implements UiModelListener {
 
     private boolean registered = false;
 
-    private UiTopoLayoutService service;
+    private UiTopoLayoutService layoutService;
     private UiTopoLayout currentLayout;
+    private boolean messagesEnabled;
 
     /**
      * Creates a new topology session for the specified web socket connection.
      *
-     * @param webSocket web socket
-     * @param model share topology model
+     * @param webSocket     web socket
+     * @param model         share topology model
+     * @param layoutService topology layout service
      */
-    public UiTopoSession(UiWebSocket webSocket, UiSharedTopologyModel model) {
+    public UiTopoSession(UiWebSocket webSocket,
+                         UiSharedTopologyModel model,
+                         UiTopoLayoutService layoutService) {
         this.webSocket = webSocket;
         this.username = webSocket.userName();
         this.sharedModel = model;
+        this.layoutService = layoutService;
     }
 
     /**
@@ -67,6 +72,7 @@ public class UiTopoSession implements UiModelListener {
         if (!registered) {
             log.debug("{} : Registering with shared model", this);
             sharedModel.register(this);
+            currentLayout = layoutService.getRootLayout();
             registered = true;
         } else {
             log.warn("already registered");
@@ -95,5 +101,32 @@ public class UiTopoSession implements UiModelListener {
     public void event(UiModelEvent event) {
         log.info("Event received: {}", event);
         // TODO: handle model events from the cache...
+    }
+
+    /**
+     * Returns the current layout context.
+     *
+     * @return current topology layout
+     */
+    public UiTopoLayout currentLayout() {
+        return currentLayout;
+    }
+
+    /**
+     * Changes the current layout context to the specified layout.
+     *
+     * @param topoLayout new topology layout context
+     */
+    public void setCurrentLayout(UiTopoLayout topoLayout) {
+        currentLayout = topoLayout;
+    }
+
+    /**
+     * Enables or disables the transmission of topology event update messages.
+     *
+     * @param enabled true if messages should be sent
+     */
+    public void enableEvent(boolean enabled) {
+        messagesEnabled = enabled;
     }
 }

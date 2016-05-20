@@ -35,7 +35,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Manages the user interface topology layouts.
@@ -47,6 +51,11 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final String ID_NULL = "Layout ID cannot be null";
+    private static final String LAYOUT_NULL = "Layout cannot be null";
+
+    private static final UiTopoLayoutId DEFAULT_ID = UiTopoLayoutId.layoutId("_default_");
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
@@ -57,6 +66,7 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
     public void activate() {
         KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
                 .register(KryoNamespaces.API)
+                .register(UiTopoLayoutId.class)
                 .register(UiTopoLayout.class);
 
         layouts = storageService.<UiTopoLayoutId, UiTopoLayout>consistentMapBuilder()
@@ -65,6 +75,9 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
                 .withRelaxedReadConsistency()
                 .build();
         layoutMap = layouts.asJavaMap();
+
+        // Create and add the default layout, if needed.
+        layoutMap.computeIfAbsent(DEFAULT_ID, k -> new UiTopoLayout(k, null, null));
 
         log.info("Started");
     }
@@ -76,22 +89,38 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
 
 
     @Override
+    public UiTopoLayout getRootLayout() {
+        return getLayout(DEFAULT_ID);
+    }
+
+    @Override
     public Set<UiTopoLayout> getLayouts() {
         return ImmutableSet.copyOf(layoutMap.values());
     }
 
     @Override
     public boolean addLayout(UiTopoLayout layout) {
+        checkNotNull(layout, LAYOUT_NULL);
         return layouts.put(layout.id(), layout) == null;
     }
 
     @Override
     public UiTopoLayout getLayout(UiTopoLayoutId layoutId) {
+        checkNotNull(layoutId, ID_NULL);
         return layoutMap.get(layoutId);
     }
 
     @Override
+    public Set<UiTopoLayout> getChildren(UiTopoLayoutId layoutId) {
+        checkNotNull(layoutId, ID_NULL);
+        return layoutMap.values().stream()
+                .filter(l -> Objects.equals(l.parent(), layoutId))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public boolean removeLayout(UiTopoLayout layout) {
+        checkNotNull(layout, LAYOUT_NULL);
         return layouts.remove(layout.id()) != null;
     }
 

@@ -40,11 +40,11 @@ public class UiTopoLayoutManagerTest {
     private static final UiTopoLayout L1 =
             new UiTopoLayout(UiTopoLayoutId.layoutId("l1"),
                              new DefaultRegion(RegionId.regionId("r1"), "R1",
-                                               Region.Type.CAMPUS, null));
+                                               Region.Type.CAMPUS, null), null);
     private static final UiTopoLayout L2 =
             new UiTopoLayout(UiTopoLayoutId.layoutId("l2"),
                              new DefaultRegion(RegionId.regionId("r2"), "R2",
-                                               Region.Type.CAMPUS, null));
+                                               Region.Type.CAMPUS, null), null);
 
     @Before
     public void setUp() {
@@ -62,14 +62,14 @@ public class UiTopoLayoutManagerTest {
 
     @Test
     public void basics() {
-        assertTrue("should be no layout", svc.getLayouts().isEmpty());
+        assertEquals("should be just default layout", 1, svc.getLayouts().size());
         svc.addLayout(L1);
         svc.addLayout(L2);
-        assertEquals("incorrect number of layouts", 2, svc.getLayouts().size());
+        assertEquals("incorrect number of layouts", 3, svc.getLayouts().size());
         assertEquals("incorrect layout", L1.id(), svc.getLayout(L1.id()).id());
         assertEquals("incorrect layout", L2.id(), svc.getLayout(L2.id()).id());
         svc.removeLayout(L1);
-        assertEquals("incorrect number of layouts", 1, svc.getLayouts().size());
+        assertEquals("incorrect number of layouts", 2, svc.getLayouts().size());
         assertNull("layout should be gone", svc.getLayout(L1.id()));
         assertEquals("incorrect layout", L2.id(), svc.getLayout(L2.id()).id());
     }

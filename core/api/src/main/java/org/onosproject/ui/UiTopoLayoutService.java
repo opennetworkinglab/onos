@@ -26,6 +26,14 @@ import java.util.Set;
 public interface UiTopoLayoutService {
 
     /**
+     * Returns the top-level root layout, which always exists and cannot
+     * be removed or associated directly with a region.
+     *
+     * @return root topology layout
+     */
+    UiTopoLayout getRootLayout();
+
+    /**
      * Returns the set of available layouts.
      *
      * @return set of available layouts
@@ -40,13 +48,21 @@ public interface UiTopoLayoutService {
      */
     boolean addLayout(UiTopoLayout layout);
 
-
     /**
      * Returns the layout with the specified identifier.
+     *
      * @param layoutId layout identifier
      * @return layout or null if no such layout is found
      */
     UiTopoLayout getLayout(UiTopoLayoutId layoutId);
+
+    /**
+     * Returns the set of the child layouts of the specified layout.
+     *
+     * @param layoutId layout identifier
+     * @return set of child layouts; empty set if layout has no children
+     */
+    Set<UiTopoLayout> getChildren(UiTopoLayoutId layoutId);
 
     /**
      * Removes a layout from the system.

@@ -16,6 +16,7 @@
 package org.onosproject.ui;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.ui.model.topo.UiTopoLayout;
 
 /**
  * Abstraction of a user interface session connection.
@@ -28,6 +29,34 @@ public interface UiConnection {
      * @return logged in user name
      */
     String userName();
+
+    /**
+     * Returns the current layout context.
+     *
+     * @return current topology layout
+     */
+    UiTopoLayout currentLayout();
+
+    /**
+     * Changes the current layout context to the specified layout.
+     *
+     * @param topoLayout new topology layout context
+     */
+    void setCurrentLayout(UiTopoLayout topoLayout);
+
+    /**
+     * Returns the current view identifier.
+     *
+     * @return current view
+     */
+    String currentView();
+
+    /**
+     * Sets the currently selected view.
+     *
+     * @param viewId view identifier
+     */
+    void setCurrentView(String viewId);
 
     /**
      * Sends the specified JSON message to the user interface client.

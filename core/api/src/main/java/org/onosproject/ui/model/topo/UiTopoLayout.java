@@ -26,16 +26,19 @@ public class UiTopoLayout {
 
     private final UiTopoLayoutId id;
     private final Region region;
+    private final UiTopoLayoutId parent;
 
     /**
      * Created a new UI topology layout.
      *
      * @param id     layout identifier
      * @param region backing region
+     * @param parent identifier of the parent layout
      */
-    public UiTopoLayout(UiTopoLayoutId id, Region region) {
+    public UiTopoLayout(UiTopoLayoutId id, Region region, UiTopoLayoutId parent) {
         this.id = id;
         this.region = region;
+        this.parent = parent;
     }
 
     /**
@@ -54,6 +57,15 @@ public class UiTopoLayout {
      */
     public Region region() {
         return region;
+    }
+
+    /**
+     * Returns the parent layout identifier.
+     *
+     * @return parent layout identifier
+     */
+    public UiTopoLayoutId parent() {
+        return parent;
     }
 
     // TODO: additional properties pertinent to the layout
