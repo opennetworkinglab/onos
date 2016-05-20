@@ -86,10 +86,9 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
     private ApplicationId driverId;
 
     private KryoNamespace appKryo = new KryoNamespace.Builder()
-        .register(DummyGroup.class)
-        .register(KryoNamespaces.API)
-        .register(byte[].class)
-        .build();
+            .register(KryoNamespaces.API)
+            .register(DummyGroup.class)
+            .build();
 
     private final Logger log = getLogger(getClass());
 
