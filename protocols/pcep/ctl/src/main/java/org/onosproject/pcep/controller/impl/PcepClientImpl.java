@@ -26,6 +26,7 @@ import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
 import org.onosproject.pcep.controller.ClientCapability;
 import org.onosproject.pcep.controller.PccId;
+import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepPacketStats;
 import org.onosproject.pcep.controller.PcepSyncStatus;
 import org.onosproject.pcep.controller.driver.PcepAgent;
@@ -200,6 +201,16 @@ public class PcepClientImpl implements PcepClientDriver {
     public final void handleMessage(PcepMessage m) {
         this.pktStats.addInPacket();
         this.agent.processPcepMessage(pccId, m);
+    }
+
+    @Override
+    public void addNode(PcepClient pc) {
+        this.agent.addNode(pc);
+    }
+
+    @Override
+    public void deleteNode(PccId pccId) {
+        this.agent.deleteNode(pccId);
     }
 
     @Override

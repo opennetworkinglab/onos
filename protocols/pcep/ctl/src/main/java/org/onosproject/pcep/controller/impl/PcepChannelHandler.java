@@ -55,6 +55,7 @@ import org.onosproject.pcepio.protocol.PcepVersion;
 import org.onosproject.pcepio.types.IPv4RouterIdOfLocalNodeSubTlv;
 import org.onosproject.pcepio.types.NodeAttributesTlv;
 import org.onosproject.pcepio.types.PceccCapabilityTlv;
+import org.onosproject.pcepio.types.SrPceCapabilityTlv;
 import org.onosproject.pcepio.types.StatefulPceCapabilityTlv;
 import org.onosproject.pcepio.types.PcepErrorDetailInfo;
 import org.onosproject.pcepio.types.PcepValueType;
@@ -260,6 +261,8 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                         disconnectDuplicate(h);
                     } else {
                         h.setState(ESTABLISHED);
+                        //Session is established, add a PCEP device
+                        h.addNode();
                     }
                 }
             }
@@ -469,6 +472,20 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
     }
 
     /**
+     * Adds PCEP device once session is established.
+     */
+    private void addNode() {
+        pc.addNode(pc);
+    }
+
+    /**
+     * Deletes PCEP device when session is disconnected.
+     */
+    private void deleteNode() {
+        pc.deleteNode(pc.getPccId());
+    }
+
+    /**
      * Return a string describing this client based on the already available
      * information (ip address and/or remote socket).
      *
@@ -523,6 +540,8 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
         boolean pceccCapability = false;
         boolean statefulPceCapability = false;
         boolean pcInstantiationCapability = false;
+        boolean labelStackCapability = false;
+        boolean srCapability = false;
 
         ListIterator<PcepValueType> listIterator = tlvList.listIterator();
         while (listIterator.hasNext()) {
@@ -531,6 +550,9 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
             switch (tlv.getType()) {
             case PceccCapabilityTlv.TYPE:
                 pceccCapability = true;
+                if (((PceccCapabilityTlv) tlv).sBit()) {
+                    labelStackCapability = true;
+                }
                 break;
             case StatefulPceCapabilityTlv.TYPE:
                 statefulPceCapability = true;
@@ -539,11 +561,15 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
                     pcInstantiationCapability = true;
                 }
                 break;
+            case SrPceCapabilityTlv.TYPE:
+                srCapability = true;
+                break;
             default:
                 continue;
             }
         }
-        this.capability = new ClientCapability(pceccCapability, statefulPceCapability, pcInstantiationCapability);
+        this.capability = new ClientCapability(pceccCapability, statefulPceCapability, pcInstantiationCapability,
+                labelStackCapability, srCapability);
     }
 
     /**
@@ -563,6 +589,8 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
      */
     private void sendErrMsgAndCloseChannel() {
         // TODO send error message
+        //Remove PCEP device from topology
+        deleteNode();
         channel.close();
     }
 

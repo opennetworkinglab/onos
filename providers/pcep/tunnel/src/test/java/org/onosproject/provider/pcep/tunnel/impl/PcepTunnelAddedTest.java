@@ -261,7 +261,7 @@ public class PcepTunnelAddedTest {
         tunnelService.setupTunnel(null, null, tunnel, null);
 
         PccId pccId = PccId.pccId(IpAddress.valueOf(0x4e1f0400));
-        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true));
+        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true, false, false));
         controller.getClient(pccId).setLspDbSyncStatus(SYNCED);
 
         // Process update message.
@@ -310,7 +310,7 @@ public class PcepTunnelAddedTest {
 
         PccId pccId = PccId.pccId(IpAddress.valueOf("1.1.1.1"));
         controller.getClient(pccId).setLspDbSyncStatus(SYNCED);
-        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true));
+        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true, false, false));
         controller.processClientMessage(pccId, message);
 
         assertThat(registry.tunnelIdCounter, is((long) 1));
@@ -356,7 +356,7 @@ public class PcepTunnelAddedTest {
         PcepMessage message1 = reader1.readFrom(buffer1);
 
         PccId pccId = PccId.pccId(IpAddress.valueOf("1.1.1.1"));
-        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true));
+        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true, false, false));
         controller.processClientMessage(pccId, message1);
 
         /* create 2nd LSP */
@@ -495,7 +495,7 @@ public class PcepTunnelAddedTest {
         PcepMessage message1 = reader1.readFrom(buffer1);
 
         PccId pccId = PccId.pccId(IpAddress.valueOf("1.1.1.1"));
-        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true));
+        controller.getClient(pccId).setCapability(new ClientCapability(true, true, true, false, false));
         controller.processClientMessage(pccId, message1);
 
         /* create 2nd LSP */

@@ -57,7 +57,7 @@ public interface PcepClientController {
     void removeListener(PcepClientListener listener);
 
     /**
-     * Register a listener for OF msg events.
+     * Register a listener for PCEP msg events.
      *
      * @param listener the listener to notify
      */
@@ -69,6 +69,20 @@ public interface PcepClientController {
      * @param listener the listener to unregister
      */
     void removeEventListener(PcepEventListener listener);
+
+    /**
+     * Register a listener for PCEP msg events[carrying node descriptor details].
+     *
+     * @param listener the listener to notify
+     */
+    void addNodeListener(PcepNodeListener listener);
+
+    /**
+     * Unregister a listener.
+     *
+     * @param listener the listener to be unregistered
+     */
+    void removeNodeListener(PcepNodeListener listener);
 
     /**
      * Send a message to a particular pcc client.

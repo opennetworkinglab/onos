@@ -26,6 +26,8 @@ public class ClientCapability {
     private boolean pceccCapability;
     private boolean statefulPceCapability;
     private boolean pcInstantiationCapability;
+    private boolean labelStackCapability;
+    private boolean srCapability;
 
     /**
      * Creates new instance of client capability.
@@ -33,11 +35,34 @@ public class ClientCapability {
      * @param pceccCapability represents PCECC capability
      * @param statefulPceCapability represents stateful PCE capability
      * @param pcInstantiationCapability represents PC initiation capability
+     * @param labelStackCapability represents S bit is set in PCECC capability
+     * @param srCapability represents SR capability
      */
-    public ClientCapability(boolean pceccCapability, boolean statefulPceCapability, boolean pcInstantiationCapability) {
+    public ClientCapability(boolean pceccCapability, boolean statefulPceCapability, boolean pcInstantiationCapability,
+            boolean labelStackCapability, boolean srCapability) {
         this.pceccCapability = pceccCapability;
         this.statefulPceCapability = statefulPceCapability;
         this.pcInstantiationCapability = pcInstantiationCapability;
+        this.labelStackCapability = labelStackCapability;
+        this.srCapability = srCapability;
+    }
+
+    /**
+     * Obtains label stack capability.
+     *
+     * @return true if client supports PCECC capability with S bit set otherwise false
+     */
+    public boolean labelStackCapability() {
+        return labelStackCapability;
+    }
+
+    /**
+     * Obtains segment routing capability.
+     *
+     * @return true if client supports SR capability otherwise false
+     */
+    public boolean srCapability() {
+        return srCapability;
     }
 
     /**
@@ -69,7 +94,8 @@ public class ClientCapability {
 
     @Override
     public int hashCode() {
-        return Objects.hash(pceccCapability, statefulPceCapability, pcInstantiationCapability);
+        return Objects.hash(pceccCapability, statefulPceCapability, pcInstantiationCapability, labelStackCapability,
+                srCapability);
     }
 
     @Override
@@ -81,7 +107,9 @@ public class ClientCapability {
             ClientCapability other = (ClientCapability) obj;
             return Objects.equals(pceccCapability, other.pceccCapability)
                     && Objects.equals(statefulPceCapability, other.statefulPceCapability)
-                    && Objects.equals(pcInstantiationCapability, other.pcInstantiationCapability);
+                    && Objects.equals(pcInstantiationCapability, other.pcInstantiationCapability)
+                    && Objects.equals(labelStackCapability, other.labelStackCapability)
+                    && Objects.equals(srCapability, other.srCapability);
         }
         return false;
     }
@@ -92,6 +120,8 @@ public class ClientCapability {
                 .add("pceccCapability", pceccCapability)
                 .add("statefulPceCapability", statefulPceCapability)
                 .add("pcInstantiationCapability", pcInstantiationCapability)
+                .add("labelStackCapability", labelStackCapability)
+                .add("srCapability", srCapability)
                 .toString();
     }
 }

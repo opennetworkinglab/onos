@@ -60,4 +60,17 @@ public interface PcepAgent {
      */
     void processPcepMessage(PccId pccId, PcepMessage m);
 
+    /**
+     * Adds PCEP device when session is successfully established.
+     *
+     * @param pc PCEP client details
+     */
+    void addNode(PcepClient pc);
+
+    /**
+     * Removes PCEP device when session is disconnected.
+     *
+     * @param pccId PCEP client ID
+     */
+    void deleteNode(PccId pccId);
 }

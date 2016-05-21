@@ -24,10 +24,20 @@
   <artifactId>onos-pcep-provider-topology</artifactId>
   <packaging>bundle</packaging>
   <description>PCEP topology provider</description>
-  	<dependencies>
-		<dependency>
-			<groupId>org.onosproject</groupId>
-			<artifactId>onos-app-pcep-api</artifactId>
-		</dependency>
-	</dependencies>
+     <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-pcep-api</artifactId>
+        </dependency>
+        <dependency>
+        <groupId>org.onosproject</groupId>
+            <artifactId>onos-pcep-controller-api</artifactId>
+        </dependency>
+        <dependency>
+             <groupId>org.onosproject</groupId>
+             <artifactId>onos-api</artifactId>
+             <classifier>tests</classifier>
+             <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

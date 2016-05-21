@@ -135,4 +135,18 @@ public interface PcepClient {
      * @return capability supported by client
      */
     ClientCapability capability();
+
+    /**
+     * Adds PCEP device when session is successfully established.
+     *
+     * @param pc PCEP client details
+     */
+    void addNode(PcepClient pc);
+
+    /**
+     * Removes PCEP device when session is disconnected.
+     *
+     * @param pccId PCEP client ID
+     */
+    void deleteNode(PccId pccId);
 }

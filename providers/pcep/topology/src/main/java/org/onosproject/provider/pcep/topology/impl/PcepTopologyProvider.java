@@ -62,6 +62,10 @@ import org.onosproject.pcep.api.PcepLinkListener;
 import org.onosproject.pcep.api.PcepOperator.OperationType;
 import org.onosproject.pcep.api.PcepSwitch;
 import org.onosproject.pcep.api.PcepSwitchListener;
+import org.onosproject.pcep.controller.PccId;
+import org.onosproject.pcep.controller.PcepClient;
+import org.onosproject.pcep.controller.PcepClientController;
+import org.onosproject.pcep.controller.PcepNodeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,11 +119,32 @@ public class PcepTopologyProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PcepClientController pcepClientController;
+
     private DeviceProviderService deviceProviderService;
     private LinkProviderService linkProviderService;
 
     private HashMap<Long, List<PortDescription>> portMap = new HashMap<>();
     private InternalLinkProvider listener = new InternalLinkProvider();
+
+    /*
+     * For the client supporting SR capability.
+     */
+    public static final String SR_CAPABILITY = "srCapability";
+
+    /*
+     * For the client supporting PCECC capability.
+     */
+    public static final String PCECC_CAPABILITY = "pceccCapability";
+
+    /*
+     * For the client supporting label stack capability.
+     */
+    public static final String LABEL_STACK_CAPABILITY = "labelStackCapability";
+
+    public static final String LSRID = "lsrId";
+    private static final String UNKNOWN = "unknown";
 
     @Activate
     public void activate() {
@@ -127,6 +152,7 @@ public class PcepTopologyProvider extends AbstractProvider
         deviceProviderService = deviceProviderRegistry.register(this);
         controller.addListener(listener);
         controller.addLinkListener(listener);
+        pcepClientController.addNodeListener(listener);
     }
 
     @Deactivate
@@ -135,6 +161,7 @@ public class PcepTopologyProvider extends AbstractProvider
         linkProviderService = null;
         controller.removeListener(listener);
         controller.removeLinkListener(listener);
+        pcepClientController.removeNodeListener(listener);
     }
 
     private List<PortDescription> buildPortDescriptions(PcepDpid dpid,
@@ -225,7 +252,7 @@ public class PcepTopologyProvider extends AbstractProvider
     }
 
     private class InternalLinkProvider
-            implements PcepSwitchListener, PcepLinkListener {
+            implements PcepSwitchListener, PcepLinkListener, PcepNodeListener {
 
         @Override
         public void switchAdded(PcepDpid dpid) {
@@ -306,6 +333,51 @@ public class PcepTopologyProvider extends AbstractProvider
             }
         }
 
+        @Override
+        public void addNode(PcepClient pc) {
+            if (deviceProviderService == null) {
+                return;
+            }
+
+            //Right now device URI for PCEP devices is their LSRID
+            DeviceId deviceId = deviceId(uri(new PcepDpid(pc.getPccId().id().getIp4Address().toInt())));
+            ChassisId cId = new ChassisId();
+
+            Device.Type deviceType = Device.Type.ROUTER;
+
+            DefaultAnnotations.Builder annotationBuilder = DefaultAnnotations.builder();
+            //PCC capabilities (SR, PCECC and PCECC-SR)
+            annotationBuilder.set(SR_CAPABILITY, String.valueOf(pc.capability().srCapability()));
+            annotationBuilder.set(PCECC_CAPABILITY, String.valueOf(pc.capability().pceccCapability()));
+            annotationBuilder.set(LABEL_STACK_CAPABILITY, String.valueOf(pc.capability().labelStackCapability()));
+            //PccId is the lsrId contained in openMsg, if not present it will be the socket address
+            annotationBuilder.set(LSRID, String.valueOf(pc.getPccId().id()));
+
+            DeviceDescription description = new DefaultDeviceDescription(
+                    deviceId.uri(),
+                    deviceType,
+                    UNKNOWN,
+                    UNKNOWN,
+                    UNKNOWN,
+                    UNKNOWN,
+                    cId,
+                    annotationBuilder.build());
+
+            deviceProviderService.deviceConnected(deviceId, description);
+        }
+
+        @Override
+        public void deleteNode(PccId pccId) {
+            if (deviceProviderService == null || deviceService == null) {
+                return;
+            }
+            //TODO: In device manager, in deviceDisconnected() method, get the device but null check is not validated
+            if (deviceService.getDevice(DeviceId.deviceId(uri(new PcepDpid(pccId.id()
+                    .getIp4Address().toInt())))) == null) {
+                return;
+            }
+            deviceProviderService.deviceDisconnected(deviceId(uri(new PcepDpid(pccId.id().getIp4Address().toInt()))));
+        }
     }
 
     @Override

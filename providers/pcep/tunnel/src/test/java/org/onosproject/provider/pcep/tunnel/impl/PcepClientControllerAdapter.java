@@ -31,6 +31,7 @@ import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepClientController;
 import org.onosproject.pcep.controller.PcepClientListener;
 import org.onosproject.pcep.controller.PcepEventListener;
+import org.onosproject.pcep.controller.PcepNodeListener;
 import org.onosproject.pcep.controller.driver.PcepAgent;
 import org.onosproject.pcepio.protocol.PcepError;
 import org.onosproject.pcepio.protocol.PcepErrorInfo;
@@ -57,6 +58,7 @@ public class PcepClientControllerAdapter implements PcepClientController {
     protected Set<PcepClientListener> pcepClientListener = new HashSet<>();
 
     protected Set<PcepEventListener> pcepEventListener = Sets.newHashSet();
+    public Set<PcepNodeListener> pcepNodeListener = Sets.newHashSet();
 
     @Activate
     public void activate() {
@@ -79,9 +81,9 @@ public class PcepClientControllerAdapter implements PcepClientController {
         PcepClientAdapter pc = new PcepClientAdapter();
         if (pccId.ipAddress().equals(IpAddress.valueOf(0xC010103))
             || pccId.ipAddress().equals(IpAddress.valueOf(0xB6024E22))) {
-            pc.setCapability(new ClientCapability(true, false, false));
+            pc.setCapability(new ClientCapability(true, false, false, false, false));
         } else {
-            pc.setCapability(new ClientCapability(true, true, true));
+            pc.setCapability(new ClientCapability(true, true, true, false, false));
         }
         pc.init(PccId.pccId(pccId.ipAddress()), PcepVersion.PCEP_1);
         connectedClients.put(pccId, pc);
@@ -93,6 +95,16 @@ public class PcepClientControllerAdapter implements PcepClientController {
         if (!pcepClientListener.contains(listener)) {
             this.pcepClientListener.add(listener);
         }
+    }
+
+    @Override
+    public void addNodeListener(PcepNodeListener listener) {
+        pcepNodeListener.add(listener);
+    }
+
+    @Override
+    public void removeNodeListener(PcepNodeListener listener) {
+        pcepNodeListener.remove(listener);
     }
 
     @Override
@@ -253,6 +265,20 @@ public class PcepClientControllerAdapter implements PcepClientController {
         @Override
         public void processPcepMessage(PccId pccId, PcepMessage m) {
             processClientMessage(pccId, m);
+        }
+
+        @Override
+        public void addNode(PcepClient pc) {
+            for (PcepNodeListener l : pcepNodeListener) {
+                l.addNode(pc);
+            }
+        }
+
+        @Override
+        public void deleteNode(PccId pccId) {
+            for (PcepNodeListener l : pcepNodeListener) {
+                l.deleteNode(pccId);
+            }
         }
     }
 }
