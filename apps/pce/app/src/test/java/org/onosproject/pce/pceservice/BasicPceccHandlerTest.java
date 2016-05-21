@@ -31,6 +31,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.onlab.packet.IpAddress;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
@@ -45,11 +47,11 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.Path;
 import org.onosproject.pce.pcestore.api.LspLocalLabelInfo;
 import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.pce.pcestore.PceccTunnelInfo;
-import org.onosproject.pce.pcestore.DefaultLspLocalLabelInfo;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.pce.util.LabelResourceAdapter;
 import org.onosproject.pce.util.PceStoreAdapter;
@@ -67,6 +69,9 @@ public class BasicPceccHandlerTest {
     private BasicPceccHandler pceccHandler;
     protected LabelResourceService labelRsrcService;
     protected PceStore pceStore;
+    private FlowObjectiveService flowObjectiveService;
+    private CoreService coreService;
+    private ApplicationId appId;
     private TunnelEndPoint src = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(23423));
     private TunnelEndPoint dst = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(32421));
     private DefaultGroupId groupId = new DefaultGroupId(92034);
@@ -92,7 +97,10 @@ public class BasicPceccHandlerTest {
        pceccHandler = BasicPceccHandler.getInstance();
        labelRsrcService = new LabelResourceAdapter();
        pceStore = new PceStoreAdapter();
-       pceccHandler.initialize(labelRsrcService, pceStore);
+       flowObjectiveService = new PceManagerTest.MockFlowObjService();
+       coreService = new PceManagerTest.MockCoreService();
+       appId = coreService.registerApplication("org.onosproject.pce");
+       pceccHandler.initialize(labelRsrcService, flowObjectiveService, appId, pceStore);
 
        // Cretae tunnel test
        // Link
@@ -190,7 +198,7 @@ public class BasicPceccHandlerTest {
        iterator = lspLocalLabelInfoList.iterator();
 
        // Retrieve values and check device5
-       lspLocalLabelInfo = (DefaultLspLocalLabelInfo) iterator.next();
+       lspLocalLabelInfo = iterator.next();
        deviceId = lspLocalLabelInfo.deviceId();
        inLabelId = lspLocalLabelInfo.inLabelId();
        outLabelId = lspLocalLabelInfo.outLabelId();
@@ -205,7 +213,7 @@ public class BasicPceccHandlerTest {
 
        // Next element check
        // Retrieve values and check device4
-       lspLocalLabelInfo = (DefaultLspLocalLabelInfo) iterator.next();
+       lspLocalLabelInfo = iterator.next();
        deviceId = lspLocalLabelInfo.deviceId();
        inLabelId = lspLocalLabelInfo.inLabelId();
        outLabelId = lspLocalLabelInfo.outLabelId();
@@ -220,7 +228,7 @@ public class BasicPceccHandlerTest {
 
        // Next element check
        // Retrieve values and check device3
-       lspLocalLabelInfo = (DefaultLspLocalLabelInfo) iterator.next();
+       lspLocalLabelInfo = iterator.next();
        deviceId = lspLocalLabelInfo.deviceId();
        inLabelId = lspLocalLabelInfo.inLabelId();
        outLabelId = lspLocalLabelInfo.outLabelId();
@@ -235,7 +243,7 @@ public class BasicPceccHandlerTest {
 
        // Next element check
        // Retrieve values and check device2
-       lspLocalLabelInfo = (DefaultLspLocalLabelInfo) iterator.next();
+       lspLocalLabelInfo = iterator.next();
        deviceId = lspLocalLabelInfo.deviceId();
        inLabelId = lspLocalLabelInfo.inLabelId();
        outLabelId = lspLocalLabelInfo.outLabelId();
@@ -250,7 +258,7 @@ public class BasicPceccHandlerTest {
 
        // Next element check
        // Retrieve values and check device1
-       lspLocalLabelInfo = (DefaultLspLocalLabelInfo) iterator.next();
+       lspLocalLabelInfo = iterator.next();
        deviceId = lspLocalLabelInfo.deviceId();
        inLabelId = lspLocalLabelInfo.inLabelId();
        outLabelId = lspLocalLabelInfo.outLabelId();

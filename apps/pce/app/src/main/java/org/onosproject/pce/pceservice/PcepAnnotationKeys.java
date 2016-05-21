@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.provider.pcep.tunnel.impl;
+package org.onosproject.pce.pceservice;
 
 /**
  * Collection of keys for annotation for PCEP tunnels.
@@ -64,7 +64,7 @@ public final class PcepAnnotationKeys {
 
     /**
      * Annotation key for the Delegation.
-     * Whether LSPs are delegated or not
+     * Whether LSPs are delegated or not.
      */
     public static final String DELEGATE = "delegate";
 }

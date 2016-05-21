@@ -96,20 +96,20 @@ public class PathComputationTest {
     private final MockDeviceService deviceService = new MockDeviceService();
     private PceManager pceManager = new PceManager();
     public static ProviderId providerId = new ProviderId("pce", "foo");
-    private static final String DEVICE1 = "D001";
-    private static final String DEVICE2 = "D002";
-    private static final String DEVICE3 = "D003";
-    private static final String DEVICE4 = "D004";
-    private static final String DEVICE5 = "D005";
+    public static final String DEVICE1 = "D001";
+    public static final String DEVICE2 = "D002";
+    public static final String DEVICE3 = "D003";
+    public static final String DEVICE4 = "D004";
+    public static final String DEVICE5 = "D005";
     public static final String PCEPDEVICE1 = "PD001";
     public static final String PCEPDEVICE2 = "PD002";
     public static final String PCEPDEVICE3 = "PD003";
     public static final String PCEPDEVICE4 = "PD004";
-    private static final TopologyVertex D1 = new DefaultTopologyVertex(DeviceId.deviceId("D001"));
-    private static final TopologyVertex D2 = new DefaultTopologyVertex(DeviceId.deviceId("D002"));
-    private static final TopologyVertex D3 = new DefaultTopologyVertex(DeviceId.deviceId("D003"));
-    private static final TopologyVertex D4 = new DefaultTopologyVertex(DeviceId.deviceId("D004"));
-    private static final TopologyVertex D5 = new DefaultTopologyVertex(DeviceId.deviceId("D005"));
+    public static final TopologyVertex D1 = new DefaultTopologyVertex(DeviceId.deviceId("D001"));
+    public static final TopologyVertex D2 = new DefaultTopologyVertex(DeviceId.deviceId("D002"));
+    public static final TopologyVertex D3 = new DefaultTopologyVertex(DeviceId.deviceId("D003"));
+    public static final TopologyVertex D4 = new DefaultTopologyVertex(DeviceId.deviceId("D004"));
+    public static final TopologyVertex D5 = new DefaultTopologyVertex(DeviceId.deviceId("D005"));
     private static final String ANNOTATION_COST = "cost";
     private static final String ANNOTATION_TE_COST = "teCost";
     private static final String UNKNOWN = "unknown";
@@ -130,7 +130,7 @@ public class PathComputationTest {
      *
      * @return graph path search algorithm
      */
-    private AbstractGraphPathSearch<TopologyVertex, TopologyEdge> graphSearch() {
+    public static AbstractGraphPathSearch<TopologyVertex, TopologyEdge> graphSearch() {
         return new DijkstraGraphSearch<>();
     }
 
@@ -143,7 +143,7 @@ public class PathComputationTest {
      * @param port2 destination port
      * @return link
      */
-    private Link addLink(String device, long port, String device2, long port2, boolean setCost, int value) {
+    public static Link addLink(String device, long port, String device2, long port2, boolean setCost, int value) {
         ConnectPoint src = new ConnectPoint(DeviceId.deviceId(device), PortNumber.portNumber(port));
         ConnectPoint dst = new ConnectPoint(DeviceId.deviceId(device2), PortNumber.portNumber(port2));
         Link curLink;
@@ -256,17 +256,35 @@ public class PathComputationTest {
         }
     }
 
-    private Path networkPath(org.onlab.graph.Path<TopologyVertex, TopologyEdge> path) {
+    /**
+     * Returns the path in Path object format.
+     */
+    public static Path networkPath(org.onlab.graph.Path<TopologyVertex, TopologyEdge> path) {
         List<Link> links = path.edges().stream().map(TopologyEdge::link).collect(Collectors.toList());
         return new DefaultPath(CORE_PROVIDER_ID, links, path.cost());
     }
 
     /**
-     * Test Resource service for path computation.
+     * Tests Resource service for path computation.
      */
-    private class MockPathResourceService extends ResourceServiceAdapter {
+    public class MockPathResourceService extends ResourceServiceAdapter {
         private final Map<Resource, ResourceConsumer> assignment = new HashMap<>();
         private Map<ResourceId, List<ResourceAllocation>> resourcesAllocations = new HashMap<>();
+
+        @Override
+        public Optional<ResourceAllocation> allocate(ResourceConsumer consumer, Resource resources) {
+            List<ResourceAllocation> allocations = allocate(consumer, ImmutableList.of(resources));
+            if (allocations.isEmpty()) {
+                return Optional.empty();
+            }
+
+            assert allocations.size() == 1;
+            ResourceAllocation allocation = allocations.get(0);
+            assert allocation.resource().equals(resources);
+
+            // cast is ensured by the assertions above
+            return Optional.of(allocation);
+        }
 
         @Override
         public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources) {

@@ -23,13 +23,24 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.LinkedList;
 
+import org.onlab.packet.MplsLabel;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.resource.label.DefaultLabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.pce.pcestore.api.LspLocalLabelInfo;
 import org.onosproject.pce.pcestore.PceccTunnelInfo;
@@ -58,6 +69,8 @@ public final class BasicPceccHandler {
     private static BasicPceccHandler crHandlerInstance = null;
     private LabelResourceService labelRsrcService;
     private PceStore pceStore;
+    private FlowObjectiveService flowObjectiveService;
+    private ApplicationId appId;
 
     /**
      * Initializes default values.
@@ -83,8 +96,11 @@ public final class BasicPceccHandler {
      * @param labelRsrcService label resource service
      * @param pceStore pce label store
      */
-    public void initialize(LabelResourceService labelRsrcService, PceStore pceStore) {
+    public void initialize(LabelResourceService labelRsrcService, FlowObjectiveService flowObjectiveService,
+                           ApplicationId appId, PceStore pceStore) {
         this.labelRsrcService = labelRsrcService;
+        this.flowObjectiveService = flowObjectiveService;
+        this.appId = appId;
         this.pceStore = pceStore;
     }
 
@@ -106,8 +122,8 @@ public final class BasicPceccHandler {
         if ((linkList != null) && (linkList.size() > 0)) {
             // Sequence through reverse order to push local labels into devices
             // Generation of labels from egress to ingress
-            for (ListIterator iterator = linkList.listIterator(linkList.size()); iterator.hasPrevious();) {
-                Link link = (Link) iterator.previous();
+            for (ListIterator<Link> iterator = linkList.listIterator(linkList.size()); iterator.hasPrevious();) {
+                Link link = iterator.previous();
                 DeviceId dstDeviceId = link.dst().deviceId();
                 DeviceId srcDeviceId = link.src().deviceId();
                 labelRscList = labelRsrcService.applyFromDevicePool(dstDeviceId, applyNum);
@@ -131,16 +147,14 @@ public final class BasicPceccHandler {
                     }
 
                     // Push into destination device
-                    //TODO: uncomment below lines once installLocalLabelRule() method is ready
                     // Destination device IN port is link.dst().port()
-                    //installLocalLabelRule(dstDeviceId, labelId, dstPort, tunnel.tunnelId(), isLastLabelToPush,
-                    //                      LabelType.IN, Objective.Operation.ADD);
+                    installLocalLabelRule(dstDeviceId, labelId, dstPort, tunnel.tunnelId(), isLastLabelToPush,
+                                          Long.valueOf(LabelType.IN_LABEL.value), Objective.Operation.ADD);
 
                     // Push into source device
-                    //TODO: uncomment below lines once installLocalLabelRule() method is ready
                     // Source device OUT port will be link.dst().port(). Means its remote port used to send packet.
-                    //installLocalLabelRule(srcDeviceId, labelId, dstPort, tunnel.tunnelId(), isLastLabelToPush,
-                    //                      LabelType.OUT, Objective.Operation.ADD);
+                    installLocalLabelRule(srcDeviceId, labelId, dstPort, tunnel.tunnelId(), isLastLabelToPush,
+                                          Long.valueOf(LabelType.OUT_LABEL.value), Objective.Operation.ADD);
 
                     // Add or update pcecc tunnel info in pce store.
                     updatePceccTunnelInfoInStore(srcDeviceId, dstDeviceId, labelId, dstPort,
@@ -183,7 +197,7 @@ public final class BasicPceccHandler {
            if ((lspLabelInfoList != null) && (lspLabelInfoList.size() > 0)) {
                for (int i = 0; i < lspLabelInfoList.size(); ++i) {
                    LspLocalLabelInfo lspLocalLabelInfo =
-                           (DefaultLspLocalLabelInfo) lspLabelInfoList.get(i);
+                           lspLabelInfoList.get(i);
                    LspLocalLabelInfo.Builder lspLocalLabelInfoBuilder = null;
                    if (dstDeviceId.equals(lspLocalLabelInfo.deviceId())) {
                        lspLocalLabelInfoBuilder = DefaultLspLocalLabelInfo.builder(lspLocalLabelInfo);
@@ -264,7 +278,7 @@ public final class BasicPceccHandler {
            List<LspLocalLabelInfo> lspLocalLabelInfoList = pceccTunnelInfo.lspLocalLabelInfoList();
            if ((lspLocalLabelInfoList != null) && (lspLocalLabelInfoList.size() > 0)) {
                for (Iterator<LspLocalLabelInfo> iterator = lspLocalLabelInfoList.iterator(); iterator.hasNext();) {
-                   LspLocalLabelInfo lspLocalLabelInfo = (DefaultLspLocalLabelInfo) iterator.next();
+                   LspLocalLabelInfo lspLocalLabelInfo = iterator.next();
                    DeviceId deviceId = lspLocalLabelInfo.deviceId();
                    LabelResourceId inLabelId = lspLocalLabelInfo.inLabelId();
                    LabelResourceId outLabelId = lspLocalLabelInfo.outLabelId();
@@ -278,15 +292,13 @@ public final class BasicPceccHandler {
 
                    // Push into device
                    if ((inLabelId != null) && (inPort != null)) {
-                       //TODO: uncomment below lines once installLocalLabelRule() method is ready
-                       //installLocalLabelRule(deviceId, inLabelId, inPort, tunnelId, isLastLabelToPush,
-                       //                      LabelType.IN, Objective.Operation.REMOVE);
+                       installLocalLabelRule(deviceId, inLabelId, inPort, tunnel.tunnelId(), isLastLabelToPush,
+                                             Long.valueOf(LabelType.IN_LABEL.value), Objective.Operation.REMOVE);
                    }
 
                    if ((outLabelId != null) && (outPort != null)) {
-                       //TODO: uncomment below lines once installLocalLabelRule() method is ready
-                       //installLocalLabelRule(deviceId, outLabelId, outPort, tunnelId, isLastLabelToPush,
-                       //                      LabelType.OUT, Objective.Operation.REMOVE);
+                       installLocalLabelRule(deviceId, outLabelId, outPort, tunnel.tunnelId(), isLastLabelToPush,
+                                             Long.valueOf(LabelType.OUT_LABEL.value), Objective.Operation.REMOVE);
                    }
 
                    // List is stored from egress to ingress. So, using IN label id to release.
@@ -315,4 +327,35 @@ public final class BasicPceccHandler {
            log.error("Unable to find PCECC tunnel info in store for a tunnel {}.", tunnel.toString());
        }
    }
+
+    // Install a rule for pushing local labels to the device which is specific to path.
+    private void installLocalLabelRule(DeviceId deviceId, LabelResourceId labelId,
+                                       PortNumber portNum, TunnelId tunnelId,
+                                       Boolean isBos, Long labelType,
+                                       Objective.Operation type) {
+        checkNotNull(flowObjectiveService);
+        checkNotNull(appId);
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+
+        selectorBuilder.matchMplsLabel(MplsLabel.mplsLabel(labelId.id().intValue()));
+        selectorBuilder.matchInPort(portNum);
+        selectorBuilder.matchTunnelId(Long.parseLong(tunnelId.id()));
+        selectorBuilder.matchMplsBos(isBos);
+        selectorBuilder.matchMetadata(labelType);
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+
+        ForwardingObjective.Builder forwardingObjective = DefaultForwardingObjective.builder()
+                .withSelector(selectorBuilder.build())
+                .withTreatment(treatment)
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .fromApp(appId)
+                .makePermanent();
+
+        if (type.equals(Objective.Operation.ADD)) {
+            flowObjectiveService.forward(deviceId, forwardingObjective.add());
+        } else {
+            flowObjectiveService.forward(deviceId, forwardingObjective.remove());
+        }
+    }
 }
