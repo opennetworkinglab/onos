@@ -45,10 +45,8 @@ public class CounterTest {
 
     @Test
     public void freeze() {
-        Counter tt = new Counter();
-        tt.add(123L);
-        assertEquals("incorrect number of bytes", 123L, tt.total());
-        delay(1000);
+        long now = System.currentTimeMillis();
+        Counter tt = new Counter(now, 123L, now + 1000);
         tt.freeze();
         tt.add(123L);
         assertEquals("incorrect number of bytes", 123L, tt.total());
