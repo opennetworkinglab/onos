@@ -17,13 +17,8 @@
 package org.onosproject.persistence.impl;
 
 import com.google.common.collect.Sets;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
 import org.onosproject.store.service.Serializer;
 
 import java.util.HashSet;
@@ -40,23 +35,14 @@ import static org.junit.Assert.assertTrue;
 /**
  * Test suite for Persistent Set.
  */
-public class PersistentSetTest {
+public class PersistentSetTest extends MapDBTest {
 
-    private Set<Integer> set = null;
-    private DB fakeDB = null;
-
-    @Rule
-    public TemporaryFolder tmpFolder = new TemporaryFolder();
+    private PersistentSet<Integer> set = null;
 
     @Before
     public void setUp() throws Exception {
-        //Creates a db, a set within it and a basic integer serializer (async writing is off)
-        fakeDB = DBMaker
-                .newFileDB(tmpFolder.newFile("testDb"))
-                .asyncWriteEnable()
-                .closeOnJvmShutdown()
-                .make();
-        set = new PersistentSet<Integer>(new Serializer() {
+        //Creates a set within it and a basic integer serializer
+        set = new PersistentSet<>(new Serializer() {
             @Override
             public <T> byte[] encode(T object) {
                 if (object == null) {
@@ -84,18 +70,10 @@ public class PersistentSetTest {
                 num = num | bytes[2] << 8;
                 num = num | bytes[3];
 
-                return (T) new java.lang.Integer(num);
+                return (T) Integer.valueOf(num);
             }
         }, fakeDB, "set");
 
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        set.clear();
-        fakeDB.delete("map:map");
-        fakeDB.commit();
-        fakeDB.close();
     }
 
     @Test

@@ -17,13 +17,8 @@
 package org.onosproject.persistence.impl;
 
 import com.google.common.collect.Maps;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
 import org.onosproject.store.service.Serializer;
 
 import java.util.Map;
@@ -37,13 +32,9 @@ import static org.junit.Assert.assertTrue;
 /**
  * Test suite for Persistent Map.
  */
-public class PersistentMapTest {
+public class PersistentMapTest extends MapDBTest {
 
-    private Map<Integer, Integer> map = null;
-    private DB fakeDB = null;
-
-    @Rule
-    public TemporaryFolder tmpFolder = new TemporaryFolder();
+    private PersistentMap<Integer, Integer> map = null;
 
     /**
      * Set up the database, create a map and a direct executor to handle it.
@@ -52,13 +43,8 @@ public class PersistentMapTest {
      */
     @Before
     public void setUp() throws Exception {
-        //Creates a db, a map within it and a basic integer serializer (async writing is off)
-        fakeDB = DBMaker
-                .newFileDB(tmpFolder.newFile("testDb"))
-                .asyncWriteEnable()
-                .closeOnJvmShutdown()
-                .make();
-        map = new PersistentMap<Integer, Integer>(new Serializer() {
+        //Creates, a map within it and a basic integer serializer
+        map = new PersistentMap<>(new Serializer() {
             @Override
             public <T> byte[] encode(T object) {
                 if (object == null) {
@@ -86,22 +72,9 @@ public class PersistentMapTest {
                 num = num | bytes[2] << 8;
                 num = num | bytes[3];
 
-                return (T) new java.lang.Integer(num);
+                return (T) Integer.valueOf(num);
             }
         }, fakeDB, "map");
-    }
-
-    /**
-     * Clears and deletes the map, closes the datbase and deletes the file.
-     *
-     * @throws Exception if shutdown fails
-     */
-    @After
-    public void tearDown() throws Exception {
-        map.clear();
-        fakeDB.delete("map:map");
-        fakeDB.commit();
-        fakeDB.close();
     }
 
     @Test
@@ -110,7 +83,7 @@ public class PersistentMapTest {
         fillMap(10);
         assertEquals(10, map.size());
         for (int i = 0; i < 10; i++) {
-            assertEquals("The previous value was wrong.", new Integer(i), map.remove(i));
+            assertEquals("The previous value was wrong.", Integer.valueOf(i), map.remove(i));
             assertNull("The previous value was wrong.", map.remove(i));
             //(i+1) compensates for base zero.
             assertEquals("The size was wrong.", 10 - (i + 1), map.size());
@@ -160,7 +133,7 @@ public class PersistentMapTest {
         for (int i = 0; i < 10; i++) {
             map.put(i, i);
             for (int j = 0; j <= i; j++) {
-                assertEquals("The value was wrong.", new Integer(j), map.get(j));
+                assertEquals("The value was wrong.", Integer.valueOf(j), map.get(j));
             }
         }
         assertNull("Null return value for nonexistent keys.", map.get(10));
@@ -226,7 +199,7 @@ public class PersistentMapTest {
         //Tests insertion behavior (particularly the returning of previous value)
         fillMap(10);
         for (int i = 0; i < 10; i++) {
-            assertEquals("Put should return the previous value", new Integer(i), map.put(i, i + 1));
+            assertEquals("Put should return the previous value", Integer.valueOf(i), map.put(i, i + 1));
         }
         assertNull(map.put(11, 11));
     }
