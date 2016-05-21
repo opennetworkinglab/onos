@@ -171,7 +171,7 @@ public final class BoundedThreadPoolTest {
             latches.remove(0).countDown(); // release the second thread
 
             assertTrue("Thread should be unblocked",
-                       myLatch.await(1, TimeUnit.SECONDS));
+                       myLatch.await(10, TimeUnit.SECONDS));
             long delta = System.nanoTime() - start;
             double load = exec.getQueue().size() / (double) maxQueueSize;
             assertTrue("Load is greater than threshold", load <= 0.8);
