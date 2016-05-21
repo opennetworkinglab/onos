@@ -31,11 +31,11 @@ describe('factory: view/topo/topoForce.js', function() {
         bns = ButtonService;
     }));
 
-    xit('should define TopoForceService', function () {
+    it('should define TopoForceService', function () {
         expect(tfs).toBeDefined();
     });
 
-    xit('should define api functions', function () {
+    it('should define api functions', function () {
         expect(fs.areFunctions(tfs, [
             'initForce', 'newDim', 'destroyForce',
 
@@ -43,9 +43,9 @@ describe('factory: view/topo/topoForce.js', function() {
             'togglePorts', 'toggleOffline',
             'cycleDeviceLabels', 'unpin', 'showMastership', 'showBadLinks',
 
-            'addDevice', 'updateDevice', 'removeDevice',
-            'addHost', 'updateHost', 'removeHost',
-            'addLink', 'updateLink', 'removeLink'
+            'resetAllLocations', 'addDevice', 'updateDevice', 'removeDevice',
+            'addHost', 'updateHost', 'moveHost', 'removeHost',
+            'addLink', 'updateLink', 'removeLink', 'topoStartDone'
         ])).toBeTruthy();
     });
 

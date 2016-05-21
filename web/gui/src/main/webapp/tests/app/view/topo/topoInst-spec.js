@@ -28,11 +28,11 @@ describe('factory: view/topo/topoInst.js', function() {
         tis = TopoInstService;
     }));
 
-    xit('should define TopoInstService', function () {
+    it('should define TopoInstService', function () {
         expect(tis).toBeDefined();
     });
 
-    xit('should define api functions', function () {
+    it('should define api functions', function () {
         expect(fs.areFunctions(tis, [
             'initInst', 'destroyInst',
             'addInstance', 'updateInstance', 'removeInstance',

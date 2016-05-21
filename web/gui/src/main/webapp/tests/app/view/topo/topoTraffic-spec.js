@@ -32,15 +32,23 @@ describe('factory: view/topo/topoTraffic.js', function() {
         expect(tts).toBeDefined();
     });
 
-    xit('should define api functions', function () {
+    it('should define api functions', function () {
 
         expect(fs.areFunctions(tts, [
-            'initTraffic', 'destroyTraffic', 'showTraffic',
-            'cancelTraffic', 'requestTrafficForMode',
-            'showRelatedIntentsAction', 'addHostIntentAction',
-            'addMultiSourceIntentAction', 'showDeviceLinkFlowsAction',
-            'showNextIntentAction', 'showPrevIntentAction',
-            'showSelectedIntentTrafficAction', 'showAllTrafficAction'
+            'initTraffic',
+            'destroyTraffic',
+            'cancelTraffic',
+            'showAllFlowTraffic',
+            'showAllPortTraffic',
+            'showDeviceLinkFlows',
+            'showRelatedIntents',
+            'showPrevIntent',
+            'showNextIntent',
+            'showSelectedIntentTraffic',
+            'selectIntent',
+            'requestTrafficForMode',
+            'addHostIntent',
+            'addMultiSourceIntent',
         ])).toBeTruthy();
     });
 

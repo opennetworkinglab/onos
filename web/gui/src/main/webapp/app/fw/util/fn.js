@@ -226,7 +226,7 @@
 
     // return the given string with the first character capitalized.
     function cap(s) {
-        return s ? s[0].toUpperCase() + s.slice(1) : s;
+        return s ? s[0].toUpperCase() + s.slice(1).toLowerCase() : s;
     }
 
     // return encoding structure for given parameters

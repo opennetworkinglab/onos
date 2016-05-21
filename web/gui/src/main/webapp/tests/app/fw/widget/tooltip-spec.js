@@ -40,9 +40,9 @@ describe('factory: fw/widget/tooltip.js', function () {
         expect(tts).toBeDefined();
     });
 
-    xit('should define api functions', function () {
+    it('should define api functions', function () {
         expect(fs.areFunctions(tts, [
-            'showTooltip', 'cancelTooltip'
+            'addTooltip', 'showTooltip', 'cancelTooltip'
         ])).toBeTruthy();
     });
 

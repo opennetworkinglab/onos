@@ -207,10 +207,10 @@ describe('factory: view/topo/topoModel.js', function() {
         expect(tms).toBeDefined();
     });
 
-    xit('should define api functions', function () {
+    it('should define api functions', function () {
         expect(fs.areFunctions(tms, [
             'initModel', 'newDim', 'destroyModel',
-            'positionNode', 'createDeviceNode', 'createHostNode',
+            'positionNode', 'resetAllLocations', 'createDeviceNode', 'createHostNode',
             'createHostLink', 'createLink',
             'coordFromLngLat', 'lngLatFromCoord',
             'findLink', 'findLinkById', 'findDevices',
@@ -406,7 +406,7 @@ describe('factory: view/topo/topoModel.js', function() {
         expect(link.class).toEqual('link');
         expect(link.fromSource).toBe(linkData);
         expect(link.type()).toEqual('zoo');
-        expect(link.online()).toEqual(true);
+        expect(link.online()).toEqual(true); // this is the condition failing
         expect(link.linkWidth()).toEqual(1.5);
     });
 

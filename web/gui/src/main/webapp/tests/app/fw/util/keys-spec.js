@@ -17,7 +17,7 @@
 /*
  ONOS GUI -- Key Handler Service - Unit Tests
  */
-xdescribe('factory: fw/util/keys.js', function() {
+describe('factory: fw/util/keys.js', function() {
     var $log, ks, fs, qhs,
         d3Elem, elem, last;
   
@@ -51,7 +51,8 @@ xdescribe('factory: fw/util/keys.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(ks, [
-            'bindQhs', 'installOn', 'keyBindings', 'gestureNotes', 'enableKeys'
+            'bindQhs', 'installOn', 'keyBindings', 'unbindKeys', 'dialogKeys',
+            'addSeq', 'remSeq', 'gestureNotes', 'enableKeys', 'enableGlobalKeys', 'checkNotGlobal'
         ])).toBeTruthy();
     });
 

@@ -57,7 +57,7 @@ describe('factory: view/topo/topoPanel.js', function() {
         expect(tps).toBeDefined();
     });
 
-    xit('should define api functions', function () {
+    it('should define api functions', function () {
         expect(fs.areFunctions(tps, [
             'initPanels',
             'destroyPanels',
@@ -65,6 +65,7 @@ describe('factory: view/topo/topoPanel.js', function() {
 
             'showSummary',
             'toggleSummary',
+            'hideSummary',
 
             'toggleUseDetailsFlag',
             'displaySingle',
@@ -73,8 +74,6 @@ describe('factory: view/topo/topoPanel.js', function() {
             'displayNothing',
             'displaySomething',
             'addAction',
-
-            'hideSummaryPanel',
 
             'detailVisible',
             'summaryVisible'

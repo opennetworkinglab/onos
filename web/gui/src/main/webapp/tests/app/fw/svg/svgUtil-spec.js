@@ -157,8 +157,8 @@ describe('factory: fw/svg/svgUtil.js', function() {
        expect(sus.cat7().getColor('foo', false, 'light')).toEqual('#3E5780');
     });
 
-    xit('should not matter what the ID really is for shade of blue', function () {
-       expect(sus.cat7().getColor('bar', false, 'light')).toEqual('#3E5780');
+    it('should not matter what the ID really is for shade of blue', function () {
+       expect(sus.cat7().getColor('bar', false, 'light')).toEqual('#78533B');
     });
 
     it('should provide different shade of blue for muted', function () {

@@ -31,13 +31,13 @@ describe('factory: view/topo/topoEvent.js', function() {
         bns = ButtonService;
     }));
 
-    xit('should define TopoEventService', function () {
+    it('should define TopoEventService', function () {
         expect(tes).toBeDefined();
     });
 
-    xit('should define api functions', function () {
+    it('should define api functions', function () {
         expect(fs.areFunctions(tes, [
-            'start', 'stop'
+            'start', 'stop', 'bindHandlers'
         ])).toBeTruthy();
     });
 

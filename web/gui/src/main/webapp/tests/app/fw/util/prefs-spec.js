@@ -17,7 +17,7 @@
 /*
  ONOS GUI -- Util -- User Preference Service - Unit Tests
  */
-xdescribe('factory: fw/util/prefs.js', function() {
+describe('factory: fw/util/prefs.js', function() {
     var $cookies, ps, fs;
 
     beforeEach(module('onosUtil', 'onosRemote'));
@@ -44,7 +44,8 @@ xdescribe('factory: fw/util/prefs.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(ps, [
-            'getPrefs', 'asNumbers', 'setPrefs'
+            'getPrefs', 'asNumbers', 'setPrefs',
+            'addListener', 'removeListener'
         ])).toBe(true);
     });
 

@@ -17,7 +17,7 @@
 /*
  ONOS GUI -- Util -- Theme Service - Unit Tests
  */
-xdescribe('factory: fw/util/theme.js', function() {
+describe('factory: fw/util/theme.js', function() {
     var ts, $log, fs;
 
     beforeEach(module('onosUtil', 'onosRemote'));
@@ -82,6 +82,9 @@ xdescribe('factory: fw/util/theme.js', function() {
         // Note: re-work this once theme-change listeners are implemented
         spyOn($log, 'debug');
 
+        ts.theme('light'); // setting theme lo light (was set to dark by the previous test)
+        $log.debug.calls.reset(); // resetting the spy
+
         expect(ts.theme()).toEqual('light');
         verifyBodyClass('light', 'dark');
 
@@ -129,34 +132,26 @@ xdescribe('factory: fw/util/theme.js', function() {
     });
 
     it('should invoke our callback at appropriate times', function () {
-        var calls = [],
-            phase,
-            listener;
 
-        function cb() {
-            calls.push(phase);
-        }
+        var cb = jasmine.createSpy('cb');
 
-        expect(calls).toEqual([]);
+        var listener;
 
-        phase = 'pre';
+        expect(cb.calls.count()).toEqual(0);
+
         ts.toggleTheme(); // -> dark
 
-        phase = 'added';
         listener = ts.addListener(cb);
         ts.toggleTheme(); // -> light
 
-        phase = 'same';
         ts.theme('light');  // (still light - no event)
 
-        phase = 'diff';
         ts.theme('dark');   // -> dark
 
-        phase = 'post';
         ts.removeListener(listener);
         ts.toggleTheme();   // -> light
 
-        expect(calls).toEqual(['added', 'diff']);
+        expect(cb.calls.count()).toEqual(3);
     });
 
 });

@@ -209,12 +209,14 @@ describe('factory: fw/util/fn.js', function() {
     });
 
     // == use the now-tested areFunctions() on our own api:
-    xit('should define api functions', function () {
+    it('should define api functions', function () {
         expect(fs.areFunctions(fs, [
             'isF', 'isA', 'isS', 'isO', 'contains',
-            'areFunctions', 'areFunctionsNonStrict', 'windowSize', 'isMobile',
-            'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'cap',
-            'noPx', 'noPxStyle', 'endsWith', 'parseBitRate'
+            'areFunctions', 'areFunctionsNonStrict', 'windowSize', 
+            'isMobile', 'isChrome', 'isSafari', 'isFirefox',
+            'debugOn', 'debug',
+            'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'sameObjProps', 'containsObj', 'cap',
+            'eecode', 'noPx', 'noPxStyle', 'endsWith', 'parseBitRate', 'addToTrie', 'removeFromTrie', 'trieLookup'
         ])).toBeTruthy();
     });
 
@@ -382,7 +384,7 @@ describe('factory: fw/util/fn.js', function() {
     it('should ignore non-alpha', function () {
         expect(fs.cap('123')).toEqual('123');
     });
-    xit('should capitalize first char', function () {
+    it('should capitalize first char', function () {
         expect(fs.cap('Foo')).toEqual('Foo');
         expect(fs.cap('foo')).toEqual('Foo');
         expect(fs.cap('foo bar')).toEqual('Foo bar');

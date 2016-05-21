@@ -35,14 +35,17 @@ describe('factory: view/topo/topoToolbar.js', function() {
         ps.init();
     }));
 
-    xit('should define TopoToolbarService', function () {
+    it('should define TopoToolbarService', function () {
         expect(ttbs).toBeDefined();
     });
 
     xit('should define api functions', function () {
+        // FIXME
+        // areFunctions check that each key of the object is a fn, what if it is a string or whatever?
         expect(fs.areFunctions(ttbs, [
             'init', 'createToolbar', 'destroyToolbar',
-            'keyListener', 'toggleToolbar'
+            'keyListener', 'toggleToolbar', 'setDefaultOverlay',
+            'fnkey'
         ])).toBeTruthy();
     });
 
