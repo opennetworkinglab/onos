@@ -15,6 +15,7 @@
  */
 package org.onosproject.pce.pceservice;
 
+import org.onlab.util.Identifier;
 import org.onosproject.net.resource.ResourceConsumer;
 
 import com.google.common.annotations.Beta;
@@ -25,9 +26,7 @@ import org.onosproject.net.resource.ResourceConsumerId;
  * resource allocations.
  */
 @Beta
-public final class TunnelConsumerId implements ResourceConsumer {
-
-    private final long value;
+public final class TunnelConsumerId extends Identifier<Long> implements ResourceConsumer {
 
     /**
      * Creates a tunnel resource consumer identifier from the specified long value.
@@ -43,7 +42,7 @@ public final class TunnelConsumerId implements ResourceConsumer {
      * Initializes object for serializer.
      */
     public TunnelConsumerId() {
-        this.value = 0;
+        super(0L);
     }
 
     /**
@@ -54,43 +53,25 @@ public final class TunnelConsumerId implements ResourceConsumer {
      *            resource consumer id
      */
     public TunnelConsumerId(long value) {
-        this.value = value;
+        super(value);
     }
 
     /**
-     * Returns the tunnel resource consumer id value in long format.
+     * Returns the backing identifier value.
      *
-     * @return value the tunnel resource consumer id's long value
+     * @return value backing identifier value
      */
     public long value() {
-        return value;
-    }
-
-    @Override
-    public int hashCode() {
-        return Long.hashCode(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof TunnelConsumerId)) {
-            return false;
-        }
-        TunnelConsumerId that = (TunnelConsumerId) obj;
-        return this.value == that.value;
+        return identifier;
     }
 
     @Override
     public String toString() {
-        return "0x" + Long.toHexString(value);
+        return "0x" + Long.toHexString(identifier);
     }
 
     @Override
     public ResourceConsumerId consumerId() {
-        // TODO
-        return null;
+        return ResourceConsumerId.of(this);
     }
 }

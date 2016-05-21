@@ -33,6 +33,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import org.onosproject.incubator.net.tunnel.LabelStack;
@@ -41,6 +43,7 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.Path;
 import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.net.provider.ProviderId;
@@ -61,6 +64,9 @@ public class PceccSrTeBeHandlerTest {
     protected LabelResourceAdminService labelRsrcAdminService;
     protected LabelResourceService labelRsrcService;
     protected PceStore pceStore;
+    private FlowObjectiveService flowObjectiveService;
+    private CoreService coreService;
+    private ApplicationId appId;
     private ProviderId providerId;
     private DeviceId deviceId1;
     private DeviceId deviceId2;
@@ -88,8 +94,11 @@ public class PceccSrTeBeHandlerTest {
         srTeHandler = PceccSrTeBeHandler.getInstance();
         labelRsrcService = new LabelResourceAdapter();
         labelRsrcAdminService = new LabelResourceAdapter();
+        flowObjectiveService = new PceManagerTest.MockFlowObjService();
+        coreService = new PceManagerTest.MockCoreService();
+        appId = coreService.registerApplication("org.onosproject.pce");
         pceStore = new PceStoreAdapter();
-        srTeHandler.initialize(labelRsrcAdminService, labelRsrcService, pceStore);
+        srTeHandler.initialize(labelRsrcAdminService, labelRsrcService, flowObjectiveService, appId, pceStore);
 
         // Creates path
         // Creates list of links
@@ -446,39 +455,39 @@ public class PceccSrTeBeHandlerTest {
         // check node-label of deviceId1
         List<LabelResourceId> labelList = labelStack.labelResources();
         Iterator<LabelResourceId> iterator = labelList.iterator();
-        labelId = (LabelResourceId) iterator.next();
+        labelId = iterator.next();
         assertThat(labelId, is(LabelResourceId.labelResourceId(4097)));
 
         // check adjacency label of deviceId1
-        labelId = (LabelResourceId) iterator.next();
+        labelId = iterator.next();
         assertThat(labelId, is(LabelResourceId.labelResourceId(5122)));
 
         // check node-label of deviceId2
-        labelId = (LabelResourceId) iterator.next();
+        labelId = iterator.next();
         assertThat(labelId, is(LabelResourceId.labelResourceId(4098)));
 
         // check adjacency label of deviceId2
-        labelId = (LabelResourceId) iterator.next();
+        labelId = iterator.next();
         assertThat(labelId, is(LabelResourceId.labelResourceId(5123)));
 
         // check node-label of deviceId3
-        labelId = (LabelResourceId) iterator.next();
+        labelId = iterator.next();
         assertThat(labelId, is(LabelResourceId.labelResourceId(4099)));
 
         // check adjacency label of deviceId3
-        labelId = (LabelResourceId) iterator.next();
+        labelId = iterator.next();
         assertThat(labelId, is(LabelResourceId.labelResourceId(5124)));
 
         // check node-label of deviceId4
-        labelId = (LabelResourceId) iterator.next();
+        labelId = iterator.next();
         assertThat(labelId, is(LabelResourceId.labelResourceId(4100)));
 
         // check adjacency label of deviceId4
-        labelId = (LabelResourceId) iterator.next();
+        labelId = iterator.next();
         assertThat(labelId, is(LabelResourceId.labelResourceId(5125)));
 
         // check node-label of deviceId5
-        labelId = (LabelResourceId) iterator.next();
+        labelId = iterator.next();
         assertThat(labelId, is(LabelResourceId.labelResourceId(4101)));
     }
 }
