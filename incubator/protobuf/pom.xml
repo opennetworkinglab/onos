@@ -88,6 +88,11 @@
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Export-Package>org.onosproject.grpc.net</Export-Package>
+                    </instructions>
+                </configuration>
             </plugin>
 
             <plugin>
