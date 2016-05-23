@@ -111,7 +111,7 @@ def osgi_jar(
   ### Checkstyle
   if srcs:
     base = get_base_path()
-    files = base + '\n' + '\n'.join(['%s/%s' % (base, s) for s in srcs])
+    files = '%s\n%s\n' % (name, base) + '\n'.join(['%s/%s' % (base, s) for s in srcs])
 
     genrule(
       name = name + '-checkstyle-files',

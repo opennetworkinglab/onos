@@ -33,6 +33,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 public class CheckstyleRunner {
 
     private final Configuration config;
@@ -70,16 +72,18 @@ public class CheckstyleRunner {
     }
 
     public String checkClass(String input) throws CheckstyleException, InterruptedException {
-        String[] split = input.split("\n", 2);
-        if (split.length < 2 || split[1].length() == 0) {
+        String[] split = input.split("\n", 3);
+        if (split.length < 3 || split[2].length() == 0) {
             return "";
         }
-        String base = split[0];
-        String files = split[1];
+        String project = split[0];
+        String baseDir = split[1];
+        String files = split[2];
 
         // create a listener for output
         StringAuditor listener = new StringAuditor();
-        listener.setBase(base);
+        listener.setProjectName(project);
+        listener.setBaseDir(baseDir);
 
         // create Checker object and run it
         final Checker checker = new Checker();
@@ -111,10 +115,15 @@ class StringAuditor implements AuditListener {
 
     private CountDownLatch finishedLatch = new CountDownLatch(1);
     private StringBuilder output = new StringBuilder();
-    private String base = "";
+    private String baseDir = "";
+    private String project = "";
 
-    public void setBase(String base) {
-        this.base = base;
+    public void setBaseDir(String base) {
+        this.baseDir = base;
+    }
+
+    public void setProjectName(String projectName) {
+        this.project = projectName;
     }
 
     public void append(String s) {
@@ -151,9 +160,14 @@ class StringAuditor implements AuditListener {
         switch (evt.getSeverityLevel()) {
             case ERROR:
                 String fileName = evt.getFileName();
-                int index = fileName.indexOf(base);
-                if (index >= 0) {
-                    fileName = fileName.substring(index + base.length() + 1);
+                if (!isNullOrEmpty(baseDir)) {
+                    int index = fileName.indexOf(baseDir);
+                    if (index >= 0) {
+                        fileName = fileName.substring(index + baseDir.length() + 1);
+                        if (!isNullOrEmpty(project)) {
+                            output.append(project).append(':');
+                        }
+                    }
                 }
                 output.append(fileName).append(':').append(evt.getLine());
                 if (evt.getColumn() > 0) {
