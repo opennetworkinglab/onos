@@ -17,6 +17,9 @@
 package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.Beta;
+import org.onlab.packet.IpAddress;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.rest.AbstractWebResource;
@@ -26,6 +29,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -37,6 +41,7 @@ import java.util.Set;
 /**
  * Manage the multicast routing information.
  */
+@Beta
 @Path("mcast")
 public class MulticastRouteWebResource extends AbstractWebResource {
 
@@ -102,5 +107,41 @@ public class MulticastRouteWebResource extends AbstractWebResource {
             throw new IllegalArgumentException(ex);
         }
         return Response.noContent().build();
+    }
+
+    /**
+     * Create a sink for a multicast route.
+     * Creates a new sink for an existing multicast route.
+     *
+     * @onos.rsModel McastSinkPost
+     * @param group group IP address
+     * @param source source IP address
+     * @param stream sink JSON
+     * @return status of the request - CREATED if the JSON is correct,
+     * BAD_REQUEST if the JSON is invalid
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("sinks/{group}/{source}")
+    public Response addSinks(@PathParam("group") String group,
+                             @PathParam("source") String source,
+                             InputStream stream) {
+        MulticastRouteService service = get(MulticastRouteService.class);
+        try {
+            McastRoute route = new McastRoute(IpAddress.valueOf(source), IpAddress.valueOf(group),
+                    McastRoute.Type.STATIC);
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            jsonTree.path("sinks").forEach(node -> {
+                ConnectPoint sink = ConnectPoint.deviceConnectPoint(node.asText());
+                service.addSink(route, sink);
+            });
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+
+        return Response
+                .created(URI.create(""))
+                .build();
     }
 }
