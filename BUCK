@@ -54,6 +54,7 @@ CORE = [
     '//drivers/lumentum:onos-drivers-lumentum-oar',
     '//drivers/netconf:onos-drivers-netconf-oar',
     '//drivers/ovsdb:onos-drivers-ovsdb-oar',
+    '//drivers/optical:onos-drivers-optical-oar',
 
     '//providers/netconf/device:onos-providers-netconf-device',
     '//providers/openflow/device:onos-providers-openflow-device',

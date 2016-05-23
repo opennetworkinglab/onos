@@ -54,16 +54,6 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.SpringOpenTTPDell"/>
     </driver>
-    <driver name="linc-oe" extends="default"
-            manufacturer="FlowForwarding.org" hwVersion="Unknown"
-            swVersion="LINC-OE OpenFlow Software Switch 1.1">
-        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-                   impl="org.onosproject.driver.handshaker.OfOpticalSwitchImplLinc13"/>
-        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.driver.query.LincOELambdaQuery"/>
-        <behaviour api="org.onosproject.net.optical.OpticalDevice"
-                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
-    </driver>
     <driver name="ofdpa" extends="default"
             manufacturer="Broadcom Corp." hwVersion="OF-DPA.*" swVersion="OF-DPA.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
@@ -146,29 +136,10 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.CpqdOfdpa2VlanPipeline"/>
     </driver>
-    <driver name="calient" extends="default"
-            manufacturer="calient technologies inc" hwVersion="calient hardware.*"
-            swVersion="ocs software version.*">
-        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-                   impl="org.onosproject.driver.handshaker.CalientFiberSwitchHandshaker"/>
-        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.driver.query.CalientLambdaQuery"/>
-    </driver>
     <driver name="onosfw" extends="ovs"
             manufacturer="" hwVersion="" swVersion="">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OpenVSwitchPipeline"/>
-    </driver>
-    <driver name="eci" extends="default"
-            manufacturer="ECI Telecom" hwVersion="Optical.*" swVersion="V_1_0">
-        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-                   impl="org.onosproject.driver.handshaker.OFOpticalSwitch13"/>
-        <behaviour api="org.onosproject.net.behaviour.TributarySlotQuery"
-                   impl="org.onosproject.driver.query.DefaultTributarySlotQuery" />
-        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.driver.query.OFOpticalSwitch13LambdaQuery"/>
-        <behaviour api="org.onosproject.net.optical.OpticalDevice"
-                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
     </driver>
     <driver name="aos" extends="ofdpa"
             manufacturer="Accton" hwVersion=".*" swVersion="1.*">
@@ -177,14 +148,6 @@
             manufacturer="" hwVersion="" swVersion="">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OpenstackPipeline"/>
-    </driver>
-    <driver name="oplk-roadm" extends="default"
-            manufacturer="Oplink a Molex company" hwVersion="ROADM"
-            swVersion="of-agent">
-        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-                   impl="org.onosproject.driver.handshaker.OplinkRoadmHandshaker"/>
-        <behaviour api="org.onosproject.net.optical.OpticalDevice"
-                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
     </driver>
     <driver name="hp" extends="default"
             manufacturer="HP" hwVersion="Switch 3500yl-48G" swVersion="K.16.01.0004">

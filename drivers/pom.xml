@@ -43,6 +43,7 @@
         <module>bti</module>
         <module>bmv2</module>
         <module>corsa</module>
+        <module>optical</module>
     </modules>
 
     <!--<properties>
