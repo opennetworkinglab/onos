@@ -89,10 +89,16 @@ public interface FlowRuleService
     Iterable<FlowRule> getFlowRulesById(ApplicationId id);
 
     /**
-     * Returns a list of rules filterd by application and group id.
+     * Returns a list of rules filtered by application and group id.
+     * <p>
+     * Note that the group concept here is simply a logical grouping of flows.
+     * This is not the same as a group in the
+     * {@link org.onosproject.net.group.GroupService}, and this method will not
+     * return flows that are mapped to a particular {@link org.onosproject.net.group.Group}.
+     * </p>
      *
-     * @param appId the application id to lookup
-     * @param groupId the groupid to lookup
+     * @param appId the application ID to look up
+     * @param groupId the group ID to look up
      * @return collection of flow rules
      */
     Iterable<FlowRule> getFlowRulesByGroupId(ApplicationId appId, short groupId);
