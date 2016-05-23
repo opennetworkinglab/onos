@@ -69,7 +69,7 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
             .register(DefaultGroupKey.class)
             .register(SingleGroup.class)
             .register(byte[].class)
-            .build();
+            .build("DefaultSingleTablePipeline");
 
 
     @Override

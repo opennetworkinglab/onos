@@ -140,8 +140,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             .register(DefaultGroupKey.class)
             .register(TrafficTreatment.class)
             .register(SpringOpenGroup.class)
-            .register(byte[].class)
-            .build();
+            .build("SpringOpenTTP");
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {

@@ -39,7 +39,7 @@ public class NiciraSetTunnelDst extends AbstractExtension implements
     private final KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(new Ip4AddressSerializer(), Ip4Address.class)
             .register(byte[].class)
-            .build();
+            .build("NiciraSetTunnelDst");
 
     /**
      * Creates a new set tunnel destination instruction.

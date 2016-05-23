@@ -114,8 +114,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             .register(GroupKey.class)
             .register(DefaultGroupKey.class)
             .register(OLTPipelineGroup.class)
-            .register(byte[].class)
-            .build();
+            .build("OltPipeline");
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {

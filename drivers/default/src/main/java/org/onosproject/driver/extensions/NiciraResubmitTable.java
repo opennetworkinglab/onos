@@ -47,7 +47,7 @@ public class NiciraResubmitTable extends AbstractExtension implements
             .register(new PortNumberSerializer(), PortNumber.class)
             .register(Map.class).register(HashMap.class)
             .register(byte[].class)
-            .build();
+            .build("NiciraResubmitTable");
 
     /**
      * Creates a new resubmit-table instruction.

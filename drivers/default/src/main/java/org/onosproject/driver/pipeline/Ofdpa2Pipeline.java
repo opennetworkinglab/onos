@@ -121,9 +121,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         .register(GroupKey.class)
         .register(DefaultGroupKey.class)
         .register(Ofdpa2GroupHandler.OfdpaNextGroup.class)
-        .register(byte[].class)
         .register(ArrayDeque.class)
-        .build();
+        .build("Ofdpa2Pipeline");
 
     protected Ofdpa2GroupHandler groupHandler;
 

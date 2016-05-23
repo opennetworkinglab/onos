@@ -66,7 +66,7 @@ public class DistributedFlowObjectiveStore
                         new KryoNamespace.Builder()
                                 .register(byte[].class)
                                 .register(Versioned.class)
-                                .build()))
+                                .build("DistributedFlowObjectiveStore")))
                 .build();
 
         nextIds = storageService.getAtomicCounter("next-objective-counter");

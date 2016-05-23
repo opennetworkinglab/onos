@@ -105,7 +105,7 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
             .register(DefaultGroupKey.class)
             .register(CorsaGroup.class)
             .register(byte[].class)
-            .build();
+            .build("AbstractCorsaPipeline");
 
     private Cache<GroupKey, NextObjective> pendingGroups;
 

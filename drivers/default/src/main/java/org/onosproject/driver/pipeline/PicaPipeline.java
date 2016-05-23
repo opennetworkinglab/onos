@@ -90,8 +90,7 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
     private KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(KryoNamespaces.API)
             .register(PicaGroup.class)
-            .register(byte[].class)
-            .build();
+            .build("PicaPipeline");
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {

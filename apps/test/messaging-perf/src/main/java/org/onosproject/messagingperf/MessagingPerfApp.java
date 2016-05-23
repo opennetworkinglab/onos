@@ -130,9 +130,8 @@ public class MessagingPerfApp {
             serializerPool = KryoNamespace.newBuilder()
                     .register(KryoNamespaces.BASIC)
                     .register(KryoNamespaces.MISC)
-                    .register(byte[].class)
                     .register(Data.class)
-                    .build();
+                    .build("MessagingPerfApp");
         }
     };
 

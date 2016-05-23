@@ -39,7 +39,7 @@ public class DefaultMoveExtensionTreatment extends AbstractExtension
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(byte[].class).register(Integer.class).register(Map.class)
-            .build();
+            .build("DefaultMoveExtensionTreatment");
 
     /**
      * Creates a new move Treatment.

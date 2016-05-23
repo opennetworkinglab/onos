@@ -134,7 +134,7 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
             .register(DefaultGroupKey.class)
             .register(CentecV350Group.class)
             .register(byte[].class)
-            .build();
+            .build("CentecV350Pipeline");
 
     private Cache<GroupKey, NextObjective> pendingGroups;
 

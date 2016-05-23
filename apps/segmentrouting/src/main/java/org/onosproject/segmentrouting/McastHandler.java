@@ -120,12 +120,12 @@ public class McastHandler {
         mcastNextObjStore = storageService
                 .<McastStoreKey, NextObjective>consistentMapBuilder()
                 .withName("onos-mcast-nextobj-store")
-                .withSerializer(Serializer.using(mcastKryo.build()))
+                .withSerializer(Serializer.using(mcastKryo.build("McastHandler-NextObj")))
                 .build();
         mcastRoleStore = storageService
                 .<McastStoreKey, McastRole>consistentMapBuilder()
                 .withName("onos-mcast-role-store")
-                .withSerializer(Serializer.using(mcastKryo.build()))
+                .withSerializer(Serializer.using(mcastKryo.build("McastHandler-Role")))
                 .build();
     }
 
