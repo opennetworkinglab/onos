@@ -17,7 +17,7 @@ package org.onosproject.incubator.rpc.grpc;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
-import static org.onosproject.incubator.rpc.grpc.GrpcDeviceUtils.translate;
+import static org.onosproject.incubator.protobuf.net.ProtobufUtils.translate;
 import static org.onosproject.net.DeviceId.deviceId;
 
 import java.util.Collection;
@@ -31,6 +31,7 @@ import org.onosproject.grpc.net.device.DeviceService.DeviceProviderServiceMsg;
 import org.onosproject.grpc.net.device.DeviceService.IsReachableRequest;
 import org.onosproject.grpc.net.device.DeviceService.RoleChanged;
 import org.onosproject.grpc.net.device.DeviceService.TriggerProbe;
+import org.onosproject.incubator.protobuf.net.ProtobufUtils;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceDescription;
@@ -114,7 +115,7 @@ final class DeviceProviderServiceClientProxy
         DeviceProviderServiceMsg.Builder builder = DeviceProviderServiceMsg.newBuilder();
         List<org.onosproject.grpc.net.Port.PortDescription> portDescs =
                 portDescriptions.stream()
-                    .map(GrpcDeviceUtils::translate)
+                    .map(ProtobufUtils::translate)
                     .collect(toList());
 
         builder.setUpdatePorts(builder.getUpdatePortsBuilder()
@@ -162,7 +163,7 @@ final class DeviceProviderServiceClientProxy
         DeviceProviderServiceMsg.Builder builder = DeviceProviderServiceMsg.newBuilder();
         List<org.onosproject.grpc.net.Port.PortStatistics> portStats =
                 portStatistics.stream()
-                    .map(GrpcDeviceUtils::translate)
+                    .map(ProtobufUtils::translate)
                     .collect(toList());
         builder.setUpdatePortStatistics(builder.getUpdatePortStatisticsBuilder()
                                       .setDeviceId(deviceId.toString())

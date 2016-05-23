@@ -25,6 +25,7 @@ import org.onosproject.grpc.net.link.LinkProviderServiceRpcGrpc.LinkProviderServ
 import org.onosproject.grpc.net.link.LinkService.LinkDetectedMsg;
 import org.onosproject.grpc.net.link.LinkService.LinkVanishedMsg;
 import org.onosproject.grpc.net.link.LinkService.Void;
+import org.onosproject.incubator.protobuf.net.ProtobufUtils;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -153,7 +154,7 @@ final class LinkProviderServiceServerProxy
         ConnectPoint src = translate(linkDescription.getSrc());
         ConnectPoint dst = translate(linkDescription.getDst());
         Link.Type type = translate(linkDescription.getType());
-        SparseAnnotations annotations = GrpcDeviceUtils.asAnnotations(linkDescription.getAnnotations());
+        SparseAnnotations annotations = ProtobufUtils.asAnnotations(linkDescription.getAnnotations());
         return new DefaultLinkDescription(src, dst, type, annotations);
     }
 

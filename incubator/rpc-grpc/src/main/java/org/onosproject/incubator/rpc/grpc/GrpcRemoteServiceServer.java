@@ -17,7 +17,7 @@ package org.onosproject.incubator.rpc.grpc;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
-import static org.onosproject.incubator.rpc.grpc.GrpcDeviceUtils.translate;
+import static org.onosproject.incubator.protobuf.net.ProtobufUtils.translate;
 import static org.onosproject.net.DeviceId.deviceId;
 
 import java.io.IOException;
@@ -49,6 +49,7 @@ import org.onosproject.grpc.net.device.DeviceService.RegisterProvider;
 import org.onosproject.grpc.net.device.DeviceService.UpdatePortStatistics;
 import org.onosproject.grpc.net.device.DeviceService.UpdatePorts;
 import org.onosproject.grpc.net.link.LinkProviderServiceRpcGrpc;
+import org.onosproject.incubator.protobuf.net.ProtobufUtils;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
@@ -269,7 +270,7 @@ public class GrpcRemoteServiceServer {
                 deviceProviderService.updatePorts(deviceId(updatePorts.getDeviceId()),
                                                   updatePorts.getPortDescriptionsList()
                                                       .stream()
-                                                          .map(GrpcDeviceUtils::translate)
+                                                          .map(ProtobufUtils::translate)
                                                           .collect(toList()));
                 break;
             case PORT_STATUS_CHANGED:
@@ -288,7 +289,7 @@ public class GrpcRemoteServiceServer {
                 deviceProviderService.updatePortStatistics(deviceId(updatePortStatistics.getDeviceId()),
                                                            updatePortStatistics.getPortStatisticsList()
                                                              .stream()
-                                                                .map(GrpcDeviceUtils::translate)
+                                                                .map(ProtobufUtils::translate)
                                                                 .collect(toList()));
                 break;
 

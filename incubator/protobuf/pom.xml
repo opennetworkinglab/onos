@@ -90,7 +90,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Export-Package>org.onosproject.grpc.net</Export-Package>
+                        <Export-Package>org.onosproject.grpc.net,org.onosproject.incubator.protobuf.net</Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

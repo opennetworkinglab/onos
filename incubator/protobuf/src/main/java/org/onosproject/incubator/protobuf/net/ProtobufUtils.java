@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.rpc.grpc;
+package org.onosproject.incubator.protobuf.net;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -39,15 +39,16 @@ import org.onosproject.net.device.PortStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.repackaged.com.google.common.annotations.Beta;
+import com.google.common.annotations.Beta;
+
 
 /**
  * gRPC message conversion related utilities.
  */
 @Beta
-public final class GrpcDeviceUtils {
+public final class ProtobufUtils {
 
-    private static final Logger log = LoggerFactory.getLogger(GrpcDeviceUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(ProtobufUtils.class);
 
     /**
      * Translates gRPC enum MastershipRole to ONOS enum.
@@ -378,5 +379,5 @@ public final class GrpcDeviceUtils {
     }
 
     // Utility class not intended for instantiation.
-    private GrpcDeviceUtils() {}
+    private ProtobufUtils() {}
 }
