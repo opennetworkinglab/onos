@@ -68,7 +68,7 @@ import static org.onosproject.routing.TestIntentServiceHelper.eqExceptId;
 /**
  * Unit tests for SdnIpFib.
  */
-public class SdnIpFibNoVLansTest extends AbstractIntentTest {
+public class SdnIpFibNoVlansTest extends AbstractIntentTest {
 
     private InterfaceService interfaceService;
 
@@ -413,14 +413,14 @@ public class SdnIpFibNoVLansTest extends AbstractIntentTest {
     private class TestRouteService extends RouteServiceAdapter {
         @Override
         public void addListener(RouteListener routeListener) {
-            SdnIpFibNoVLansTest.this.routeListener = routeListener;
+            SdnIpFibNoVlansTest.this.routeListener = routeListener;
         }
     }
 
     private class InterfaceServiceDelegate extends InterfaceServiceAdapter {
         @Override
         public void addListener(InterfaceListener listener) {
-            SdnIpFibNoVLansTest.this.interfaceListener = listener;
+            SdnIpFibNoVlansTest.this.interfaceListener = listener;
         }
     }
 }
