@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.driver.handshaker;
+package org.onosproject.driver.optical.handshaker;
 
 import org.projectfloodlight.openflow.protocol.OFExpPort;
 import org.projectfloodlight.openflow.protocol.OFExpPortDescReply;
