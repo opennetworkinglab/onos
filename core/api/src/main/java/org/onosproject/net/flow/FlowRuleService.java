@@ -51,8 +51,6 @@ public interface FlowRuleService
      */
     Iterable<FlowEntry> getFlowEntries(DeviceId deviceId);
 
-    // TODO: add createFlowRule factory method and execute operations method
-
     /**
      * Applies the specified flow rules onto their respective devices. These
      * flow rules will be retained by the system and re-applied anytime the
@@ -68,22 +66,20 @@ public interface FlowRuleService
      * be removed once the device reconnects.
      *
      * @param flowRules one or more flow rules
-     * throws SomeKindOfException that indicates which ones were removed and
-     *                  which ones failed
      */
     void removeFlowRules(FlowRule... flowRules);
 
     /**
-     * Removes all rules by id.
+     * Removes all rules submitted by a particular application.
      *
-     * @param appId id to remove
+     * @param appId ID of application whose flows will be removed
      */
     void removeFlowRulesById(ApplicationId appId);
 
     /**
-     * Returns a list of rules with this application id.
+     * Returns a list of rules with this application ID.
      *
-     * @param id the id to look up
+     * @param id the application ID to look up
      * @return collection of flow rules
      */
     Iterable<FlowRule> getFlowRulesById(ApplicationId id);
