@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,31 @@
  */
 
 /*
- ONOS GUI -- Intent View (layout) -- CSS file
+ ONOS GUI -- Quick Help Service (theme) -- CSS file
  */
 
-#ov-intent h2 {
-    display: inline-block;
+#quickhelp svg g.help rect {
+    fill: black;
+    opacity: 0.7;
 }
 
-#ov-intent div.ctrl-btns {
+#quickhelp svg text.title {
+    fill: #999;
 }
 
+#quickhelp svg g.keyItem {
+    fill: white;
+}
 
-#ov-intent td.resources,
-#ov-intent td.details {
-    padding-left: 36px;
+#quickhelp svg g line.qhrowsep {
+    stroke: #888;
+    stroke-dasharray: 2 2;
+}
+
+#quickhelp svg text.key {
+    fill: #add;
+}
+
+#quickhelp svg text.desc {
+    fill: #ddd;
 }

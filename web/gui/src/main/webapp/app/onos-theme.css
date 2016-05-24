@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,19 @@
  */
 
 /*
- ONOS GUI -- Intent View (layout) -- CSS file
+ ONOS GUI -- core (theme) -- CSS file
  */
 
-#ov-intent h2 {
-    display: inline-block;
+body.light {
+    background-color: white;
+}
+body.dark {
+    background-color: #2b2b2b;
 }
 
-#ov-intent div.ctrl-btns {
+.light #view h2 {
+    color: #800;
 }
-
-
-#ov-intent td.resources,
-#ov-intent td.details {
-    padding-left: 36px;
+.dark #view h2 {
+    color: #CE5650;
 }

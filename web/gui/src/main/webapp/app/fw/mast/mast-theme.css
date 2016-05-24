@@ -1,0 +1,95 @@
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Masthead (theme) -- CSS file
+ */
+
+.light #mast {
+    background-color: #bbb;
+    box-shadow: 0 2px 8px #777;
+}
+.dark #mast {
+    background-color: #444;
+    box-shadow: 0 2px 8px #222;
+}
+
+
+.light #mast .nav-menu-button:hover {
+    background-color: #ddd;
+}
+.dark #mast .nav-menu-button:hover {
+    background-color: #777;
+}
+
+#mast img.logo:hover {
+    /* need something better */
+    /*background-color: #888;*/
+}
+
+.light #mast .title {
+    color: #369;
+}
+.dark #mast .title {
+    color: #eee;
+}
+
+.light #mast-right a {
+    color: #369;
+}
+
+.dark #mast-right a {
+    color: #eee;
+}
+
+.light #mast nav  {
+    color: #369;
+}
+
+.dark #mast nav  {
+    color: #eee;
+}
+
+
+/* Theme styles for drop down menu */
+
+.light #mast .dropdown {
+    background-color: #bbb;
+    box-shadow: 0 2px 8px #777;
+}
+
+.dark #mast .dropdown {
+    background-color: #444;
+    box-shadow: 0 2px 8px #111;
+}
+
+.light #mast .dropdown a {
+    color: #369;
+    border-bottom: solid #ccc 1px;
+}
+
+.dark #mast .dropdown a {
+    color: #eee;
+    border-bottom: solid #333 1px;
+}
+
+.light #mast .dropdown a:hover {
+    background-color: #ddd;
+}
+
+.dark #mast .dropdown a:hover {
+    background-color: #777;
+}

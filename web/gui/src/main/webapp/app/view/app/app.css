@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Applications View -- CSS file
+ ONOS GUI -- Applications View (layout) -- CSS file
  */
 
 #ov-app h2 {
@@ -34,31 +34,9 @@
 #app-dialog p {
     font-size: 12pt;
 }
-.light #app-dialog p {
-    color: darkred;
-}
-.dark #app-dialog p {
-    color: #c55;
-}
 
 #app-dialog p.strong {
     font-weight: bold;
-}
-.light #app-dialog p.strong {
-    color: red;
-    background-color: #ff0;
-}
-.dark #app-dialog p.strong {
-    color: #c55;
-    background-color: #dd4;
-}
-
-
-.light #app-dialog.floatpanel.dialog {
-    background-color: #fff;
-}
-.dark #app-dialog.floatpanel.dialog {
-    background-color: #444;
 }
 
 #application-details-panel.floatpanel {
@@ -67,12 +45,6 @@
     z-index: 0;
 }
 
-.light #application-details-panel.floatpanel {
-    background-color: rgb(229, 234, 237);
-}
-.dark #application-details-panel.floatpanel {
-    background-color: #3A4042;
-}
 
 #application-details-panel .container {
     padding: 0 10px;
@@ -83,12 +55,6 @@
     right: 10px;
     top: 0;
     cursor: pointer;
-}
-.light .close-btn svg.embeddedIcon .icon.plus .glyph {
-    fill: #aaa;
-}
-.dark .close-btn svg.embeddedIcon .icon.plus .glyph {
-    fill: #ccc;
 }
 
 #application-details-panel .app-icon {
@@ -127,8 +93,6 @@
 #application-details-panel .app-url i {
     font-style: italic;
     padding-right: 12px;
-    /* works for both light and dark themes ... */
-    color: #777;
 }
 
 #application-details-panel td.value-bold {
@@ -143,13 +107,6 @@
     width: 95%;
     margin: 10px auto;
 }
-.light #application-details-panel hr {
-    opacity: .5;
-    border-color: #FFF;
-}
-.dark #application-details-panel hr {
-    border-color: #666;
-}
 
 #application-details-panel .bottom table {
     border-spacing: 0;
@@ -161,27 +118,8 @@
     text-align: left;
 }
 
-.light #application-details-panel .bottom tr:nth-child(odd) {
-    background-color: #f9f9f9;
-}
-.light #application-details-panel .bottom tr:nth-child(even) {
-    background-color: #EBEDF2;
-}
-.dark #application-details-panel .bottom tr:nth-child(odd) {
-    background-color: #333;
-}
-.dark #application-details-panel .bottom tr:nth-child(even) {
-    background-color: #555;
-}
 
 .dropping {
 
 }
 
-.light div.dropping {
-    border: solid 3px deepskyblue;
-}
-
-.dark div.dropping {
-    border: solid 3px deepskyblue;
-}

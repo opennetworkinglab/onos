@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Meter View -- CSS file
+ ONOS GUI -- Meter View (layout) -- CSS file
  */
 
 #ov-meter h2 {
@@ -23,51 +23,6 @@
 }
 
 #ov-meter div.ctrl-btns {
-}
-
-.light #ov-meter .current-view use {
-    fill: white;
-}
-.dark #ov-meter .current-view use {
-    fill: #304860;
-}
-
-.light #ov-meter .current-view rect {
-    fill: deepskyblue;
-}
-.dark #ov-meter .current-view rect {
-    fill: #eee;
-}
-
-.light #ov-meter tr:nth-child(4n + 1),
-.light #ov-meter tr:nth-child(4n + 2) {
-    background-color: #eee;
-}
-.light #ov-meter tr:nth-child(4n + 3),
-.light #ov-meter tr:nth-child(4n) {
-    background-color: #ddd;
-}
-.dark #ov-meter tr:nth-child(4n + 1),
-.dark #ov-meter tr:nth-child(4n + 2) {
-    background-color: #444;
-}
-.dark #ov-meter tr:nth-child(4n + 3),
-.dark #ov-meter tr:nth-child(4n) {
-    background-color: #333;
-}
-
-/* highlighted color */
-.light #ov-meter tr:nth-child(4n + 1).data-change,
-.light #ov-meter tr:nth-child(4n + 2).data-change,
-.light #ov-meter tr:nth-child(4n + 3).data-change,
-.light #ov-meter tr:nth-child(4n).data-change {
-    background-color: #FDFFDC;
-}
-.dark #ov-meter tr:nth-child(4n + 1).data-change,
-.dark #ov-meter tr:nth-child(4n + 2).data-change,
-.dark #ov-meter tr:nth-child(4n + 3).data-change,
-.dark #ov-meter tr:nth-child(4n).data-change {
-    background-color: #5A5600;
 }
 
 #ov-meter td {

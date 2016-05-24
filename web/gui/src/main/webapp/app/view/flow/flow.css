@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Flow View -- CSS file
+ ONOS GUI -- Flow View (layout) -- CSS file
  */
 
 #ov-flow h2 {
@@ -23,59 +23,6 @@
 }
 
 #ov-flow div.ctrl-btns {
-}
-
-.light #ov-flow .current-view use {
-    fill: white;
-}
-.dark #ov-flow .current-view use {
-    fill: #304860;
-}
-
-.light #ov-flow .current-view rect {
-    fill: deepskyblue;
-}
-.dark #ov-flow .current-view rect {
-    fill: #eee;
-}
-
-.light #ov-flow tr:nth-child(6n + 1),
-.light #ov-flow tr:nth-child(6n + 2),
-.light #ov-flow tr:nth-child(6n + 3) {
-    background-color: #eee;
-}
-.light #ov-flow tr:nth-child(6n + 4),
-.light #ov-flow tr:nth-child(6n + 5),
-.light #ov-flow tr:nth-child(6n) {
-    background-color: #ddd;
-}
-.dark #ov-flow tr:nth-child(6n + 1),
-.dark #ov-flow tr:nth-child(6n + 2),
-.dark #ov-flow tr:nth-child(6n + 3) {
-    background-color: #444;
-}
-.dark #ov-flow tr:nth-child(6n + 4),
-.dark #ov-flow tr:nth-child(6n + 5),
-.dark #ov-flow tr:nth-child(6n) {
-    background-color: #333;
-}
-
-/* highlighted color */
-.light #ov-flow tr:nth-child(6n + 1).data-change,
-.light #ov-flow tr:nth-child(6n + 2).data-change,
-.light #ov-flow tr:nth-child(6n + 3).data-change,
-.light #ov-flow tr:nth-child(6n + 4).data-change,
-.light #ov-flow tr:nth-child(6n + 5).data-change,
-.light #ov-flow tr:nth-child(6n).data-change {
-    background-color: #FDFFDC;
-}
-.dark #ov-flow tr:nth-child(6n + 1).data-change,
-.dark #ov-flow tr:nth-child(6n + 2).data-change,
-.dark #ov-flow tr:nth-child(6n + 3).data-change,
-.dark #ov-flow tr:nth-child(6n + 4).data-change,
-.dark #ov-flow tr:nth-child(6n + 5).data-change,
-.dark #ov-flow tr:nth-child(6n).data-change {
-    background-color: #5A5600;
 }
 
 #ov-flow td {
@@ -88,5 +35,4 @@
 #ov-flow td.treatment {
     text-align: left;
     padding-left: 36px;
-    opacity: 0.65;
 }

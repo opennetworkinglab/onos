@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Masthead -- CSS file
+ ONOS GUI -- Masthead (layout) -- CSS file
  */
 
 #mast {
@@ -28,27 +28,12 @@ html[data-platform='iPad'] #mast {
     padding-top: 16px;
 }
 
-.light #mast {
-    background-color: #bbb;
-    box-shadow: 0 2px 8px #777;
-}
-.dark #mast {
-    background-color: #444;
-    box-shadow: 0 2px 8px #222;
-}
-
 #mast .nav-menu-button {
     width: 30px;
     height: 30px;
     margin-left: 8px;
     margin-bottom: 4px;
     cursor: pointer;
-}
-.light #mast .nav-menu-button:hover {
-    background-color: #ddd;
-}
-.dark #mast .nav-menu-button:hover {
-    background-color: #777;
 }
 
 #mast img.logo {
@@ -57,23 +42,12 @@ html[data-platform='iPad'] #mast {
     padding-right: 8px;
 }
 
-#mast img.logo:hover {
-    /* need something better */
-    /*background-color: #888;*/
-}
-
 #mast .title {
     font-size: 14pt;
     font-style: italic;
     vertical-align: 12px;
 }
 
-.light #mast .title {
-    color: #369;
-}
-.dark #mast .title {
-    color: #eee;
-}
 
 #mast-right {
     display: inline-block;
@@ -84,21 +58,6 @@ html[data-platform='iPad'] #mast {
     line-height: 44px;
 }
 
-.light #mast-right a {
-    color: #369;
-}
-
-.dark #mast-right a {
-    color: #eee;
-}
-
-.light #mast nav  {
-    color: #369;
-}
-
-.dark #mast nav  {
-    color: #eee;
-}
 
 /*
     MAST HEAD DROPDOWN MENU
@@ -144,34 +103,4 @@ html[data-platform='iPad'] #mast {
 
 html[data-platform='iPad'] #mast .dropdown {
     top: 57px;
-}
-
-/* Theme styles for drop down menu */
-
-.light #mast .dropdown {
-    background-color: #bbb;
-    box-shadow: 0 2px 8px #777;
-}
-
-.dark #mast .dropdown {
-    background-color: #444;
-    box-shadow: 0 2px 8px #111;
-}
-
-.light #mast .dropdown a {
-    color: #369;
-    border-bottom: solid #ccc 1px;
-}
-
-.dark #mast .dropdown a {
-    color: #eee;
-    border-bottom: solid #333 1px;
-}
-
-.light #mast .dropdown a:hover {
-    background-color: #ddd;
-}
-
-.dark #mast .dropdown a:hover {
-    background-color: #777;
 }
