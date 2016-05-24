@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- core -- CSS file
+ ONOS GUI -- core (layout) -- CSS file
  */
 
 html {
@@ -35,13 +35,6 @@ body {
     overflow: hidden;
 }
 
-body.light {
-    background-color: white;
-}
-body.dark {
-    background-color: #2b2b2b;
-}
-
 #view {
     padding: 6px;
     width: 100%;
@@ -52,21 +45,3 @@ body.dark {
     padding-left: 12px;
 }
 
-.light #view h2 {
-    color: #800;
-}
-.dark #view h2 {
-    color: #CE5650;
-}
-
-.centered {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    -webkit-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-    box-shadow: 2px 2px 24px 5px #888;
-    background-color: #eee;
-    margin: 0;
-    padding: 10px;
-}

@@ -15,20 +15,10 @@
  */
 
 /*
- ONOS GUI -- Glyph Service -- CSS file
+ ONOS GUI -- Glyph Service (layout) -- CSS file
  */
 
 svg .glyph {
     stroke: none;
     fill-rule: evenodd;
-}
-
-.light svg .glyph,
-.dark svg .glyph.overlay {
-    fill: black;
-}
-
-.dark svg .glyph,
-.light svg .glyph.overlay {
-    fill: white;
 }

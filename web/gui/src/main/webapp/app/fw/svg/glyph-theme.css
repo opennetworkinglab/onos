@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,15 @@
  */
 
 /*
- ONOS GUI -- Intent View (layout) -- CSS file
+ ONOS GUI -- Glyph Service (theme) -- CSS file
  */
 
-#ov-intent h2 {
-    display: inline-block;
+.light svg .glyph,
+.dark svg .glyph.overlay {
+    fill: black;
 }
 
-#ov-intent div.ctrl-btns {
-}
-
-
-#ov-intent td.resources,
-#ov-intent td.details {
-    padding-left: 36px;
+.dark svg .glyph,
+.light svg .glyph.overlay {
+    fill: white;
 }

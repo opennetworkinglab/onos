@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Group View -- CSS file
+ ONOS GUI -- Group View (layout) -- CSS file
  */
 
 #ov-group h2 {
@@ -25,50 +25,7 @@
 #ov-group div.ctrl-btns {
 }
 
-.light #ov-group .current-view use {
-    fill: white;
-}
-.dark #ov-group .current-view use {
-    fill: #304860;
-}
 
-.light #ov-group .current-view rect {
-    fill: deepskyblue;
-}
-.dark #ov-group .current-view rect {
-    fill: #eee;
-}
-
-.light #ov-group tr:nth-child(4n + 1),
-.light #ov-group tr:nth-child(4n + 2) {
-    background-color: #eee;
-}
-.light #ov-group tr:nth-child(4n + 3),
-.light #ov-group tr:nth-child(4n) {
-    background-color: #ddd;
-}
-.dark #ov-group tr:nth-child(4n + 1),
-.dark #ov-group tr:nth-child(4n + 2) {
-    background-color: #444;
-}
-.dark #ov-group tr:nth-child(4n + 3),
-.dark #ov-group tr:nth-child(4n) {
-    background-color: #333;
-}
-
-/* highlighted color */
-.light #ov-group tr:nth-child(4n + 1).data-change,
-.light #ov-group tr:nth-child(4n + 2).data-change,
-.light #ov-group tr:nth-child(4n + 3).data-change,
-.light #ov-group tr:nth-child(4n).data-change {
-    background-color: #FDFFDC;
-}
-.dark #ov-group tr:nth-child(4n + 1).data-change,
-.dark #ov-group tr:nth-child(4n + 2).data-change,
-.dark #ov-group tr:nth-child(4n + 3).data-change,
-.dark #ov-group tr:nth-child(4n).data-change {
-    background-color: #5A5600;
-}
 
 #ov-group td {
     text-align: center;

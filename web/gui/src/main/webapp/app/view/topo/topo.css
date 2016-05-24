@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Topology View -- CSS file
+ ONOS GUI -- Topology View (layout) -- CSS file
  */
 
 /* --- Base SVG Layer --- */
@@ -23,12 +23,6 @@
 #ov-topo svg {
     /* prevents the little cut/copy/paste square that would appear on iPad */
     -webkit-user-select: none;
-}
-.light #ov-topo svg {
-    background-color: #fff;
-}
-.dark #ov-topo svg {
-    background-color: #2b2b2b;
 }
 
 
@@ -38,37 +32,9 @@
     visibility: hidden;
 }
 
-.light #ov-topo svg .noDevsBird {
-    fill: #ecd;
-}
-.dark #ov-topo svg .noDevsBird {
-    fill: #683434;
-}
-
 #ov-topo svg #topo-noDevsLayer text {
     font-size: 60pt;
     font-style: italic;
-}
-.light #ov-topo svg #topo-noDevsLayer text {
-    fill: #dde;
-}
-.dark #ov-topo svg #topo-noDevsLayer text {
-    fill: #3b3b4f;
-}
-
-
-/* --- Topo Map --- */
-
-#ov-topo svg #topo-map {
-    stroke-width: 2px;
-    fill: transparent;
-}
-
-.light #ov-topo svg #topo-map {
-    stroke: #ddd;
-}
-.dark #ov-topo svg #topo-map {
-    stroke: #444;
 }
 
 
@@ -77,6 +43,7 @@
 #topo-p-summary {
     /* Base css from panel.css */
 }
+
 
 /* --- Topo Detail Panel --- */
 
@@ -117,21 +84,6 @@ html[data-platform='iPad'] #topo-p-detail {
     height: 42px;
 }
 
-.light .topo-p svg .glyph {
-    fill: #222;
-}
-
-.dark .topo-p svg .glyph.overlay {
-    fill: #222;
-}
-
-.dark .topo-p svg .glyph {
-    fill: #ddd;
-}
-.light .topo-p svg .glyph.overlay {
-    fill: #fff;
-}
-
 
 .topo-p h2 {
     padding: 0 4px;
@@ -141,12 +93,6 @@ html[data-platform='iPad'] #topo-p-detail {
     width: 210px;
     vertical-align: middle;
 }
-.light .topo-p h2 {
-    color: black;
-}
-.dark .topo-p h2 {
-    color: #ddd;
-}
 
 .topo-p h3 {
     padding: 0 4px;
@@ -154,12 +100,6 @@ html[data-platform='iPad'] #topo-p-detail {
     word-wrap: break-word;
     top: 20px;
     left: 50px;
-}
-.light .topo-p h3 {
-    color: black;
-}
-.dark .topo-p h3 {
-    color: #ddd;
 }
 
 .topo-p p, table {
@@ -173,8 +113,6 @@ html[data-platform='iPad'] #topo-p-detail {
 .topo-p td.label {
     font-style: italic;
     padding-right: 12px;
-    /* works for both light and dark themes ... */
-    color: #777;
 }
 .topo-p td.value {
 }
@@ -183,14 +121,7 @@ html[data-platform='iPad'] #topo-p-detail {
     height: 1px;
     border: 0;
 }
-.light .topo-p hr {
-    background-color: #ccc;
-    color: #ccc;
-}
-.dark .topo-p hr {
-    background-color: #888;
-    color: #888;
-}
+
 
 /* --- Topo Instance Panel --- */
 
@@ -205,79 +136,6 @@ html[data-platform='iPad'] #topo-p-detail {
     cursor: pointer;
 }
 
-#topo-p-instance svg rect {
-    stroke-width: 3.5;
-}
-#topo-p-instance .online svg rect {
-    opacity: 1;
-}
-.light #topo-p-instance svg rect {
-    fill: #ccc;
-    stroke: #aaa;
-}
-.light #topo-p-instance .online svg rect {
-    fill: #9cf;
-    stroke: #555;
-}
-.dark #topo-p-instance svg rect {
-    fill: #666;
-    stroke: #222;
-}
-.dark #topo-p-instance .online svg rect {
-    fill: #9cf;
-    stroke: #999;
-}
-
-
-#topo-p-instance svg .glyph {
-    fill: #888;
-    fill-rule: evenodd;
-}
-#topo-p-instance .online svg .glyph {
-    fill: #000;
-}
-
-#topo-p-instance svg .badgeIcon {
-    fill-rule: evenodd;
-    opacity: 0.4;
-}
-.light #topo-p-instance svg .badgeIcon {
-    fill: #777;
-}
-.dark #topo-p-instance svg .badgeIcon {
-    fill: #555;
-}
-
-#topo-p-instance .online svg .badgeIcon {
-    opacity: 1.0;
-}
-.light #topo-p-instance .online svg .badgeIcon {
-    fill: #fff;
-}
-.dark #topo-p-instance .online svg .badgeIcon {
-    fill: #fff;
-}
-
-#topo-p-instance svg text {
-    text-anchor: middle;
-    opacity: 0.3;
-}
-#topo-p-instance .online svg text {
-    opacity: 1.0;
-}
-.light #topo-p-instance svg text {
-    fill: #444;
-}
-.light #topo-p-instance .online svg text {
-    fill: #eee;
-}
-.dark #topo-p-instance svg text {
-    fill: #aaa;
-}
-.dark #topo-p-instance .online svg text {
-    fill: #ccc;
-}
-
 #topo-p-instance svg text.instTitle {
     font-size: 11pt;
     font-weight: bold;
@@ -285,25 +143,6 @@ html[data-platform='iPad'] #topo-p-detail {
 #topo-p-instance svg text.instLabel {
     font-size: 9pt;
     font-style: italic;
-}
-
-#topo-p-instance .onosInst.mastership {
-    opacity: 0.3;
-}
-#topo-p-instance .onosInst.mastership.affinity {
-    opacity: 1.0;
-}
-.light #topo-p-instance .onosInst.mastership.affinity svg rect {
-    filter: url(#blue-glow);
-}
-.dark #topo-p-instance .onosInst.mastership.affinity svg rect {
-    filter: url(#yellow-glow);
-}
-.light.firefox #topo-p-instance .onosInst.mastership.affinity svg rect {
-    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"blue-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#blue-glow");
-}
-.dark.firefox #topo-p-instance .onosInst.mastership.affinity svg rect {
-    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"yellow-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  1.0 0 0 0 0  1.0 0 0 0 0  0.3 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#yellow-glow");
 }
 
 
@@ -335,344 +174,32 @@ html[data-platform='iPad'] #topo-p-detail {
     cursor: pointer;
 }
 
-.light #ov-topo svg .node.selected rect,
-.light #ov-topo svg .node.selected circle {
-    fill: #f90;
-    filter: url(#blue-glow);
-}
-.dark #ov-topo svg .node.selected rect,
-.dark #ov-topo svg .node.selected circle {
-    fill: #f90;
-    filter: url(#yellow-glow);
-}
-.light.firefox #ov-topo svg .node.selected rect,
-.light.firefox #ov-topo svg .node.selected circle {
-    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"blue-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#blue-glow");
-}
-.dark.firefox #ov-topo svg .node.selected rect,
-.dark.firefox #ov-topo svg .node.selected circle {
-    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"yellow-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  1.0 0 0 0 0  1.0 0 0 0 0  0.3 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#yellow-glow");
-}
-
 #ov-topo svg .node text {
     pointer-events: none;
 }
+
 
 /* Device Nodes */
 
 #ov-topo svg .node.device {
 }
 
-#ov-topo svg .node.device rect {
-    stroke-width: 1.5;
-}
-
-#ov-topo svg .node.device.fixed rect {
-    stroke-width: 1.5;
-}
-.light #ov-topo svg .node.device.fixed rect {
-    stroke: #aaa;
-}
-.dark #ov-topo svg .node.device.fixed rect {
-    stroke: #999;
-}
-
-/* note: device is offline without the 'online' class */
-.light #ov-topo svg .node.device {
-    fill: #777;
-}
-.dark #ov-topo svg .node.device {
-    fill: #555;
-}
-
-.light #ov-topo svg .node.device rect {
-    stroke: #666;
-}
-.light #ov-topo svg .node.device rect {
-    stroke: #999;
-}
-
-.light #ov-topo svg .node.device.online {
-    fill: #6e7fa3;
-}
-.dark #ov-topo svg .node.device.online {
-    fill: #4E5C7F;
-}
-
-/* note: device is offline without the 'online' class */
-#ov-topo svg .node.device text {
-    fill: #bbb;
-    font: 10pt sans-serif;
-}
-
-#ov-topo svg .node.device.online text {
-    fill: white;
-}
-
-#ov-topo svg .node.device .svgIcon rect {
-    fill: #aaa;
-}
-#ov-topo svg .node.device .svgIcon use {
-    fill: #777;
-}
-#ov-topo svg .node.device.selected .svgIcon rect {
-    fill: #f90;
-}
-#ov-topo svg .node.device.online .svgIcon rect {
-    fill: #ccc;
-}
-#ov-topo svg .node.device.online .svgIcon use {
-    fill: #000;
-}
-#ov-topo svg .node.device.online.selected .svgIcon rect {
-    fill: #f90;
-}
-
-/* Badges */
-/* (... works for both light and dark themes...) */
-#ov-topo svg .node .badge circle {
-    stroke: #aaa;
-}
-
-#ov-topo svg .node .badge.badgeInfo circle {
-    fill: #99d;
-}
-
-#ov-topo svg .node .badge.badgeWarn circle {
-    fill: #da2;
-}
-
-#ov-topo svg .node .badge.badgeError circle {
-    fill: #e44;
-}
-
-#ov-topo svg .node .badge use {
-    fill: white !important;
-}
-
-#ov-topo svg .node .badge.badgeInfo use {
-    fill: #448;
-}
-
-#ov-topo svg .node .badge text {
-    fill: white !important;
-}
-
-#ov-topo svg .node .badge.badgeInfo text {
-    fill: #448;
-}
-
-/* Host Nodes */
-
-#ov-topo svg .node.host {
-}
-
-#ov-topo svg .node.host text {
-    stroke: none;
-    font: 9pt sans-serif;
-}
-.light #ov-topo svg .node.host text {
-    fill: #846;
-}
-.dark #ov-topo svg .node.host text {
-    fill: #BB809D;
-}
-
-.light svg .node.host circle {
-    stroke: #000;
-    fill: #edb;
-}
-.dark svg .node.host circle {
-    stroke: #eee;
-    fill: #B2A180;
-}
-
-.light svg .node.host .svgIcon {
-    fill: #444;
-}
-.dark svg .node.host .svgIcon {
-    fill: #222;
-}
-
-/* --- Topo Links --- */
-
-#ov-topo svg .link {
-    opacity: .9;
-}
-
-#ov-topo svg .link.selected,
-#ov-topo svg .link.enhanced {
-    stroke-width: 4.5px;
-}
-.light #ov-topo svg .link.selected,
-.light #ov-topo svg .link.enhanced {
-    filter: url(#blue-glow);
-}
-.dark #ov-topo svg .link.selected,
-.dark #ov-topo svg .link.enhanced {
-    filter: url(#yellow-glow);
-}
-.light.firefox #ov-topo svg .link.selected,
-.light.firefox #ov-topo svg .link.enhanced {
-    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"blue-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#blue-glow");
-}
-.dark.firefox #ov-topo svg .link.selected,
-.dark.firefox #ov-topo svg .link.enhanced {
-    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"yellow-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  1.0 0 0 0 0  1.0 0 0 0 0  0.3 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#yellow-glow");
-
-}
-
-#ov-topo svg .link.inactive {
-    opacity: .5;
-    stroke-dasharray: 8 4;
-}
-/* FIXME: Review for not-permitted links */
-#ov-topo svg .link.not-permitted {
-    stroke: rgb(255,0,0);
-    stroke-width: 5.0;
-    stroke-dasharray: 8 4;
-}
-
-#ov-topo svg .link.secondary {
-    stroke-width: 3px;
-}
-.light #ov-topo svg .link.secondary {
-    stroke: rgba(0,153,51,0.5);
-}
-.dark #ov-topo svg .link.secondary {
-    stroke: rgba(121,231,158,0.5);
-}
-
-/* Port traffic color visualization for Kbps, Mbps, and Gbps */
-
-.light #ov-topo svg .link.secondary.port-traffic-Kbps {
-    stroke: rgb(0,153,51);
-    stroke-width: 5.0;
-}
-.dark #ov-topo svg .link.secondary.port-traffic-Kbps {
-    stroke: rgb(98, 153, 118);
-    stroke-width: 5.0;
-}
-
-.light #ov-topo svg .link.secondary.port-traffic-Mbps {
-    stroke: rgb(128,145,27);
-    stroke-width: 6.5;
-}
-.dark #ov-topo svg .link.secondary.port-traffic-Mbps {
-    stroke: rgb(91, 109, 54);
-    stroke-width: 6.5;
-}
-
-.light #ov-topo svg .link.secondary.port-traffic-Gbps {
-    stroke: rgb(255, 137, 3);
-    stroke-width: 8.0;
-}
-.dark #ov-topo svg .link.secondary.port-traffic-Gbps {
-    stroke: rgb(174, 119, 55);
-    stroke-width: 8.0;
-}
-
-.light #ov-topo svg .link.secondary.port-traffic-Gbps-choked {
-    stroke: rgb(183, 30, 21);
-    stroke-width: 8.0;
-}
-.dark #ov-topo svg .link.secondary.port-traffic-Gbps-choked {
-    stroke: rgb(127, 40, 39);
-    stroke-width: 8.0;
-}
-
-
-#ov-topo svg .link.animated {
-    stroke-dasharray: 8 5;
-    animation: ants 5s infinite linear;
-    /* below line will be added via Javascript based on path */
-    /*animation-direction: reverse;*/
-}
-@keyframes ants {
-    from {
-        stroke-dashoffset: 0;
-    }
-    to {
-        stroke-dashoffset: 400;
-    }
-}
-
-#ov-topo svg .link.primary {
-    stroke-width: 4px;
-}
-.light #ov-topo svg .link.primary {
-    stroke: #ffA300;
-}
-.dark #ov-topo svg .link.primary {
-    stroke: #D58E0F;
-}
-
-#ov-topo svg .link.secondary.optical {
-    stroke-width: 4px;
-}
-.light #ov-topo svg .link.secondary.optical {
-    stroke: rgba(128,64,255,0.5);
-}
-.dark #ov-topo svg .link.secondary.optical {
-    stroke: rgba(164,139,215,0.5);
-}
-
-#ov-topo svg .link.primary.optical {
-    stroke-width: 6px;
-}
-.light #ov-topo svg .link.primary.optical {
-    stroke: #74f;
-}
-.dark #ov-topo svg .link.primary.optical {
-    stroke: #7352CD;
-}
 
 /* Link Labels */
-
-#ov-topo svg .linkLabel rect {
-    stroke: none;
-}
-.light #ov-topo svg .linkLabel rect {
-    fill: #eee;
-}
-.dark #ov-topo svg .linkLabel rect {
-    fill: #555;
-}
 
 #ov-topo svg .linkLabel text {
     text-anchor: middle;
     stroke-width: 0.1;
     font-size: 9pt;
 }
-.light #ov-topo svg .linkLabel text {
-    fill: #444;
-}
-.dark #ov-topo svg .linkLabel text {
-    fill: #eee;
-}
+
 
 /* Port Labels */
-
-#ov-topo svg .portLabel rect {
-    stroke: none;
-}
-.light #ov-topo svg .portLabel rect {
-    fill: #eee;
-}
-.dark #ov-topo svg .portLabel rect {
-    fill: #222;
-}
 
 #ov-topo svg .portLabel text {
     text-anchor: middle;
     stroke-width: 0.1;
     font-size: 11pt;
-}
-.light #ov-topo svg .portLabel text {
-    fill: #444;
-}
-.dark #ov-topo svg .portLabel text {
-    fill: #eee;
 }
 
 /* Number of Links Labels */
@@ -682,20 +209,10 @@ html[data-platform='iPad'] #topo-p-detail {
 
 #ov-topo text.numLinkText {
     font-size: 15pt;
-}
-
-#ov-topo text.numLinkText {
     text-anchor: middle;
 }
 
-.light #ov-topo text.numLinkText {
-    fill: #444;
-}
-.dark #ov-topo text.numLinkText {
-    fill: #eee;
-}
 
-/* ------------------------------------------------- */
 /* Sprite Layer */
 
 #ov-topo svg #topo-sprites use {
@@ -707,65 +224,8 @@ html[data-platform='iPad'] #topo-p-detail {
     font-style: italic;
 }
 
-.light #ov-topo svg #topo-sprites .gold1 use {
-    stroke: #fda;
-    fill: none;
-}
-.dark #ov-topo svg #topo-sprites .gold1 use {
-    stroke: #541;
-    fill: none;
-}
-.light #ov-topo svg #topo-sprites .gold1 text {
-    fill: #eda;
-}
-.dark #ov-topo svg #topo-sprites .gold1 text {
-    fill: #543;
-}
 
-.light #ov-topo svg #topo-sprites .blue1 use {
-    stroke: #bbd;
-    fill: none;
-}
-.dark #ov-topo svg #topo-sprites .blue1 use {
-    stroke: #445;
-    fill: none;
-}
-.light #ov-topo svg #topo-sprites .blue1 text {
-    fill: #cce;
-}
-.dark #ov-topo svg #topo-sprites .blue1 text {
-    fill: #446;
-}
-
-.light #ov-topo svg #topo-sprites .gray1 use {
-    stroke: #ccc;
-    fill: none;
-}
-.dark #ov-topo svg #topo-sprites .gray1 use {
-    stroke: #333;
-    fill: none;
-}
-.light #ov-topo svg #topo-sprites .gray1 text {
-    fill: #ddd;
-}
-.dark #ov-topo svg #topo-sprites .gray1 text {
-    fill: #444;
-}
-
-/* fills */
-.light #ov-topo svg #topo-sprites use.fill-gray2 {
-    fill: #eee;
-}
-.dark #ov-topo svg #topo-sprites use.fill-gray2 {
-    fill: #444;
-}
-
-.light #ov-topo svg #topo-sprites use.fill-blue2 {
-    fill: #bce;
-}
-.dark #ov-topo svg #topo-sprites use.fill-blue2 {
-    fill: #447;
-}
+/* -- MISC -- */
 
 .notReady .readyBadge {
     visibility: hidden;
@@ -778,4 +238,3 @@ html[data-platform='iPad'] #topo-p-detail {
 .map-list select {
     font-size: 20px;
 }
-

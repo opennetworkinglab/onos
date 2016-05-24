@@ -1,0 +1,116 @@
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* ------ for summary-list tables (theme) ------ */
+
+.light div.summary-list tr:nth-child(even) {
+    background-color: #ddd;
+}
+.light div.summary-list tr:nth-child(odd) {
+    background-color: #eee;
+}
+.dark div.summary-list tr:nth-child(even) {
+    background-color: #333;
+}
+.dark div.summary-list tr:nth-child(odd) {
+    background-color: #444;
+}
+
+.light div.summary-list tr.selected {
+    background-color: deepskyblue !important;
+}
+
+.dark div.summary-list tr.selected {
+    background-color: #304860;
+}
+
+/* highlighting */
+.light div.summary-list tr.data-change {
+    background-color: #FDFFDC;
+}
+.dark div.summary-list tr.data-change {
+    background-color: #5A5600;
+}
+
+.light div.summary-list .table-header td {
+    background-color: #bbb;
+}
+.dark div.summary-list .table-header td {
+    background-color: #222;
+    color: #ccc;
+}
+
+.dark div.summary-list td {
+    color: #ccc;
+}
+
+/* Inactive */
+.light .ctrl-btns div g.icon rect,
+.light .ctrl-btns div:hover g.icon rect {
+    fill: #eee;
+}
+.dark .ctrl-btns div g.icon rect,
+.dark .ctrl-btns div:hover g.icon rect {
+    fill: #222;
+}
+
+.light .ctrl-btns div g.icon use {
+    fill: #ddd;
+}
+.dark .ctrl-btns div g.icon use {
+    fill: #333;
+}
+
+/* Active hover */
+.light .ctrl-btns div.active:hover g.icon rect {
+    fill: #800;
+}
+
+.dark .ctrl-btns div.active:hover g.icon rect {
+    fill: #CE5650;
+}
+
+/* Active */
+.light .ctrl-btns div.active g.icon use {
+    fill: #fff;
+}
+.dark .ctrl-btns div.active g.icon use {
+    fill: #eee;
+}
+
+.light .ctrl-btns div.active g.icon rect {
+    fill: #bbb;
+}
+.dark .ctrl-btns div.active g.icon rect {
+    fill: #444;
+}
+
+/* Refresh button specific */
+.light .ctrl-btns div.refresh.active g.icon rect {
+    fill: #964949;
+}
+
+.dark .ctrl-btns div.refresh.active g.icon rect {
+    fill: #9B4641;
+}
+.light .ctrl-btns div.refresh:hover g.icon rect {
+    fill: #964949;
+}
+
+.dark .ctrl-btns div.refresh:hover g.icon rect {
+    fill: #9B4641;
+}
+

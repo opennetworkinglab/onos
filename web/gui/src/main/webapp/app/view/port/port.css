@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Port View -- CSS file
+ ONOS GUI -- Port View (layout) -- CSS file
  */
 
 #ov-port h2 {
@@ -23,20 +23,6 @@
 }
 
 #ov-port div.ctrl-btns {
-}
-
-.light #ov-port .current-view use {
-    fill: white;
-}
-.dark #ov-port .current-view use {
-    fill: #304860;
-}
-
-.light #ov-port .current-view rect {
-    fill: deepskyblue;
-}
-.dark #ov-port .current-view rect {
-    fill: #eee;
 }
 
 #ov-port td {
