@@ -111,11 +111,9 @@ public interface PacketService {
      * @param priority the priority of the rule
      * @param appId    the application ID of the requester
      * @param deviceId an optional deviceId
-     * @deprecated 1.5.0 Falcon Release
      */
     void cancelPackets(TrafficSelector selector, PacketPriority priority,
                        ApplicationId appId, Optional<DeviceId> deviceId);
-
 
     /**
      * Returns list of all existing requests ordered by priority.
