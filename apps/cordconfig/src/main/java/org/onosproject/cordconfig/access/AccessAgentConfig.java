@@ -20,11 +20,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang.StringUtils;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.Config;
 
 import java.util.Map;
@@ -49,7 +47,7 @@ public class AccessAgentConfig extends Config<DeviceId> {
         return hasOnlyFields(OLTS, AGENT_MAC, VTN_LOCATION) &&
                 isMacAddress(AGENT_MAC, MANDATORY) &&
                 isConnectPoint(VTN_LOCATION, OPTIONAL) &&
-                isValidOlts();
+                areOltsValid();
     }
 
     /**
@@ -61,7 +59,7 @@ public class AccessAgentConfig extends Config<DeviceId> {
         JsonNode olts = node.get(OLTS);
         Map<ConnectPoint, MacAddress> oltMacInfo = Maps.newHashMap();
         olts.fields().forEachRemaining(item -> oltMacInfo.put(
-                new ConnectPoint(subject(), PortNumber.fromString(item.getKey())),
+                ConnectPoint.deviceConnectPoint(item.getKey()),
                 MacAddress.valueOf(item.getValue().asText())));
 
         MacAddress agentMac = MacAddress.valueOf(node.path(AGENT_MAC).asText());
@@ -77,12 +75,13 @@ public class AccessAgentConfig extends Config<DeviceId> {
         return new AccessAgentData(subject(), oltMacInfo, agentMac, vtnLocation);
     }
 
-    private boolean isValidOlts() {
+    private boolean areOltsValid() {
         JsonNode olts = node.get(OLTS);
         if (!olts.isObject()) {
             return false;
         }
-        return !Iterators.any(olts.fields(), item -> !StringUtils.isNumeric(item.getKey()) ||
-                        !isMacAddress((ObjectNode) olts, item.getKey(), MANDATORY));
+        return Iterators.all(olts.fields(),
+                item -> ConnectPoint.deviceConnectPoint(item.getKey()) != null &&
+                        isMacAddress((ObjectNode) olts, item.getKey(), MANDATORY));
     }
 }
