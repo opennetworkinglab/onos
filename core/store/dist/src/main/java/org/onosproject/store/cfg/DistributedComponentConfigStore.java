@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,32 +21,32 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
 import org.onosproject.cfg.ComponentConfigEvent;
 import org.onosproject.cfg.ComponentConfigStore;
 import org.onosproject.cfg.ComponentConfigStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.EventuallyConsistentMap;
-import org.onosproject.store.service.EventuallyConsistentMapEvent;
-import org.onosproject.store.service.EventuallyConsistentMapListener;
-import org.onosproject.store.service.LogicalClockService;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import static org.onosproject.cfg.ComponentConfigEvent.Type.PROPERTY_SET;
 import static org.onosproject.cfg.ComponentConfigEvent.Type.PROPERTY_UNSET;
-import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
-import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
+import static org.onosproject.store.service.MapEvent.Type.INSERT;
+import static org.onosproject.store.service.MapEvent.Type.REMOVE;
+import static org.onosproject.store.service.MapEvent.Type.UPDATE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of component configurations in a distributed data store
- * that uses optimistic replication and gossip based anti-entropy techniques.
+ * that provides strong sequential consistency guarantees.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 @Service
-public class GossipComponentConfigStore
+public class DistributedComponentConfigStore
         extends AbstractStore<ComponentConfigEvent, ComponentConfigStoreDelegate>
         implements ComponentConfigStore {
 
@@ -54,32 +54,28 @@ public class GossipComponentConfigStore
 
     private final Logger log = getLogger(getClass());
 
-    private EventuallyConsistentMap<String, String> properties;
+    private ConsistentMap<String, String> properties;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LogicalClockService clockService;
+    InternalPropertiesListener propertiesListener = new InternalPropertiesListener();
 
     @Activate
     public void activate() {
-        KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
-                .register(KryoNamespaces.API);
-
-        properties = storageService.<String, String>eventuallyConsistentMapBuilder()
-                .withName("cfg")
-                .withSerializer(serializer)
-                .withTimestampProvider((k, v) -> clockService.getTimestamp())
+        properties = storageService.<String, String>consistentMapBuilder()
+                .withName("onos-component-cfg")
+                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .withRelaxedReadConsistency()
                 .build();
 
-        properties.addListener(new InternalPropertiesListener());
+        properties.addListener(propertiesListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        properties.destroy();
+        properties.removeListener(propertiesListener);
         log.info("Stopped");
     }
 
@@ -98,13 +94,13 @@ public class GossipComponentConfigStore
      * Listener to component configuration properties distributed map changes.
      */
     private final class InternalPropertiesListener
-            implements EventuallyConsistentMapListener<String, String> {
+            implements MapEventListener<String, String> {
 
         @Override
-        public void event(EventuallyConsistentMapEvent<String, String> event) {
+        public void event(MapEvent<String, String> event) {
             String[] keys = event.key().split(SEP);
-            String value = event.value();
-            if (event.type() == PUT) {
+            if (event.type() == INSERT || event.type() == UPDATE) {
+                String value = event.newValue().value();
                 delegate.notify(new ComponentConfigEvent(PROPERTY_SET, keys[0], keys[1], value));
             } else if (event.type() == REMOVE) {
                 delegate.notify(new ComponentConfigEvent(PROPERTY_UNSET, keys[0], keys[1], null));
@@ -116,5 +112,4 @@ public class GossipComponentConfigStore
     private String key(String componentName, String name) {
         return componentName + SEP + name;
     }
-
 }
