@@ -85,6 +85,9 @@ ssh -tt $remote "
     echo 'log4j.logger.org.apache.sshd = WARN' \
         >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
 
+    # Set up the ONOS service on systemd-based systems
+    sudo systemctl daemon-reload || true
+
 "
 
 # Configure the ONOS installation
