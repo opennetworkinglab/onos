@@ -30,11 +30,11 @@
     <artifactId>onos-cord-config</artifactId>
     <packaging>bundle</packaging>
 
-    <description>Cord configuration meta applications </description>
+    <description>CORD configuration meta application</description>
 
     <properties>
         <onos.app.name>org.onosproject.cord-config</onos.app.name>
-        <onos.app.title>Cord Configuratuon Meta Application</onos.app.title>
+        <onos.app.title>CORD Configuratuon Meta Application</onos.app.title>
         <onos.app.category>Utility</onos.app.category>
         <onos.app.url>http://opencord.org</onos.app.url>
     </properties>

@@ -38,8 +38,19 @@ public class AccessDeviceConfig extends Config<DeviceId> {
      * Gets the access device configuration for this device.
      *
      * @return access device configuration
+     * @deprecated in Goldeneye release. Use {@link #getAccessDevice()} instead.
      */
+    @Deprecated
     public AccessDeviceData getOlt() {
+        return getAccessDevice();
+    }
+
+    /**
+     * Gets the access device configuration for this device.
+     *
+     * @return access device configuration
+     */
+    public AccessDeviceData getAccessDevice() {
         PortNumber uplink = PortNumber.portNumber(node.path(UPLINK).asText());
         VlanId vlan = VlanId.vlanId(Short.parseShort(node.path(VLAN).asText()));
         JsonNode defaultVlanNode = node.path(DEFAULT_VLAN);
