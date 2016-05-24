@@ -136,30 +136,6 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             return factory.actions().niciraResubmitTable((int) resubmitTable.inPort().toLong(),
                                                          resubmitTable.table());
         }
-        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
-            NiciraSetNshSpi niciraNshSpi = (NiciraSetNshSpi) extensionTreatment;
-            return factory.actions().niciraSetNsp(niciraNshSpi.nshSpi().servicePathId());
-        }
-        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SI.type())) {
-            NiciraSetNshSi niciraNshSi = (NiciraSetNshSi) extensionTreatment;
-            return factory.actions().niciraSetNsp(niciraNshSi.nshSi().serviceIndex());
-        }
-        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH1.type())) {
-            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
-            return factory.actions().niciraSetNshc1(niciraNshch.nshCh().nshContextHeader());
-        }
-        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH2.type())) {
-            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
-            return factory.actions().niciraSetNshc2(niciraNshch.nshCh().nshContextHeader());
-        }
-        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH3.type())) {
-            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
-            return factory.actions().niciraSetNshc3(niciraNshch.nshCh().nshContextHeader());
-        }
-        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH4.type())) {
-            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
-            return factory.actions().niciraSetNshc4(niciraNshch.nshCh().nshContextHeader());
-        }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SHA_TO_THA.type())
                 || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SPA_TO_TPA.type())
                 || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST.type())
