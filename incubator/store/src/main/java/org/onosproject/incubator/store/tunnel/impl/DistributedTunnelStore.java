@@ -54,7 +54,6 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
-import org.onosproject.store.app.GossipApplicationStore.InternalState;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
@@ -121,8 +120,7 @@ public class DistributedTunnelStore
     public void activate() {
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
-                .register(MultiValuedTimestamp.class)
-                .register(InternalState.class);
+                .register(MultiValuedTimestamp.class);
         tunnelIdAsKeyStore = storageService
                 .<TunnelId, Tunnel>eventuallyConsistentMapBuilder()
                 .withName("all_tunnel").withSerializer(serializer)

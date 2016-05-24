@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of distributed applications store.
+ * Implementation of distributed application store.
  */
 package org.onosproject.store.app;

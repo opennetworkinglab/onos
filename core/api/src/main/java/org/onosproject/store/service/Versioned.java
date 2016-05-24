@@ -96,7 +96,7 @@ public class Versioned<V> {
      * @param <U> value type of the returned instance
      * @return mapped instance
      */
-    public <U> Versioned<U> map(Function<V, U> transformer) {
+    public synchronized <U> Versioned<U> map(Function<V, U> transformer) {
         return new Versioned<>(transformer.apply(value), version, creationTime);
     }
 
