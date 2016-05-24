@@ -217,6 +217,7 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
         pendingNext.put(nextObjective.id(), nextObjective);
         flowObjectiveStore.putNextGroup(nextObjective.id(),
                 new SingleGroup(new DefaultGroupKey(appKryo.serialize(nextObjective.id()))));
+        nextObjective.context().ifPresent(context -> context.onSuccess(nextObjective));
     }
 
     @Override
