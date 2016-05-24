@@ -38,7 +38,6 @@ import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 
@@ -109,8 +108,14 @@ public class DistributedApplicationIdStore implements ApplicationIdStore {
 
     @Override
     public ApplicationId registerApplication(String name) {
-        return Versioned.valueOrNull(registeredIds.computeIfAbsent(name,
-                key -> new DefaultApplicationId((int) appIdCounter.incrementAndGet(), name)));
+        ApplicationId exisitingAppId = registeredIds.asJavaMap().get(name);
+        if (exisitingAppId == null) {
+            ApplicationId newAppId = new DefaultApplicationId((int) appIdCounter.incrementAndGet(), name);
+            exisitingAppId = registeredIds.asJavaMap().putIfAbsent(name, newAppId);
+            return exisitingAppId == null ? newAppId : exisitingAppId;
+        } else {
+            return exisitingAppId;
+        }
     }
 
     private void primeIdToAppIdCache() {
