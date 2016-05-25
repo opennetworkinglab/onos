@@ -256,9 +256,13 @@ public class DistributedVirtualNetworkStore
      * @return NetworkId network identifier
      */
     private NetworkId genNetworkId() {
-        return NetworkId.networkId(idGenerator.getNewId());
-    }
+        NetworkId networkId;
+        do {
+            networkId = NetworkId.networkId(idGenerator.getNewId());
+        } while (!networkId.isVirtualNetworkId());
 
+        return networkId;
+    }
 
     @Override
     public void removeNetwork(NetworkId networkId) {
