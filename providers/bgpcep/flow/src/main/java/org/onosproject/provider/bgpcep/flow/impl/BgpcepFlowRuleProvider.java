@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MplsLabel;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -35,20 +36,31 @@ import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.MetadataCriterion;
+import org.onosproject.net.flow.criteria.MplsBosCriterion;
+import org.onosproject.net.flow.criteria.MplsCriterion;
+import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.ResourceService;
+import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepClientController;
 import org.onosproject.pcepio.exceptions.PcepParseException;
@@ -106,12 +118,16 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TunnelService tunnelService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
     private FlowRuleProviderService providerService;
     private PcepLabelObject labelObj;
     public static final int OUT_LABEL_TYPE = 0;
     public static final int IN_LABEL_TYPE = 1;
     public static final long IDENTIFIER_SET = 0x100000000L;
     public static final long SET = 0xFFFFFFFFL;
+    private static final String LSRID = "lsrId";
 
     /**
      * Creates a BgpFlow host provider.
@@ -138,34 +154,88 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
     @Override
     public void applyFlowRule(FlowRule... flowRules) {
         for (FlowRule flowRule : flowRules) {
-            applyRule(flowRule);
+            processRule(flowRule, Objective.Operation.ADD);
         }
     }
 
-    private void applyRule(FlowRule flowRule) {
-        flowRule.selector().criteria()
-                .forEach(c -> {
-                    // If Criterion type is MPLS_LABEL, push labels through PCEP client
-                        if (c.type() == Criterion.Type.MPLS_LABEL) {
-                            PcepClient pcc;
-                            /** PCC client session is based on LSR ID, get the LSR ID for a specific device to
-                            push the flows */
+    @Override
+    public void removeFlowRule(FlowRule... flowRules) {
+        for (FlowRule flowRule : flowRules) {
+            processRule(flowRule, Objective.Operation.REMOVE);
+        }
+    }
 
-                            //TODO: commented code has dependency with other patch
-                     /*     Set<TeRouterId> lrsIds = resourceService.getAvailableResourceValues(Resources
-                                    .discrete(flowRule.deviceId()).id(), TeRouterId.class);
+    private void processRule(FlowRule flowRule, Objective.Operation type) {
+        MplsLabel mplsLabel = null;
+        IpPrefix ip4Prefix = null;
+        PortNumber port = null;
+        TunnelId tunnelId = null;
+        long labelType = 0;
+        boolean bottomOfStack = false;
+        int srcPort = 0;
+        int dstPort = 0;
 
-                            lrsIds.forEach(lsrId ->
-                            {
-                                if (pcepController.getClient(PccId.pccId(lsrId)) != null) {
-                                    pcc = pcepController.getClient(PccId.pccId(lsrId));
-                                }
-                            });*/
-                            // TODO: Build message and send the PCEP label message via PCEP client
-                        } else {
-                            // TODO: Get the BGP peer based on deviceId and send the message
-                        }
-                    });
+        TrafficSelector selector = flowRule.selector();
+        for (Criterion c : selector.criteria()) {
+            switch (c.type()) {
+            case MPLS_LABEL:
+                MplsCriterion lc = (MplsCriterion) c;
+                mplsLabel = lc.label();
+                break;
+            case IPV4_SRC:
+                IPCriterion ipCriterion = (IPCriterion) c;
+                ip4Prefix = ipCriterion.ip().getIp4Prefix();
+                break;
+            case IN_PORT:
+                PortCriterion inPort = (PortCriterion) c;
+                port = inPort.port();
+                break;
+            case TCP_SRC:
+                TcpPortCriterion srcTcpPort = (TcpPortCriterion) c;
+                srcPort = srcTcpPort.tcpPort().toInt();
+                break;
+            case TCP_DST:
+                TcpPortCriterion dstTcpPort = (TcpPortCriterion) c;
+                dstPort = dstTcpPort.tcpPort().toInt();
+                break;
+            case TUNNEL_ID:
+                TunnelIdCriterion tc = (TunnelIdCriterion) c;
+                tunnelId = TunnelId.valueOf(String.valueOf(tc.tunnelId()));
+                break;
+            case METADATA:
+                MetadataCriterion metadata = (MetadataCriterion) c;
+                labelType = metadata.metadata();
+                break;
+            case MPLS_BOS:
+                MplsBosCriterion mplsBos = (MplsBosCriterion) c;
+                bottomOfStack = mplsBos.mplsBos();
+                break;
+            default:
+                break;
+            }
+        }
+
+        checkNotNull(mplsLabel);
+        LabelResourceId label = LabelResourceId.labelResourceId(mplsLabel.toInt());
+
+        try {
+            if (tunnelId != null) {
+                pushLocalLabels(flowRule.deviceId(), label, port, tunnelId, bottomOfStack, labelType, type);
+                return;
+            }
+
+            if (srcPort != 0 && dstPort != 0) {
+                pushAdjacencyLabel(flowRule.deviceId(), label, PortNumber.portNumber(srcPort),
+                                   PortNumber.portNumber(dstPort), type);
+                return;
+            }
+
+            pushGlobalNodeLabel(flowRule.deviceId(), label, ip4Prefix, type, bottomOfStack);
+
+        } catch (PcepParseException e) {
+            log.error("Exception occured while sending label message to PCC {}", e.getMessage());
+        }
+
     }
 
     /**
@@ -174,19 +244,13 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
      * @return PCEP client
      */
     private PcepClient getPcepClient(DeviceId deviceId) {
-        PcepClient pcc;
-        //TODO: commented code has dependency
-     /*   Set<TeRouterId> lrsIds = resourceService.getAvailableResourceValues(Resources
-                .discrete(deviceId()).id(), TeRouterId.class);
+        Device device = deviceService.getDevice(deviceId);
 
-        lrsIds.forEach(lsrId ->
-        {
-            if (pcepController.getClient(PccId.pccId(lsrId)) != null) {
-                pcc = pcepController.getClient(PccId.pccId(lsrId));
-                return pcc
-            }
-        });*/
-        return null;
+        // In future projections instead of annotations will be used to fetch LSR ID.
+        String lsrId = device.annotations().value(LSRID);
+
+        PcepClient pcc = pcepController.getClient(PccId.pccId(IpAddress.valueOf(lsrId)));
+        return pcc;
     }
 
     //Pushes node labels to the specified device.
@@ -195,7 +259,6 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
 
         checkNotNull(deviceId);
         checkNotNull(labelId);
-        checkNotNull(ipPrefix);
         checkNotNull(type);
 
         PcepClient pc = getPcepClient(deviceId);
@@ -205,6 +268,11 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
         }
 
         LinkedList<PcepLabelUpdate> labelUpdateList = new LinkedList<>();
+
+        if (ipPrefix == null) {
+            // Pushing self node label to device.
+            IpPrefix.valueOf(pc.getPccId().ipAddress(), 32);
+        }
 
         PcepFecObjectIPv4 fecObject = pc.factory().buildFecObjectIpv4()
                                       .setNodeID(ipPrefix.address().getIp4Address().toInt())
@@ -481,39 +549,6 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
             subObjects.add(subObj);
         }
         return subObjects;
-    }
-
-    @Override
-    public void removeFlowRule(FlowRule... flowRules) {
-        for (FlowRule flowRule : flowRules) {
-            removeRule(flowRule);
-        }
-    }
-
-    private void removeRule(FlowRule flowRule) {
-        flowRule.selector().criteria()
-        .forEach(c -> {
-            // If Criterion type is MPLS_LABEL, remove the specified flow rules
-                if (c.type() == Criterion.Type.MPLS_LABEL) {
-                    PcepClient pcc;
-                    /** PCC client session is based on LSR ID, get the LSR ID for a specific device to
-                    push the flows */
-
-                    //TODO: commented code has dependency with other patch
-             /*     Set<TeRouterId> lrsIds = resourceService.getAvailableResourceValues(Resources
-                            .discrete(flowRule.deviceId()).id(), TeRouterId.class);
-
-                    lrsIds.forEach(lsrId ->
-                    {
-                        if (pcepController.getClient(PccId.pccId(lsrId)) != null) {
-                            pcc = pcepController.getClient(PccId.pccId(lsrId));
-                        }
-                    });*/
-                    // TODO: Build message and send the PCEP label message via PCEP client
-                } else {
-                    // TODO: Get the BGP peer based on deviceId and send the message
-                }
-            });
     }
 
     @Override
