@@ -27,7 +27,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-final class NonEncodableDiscreteResources implements DiscreteResources {
+final class GenericDiscreteResources implements DiscreteResources {
     private final Set<DiscreteResource> values;
 
     static DiscreteResources of(Set<DiscreteResource> resources) {
@@ -35,15 +35,15 @@ final class NonEncodableDiscreteResources implements DiscreteResources {
             return DiscreteResources.empty();
         }
 
-        return new NonEncodableDiscreteResources(resources);
+        return new GenericDiscreteResources(resources);
     }
 
-    private NonEncodableDiscreteResources(Set<DiscreteResource> values) {
+    private GenericDiscreteResources(Set<DiscreteResource> values) {
         this.values = values;
     }
 
     // for serializer
-    private NonEncodableDiscreteResources() {
+    private GenericDiscreteResources() {
         this.values = null;
     }
 
@@ -59,7 +59,7 @@ final class NonEncodableDiscreteResources implements DiscreteResources {
 
     @Override
     public DiscreteResources difference(DiscreteResources other) {
-        return new NonEncodableDiscreteResources(Sets.difference(this.values, other.values()));
+        return new GenericDiscreteResources(Sets.difference(this.values, other.values()));
     }
 
     @Override
@@ -77,7 +77,7 @@ final class NonEncodableDiscreteResources implements DiscreteResources {
     public DiscreteResources add(DiscreteResources other) {
         Set<DiscreteResource> newValues = new LinkedHashSet<>(this.values);
         newValues.addAll(other.values());
-        return new NonEncodableDiscreteResources(newValues);
+        return new GenericDiscreteResources(newValues);
     }
 
     // returns a new instance, not mutate the current instance
@@ -85,7 +85,7 @@ final class NonEncodableDiscreteResources implements DiscreteResources {
     public DiscreteResources remove(List<DiscreteResource> removed) {
         Set<DiscreteResource> newValues = new LinkedHashSet<>(this.values);
         newValues.removeAll(removed);
-        return new NonEncodableDiscreteResources(newValues);
+        return new GenericDiscreteResources(newValues);
     }
 
     @Override
@@ -108,7 +108,7 @@ final class NonEncodableDiscreteResources implements DiscreteResources {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final NonEncodableDiscreteResources other = (NonEncodableDiscreteResources) obj;
+        final GenericDiscreteResources other = (GenericDiscreteResources) obj;
         return Objects.equals(this.values, other.values);
     }
 
