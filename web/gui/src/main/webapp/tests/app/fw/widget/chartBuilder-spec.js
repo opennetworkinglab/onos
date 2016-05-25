@@ -21,7 +21,7 @@
 describe('factory: fw/widget/chartBuilder.js', function () {
     var $log, $rootScope, fs, cbs, is;
 
-    var mockObj;
+    var mockObj,
         mockWss = {
             bindHandlers: function () {},
             sendEvent: function () {},
