@@ -194,10 +194,7 @@ import org.onosproject.net.resource.ContinuousResourceId;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceCodec;
 import org.onosproject.net.resource.DiscreteResourceId;
-import org.onosproject.net.resource.DiscreteResourceSet;
-import org.onosproject.net.resource.DiscreteResourceSetSerializer;
 import org.onosproject.net.resource.MplsCodec;
-import org.onosproject.net.resource.NoOpCodec;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.net.packet.DefaultOutboundPacket;
@@ -537,11 +534,9 @@ public final class KryoNamespaces {
                     org.onlab.packet.MPLS.class
             )
             .register(ClosedOpenRange.class)
-            .register(new DiscreteResourceSetSerializer(), DiscreteResourceSet.class)
             .register(DiscreteResourceCodec.class)
             .register(VlanCodec.class)
             .register(MplsCodec.class)
-            .register(NoOpCodec.class)
             .build("API");
 
 

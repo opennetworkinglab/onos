@@ -24,7 +24,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
 import org.onlab.util.Frequency;
@@ -63,9 +62,6 @@ import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.resource.DiscreteResource;
-import org.onosproject.net.resource.DiscreteResourceSet;
-import org.onosproject.net.resource.MplsCodec;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.net.resource.Resources;
@@ -84,15 +80,11 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
-import org.onosproject.net.resource.VlanCodec;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.time.Duration;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
@@ -352,38 +344,6 @@ public class KryoSerializerTest {
     @Test
     public void testResource() {
         testSerializedEquals(Resources.discrete(DID1, P1, VLAN1).resource());
-    }
-
-    @Test
-    public void testVlanIdResourceSet() {
-        DiscreteResource port = Resources.discrete(DID1, P1).resource();
-
-        Set<DiscreteResource> vlans = IntStream.range(0, 4096)
-                .mapToObj(x -> VlanId.vlanId((short) x))
-                .map(x -> Resources.discrete(port.id(), x).resource())
-                .collect(Collectors.toSet());
-
-        DiscreteResourceSet sut = DiscreteResourceSet.of(vlans, new VlanCodec());
-        testSerializedEquals(sut);
-    }
-
-    @Test
-    public void testMplsLabelResourceSet() {
-        DiscreteResource port = Resources.discrete(DID1, P1).resource();
-
-        Set<DiscreteResource> labels = IntStream.range(0, 1024)
-                .mapToObj(MplsLabel::mplsLabel)
-                .map(x -> Resources.discrete(port.id(), x).resource())
-                .collect(Collectors.toSet());
-
-        DiscreteResourceSet sut = DiscreteResourceSet.of(labels, new MplsCodec());
-        testSerializedEquals(sut);
-    }
-
-    @Test
-    public void testEmptyResourceSet() {
-        DiscreteResourceSet sut = DiscreteResourceSet.empty();
-        testSerializedEquals(sut);
     }
 
     @Test
