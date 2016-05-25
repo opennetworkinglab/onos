@@ -76,6 +76,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             .register(new EncodableDiscreteResourcesSerializer(), EncodableDiscreteResources.class)
             .register(GenericDiscreteResources.class)
             .register(EmptyDiscreteResources.class)
+            .register(new EncodedResourcesSerializer(), EncodedDiscreteResources.class)
             .register(ContinuousResourceAllocation.class)
             .build());
 

@@ -13,42 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.resource;
+package org.onosproject.store.resource.impl;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.google.common.annotations.Beta;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.Range;
 import com.google.common.collect.TreeRangeSet;
 import org.onlab.util.ClosedOpenRange;
-import org.onlab.util.Tools;
+import org.onosproject.net.resource.DiscreteResourceCodec;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Kryo serializer for {@link DiscreteResourceSet}.
+ * Kryo Serializer for {@link EncodedDiscreteResources}.
  */
-@Beta
-public final class DiscreteResourceSetSerializer extends Serializer<DiscreteResourceSet> {
-
-    public DiscreteResourceSetSerializer() {
-        super(false, true);
-    }
-
+final class EncodedResourcesSerializer extends Serializer<EncodedDiscreteResources> {
     @Override
-    public void write(Kryo kryo, Output output, DiscreteResourceSet object) {
+    public void write(Kryo kryo, Output output, EncodedDiscreteResources object) {
         TreeRangeSet<Integer> rangeSet = TreeRangeSet.create();
-        object.values().stream()
-                .map(x -> x.valueAs(Object.class))
-                .flatMap(Tools::stream)
-                .map(x -> object.codec().encode(x))
+        object.rawValues().stream()
                 .map(Range::singleton)
                 .map(x -> x.canonical(DiscreteDomain.integers()))
                 .forEach(rangeSet::add);
@@ -57,26 +48,18 @@ public final class DiscreteResourceSetSerializer extends Serializer<DiscreteReso
                 .collect(Collectors.toList());
         kryo.writeObject(output, ranges);
         kryo.writeClassAndObject(output, object.codec());
-        kryo.writeObject(output, object.parent());
     }
 
     @Override
-    public DiscreteResourceSet read(Kryo kryo, Input input, Class<DiscreteResourceSet> type) {
+    public EncodedDiscreteResources read(Kryo kryo, Input input, Class<EncodedDiscreteResources> cls) {
         @SuppressWarnings("unchecked")
         List<ClosedOpenRange> ranges = kryo.readObject(input, ArrayList.class);
         DiscreteResourceCodec codec = (DiscreteResourceCodec) kryo.readClassAndObject(input);
-        DiscreteResourceId parent = kryo.readObject(input, DiscreteResourceId.class);
 
-        if (ranges.isEmpty()) {
-            return DiscreteResourceSet.empty();
-        }
-
-        Set<DiscreteResource> resources = ranges.stream()
+        HashSet<Integer> rawValues = ranges.stream()
                 .flatMapToInt(x -> IntStream.range(x.lowerBound(), x.upperBound()))
-                .mapToObj(x -> codec.decode(x))
-                .map(x -> Resources.discrete(parent, x).resource())
-                .collect(Collectors.toSet());
-
-        return DiscreteResourceSet.of(resources, codec);
+                .boxed()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        return new EncodedDiscreteResources(rawValues, codec);
     }
 }
