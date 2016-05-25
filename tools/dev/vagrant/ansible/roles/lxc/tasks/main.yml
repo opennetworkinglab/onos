@@ -18,8 +18,8 @@
     template_options: --release trusty
     container_config:
       - "lxc.network.ipv4=10.100.198.201/24"
-    container_command: | 
-      ln -s /usr/lib/jvm/java/bin/java /usr/bin/java         
+    container_command: |
+      ln -s /usr/lib/jvm/java/bin/java /usr/bin/java
       apt-get update
       apt-get install -y openssh-server
       echo "ubuntu ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-onos-sudoers

@@ -1,0 +1,11 @@
+- name: git is present
+  apt:
+    name: git
+    force: yes
+  tags: [common]
+
+- name: Clone mininet repository
+  git: repo=https://github.com/mininet/mininet.git dest=mininet
+
+- name: Install mininet
+  command: mininet/util/install.sh -a
