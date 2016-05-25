@@ -235,6 +235,8 @@ public class PimInterfaceManager implements PimInterfaceService {
             return;
         }
 
+        multicastRouteService.addSource(route, pimInterface.getInterface().connectPoint());
+
         routes.put(route, pimInterface);
     }
 
