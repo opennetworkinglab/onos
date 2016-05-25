@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="7" xmlns="urn:ietf:params:netconf:base:1.0"><data><cli-oper-data-block><item><show>interfaces</show><response>
+FastEthernet0/0 is up, line protocol is up
+  Hardware is i82543 (Livengood), address is ca00.12b5.0008 (bia ca00.12b5.0008)
+  Internet address is 192.168.1.20/24
+  MTU 1500 bytes, BW 100000 Kbit/sec, DLY 100 usec,
+    reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation ARPA, loopback not set
+  Keepalive set (10 sec)
+  Full-duplex, 100Mb/s, 100BaseTX/FX
+  ARP type: ARPA, ARP Timeout 04:00:00
+  Last input 00:00:00, output 00:00:00, output hang never
+  Last clearing of &quot;show interface&quot; counters never
+  Input queue: 0/75/0/0 (size/max/drops/flushes); Total output drops: 0
+  Queueing strategy: fifo
+  Output queue: 0/40 (size/max)
+    5 minute input rate 2000 bits/sec, 1 packets/sec
+    5 minute output rate 0 bits/sec, 0 packets/sec
+    3589 packets input, 681498 bytes
+    Received 2459 broadcasts, 0 runts, 0 giants, 0 throttles
+    0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+    0 watchdog
+    0 input packets with dribble condition detected
+    2518 packets output, 242991 bytes, 0 underruns
+    0 output errors, 0 collisions, 2 interface resets
+    149 unknown protocol drops
+    0 babbles, 0 late collision, 0 deferred
+    0 lost carrier, 0 no carrier
+    0 output buffer failures, 0 output buffers swapped out
+Ethernet1/0 is administratively down, line protocol is down
+  Hardware is i82543 (Livengood), address is ca00.12b5.0006 (bia ca00.12b5.0006)
+  MTU 1500 bytes, BW 100000 Kbit/sec, DLY 100 usec,
+    reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation ARPA, loopback not set
+  Keepalive set (10 sec)
+  Full-duplex, 100Mb/s, 100BaseTX/FX
+  ARP type: ARPA, ARP Timeout 04:00:00
+  Last input never, output never, output hang never
+  Last clearing of &quot;show interface&quot; counters never
+  Input queue: 0/75/0/0 (size/max/drops/flushes); Total output drops: 0
+  Queueing strategy: fifo
+  Output queue: 0/40 (size/max)
+    5 minute input rate 0 bits/sec, 0 packets/sec
+    5 minute output rate 0 bits/sec, 0 packets/sec
+    0 packets input, 0 bytes
+    Received 0 broadcasts, 0 runts, 0 giants, 0 throttles
+    0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+    0 watchdog
+    0 input packets with dribble condition detected
+    0 packets output, 0 bytes, 0 underruns
+    0 output errors, 0 collisions, 0 interface resets
+    0 unknown protocol drops
+    0 babbles, 0 late collision, 0 deferred
+    0 lost carrier, 0 no carrier
+    0 output buffer failures, 0 output buffers swapped out
+GigabitEthernet2/0 is administratively down, line protocol is down
+  Hardware is i82543 (Livengood), address is ca00.12b5.0006 (bia ca00.12b5.0006)
+  MTU 1500 bytes, BW 100000 Kbit/sec, DLY 100 usec,
+    reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation ARPA, loopback not set
+  Keepalive set (10 sec)
+  Full-duplex, 100Mb/s, 100BaseTX/FX
+  ARP type: ARPA, ARP Timeout 04:00:00
+  Last input never, output never, output hang never
+  Last clearing of &quot;show interface&quot; counters never
+  Input queue: 0/75/0/0 (size/max/drops/flushes); Total output drops: 0
+  Queueing strategy: fifo
+  Output queue: 0/40 (size/max)
+    5 minute input rate 0 bits/sec, 0 packets/sec
+    5 minute output rate 0 bits/sec, 0 packets/sec
+    0 packets input, 0 bytes
+    Received 0 broadcasts, 0 runts, 0 giants, 0 throttles
+    0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+    0 watchdog
+    0 input packets with dribble condition detected
+    0 packets output, 0 bytes, 0 underruns
+    0 output errors, 0 collisions, 0 interface resets
+    0 unknown protocol drops
+    0 babbles, 0 late collision, 0 deferred
+    0 lost carrier, 0 no carrier
+    0 output buffer failures, 0 output buffers swapped out
+Serial3/0 is up, line protocol is up
+  Hardware is MCI Serial
+  Internet address is 192.168.10.203, subnet mask is 255.255.255.0
+  MTU 1500 bytes, BW 1544 Kbit/sec, DLY 20000 usec, rely 255/255, load 1/255
+  Encapsulation HDLC, loopback not set, keepalive set (10 sec)
+  Last input 0:00:07, output 0:00:00, output hang never
+  Output queue 0/40, 0 drops; input queue 0/75, 0 drops
+    5 minute input rate 0 bits/sec, 0 packets/sec
+    5 minute output rate 0 bits/sec, 0 packets/sec
+    16263 packets input, 1347238 bytes, 0 no buffer
+    Received 13983 broadcasts, 0 runts, 0 giants
+    2 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored, 2 abort
+    1 carrier transitions
+    22146 packets output, 2383680 bytes, 0 underruns
+    0 output errors, 0 collisions, 2 interface resets, 0 restarts
+POS4/0 is up, line protocol is up
+  Hardware is Packet over SONET
+  Internet address is 10.41.41.2/24
+  MTU 4470 bytes, BW 9952000 Kbit/sec, DLY 100 usec, rely 255/255, load 1/255
+  Encapsulation HDLC, crc 32, loopback not set
+  Keepalive not set
+  Scramble enabled
+  Last input 00:00:59, output 00:00:11, output hang never
+  Last clearing of "show interface" counters 00:00:14
+  Queueing strategy: fifo
+  Output queue 0/40, 0 drops; input queue 0/75, 0 drops
+  Available Bandwidth 9582482 kilobits/sec
+    5 minute input rate 0 bits/sec, 0 packets/sec
+    5 minute output rate 0 bits/sec, 0 packets/sec
+    0 packets input, 0 bytes, 0 no buffer
+    Received 0 broadcasts, 0 runts, 0 giants, 0 throttles
+    0 parity
+    0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored, 0 abort
+    1 packets output, 314 bytes, 0 underruns
+    0 output errors, 0 applique, 0 interface resets
+    0 output buffer failures, 0 output buffers swapped out
+    0 carrier transitions
+Fddi5/0 is up, line protocol is up
+  Hardware is cxBus Fddi, address is 0000.0c02.adf1 (bia 0000.0c02.adf1)
+  Internet address is 10.108.33.14, subnet mask is 255.255.255.0
+  MTU 4470 bytes, BW 100000 Kbit/sec, DLY 100 usec, rely 255/255, load 1/255
+  Encapsulation SNAP, loopback not set, keepalive not set
+  ARP type: SNAP, ARP Timeout 4:00:00
+  Phy-A state is active, neighbor is   B, cmt signal bits 008/20C, status ILS
+  Phy-B state is active, neighbor is   A, cmt signal bits 20C/008, status ILS
+  ECM is in, CFM is thru, RMT is ring_op
+  Token rotation 5000 usec, ring operational 21:32:34
+  Upstream neighbor 0000.0c02.ba83, downstream neighbor 0000.0c02.ba83
+  Last input 0:00:05, output 0:00:00, output hang never
+  Last clearing of “show interface” counters 0:59:10
+  Output queue 0/40, 0 drops; input queue 0/75, 0 drops
+    5 minute input rate 69000 bits/sec, 44 packets/sec
+    5 minute output rate 0 bits/sec, 1 packets/sec
+    113157 packets input, 21622582 bytes, 0 no buffer
+    Received 276 broadcasts, 0 runts, 0 giants
+    0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored, 0 abort
+    4740 packets output, 487346 bytes, 0 underruns
+    0 output errors, 0 collisions, 0 interface resets, 0 restarts
+    0 transitions, 2 traces, 3 claims, 2 beacons</response></item></cli-oper-data-block></data></rpc-reply>]]>]]>
