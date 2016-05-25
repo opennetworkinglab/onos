@@ -15,6 +15,7 @@
  */
 package org.onosproject.incubator.net.virtual.impl;
 
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -42,11 +43,14 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -231,6 +235,11 @@ public class VirtualNetworkManager
         return store.getNetworks(tenantId);
     }
 
+    private VirtualNetwork getVirtualNetwork(NetworkId networkId) {
+        checkNotNull(networkId, NETWORK_NULL);
+        return store.getNetwork(networkId);
+    }
+
     @Override
     public Set<VirtualDevice> getVirtualDevices(NetworkId networkId) {
         checkNotNull(networkId, NETWORK_NULL);
@@ -249,10 +258,59 @@ public class VirtualNetworkManager
         return store.getPorts(networkId, deviceId);
     }
 
+    private final Map<ServiceKey, VnetService> networkServices = Maps.newConcurrentMap();
+
     @Override
     public <T> T get(NetworkId networkId, Class<T> serviceClass) {
         checkNotNull(networkId, NETWORK_NULL);
-        return null;
+        ServiceKey serviceKey = networkServiceKey(networkId, serviceClass);
+        VnetService service = lookup(serviceKey);
+        if (service == null) {
+            service = create(serviceKey);
+        }
+        return (T) service;
+    }
+
+    private VnetService lookup(ServiceKey serviceKey) {
+        return networkServices.get(serviceKey);
+    }
+
+    private <T> ServiceKey networkServiceKey(NetworkId networkId, Class<T> serviceClass) {
+        return new ServiceKey(networkId, serviceClass);
+    }
+
+
+    private VnetService create(ServiceKey serviceKey) {
+        VirtualNetwork network = getVirtualNetwork(serviceKey.networkId());
+        VnetService service;
+        if (serviceKey.serviceClass.equals(DeviceService.class)) {
+            service = new VirtualNetworkDeviceService(this, network);
+        } else if (serviceKey.serviceClass.equals(LinkService.class)) {
+            service = new VirtualNetworkLinkService(this, network);
+        } else {
+            return null;
+        }
+        networkServices.put(serviceKey, service);
+        return service;
+    }
+
+    private class ServiceKey {
+        final NetworkId networkId;
+        final Class serviceClass;
+
+        public ServiceKey(NetworkId networkId, Class serviceClass) {
+            checkNotNull(networkId, NETWORK_NULL);
+            this.networkId = networkId;
+            this.serviceClass = serviceClass;
+        }
+
+        public NetworkId networkId() {
+            return networkId;
+        }
+
+        public Class serviceClass() {
+            return serviceClass;
+        }
     }
 
     @Override

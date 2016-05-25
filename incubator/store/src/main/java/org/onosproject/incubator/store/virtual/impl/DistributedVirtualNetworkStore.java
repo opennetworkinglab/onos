@@ -460,6 +460,11 @@ public class DistributedVirtualNetworkStore
     }
 
     @Override
+    public VirtualNetwork getNetwork(NetworkId networkId) {
+        return networkIdVirtualNetworkMap.get(networkId);
+    }
+
+    @Override
     public Set<VirtualDevice> getDevices(NetworkId networkId) {
         checkState(networkExists(networkId), "The network has not been added.");
         Set<DeviceId> deviceIdSet = networkIdDeviceIdSetMap.get(networkId);

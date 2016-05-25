@@ -145,6 +145,14 @@ public interface VirtualNetworkStore
     Set<VirtualNetwork> getNetworks(TenantId tenantId);
 
     /**
+     * Returns the virtual network for the given network identifier.
+     *
+     * @param networkId  network identifier
+     * @return the virtual network
+     */
+    VirtualNetwork getNetwork(NetworkId networkId);
+
+    /**
      * Returns the list of devices in the specified virtual network.
      *
      * @param networkId network identifier

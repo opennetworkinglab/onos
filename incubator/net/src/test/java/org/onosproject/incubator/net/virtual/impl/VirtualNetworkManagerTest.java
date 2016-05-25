@@ -57,10 +57,10 @@ import static org.junit.Assert.*;
  * Junit tests for VirtualNetworkManager.
  */
 public class VirtualNetworkManagerTest {
-    final String tenantIdValue1 = "TENANT_ID1";
-    final String tenantIdValue2 = "TENANT_ID2";
-    final String deviceIdValue1 = "DEVICE_ID1";
-    final String deviceIdValue2 = "DEVICE_ID2";
+    private final String tenantIdValue1 = "TENANT_ID1";
+    private final String tenantIdValue2 = "TENANT_ID2";
+    private final String deviceIdValue1 = "DEVICE_ID1";
+    private final String deviceIdValue2 = "DEVICE_ID2";
 
     private VirtualNetworkManager manager;
     private VirtualNetworkService virtualNetworkManagerService;
