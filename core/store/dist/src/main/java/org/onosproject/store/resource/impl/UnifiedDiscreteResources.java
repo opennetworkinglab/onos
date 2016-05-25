@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  * and those that can't encoded as integer.
  */
 final class UnifiedDiscreteResources implements DiscreteResources {
-    private final DiscreteResources nonEncodables;
+    private final DiscreteResources generics;
     private final DiscreteResources encodables;
     private static final Codecs CODECS = Codecs.getInstance();
 
@@ -45,13 +45,13 @@ final class UnifiedDiscreteResources implements DiscreteResources {
         Map<Boolean, Set<DiscreteResource>> partitioned = resources.stream()
                 .collect(Collectors.partitioningBy(CODECS::isEncodable, Collectors.toCollection(LinkedHashSet::new)));
         return new UnifiedDiscreteResources(
-                NonEncodableDiscreteResources.of(partitioned.get(false)),
+                GenericDiscreteResources.of(partitioned.get(false)),
                 EncodableDiscreteResources.of(partitioned.get(true))
         );
     }
 
-    private UnifiedDiscreteResources(DiscreteResources nonEncodables, DiscreteResources encodables) {
-        this.nonEncodables = nonEncodables;
+    private UnifiedDiscreteResources(DiscreteResources generics, DiscreteResources encodables) {
+        this.generics = generics;
         this.encodables = encodables;
     }
 
@@ -61,7 +61,7 @@ final class UnifiedDiscreteResources implements DiscreteResources {
             return encodables.lookup(id);
         }
 
-        return nonEncodables.lookup(id);
+        return generics.lookup(id);
     }
 
     @Override
@@ -71,14 +71,14 @@ final class UnifiedDiscreteResources implements DiscreteResources {
 
     @Override
     public boolean isEmpty() {
-        return nonEncodables.isEmpty() && encodables.isEmpty();
+        return generics.isEmpty() && encodables.isEmpty();
     }
 
     @Override
     public boolean containsAny(List<DiscreteResource> other) {
         Map<Boolean, List<DiscreteResource>> partitioned = other.stream()
                 .collect(Collectors.partitioningBy(CODECS::isEncodable));
-        return nonEncodables.containsAny(partitioned.get(false)) || encodables.containsAny(partitioned.get(true));
+        return generics.containsAny(partitioned.get(false)) || encodables.containsAny(partitioned.get(true));
     }
 
     @Override
@@ -93,7 +93,7 @@ final class UnifiedDiscreteResources implements DiscreteResources {
 
     @Override
     public Set<DiscreteResource> values() {
-        return Stream.concat(encodables.values().stream(), nonEncodables.values().stream())
+        return Stream.concat(encodables.values().stream(), generics.values().stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

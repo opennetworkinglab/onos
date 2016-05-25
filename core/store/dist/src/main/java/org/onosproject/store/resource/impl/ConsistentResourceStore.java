@@ -74,7 +74,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             .register(KryoNamespaces.API)
             .register(UnifiedDiscreteResources.class)
             .register(new EncodableDiscreteResourcesSerializer(), EncodableDiscreteResources.class)
-            .register(NonEncodableDiscreteResources.class)
+            .register(GenericDiscreteResources.class)
             .register(EmptyDiscreteResources.class)
             .register(ContinuousResourceAllocation.class)
             .build());
