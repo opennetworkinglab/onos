@@ -19,9 +19,8 @@
  */
 
 #mast {
-    height: 36px;
-    padding: 4px;
-    vertical-align: baseline;
+    height: 48px;
+    padding: 0;
 }
 
 html[data-platform='iPad'] #mast {
@@ -29,31 +28,22 @@ html[data-platform='iPad'] #mast {
 }
 
 #mast .nav-menu-button {
-    width: 30px;
-    height: 30px;
-    margin-left: 8px;
-    margin-bottom: 4px;
-    cursor: pointer;
+    width: 26px;
+    height: 21px;
+    margin: 14px 18px 14px 14px;
 }
 
 #mast img.logo {
-    height: 38px;
-    padding-left: 8px;
-    padding-right: 8px;
+    height: 47px;
+    width: 436px;
+    margin: 0;
 }
-
-#mast .title {
-    font-size: 14pt;
-    font-style: italic;
-    vertical-align: 12px;
-}
-
 
 #mast-right {
     display: inline-block;
     float: right;
     position: relative;
-    top: -4px;
+    top: 0;
     padding-right: 15px;
     line-height: 44px;
 }
@@ -72,23 +62,23 @@ html[data-platform='iPad'] #mast {
     height: 7px;
     width: 9px;
     margin-left: 10px;
-    background: url('/onos/ui/data/img/dropdown-icon.png') no-repeat;
+    background: url('../../../data/img/dropdown-icon.png') no-repeat;
 }
 
 #mast .dropdown {
     position: absolute;
-    top: 44px;
-    right: 0;
+    top: 40px;
+    right: -8px;
     display: none;
     min-width: 100px;
-    border-top: 1px solid #999;
     line-height: 16px;
+    font-size: 12pt;
     z-index: 1000;
 }
 
 #mast .dropdown a {
     text-decoration: none;
-    font-size: 14px;
+    font-size: 12px;
     display: block;
     padding: 8px 16px 6px 12px;
 }

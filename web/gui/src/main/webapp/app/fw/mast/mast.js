@@ -24,7 +24,7 @@
     var $log;
 
     // configuration
-    var mastHeight = 36,
+    var mastHeight = 48,
         padMobile = 16;
 
     var dialogId = 'app-dialog',
