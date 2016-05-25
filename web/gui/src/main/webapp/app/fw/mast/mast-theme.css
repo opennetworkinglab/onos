@@ -19,77 +19,67 @@
  */
 
 .light #mast {
-    background-color: #bbb;
-    box-shadow: 0 2px 8px #777;
+    background-color: #231f20;
 }
 .dark #mast {
-    background-color: #444;
-    box-shadow: 0 2px 8px #222;
+    /* TODO: dark theme */
+    background-color: #231f20;
 }
 
 
 .light #mast .nav-menu-button:hover {
-    background-color: #ddd;
+    background-color: #888;
 }
 .dark #mast .nav-menu-button:hover {
-    background-color: #777;
+    background-color: #888;
 }
 
-#mast img.logo:hover {
-    /* need something better */
-    /*background-color: #888;*/
-}
-
-.light #mast .title {
-    color: #369;
-}
-.dark #mast .title {
-    color: #eee;
-}
 
 .light #mast-right a {
-    color: #369;
+    color: #009fdb;
 }
-
 .dark #mast-right a {
-    color: #eee;
+    /* TODO: dark theme */
+    color: #009fdb;
 }
 
 .light #mast nav  {
-    color: #369;
+    color: #009fdb;
 }
 
 .dark #mast nav  {
-    color: #eee;
+    /* TODO: dark theme */
+    color: #009fdb;
 }
 
 
 /* Theme styles for drop down menu */
 
 .light #mast .dropdown {
-    background-color: #bbb;
-    box-shadow: 0 2px 8px #777;
+    background-color: #231f20;
+    border: 1px solid #dddddd;
 }
-
 .dark #mast .dropdown {
-    background-color: #444;
-    box-shadow: 0 2px 8px #111;
+    /* TODO: dark theme */
+    background-color: #231f20;
+    border: 1px solid #dddddd;
 }
 
 .light #mast .dropdown a {
-    color: #369;
-    border-bottom: solid #ccc 1px;
+    color: #009fdb;
+    border-bottom: solid #444 1px;
 }
-
 .dark #mast .dropdown a {
-    color: #eee;
-    border-bottom: solid #333 1px;
+    /* TODO: dark theme */
+    color: #009fdb;
+    border-bottom: solid #444 1px;
 }
 
 .light #mast .dropdown a:hover {
-    background-color: #ddd;
+    color: #fff;
 }
 
 .dark #mast .dropdown a:hover {
-    background-color: #777;
+    /* TODO: dark theme */
+    color: #fff;
 }
