@@ -19,18 +19,15 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 import org.onlab.util.ClosedOpenRange;
 import org.onosproject.net.resource.DiscreteResourceCodec;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Kryo Serializer for {@link EncodedDiscreteResources}.
@@ -38,12 +35,7 @@ import java.util.stream.IntStream;
 final class EncodedResourcesSerializer extends Serializer<EncodedDiscreteResources> {
     @Override
     public void write(Kryo kryo, Output output, EncodedDiscreteResources object) {
-        TreeRangeSet<Integer> rangeSet = TreeRangeSet.create();
-        object.rawValues().stream()
-                .map(Range::singleton)
-                .map(x -> x.canonical(DiscreteDomain.integers()))
-                .forEach(rangeSet::add);
-        List<ClosedOpenRange> ranges = rangeSet.asRanges().stream()
+        List<ClosedOpenRange> ranges = object.rangeSet().asRanges().stream()
                 .map(ClosedOpenRange::of)
                 .collect(Collectors.toList());
         kryo.writeObject(output, ranges);
@@ -56,10 +48,10 @@ final class EncodedResourcesSerializer extends Serializer<EncodedDiscreteResourc
         List<ClosedOpenRange> ranges = kryo.readObject(input, ArrayList.class);
         DiscreteResourceCodec codec = (DiscreteResourceCodec) kryo.readClassAndObject(input);
 
-        HashSet<Integer> rawValues = ranges.stream()
-                .flatMapToInt(x -> IntStream.range(x.lowerBound(), x.upperBound()))
-                .boxed()
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        return new EncodedDiscreteResources(rawValues, codec);
+        RangeSet<Integer> rangeSet = TreeRangeSet.create();
+        ranges.stream()
+                .map(x -> Range.closedOpen(x.lowerBound(), x.upperBound()))
+                .forEach(rangeSet::add);
+        return new EncodedDiscreteResources(rangeSet, codec);
     }
 }
