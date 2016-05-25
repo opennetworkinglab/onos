@@ -1,0 +1,17 @@
+#!/bin/bash
+
+REPORT_CHANGED=0
+if [ $# -gt 0 ]; then
+    REPORT_CHANGED=1
+fi
+CHANGED='false'
+
+FOUND=$(brctl show | grep "^{{ interfaces.hostonly }}" | wc -l)
+if [ $FOUND -eq 0 ]; then
+    CHANGED='true'
+    brctl addif {{ networks.bridge_name }} {{ interfaces.hostonly }}
+fi
+
+if [ $REPORT_CHANGED -ne 0 ]; then
+    echo -n $CHANGED
+fi

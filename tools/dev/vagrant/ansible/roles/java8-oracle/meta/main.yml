@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  author: Ciena Blueplanet
+  description: Java 8 from Oracle
+  company: Ciena Blueplanet
+  license: Apache 2.0
+  min_ansible_version: 2.0
+  platforms:
+    - name: Ubuntu
+      versions:
+        - trusty
+  galaxy_tags:
+    - development
+    - system
+dependencies: []

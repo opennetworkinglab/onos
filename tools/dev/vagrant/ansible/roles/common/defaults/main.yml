@@ -1,0 +1,6 @@
+hosts: [
+  { host_ip: "10.100.198.200", host_name: "onosdev"},
+  { host_ip: "10.100.198.201", host_name: "onos1"},
+  { host_ip: "10.100.198.202", host_name: "onos2"},
+  { host_ip: "10.100.198.203", host_name: "onos3"},
+]

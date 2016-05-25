@@ -1,0 +1,9 @@
+interfaces:
+    hostonly: "{{ hostonly_iface | default('eth1') }}"
+
+networks:
+    # CHANGE:
+    #   'bridge' name of the bridge to create that is used when connecting
+    #            the LXC containers
+    bridge_name: "{{ bridge_name | default('onosbr0') }}"
+    bridge: "{{ bridge_network | default('10.100.198.200/24') }}"

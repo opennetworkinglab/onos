@@ -1,0 +1,42 @@
+- name: bridge-utils is present
+  apt:
+    name: bridge-utils
+    force: yes
+  tags: [common]
+
+- name: lxc is present
+  apt:
+    name: lxc
+    force: yes
+  tags: [common]
+
+- name: python-dev is present
+  apt:
+    name: python-dev
+    force: yes
+  tags: [common]
+
+- name: lxc-dev is present
+  apt:
+    name: lxc-dev
+    force: yes
+  tags: [common]
+
+- name: python-pip is present
+  apt:
+    name: python-pip
+    force: yes
+  tags: [common]
+
+- name: python3-lxc is present
+  pip:
+    name: lxc-python2
+    state: present
+  tags: [common]
+- name: Host is present
+  lineinfile:
+    dest: /etc/hosts
+    regexp: "^{{ item.host_ip }}"
+    line: "{{ item.host_ip }} {{ item.host_name }}"
+  with_items: hosts
+  tags: [common]
