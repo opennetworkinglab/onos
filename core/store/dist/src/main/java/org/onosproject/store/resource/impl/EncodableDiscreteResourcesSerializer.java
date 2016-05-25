@@ -43,7 +43,7 @@ class EncodableDiscreteResourcesSerializer extends Serializer<EncodableDiscreteR
 
         return EncodableDiscreteResources.of(parent,
                 resources.stream()
-                        .flatMap(x -> x.resources(parent.id()).stream())
+                        .flatMap(x -> x.values(parent.id()).stream())
                         .collect(Collectors.toCollection(LinkedHashSet::new)));
     }
 }

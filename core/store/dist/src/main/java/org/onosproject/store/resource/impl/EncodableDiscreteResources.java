@@ -117,7 +117,7 @@ final class EncodableDiscreteResources implements DiscreteResources {
     @Override
     public Set<DiscreteResource> values() {
         return values.values().stream()
-                .flatMap(x -> x.resources(parent.id()).stream())
+                .flatMap(x -> x.values(parent.id()).stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
