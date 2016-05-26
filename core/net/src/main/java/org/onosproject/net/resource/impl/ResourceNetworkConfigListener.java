@@ -28,7 +28,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.resource.BandwidthCapacity;
+import org.onosproject.net.config.basics.BandwidthCapacity;
 import org.onosproject.net.resource.ResourceAdminService;
 import org.onosproject.net.resource.Resources;
 import org.slf4j.Logger;

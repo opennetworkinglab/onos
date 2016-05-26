@@ -44,7 +44,7 @@ import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.ResourceAdminService;
-import org.onosproject.net.resource.BandwidthCapacity;
+import org.onosproject.net.config.basics.BandwidthCapacity;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceQueryService;
 import org.onosproject.net.resource.Resources;
