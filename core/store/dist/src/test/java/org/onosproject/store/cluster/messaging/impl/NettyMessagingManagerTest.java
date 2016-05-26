@@ -133,8 +133,16 @@ public class NettyMessagingManagerTest {
         AtomicReference<String> handlerThreadName = new AtomicReference<>();
         AtomicReference<String> completionThreadName = new AtomicReference<>();
 
+        final CountDownLatch latch = new CountDownLatch(1);
+
         BiFunction<Endpoint, byte[], byte[]> handler = (ep, data) -> {
             handlerThreadName.set(Thread.currentThread().getName());
+            try {
+                latch.await();
+            } catch (InterruptedException e1) {
+                Thread.currentThread().interrupt();
+                fail("InterruptedException");
+            }
             return "hello there".getBytes();
         };
         netty2.registerHandler("test-subject", handler, handlerExecutor);
@@ -146,6 +154,7 @@ public class NettyMessagingManagerTest {
         response.whenComplete((r, e) -> {
             completionThreadName.set(Thread.currentThread().getName());
         });
+        latch.countDown();
 
         // Verify that the message was request handling and response completion happens on the correct thread.
         assertTrue(Arrays.equals("hello there".getBytes(), response.join()));
