@@ -32,6 +32,7 @@ import org.onosproject.store.service.Versioned;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
@@ -77,6 +78,13 @@ class ConsistentContinuousResourceSubStore {
         }
 
         return children.value();
+    }
+
+    <T> Set<ContinuousResource> getChildResources(DiscreteResourceId parent, Class<T> cls) {
+        // naive implementation
+        return getChildResources(parent).stream()
+                .filter(x -> x.isTypeOf(cls))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public boolean isAvailable(ContinuousResource resource) {

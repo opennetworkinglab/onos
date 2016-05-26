@@ -111,6 +111,18 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
     Set<Resource> getChildResources(DiscreteResourceId parent);
 
     /**
+     * Returns a set of the child resources of the specified parent and whose type is
+     * the specified class.
+     *
+     * @param parent ID of the parent of the resources to be returned
+     * @param cls class instance of the children
+     * @param <T> type of the resource
+     * @return a set of the child resources of the specified parent and whose type is
+     * the specified class
+     */
+    <T> Set<Resource> getChildResources(DiscreteResourceId parent, Class<T> cls);
+
+    /**
      * Returns a collection of the resources which are children of the specified parent and
      * whose type is the specified class.
      *

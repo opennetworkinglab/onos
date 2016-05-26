@@ -93,6 +93,11 @@ final class UnifiedDiscreteResources implements DiscreteResources {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    public <T> Set<DiscreteResource> valuesOf(Class<T> cls) {
+        return Stream.concat(encodables.valuesOf(cls).stream(), generics.valuesOf(cls).stream())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(generics, encodables);

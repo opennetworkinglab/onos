@@ -91,4 +91,13 @@ interface DiscreteResources {
      * @return all resources
      */
     Set<DiscreteResource> values();
+
+    /**
+     * Returns all of resources this instance holds and filtered by the specified type.
+     *
+     * @param cls class instance of the resource value
+     * @param <T> type of the resource value
+     * @return all of resources this instance holds and filtered by the specified type
+     */
+    <T> Set<DiscreteResource> valuesOf(Class<T> cls);
 }

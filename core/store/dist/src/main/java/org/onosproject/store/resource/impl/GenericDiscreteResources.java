@@ -25,6 +25,7 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 final class GenericDiscreteResources implements DiscreteResources {
     private final Set<DiscreteResource> values;
@@ -84,6 +85,13 @@ final class GenericDiscreteResources implements DiscreteResources {
         // breaks immutability, but intentionally returns the field
         // because this class is transient
         return values;
+    }
+
+    @Override
+    public <T> Set<DiscreteResource> valuesOf(Class<T> cls) {
+        return values.stream()
+                .filter(x -> x.isTypeOf(cls))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override

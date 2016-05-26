@@ -296,6 +296,17 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 .build();
     }
 
+    @Override
+    public <T> Set<Resource> getChildResources(DiscreteResourceId parent, Class<T> cls) {
+        checkNotNull(parent);
+        checkNotNull(cls);
+
+        return ImmutableSet.<Resource>builder()
+                .addAll(discreteStore.getChildResources(parent, cls))
+                .addAll(continuousStore.getChildResources(parent, cls))
+                .build();
+    }
+
     // computational complexity: O(n) where n is the number of the children of the parent
     @Override
     public <T> Collection<Resource> getAllocatedResources(DiscreteResourceId parent, Class<T> cls) {

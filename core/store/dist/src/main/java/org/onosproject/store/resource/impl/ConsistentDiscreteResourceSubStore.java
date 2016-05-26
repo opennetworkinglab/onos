@@ -76,6 +76,16 @@ class ConsistentDiscreteResourceSubStore {
         return children.value().values();
     }
 
+    <T> Set<DiscreteResource> getChildResources(DiscreteResourceId parent, Class<T> cls) {
+        Versioned<DiscreteResources> children = childMap.get(parent);
+
+        if (children == null) {
+            return ImmutableSet.of();
+        }
+
+        return children.value().valuesOf(cls);
+    }
+
     boolean isAvailable(DiscreteResource resource) {
         return getResourceAllocations(resource.id()).isEmpty();
     }

@@ -16,6 +16,7 @@
 package org.onosproject.store.resource.impl;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceCodec;
@@ -112,6 +113,13 @@ final class EncodableDiscreteResources implements DiscreteResources {
         return values.values().stream()
                 .flatMap(x -> x.values(parent.id()).stream())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    @Override
+    public <T> Set<DiscreteResource> valuesOf(Class<T> cls) {
+        return Optional.ofNullable(values.get(cls))
+                .map(x -> x.values(parent.id()))
+                .orElse(ImmutableSet.of());
     }
 
     DiscreteResource parent() {

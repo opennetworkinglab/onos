@@ -68,4 +68,9 @@ final class EmptyDiscreteResources implements DiscreteResources {
                 .add("values", ImmutableSet.of())
                 .toString();
     }
+
+    @Override
+    public <T> Set<DiscreteResource> valuesOf(Class<T> cls) {
+        return ImmutableSet.of();
+    }
 }
