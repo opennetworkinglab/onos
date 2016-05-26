@@ -7,7 +7,7 @@ cd $ONOS_ROOT
 
 projects=$(find $ONOS_ROOT -type f -path '*/src/*' \
     -exec $ONOS_ROOT/tools/dev/bin/onos-build-selective-hook {} \; | \
-        grep -v -f $ONOS_ROOT/tools/dev/bin/onos-build-selective.exclude | \
+        egrep -v -f $ONOS_ROOT/tools/dev/bin/onos-build-selective.exclude | \
         sort -u | sed "s:$ONOS_ROOT::g" | tr '\n' ',' | \
         sed 's:/,:,:g;s:,/:,:g;s:^/::g;s:,$::g')
 
@@ -16,7 +16,7 @@ if [ -n "$projects" ]; then
     modulesERE=""
     for pd in ${projects//,/ }; do
         if [ -f ${pd}/pom.xml ]; then
-            artifactId=$(grep -E "^    <artifactId>.*</artifactId>$" ${pd}/pom.xml | \
+            artifactId=$(egrep -E "^    <artifactId>.*</artifactId>$" ${pd}/pom.xml | \
                             sed 's/.[^>]*>//;s/<.*//')
             modulesERE="$modulesERE|$artifactId"
         fi
@@ -26,7 +26,7 @@ if [ -n "$projects" ]; then
     # Search through staged app.xml files for any apps that require one or
     # more of the modified artifacts.
     appProjects=$(find $ONOS_ROOT -type f -path '*/target/oar/app.xml' | \
-            xargs grep '<artifact>' | grep -E "/($modulesERE)/" | \
+            xargs egrep '<artifact>' | egrep -E "/($modulesERE)/" | \
             cut -d: -f1 | sed 's:/target/oar/.*::g' | \
             sort -u | sed "s:$ONOS_ROOT::g" | tr '\n' ',' | \
             sed 's:/,:,:g;s:,/:,:g;s:^/::g;s:,$::g')
