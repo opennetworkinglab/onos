@@ -201,7 +201,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         private Builder(FilteringObjective objective) {
             this.type = objective.type();
             this.key = objective.key();
-            this.conditions = ImmutableList.copyOf(objective.conditions());
+            objective.conditions().forEach(this::addCondition);
             this.permanent = objective.permanent();
             this.timeout = objective.timeout();
             this.priority = objective.priority();
