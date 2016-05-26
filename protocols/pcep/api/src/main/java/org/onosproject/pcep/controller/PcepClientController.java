@@ -85,6 +85,20 @@ public interface PcepClientController {
     void removeNodeListener(PcepNodeListener listener);
 
     /**
+     * Register a listener for packet events.
+     *
+     * @param listener the listener to notify
+     */
+    void addPacketListener(PcepPacketListener listener);
+
+    /**
+     * Unregister a packet listener.
+     *
+     * @param listener the listener to unregister
+     */
+    void removePacketListener(PcepPacketListener listener);
+
+    /**
      * Send a message to a particular pcc client.
      *
      * @param pccId the id of the client to send message.

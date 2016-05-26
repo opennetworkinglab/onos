@@ -26,7 +26,6 @@ import static org.onosproject.incubator.net.tunnel.Tunnel.State.ESTABLISHED;
 import static org.onosproject.net.MastershipRole.MASTER;
 
 import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,6 +43,7 @@ import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.TCP;
 import org.onlab.util.Bandwidth;
 import org.onosproject.common.DefaultTopologyGraph;
 import org.onosproject.core.ApplicationId;
@@ -112,6 +112,7 @@ import org.onosproject.pce.util.FlowObjServiceAdapter;
 import org.onosproject.store.service.TestStorageService;
 
 import com.google.common.collect.ImmutableSet;
+import static org.onosproject.pce.pceservice.PceManager.PCEP_PORT;
 
 /**
  * Tests the functions of PceManager.
@@ -675,12 +676,9 @@ public class PceManagerTest {
      * Tests packet in to trigger label DB sync.
      */
     @Test
-    public void packetProcessingTest() throws URISyntaxException {
+    public void packetProcessingTest1() throws URISyntaxException {
 
         build4RouterTopo(false, true, true, true, 0); // This also initializes devices etc.
-
-        final int srcHost = 2;
-        final int dstHost = 5;
 
         LabelResourceId node1Label = LabelResourceId.labelResourceId(5200);
         LabelResourceId node2Label = LabelResourceId.labelResourceId(5201);
@@ -688,8 +686,8 @@ public class PceManagerTest {
         pceManager.pceStore.addGlobalNodeLabel(D1.deviceId(), node1Label);
         pceManager.pceStore.addGlobalNodeLabel(D2.deviceId(), node2Label);
 
-        ConnectPoint src = new ConnectPoint(D1.deviceId(), PortNumber.portNumber(srcHost));
-        ConnectPoint dst = new ConnectPoint(D2.deviceId(), PortNumber.portNumber(dstHost));
+        ConnectPoint src = new ConnectPoint(D1.deviceId(), PortNumber.portNumber(1));
+        ConnectPoint dst = new ConnectPoint(D2.deviceId(), PortNumber.portNumber(2));
 
         Link link1 = DefaultLink.builder().src(src).dst(dst).state(ACTIVE).type(DIRECT)
                 .providerId(new ProviderId("eth", "1")).build();
@@ -697,21 +695,63 @@ public class PceManagerTest {
         LabelResourceId link1Label = LabelResourceId.labelResourceId(5204);
         pceManager.pceStore.addAdjLabel(link1, link1Label);
 
-        Ethernet eth;
-        IPv4 ipv4;
+        TCP tcp = new TCP();
+        tcp.setDestinationPort(PCEP_PORT);
 
-        ipv4 = new IPv4();
-        eth = new Ethernet();
+        IPv4 ipv4 = new IPv4();
+        ipv4.setProtocol(IPv4.PROTOCOL_TCP);
+        ipv4.setPayload(tcp);
+
+        Ethernet eth = new Ethernet();
         eth.setEtherType(Ethernet.TYPE_IPV4);
         eth.setPayload(ipv4);
 
-        eth.setSourceMACAddress("00:00:00:10:00:0" + srcHost).setDestinationMACAddress("00:00:00:10:00:0" + dstHost);
-
-        InboundPacket inPkt = new DefaultInboundPacket(new ConnectPoint(D1.deviceId(), PortNumber.portNumber(srcHost)),
-                                                       eth, ByteBuffer.wrap(eth.serialize()));
+        InboundPacket inPkt = new DefaultInboundPacket(new ConnectPoint(D1.deviceId(),
+                                                                        PortNumber.portNumber(PCEP_PORT)),
+                                                       eth, null);
 
         pktProcessor.process(new MockPcepPacketContext(inPkt, null));
         assertThat(flowsDownloaded, is(4));
+    }
+
+    /**
+     * Tests faulty packet in to trigger label DB sync.
+     */
+    @Test
+    public void packetProcessingTest2() throws URISyntaxException {
+
+        build4RouterTopo(false, true, true, true, 0); // This also initializes devices etc.
+
+        LabelResourceId node1Label = LabelResourceId.labelResourceId(5200);
+        LabelResourceId node2Label = LabelResourceId.labelResourceId(5201);
+
+        pceManager.pceStore.addGlobalNodeLabel(D1.deviceId(), node1Label);
+        pceManager.pceStore.addGlobalNodeLabel(D2.deviceId(), node2Label);
+
+        ConnectPoint src = new ConnectPoint(D1.deviceId(), PortNumber.portNumber(1));
+        ConnectPoint dst = new ConnectPoint(D2.deviceId(), PortNumber.portNumber(2));
+
+        Link link1 = DefaultLink.builder().src(src).dst(dst).state(ACTIVE).type(DIRECT)
+                .providerId(new ProviderId("eth", "1")).build();
+
+        LabelResourceId link1Label = LabelResourceId.labelResourceId(5204);
+        pceManager.pceStore.addAdjLabel(link1, link1Label);
+
+        TCP tcp = new TCP(); // Not set the pcep port.
+        IPv4 ipv4 = new IPv4();
+        ipv4.setProtocol(IPv4.PROTOCOL_TCP);
+        ipv4.setPayload(tcp);
+
+        Ethernet eth = new Ethernet();
+        eth.setEtherType(Ethernet.TYPE_IPV4);
+        eth.setPayload(ipv4);
+
+        InboundPacket inPkt = new DefaultInboundPacket(new ConnectPoint(D1.deviceId(),
+                                                                        PortNumber.portNumber(PCEP_PORT)),
+                                                       eth, null);
+
+        pktProcessor.process(new MockPcepPacketContext(inPkt, null));
+        assertThat(flowsDownloaded, is(0));
     }
 
     /**

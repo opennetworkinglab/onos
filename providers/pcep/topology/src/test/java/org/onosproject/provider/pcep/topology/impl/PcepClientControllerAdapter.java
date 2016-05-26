@@ -32,6 +32,7 @@ import org.onosproject.pcep.controller.PcepClientController;
 import org.onosproject.pcep.controller.PcepClientListener;
 import org.onosproject.pcep.controller.PcepEventListener;
 import org.onosproject.pcep.controller.PcepNodeListener;
+import org.onosproject.pcep.controller.PcepPacketListener;
 import org.onosproject.pcep.controller.driver.PcepAgent;
 import org.onosproject.pcepio.protocol.PcepError;
 import org.onosproject.pcepio.protocol.PcepErrorInfo;
@@ -280,5 +281,23 @@ public class PcepClientControllerAdapter implements PcepClientController {
                 l.deleteNode(pccId);
             }
         }
+
+        @Override
+        public boolean analyzeSyncMsgList(PccId pccId) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+    }
+
+    @Override
+    public void addPacketListener(PcepPacketListener listener) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void removePacketListener(PcepPacketListener listener) {
+        // TODO Auto-generated method stub
+
     }
 }

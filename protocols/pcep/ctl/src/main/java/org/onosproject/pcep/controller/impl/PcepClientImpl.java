@@ -19,6 +19,8 @@ package org.onosproject.pcep.controller.impl;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
@@ -36,6 +38,7 @@ import org.onosproject.pcep.controller.driver.PcepClientDriver;
 import org.onosproject.pcepio.protocol.PcepFactories;
 import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
+import org.onosproject.pcepio.protocol.PcepStateReport;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +73,7 @@ public class PcepClientImpl implements PcepClientDriver {
     private byte sessionId;
     private PcepPacketStatsImpl pktStats;
     private Map<LspKey, Boolean> lspDelegationInfo;
+    private Map<PccId, List<PcepStateReport>> sycRptCache = new HashMap<>();
 
     @Override
     public void init(PccId pccId, PcepVersion pcepVersion, PcepPacketStats pktStats) {
@@ -192,7 +196,14 @@ public class PcepClientImpl implements PcepClientDriver {
 
     @Override
     public void setLabelDbSyncStatus(PcepSyncStatus syncStatus) {
+
+        PcepSyncStatus syncOldStatus = labelDbSyncStatus();
         this.labelDbSyncStatus = syncStatus;
+
+        if ((syncOldStatus == PcepSyncStatus.IN_SYNC) && (syncStatus == PcepSyncStatus.SYNCED)) {
+            // Perform end of LSP DB sync actions.
+            this.agent.analyzeSyncMsgList(pccId);
+        }
     }
 
     @Override
@@ -251,6 +262,29 @@ public class PcepClientImpl implements PcepClientDriver {
     @Override
     public Boolean delegationInfo(LspKey lspKey) {
         return lspDelegationInfo.get(lspKey);
+    }
+
+    @Override
+    public void initializeSyncMsgList(PccId pccId) {
+        List<PcepStateReport> rptMsgList = new LinkedList<>();
+        sycRptCache.put(pccId, rptMsgList);
+    }
+
+    @Override
+    public List<PcepStateReport> getSyncMsgList(PccId pccId) {
+        return sycRptCache.get(pccId);
+    }
+
+    @Override
+    public void removeSyncMsgList(PccId pccId) {
+        sycRptCache.remove(pccId);
+    }
+
+    @Override
+    public void addSyncMsgToList(PccId pccId, PcepStateReport rptMsg) {
+        List<PcepStateReport> rptMsgList = sycRptCache.get(pccId);
+        rptMsgList.add(rptMsg);
+        sycRptCache.put(pccId, rptMsgList);
     }
 
     @Override

@@ -30,6 +30,7 @@ import org.onosproject.pcep.controller.PcepClientController;
 import org.onosproject.pcep.controller.PcepClientListener;
 import org.onosproject.pcep.controller.PcepEventListener;
 import org.onosproject.pcep.controller.PcepNodeListener;
+import org.onosproject.pcep.controller.PcepPacketListener;
 import org.onosproject.pcep.controller.driver.PcepAgent;
 import org.onosproject.pcepio.protocol.PcepError;
 import org.onosproject.pcepio.protocol.PcepErrorInfo;
@@ -57,6 +58,7 @@ public class PcepClientControllerAdapter implements PcepClientController {
 
     protected Set<PcepEventListener> pcepEventListener = Sets.newHashSet();
     public Set<PcepNodeListener> pcepNodeListener = Sets.newHashSet();
+    protected Set<PcepPacketListener> pcepPacketListener = Sets.newHashSet();
 
     @Activate
     public void activate() {
@@ -113,6 +115,16 @@ public class PcepClientControllerAdapter implements PcepClientController {
     @Override
     public void removeEventListener(PcepEventListener listener) {
         pcepEventListener.remove(listener);
+    }
+
+    @Override
+    public void addPacketListener(PcepPacketListener listener) {
+        pcepPacketListener.add(listener);
+    }
+
+    @Override
+    public void removePacketListener(PcepPacketListener listener) {
+        pcepPacketListener.remove(listener);
     }
 
     @Override
@@ -272,6 +284,12 @@ public class PcepClientControllerAdapter implements PcepClientController {
             for (PcepNodeListener l : pcepNodeListener) {
                 l.deleteNode(pccId);
             }
+        }
+
+        @Override
+        public boolean analyzeSyncMsgList(PccId pccId) {
+            // TODO Auto-generated method stub
+            return false;
         }
     }
 }

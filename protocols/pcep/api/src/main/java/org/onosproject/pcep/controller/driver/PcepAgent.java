@@ -73,4 +73,12 @@ public interface PcepAgent {
      * @param pccId PCEP client ID
      */
     void deleteNode(PccId pccId);
+
+    /**
+     * Analyzes report messages received during LSP DB sync again tunnel store and takes necessary actions.
+     *
+     * @param pccId the id of pcc client
+     * @return success or failure
+     */
+    boolean analyzeSyncMsgList(PccId pccId);
 }

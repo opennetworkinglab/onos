@@ -31,6 +31,7 @@ import org.onosproject.pcep.controller.PcepSyncStatus;
 import org.onosproject.pcepio.protocol.PcepFactories;
 import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
+import org.onosproject.pcepio.protocol.PcepStateReport;
 import org.onosproject.pcepio.protocol.PcepVersion;
 
 /**
@@ -160,5 +161,29 @@ public class PcepClientAdapter implements PcepClient {
     @Override
     public Boolean delegationInfo(LspKey lspKey) {
         return lspDelegationInfo.get(lspKey);
+    }
+
+    @Override
+    public void initializeSyncMsgList(PccId pccId) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public List<PcepStateReport> getSyncMsgList(PccId pccId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void removeSyncMsgList(PccId pccId) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void addSyncMsgToList(PccId pccId, PcepStateReport rptMsg) {
+        // TODO Auto-generated method stub
+
     }
 }

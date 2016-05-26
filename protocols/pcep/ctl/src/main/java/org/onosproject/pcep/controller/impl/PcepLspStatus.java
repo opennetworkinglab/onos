@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.provider.pcep.tunnel.impl;
+package org.onosproject.pcep.controller.impl;
 
 import org.onosproject.incubator.net.tunnel.Tunnel.State;
 
@@ -51,6 +51,7 @@ public enum PcepLspStatus {
      * Returns the applicable PCEP LSP status corresponding to ONOS tunnel state.
      *
      * @param tunnelState ONOS tunnel state
+     * @return LSP status as per protocol
      */
     public static PcepLspStatus getLspStatusFromTunnelStatus(State tunnelState) {
 
@@ -76,6 +77,7 @@ public enum PcepLspStatus {
      * Returns the applicable ONOS tunnel state corresponding to PCEP LSP status.
      *
      * @param lspState PCEP LSP status
+     * @return tunnel state
      */
     public static State getTunnelStatusFromLspStatus(PcepLspStatus lspState) {
 

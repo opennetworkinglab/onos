@@ -18,6 +18,7 @@ package org.onosproject.provider.pcep.tunnel.impl;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
@@ -31,6 +32,7 @@ import org.onosproject.pcep.controller.PcepSyncStatus;
 import org.onosproject.pcepio.protocol.PcepFactories;
 import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
+import org.onosproject.pcepio.protocol.PcepStateReport;
 import org.onosproject.pcepio.protocol.PcepVersion;
 
 /**
@@ -49,6 +51,7 @@ public class PcepClientAdapter implements PcepClient {
     private PcepSyncStatus lspDbSyncStatus;
     private PcepSyncStatus labelDbSyncStatus;
     private Map<LspKey, Boolean> lspDelegationInfo = new HashMap<>();
+    private Map<PccId, List<PcepStateReport>> sycRptCache = new HashMap<>();
 
     /**
      * Initialize instance with specified parameters.
@@ -160,5 +163,28 @@ public class PcepClientAdapter implements PcepClient {
     @Override
     public Boolean delegationInfo(LspKey lspKey) {
         return lspDelegationInfo.get(lspKey);
+    }
+
+    @Override
+    public void initializeSyncMsgList(PccId pccId) {
+        List<PcepStateReport> rptMsgList = new LinkedList<>();
+        sycRptCache.put(pccId, rptMsgList);
+    }
+
+    @Override
+    public List<PcepStateReport> getSyncMsgList(PccId pccId) {
+        return sycRptCache.get(pccId);
+    }
+
+    @Override
+    public void removeSyncMsgList(PccId pccId) {
+        sycRptCache.remove(pccId);
+    }
+
+    @Override
+    public void addSyncMsgToList(PccId pccId, PcepStateReport rptMsg) {
+        List<PcepStateReport> rptMsgList = sycRptCache.get(pccId);
+        rptMsgList.add(rptMsg);
+        sycRptCache.put(pccId, rptMsgList);
     }
 }

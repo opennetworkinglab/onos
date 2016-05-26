@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepMessage;
+import org.onosproject.pcepio.protocol.PcepStateReport;
 
 /**
  * Represents to provider facing side of a path computation client(pcc).
@@ -165,4 +166,34 @@ public interface PcepClient {
      * @return delegation flag
      */
     Boolean delegationInfo(LspKey lspKey);
+
+    /**
+     * Creates a temporary cache to hold report messages received during LSPDB sync.
+     *
+     * @param pccId PCC id which is the key to store report messages
+     */
+    void initializeSyncMsgList(PccId pccId);
+
+    /**
+     * Returns the list of report messages received during LSPDB sync.
+     *
+     * @param pccId PCC id which is the key for all the report messages
+     * @return list of report messages received during LSPDB sync
+     */
+    List<PcepStateReport> getSyncMsgList(PccId pccId);
+
+    /**
+     * Removes the list of report messages received during LSPDB sync.
+     *
+     * @param pccId PCC id which is the key for all the report messages
+     */
+    void removeSyncMsgList(PccId pccId);
+
+    /**
+     * Adds report message received during LSPDB sync into temporary cache.
+     *
+     * @param pccId PCC id which is the key to store report messages
+     * @param rptMsg the report message to be stored
+     */
+    void addSyncMsgToList(PccId pccId, PcepStateReport rptMsg);
 }

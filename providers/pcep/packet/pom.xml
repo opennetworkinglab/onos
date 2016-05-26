@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2015-present Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,38 +22,13 @@
         <version>1.7.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>onos-pcep-provider-tunnel</artifactId>
+    <artifactId>onos-pcep-provider-packet</artifactId>
     <packaging>bundle</packaging>
-    <description>PCEP-based tunnel provider</description>
+    <description>PCEP packet provider</description>
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-pcep-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onos-pcep-controller-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-api</artifactId>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-incubator-net</artifactId>
-            <version>${project.version} </version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-pcep-controller-impl</artifactId>
-            <version>${project.version} </version>
         </dependency>
     </dependencies>
 </project>
