@@ -43,10 +43,10 @@ import java.util.Objects;
 public class WideCommunity implements BgpValueType {
 
     private static final Logger log = LoggerFactory.getLogger(WideCommunity.class);
-    public static final byte TYPE = (byte) 254; /* TODO: IANA Assigned */
+    public static final byte TYPE = (byte) 129;
     public static final short LENGTH = 4;
     public static final byte TYPE_LENGTH_SIZE = 3;
-    public static final byte FLAGS = (byte) 0x40;
+    public static final byte FLAGS = (byte) 0x90;
     private WideCommunityAttrHeader wideCommunityHeader;
     private int community;
     private int localAsn;
@@ -238,6 +238,9 @@ public class WideCommunity implements BgpValueType {
 
         wideCommunityHeader.write(c);
 
+        int iComLengthIndex = c.writerIndex();
+        c.writeShort(0);
+
         c.writeInt(community);
         c.writeInt(localAsn);
         c.writeInt(contextAsn);
@@ -274,6 +277,9 @@ public class WideCommunity implements BgpValueType {
             length = c.writerIndex() - iTargetLenIndex;
             c.setShort(iTargetLenIndex, (short) (length - 2));
         }
+
+        length = c.writerIndex() - iComLengthIndex;
+        c.setShort(iComLengthIndex, (short) (length - 2));
 
         length = c.writerIndex() - iLengthIndex;
         c.setShort(iLengthIndex, (short) (length - 2));

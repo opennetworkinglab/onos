@@ -135,7 +135,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                 BgpSelectionAlgo selectionAlgo = new BgpSelectionAlgo();
                 // Compare local RIB entry with the current attribute
                 decisionResult = selectionAlgo.compare(nodeTree.get(nodeLsIdentifier), detailsLocRib);
-                if (decisionResult < 0) {
+                if (decisionResult <= 0) {
                     for (BgpNodeListener l : bgpController.listener()) {
                         l.addNode((BgpNodeLSNlriVer4) nlri, details);
                     }
@@ -155,7 +155,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                 BgpSelectionAlgo selectionAlgo = new BgpSelectionAlgo();
                 // Compare local RIB entry with the current attribute
                 decisionResult = selectionAlgo.compare(linkTree.get(linkLsIdentifier), detailsLocRib);
-                if (decisionResult < 0) {
+                if (decisionResult <= 0) {
                     linkTree.replace(linkLsIdentifier, detailsLocRib);
                     for (BgpLinkListener l : bgpController.linkListener()) {
                         l.addLink((BgpLinkLsNlriVer4) nlri, details);
@@ -175,7 +175,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                 BgpSelectionAlgo selectionAlgo = new BgpSelectionAlgo();
                 // Compare local RIB entry with the current attribute
                 decisionResult = selectionAlgo.compare(prefixTree.get(prefixIdentifier), detailsLocRib);
-                if (decisionResult < 0) {
+                if (decisionResult <= 0) {
                     prefixTree.replace(prefixIdentifier, detailsLocRib);
                     log.debug("Local RIB update prefix: {}", detailsLocRib.toString());
                 }
