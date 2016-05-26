@@ -272,7 +272,6 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     @Override
     public Collection<Resource> getResources(ResourceConsumer consumer) {
         checkNotNull(consumer);
-        ResourceConsumerId consumerId = consumer.consumerId();
 
         // NOTE: getting all entries may become performance bottleneck
         // TODO: revisit for better backend data structure
