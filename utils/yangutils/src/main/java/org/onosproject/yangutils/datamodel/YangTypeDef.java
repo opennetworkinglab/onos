@@ -187,7 +187,7 @@ public class YangTypeDef extends YangNode implements YangCommonInfo, Parsable, Y
      * @return the data type
      */
     public YangType<?> getTypeDefBaseType() {
-        if (!(getTypeList().isEmpty())) {
+        if (!getTypeList().isEmpty()) {
             return getTypeList().get(0);
         }
         return null;

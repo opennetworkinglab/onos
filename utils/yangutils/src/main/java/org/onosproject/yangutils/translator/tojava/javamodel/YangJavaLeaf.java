@@ -71,6 +71,7 @@ public class YangJavaLeaf
      *
      * @return java naming conflict resolve configurations
      */
+    @Override
     public YangToJavaNamingConflictUtil getConflictResolveConfig() {
         return conflictResolveConfig;
     }
@@ -80,6 +81,7 @@ public class YangJavaLeaf
      *
      * @param conflictResolveConfig java naming conflict resolve configurations
      */
+    @Override
     public void setConflictResolveConfig(YangToJavaNamingConflictUtil conflictResolveConfig) {
         this.conflictResolveConfig = conflictResolveConfig;
     }

@@ -270,11 +270,10 @@ public final class AttributesJavaDataType {
      *
      * @param yangType YANG type
      * @param isListAttr if the attribute is of list type
-     * @param classInfo java import class info
      * @param conflictResolver object of YANG to java naming conflict util
      * @return java import package
      */
-    public static String getJavaImportPackage(YangType<?> yangType, boolean isListAttr, String classInfo,
+    public static String getJavaImportPackage(YangType<?> yangType, boolean isListAttr,
             YangToJavaNamingConflictUtil conflictResolver) {
 
         YangDataTypes type = yangType.getDataType();
@@ -430,13 +429,13 @@ public final class AttributesJavaDataType {
                 YangJavaModule module = (YangJavaModule) parent;
                 String modulePkg = getRootPackage(module.getVersion(), module.getNameSpace().getUri(), module
                         .getRevision().getRevDate(), conflictResolver);
-                return modulePkg + PERIOD + getCamelCase(module.getName(), null).toLowerCase();
+                return modulePkg + PERIOD + getCamelCase(module.getName(), conflictResolver).toLowerCase();
             } else if (parent instanceof YangJavaSubModule) {
                 YangJavaSubModule submodule = (YangJavaSubModule) parent;
                 String subModulePkg = getRootPackage(submodule.getVersion(),
                         submodule.getNameSpaceFromModule(submodule.getBelongsTo()),
                         submodule.getRevision().getRevDate(), conflictResolver);
-                return subModulePkg + PERIOD + getCamelCase(submodule.getName(), null).toLowerCase();
+                return subModulePkg + PERIOD + getCamelCase(submodule.getName(), conflictResolver).toLowerCase();
             }
         }
         return parentInfo.getPackage() + PERIOD + parentInfo.getJavaName().toLowerCase();

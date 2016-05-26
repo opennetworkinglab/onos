@@ -265,7 +265,7 @@ public final class MethodsGenerator {
      * @return getter for attribute
      */
     public static String getGetter(String type, String name, int generatedJavaFiles) {
-        String ret = parseTypeForGetter(type);
+        String ret = parseTypeForReturnValue(type);
         if ((generatedJavaFiles & GENERATE_SERVICE_AND_MANAGER) != 0) {
             return FOUR_SPACE_INDENTATION + PUBLIC + SPACE + type + SPACE + GET_METHOD_PREFIX + getCapitalCase(name)
                     + OPEN_PARENTHESIS + CLOSE_PARENTHESIS + SPACE + OPEN_CURLY_BRACKET + NEW_LINE +
@@ -281,7 +281,7 @@ public final class MethodsGenerator {
     }
 
     /*Provides string to return for type.*/
-    private static String parseTypeForGetter(String type) {
+    private static String parseTypeForReturnValue(String type) {
         switch (type) {
         case BYTE:
         case INT:
@@ -555,12 +555,11 @@ public final class MethodsGenerator {
             YangPluginConfig pluginConfig) {
 
         rpcName = getCamelCase(rpcName, pluginConfig.getConflictResolver());
-        inputName = getCapitalCase(inputName);
-        if (!outputName.equals(VOID)) {
-            outputName = getCapitalCase(outputName);
+        if (!inputName.equals(EMPTY_STRING)) {
+            inputName = inputName + SPACE + RPC_INPUT_VAR_NAME;
         }
-        return FOUR_SPACE_INDENTATION + outputName + SPACE + rpcName + OPEN_PARENTHESIS + inputName + SPACE
-                + RPC_INPUT_VAR_NAME + CLOSE_PARENTHESIS + SEMI_COLAN;
+        return FOUR_SPACE_INDENTATION + outputName + SPACE + rpcName + OPEN_PARENTHESIS + inputName
+                + CLOSE_PARENTHESIS + SEMI_COLAN;
     }
 
     /**
@@ -576,16 +575,17 @@ public final class MethodsGenerator {
             YangPluginConfig pluginConfig) {
 
         rpcName = getCamelCase(rpcName, pluginConfig.getConflictResolver());
-        inputName = getCapitalCase(inputName);
-        if (!outputName.equals(VOID)) {
-            outputName = getCapitalCase(outputName);
+        if (!inputName.equals(EMPTY_STRING)) {
+            inputName = inputName + SPACE + RPC_INPUT_VAR_NAME;
         }
 
-        String method = getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + outputName + SPACE + rpcName
-                + OPEN_PARENTHESIS + inputName + SPACE + RPC_INPUT_VAR_NAME + CLOSE_PARENTHESIS + SPACE
-                + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + YANG_UTILS_TODO + NEW_LINE;
+        String method =
+                getOverRideString() + FOUR_SPACE_INDENTATION + PUBLIC + SPACE + outputName + SPACE + rpcName
+                        + OPEN_PARENTHESIS + inputName + CLOSE_PARENTHESIS + SPACE
+                        + OPEN_CURLY_BRACKET + NEW_LINE + EIGHT_SPACE_INDENTATION + YANG_UTILS_TODO + NEW_LINE;
         if (!outputName.contentEquals(VOID)) {
-            method += EIGHT_SPACE_INDENTATION + RETURN + SPACE + NULL + SEMI_COLAN + NEW_LINE;
+            method += EIGHT_SPACE_INDENTATION + RETURN + SPACE + parseTypeForReturnValue(outputName) + SEMI_COLAN
+                    + NEW_LINE;
         }
         method += FOUR_SPACE_INDENTATION + CLOSE_CURLY_BRACKET;
 

@@ -26,7 +26,7 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
 import static org.onosproject.yangutils.translator.tojava.GeneratedJavaFileType.GENERATE_INTERFACE_WITH_BUILDER;
-import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfNode;
+import static org.onosproject.yangutils.translator.tojava.utils.YangJavaModelUtils.generateCodeOfAugmentableNode;
 
 /**
  * Represents input information extended to support java code generation.
@@ -45,6 +45,8 @@ public class YangJavaInput
      * snippet types.
      */
     private TempJavaCodeFragmentFiles tempFileHandle;
+
+    private boolean codeGenFlag;
 
     /**
      * Creates an instance of java input.
@@ -108,7 +110,7 @@ public class YangJavaInput
     @Override
     public void generateCodeEntry(YangPluginConfig yangPlugin) throws TranslatorException {
         try {
-            generateCodeOfNode(this, yangPlugin);
+            generateCodeOfAugmentableNode(this, yangPlugin);
         } catch (IOException e) {
             throw new TranslatorException(
                     "Failed to prepare generate code entry for input node " + this.getName());
@@ -123,9 +125,29 @@ public class YangJavaInput
     @Override
     public void generateCodeExit() throws TranslatorException {
         try {
-            getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+            if (isCodeGenFlag()) {
+                getTempJavaCodeFragmentFiles().generateJavaFile(GENERATE_INTERFACE_WITH_BUILDER, this);
+            }
         } catch (IOException e) {
             throw new TranslatorException("Failed to generate code for input node " + this.getName());
         }
+    }
+
+    /**
+     * Returns code generator flag.
+     *
+     * @return code generator flag
+     */
+    public boolean isCodeGenFlag() {
+        return codeGenFlag;
+    }
+
+    /**
+     * Sets code generator flag.
+     *
+     * @param codeGenFlag code generator flag
+     */
+    public void setCodeGenFlag(boolean codeGenFlag) {
+        this.codeGenFlag = codeGenFlag;
     }
 }

@@ -696,7 +696,7 @@ public class YangResolutionInfo<T> implements LocationInfo {
              * Check if prefix is null or not, to identify whether to search
              * in import list or include list.
              */
-            if (getRefPrefix() != null && !(getRefPrefix().contentEquals(getCurReferenceResolver().getPrefix()))) {
+            if (getRefPrefix() != null && !getRefPrefix().contentEquals(getCurReferenceResolver().getPrefix())) {
                 if (resolveWithImport()) {
                     return;
                 }

@@ -433,7 +433,20 @@ public final class YangIoUtils {
         } else {
             stringBuilder.append(line + NEW_LINE);
         }
-        return stringBuilder.toString();
+
+        String[] strArray = stringBuilder.toString().split(NEW_LINE);
+        StringBuilder tempBuilder = new StringBuilder();
+        for (String str : strArray) {
+            if (str.length() > SUB_LINE_SIZE) {
+                if (str.contains(SPACE)) {
+                    String[] strArr = str.split(SPACE);
+                    tempBuilder = updateString(strArr, tempBuilder, SPACE, SUB_LINE_SIZE);
+                }
+            } else {
+                tempBuilder.append(str + NEW_LINE);
+            }
+        }
+        return tempBuilder.toString();
     }
 
     /*Updates the given line with the given size conditions.*/

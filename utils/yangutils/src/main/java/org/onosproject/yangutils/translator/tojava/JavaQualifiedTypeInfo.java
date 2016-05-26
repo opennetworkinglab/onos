@@ -112,7 +112,7 @@ public class JavaQualifiedTypeInfo
              */
             importInfo.setClassInfo(className);
             String classPkg = AttributesJavaDataType.getJavaImportPackage(leaf.getDataType(),
-                    leaf.isLeafList(), className, leaf.getConflictResolveConfig());
+                    leaf.isLeafList(), leaf.getConflictResolveConfig());
             if (classPkg == null) {
                 throw new TranslatorException("import package cannot be null when the class is used");
             }
@@ -180,7 +180,7 @@ public class JavaQualifiedTypeInfo
         qualifiedInfoOfFromString.setClassInfo(
                 getJavaImportClass(referredTypesAttrInfo.getAttributeType(), true, conflictResolver));
         qualifiedInfoOfFromString.setPkgInfo(
-                getJavaImportPackage(referredTypesAttrInfo.getAttributeType(), true, null, conflictResolver));
+                getJavaImportPackage(referredTypesAttrInfo.getAttributeType(), true, conflictResolver));
         return qualifiedInfoOfFromString;
     }
 

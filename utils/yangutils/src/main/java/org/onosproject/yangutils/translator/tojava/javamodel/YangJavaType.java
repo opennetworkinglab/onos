@@ -55,7 +55,7 @@ public class YangJavaType<T>
              */
             importInfo.setClassInfo(className);
             String classPkg = AttributesJavaDataType.getJavaImportPackage(this,
-                    false, className, conflictResolver);
+                    false,  conflictResolver);
             if (classPkg == null) {
                 throw new TranslatorException("import package cannot be null when the class is used");
             }

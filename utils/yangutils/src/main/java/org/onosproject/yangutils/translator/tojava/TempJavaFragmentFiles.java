@@ -28,6 +28,12 @@ import org.onosproject.yangutils.datamodel.YangLeavesHolder;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.translator.exception.TranslatorException;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaLeafInfoContainer;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaGrouping;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaInput;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaOutput;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaUses;
 import org.onosproject.yangutils.translator.tojava.utils.JavaExtendsListHolder;
 import org.onosproject.yangutils.translator.tojava.utils.YangPluginConfig;
 
@@ -61,6 +67,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSy
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getPackageDirPathFromJavaJPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getParentNodeInGenCode;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getRootPackage;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getBuildString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getDefaultConstructorString;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getEqualsMethod;
@@ -1078,6 +1085,9 @@ public class TempJavaFragmentFiles {
         if (!(parent instanceof JavaCodeGenerator)) {
             throw new TranslatorException("missing parent node to contain current node info in generated file");
         }
+        if (curNode instanceof YangJavaUses) {
+            curNode = ((YangJavaUses) curNode).getRefGroup();
+        }
         JavaAttributeInfo javaAttributeInfo = getCurNodeAsAttributeInParent(curNode,
                 parent, isList);
         if (!(parent instanceof TempJavaCodeFragmentFilesContainer)) {
@@ -1100,27 +1110,118 @@ public class TempJavaFragmentFiles {
      */
     public static JavaAttributeInfo getCurNodeAsAttributeInParent(
             YangNode curNode, YangNode parentNode, boolean isListNode) {
-        String curNodeName = ((JavaFileInfoContainer) curNode).getJavaFileInfo().getJavaName();
-        /*
-         * Get the import info corresponding to the attribute for import in
-         * generated java files or qualified access
-         */
-        JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(parentNode,
-                getCapitalCase(curNodeName));
+
+        YangPluginConfig pluginConfig = ((JavaFileInfoContainer) parentNode).getJavaFileInfo().getPluginConfig();
+        JavaFileInfo curNodeJavaInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
+        String curNodeName = null;
+
+        if (curNodeJavaInfo.getJavaName() != null) {
+            curNodeName = curNodeJavaInfo.getJavaName();
+        } else {
+            curNodeName = getCamelCase(curNode.getName(), pluginConfig.getConflictResolver());
+        }
+
         if (!(parentNode instanceof TempJavaCodeFragmentFilesContainer)) {
             throw new TranslatorException("Parent node does not have file info");
         }
+
         TempJavaFragmentFiles tempJavaFragmentFiles = getNodesInterfaceFragmentFiles(parentNode);
         boolean isQualified = true;
         JavaImportData parentImportData = tempJavaFragmentFiles.getJavaImportData();
         if (isListNode) {
             parentImportData.setIfListImported(true);
         }
-        if (!detectCollisionBwParentAndChildForImport(curNode, qualifiedTypeInfo)) {
+
+        /*
+         * Get the import info corresponding to the attribute for import in
+         * generated java files or qualified access
+         */
+
+        JavaQualifiedTypeInfo qualifiedTypeInfo = new JavaQualifiedTypeInfo();
+        if (curNode instanceof YangJavaGrouping) {
+            qualifiedTypeInfo = resolveGroupingsQuailifiedInfo(curNode, pluginConfig);
+        } else {
+            qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(parentNode,
+                    getCapitalCase(curNodeName));
+        }
+
+        if (parentNode instanceof YangJavaModule
+                || parentNode instanceof YangJavaSubModule
+                || parentNode instanceof YangJavaInput
+                || parentNode instanceof YangJavaOutput) {
+            parentImportData.addImportInfo(qualifiedTypeInfo);
+            isQualified = false;
+        } else if (curNode instanceof YangJavaGrouping) {
+            JavaFileInfo parentsClassInfo = ((JavaFileInfoContainer) parentNode).getJavaFileInfo();
+            if (qualifiedTypeInfo.getClassInfo().equals(parentsClassInfo.getJavaName())) {
+                isQualified = true;
+            }
+            if (!qualifiedTypeInfo.getPkgInfo().equals(parentsClassInfo.getPackage())) {
+                parentImportData.addImportInfo(qualifiedTypeInfo);
+                isQualified = false;
+            }
+        } else if (!detectCollisionBwParentAndChildForImport(curNode, qualifiedTypeInfo)) {
             parentImportData.addImportInfo(qualifiedTypeInfo);
             isQualified = false;
         }
         return getAttributeInfoForTheData(qualifiedTypeInfo, curNodeName, null, isQualified, isListNode);
+    }
+
+    /**
+     * Resolves groupings java qualified info.
+     *
+     * @param curNode grouping node
+     * @param pluginConfig plugin configurations
+     * @return groupings java qualified info
+     */
+    public static JavaQualifiedTypeInfo resolveGroupingsQuailifiedInfo(YangNode curNode,
+            YangPluginConfig pluginConfig) {
+
+        JavaFileInfo groupingFileInfo = ((JavaFileInfoContainer) curNode).getJavaFileInfo();
+        JavaQualifiedTypeInfo qualifiedTypeInfo = new JavaQualifiedTypeInfo();
+        if (groupingFileInfo.getPackage() == null) {
+            List<String> parentNames = new ArrayList<>();
+
+            YangNode tempNode = curNode.getParent();
+            YangNode groupingSuperParent = null;
+            while (tempNode != null) {
+                parentNames.add(tempNode.getName());
+                groupingSuperParent = tempNode;
+                tempNode = tempNode.getParent();
+            }
+
+            String pkg = null;
+            JavaFileInfo parentInfo = ((JavaFileInfoContainer) groupingSuperParent).getJavaFileInfo();
+            if (parentInfo.getPackage() == null) {
+                if (groupingSuperParent instanceof YangJavaModule) {
+                    YangJavaModule module = (YangJavaModule) groupingSuperParent;
+                    String modulePkg = getRootPackage(module.getVersion(), module.getNameSpace().getUri(), module
+                            .getRevision().getRevDate(), pluginConfig.getConflictResolver());
+                    pkg = modulePkg;
+                } else if (groupingSuperParent instanceof YangJavaSubModule) {
+                    YangJavaSubModule submodule = (YangJavaSubModule) groupingSuperParent;
+                    String subModulePkg = getRootPackage(submodule.getVersion(),
+                            submodule.getNameSpaceFromModule(submodule.getBelongsTo()),
+                            submodule.getRevision().getRevDate(), pluginConfig.getConflictResolver());
+                    pkg = subModulePkg;
+                }
+            } else {
+                pkg = parentInfo.getPackage();
+            }
+            for (String name : parentNames) {
+                pkg = pkg + PERIOD + getCamelCase(name, pluginConfig.getConflictResolver());
+            }
+
+            qualifiedTypeInfo.setPkgInfo(pkg.toLowerCase());
+            qualifiedTypeInfo.setClassInfo(
+                    getCapitalCase(getCamelCase(curNode.getName(), pluginConfig.getConflictResolver())));
+            return qualifiedTypeInfo;
+
+        } else {
+            qualifiedTypeInfo.setPkgInfo(groupingFileInfo.getPackage().toLowerCase());
+            qualifiedTypeInfo.setClassInfo(getCapitalCase(groupingFileInfo.getJavaName()));
+            return qualifiedTypeInfo;
+        }
     }
 
     /**

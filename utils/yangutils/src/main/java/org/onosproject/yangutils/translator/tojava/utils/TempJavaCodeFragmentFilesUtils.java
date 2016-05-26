@@ -29,7 +29,10 @@ import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.TempJavaCodeFragmentFilesContainer;
 import org.onosproject.yangutils.translator.tojava.TempJavaFragmentFiles;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaAugment;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaInput;
 import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaModule;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaOutput;
+import org.onosproject.yangutils.translator.tojava.javamodel.YangJavaSubModule;
 
 import static java.util.Collections.sort;
 
@@ -339,6 +342,12 @@ public final class TempJavaCodeFragmentFilesUtils {
             JavaQualifiedTypeInfo qualifiedTypeInfo) {
 
         YangNode parent = curNode.getParent();
+        if (parent instanceof YangJavaModule
+                || parent instanceof YangJavaSubModule
+                || parent instanceof YangJavaInput
+                || parent instanceof YangJavaOutput) {
+            return false;
+        }
         String parentsClassInfo = getCapitalCase(((JavaFileInfoContainer) parent).getJavaFileInfo().getJavaName());
         String childsClassInfo = qualifiedTypeInfo.getClassInfo();
         if (childsClassInfo.equals(parentsClassInfo)) {

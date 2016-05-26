@@ -115,7 +115,7 @@ public final class JavaCodeSnippetGen {
      * @param type attribute type
      * @return list attribute string
      */
-    private static String getListAttribute(String type) {
+    public static String getListAttribute(String type) {
         return LIST + DIAMOND_OPEN_BRACKET + type + DIAMOND_CLOSE_BRACKET;
     }
 

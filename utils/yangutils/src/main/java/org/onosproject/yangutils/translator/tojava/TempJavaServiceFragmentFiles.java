@@ -39,7 +39,10 @@ import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.
 import static org.onosproject.yangutils.translator.tojava.GeneratedTempFileType.RPC_INTERFACE_MASK;
 import static org.onosproject.yangutils.translator.tojava.JavaAttributeInfo.getAttributeInfoForTheData;
 import static org.onosproject.yangutils.translator.tojava.JavaQualifiedTypeInfo.getQualifiedTypeInfoOfCurNode;
+import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaDataType;
+import static org.onosproject.yangutils.translator.tojava.utils.AttributesJavaDataType.getJavaImportClass;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getJavaClassDefClose;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaCodeSnippetGen.getListAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEventFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEventListenerFile;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerator.generateEventSubjectFile;
@@ -48,6 +51,7 @@ import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGenerato
 import static org.onosproject.yangutils.translator.tojava.utils.JavaFileGeneratorUtils.getFileObject;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCamelCase;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getCapitalCase;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
 import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getSmallCase;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getGetterForClass;
 import static org.onosproject.yangutils.translator.tojava.utils.MethodsGenerator.getRpcManagerMethod;
@@ -440,17 +444,107 @@ public class TempJavaServiceFragmentFiles
             String rpcName) throws IOException {
         String rpcInput = EMPTY_STRING;
         String rpcOutput = VOID;
+        String rpcInputJavaDoc = EMPTY_STRING;
         if (javaAttributeInfoOfInput != null) {
             rpcInput = getCapitalCase(javaAttributeInfoOfInput.getAttributeName());
         }
         if (javaAttributeInfoOfOutput != null) {
             rpcOutput = getCapitalCase(javaAttributeInfoOfOutput.getAttributeName());
         }
+        if (!rpcInput.equals(EMPTY_STRING)) {
+            rpcInputJavaDoc = RPC_INPUT_VAR_NAME;
+        }
         appendToFile(getRpcInterfaceTempFileHandle(),
-                generateJavaDocForRpc(rpcName, RPC_INPUT_VAR_NAME, rpcOutput, pluginConfig)
+                generateJavaDocForRpc(rpcName, rpcInputJavaDoc, rpcOutput, pluginConfig)
                         + getRpcServiceMethod(rpcName, rpcInput, rpcOutput, pluginConfig) + NEW_LINE);
         appendToFile(getRpcImplTempFileHandle(),
                 getRpcManagerMethod(rpcName, rpcInput, rpcOutput, pluginConfig) + NEW_LINE);
+    }
+
+    /**
+     * Adds rpc string information to applicable temp file.
+     *
+     * @param javaAttributeInfoOfInput rpc's input node attribute info
+     * @param javaAttributeInfoOfOutput rpc's output node attribute info
+     * @param rpcName name of the rpc function
+     * @param pluginConfig plugin configurations
+     * @param isInputLeafHolder if input node is leaf holder
+     * @param isOutputLeafHolder if output node is leaf holder
+     * @param isInputSingleChildHolder if input node is single child holder
+     * @param isOutputSingleChildHolder if input node is single child holder
+     * @throws IOException IO operation fail
+     */
+    public void addRpcString(JavaAttributeInfo javaAttributeInfoOfInput,
+            JavaAttributeInfo javaAttributeInfoOfOutput, YangPluginConfig pluginConfig,
+            String rpcName, boolean isInputLeafHolder, boolean isOutputLeafHolder,
+            boolean isInputSingleChildHolder, boolean isOutputSingleChildHolder) throws IOException {
+        String rpcInput = EMPTY_STRING;
+        String rpcOutput = VOID;
+        String rpcInputJavaDoc = EMPTY_STRING;
+        if (javaAttributeInfoOfInput != null) {
+            rpcInput = getInputOutputNames(javaAttributeInfoOfInput, isInputLeafHolder, isInputSingleChildHolder,
+                    pluginConfig);
+        }
+        if (javaAttributeInfoOfOutput != null) {
+            rpcOutput =
+                    getInputOutputNames(javaAttributeInfoOfOutput, isOutputLeafHolder, isOutputSingleChildHolder,
+                            pluginConfig);
+        }
+        if (!rpcInput.equals(EMPTY_STRING)) {
+            rpcInputJavaDoc = RPC_INPUT_VAR_NAME;
+        }
+
+        appendToFile(getRpcInterfaceTempFileHandle(),
+                generateJavaDocForRpc(rpcName, rpcInputJavaDoc, rpcOutput, pluginConfig)
+                        + getRpcServiceMethod(rpcName, rpcInput, rpcOutput, pluginConfig) + NEW_LINE);
+        appendToFile(getRpcImplTempFileHandle(),
+                getRpcManagerMethod(rpcName, rpcInput, rpcOutput, pluginConfig) + NEW_LINE);
+    }
+
+    /**
+     * Returns names for input and output.
+     *
+     * @param attr attribute info
+     * @param isLeafHolder if leaf holder
+     * @param isSinglechildHolder if single child holder
+     * @param pluginConfig plugin configurations
+     * @return names for input and output
+     */
+    private String getInputOutputNames(JavaAttributeInfo attr, boolean isLeafHolder, boolean isSinglechildHolder,
+            YangPluginConfig pluginConfig) {
+        if (!attr.isListAttr()) {
+            if (!isLeafHolder || isSinglechildHolder) {
+                String attrName = "";
+                if (!attr.isQualifiedName()) {
+                    attrName = getCapitalCase(attr.getAttributeName());
+                } else {
+                    attrName = attr.getImportInfo().getPkgInfo() + "." + getCapitalCase(attr.getAttributeName());
+                }
+                return attrName;
+            } else {
+                String rpcInput = getJavaImportClass(attr.getAttributeType(), false,
+                        pluginConfig.getConflictResolver());
+                if (rpcInput == null) {
+                    rpcInput = getJavaDataType(attr.getAttributeType());
+                }
+                return rpcInput;
+            }
+        } else {
+            if (!isLeafHolder || isSinglechildHolder) {
+                String attrName = "";
+                if (!attr.isQualifiedName()) {
+                    attrName = getCapitalCase(attr.getAttributeName());
+                } else {
+                    attrName = attr.getImportInfo().getPkgInfo() + "." + getCapitalCase(attr.getAttributeName());
+                }
+                return getListAttribute(attrName);
+
+            } else {
+                return getListAttribute(getJavaImportClass(attr.getAttributeType(), true,
+                        pluginConfig.getConflictResolver()));
+
+            }
+        }
     }
 
     /**
@@ -460,13 +554,19 @@ public class TempJavaServiceFragmentFiles
      * @param javaAttributeInfoOfOutput rpc's output node attribute info
      * @param pluginConfig plugin configurations
      * @param rpcName name of the rpc function
+     * @param isInputLeafHolder if input node is leaf holder
+     * @param isOutputLeafHolder if output node is leaf holder
+     * @param isInputSingleChildHolder if input node is single child holder
+     * @param isOutputSingleChildHolder if input node is single child holder
      * @throws IOException IO operation fail
      */
     public void addJavaSnippetInfoToApplicableTempFiles(JavaAttributeInfo javaAttributeInfoOfInput,
             JavaAttributeInfo javaAttributeInfoOfOutput, YangPluginConfig pluginConfig,
-            String rpcName)
+            String rpcName, boolean isInputLeafHolder, boolean isOutputLeafHolder,
+            boolean isInputSingleChildHolder, boolean isOutputSingleChildHolder)
             throws IOException {
-        addRpcString(javaAttributeInfoOfInput, javaAttributeInfoOfOutput, pluginConfig, rpcName);
+        addRpcString(javaAttributeInfoOfInput, javaAttributeInfoOfOutput, pluginConfig, rpcName, isInputLeafHolder,
+                isOutputLeafHolder, isInputSingleChildHolder, isOutputSingleChildHolder);
     }
 
     /**
@@ -690,6 +790,7 @@ public class TempJavaServiceFragmentFiles
 
         String currentInfo = getCapitalCase(getCamelCase(((YangNotification) curNode).getName(),
                 pluginConfig.getConflictResolver()));
+        String notificationName = ((YangNotification) curNode).getName();
 
         JavaQualifiedTypeInfo qualifiedTypeInfo = getQualifiedTypeInfoOfCurNode(curNode.getParent(),
                 getCapitalCase(currentInfo));
@@ -699,7 +800,7 @@ public class TempJavaServiceFragmentFiles
                         null, false, false);
 
         /*Adds java info for event in respective temp files.*/
-        addEventEnum(currentInfo, pluginConfig);
+        addEventEnum(notificationName, pluginConfig);
         addEventSubjectAttribute(javaAttributeInfo, pluginConfig);
         addEventSubjectGetter(javaAttributeInfo, pluginConfig);
         addEventSubjectSetter(javaAttributeInfo, pluginConfig, currentInfo);
@@ -709,7 +810,7 @@ public class TempJavaServiceFragmentFiles
     private void addEventEnum(String notificationName, YangPluginConfig pluginConfig) throws IOException {
         appendToFile(getEventEnumTempFileHandle(),
                 getJavaDoc(ENUM_ATTRIBUTE, notificationName, false, pluginConfig) + FOUR_SPACE_INDENTATION
-                        + notificationName.toUpperCase() + COMMA + NEW_LINE);
+                        + getEnumJavaAttribute(notificationName).toUpperCase() + COMMA + NEW_LINE);
     }
 
     /*Adds event method in event class*/

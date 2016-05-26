@@ -271,6 +271,7 @@ public class YangModule extends YangNode
      *
      * @return the list of imported modules
      */
+    @Override
     public List<YangImport> getImportList() {
         return importList;
     }
@@ -280,6 +281,7 @@ public class YangModule extends YangNode
      *
      * @param importedModule module being imported
      */
+    @Override
     public void addToImportList(YangImport importedModule) {
         getImportList().add(importedModule);
     }
@@ -294,6 +296,7 @@ public class YangModule extends YangNode
      *
      * @return the included list of sub modules
      */
+    @Override
     public List<YangInclude> getIncludeList() {
         return includeList;
     }
@@ -303,6 +306,7 @@ public class YangModule extends YangNode
      *
      * @param includeModule submodule being included
      */
+    @Override
     public void addToIncludeList(YangInclude includeModule) {
         getIncludeList().add(includeModule);
     }
@@ -393,6 +397,7 @@ public class YangModule extends YangNode
      *
      * @return the prefix
      */
+    @Override
     public String getPrefix() {
         return prefix;
     }
@@ -402,6 +407,7 @@ public class YangModule extends YangNode
      *
      * @param prefix the prefix to set
      */
+    @Override
     public void setPrefix(String prefix) {
         this.prefix = prefix;
     }

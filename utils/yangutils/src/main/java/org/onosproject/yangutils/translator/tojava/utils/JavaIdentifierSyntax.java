@@ -366,7 +366,7 @@ public final class JavaIdentifierSyntax {
             i = 1;
         }
         for (; i < stringArray.length; i++) {
-            if ((i + 1) == stringArray.length) {
+            if (i + 1 == stringArray.length) {
                 if (stringArray[i].matches(REGEX_FOR_SINGLE_LETTER)
                         || stringArray[i].matches(REGEX_FOR_DIGITS_WITH_SINGLE_LETTER)) {
                     ruleChecker = ruleChecker + stringArray[i].toLowerCase();

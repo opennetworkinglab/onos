@@ -24,6 +24,7 @@ import static org.onosproject.yangutils.utils.UtilConstants.BUILDER;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_CLASS_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_INTERFACE_JAVA_DOC;
 import static org.onosproject.yangutils.utils.UtilConstants.BUILDER_OBJECT;
+import static org.onosproject.yangutils.utils.UtilConstants.EMPTY_STRING;
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM_ATTRIBUTE_JAVADOC;
 import static org.onosproject.yangutils.utils.UtilConstants.ENUM_CLASS_JAVADOC;
 import static org.onosproject.yangutils.utils.UtilConstants.EVENT_JAVA_DOC;
@@ -298,8 +299,10 @@ public final class JavaDocGen {
 
         String javadoc =
                 NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_FIRST_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_RPC
-                        + rpcName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK
-                        + getInputString(inputName, rpcName);
+                        + rpcName + PERIOD + NEW_LINE + FOUR_SPACE_INDENTATION + NEW_LINE_ASTERISK;
+        if (!inputName.equals(EMPTY_STRING)) {
+            javadoc = javadoc + getInputString(inputName, rpcName);
+        }
         if (!outputName.equals(VOID)) {
             javadoc = javadoc + getOutputString(outputName, rpcName);
         }
@@ -406,7 +409,8 @@ public final class JavaDocGen {
         } else {
             setter = setter + VALUE + SPACE + OF + SPACE;
         }
-        setter = setter + attribute + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + BUILDER_OBJECT + attribute
+        setter = setter + attribute + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_RETURN + BUILDER_OBJECT
+                + attribute
                 + NEW_LINE + FOUR_SPACE_INDENTATION + JAVA_DOC_END_LINE;
         return setter;
     }
