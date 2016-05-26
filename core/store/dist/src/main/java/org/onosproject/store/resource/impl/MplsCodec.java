@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.resource;
+package org.onosproject.store.resource.impl;
 
 import com.google.common.annotations.Beta;
-import org.onlab.packet.VlanId;
+import org.onlab.packet.MplsLabel;
+import org.onosproject.net.resource.DiscreteResourceCodec;
 
 /**
- * Codec for Vlan.
+ * Codec for MplsLabel.
  */
 @Beta
-public final class VlanCodec implements DiscreteResourceCodec<VlanId> {
+public final class MplsCodec implements DiscreteResourceCodec<MplsLabel> {
     @Override
-    public int encode(VlanId resource) {
-        return resource.toShort();
+    public int encode(MplsLabel resource) {
+        return resource.toInt();
     }
 
     @Override
-    public VlanId decode(int value) {
-        return VlanId.vlanId((short) value);
+    public MplsLabel decode(int value) {
+        return MplsLabel.mplsLabel(value);
     }
 
     @Override
@@ -48,6 +49,6 @@ public final class VlanCodec implements DiscreteResourceCodec<VlanId> {
 
     @Override
     public int hashCode() {
-        return VlanCodec.class.hashCode();
+        return MplsCodec.class.hashCode();
     }
 }
