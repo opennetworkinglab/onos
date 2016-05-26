@@ -159,8 +159,9 @@ public class BgpPeerImpl implements BgpPeer {
      * Send flow specification update message to peer.
      *
      * @param operType operation type
+     * @param routeKey flow rule key
      * @param flowSpec flow specification details
-      * @param wideCommunity for route policy
+     * @param wideCommunity for route policy
      */
     public final void sendFlowSpecUpdateMessageToPeer(FlowSpecOperation operType, BgpFlowSpecRouteKey routeKey,
                                                       BgpFlowSpecNlri flowSpec, WideCommunity wideCommunity) {

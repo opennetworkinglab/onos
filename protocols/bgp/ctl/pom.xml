@@ -47,6 +47,11 @@
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+            <version>4.0.36.Final</version>
+        </dependency>
     </dependencies>
 
     <build>
