@@ -31,7 +31,7 @@ import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
-import org.onosproject.net.resource.BandwidthCapacity;
+import org.onosproject.net.config.basics.BandwidthCapacity;
 import org.onosproject.net.resource.ResourceAdminService;
 import org.onosproject.net.resource.ResourceService;
 import org.slf4j.Logger;

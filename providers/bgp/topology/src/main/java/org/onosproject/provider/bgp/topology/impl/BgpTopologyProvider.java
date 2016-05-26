@@ -74,6 +74,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BandwidthCapacity;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
@@ -90,7 +91,6 @@ import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.BandwidthCapacity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

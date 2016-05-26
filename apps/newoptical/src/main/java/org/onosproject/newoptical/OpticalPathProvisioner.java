@@ -57,7 +57,7 @@ import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.net.resource.BandwidthCapacity;
+import org.onosproject.net.config.basics.BandwidthCapacity;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
