@@ -53,6 +53,8 @@ public class MainNavResource extends AbstractInjectionResource {
             "<div class=\"nav-hdr\">%s</div>%n";
     private static final String NAV_FORMAT =
             "<a ng-click=\"navCtrl.hideNav()\" href=\"#/%s\">%s %s</a>%n";
+    private static final String ICON_FORMAT =
+            "<div icon icon-id=\"%s\"></div>";
 
     private static final String BLANK_GLYPH = "unknown";
 
@@ -119,6 +121,6 @@ public class MainNavResource extends AbstractInjectionResource {
 
     private String icon(UiView view) {
         String gid = view.iconId() == null ? BLANK_GLYPH : view.iconId();
-        return "<div icon icon-id=\"" + gid + "\"></div>";
+        return String.format(ICON_FORMAT, gid);
     }
 }
