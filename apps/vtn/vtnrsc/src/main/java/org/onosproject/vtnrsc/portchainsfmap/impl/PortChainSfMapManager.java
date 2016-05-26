@@ -38,6 +38,7 @@ import org.onosproject.vtnrsc.portpair.PortPairService;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
 import org.slf4j.Logger;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
@@ -86,13 +87,13 @@ public class PortChainSfMapManager implements PortChainSfMapService {
         List<PortPairGroupId> portPairGrpList = portChain.portPairGroups();
         ListIterator<PortPairGroupId> listGrpIterator = portPairGrpList.listIterator();
 
-        while (listGrpIterator.next() != null) {
+        while (listGrpIterator.hasNext()) {
             PortPairGroupId portPairGroupId = listGrpIterator.next();
             PortPairGroup portPairGroup = portPairGroupService.getPortPairGroup(portPairGroupId);
             ServiceFunctionGroup sfg = new ServiceFunctionGroup(portPairGroup.name(), portPairGroup.description(),
                                                                 portPairGroup.portPairLoadMap());
             serviceFunctionGroupList.add(sfg);
         }
-        return serviceFunctionGroupList;
+        return ImmutableList.copyOf(serviceFunctionGroupList);
     }
 }

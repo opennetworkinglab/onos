@@ -70,6 +70,8 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
     protected DeviceService deviceService;
     private static final int TIME_OUT = 0;
     private static final int CLASSIFIER_TABLE = 0;
+    private static final int ENCAP_OUTPUT_TABLE = 4;
+    private static final int TUN_SEND_TABLE = 7;
     private static final int ARP_TABLE = 10;
     private static final int DNAT_TABLE = 20;
     private static final int L3FWD_TABLE = 30;
@@ -278,7 +280,23 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
 
     private Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
         log.debug("Processing versatile forwarding objective");
-        return Collections.emptyList();
+        TrafficSelector selector = fwd.selector();
+        TrafficTreatment tb = fwd.treatment();
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder().fromApp(fwd.appId()).withPriority(fwd.priority())
+                .forDevice(deviceId).withSelector(selector).withTreatment(tb).makeTemporary(TIME_OUT);
+        ruleBuilder.withPriority(fwd.priority());
+        if (fwd.priority() == 100) {
+            ruleBuilder.forTable(ENCAP_OUTPUT_TABLE);
+        } else if (fwd.priority() == 200) {
+            ruleBuilder.forTable(TUN_SEND_TABLE);
+        } else {
+            ruleBuilder.forTable(CLASSIFIER_TABLE);
+        }
+
+        if (fwd.permanent()) {
+            ruleBuilder.makePermanent();
+        }
+        return Collections.singletonList(ruleBuilder.build());
     }
 
     private Collection<FlowRule> processSpecific(ForwardingObjective fwd) {

@@ -48,7 +48,7 @@ public final class DefaultFlowClassifier implements FlowClassifier {
     private static final String TENANT_ID_NOT_NULL = "Tenant id can not be null.";
     private static final String NAME_NOT_NULL = "Name can not be null.";
     private static final String ETHER_TYPE_NOT_NULL = "Ether Type can not be null.";
-    private static final int DEFAULT_CLASSIFIER_PRIORITY = 0xFFFF;
+    private static final int DEFAULT_CLASSIFIER_PRIORITY = 0xCB20;
 
     /**
      * Constructor to create default flow classifier.

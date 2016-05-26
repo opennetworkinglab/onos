@@ -95,6 +95,13 @@ public final class DefaultPortPairGroup implements PortPairGroup {
     }
 
     @Override
+    public void resetLoad() {
+        for (PortPairId portPairId : portPairList) {
+            portPairLoadMap.put(portPairId, new Integer(0));
+        }
+    }
+
+    @Override
     public int getLoad(PortPairId portPairId) {
         return portPairLoadMap.get(portPairId);
     }

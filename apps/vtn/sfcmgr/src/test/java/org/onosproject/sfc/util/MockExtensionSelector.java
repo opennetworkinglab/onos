@@ -23,6 +23,12 @@ import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 
 public class MockExtensionSelector implements ExtensionSelector {
 
+    private ExtensionSelectorType type;
+
+    public MockExtensionSelector(ExtensionSelectorType type) {
+        this.type = type;
+    }
+
     @Override
     public <T> void setPropertyValue(String key, T value) throws ExtensionPropertyException {
     }
@@ -48,6 +54,6 @@ public class MockExtensionSelector implements ExtensionSelector {
 
     @Override
     public ExtensionSelectorType type() {
-        return null;
+        return type;
     }
 }

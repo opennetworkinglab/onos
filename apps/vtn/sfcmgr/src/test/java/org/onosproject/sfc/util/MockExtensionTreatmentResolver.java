@@ -43,7 +43,7 @@ public class MockExtensionTreatmentResolver implements ExtensionTreatmentResolve
 
     @Override
     public ExtensionTreatment getExtensionInstruction(ExtensionTreatmentType type) {
-        return new MockExtensionTreatment();
+        return new MockExtensionTreatment(type);
     }
 
 }

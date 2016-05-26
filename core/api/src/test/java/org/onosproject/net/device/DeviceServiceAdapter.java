@@ -15,7 +15,8 @@
  */
 package org.onosproject.net.device;
 
-import com.google.common.collect.FluentIterable;
+import java.util.Collections;
+import java.util.List;
 
 import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
@@ -24,13 +25,31 @@ import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 
-import java.util.Collections;
-import java.util.List;
+import com.google.common.collect.FluentIterable;
 
 /**
  * Test adapter for device service.
  */
 public class DeviceServiceAdapter implements DeviceService {
+
+    private List<Port> portList;
+
+    /**
+     * Constructor with port list.
+     *
+     * @param portList port list
+     */
+    public DeviceServiceAdapter(List<Port> portList) {
+        this.portList = portList;
+    }
+
+    /**
+     * Default constructor.
+     */
+    public DeviceServiceAdapter() {
+
+    }
+
     @Override
     public int getDeviceCount() {
         return 0;
@@ -59,7 +78,7 @@ public class DeviceServiceAdapter implements DeviceService {
 
     @Override
     public List<Port> getPorts(DeviceId deviceId) {
-        return Collections.emptyList();
+        return portList;
     }
 
     @Override

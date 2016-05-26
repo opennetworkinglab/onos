@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,16 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.junit.After;
 import org.junit.Before;
@@ -63,9 +55,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
- * Unit tests for port chain REST APIs.
+ * Unit tests for port chain device map REST APIs.
  */
-public class PortChainResourceTest extends VtnResourceTest {
+public class PortChainDeviceMapResourceTest extends VtnResourceTest {
 
     final PortChainService portChainService = createMock(PortChainService.class);
 
@@ -73,7 +65,6 @@ public class PortChainResourceTest extends VtnResourceTest {
     TenantId tenantId1 = TenantId.tenantId("d382007aa9904763a801f68ecf065cf5");
     private final List<PortPairGroupId> portPairGroupList1 = Lists.newArrayList();
     private final List<FlowClassifierId> flowClassifierList1 = Lists.newArrayList();
-
 
     final MockPortChain portChain1 = new MockPortChain(portChainId1, tenantId1, "portChain1",
                                                        "Mock port chain", portPairGroupList1,
@@ -92,9 +83,9 @@ public class PortChainResourceTest extends VtnResourceTest {
         private final List<FlowClassifierId> flowClassifierList;
 
         public MockPortChain(PortChainId portChainId, TenantId tenantId,
-                             String name, String description,
-                             List<PortPairGroupId> portPairGroupList,
-                             List<FlowClassifierId> flowClassifierList) {
+                String name, String description,
+                List<PortPairGroupId> portPairGroupList,
+                List<FlowClassifierId> flowClassifierList) {
 
             this.portChainId = portChainId;
             this.tenantId = tenantId;
@@ -126,7 +117,7 @@ public class PortChainResourceTest extends VtnResourceTest {
 
         @Override
         public List<PortPairGroupId> portPairGroups() {
-            return  ImmutableList.copyOf(portPairGroupList);
+            return ImmutableList.copyOf(portPairGroupList);
         }
 
         @Override
@@ -193,17 +184,28 @@ public class PortChainResourceTest extends VtnResourceTest {
 
         @Override
         public List<DeviceId> getSfcClassifiers(LoadBalanceId id) {
-            return null;
+            DeviceId deviceId1 = DeviceId.deviceId("of:000000000000001");
+            List<DeviceId> classifierList = Lists.newArrayList();
+            classifierList.add(deviceId1);
+            return classifierList;
         }
 
         @Override
         public List<DeviceId> getSfcForwarders(LoadBalanceId id) {
-            return null;
+            DeviceId deviceId1 = DeviceId.deviceId("of:000000000000002");
+            DeviceId deviceId2 = DeviceId.deviceId("of:000000000000003");
+            List<DeviceId> forwarderList = Lists.newArrayList();
+            forwarderList.add(deviceId1);
+            forwarderList.add(deviceId2);
+            return forwarderList;
         }
 
         @Override
         public Set<LoadBalanceId> getLoadBalancePathMapKeys() {
-            return null;
+            LoadBalanceId id = LoadBalanceId.of((byte) 1);
+            Set<LoadBalanceId> set = new HashSet<LoadBalanceId>();
+            set.add(id);
+            return set;
         }
 
         @Override
@@ -222,7 +224,6 @@ public class PortChainResourceTest extends VtnResourceTest {
         .add(PortChainService.class, portChainService)
         .add(CodecService.class, context.codecManager());
         BaseResource.setServiceDirectory(testDirectory);
-
     }
 
     /**
@@ -233,93 +234,20 @@ public class PortChainResourceTest extends VtnResourceTest {
     }
 
     /**
-     * Tests the result of the rest api GET when there are no port chains.
-     */
-    @Test
-    public void testPortChainsEmpty() {
-
-        expect(portChainService.getPortChains()).andReturn(null).anyTimes();
-        replay(portChainService);
-        final WebTarget wt = target();
-        final String response = wt.path("port_chains").request().get(String.class);
-        assertThat(response, is("{\"port_chains\":[]}"));
-    }
-
-    /**
      * Tests the result of a rest api GET for port chain id.
      */
     @Test
-    public void testGetPortChainId() {
+    public void testGetPortChainDeviceMap() {
 
-        final Set<PortChain> portChains = new HashSet<>();
-        portChains.add(portChain1);
-
-        expect(portChainService.exists(anyObject())).andReturn(true).anyTimes();
         expect(portChainService.getPortChain(anyObject())).andReturn(portChain1).anyTimes();
         replay(portChainService);
 
         final WebTarget wt = target();
-        final String response = wt.path("port_chains/1278dcd4-459f-62ed-754b-87fc5e4a6751")
-                .request().get(String.class);
+        final String response = wt.path("portChainDeviceMap/1278dcd4-459f-62ed-754b-87fc5e4a6751").request()
+                .get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
-    }
+        assertThat(result.names().get(0), is("portChainDeviceMap"));
 
-    /**
-     * Tests that a fetch of a non-existent port chain object throws an exception.
-     */
-    @Test
-    public void testBadGet() {
-        expect(portChainService.getPortChain(anyObject()))
-        .andReturn(null).anyTimes();
-        replay(portChainService);
-        WebTarget wt = target();
-        try {
-            wt.path("port_chains/78dcd363-fc23-aeb6-f44b-56dc5aafb3ae")
-                    .request().get(String.class);
-            fail("Fetch of non-existent port chain did not throw an exception");
-        } catch (NotFoundException ex) {
-            assertThat(ex.getMessage(),
-                       containsString("HTTP 404 Not Found"));
-        }
-    }
-
-    /**
-     * Tests creating a port chain with POST.
-     */
-    @Test
-    public void testPost() {
-
-        expect(portChainService.createPortChain(anyObject()))
-        .andReturn(true).anyTimes();
-        replay(portChainService);
-
-        WebTarget wt = target();
-        InputStream jsonStream = PortChainResourceTest.class.getResourceAsStream("post-PortChain.json");
-
-        Response response = wt.path("port_chains")
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .post(Entity.json(jsonStream));
-        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_OK));
-    }
-
-    /**
-     * Tests deleting a port chain.
-     */
-    @Test
-    public void testDelete() {
-        expect(portChainService.removePortChain(anyObject()))
-        .andReturn(true).anyTimes();
-        replay(portChainService);
-
-        WebTarget wt = target();
-
-        String location = "port_chains/1278dcd4-459f-62ed-754b-87fc5e4a6751";
-
-        Response deleteResponse = wt.path(location)
-                .request(MediaType.APPLICATION_JSON_TYPE, MediaType.TEXT_PLAIN_TYPE)
-                .delete();
-        assertThat(deleteResponse.getStatus(),
-                   is(HttpURLConnection.HTTP_NO_CONTENT));
     }
 }

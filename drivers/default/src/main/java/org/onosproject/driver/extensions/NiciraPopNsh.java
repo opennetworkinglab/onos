@@ -13,39 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sfc.util;
 
-import java.util.List;
+package org.onosproject.driver.extensions;
 
-import org.onosproject.net.flow.instructions.ExtensionPropertyException;
+import org.onlab.util.KryoNamespace;
+import org.onosproject.net.flow.AbstractExtension;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
-public class MockExtensionTreatment implements ExtensionTreatment {
+/**
+ * Nicira pop nsh extension instruction.
+ */
+public class NiciraPopNsh extends AbstractExtension implements ExtensionTreatment {
 
-    private ExtensionTreatmentType type;
+    private final KryoNamespace appKryo = new KryoNamespace.Builder().build();
 
-    public MockExtensionTreatment(ExtensionTreatmentType type) {
-        this.type = type;
+    /**
+     * Creates a new pop nsh instruction.
+     */
+    public NiciraPopNsh() {
     }
 
     @Override
-    public <T> void setPropertyValue(String key, T value) throws ExtensionPropertyException {
-    }
-
-    @Override
-    public <T> T getPropertyValue(String key) throws ExtensionPropertyException {
-        return null;
-    }
-
-    @Override
-    public List<String> getProperties() {
-        return null;
-    }
-
-    @Override
-    public byte[] serialize() {
-        return null;
+    public ExtensionTreatmentType type() {
+        return ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_POP_NSH.type();
     }
 
     @Override
@@ -53,8 +44,23 @@ public class MockExtensionTreatment implements ExtensionTreatment {
     }
 
     @Override
-    public ExtensionTreatmentType type() {
-        return type;
+    public byte[] serialize() {
+        return appKryo.serialize(0);
     }
 
+    @Override
+    public int hashCode() {
+        return 1;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof NiciraPopNsh) {
+            return true;
+        }
+        return false;
+    }
 }

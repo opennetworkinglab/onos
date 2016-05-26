@@ -43,6 +43,20 @@ public final class VtnConfig {
         {
             put("key", "flow");
             put("remote_ip", "flow");
+            put("dst_port", "4790");
+            put("in_nsi", "flow");
+            put("in_nsp", "flow");
+            put("out_nsi", "flow");
+            put("out_nsp", "flow");
+            put("in_nshc1", "flow");
+            put("out_nshc1", "flow");
+            put("in_nshc2", "flow");
+            put("out_nshc2", "flow");
+            put("in_nshc3", "flow");
+            put("out_nshc3", "flow");
+            put("in_nshc4", "flow");
+            put("out_nshc4", "flow");
+            put("exts", "gpe");
         }
     };
     /**

@@ -43,6 +43,6 @@ public class MockExtensionSelectorResolver implements ExtensionSelectorResolver 
 
     @Override
     public ExtensionSelector getExtensionSelector(ExtensionSelectorType type) {
-        return new MockExtensionSelector();
+        return new MockExtensionSelector(type);
     }
 }
