@@ -194,14 +194,12 @@ import org.onosproject.net.resource.ContinuousResourceId;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceCodec;
 import org.onosproject.net.resource.DiscreteResourceId;
-import org.onosproject.net.resource.MplsCodec;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.VlanCodec;
 import org.onosproject.security.Permission;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.primitives.MapUpdate;
@@ -535,8 +533,6 @@ public final class KryoNamespaces {
             )
             .register(ClosedOpenRange.class)
             .register(DiscreteResourceCodec.class)
-            .register(VlanCodec.class)
-            .register(MplsCodec.class)
             .build("API");
 
 

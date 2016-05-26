@@ -19,8 +19,6 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceCodec;
-import org.onosproject.net.resource.MplsCodec;
-import org.onosproject.net.resource.VlanCodec;
 
 import java.util.HashMap;
 import java.util.Map;
