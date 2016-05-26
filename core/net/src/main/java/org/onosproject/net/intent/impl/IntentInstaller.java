@@ -16,6 +16,7 @@
 
 package org.onosproject.net.intent.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.FlowRule;
@@ -299,15 +300,15 @@ class IntentInstaller {
 
     // Context for applying and tracking operations related to flow objective intents.
     private class FlowObjectiveOperationContext extends OperationContext {
-        List<FlowObjectiveInstallationContext> contexts;
+        List<FlowObjectiveInstallationContext> contexts = Lists.newLinkedList();
         final Set<ObjectiveContext> pendingContexts = Sets.newHashSet();
         final Set<ObjectiveContext> errorContexts = Sets.newConcurrentHashSet();
 
         @Override
         public void prepareIntents(List<Intent> intentsToApply, Direction direction) {
-            contexts = intentsToApply.stream()
+            intentsToApply.stream()
                     .flatMap(x -> buildObjectiveContexts((FlowObjectiveIntent) x, direction).stream())
-                    .collect(Collectors.toList());
+                    .forEach(contexts::add);
         }
 
         // Builds the specified objective in the appropriate direction
