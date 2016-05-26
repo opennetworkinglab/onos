@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.ContinuousResourceId;
 import org.onosproject.net.resource.DiscreteResource;
@@ -169,8 +170,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                         return continuousTxStore.lookup((ContinuousResourceId) x);
                     }
                 })
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .flatMap(Tools::stream)
                 .collect(Collectors.toList());
         // the order is preserved by LinkedHashMap
         Map<DiscreteResourceId, List<Resource>> resourceMap = resources.stream()
