@@ -19,7 +19,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-
 import static org.onosproject.net.Link.Type.DIRECT;
 
 import java.util.Iterator;
@@ -29,7 +28,6 @@ import java.util.LinkedList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -165,6 +163,7 @@ public class BasicPceccHandlerTest {
 
     @After
     public void tearDown() throws Exception {
+        PceManagerTest.flowsDownloaded = 0;
     }
 
     /**

@@ -36,6 +36,7 @@ import org.onosproject.incubator.net.tunnel.OpticalLogicId;
 import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.Tunnel.State;
+import org.onosproject.incubator.net.tunnel.TunnelAdminService;
 import org.onosproject.incubator.net.tunnel.TunnelDescription;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.TunnelId;
@@ -45,11 +46,14 @@ import org.onosproject.incubator.net.tunnel.TunnelProviderRegistry;
 import org.onosproject.incubator.net.tunnel.TunnelProviderService;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.incubator.net.tunnel.TunnelStatistics;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultAnnotations.Builder;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.IpElementId;
@@ -57,6 +61,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.pcep.api.PcepController;
@@ -68,6 +73,7 @@ import org.onosproject.pcep.api.PcepTunnel.PathState;
 import org.onosproject.pcep.api.PcepTunnel.PathType;
 import org.onosproject.pcep.api.PcepTunnelListener;
 import org.onosproject.pcep.api.PcepTunnelStatistics;
+import org.onosproject.pcep.controller.LspKey;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepClientController;
@@ -109,6 +115,9 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -126,6 +135,7 @@ import static org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys.LSP_S
 import static org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys.PCC_TUNNEL_ID;
 import static org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys.PLSP_ID;
 import static org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys.PCE_INIT;
+import static org.onosproject.provider.pcep.tunnel.impl.PcepAnnotationKeys.DELEGATE;
 import static org.onosproject.provider.pcep.tunnel.impl.RequestType.CREATE;
 import static org.onosproject.provider.pcep.tunnel.impl.RequestType.DELETE;
 import static org.onosproject.provider.pcep.tunnel.impl.RequestType.LSP_STATE_RPT;
@@ -148,6 +158,11 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     private static final long MIN_BANDWIDTH = 64;
     private static final String BANDWIDTH_UINT = "kbps";
     static final String PROVIDER_ID = "org.onosproject.provider.tunnel.pcep";
+    public static final long IDENTIFIER_SET = 0x100000000L;
+    public static final long SET = 0xFFFFFFFFL;
+    private static final int DELAY = 2;
+    private static final int WAIT_TIME = 5;
+    public static final String LSRID = "lsrId";
 
     static final int POLL_INTERVAL = 10;
     @Property(name = "tunnelStatsPollFrequency", intValue = POLL_INTERVAL,
@@ -170,6 +185,15 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TunnelAdminService tunnelAdminService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     TunnelProviderService service;
 
@@ -263,7 +287,8 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         }
 
         //If stateful and PC Initiation capability is not supported by client not sending Initiate msg
-        if (pc.capability().pcInstantiationCapability()) {
+        //Only master will initiate setup tunnel
+        if (pc.capability().pcInstantiationCapability() && mastershipService.isLocalMaster(getDevice(pc.getPccId()))) {
             pcepSetupTunnel(tunnel, path, pc);
         }
     }
@@ -300,7 +325,10 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             return;
         }
 
-        if (pc.capability().pcInstantiationCapability()) {
+        //If stateful and PC Initiation capability is not supported by client not sending Initiate msg
+        //Only master will initiate setup tunnel
+        if (pc.capability().pcInstantiationCapability()
+                && mastershipService.isLocalMaster(getDevice(pc.getPccId()))) {
             pcepSetupTunnel(tunnel, path, pc);
         }
     }
@@ -327,7 +355,9 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             return;
         }
 
-        if (pc.capability().pcInstantiationCapability()) {
+        //Only master will release tunnel
+        if (pc.capability().pcInstantiationCapability()
+                && mastershipService.isLocalMaster(getDevice(pc.getPccId()))) {
             pcepReleaseTunnel(tunnel, pc);
         }
     }
@@ -358,7 +388,9 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             return;
         }
 
-        if (pc.capability().pcInstantiationCapability()) {
+        //Only master will release tunnel
+        if (pc.capability().pcInstantiationCapability()
+                && mastershipService.isLocalMaster(getDevice(pc.getPccId()))) {
             pcepReleaseTunnel(tunnel, pc);
         }
     }
@@ -384,7 +416,12 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             return;
         }
 
-        if (pc.capability().statefulPceCapability()) {
+        // If delegation flag is set then only send update message[means delegated PCE can send update msg for that
+        // LSP].If annotation is null D flag is not set else it is set.
+        if (pc.capability().statefulPceCapability()
+                && pc.delegationInfo(
+                        new LspKey(Integer.valueOf(tunnel.annotations().value(PLSP_ID)), Short.valueOf(tunnel
+                                .annotations().value(LOCAL_LSP_ID)))) != null) {
             pcepUpdateTunnel(tunnel, path, pc);
         }
     }
@@ -416,7 +453,12 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             return;
         }
 
-        if (pc.capability().statefulPceCapability()) {
+        // If delegation flag is set then only send update message[means delegated PCE can send update msg for that
+        // LSP].If annotation is null D flag is not set else it is set.
+        if (pc.capability().statefulPceCapability()
+                && pc.delegationInfo(
+                        new LspKey(Integer.valueOf(tunnel.annotations().value(PLSP_ID)), Short.valueOf(tunnel
+                                .annotations().value(LOCAL_LSP_ID)))) != null) {
             pcepUpdateTunnel(tunnel, path, pc);
         }
     }
@@ -478,6 +520,43 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
         tunnelMap.put(String.valueOf(pcepTunnel.id()), tunnelId);
         return tunnelId;
+    }
+
+    private void tunnelUpdated(Tunnel tunnel, Path path) {
+        handleTunnelUpdate(tunnel, path);
+    }
+
+    //Handles tunnel updated using tunnel admin service[specially to update annotations].
+    private void handleTunnelUpdate(Tunnel tunnel, Path path) {
+
+        if (tunnel.type() == MPLS) {
+            pcepTunnelApiMapper.removeFromCoreTunnelRequestQueue(tunnel.tunnelId());
+
+            tunnelAdminService.updateTunnel(tunnel, path);
+
+            return;
+        }
+
+        Tunnel tunnelOld = tunnelQueryById(tunnel.tunnelId());
+        if (tunnelOld.type() != Tunnel.Type.VLAN) {
+            error("Illegal tunnel type. Only support VLAN tunnel update.");
+            return;
+        }
+
+        long bandwidth = Long
+                .parseLong(tunnel.annotations().value("bandwidth"));
+        if (bandwidth < MIN_BANDWIDTH || bandwidth > MAX_BANDWIDTH) {
+            error("Update failed, invalid bandwidth.");
+            return;
+        }
+        String pcepTunnelId = getPcepTunnelKey(tunnel.tunnelId());
+
+        checkNotNull(pcepTunnelId, "Invalid tunnel id");
+        if (!controller.updateTunnelBandwidth(pcepTunnelId, bandwidth)) {
+            error("Update failed,maybe invalid bandwidth.");
+            return;
+        }
+        tunnelAdminService.updateTunnel(tunnel, path);
     }
 
     @Override
@@ -1226,27 +1305,19 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             }
         }
 
-        private void handleRptWithoutSrpId(PcepStateReport stateRpt, PccId pccId, PcepSyncStatus syncStatus) {
-            ProviderId providerId = new ProviderId("pcep", PROVIDER_ID);
-            PcepStateReport.PcepMsgPath msgPath = stateRpt.getMsgPath();
-            checkNotNull(msgPath);
-            PcepEroObject eroObj = msgPath.getEroObject();
-            if (eroObj == null) {
-                log.error("ERO object is null in report message.");
-                return;
-            }
-            Path path = buildPathFromEroObj(eroObj, providerId);
+        private SparseAnnotations getAnnotations(PcepLspObject lspObj, StatefulIPv4LspIdentifiersTlv ipv4LspIdenTlv,
+                float bandwidth, LspType lspType) {
+            SparseAnnotations annotations = DefaultAnnotations.builder()
+                    .set(BANDWIDTH, (new Float(bandwidth)).toString()).set(LSP_SIG_TYPE, lspType.name())
+                    .set(PCC_TUNNEL_ID, String.valueOf(ipv4LspIdenTlv.getTunnelId()))
+                    .set(PLSP_ID, String.valueOf(lspObj.getPlspId()))
+                    .set(LOCAL_LSP_ID, String.valueOf(ipv4LspIdenTlv.getLspId()))
+                    .set(DELEGATE, String.valueOf(lspObj.getDFlag()))
+                    .build();
+            return annotations;
+        }
 
-            int bandwidth = 0;
-            if (msgPath.getBandwidthObject() != null) {
-                bandwidth = msgPath.getBandwidthObject().getBandwidth();
-            }
-
-            /*
-             * To carry PST TLV, SRP object can be present with value 0 even when PCRpt is not in response to any action
-             * from PCE.
-             */
-            PcepSrpObject srpObj = stateRpt.getSrpObject();
+        private LspType getLspType(PcepSrpObject srpObj) {
             LspType lspType = WITH_SIGNALLING;
 
             if (null != srpObj) {
@@ -1266,6 +1337,31 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     }
                 }
             }
+            return lspType;
+        }
+
+        private void handleRptWithoutSrpId(PcepStateReport stateRpt, PccId pccId, PcepSyncStatus syncStatus) {
+            ProviderId providerId = new ProviderId("pcep", PROVIDER_ID);
+            PcepStateReport.PcepMsgPath msgPath = stateRpt.getMsgPath();
+            checkNotNull(msgPath);
+            PcepEroObject eroObj = msgPath.getEroObject();
+            if (eroObj == null) {
+                log.error("ERO object is null in report message.");
+                return;
+            }
+            Path path = buildPathFromEroObj(eroObj, providerId);
+
+            float bandwidth = 0;
+            if (msgPath.getBandwidthObject() != null) {
+                bandwidth = msgPath.getBandwidthObject().getBandwidth();
+            }
+
+            /*
+             * To carry PST TLV, SRP object can be present with value 0 even when PCRpt is not in response to any action
+             * from PCE.
+             */
+            PcepSrpObject srpObj = stateRpt.getSrpObject();
+            LspType lspType = getLspType(srpObj);
 
             PcepLspObject lspObj = stateRpt.getLspObject();
             ListIterator<PcepValueType> listTlvIterator = lspObj.getOptionalTlv().listIterator();
@@ -1287,7 +1383,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     break;
                 }
             }
-
             /*
              * Draft says: The LSP-IDENTIFIERS TLV MUST be included in the LSP object in PCRpt messages for
              * RSVP-signaled LSPs. For ONOS PCECC implementation, it is mandatory.
@@ -1302,6 +1397,14 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             IpTunnelEndPoint tunnelEndPointDst = IpTunnelEndPoint
                     .ipTunnelPoint(IpAddress.valueOf(ipv4LspIdenTlv.getIpv4EgressAddress()));
             Collection<Tunnel> tunnelQueryResult = tunnelService.queryTunnel(tunnelEndPointSrc, tunnelEndPointDst);
+
+            // Store delegation flag info and that LSP info because only delegated PCE sends update message
+            // Storing if D flag is set, if not dont store. while checking whether delegation if annotation for D flag
+            // not present then non-delegated , if present it is delegated.
+            if (lspObj.getDFlag()) {
+                pcepClientController.getClient(pccId).setLspAndDelegationInfo(
+                        new LspKey(lspObj.getPlspId(), ipv4LspIdenTlv.getLspId()), lspObj.getDFlag());
+            }
 
             Tunnel tunnel = null;
             // Asynchronous status change message from PCC for LSP reported earlier.
@@ -1321,7 +1424,6 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     }
                     continue;
                 }
-
                 if ((Integer.valueOf(tunnelObj.annotations().value(PLSP_ID)) == lspObj.getPlspId()) && (Integer
                         .valueOf(tunnelObj.annotations().value(LOCAL_LSP_ID)) == ipv4LspIdenTlv.getLspId())) {
                     tunnel = tunnelObj;
@@ -1330,6 +1432,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             }
 
             DefaultTunnelDescription td;
+            SparseAnnotations annotations = null;
             State tunnelState = PcepLspStatus.getTunnelStatusFromLspStatus(PcepLspStatus.values()[lspObj.getOFlag()]);
             if (tunnel == null) {
                 if (lspObj.getRFlag()) {
@@ -1345,21 +1448,15 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                      * While in sync, if PCRpt is received for PCE init LSP and PCE doesn't have entry, mark to send
                      * delete message on end of sync.
                      */
-                    SparseAnnotations annotations = DefaultAnnotations.builder()
-                            .set(BANDWIDTH, (new Integer(bandwidth)).toString())
-                            .set(LSP_SIG_TYPE, lspType.name())
-                            .set(PCC_TUNNEL_ID, String.valueOf(ipv4LspIdenTlv.getTunnelId()))
-                            .set(PLSP_ID, String.valueOf(lspObj.getPlspId()))
-                            .set(LOCAL_LSP_ID, String.valueOf(ipv4LspIdenTlv.getLspId())).build();
+                    annotations = getAnnotations(lspObj, ipv4LspIdenTlv, bandwidth, lspType);
 
-                    // Gnenerate tunnel id for the temporary tunnel.
+                    // Generate tunnel id for the temporary tunnel.
                     String onosTunnelId = "PCC" + String.valueOf(ipv4LspIdenTlv.getTunnelId());
                     Tunnel tunnelToBeDeleted = new DefaultTunnel(providerId, tunnelEndPointSrc, tunnelEndPointDst, MPLS,
                                                                  new DefaultGroupId(0), TunnelId.valueOf(onosTunnelId),
                                                                  TunnelName.tunnelName(String
                                                                          .valueOf(pathNameTlv.getValue())),
                                                                  path, annotations);
-
                     /*
                      * Need to send PCInitiate delete msg for a tunnel which does not exist at PCE. For that some dummy
                      * data-structures need to be populated.
@@ -1378,29 +1475,59 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     syncCompleteDeleteList.put(pccId.ipAddress(), tunnelToBeDeletedList);
                     return;
                 }
+                DeviceId deviceId = getDevice(pccId);
+                if (deviceId == null) {
+                    log.error("Ingress deviceId not found");
+                    return;
+                }
+                annotations = getAnnotations(lspObj, ipv4LspIdenTlv, bandwidth, lspType);
 
-                SparseAnnotations annotations = DefaultAnnotations.builder()
-                        .set(BANDWIDTH, (new Integer(bandwidth)).toString())
-                        .set(LSP_SIG_TYPE, lspType.name())
-                        .set(PCC_TUNNEL_ID, String.valueOf(ipv4LspIdenTlv.getTunnelId()))
-                        .set(PLSP_ID, String.valueOf(lspObj.getPlspId()))
-                        .set(LOCAL_LSP_ID, String.valueOf(ipv4LspIdenTlv.getLspId())).build();
+                td = new DefaultTunnelDescription(null, tunnelEndPointSrc, tunnelEndPointDst, MPLS, new DefaultGroupId(
+                        0), providerId, TunnelName.tunnelName(new String(pathNameTlv.getValue())), path,
+                        annotations);
+                /*
+                 * If ONOS instance is master for PCC then set delegated flag as annotation and add the tunnel to store.
+                 * Because all LSPs need not be delegated, hence mastership for the PCC is confirmed whereas not the
+                 * delegation set to all LSPs.If ONOS is not the master for that PCC then check if D flag is set, if yes
+                 * wait for 2 seconds [while master has added the tunnel to the store] then update the tunnel. Tunnel is
+                 * updated because in case of resilency only delegated LSPs are recomputed and only delegated PCE can
+                 * send update message to that client.
+                 *
+                 * 1)Master can 1st get the Rpt message
+                 * a)Master adds the tunnel into core.
+                 * b)If a non-master for ingress gets Rpt message with D flag set[as delegation owner]
+                 *  after master, then runs timer then update the tunnel with D flag set.
+                 * 2)Non-Master can 1st get the Rpt message
+                 * a)Non-Master runs the timer check for the tunnel then updates the tunnel with D flag set
+                 * b)Master would have got the message while the non-master running timer, hence master adds
+                 *  tunnel to core
+                 *
+                 * In general always master adds the tunnel to the core
+                 * while delegated owner [master or non-master with D flag set] always updates the tunnel running timer
+                 */
+                if (mastershipService.isLocalMaster(deviceId)) {
+                    TunnelId tId = tunnelAdded(td, tunnelState);
+                    Tunnel tunnelInserted = new DefaultTunnel(providerId, tunnelEndPointSrc, tunnelEndPointDst, MPLS,
+                            tunnelState, new DefaultGroupId(0), tId, TunnelName.tunnelName(String.valueOf(pathNameTlv
+                                    .getValue())), path, annotations);
 
-                td = new DefaultTunnelDescription(null, tunnelEndPointSrc, tunnelEndPointDst, MPLS,
-                                                  new DefaultGroupId(0), providerId,
-                                                  TunnelName.tunnelName(String.valueOf(pathNameTlv.getValue())), path,
-                                                  annotations);
-
-                TunnelId tId = tunnelAdded(td, tunnelState);
-                Tunnel tunnelInserted = new DefaultTunnel(providerId, tunnelEndPointSrc, tunnelEndPointDst, MPLS,
-                                                          tunnelState, new DefaultGroupId(0), tId,
-                                                          TunnelName.tunnelName(String.valueOf(pathNameTlv.getValue())),
-                                                          path, annotations);
-
-                PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnelInserted, path, LSP_STATE_RPT);
-                pcepTunnelData.setStatefulIpv4IndentifierTlv(ipv4LspIdenTlv);
-                pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
+                    PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnelInserted, path, LSP_STATE_RPT);
+                    pcepTunnelData.setStatefulIpv4IndentifierTlv(ipv4LspIdenTlv);
+                    pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
+                } else if (!mastershipService.isLocalMaster(deviceId) && lspObj.getDFlag()) {
+                    //Start timer then update the tunnel with D flag
+                    tunnelUpdateInDelegatedCase(pccId, annotations, td, providerId);
+                }
                 return;
+            }
+
+            //delegated owner will update can be a master or non-master
+            if (lspObj.getDFlag()) {
+                annotations = getAnnotations(lspObj, ipv4LspIdenTlv, bandwidth, lspType);
+                td = new DefaultTunnelDescription(null, tunnelEndPointSrc, tunnelEndPointDst, MPLS, new DefaultGroupId(
+                        0), providerId, TunnelName.tunnelName(new String(pathNameTlv.getValue())), path,
+                        annotations);
+                tunnelUpdateInDelegatedCase(pccId, annotations, td, providerId);
             }
 
             if ((syncStatus == IN_SYNC) && (lspObj.getCFlag()) && (tunnelState != tunnel.state())) {
@@ -1410,12 +1537,15 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                 syncCompleteUpdateList.put(pccId.ipAddress(), tunnelToBeUpdateList);
                 return;
             }
+            removeOrUpdatetunnel(tunnel, pccId, lspObj, providerId, syncStatus, tunnelState);
+            return;
+        }
 
-            td = new DefaultTunnelDescription(tunnel.tunnelId(), tunnel.src(), tunnel.dst(),
-                                                                       tunnel.type(), tunnel.groupId(), providerId,
-                                                                       tunnel.tunnelName(), tunnel.path(),
-                                                                       (SparseAnnotations) tunnel.annotations());
-
+        private void removeOrUpdatetunnel(Tunnel tunnel, PccId pccId, PcepLspObject lspObj, ProviderId providerId,
+                PcepSyncStatus syncStatus, State tunnelState) {
+            DefaultTunnelDescription td = new DefaultTunnelDescription(tunnel.tunnelId(), tunnel.src(), tunnel.dst(),
+                    tunnel.type(), tunnel.groupId(), providerId, tunnel.tunnelName(), tunnel.path(),
+                    (SparseAnnotations) tunnel.annotations());
             if (lspObj.getRFlag()) {
                 tunnelRemoved(td);
             } else {
@@ -1424,7 +1554,21 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                 }
                 tunnelUpdated(td, tunnelState);
             }
-            return;
+        }
+
+        private void tunnelUpdateInDelegatedCase(PccId pccId, SparseAnnotations annotations,
+                DefaultTunnelDescription td, ProviderId providerId) {
+            //Wait for 2sec then query tunnel based on ingress PLSP-ID and local LSP-ID
+
+            /*
+             * If ONOS is not the master for that PCC then check if D flag is set, if yes wait [while
+             * master has added the tunnel to the store] then update the tunnel.
+             */
+            ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+            // Thread is started after 2 seconds first time later periodically after 2 seconds to update the tunnel
+            executor.scheduleAtFixedRate(new UpdateDelegation(td, providerId, annotations, pccId,
+                    executor), DELAY, DELAY, TimeUnit.SECONDS);
         }
 
         /**
@@ -1576,6 +1720,85 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         // PCE APP to start label DB sync.
         if (true) {
             pcepClientController.getClient(pccId).setLabelDbSyncStatus(IN_SYNC);
+        }
+    }
+
+    private DeviceId getDevice(PccId pccId) {
+        // Get lsrId of the PCEP client from the PCC ID. Session info is based on lsrID.
+        IpAddress lsrId = pccId.ipAddress();
+        String lsrIdentifier = String.valueOf(lsrId);
+
+        // Find PCC deviceID from lsrId stored as annotations
+        Iterable<Device> devices = deviceService.getAvailableDevices();
+        for (Device dev : devices) {
+            if (dev.annotations().value(AnnotationKeys.TYPE).equals("L3")
+                    && dev.annotations().value(LSRID).equals(lsrIdentifier)) {
+                return dev.id();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Updates the tunnel with updated tunnel annotation after a delay of two seconds and checks it till
+     * tunnel is found.
+     */
+    private class UpdateDelegation implements Runnable {
+        DefaultTunnelDescription td;
+        ProviderId providerId;
+        SparseAnnotations annotations;
+        PccId pccId;
+        ScheduledExecutorService executor;
+
+        /**
+         * Creates an instance of UpdateDelegation.
+         *
+         * @param td tunnel description
+         * @param providerId provider id
+         * @param annotations tunnel annotations
+         * @param pccId PCEP client id
+         * @param executor service of delegated owner
+         */
+        public UpdateDelegation(DefaultTunnelDescription td, ProviderId providerId, SparseAnnotations annotations,
+                PccId pccId, ScheduledExecutorService executor) {
+            this.td = td;
+            this.providerId = providerId;
+            this.annotations = annotations;
+            this.pccId = pccId;
+            this.executor = executor;
+        }
+
+        //Temporary using annotations later will use projection/network config service
+        @Override
+        public void run() {
+            Collection<Tunnel> tunnelQueryResult = tunnelService.queryTunnel(td.src(), td.dst());
+            TunnelId tempTunnelId = null;
+            for (Tunnel t : tunnelQueryResult) {
+                if (t.annotations().value(LOCAL_LSP_ID) == null ||  t.annotations().value(PLSP_ID) == null) {
+                    continue;
+                }
+
+                if (t.annotations().value(LOCAL_LSP_ID).equals(td.annotations().value(LOCAL_LSP_ID))
+                        && t.annotations().value(PLSP_ID).equals(td.annotations().value(PLSP_ID))
+                        && ((IpTunnelEndPoint) t.src()).ip().equals(pccId.id())) {
+                    tempTunnelId = t.tunnelId();
+                    break;
+                }
+            }
+
+            //If tunnel is found update the tunnel and shutdown the thread otherwise thread will be executing
+            //periodically
+            if (tempTunnelId != null) {
+                Tunnel tunnel = new DefaultTunnel(providerId, td.src(), td.dst(), MPLS, new DefaultGroupId(0),
+                        tempTunnelId, td.tunnelName(), td.path(), annotations);
+                tunnelUpdated(tunnel, td.path());
+                executor.shutdown();
+                try {
+                    executor.awaitTermination(WAIT_TIME, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    log.error("updating delegation failed");
+                }
+            }
         }
     }
 }

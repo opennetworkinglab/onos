@@ -51,6 +51,7 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
     public static final byte BANDWIDTH_OBJ_TYPE = 1;
     public static final byte BANDWIDTH_OBJ_CLASS = 5;
     public static final byte BANDWIDTH_OBJECT_VERSION = 1;
+    public static final int NO_OF_BITS = 8;
     public static final short BANDWIDTH_OBJ_MINIMUM_LENGTH = 8;
 
     static final PcepObjectHeader DEFAULT_BANDWIDTH_OBJECT_HEADER = new PcepObjectHeader(BANDWIDTH_OBJ_CLASS,
@@ -58,7 +59,7 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
             BANDWIDTH_OBJ_MINIMUM_LENGTH);
 
     private PcepObjectHeader bandwidthObjHeader;
-    private int iBandwidth;
+    private float iBandwidth;
 
     /**
      * Constructor to bandwidth object header and bandwidth.
@@ -66,7 +67,7 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
      * @param bandwidthObjHeader bandwidth object header
      * @param iBandwidth bandwidth value
      */
-    public PcepBandwidthObjectVer1(PcepObjectHeader bandwidthObjHeader, int iBandwidth) {
+    public PcepBandwidthObjectVer1(PcepObjectHeader bandwidthObjHeader, float iBandwidth) {
         this.bandwidthObjHeader = bandwidthObjHeader;
         this.iBandwidth = iBandwidth;
     }
@@ -76,7 +77,7 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
      *
      * @param iBandwidth bandwidth value
      */
-    public PcepBandwidthObjectVer1(int iBandwidth) {
+    public PcepBandwidthObjectVer1(float iBandwidth) {
         this.bandwidthObjHeader = DEFAULT_BANDWIDTH_OBJECT_HEADER;
         this.iBandwidth = iBandwidth;
     }
@@ -100,12 +101,12 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
     }
 
     @Override
-    public int getBandwidth() {
+    public float getBandwidth() {
         return this.iBandwidth;
     }
 
     @Override
-    public void setBandwidth(int iBandwidth) {
+    public void setBandwidth(float iBandwidth) {
         this.iBandwidth = iBandwidth;
     }
 
@@ -119,12 +120,25 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
     public static PcepBandwidthObject read(ChannelBuffer cb) throws PcepParseException {
 
         PcepObjectHeader bandwidthObjHeader;
-        int iBandwidth;
+        float bandwidth;
 
         bandwidthObjHeader = PcepObjectHeader.read(cb);
-        iBandwidth = cb.readInt();
+        bandwidth = ieeeToFloatRead(cb.readInt()) * NO_OF_BITS;
 
-        return new PcepBandwidthObjectVer1(bandwidthObjHeader, iBandwidth);
+        return new PcepBandwidthObjectVer1(bandwidthObjHeader, bandwidth);
+    }
+
+    /**
+     * Parse the IEEE floating point notation and returns it in normal float.
+     *
+     * @param iVal IEEE floating point number
+     * @return normal float
+     */
+    public static float ieeeToFloatRead(int iVal) {
+        iVal = (((iVal & 0xFF) << 24) | ((iVal & 0xFF00) << 8)
+                | ((iVal & 0xFF0000) >> 8) | ((iVal >> 24) & 0xFF));
+
+        return Float.intBitsToFloat(iVal);
     }
 
     @Override
@@ -138,7 +152,7 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
             throw new PcepParseException("Failed to write bandwidth object header. Index " + objLenIndex);
         }
 
-        cb.writeInt(iBandwidth);
+        cb.writeInt(Float.floatToIntBits(iBandwidth));
         short hLength = (short) (cb.writerIndex() - objStartIndex);
         cb.setShort(objLenIndex, hLength);
         //will be helpful during print().

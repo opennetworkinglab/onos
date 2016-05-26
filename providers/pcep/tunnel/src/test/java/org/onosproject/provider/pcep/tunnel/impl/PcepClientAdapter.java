@@ -17,11 +17,14 @@ package org.onosproject.provider.pcep.tunnel.impl;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.jboss.netty.channel.Channel;
 import org.onosproject.pcep.controller.ClientCapability;
+import org.onosproject.pcep.controller.LspKey;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepSyncStatus;
@@ -45,6 +48,7 @@ public class PcepClientAdapter implements PcepClient {
     private PcepVersion pcepVersion;
     private PcepSyncStatus lspDbSyncStatus;
     private PcepSyncStatus labelDbSyncStatus;
+    private Map<LspKey, Boolean> lspDelegationInfo = new HashMap<>();
 
     /**
      * Initialize instance with specified parameters.
@@ -146,5 +150,15 @@ public class PcepClientAdapter implements PcepClient {
 
     @Override
     public void deleteNode(PccId pccId) {
+    }
+
+    @Override
+    public void setLspAndDelegationInfo(LspKey lspKey, boolean dFlag) {
+        lspDelegationInfo.put(lspKey, dFlag);
+    }
+
+    @Override
+    public Boolean delegationInfo(LspKey lspKey) {
+        return lspDelegationInfo.get(lspKey);
     }
 }

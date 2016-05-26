@@ -149,4 +149,20 @@ public interface PcepClient {
      * @param pccId PCEP client ID
      */
     void deleteNode(PccId pccId);
+
+     /**
+     * Sets D flag for the given LSP and its LSP info.
+     *
+     * @param lspKey contains LSP info
+     * @param dFlag delegation flag in LSP object
+     */
+    void setLspAndDelegationInfo(LspKey lspKey, boolean dFlag);
+
+    /**
+     * Returns delegation flag for the given LSP info.
+     *
+     * @param lspKey contains LSP info
+     * @return delegation flag
+     */
+    Boolean delegationInfo(LspKey lspKey);
 }

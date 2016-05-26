@@ -129,7 +129,7 @@ public class PceManagerTest {
     private Device deviceD1, deviceD2, deviceD3, deviceD4;
     private Device pcepDeviceD1, pcepDeviceD2, pcepDeviceD3, pcepDeviceD4;
     private Link link1, link2, link3, link4;
-    private static int flowsDownloaded;
+    protected static int flowsDownloaded;
     private TunnelListener tunnelListener;
 
     @Before

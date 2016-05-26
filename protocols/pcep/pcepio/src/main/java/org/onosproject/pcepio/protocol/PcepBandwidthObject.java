@@ -29,14 +29,14 @@ public interface PcepBandwidthObject {
      *
      * @return bandwidth value
      */
-    int getBandwidth();
+    float getBandwidth();
 
     /**
      * Sets bandwidth with specified value.
      *
      * @param iBandwidth Bandwidth's value
      */
-    void setBandwidth(int iBandwidth);
+    void setBandwidth(float iBandwidth);
 
     /**
      * Writes the BandwidthObject into channel buffer.

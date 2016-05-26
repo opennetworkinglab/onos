@@ -20,11 +20,13 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
 import org.onosproject.pcep.controller.ClientCapability;
+import org.onosproject.pcep.controller.LspKey;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepPacketStats;
@@ -67,6 +69,7 @@ public class PcepClientImpl implements PcepClientDriver {
     private byte deadTime;
     private byte sessionId;
     private PcepPacketStatsImpl pktStats;
+    private Map<LspKey, Boolean> lspDelegationInfo;
 
     @Override
     public void init(PccId pccId, PcepVersion pcepVersion, PcepPacketStats pktStats) {
@@ -238,6 +241,16 @@ public class PcepClientImpl implements PcepClientDriver {
         if (this.agent == null) {
             this.agent = ag;
         }
+    }
+
+    @Override
+    public void setLspAndDelegationInfo(LspKey lspKey, boolean dFlag) {
+        lspDelegationInfo.put(lspKey, dFlag);
+    }
+
+    @Override
+    public Boolean delegationInfo(LspKey lspKey) {
+        return lspDelegationInfo.get(lspKey);
     }
 
     @Override

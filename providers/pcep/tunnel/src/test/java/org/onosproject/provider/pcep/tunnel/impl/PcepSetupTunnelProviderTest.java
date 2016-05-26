@@ -40,6 +40,7 @@ import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelName;
+import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -49,7 +50,10 @@ import org.onosproject.net.IpElementId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.pcep.controller.ClientCapability;
+import org.onosproject.pcep.controller.PccId;
 
 /**
  * Test for PCEP setup tunnel.
@@ -62,12 +66,16 @@ public class PcepSetupTunnelProviderTest {
     private final PcepClientControllerAdapter controller = new PcepClientControllerAdapter();
     private final PcepControllerAdapter ctl = new PcepControllerAdapter();
     private final TunnelServiceAdapter  tunnelService = new TunnelServiceAdapter();
+    private final DeviceServiceAdapter  deviceService = new DeviceServiceAdapter();
+    private final MastershipServiceAdapter  mastershipService = new MastershipServiceAdapter();
 
     @Before
     public void setUp() throws IOException {
         tunnelProvider.tunnelProviderRegistry = registry;
         tunnelProvider.pcepClientController = controller;
         tunnelProvider.controller = ctl;
+        tunnelProvider.deviceService = deviceService;
+        tunnelProvider.mastershipService = mastershipService;
         tunnelProvider.cfgService = new ComponentConfigAdapter();
         tunnelProvider.tunnelService = tunnelService;
         tunnelProvider.activate();
@@ -111,6 +119,8 @@ public class PcepSetupTunnelProviderTest {
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
                                    new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, annotations);
+        controller.getClient(PccId.pccId(IpAddress.valueOf(0xC010101))).setCapability(
+                new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.setupTunnel(tunnel, path);
         assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
@@ -154,6 +164,8 @@ public class PcepSetupTunnelProviderTest {
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
                                    new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, annotations);
+        controller.getClient(PccId.pccId(IpAddress.valueOf(0xC010103))).setCapability(
+                new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.setupTunnel(tunnel, path);
         assertThat(tunnelProvider.pcepTunnelApiMapper.checkFromTunnelRequestQueue(1), is(false));
@@ -197,6 +209,8 @@ public class PcepSetupTunnelProviderTest {
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
                                    new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, annotations);
+        controller.getClient(PccId.pccId(IpAddress.valueOf(0xC010101))).setCapability(
+                new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.setupTunnel(tunnel, path);
         assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
@@ -240,6 +254,8 @@ public class PcepSetupTunnelProviderTest {
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
                                    new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, annotations);
+        controller.getClient(PccId.pccId(IpAddress.valueOf(0xC010101))).setCapability(
+                new ClientCapability(true, true, true, true, true));
 
         tunnelProvider.setupTunnel(tunnel, path);
         assertThat(tunnelProvider.pcepTunnelApiMapper, not(nullValue()));
@@ -251,5 +267,7 @@ public class PcepSetupTunnelProviderTest {
         tunnelProvider.controller = null;
         tunnelProvider.pcepClientController = null;
         tunnelProvider.tunnelProviderRegistry = null;
+        tunnelProvider.deviceService = null;
+        tunnelProvider.mastershipService = null;
     }
 }

@@ -158,6 +158,7 @@ public class PceccSrTeBeHandlerTest {
 
     @After
     public void tearDown() throws Exception {
+        PceManagerTest.flowsDownloaded = 0;
     }
 
     /**
