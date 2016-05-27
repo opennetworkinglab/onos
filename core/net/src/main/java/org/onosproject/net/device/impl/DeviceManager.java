@@ -729,16 +729,17 @@ public class DeviceManager
     }
 
     private void handleMastershipEvent(MastershipEvent event) {
-        if (event.type() != MastershipEvent.Type.MASTER_CHANGED) {
+        if (event.type() == MastershipEvent.Type.BACKUPS_CHANGED) {
             // Don't care if backup list changed.
             return;
         }
-
         final DeviceId did = event.subject();
 
         // myRole suggested by MastershipService
         MastershipRole myNextRole;
-        if (localNodeId.equals(event.roleInfo().master())) {
+        if (event.type() == MastershipEvent.Type.SUSPENDED) {
+            myNextRole = NONE; // FIXME STANDBY OR NONE?
+        } else if (localNodeId.equals(event.roleInfo().master())) {
             // confirm latest info
             MastershipTerm term = termService.getMastershipTerm(did);
             final boolean iHaveControl = term != null && localNodeId.equals(term.master());

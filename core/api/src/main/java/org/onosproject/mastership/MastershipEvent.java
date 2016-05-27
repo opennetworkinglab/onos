@@ -44,7 +44,13 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
          * the change in the backups list is accompanied by a change in
          * master, the event is subsumed by MASTER_CHANGED.
          */
-        BACKUPS_CHANGED
+        BACKUPS_CHANGED,
+
+        /**
+         * Signifies that the underlying storage for the Mastership state
+         * of this device is unavailable.
+         */
+        SUSPENDED
     }
 
     /**
